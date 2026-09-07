@@ -139,8 +139,9 @@ describe('RemainQuota', () => {
     ]);
 
     const credits = renderedSections[3];
+    // The header abbreviates from 10,000 up; 1,200 is below the threshold.
     expect(credits.current).toBe(
-      '1,200 quota.credit_unit / 6,800,000 quota.credit_unit'
+      '1,200 quota.credit_unit / 6.8M quota.credit_unit'
     );
     expect(credits.currentTooltip).not.toBeUndefined();
     expect(credits.segments).toEqual([
@@ -174,7 +175,7 @@ describe('RemainQuota', () => {
 
     const credits = renderedSections[3];
     expect(credits.current).toBe(
-      '2,000 quota.credit_unit / 6,800,000 quota.credit_unit'
+      '2,000 quota.credit_unit / 6.8M quota.credit_unit'
     );
     expect(credits.segments.map(s => s.color)).toEqual([
       'bg-blue-500',

@@ -8,6 +8,7 @@ import { Expiration } from './Expiration';
 import { StorageSection } from './StorageSection';
 import {
   formatCredits,
+  formatCreditsExact,
   formatStorage,
   formatTime,
   formatTimeAsMinutes,
@@ -425,10 +426,19 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
     {
       title: t('quota.agent_credits_usage'),
       current: `${formatCredits(data.agent_credits.self + data.agent_credits.other_users)} / ${formatCredits(data.agent_credits.total)}`,
-      currentTooltip: buildTotalTooltip(
-        data.agent_credits.subscription_total,
-        data.agent_credits.onetime_total,
-        formatCredits
+      // The header abbreviates, so the tooltip always leads with the exact
+      // counts even when there is no subscription / add-on split below them.
+      currentTooltip: (
+        <div className="flex flex-col gap-0.5 text-xs">
+          <div>
+            {`${formatCreditsExact(data.agent_credits.self + data.agent_credits.other_users)} / ${formatCreditsExact(data.agent_credits.total)}`}
+          </div>
+          {buildTotalTooltip(
+            data.agent_credits.subscription_total,
+            data.agent_credits.onetime_total,
+            formatCreditsExact
+          )}
+        </div>
       ),
       items: showOtherMembersUsage
         ? [
@@ -437,7 +447,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
               color: 'bg-blue-500',
               tooltip: segTooltip(
                 t('quota.my_usage'),
-                formatCredits(data.agent_credits.self)
+                formatCreditsExact(data.agent_credits.self)
               ),
             },
             {
@@ -445,7 +455,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
               color: 'bg-gray-300',
               tooltip: segTooltip(
                 t('quota.other_users'),
-                formatCredits(data.agent_credits.other_users)
+                formatCreditsExact(data.agent_credits.other_users)
               ),
             },
           ]
@@ -455,7 +465,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
               color: 'bg-blue-500',
               tooltip: segTooltip(
                 t('quota.my_usage'),
-                formatCredits(data.agent_credits.self)
+                formatCreditsExact(data.agent_credits.self)
               ),
             },
           ],
@@ -470,7 +480,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                   : 0,
               tooltip: segTooltip(
                 t('quota.my_usage'),
-                formatCredits(data.agent_credits.self)
+                formatCreditsExact(data.agent_credits.self)
               ),
             },
             {
@@ -484,7 +494,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                   : 0,
               tooltip: segTooltip(
                 t('quota.other_users'),
-                formatCredits(data.agent_credits.other_users)
+                formatCreditsExact(data.agent_credits.other_users)
               ),
             },
           ]
@@ -498,7 +508,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
                   : 0,
               tooltip: segTooltip(
                 t('quota.my_usage'),
-                formatCredits(data.agent_credits.self)
+                formatCreditsExact(data.agent_credits.self)
               ),
             },
           ],

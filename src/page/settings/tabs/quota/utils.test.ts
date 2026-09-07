@@ -1,5 +1,6 @@
 import {
   formatCredits,
+  formatCreditsExact,
   formatExpiration,
   getSubscriptionPlanLabelKey,
 } from './utils';
@@ -45,11 +46,43 @@ describe('formatExpiration', () => {
 });
 
 describe('formatCredits', () => {
-  it('groups thousands and appends the credit unit', () => {
-    expect(formatCredits(6800000)).toBe('6,800,000 quota.credit_unit');
+  const UNIT = 'quota.credit_unit';
+
+  it('keeps counts below 10,000 exact', () => {
+    expect(formatCredits(0)).toBe(`0 ${UNIT}`);
+    expect(formatCredits(999)).toBe(`999 ${UNIT}`);
+    expect(formatCredits(9999)).toBe(`9,999 ${UNIT}`);
   });
 
-  it('renders a zero balance without a separator', () => {
-    expect(formatCredits(0)).toBe('0 quota.credit_unit');
+  it('switches to K at 10,000 and to M at 1,000,000', () => {
+    expect(formatCredits(10_000)).toBe(`10K ${UNIT}`);
+    expect(formatCredits(999_999)).toBe(`1M ${UNIT}`);
+    expect(formatCredits(1_000_000)).toBe(`1M ${UNIT}`);
+  });
+
+  it('keeps at most two decimals and drops trailing zeros', () => {
+    expect(formatCredits(1_230_000)).toBe(`1.23M ${UNIT}`);
+    expect(formatCredits(6_800_000)).toBe(`6.8M ${UNIT}`);
+    expect(formatCredits(6_862_291)).toBe(`6.86M ${UNIT}`);
+    expect(formatCredits(15_500)).toBe(`15.5K ${UNIT}`);
+  });
+
+  it('rounds half up rather than truncating', () => {
+    // 12,345 / 1000 is stored as 12.34499..., so toFixed(2) would give 12.34.
+    expect(formatCredits(12_345)).toBe(`12.35K ${UNIT}`);
+    expect(formatCredits(1_234_500)).toBe(`1.23M ${UNIT}`);
+    expect(formatCredits(1_235_000)).toBe(`1.24M ${UNIT}`);
+  });
+
+  it('formats a settled overdraft rather than dropping the sign', () => {
+    expect(formatCredits(-2_500_000)).toBe(`-2.5M ${UNIT}`);
+    expect(formatCredits(-250)).toBe(`-250 ${UNIT}`);
+  });
+});
+
+describe('formatCreditsExact', () => {
+  it('keeps thousands separators at every magnitude', () => {
+    expect(formatCreditsExact(6_862_291)).toBe('6,862,291 quota.credit_unit');
+    expect(formatCreditsExact(0)).toBe('0 quota.credit_unit');
   });
 });
