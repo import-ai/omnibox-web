@@ -122,7 +122,7 @@ export default function ChatConversationsPage({
                               </DropdownMenuTrigger>
                               <DropdownMenuContent side="bottom" align="end">
                                 <DropdownMenuItem
-                                  className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-400"
+                                  className="cursor-pointer"
                                   onClick={event => {
                                     event.stopPropagation();
                                     onEdit({
@@ -135,7 +135,7 @@ export default function ChatConversationsPage({
                                   {t('rename')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="cursor-pointer text-red-500 hover:bg-gray-100 dark:hover:bg-gray-400"
+                                  className="cursor-pointer hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
                                   onClick={event => {
                                     event.stopPropagation();
                                     onRemove({

@@ -219,7 +219,7 @@ export default function Action(props: ActionProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleRemove}
-            className="cursor-pointer justify-between text-red-500 hover:bg-gray-100"
+            className="cursor-pointer justify-between hover:bg-gray-100 hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
           >
             {t('manage.remove')}
           </DropdownMenuItem>

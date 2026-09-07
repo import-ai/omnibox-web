@@ -21,10 +21,19 @@ export interface ActionProps {
     label: string;
     description?: string;
   }>;
+  disabledValues?: Permission[];
 }
 
 export default function Action(props: ActionProps) {
-  const { className, data, disabled, afterAddon, value, onChange } = props;
+  const {
+    className,
+    data,
+    disabled,
+    disabledValues = [],
+    afterAddon,
+    value,
+    onChange,
+  } = props;
   const { t } = useTranslation();
   const target = data.find(item => item.value === value);
 
@@ -54,7 +63,13 @@ export default function Action(props: ActionProps) {
           <DropdownMenuItem
             key={item.value}
             onClick={() => onChange(item.value)}
-            className="cursor-pointer justify-between hover:bg-gray-100 dark:hover:bg-gray-400"
+            disabled={disabledValues.includes(item.value)}
+            className={cn(
+              'justify-between',
+              disabledValues.includes(item.value)
+                ? 'data-[disabled]:pointer-events-auto data-[disabled]:cursor-not-allowed data-[disabled]:!bg-transparent'
+                : 'cursor-pointer hover:bg-gray-100'
+            )}
           >
             <div>
               {item.description ? (
