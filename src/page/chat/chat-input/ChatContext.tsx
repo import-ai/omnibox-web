@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Badge from '@/components/badge';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { Button } from '@/components/ui/Button';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import { IResTypeContext } from './types';
 
@@ -53,7 +54,8 @@ export default function ChatContext(props: IProps) {
             variant="outline"
             className="dark:border-[#6e7276] dark:bg-transparent"
             onClick={() => {
-              navigate(
+              navigateToResource(
+                navigate,
                 `${navigatePrefix}/${item.resource.id}`,
                 item.navigateState ? { state: item.navigateState } : undefined
               );

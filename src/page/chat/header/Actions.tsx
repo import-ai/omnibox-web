@@ -25,6 +25,7 @@ import useApp from '@/hooks/useApp';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import { PlusIcon } from './PlusIcon';
 
@@ -58,18 +59,18 @@ export default function Actions(props: IProps) {
   const [remove, onRemove] = useState(false);
 
   const handleDeleteSuccess = () => {
-    navigate(`/${namespaceId}/chat/conversations`);
+    navigateToResource(navigate, `/${namespaceId}/chat/conversations`);
   };
 
   const handleRestoreSuccess = (response: any) => {
-    navigate(`/${namespaceId}/chat/${response.id}`);
+    navigateToResource(navigate, `/${namespaceId}/chat/${response.id}`);
   };
   const onChatHistory = () => {
     if (onChatHistoryOverride) {
       onChatHistoryOverride();
       return;
     }
-    navigate(`/${namespaceId}/chat/conversations`);
+    navigateToResource(navigate, `/${namespaceId}/chat/conversations`);
   };
   const onChatCreate = () => {
     if (onChatCreateOverride) {
@@ -78,7 +79,7 @@ export default function Actions(props: IProps) {
     }
     if (conversationId) clearChatInputDraft(conversationId);
     resetChatForNamespaceSwitch(namespaceId);
-    navigate(`/${namespaceId}/chat`);
+    navigateToResource(navigate, `/${namespaceId}/chat`);
   };
   const handleAction = (id: string) => {
     if (id === 'rename') {

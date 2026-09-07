@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import CoreApp from '@/hooks/app.class';
@@ -6,17 +6,13 @@ import AppContext from '@/hooks/appContext';
 import { AuthConfigProvider } from '@/hooks/AuthConfigContext';
 import Layout from '@/layout';
 import Error from '@/layout/ErrorPage';
+import { lazyRoute } from '@/lib/lazyRoute';
 import ChatPage from '@/page/chat';
 import ChatHomePage from '@/page/chat/ChatHomePage';
 import NamespacePage from '@/page/namespace';
 
-const ChatConversationPage = lazy(() => import('@/page/chat/conversation'));
-const ChatConversationsPage = lazy(() => import('@/page/chat/conversations'));
-
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/InvitePage'));
-const ResourcePage = lazy(() => import('@/page/resource'));
-const RssItemRedirect = lazy(() => import('@/page/resource/RssItemRedirect'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const VerifyOtpPage = lazy(() => import('@/page/user/VerifyOtpPage'));
 const AcceptInvitePage = lazy(() => import('@/page/user/AcceptInvitePage'));
@@ -47,6 +43,17 @@ const SharedChatConversationPage = lazy(
 );
 
 const WelcomePage = lazy(() => import('@/page/welcome'));
+
+const loadResourcePage = lazyRoute(() => import('@/page/resource'));
+const loadRssItemRedirect = lazyRoute(
+  () => import('@/page/resource/RssItemRedirect')
+);
+const loadChatConversationsPage = lazyRoute(
+  () => import('@/page/chat/conversations')
+);
+const loadChatConversationPage = lazyRoute(
+  () => import('@/page/chat/conversation')
+);
 
 const app = new CoreApp();
 const router = createBrowserRouter([
@@ -109,16 +116,16 @@ const router = createBrowserRouter([
         children: [
           {
             path: ':resource_id?',
-            element: <ResourcePage />,
+            lazy: loadResourcePage,
           },
           {
             // Legacy rss item links, now ordinary resources.
             path: ':resource_id/rss-items/:rss_item_id',
-            element: <RssItemRedirect />,
+            lazy: loadRssItemRedirect,
           },
           {
             path: ':resource_id/edit',
-            element: <ResourcePage />,
+            lazy: loadResourcePage,
           },
           {
             path: 'chat',
@@ -130,11 +137,11 @@ const router = createBrowserRouter([
               },
               {
                 path: 'conversations',
-                element: <ChatConversationsPage />,
+                lazy: loadChatConversationsPage,
               },
               {
                 path: ':conversation_id',
-                element: <ChatConversationPage />,
+                lazy: loadChatConversationPage,
               },
             ],
           },
@@ -155,7 +162,7 @@ const router = createBrowserRouter([
           {
             // Legacy shared rss item links, now ordinary resources.
             path: ':resource_id/rss-items/:rss_item_id',
-            element: <RssItemRedirect />,
+            lazy: loadRssItemRedirect,
           },
           {
             path: 'chat',
@@ -175,9 +182,7 @@ export default function Main() {
   return (
     <AppContext.Provider value={app}>
       <AuthConfigProvider>
-        <Suspense>
-          <RouterProvider router={router} />
-        </Suspense>
+        <RouterProvider router={router} />
       </AuthConfigProvider>
     </AppContext.Provider>
   );
