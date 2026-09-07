@@ -175,7 +175,9 @@ export default function ChatArea(props: IProps) {
       const displayParts = inputRef.current?.getDisplayParts();
       const localDisplayParts = displayParts?.some(part => part.type !== 'text')
         ? displayParts
-        : undefined;
+        : images.length
+          ? [{ type: 'text' as const, text: v }]
+          : undefined;
       clearComposerAfterSend();
       sendMessage({
         query: v,
