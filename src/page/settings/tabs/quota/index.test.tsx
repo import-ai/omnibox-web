@@ -117,11 +117,11 @@ describe('RemainQuota', () => {
     mockUseQuota.mockReturnValue({
       data: usage({
         agent_credits: {
-          self: 1200,
+          self: 1_200_000,
           other_users: 0,
-          total: 6800000,
-          subscription_total: 6000000,
-          onetime_total: 800000,
+          total: 6_800_000_000,
+          subscription_total: 6_000_000_000,
+          onetime_total: 800_000_000,
         },
       }),
       loading: false,
@@ -139,16 +139,15 @@ describe('RemainQuota', () => {
     ]);
 
     const credits = renderedSections[3];
-    // The header abbreviates from 10,000 up; 1,200 is below the threshold.
     expect(credits.current).toBe(
-      '1,200 quota.credit_unit / 6.8M quota.credit_unit'
+      '1.2 quota.credit_unit / 6,800 quota.credit_unit'
     );
     expect(credits.currentTooltip).not.toBeUndefined();
     expect(credits.segments).toEqual([
       {
         label: 'quota.my_usage',
         color: 'bg-blue-500',
-        percentage: (1200 / 6800000) * 100,
+        percentage: (1_200_000 / 6_800_000_000) * 100,
         tooltip: 'quota.tooltip_format',
       },
     ]);
@@ -158,10 +157,10 @@ describe('RemainQuota', () => {
     mockUseQuota.mockReturnValue({
       data: usage({
         agent_credits: {
-          self: 1200,
-          other_users: 800,
-          total: 6800000,
-          subscription_total: 6800000,
+          self: 1_200_000,
+          other_users: 800_000,
+          total: 6_800_000_000,
+          subscription_total: 6_800_000_000,
           onetime_total: 0,
         },
         show_members_usage: true,
@@ -175,7 +174,7 @@ describe('RemainQuota', () => {
 
     const credits = renderedSections[3];
     expect(credits.current).toBe(
-      '2,000 quota.credit_unit / 6.8M quota.credit_unit'
+      '2 quota.credit_unit / 6,800 quota.credit_unit'
     );
     expect(credits.segments.map(s => s.color)).toEqual([
       'bg-blue-500',
