@@ -22,6 +22,7 @@ import {
 } from './index';
 import {
   getAvailableResourceConditionOperators,
+  getResourceConditionExpressionText,
   getResourceConditionFieldType,
   normalizeResourceConditionValue,
   RESOURCE_CONDITION_FIELD_OPTIONS,
@@ -66,6 +67,7 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
     condition.operator,
     condition.value
   );
+  const isExpression = condition.field === 'expression';
 
   const handleRelativeDateAmountChange = (
     event: ChangeEvent<HTMLInputElement>
@@ -127,7 +129,7 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
         </div>
 
         <div className="min-w-0 sm:flex-none">
-          {condition.field ? (
+          {condition.field && !isExpression ? (
             <Select
               value={condition.operator || ''}
               onValueChange={value =>
@@ -155,7 +157,18 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
         </div>
 
         <div className="col-span-2 min-w-0 sm:min-w-64 sm:flex-[2_1_260px]">
-          {condition.field && condition.operator ? (
+          {isExpression ? (
+            <Input
+              value={getResourceConditionExpressionText(condition.value)}
+              autoComplete="off"
+              onChange={event => onValueChange(index, event.target.value)}
+              placeholder={t('resource_conditions.expression_placeholder')}
+              className={cn(
+                resourceConditionInputClass,
+                'font-mono focus-visible:ring-0 focus-visible:ring-transparent'
+              )}
+            />
+          ) : condition.field && condition.operator ? (
             shouldShowResourceConditionValueInput(condition.operator) ? (
               fieldType === 'text' && normalizedValue?.kind === 'text' ? (
                 <Input
