@@ -28,6 +28,13 @@ export interface UsageData {
     subscription_total: number;
     onetime_total: number;
   };
+  agent_credits: {
+    self: number;
+    other_users: number;
+    total: number;
+    subscription_total: number;
+    onetime_total: number;
+  };
   basic: {
     expired: boolean;
     expire_date: string | null;
