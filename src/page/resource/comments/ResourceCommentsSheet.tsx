@@ -14,11 +14,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Spinner } from '@/components/ui/Spinner';
-import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 
 import { ResourceCommentComposer } from './ResourceCommentComposer';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
-import { ResourceCommentThreadItem } from './ResourceCommentThreadItem';
+import { ResourceCommentThreadList } from './ResourceCommentThreadList';
 import type { ResourceCommentsController } from './useResourceComments';
 
 interface ResourceCommentsSheetProps {
@@ -49,7 +48,7 @@ export function ResourceCommentsSheet({
   };
   const content = (
     <>
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b px-3">
+      <header className="flex h-12 shrink-0 items-center gap-2 px-3">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -95,9 +94,6 @@ export function ResourceCommentsSheet({
             </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-        {panel && !panel.namespaceId.startsWith('share:') && (
-          <CopilotToggleButton namespaceId={panel.namespaceId} />
-        )}
       </header>
       {controller.contentDirty && (
         <p className="border-b bg-muted px-4 py-2 text-xs text-muted-foreground">
@@ -108,7 +104,7 @@ export function ResourceCommentsSheet({
         data-comments-scroll
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
-        {controller.loading ? (
+        {controller.loading && controller.threads.length === 0 ? (
           <div className="flex h-40 items-center justify-center">
             <Spinner />
           </div>
@@ -124,27 +120,10 @@ export function ResourceCommentsSheet({
             )}
           </div>
         ) : (
-          controller.threads.map(thread => (
-            <ResourceCommentThreadItem
-              key={thread.id}
-              controller={controller}
-              mode="all"
-              thread={thread}
-            />
-          ))
-        )}
-        {controller.hasMore && (
-          <div className="p-4">
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={controller.loadingMore}
-              onClick={loadMore}
-            >
-              {t('resource_comments.load_more')}
-            </Button>
-          </div>
+          <ResourceCommentThreadList
+            controller={controller}
+            loadMore={loadMore}
+          />
         )}
       </div>
     </>

@@ -15,7 +15,13 @@ export function ResourceCommentsToggleButton() {
   const label = t(
     panel.panelOpen ? 'resource_comments.collapse' : 'resource_comments.title'
   );
-  const toggle = () => panel.setPanelOpen(!panel.panelOpen);
+  const toggle = () => {
+    if (panel.panelOpen) {
+      panel.setPanelOpen(false);
+      return;
+    }
+    panel.setPanelOpen(true);
+  };
   return (
     <Tooltip>
       <TooltipTrigger asChild>

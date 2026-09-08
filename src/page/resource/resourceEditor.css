@@ -266,6 +266,19 @@
   text-align: center;
 }
 
+.tiptap.ProseMirror
+  .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--inline,
+.tiptap.ProseMirror
+  .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--inline
+  * {
+  font-weight: inherit !important;
+}
+
+.tiptap.ProseMirror
+  .tiptap-thread.tiptap-thread--resolved.tiptap-thread--inline {
+  border-bottom: none !important;
+}
+
 .resource-readonly-editor .omnibox-scroll-line-highlight {
   background-color: transparent;
 }

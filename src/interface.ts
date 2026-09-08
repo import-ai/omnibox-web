@@ -108,10 +108,19 @@ export interface ResourceCommentAuthor {
   username: string | null;
 }
 
+export interface ResourceCommentAttachment {
+  id: string;
+  url: string;
+  name: string;
+  mimetype: string;
+  size: number;
+}
+
 export interface ResourceComment {
   id: string;
   content: string;
   author: ResourceCommentAuthor;
+  attachments?: ResourceCommentAttachment[];
   created_at: string;
   updated_at: string;
 }

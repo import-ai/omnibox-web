@@ -51,28 +51,26 @@ export function restoreResourceCommentAnchors(
       from: thread.anchor.from,
       to: thread.anchor.to,
     };
-    const existingRange = findResourceCommentRange(editor, thread.id);
-    const range =
-      existingRange ??
-      (rangeMatchesQuote(editor, storedRange, thread.quoted_text)
-        ? storedRange
-        : findQuoteRange(
-            editor,
-            thread.quoted_text,
-            thread.anchor.prefix,
-            thread.anchor.suffix
-          ));
+    if (findResourceCommentRange(editor, thread.id)) {
+      editor.commands.setResourceCommentResolved?.(thread.id, thread.resolved);
+      continue;
+    }
+    const range = resolveCommentRange(editor, {
+      from: storedRange.from,
+      to: storedRange.to,
+      quotedText: thread.quoted_text,
+      prefix: thread.anchor.prefix,
+      suffix: thread.anchor.suffix,
+    });
 
     if (range) {
-      if (existingRange) {
-        editor.commands.removeResourceComment(thread.id);
-      }
       editor.commands.addResourceComment({
         threadId: thread.id,
         label: getCommentAuthorLabel(thread),
         commentCount: Math.max(1, thread.comments.length),
         secondaryLabel: getCommentSecondaryLabel(thread),
         labels: getCommentLabels(thread),
+        resolved: thread.resolved,
         ...range,
       });
     }
@@ -141,6 +139,31 @@ export function collectResourceCommentAnchors(
   };
 }
 
+export function resolveCommentRange(
+  editor: ResourceCommentEditor,
+  selection: {
+    from: number;
+    to: number;
+    quotedText: string;
+    prefix?: string;
+    suffix?: string;
+  }
+) {
+  if (rangeMatchesQuote(editor, selection, selection.quotedText)) {
+    return { from: selection.from, to: selection.to };
+  }
+  const exactRange = findQuoteRange(
+    editor,
+    selection.quotedText,
+    selection.prefix ?? '',
+    selection.suffix ?? ''
+  );
+  if (exactRange) {
+    return exactRange;
+  }
+  return findNearbyQuoteRange(editor, selection);
+}
+
 function rangeMatchesQuote(
   editor: ResourceCommentEditor,
   range: { from: number; to: number },
@@ -154,6 +177,67 @@ function rangeMatchesQuote(
     editor.state.doc.textBetween(range.from, range.to, '\n').trim() ===
     quotedText.trim()
   );
+}
+
+function findNearbyQuoteRange(
+  editor: ResourceCommentEditor,
+  selection: {
+    from: number;
+    to: number;
+    quotedText: string;
+  }
+) {
+  const quote = selection.quotedText.trim();
+  if (!quote) {
+    return null;
+  }
+  const { text, segments } = flattenDocumentText(editor);
+  const expectedStart = documentPositionToTextOffset(segments, selection.from);
+  let searchFrom = 0;
+  let nearest: number | null = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+  while (searchFrom <= text.length - quote.length) {
+    const start = text.indexOf(quote, searchFrom);
+    if (start < 0) {
+      break;
+    }
+    const distance = Math.abs(start - expectedStart);
+    if (distance < nearestDistance) {
+      nearest = start;
+      nearestDistance = distance;
+    }
+    searchFrom = start + 1;
+  }
+  if (nearest != null) {
+    return mapTextRangeToDocument(segments, nearest, nearest + quote.length);
+  }
+  const token = quote
+    .replace(/[`*_\[\]()]/g, ' ')
+    .trim()
+    .split(/\s+/)[0];
+  if (!token) {
+    return clampDocumentRange(editor, selection.from, selection.to);
+  }
+  const tokenStart = text.indexOf(token);
+  if (tokenStart < 0) {
+    return clampDocumentRange(editor, selection.from, selection.to);
+  }
+  return mapTextRangeToDocument(
+    segments,
+    tokenStart,
+    tokenStart + token.length
+  );
+}
+
+function clampDocumentRange(
+  editor: ResourceCommentEditor,
+  from: number,
+  to: number
+) {
+  const maxPosition = editor.state.doc.content.size;
+  const nextFrom = Math.max(0, Math.min(from, maxPosition));
+  const nextTo = Math.max(nextFrom + 1, Math.min(to, maxPosition));
+  return nextFrom < nextTo ? { from: nextFrom, to: nextTo } : null;
 }
 
 function findQuoteRange(
@@ -188,15 +272,15 @@ function findQuoteRange(
     return (!prefix || before === prefix) && (!suffix || after === suffix);
   });
   const matched =
-    contextualCandidates.length === 1 ? contextualCandidates : candidates;
-  if (matched.length !== 1) {
+    contextualCandidates.length === 1
+      ? contextualCandidates[0]
+      : candidates.length === 1
+        ? candidates[0]
+        : null;
+  if (matched == null) {
     return null;
   }
-  return mapTextRangeToDocument(
-    segments,
-    matched[0],
-    matched[0] + quote.length
-  );
+  return mapTextRangeToDocument(segments, matched, matched + quote.length);
 }
 
 function flattenDocumentText(editor: ResourceCommentEditor) {
@@ -224,6 +308,21 @@ function flattenDocumentText(editor: ResourceCommentEditor) {
   });
 
   return { text, segments };
+}
+
+function documentPositionToTextOffset(
+  segments: TextSegment[],
+  documentPosition: number
+) {
+  const segment = segments.find(
+    item =>
+      documentPosition >= item.document_from &&
+      documentPosition <= item.document_to
+  );
+  if (!segment) {
+    return segments[0]?.text_start ?? 0;
+  }
+  return segment.text_start + (documentPosition - segment.document_from);
 }
 
 function mapTextRangeToDocument(

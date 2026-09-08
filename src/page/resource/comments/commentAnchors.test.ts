@@ -27,6 +27,7 @@ jest.mock('@import-ai/omnibox-editor', () => ({
 
 import {
   collectResourceCommentAnchors,
+  resolveCommentRange,
   type ResourceCommentEditor,
   restoreResourceCommentAnchors,
 } from './commentAnchors';
@@ -74,6 +75,10 @@ function makeEditor(text: string) {
         descendants: (
           callback: (candidate: typeof node, position: number) => boolean
         ) => {
+          if (commentRanges.size === 0) {
+            callback(node, 1);
+            return true;
+          }
           for (const [threadId, range] of commentRanges) {
             callback(
               {
@@ -90,7 +95,6 @@ function makeEditor(text: string) {
               range.from
             );
           }
-          callback(node, 1);
           return true;
         },
       },
@@ -108,6 +112,7 @@ function makeEditor(text: string) {
         commentRanges.set(threadId, { from, to });
         return true;
       },
+      setResourceCommentResolved: () => true,
       removeResourceComment: (threadId: string) =>
         commentRanges.delete(threadId),
     },
@@ -116,6 +121,18 @@ function makeEditor(text: string) {
 }
 
 describe('resource comment anchors', () => {
+  it('resolves a truncated quote near the original selection', () => {
+    const { editor } = makeEditor('[超级链接](https://omnibox.pro) next line');
+
+    expect(
+      resolveCommentRange(editor, {
+        from: 1,
+        to: 8,
+        quotedText: '级链接](https:',
+      })
+    ).toEqual({ from: 3, to: 14 });
+  });
+
   it('relocates an anchor when the saved position no longer matches', () => {
     const { commentRanges, editor } = makeEditor('prefix target suffix');
 
@@ -147,7 +164,18 @@ describe('resource comment anchors', () => {
     });
   });
 
-  it('keeps resolved threads anchored so their underline remains visible', () => {
+  it('does not recreate an existing underline', () => {
+    const { commentRanges, editor } = makeEditor('prefix target suffix');
+    commentRanges.set('thread-1', { from: 8, to: 14 });
+    const add = jest.spyOn(editor.commands, 'addResourceComment');
+
+    restoreResourceCommentAnchors(editor, [makeThread()]);
+
+    expect(add).not.toHaveBeenCalled();
+    expect(commentRanges.get('thread-1')).toEqual({ from: 8, to: 14 });
+  });
+
+  it('keeps resolved threads anchored without showing an underline', () => {
     const { commentRanges, editor } = makeEditor('prefix target suffix');
     const thread = makeThread({ resolved: true });
 

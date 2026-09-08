@@ -20,7 +20,6 @@ import Actions from '@/page/chat/header/Actions';
 import Title from '@/page/chat/header/title';
 import { useChatTitle } from '@/page/chat/header/useChatTitle';
 import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
-import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceCommentsToggleButton';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 import CopilotToggleButton from './CopilotToggleButton';
@@ -55,7 +54,7 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
     return (
       <div
         ref={commentsPanel.setPanelElement}
-        className="resource-comments-panel flex h-full min-h-0 flex-col border-l bg-white text-foreground dark:bg-background"
+        className="resource-comments-panel flex h-full min-h-0 flex-col bg-white text-foreground dark:bg-background"
       />
     );
   }
@@ -66,7 +65,6 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
         <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 rounded-2xl bg-white dark:bg-background">
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <CopilotToggleButton namespaceId={namespaceId} />
-            <ResourceCommentsToggleButton />
             {conversationId && (
               <Breadcrumb className="min-w-0">
                 <BreadcrumbList>

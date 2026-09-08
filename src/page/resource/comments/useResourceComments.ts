@@ -1,7 +1,7 @@
 import {
+  findResourceCommentRange,
   type OmniboxEditorCommentsConfig,
   type OmniboxEditorCommentSelection,
-  selectResourceComment,
 } from '@import-ai/omnibox-editor';
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -19,11 +19,13 @@ import {
   listResourceCommentThreads,
   updateResourceComment,
   updateResourceCommentThread,
+  uploadResourceCommentAttachment,
 } from '@/service/resourceComments';
 
 import {
   collectResourceCommentAnchors,
   getSelectionContext,
+  resolveCommentRange,
   type ResourceCommentAnchorSync,
   type ResourceCommentEditor,
   restoreResourceCommentAnchors,
@@ -85,16 +87,19 @@ export function useResourceComments({
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [createConflict, setCreateConflict] = useState(false);
+  const openedHashRef = useRef<string | null>(null);
 
   anchorThreadsRef.current = anchorThreads;
 
   const isShared = namespaceId.startsWith('share:');
   const permission = resource.current_permission ?? 'can_view';
+  const currentUserId = localStorage.getItem('uid');
   const canComment =
     enabled && !isShared && hasPermission(permission, 'can_comment');
   const canEditResource =
     enabled && !isShared && hasPermission(permission, 'can_edit');
-  const canModerateComments = enabled && !isShared;
+  const isCommentAuthor = (authorId: string | null) =>
+    !!currentUserId && authorId === currentUserId;
 
   const mergeAnchorThreads = useCallback(
     (incoming: ResourceCommentThread[]) => {
@@ -147,11 +152,11 @@ export function useResourceComments({
     setThreads([]);
     setPendingSelection(null);
     setActiveThreadId(null);
-    setPanelOpen(false);
     setResolved(undefined);
     setTotal(0);
     setHasMore(false);
     setCreateConflict(false);
+    openedHashRef.current = null;
     requestIdRef.current += 1;
   }, [resource.comment_threads, resource.id]);
 
@@ -191,15 +196,119 @@ export function useResourceComments({
     [setPanelOpen]
   );
 
+  const focusAnimationRef = useRef(0);
+
+  const alignCardWithQuote = useCallback(
+    (threadId: string) => {
+      const marker = panel?.rootElement?.querySelector<HTMLElement>(
+        `[data-resource-comment-thread="${threadId}"]`
+      );
+      const card = panel?.panelElement?.querySelector<HTMLElement>(
+        `[data-thread-id="${threadId}"]`
+      );
+      const commentsScroll = panel?.panelElement?.querySelector<HTMLElement>(
+        '[data-comments-scroll]'
+      );
+      if (!marker || !card || !commentsScroll || !panel) {
+        return false;
+      }
+      if (panel.commentFocusOffset !== 0) {
+        panel.setCommentFocusOffset(0, false);
+      }
+      const wrapper =
+        card.offsetParent instanceof HTMLElement ? card.offsetParent : card;
+      const maxScroll = Math.max(
+        0,
+        commentsScroll.scrollHeight - commentsScroll.clientHeight
+      );
+      commentsScroll.scrollTop = Math.min(
+        maxScroll,
+        Math.max(
+          0,
+          commentsScroll.scrollTop +
+            wrapper.getBoundingClientRect().top -
+            marker.getBoundingClientRect().top
+        )
+      );
+      return (
+        Math.abs(
+          wrapper.getBoundingClientRect().top -
+            marker.getBoundingClientRect().top
+        ) < 2
+      );
+    },
+    [panel]
+  );
+
   const focusThread = useCallback(
     (threadId: string) => {
       const editor = editorRef.current;
       if (editor && !editor.isDestroyed) {
-        selectResourceComment(editor, threadId);
+        const range = findResourceCommentRange(editor, threadId);
+        if (range) {
+          editor.chain().setTextSelection(range).run();
+        }
       }
+      const resourceScroll = panel?.rootElement?.querySelector<HTMLElement>(
+        '[data-resource-scroll]'
+      );
+      const marker = panel?.rootElement?.querySelector<HTMLElement>(
+        `[data-resource-comment-thread="${threadId}"]`
+      );
       openThread(threadId);
+      cancelAnimationFrame(focusAnimationRef.current);
+
+      const keepAligning = (attempt = 0, hits = 0) => {
+        const aligned = alignCardWithQuote(threadId);
+        const nextHits = aligned ? hits + 1 : 0;
+        if (nextHits >= 3 || attempt >= 45) {
+          return;
+        }
+        focusAnimationRef.current = requestAnimationFrame(() =>
+          keepAligning(attempt + 1, nextHits)
+        );
+      };
+
+      if (!resourceScroll || !marker) {
+        requestAnimationFrame(() => keepAligning());
+        return;
+      }
+
+      const scrollRect = resourceScroll.getBoundingClientRect();
+      const markerRect = marker.getBoundingClientRect();
+      const markerVisible =
+        markerRect.bottom > scrollRect.top + 8 &&
+        markerRect.top < scrollRect.bottom - 8;
+      if (markerVisible) {
+        requestAnimationFrame(() => keepAligning());
+        return;
+      }
+
+      const startTop = resourceScroll.scrollTop;
+      const nextTop = Math.max(
+        0,
+        startTop + markerRect.top - scrollRect.top - 24
+      );
+      const distance = Math.abs(nextTop - startTop);
+      if (distance < 1) {
+        requestAnimationFrame(() => keepAligning());
+        return;
+      }
+      const duration = Math.min(360, Math.max(180, distance * 0.4));
+      const startedAt = performance.now();
+      const tick = (now: number) => {
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = 1 - (1 - progress) * (1 - progress);
+        resourceScroll.scrollTop = startTop + (nextTop - startTop) * eased;
+        if (progress < 1) {
+          focusAnimationRef.current = requestAnimationFrame(tick);
+          return;
+        }
+        requestAnimationFrame(() => keepAligning());
+      };
+      focusAnimationRef.current = requestAnimationFrame(tick);
     },
-    [openThread]
+    [alignCardWithQuote, openThread, panel]
   );
 
   const commentsConfig = useMemo<OmniboxEditorCommentsConfig>(
@@ -209,18 +318,41 @@ export function useResourceComments({
         setCreateConflict(false);
         setActiveThreadId(null);
         setPendingSelection(selection);
-        setPanelOpen(false);
       },
-      onThreadSelect: openThread,
+      onThreadSelect: focusThread,
     }),
-    [canComment, contentDirty, openThread]
+    [canComment, contentDirty, focusThread]
   );
 
+  useEffect(() => {
+    if (!enabled || loading) {
+      return;
+    }
+    const threadId = getCommentThreadIdFromHash(window.location.hash);
+    if (!threadId || openedHashRef.current === threadId) {
+      return;
+    }
+    const exists =
+      threadsRef.current.some(thread => thread.id === threadId) ||
+      anchorThreadsRef.current.some(thread => thread.id === threadId);
+    if (!exists) {
+      return;
+    }
+    openedHashRef.current = threadId;
+    focusThread(threadId);
+  }, [enabled, focusThread, loading, resource.id, threads]);
+
   const createThread = useCallback(
-    async (content: string) => {
+    async (content: string, attachmentIds?: string[]) => {
       const selection = pendingSelection;
       const contentHash = resourceRef.current.content_hash;
-      if (!selection || !contentHash || contentDirty) {
+      const trimmed = content.trim();
+      if (
+        !selection ||
+        !contentHash ||
+        contentDirty ||
+        (!trimmed && !attachmentIds?.length)
+      ) {
         return false;
       }
       setSubmitting(true);
@@ -241,25 +373,41 @@ export function useResourceComments({
             anchor_prefix: context.prefix,
             anchor_suffix: context.suffix,
             expected_content_hash: contentHash,
-            content,
+            ...(trimmed ? { content: trimmed } : {}),
+            ...(attachmentIds?.length ? { attachment_ids: attachmentIds } : {}),
           }
         );
-        selection.editor.commands.addResourceComment({
-          threadId: response.thread.id,
-          from: selection.from,
-          to: selection.to,
-          label: getThreadAuthorLabel(response.thread),
-          commentCount: Math.max(1, response.thread.comments.length),
-          secondaryLabel: getThreadSecondaryLabel(response.thread),
-          labels: getThreadCommentLabels(response.thread),
-        });
+        const range = resolveCommentRange(selection.editor, selection);
+        if (range) {
+          selection.editor.commands.addResourceComment({
+            threadId: response.thread.id,
+            from: range.from,
+            to: range.to,
+            label: getThreadAuthorLabel(response.thread),
+            commentCount: Math.max(1, response.thread.comments.length),
+            secondaryLabel: getThreadSecondaryLabel(response.thread),
+            labels: getThreadCommentLabels(response.thread),
+          });
+        }
+        let anchored = await waitForCommentAnchor(
+          selection.editor,
+          response.thread.id
+        );
+        if (!anchored) {
+          restoreResourceCommentAnchors(selection.editor, [response.thread]);
+          anchored = await waitForCommentAnchor(
+            selection.editor,
+            response.thread.id
+          );
+        }
         mergeAnchorThreads([response.thread]);
         setResolved(undefined);
-        setThreads(current => mergeThreads([response.thread], current));
+        setThreads(current => mergeThreads(current, [response.thread]));
         setTotal(current => current + (response.thread_created ? 1 : 0));
-        setActiveThreadId(response.thread.id);
         setPendingSelection(null);
-        setPanelOpen(true);
+        requestAnimationFrame(() => {
+          focusThread(response.thread.id);
+        });
         return true;
       } catch (error) {
         if (
@@ -275,6 +423,7 @@ export function useResourceComments({
     },
     [
       contentDirty,
+      focusThread,
       mergeAnchorThreads,
       namespaceId,
       pendingSelection,
@@ -300,13 +449,7 @@ export function useResourceComments({
       removeAnchorThread(threadId);
       setThreads(current => current.filter(thread => thread.id !== threadId));
       setTotal(current => Math.max(0, current - 1));
-      setActiveThreadId(current => {
-        if (current !== threadId) {
-          return current;
-        }
-        setPanelOpen(false);
-        return null;
-      });
+      setActiveThreadId(current => (current === threadId ? null : current));
       const editor = editorRef.current;
       if (editor && !editor.isDestroyed) {
         editor.commands.removeResourceComment(threadId);
@@ -334,27 +477,50 @@ export function useResourceComments({
   );
 
   const reply = useCallback(
-    async (threadId: string, content: string) => {
+    async (threadId: string, content: string, attachmentIds?: string[]) => {
+      const trimmed = content.trim();
+      if (!trimmed && !attachmentIds?.length) {
+        return;
+      }
       return mutateThread(
         () =>
-          createResourceComment(namespaceId, resource.id, threadId, content),
+          createResourceComment(namespaceId, resource.id, threadId, {
+            ...(trimmed ? { content: trimmed } : {}),
+            ...(attachmentIds?.length ? { attachment_ids: attachmentIds } : {}),
+          }),
         threadId
       );
     },
     [mutateThread, namespaceId, resource.id]
   );
 
+  const uploadCommentImage = useCallback(
+    async (file: File) => {
+      return uploadResourceCommentAttachment(namespaceId, resource.id, file);
+    },
+    [namespaceId, resource.id]
+  );
+
   const editComment = useCallback(
-    async (threadId: string, commentId: string, content: string) => {
+    async (
+      threadId: string,
+      commentId: string,
+      content: string,
+      attachmentIds?: string[]
+    ) => {
+      const thread = anchorThreadsRef.current.find(
+        item => item.id === threadId
+      );
+      if (thread?.resolved) {
+        return;
+      }
+      const trimmed = content.trim();
       return mutateThread(
         () =>
-          updateResourceComment(
-            namespaceId,
-            resource.id,
-            threadId,
-            commentId,
-            content
-          ),
+          updateResourceComment(namespaceId, resource.id, threadId, commentId, {
+            content: trimmed,
+            attachment_ids: attachmentIds ?? [],
+          }),
         threadId
       );
     },
@@ -412,7 +578,7 @@ export function useResourceComments({
         }
         const editor = editorRef.current;
         if (editor && !editor.isDestroyed) {
-          restoreResourceCommentAnchors(editor, [updated]);
+          editor.commands.setResourceCommentResolved(threadId, nextResolved);
         }
       } finally {
         setSubmitting(false);
@@ -432,7 +598,6 @@ export function useResourceComments({
     return collectResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
 
-  const currentUserId = localStorage.getItem('uid');
   const activeThread = activeThreadId
     ? (anchorThreads.find(thread => thread.id === activeThreadId) ?? null)
     : null;
@@ -442,19 +607,18 @@ export function useResourceComments({
     activeThreadId,
     canComment,
     canEditComment: (comment: ResourceComment) =>
-      canModerateComments && comment.author.id === currentUserId,
+      !isShared && isCommentAuthor(comment.author.id),
     canDeleteComment: (comment: ResourceComment) =>
-      canModerateComments &&
-      (canEditResource || comment.author.id === currentUserId),
+      !isShared && (canEditResource || isCommentAuthor(comment.author.id)),
     canModerateThread: (thread: ResourceCommentThread) =>
-      canModerateComments &&
-      (canEditResource || thread.creator.id === currentUserId),
+      !isShared && (canEditResource || isCommentAuthor(thread.creator.id)),
     commentsConfig,
     contentDirty,
     createConflict,
     createThread,
     currentUserId,
     editComment,
+    uploadCommentImage,
     getAnchorSync,
     hasMore,
     loading,
@@ -482,6 +646,43 @@ export function useResourceComments({
 }
 
 export type ResourceCommentsController = ReturnType<typeof useResourceComments>;
+
+function waitForCommentAnchor(editor: ResourceCommentEditor, threadId: string) {
+  return new Promise<boolean>(resolve => {
+    const hasAnchor = () =>
+      !!editor.view.dom.querySelector(
+        `[data-resource-comment-thread="${threadId}"]`
+      );
+    if (hasAnchor()) {
+      resolve(true);
+      return;
+    }
+    const finish = (found: boolean) => {
+      observer.disconnect();
+      window.clearTimeout(timeout);
+      resolve(found);
+    };
+    const observer = new MutationObserver(() => {
+      if (hasAnchor()) {
+        finish(true);
+      }
+    });
+    observer.observe(editor.view.dom, { childList: true, subtree: true });
+    requestAnimationFrame(() => {
+      if (hasAnchor()) {
+        finish(true);
+      }
+    });
+    const timeout = window.setTimeout(() => {
+      finish(hasAnchor());
+    }, 300);
+  });
+}
+
+function getCommentThreadIdFromHash(hash: string) {
+  const match = /^#comment-(.+)$/.exec(hash);
+  return match?.[1] ?? null;
+}
 
 function hasPermission(current: Permission, required: Permission) {
   return PERMISSIONS.indexOf(current) >= PERMISSIONS.indexOf(required);

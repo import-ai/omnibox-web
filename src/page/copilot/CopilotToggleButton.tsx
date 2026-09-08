@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
 import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
+import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceCommentsToggleButton';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 
@@ -33,6 +34,7 @@ export default function CopilotToggleButton({
   const handleToggle = () => {
     if (commentsOpen) {
       commentsPanel.setPanelOpen(false);
+      useCopilotStore.getState().open(namespaceId);
       return;
     }
     toggle(namespaceId);
@@ -60,7 +62,10 @@ export default function CopilotToggleButton({
     </Tooltip>
   );
 
-  if (!hideWhenOpen) return button;
+  const hideCopilot = hideWhenOpen && open && !commentsOpen;
+  if (!hideWhenOpen) {
+    return hideCopilot ? null : button;
+  }
 
   return (
     <>
@@ -68,7 +73,8 @@ export default function CopilotToggleButton({
         orientation="vertical"
         className="mx-1 h-4 !bg-[#F2F2F2] dark:!bg-[#303132]"
       />
-      {button}
+      {commentsOpen ? null : <ResourceCommentsToggleButton />}
+      {hideCopilot ? null : button}
     </>
   );
 }

@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 
 import Actions, { IActionProps } from '../actions';
-import { ResourceCommentsToggleButton } from '../comments/ResourceCommentsToggleButton';
 import Breadcrumb from './BreadcrumbMain';
 
 export default function Header(props: IActionProps) {
@@ -26,13 +25,7 @@ export default function Header(props: IActionProps) {
       <div className="ml-auto flex items-center gap-1 pr-3">
         <Actions {...props} />
         {resource && (
-          <>
-            {!['folder', 'smart_folder', 'rss_folder'].includes(
-              resource.resource_type
-            ) &&
-              resource.content_hash && <ResourceCommentsToggleButton />}
-            <CopilotToggleButton hideWhenOpen namespaceId={namespaceId} />
-          </>
+          <CopilotToggleButton hideWhenOpen namespaceId={namespaceId} />
         )}
       </div>
     </header>

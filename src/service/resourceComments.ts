@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/const';
 import type { ResourceCommentThread } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -18,6 +19,14 @@ export interface ResourceCommentThreadList {
   has_more: boolean;
 }
 
+export interface ResourceCommentAttachmentUpload {
+  id: string;
+  url: string;
+  name: string;
+  mimetype: string;
+  size: number;
+}
+
 export interface CreateResourceCommentThreadPayload {
   quoted_text: string;
   anchor_from: number;
@@ -25,7 +34,13 @@ export interface CreateResourceCommentThreadPayload {
   anchor_prefix?: string;
   anchor_suffix?: string;
   expected_content_hash: string;
-  content: string;
+  content?: string;
+  attachment_ids?: string[];
+}
+
+export interface CreateResourceCommentPayload {
+  content?: string;
+  attachment_ids?: string[];
 }
 
 export interface CreateResourceCommentThreadResponse {
@@ -72,15 +87,45 @@ export function createResourceCommentThread(
   ) as Promise<CreateResourceCommentThreadResponse>;
 }
 
+function commentAttachmentsUrl(namespaceId: string, resourceId: string) {
+  return `/namespaces/${namespaceId}/resources/${resourceId}/comment-attachments`;
+}
+
+export async function uploadResourceCommentAttachment(
+  namespaceId: string,
+  resourceId: string,
+  file: File
+) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const token = localStorage.getItem('token') || '';
+  const headers: Record<string, string> = { From: 'web' };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  const response = await fetch(
+    `${API_BASE_URL}${commentAttachmentsUrl(namespaceId, resourceId)}`,
+    {
+      method: 'POST',
+      headers,
+      body: formData,
+    }
+  );
+  if (!response.ok) {
+    throw new Error('Upload failed');
+  }
+  return (await response.json()) as ResourceCommentAttachmentUpload;
+}
+
 export function createResourceComment(
   namespaceId: string,
   resourceId: string,
   threadId: string,
-  content: string
+  payload: CreateResourceCommentPayload
 ) {
   return http.post<ResourceCommentThread>(
     `${threadsUrl(namespaceId, resourceId)}/${threadId}/comments`,
-    { content }
+    payload
   ) as Promise<ResourceCommentThread>;
 }
 
@@ -101,11 +146,11 @@ export function updateResourceComment(
   resourceId: string,
   threadId: string,
   commentId: string,
-  content: string
+  payload: { content?: string; attachment_ids?: string[] }
 ) {
   return http.patch<ResourceCommentThread>(
     `${threadsUrl(namespaceId, resourceId)}/${threadId}/comments/${commentId}`,
-    { content }
+    payload
   ) as Promise<ResourceCommentThread>;
 }
 
