@@ -39,7 +39,12 @@ export function StorageSection({
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="cursor-pointer text-sm font-medium text-muted-foreground">
+                {/* Radix reveals on focus as well as hover, but only if the
+                    trigger can actually take keyboard focus. */}
+                <span
+                  tabIndex={0}
+                  className="cursor-pointer text-sm font-medium text-muted-foreground"
+                >
                   {current}
                 </span>
               </TooltipTrigger>
@@ -61,7 +66,10 @@ export function StorageSection({
               {item.tooltip ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span className="cursor-pointer text-sm font-medium text-muted-foreground">
+                    <span
+                      tabIndex={0}
+                      className="cursor-pointer text-sm font-medium text-muted-foreground"
+                    >
                       {item.label}
                     </span>
                   </TooltipTrigger>
