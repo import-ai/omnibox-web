@@ -32,6 +32,7 @@ export function getData(removeNoAccess?: boolean): Array<{
       {
         value: 'can_edit',
         label: i18next.t('permission.can_edit'),
+        description: i18next.t('permission.can_edit_desc'),
       },
       {
         value: 'can_comment',
@@ -53,6 +54,7 @@ export function getData(removeNoAccess?: boolean): Array<{
     {
       value: 'can_edit',
       label: i18next.t('permission.can_edit'),
+      description: i18next.t('permission.can_edit_desc'),
     },
     {
       value: 'can_comment',
