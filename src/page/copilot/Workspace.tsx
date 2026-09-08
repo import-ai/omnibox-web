@@ -179,7 +179,7 @@ function WorkspaceContent({
   return (
     <div
       className={cn(
-        'relative flex min-w-0 flex-1 overflow-hidden',
+        'relative flex min-h-0 min-w-0 flex-1 overflow-hidden',
         sideBySide && 'gap-2 p-2'
       )}
     >

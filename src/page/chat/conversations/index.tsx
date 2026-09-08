@@ -57,7 +57,7 @@ export default function ChatConversationsPage({
   }
 
   return (
-    <div className="flex flex-1 justify-center overflow-auto p-4">
+    <div className="flex min-h-0 flex-1 justify-center overflow-auto p-4">
       <div className="flex flex-col h-full max-w-3xl w-full">
         <EditHistory
           data={edit}

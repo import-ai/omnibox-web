@@ -3,22 +3,13 @@ import './index.css';
 
 import { createRoot } from 'react-dom/client';
 
+import { bindVisualViewport } from '@/lib/visualViewport';
+
 import App from './App';
 
-// Keep the app sized to the visible viewport when browser chrome or the
-// on-screen keyboard changes its height.
-const setViewportHeight = () => {
-  const viewportHeight = window.visualViewport?.height || window.innerHeight;
-  document.documentElement.style.setProperty(
-    '--app-height',
-    `${viewportHeight}px`
-  );
-};
-setViewportHeight();
-window.addEventListener('resize', setViewportHeight);
-window.addEventListener('orientationchange', setViewportHeight);
-window.visualViewport?.addEventListener('resize', setViewportHeight);
-window.visualViewport?.addEventListener('scroll', setViewportHeight);
+// Pin the app shell to the visual viewport so iOS Safari/WebView keyboard
+// pan does not leave a blank gap below the composer.
+bindVisualViewport();
 
 createRoot(document.getElementById('root')!).render(<App />);
 

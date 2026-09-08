@@ -86,7 +86,7 @@ export function ConversationFooter({
   }
 
   return (
-    <div className="flex min-w-0 justify-center px-4">
+    <div className="flex min-w-0 shrink-0 justify-center px-4">
       <div className="min-w-0 w-full max-w-3xl">
         {commercial && (
           <AgentCredits
