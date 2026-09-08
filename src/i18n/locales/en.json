@@ -845,9 +845,10 @@
       "text": "Agent 2.1 credits used up. Switched to Agent 1.1. Expand to restore.",
       "compact_text": "Switched to Agent 1.1",
       "compact_tooltip": "Agent 2.1 credits used up",
+      "not_owner": "Please contact space owner to expand",
       "expand_button": "Expand",
       "tooltip": {
-        "base": "Agent 2.1 runs on agent credits; buy more to continue"
+        "base": "Buy or upgrade to keep using Agent 2.1"
       }
     },
     "trial": {

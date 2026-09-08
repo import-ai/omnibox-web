@@ -43,7 +43,7 @@ export function AgentCredits({
       <UpgradeActionButton
         namespaceId={namespaceId}
         hasPermission={hasUpgradePermission}
-        disabledReason={t('chat.trial.not_owner')}
+        disabledReason={t('chat.agent_credits.not_owner')}
         className="h-5 shrink-0 text-sm"
         labelKey="chat.agent_credits.expand_button"
       />

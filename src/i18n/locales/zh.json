@@ -846,9 +846,10 @@
       "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1，扩容后可恢复",
       "compact_text": "当前已切换至 Agent 1.1",
       "compact_tooltip": "Agent 2.1 积分已用尽",
+      "not_owner": "请联系空间所有者进行扩容",
       "expand_button": "扩容",
       "tooltip": {
-        "base": "Agent 2.1 消耗积分额度，购买积分后可继续使用"
+        "base": "购买或升级后可继续使用 Agent 2.1"
       }
     },
     "trial": {
