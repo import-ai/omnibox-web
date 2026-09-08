@@ -237,15 +237,17 @@ export function TrashPanel() {
                     </SidebarMenuButton>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="w-80 p-3"
+                    className="flex w-80 max-h-[var(--radix-popover-content-available-height)] flex-col overflow-hidden p-3"
                     side={placement.side}
                     align={placement.align}
                     sideOffset={8}
                     collisionPadding={8}
                     onOpenAutoFocus={e => e.preventDefault()}
                     onCloseAutoFocus={e => e.preventDefault()}
+                    onWheel={e => e.stopPropagation()}
+                    onTouchMove={e => e.stopPropagation()}
                   >
-                    <div className="space-y-3">
+                    <div className="flex min-h-0 flex-1 flex-col gap-3">
                       <SearchField
                         value={searchValue}
                         onValueChange={setSearchValue}
@@ -254,7 +256,7 @@ export function TrashPanel() {
                       />
 
                       <div
-                        className="-mr-3 max-h-[300px] overflow-y-auto pr-3"
+                        className="-mr-3 min-h-0 max-h-[300px] flex-1 overflow-y-auto overscroll-contain pr-3"
                         onScroll={handleScroll}
                       >
                         {loading && items.length === 0 ? (
