@@ -315,6 +315,26 @@ describe('useResource resource events', () => {
     expect(mockedGet).toHaveBeenCalledTimes(1);
   });
 
+  it('drops a leftover warmed resource that does not match the current route', async () => {
+    mockedGet.mockResolvedValueOnce({
+      id: 'resource-a',
+      content: 'current body',
+    } as Resource);
+    setWarmedResource('namespace-a', 'resource-other', {
+      id: 'resource-other',
+      content: 'stale body',
+    } as Resource);
+
+    await act(async () => root.render(<ResourceHarness />));
+
+    expect(getWarmedResource('namespace-a', 'resource-other')).toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="resource-state"]')
+        ?.getAttribute('data-content')
+    ).toBe('current body');
+  });
+
   it('paints a warmed resource immediately and revalidates in the background', async () => {
     let resolveFetch: (resource: Resource) => void = () => undefined;
     mockedGet.mockReturnValue(

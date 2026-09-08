@@ -27,11 +27,18 @@ function currentPathname() {
   return typeof window === 'undefined' ? '' : window.location.pathname;
 }
 
-function canCommitWarm(generation: number, startedFrom: string) {
-  return generation === warmGeneration && currentPathname() === startedFrom;
+function isCurrentResourceTarget(target: {
+  namespaceId: string;
+  resourceId: string;
+}) {
+  const current = getNamespaceResourceTarget(currentPathname());
+  return (
+    current?.namespaceId === target.namespaceId &&
+    current?.resourceId === target.resourceId
+  );
 }
 
-/** From chat, wait for the resource so the next screen paints with content. */
+/** Leave chat immediately. Warming the next resource must not block or steal the URL. */
 export function navigateToResource(
   navigate: NavigateFunction,
   to: To,
@@ -39,28 +46,25 @@ export function navigateToResource(
 ) {
   const target = getNamespaceResourceTarget(to);
   const startedFrom = currentPathname();
-  if (target && isChatPathname(startedFrom)) {
-    const generation = ++warmGeneration;
-    void (async () => {
-      try {
-        const { fetchResource } = await import('@/service/resource');
-        const resource = await fetchResource(
-          target.namespaceId,
-          target.resourceId
-        );
-        if (!canCommitWarm(generation, startedFrom)) return;
-        setWarmedResource(target.namespaceId, target.resourceId, resource);
-      } catch {
-        // Still leave chat; the resource page will fetch or show its own error.
-      }
-      if (!canCommitWarm(generation, startedFrom)) return;
-      navigate(to, { ...options, flushSync: true });
-    })();
+  const generation = ++warmGeneration;
+  navigate(to, { ...options, flushSync: true });
+
+  if (!target || !isChatPathname(startedFrom)) {
     return;
   }
 
-  // Chat/history and resource↔resource: bump immediately so a pending warm
-  // cannot commit after React Router delays history.push for a lazy route.
-  warmGeneration += 1;
-  navigate(to, { ...options, flushSync: true });
+  void (async () => {
+    try {
+      const { fetchResource } = await import('@/service/resource');
+      const resource = await fetchResource(
+        target.namespaceId,
+        target.resourceId
+      );
+      if (generation !== warmGeneration) return;
+      if (!isCurrentResourceTarget(target)) return;
+      setWarmedResource(target.namespaceId, target.resourceId, resource);
+    } catch {
+      // The resource page fetches or shows its own error.
+    }
+  })();
 }

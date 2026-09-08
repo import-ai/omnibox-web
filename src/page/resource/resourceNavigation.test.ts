@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import type { NavigateFunction } from 'react-router-dom';
+import type { NavigateFunction, To } from 'react-router-dom';
 
 import type { Resource } from '@/interface';
 import { fetchResource } from '@/service/resource';
@@ -18,6 +18,17 @@ async function flushPromises() {
   await new Promise(resolve => setTimeout(resolve, 0));
 }
 
+function mockNavigate() {
+  const navigate = jest.fn((to: To) => {
+    window.history.pushState(
+      {},
+      '',
+      typeof to === 'string' ? to : to.pathname || ''
+    );
+  }) as jest.MockedFunction<NavigateFunction>;
+  return navigate;
+}
+
 describe('navigateToResource', () => {
   beforeEach(() => {
     clearWarmedResource();
@@ -26,7 +37,7 @@ describe('navigateToResource', () => {
   });
 
   it('synchronously commits the resource route while preserving navigation state', () => {
-    const navigate = jest.fn() as jest.MockedFunction<NavigateFunction>;
+    const navigate = mockNavigate();
 
     navigateToResource(navigate, '/namespace-a/resource-b', {
       state: { fromSidebar: true },
@@ -41,7 +52,7 @@ describe('navigateToResource', () => {
 
   it('does not delay share targets from a chat route', () => {
     window.history.pushState({}, '', '/namespace-a/chat');
-    const navigate = jest.fn() as jest.MockedFunction<NavigateFunction>;
+    const navigate = mockNavigate();
 
     navigateToResource(navigate, '/s/share-a/resource-b');
 
@@ -51,15 +62,17 @@ describe('navigateToResource', () => {
     });
   });
 
-  it('waits for the resource before leaving a chat route', async () => {
+  it('leaves chat immediately and warms the resource if that route is still open', async () => {
     window.history.pushState({}, '', '/namespace-a/chat');
-    const navigate = jest.fn() as jest.MockedFunction<NavigateFunction>;
+    const navigate = mockNavigate();
     const resource = { id: 'resource-b', name: 'Resource B' } as Resource;
     mockedFetchResource.mockResolvedValue(resource);
 
     navigateToResource(navigate, '/namespace-a/resource-b');
 
-    expect(navigate).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith('/namespace-a/resource-b', {
+      flushSync: true,
+    });
 
     await flushPromises();
 
@@ -68,14 +81,11 @@ describe('navigateToResource', () => {
       'resource-b'
     );
     expect(getWarmedResource('namespace-a', 'resource-b')).toEqual(resource);
-    expect(navigate).toHaveBeenCalledWith('/namespace-a/resource-b', {
-      flushSync: true,
-    });
   });
 
   it('still leaves chat when warming the resource fails', async () => {
     window.history.pushState({}, '', '/namespace-a/chat');
-    const navigate = jest.fn() as jest.MockedFunction<NavigateFunction>;
+    const navigate = mockNavigate();
     mockedFetchResource.mockRejectedValue(new Error('not found'));
 
     navigateToResource(navigate, '/namespace-a/resource-b');
@@ -87,9 +97,9 @@ describe('navigateToResource', () => {
     });
   });
 
-  it('does not open the resource after a later chat navigation, even if the URL is unchanged', async () => {
+  it('does not open the resource or write cache after a later chat navigation', async () => {
     window.history.pushState({}, '', '/namespace-a/chat');
-    const navigate = jest.fn() as jest.MockedFunction<NavigateFunction>;
+    const navigate = mockNavigate();
     let resolveFetch: (resource: Resource) => void = () => undefined;
     mockedFetchResource.mockReturnValue(
       new Promise(resolve => {
@@ -100,15 +110,56 @@ describe('navigateToResource', () => {
     navigateToResource(navigate, '/namespace-a/resource-b');
     navigateToResource(navigate, '/namespace-a/chat/conversations');
 
-    expect(navigate).toHaveBeenCalledTimes(1);
-    expect(navigate).toHaveBeenCalledWith('/namespace-a/chat/conversations', {
+    expect(navigate).toHaveBeenNthCalledWith(1, '/namespace-a/resource-b', {
       flushSync: true,
     });
+    expect(navigate).toHaveBeenNthCalledWith(
+      2,
+      '/namespace-a/chat/conversations',
+      {
+        flushSync: true,
+      }
+    );
 
     resolveFetch({ id: 'resource-b', name: 'Resource B' } as Resource);
     await flushPromises();
 
-    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledTimes(2);
     expect(getWarmedResource('namespace-a', 'resource-b')).toBeNull();
+  });
+
+  it('does not let an in-flight warm steal a later edit or search navigation', async () => {
+    window.history.pushState({}, '', '/namespace-a/chat');
+    const navigate = mockNavigate();
+    let resolveFetch: (resource: Resource) => void = () => undefined;
+    mockedFetchResource.mockReturnValue(
+      new Promise(resolve => {
+        resolveFetch = resolve;
+      })
+    );
+
+    navigateToResource(navigate, '/namespace-a/resource-b');
+    navigateToResource(navigate, '/namespace-a/resource-c/edit', {
+      state: { fromSidebar: true },
+    });
+
+    expect(navigate).toHaveBeenNthCalledWith(1, '/namespace-a/resource-b', {
+      flushSync: true,
+    });
+    expect(navigate).toHaveBeenNthCalledWith(
+      2,
+      '/namespace-a/resource-c/edit',
+      {
+        flushSync: true,
+        state: { fromSidebar: true },
+      }
+    );
+
+    resolveFetch({ id: 'resource-b', name: 'Resource B' } as Resource);
+    await flushPromises();
+
+    expect(navigate).toHaveBeenCalledTimes(2);
+    expect(getWarmedResource('namespace-a', 'resource-b')).toBeNull();
+    expect(getWarmedResource('namespace-a', 'resource-c')).toBeNull();
   });
 });

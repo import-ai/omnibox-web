@@ -23,3 +23,13 @@ export function getWarmedResource(namespaceId: string, resourceId: string) {
 export function clearWarmedResource() {
   warmed = null;
 }
+
+export function clearWarmedResourceIfNot(
+  namespaceId: string,
+  resourceId: string
+) {
+  if (!warmed) return;
+  if (warmed.key !== cacheKey(namespaceId, resourceId)) {
+    warmed = null;
+  }
+}

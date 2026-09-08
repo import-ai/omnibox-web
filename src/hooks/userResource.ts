@@ -8,6 +8,7 @@ import { Resource, ResourceSummary } from '@/interface';
 import { setDocumentTitle } from '@/lib/utils';
 import {
   clearWarmedResource,
+  clearWarmedResourceIfNot,
   getWarmedResource,
 } from '@/page/resource/resourcePageCache';
 import { fetchResource } from '@/service/resource';
@@ -70,6 +71,7 @@ export default function useResource() {
     if (!resourceId) {
       return;
     }
+    clearWarmedResourceIfNot(namespaceId, resourceId);
     const warmed = getWarmedResource(namespaceId, resourceId);
     onForbidden(false);
     onNotFound(false);
