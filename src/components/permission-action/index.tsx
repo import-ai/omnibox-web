@@ -173,7 +173,7 @@ export default function PermissionAction(props: IProps) {
               <DropdownMenuItem
                 onClick={handleRemove}
                 disabled={removeing}
-                className="text-red-500 cursor-pointer justify-between hover:bg-gray-100"
+                className="cursor-pointer justify-between hover:bg-gray-100 hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
               >
                 {removeing && <Spinner />}
                 {removeLabel}

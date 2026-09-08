@@ -14,6 +14,7 @@ import {
 import { Separator } from '@/components/ui/Separator';
 import { cn } from '@/lib/utils';
 import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import { groupItemsByTimestamp } from '../utils';
 import EditHistory from './edit';
@@ -101,7 +102,10 @@ export default function ChatConversationsPage({
                             if (onConversationSelect) {
                               onConversationSelect(item.id);
                             } else {
-                              navigate(`/${namespaceId}/chat/${item.id}`);
+                              navigateToResource(
+                                navigate,
+                                `/${namespaceId}/chat/${item.id}`
+                              );
                             }
                           }}
                         >
@@ -135,7 +139,7 @@ export default function ChatConversationsPage({
                                   {t('rename')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="cursor-pointer text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
+                                  className="cursor-pointer hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
                                   onClick={event => {
                                     event.stopPropagation();
                                     onRemove({

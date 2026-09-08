@@ -14,6 +14,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import useUser from '@/hooks/useUser';
 import { http } from '@/lib/request';
 import type { ConversationSummary } from '@/page/chat/core/types/conversation';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import {
   SearchResultAnchor,
   SearchResultContent,
@@ -88,7 +89,10 @@ export default function ConversationSearchDialog({
       window.history.pushState(null, '', hash || window.location.pathname);
       onConversationSelect(conversationId);
     } else {
-      navigate(`/${namespaceId}/chat/${conversationId}${hash}`);
+      navigateToResource(
+        navigate,
+        `/${namespaceId}/chat/${conversationId}${hash}`
+      );
     }
     onOpenChange(false);
   };

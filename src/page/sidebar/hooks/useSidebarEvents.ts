@@ -254,7 +254,7 @@ export function useSidebarEvents(namespaceId: string) {
           if (result.nextId) {
             navigateToResource(navigate, `/${namespaceId}/${result.nextId}`);
           } else if (result.navigateToChat) {
-            navigate(`/${namespaceId}/chat`);
+            navigateToResource(navigate, `/${namespaceId}/chat`);
           }
           if (isDeletedSmartFolder) {
             useSidebarStore.getState().refetchSmartFolderEntitlements();
