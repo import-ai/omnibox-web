@@ -1169,10 +1169,12 @@
     "select_field": "选择属性",
     "select_operator": "选择关系",
     "value_placeholder": "请输入关键词",
+    "expression_placeholder": "示例：'foo' in title；file_name_ext in ['jpg', 'png']；created_at >= '2026-09-08 00:00:00'",
     "relative_value_placeholder": "请输入数值",
     "pick_date": "选择日期",
     "add_condition": "添加条件",
     "fields": {
+      "expression": "条件表达式",
       "title": "标题",
       "tags": "标签",
       "content": "正文",

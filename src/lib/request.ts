@@ -44,6 +44,10 @@ request.interceptors.request.use(
     if (lang) {
       config.headers['X-Lang'] = lang;
     }
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timeZone) {
+      config.headers['X-Timezone'] = timeZone;
+    }
     config.headers['From'] = 'web';
     if (!config.headers['Content-Type']) {
       config.headers['Content-Type'] = 'application/json';

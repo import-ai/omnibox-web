@@ -45,6 +45,7 @@ const FIELD_DEFINITIONS: Record<
   file_name: { type: 'text', operators: TEXT_OPERATORS },
   created_at: { type: 'date', operators: DATE_OPERATORS },
   updated_at: { type: 'date', operators: DATE_OPERATORS },
+  expression: { type: 'text', operators: [] },
 };
 
 export const VALUE_LESS_OPERATORS = new Set<ResourceConditionOperator>([
@@ -187,9 +188,26 @@ export function createDefaultResourceConditionValue(
   };
 }
 
+export function getResourceConditionExpressionText(
+  value?: ResourceCondition['value']
+) {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (value?.kind === 'text') {
+    return value.text;
+  }
+
+  return '';
+}
+
 export function getInitialResourceConditionForField(
   field: ResourceConditionField
 ): ResourceCondition {
+  if (field === 'expression') {
+    return { field, value: '' };
+  }
   const operator = getDefaultResourceConditionOperator(field);
 
   return {
@@ -228,6 +246,9 @@ export function normalizeResourceConditionValue(
   operator?: ResourceCondition['operator'],
   value?: ResourceCondition['value']
 ): ResourceConditionValue | undefined {
+  if (field === 'expression') {
+    return undefined;
+  }
   if (!field || !operator) {
     return undefined;
   }
@@ -294,6 +315,11 @@ export function normalizeRelativeDateAmount(value?: string | number) {
 }
 
 export function isResourceConditionComplete(condition: ResourceCondition) {
+  if (condition.field === 'expression') {
+    return (
+      typeof condition.value === 'string' && condition.value.trim().length > 0
+    );
+  }
   if (!condition.field || !condition.operator) {
     return false;
   }
@@ -356,6 +382,13 @@ export function normalizeResourceCondition(
     return null;
   }
 
+  if (condition.field === 'expression') {
+    return {
+      field: condition.field,
+      value: typeof condition.value === 'string' ? condition.value.trim() : '',
+    };
+  }
+
   const operator =
     condition.operator || getDefaultResourceConditionOperator(condition.field);
   const nextValue = normalizeResourceConditionValue(
@@ -375,6 +408,13 @@ export function fromResourceConditionApiCondition(
   condition: ResourceConditionApiCondition | ResourceCondition
 ): ResourceCondition {
   const operator = fromApiOperator(condition.operator);
+
+  if (condition.field === 'expression') {
+    return {
+      field: condition.field,
+      value: typeof condition.value === 'string' ? condition.value : '',
+    };
+  }
 
   if (!condition.field || !operator) {
     return {};
