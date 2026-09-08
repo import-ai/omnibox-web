@@ -193,7 +193,7 @@
 }
 
 .resource-comments-panel .omnibox-comment-message p {
-  @apply mt-1 text-base leading-6;
+  @apply mt-1 whitespace-pre-wrap text-base leading-6;
 }
 
 .resource-comments-panel .omnibox-comment-message__image-button {
