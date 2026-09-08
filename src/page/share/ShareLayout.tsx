@@ -81,7 +81,11 @@ export function ShareLayout(props: IProps) {
             <SidebarTriggerButton collapse />
           </header>
         )}
-        <div className="flex flex-1 flex-col min-h-0 overflow-auto">
+        <div
+          className={`flex flex-1 flex-col min-h-0 ${
+            isChatActive ? 'overflow-hidden' : 'overflow-auto'
+          }`}
+        >
           <Outlet />
         </div>
       </SidebarInset>

@@ -300,7 +300,7 @@ export default function SharedChatConversationPage() {
           regeneratingParentId={regeneratingParentId}
         />
       </Scrollbar>
-      <div className="flex justify-center px-4">
+      <div className="flex shrink-0 justify-center px-4 pb-[max(8px,env(safe-area-inset-bottom))]">
         <div className="flex-1 max-w-3xl w-full">
           <ChatArea
             key={conversation.id}
@@ -330,7 +330,7 @@ export default function SharedChatConversationPage() {
             sendMessage={sendMessage}
             onStop={onStop}
           />
-          <div className="text-center text-xs pt-2 text-muted-foreground truncate">
+          <div className="pt-2 text-center text-xs leading-5 text-muted-foreground">
             {t('chat.disclaimer')}
           </div>
         </div>

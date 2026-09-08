@@ -134,19 +134,22 @@ html.is-dragging-hide-scrollbars *::-webkit-scrollbar {
 
 html {
   height: 100vh;
-  height: calc(var(--vh, 1vh) * 100);
+  height: var(--app-height, 100dvh);
+  min-height: 0;
   overflow: hidden;
   background: hsl(var(--sidebar-background));
 }
 
 body {
   height: 100%;
+  min-height: 0;
   overflow: hidden;
   background: hsl(var(--sidebar-background));
 }
 
 #root {
   height: 100%;
+  min-height: 0;
   box-sizing: border-box;
   overflow: hidden;
   padding-top: env(safe-area-inset-top);
@@ -166,11 +169,6 @@ body::before {
 }
 
 @media (display-mode: standalone) {
-  html {
-    height: 100dvh;
-    height: 100svh;
-  }
-
   body {
     padding-top: 0;
     padding-bottom: 0;
