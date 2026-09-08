@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 
 import type { ResourceCommentsController } from './useResourceComments';
@@ -173,7 +173,6 @@ export function ResourceCommentComposer({
               type="button"
               size="sm"
               variant="outline"
-              className="h-8 min-w-14 px-3 text-xs font-medium"
               disabled={controller.submitting}
               onClick={cancel}
             >
@@ -182,7 +181,6 @@ export function ResourceCommentComposer({
             <Button
               type="submit"
               size="sm"
-              className="h-8 min-w-14 px-3 text-xs font-medium"
               disabled={controller.submitting || !content.trim()}
             >
               {t('resource_comments.comment')}

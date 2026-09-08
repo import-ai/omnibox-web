@@ -85,13 +85,8 @@
 
 .omnibox-comment-surface .omnibox-comment-composer button[type='submit'] {
   border: 0;
-  background: hsl(var(--foreground));
-  color: #fff;
-}
-
-.dark .omnibox-comment-surface .omnibox-comment-composer button[type='submit'] {
-  background: #fff;
-  color: hsl(var(--foreground));
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
 }
 
 .omnibox-comment-surface
