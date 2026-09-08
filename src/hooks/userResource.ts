@@ -6,6 +6,11 @@ import { SITE_NAME } from '@/const';
 import type App from '@/hooks/app.class';
 import { Resource, ResourceSummary } from '@/interface';
 import { setDocumentTitle } from '@/lib/utils';
+import {
+  clearWarmedResource,
+  clearWarmedResourceIfNot,
+  getWarmedResource,
+} from '@/page/resource/resourcePageCache';
 import { fetchResource } from '@/service/resource';
 
 import {
@@ -50,10 +55,13 @@ export default function useResource() {
   const editPage = loc.pathname.endsWith('/edit');
   const resourceId = params.resource_id || '';
   const namespaceId = params.namespace_id || '';
-  const [loading, onLoading] = useState(false);
+  const warmedResource = getWarmedResource(namespaceId, resourceId);
+  const [loading, onLoading] = useState(
+    () => Boolean(resourceId) && !warmedResource
+  );
   const [forbidden, onForbidden] = useState(false);
   const [notFound, onNotFound] = useState(false);
-  const [resource, onResource] = useState<Resource | null>(null);
+  const [resource, onResource] = useState<Resource | null>(warmedResource);
   const initialResourceRequest = useRef<AbortController | null>(null);
   const resourceEventRequest = useRef<AbortController | null>(null);
   const editPageRef = useRef(editPage);
@@ -63,9 +71,16 @@ export default function useResource() {
     if (!resourceId) {
       return;
     }
-    onLoading(true);
+    clearWarmedResourceIfNot(namespaceId, resourceId);
+    const warmed = getWarmedResource(namespaceId, resourceId);
     onForbidden(false);
     onNotFound(false);
+    if (warmed) {
+      onResource(warmed);
+      onLoading(false);
+    } else {
+      onLoading(true);
+    }
     initialResourceRequest.current?.abort();
     resourceEventRequest.current?.abort();
     const controller = new AbortController();
@@ -91,7 +106,12 @@ export default function useResource() {
         }
       })
       .finally(() => {
-        if (!controller.signal.aborted) onLoading(false);
+        if (!controller.signal.aborted) {
+          onLoading(false);
+          if (getWarmedResource(namespaceId, resourceId)) {
+            clearWarmedResource();
+          }
+        }
         if (initialResourceRequest.current === controller) {
           initialResourceRequest.current = null;
         }

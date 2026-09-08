@@ -30,6 +30,10 @@ jest.mock('./CopilotPanel', () => ({
   __esModule: true,
   default: () => <div data-testid="copilot-panel" />,
 }));
+jest.mock('@/page/chat/conversations', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -227,12 +231,18 @@ describe('Copilot Workspace', () => {
     store.previewResource('namespace-a', 'Abcd1234Efgh5678');
 
     await act(async () => root.render(<Workspace />));
+    mockCitationResourcePreview.mockClear();
     mockUseLocation.mockReturnValue({
       key: 'history',
       pathname: '/namespace-a/chat/conversations',
     });
     await act(async () => root.render(<Workspace />));
 
+    expect(container.firstElementChild?.classList.contains('p-2')).toBe(false);
+    expect(container.firstElementChild?.classList.contains('gap-2')).toBe(
+      false
+    );
+    expect(mockCitationResourcePreview).not.toHaveBeenCalled();
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
     ).toMatchObject({

@@ -137,9 +137,8 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   }, []);
 
   const handleNavigate = useCallback(
-    (path: string, target: 'chat' | 'resource') => {
-      if (target === 'resource') navigateToResource(navigate, path);
-      else navigate(path);
+    (path: string) => {
+      navigateToResource(navigate, path);
       onOpenChange(false);
     },
     [navigate, onOpenChange]
