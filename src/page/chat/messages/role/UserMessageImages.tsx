@@ -1,8 +1,10 @@
+import { X } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
@@ -45,7 +47,10 @@ export function UserMessageImages({
           if (!open) setPreview(null);
         }}
       >
-        <DialogContent className="max-h-[90vh] max-w-[min(90vw,960px)] border-0 bg-transparent p-0 shadow-none">
+        <DialogContent
+          className="max-h-[90vh] max-w-[min(90vw,960px)] border-0 bg-transparent p-0 shadow-none [&>button:last-child]:hidden"
+          onOpenAutoFocus={event => event.preventDefault()}
+        >
           <DialogTitle className="sr-only">
             {preview?.name || t('chat.image.preview')}
           </DialogTitle>
@@ -59,6 +64,15 @@ export function UserMessageImages({
               className="max-h-[85vh] w-full rounded-md object-contain"
             />
           ) : null}
+          <DialogClose asChild>
+            <button
+              type="button"
+              aria-label={t('close')}
+              className="absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/55 text-white shadow-sm transition-colors hover:bg-black/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+            >
+              <X className="size-4" />
+            </button>
+          </DialogClose>
         </DialogContent>
       </Dialog>
     </>
