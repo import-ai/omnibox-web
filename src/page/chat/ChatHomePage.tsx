@@ -7,7 +7,7 @@ import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
-import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
+import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import {
   ChatCreatePayload,
   ChatMode,
@@ -15,6 +15,7 @@ import {
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
 import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/FeatureCards';
@@ -122,7 +123,7 @@ export default function ChatHomePage() {
             } as ConversationDetail,
           } as ChatCreatePayload)
         );
-        navigate(`/${namespaceId}/chat/${conversation.id}`);
+        navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
       });
   };
   const handleQuestionSelect = (item: RecommendedQuestionItem) => {
@@ -153,7 +154,7 @@ export default function ChatHomePage() {
           <h1 className="text-[28px] text-center mb-[32px] font-medium">
             <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
           </h1>
-          {config.commercial && <AgentTrial namespaceId={namespaceId} />}
+          {config.commercial && <AgentCredits namespaceId={namespaceId} />}
           <ChatArea
             key={chatHomeDraftScope}
             messages={[]}

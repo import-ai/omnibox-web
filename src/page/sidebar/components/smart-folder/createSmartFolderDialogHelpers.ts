@@ -3,6 +3,7 @@ import { ResourceMeta } from '@/interface';
 import {
   createDefaultCondition,
   fromResourceConditionApiCondition,
+  getResourceConditionExpressionText,
   normalizeResourceConditionValue,
 } from '@/page/resource/conditions/resourceConditionUtils';
 
@@ -41,6 +42,13 @@ export function normalizeInitialConditions(
 
     if (!normalizedCondition?.field) {
       return {};
+    }
+
+    if (normalizedCondition.field === 'expression') {
+      return {
+        field: normalizedCondition.field,
+        value: getResourceConditionExpressionText(normalizedCondition.value),
+      };
     }
 
     return {

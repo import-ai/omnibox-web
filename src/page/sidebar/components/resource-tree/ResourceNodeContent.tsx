@@ -187,7 +187,7 @@ export function ResourceNodeContent({
     if (edit) {
       navigateToResource(navigate, `/${namespaceId}/${id}/edit`, { state });
     } else if (id === 'chat') {
-      navigate(`/${namespaceId}/chat`);
+      navigateToResource(navigate, `/${namespaceId}/chat`);
     } else {
       navigateToResource(navigate, `/${namespaceId}/${id}`, { state });
     }
