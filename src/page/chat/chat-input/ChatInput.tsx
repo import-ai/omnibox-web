@@ -47,7 +47,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
     useImperativeHandle(ref, () => composer.handle, [composer.handle]);
 
     return (
-      <div className="relative mb-[2px] min-h-[60px] min-w-0">
+      <div className="mb-[2px] min-h-[60px] min-w-0">
         {props.images.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {props.images.map(image => (
@@ -69,32 +69,34 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
             ))}
           </div>
         )}
-        <ComposerOverlay
-          text={composer.displayText}
-          mentions={composer.mentions}
-          toolRanges={composer.toolRanges}
-          overlayRef={composer.overlayRef}
-        />
-        <textarea
-          ref={composer.textareaRef}
-          value={composer.displayText}
-          rows={1}
-          placeholder={t('chat.textarea.placeholder')}
-          className={cn(
-            'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent text-transparent outline-none',
-            composerTextLayoutClassName,
-            'caret-foreground placeholder:text-[#9CA3AF] selection:bg-[#117bfa]/20 selection:text-transparent dark:placeholder:text-gray-400'
-          )}
-          onBlur={composer.rememberSelection}
-          onChange={composer.handleTextChange}
-          onClick={composer.rememberSelection}
-          onCompositionEnd={() => composer.setIsComposing(false)}
-          onCompositionStart={() => composer.setIsComposing(true)}
-          onKeyDown={composer.handleKeyDown}
-          onKeyUp={composer.rememberSelection}
-          onScroll={composer.handleScroll}
-          onSelect={composer.rememberSelection}
-        />
+        <div className="relative min-h-[60px] min-w-0">
+          <ComposerOverlay
+            text={composer.displayText}
+            mentions={composer.mentions}
+            toolRanges={composer.toolRanges}
+            overlayRef={composer.overlayRef}
+          />
+          <textarea
+            ref={composer.textareaRef}
+            value={composer.displayText}
+            rows={1}
+            placeholder={t('chat.textarea.placeholder')}
+            className={cn(
+              'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent text-transparent outline-none',
+              composerTextLayoutClassName,
+              'caret-foreground placeholder:text-[#9CA3AF] selection:bg-[#117bfa]/20 selection:text-transparent dark:placeholder:text-gray-400'
+            )}
+            onBlur={composer.rememberSelection}
+            onChange={composer.handleTextChange}
+            onClick={composer.rememberSelection}
+            onCompositionEnd={() => composer.setIsComposing(false)}
+            onCompositionStart={() => composer.setIsComposing(true)}
+            onKeyDown={composer.handleKeyDown}
+            onKeyUp={composer.rememberSelection}
+            onScroll={composer.handleScroll}
+            onSelect={composer.rememberSelection}
+          />
+        </div>
       </div>
     );
   }
