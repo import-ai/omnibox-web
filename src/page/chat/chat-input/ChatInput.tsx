@@ -1,8 +1,9 @@
 import { X } from 'lucide-react';
-import { forwardRef, useCallback, useImperativeHandle } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
+import { ImagePreviewDialog } from '@/page/chat/ImagePreviewDialog';
 
 import { composerTextLayoutClassName } from './composerLayout';
 import ComposerOverlay from './ComposerOverlay';
@@ -33,6 +34,7 @@ interface IProps {
 const ChatInput = forwardRef<ChatInputHandle, IProps>(
   function ChatInput(props, ref) {
     const { t } = useTranslation();
+    const [preview, setPreview] = useState<ChatImageInput | null>(null);
     const getToolLabel = useCallback(
       (tool: Exclude<ToolType, ToolType.PRIVATE_SEARCH>) =>
         t(`chat.tools.${tool}`),
@@ -52,16 +54,27 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           <div className="mb-2 flex flex-wrap gap-2">
             {props.images.map(image => (
               <div key={image.attachment_id} className="relative">
-                <img
-                  src={image.url}
-                  alt={image.name}
-                  className="size-16 rounded-md object-cover"
-                />
+                <button
+                  type="button"
+                  aria-label={t('chat.image.preview')}
+                  onClick={() => setPreview(image)}
+                >
+                  <img
+                    src={image.url}
+                    alt={image.name}
+                    className="size-16 rounded-md object-cover"
+                  />
+                </button>
                 <button
                   type="button"
                   aria-label={t('chat.image.remove')}
-                  className="absolute -right-1 -top-1 rounded-full bg-foreground p-0.5 text-background"
-                  onClick={() => props.onImageRemove(image.attachment_id)}
+                  className="absolute -right-1 -top-1 z-10 rounded-full bg-foreground p-0.5 text-background"
+                  onClick={() => {
+                    if (preview?.attachment_id === image.attachment_id) {
+                      setPreview(null);
+                    }
+                    props.onImageRemove(image.attachment_id);
+                  }}
                 >
                   <X className="size-3" />
                 </button>
@@ -69,6 +82,14 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
             ))}
           </div>
         )}
+        <ImagePreviewDialog
+          alt={preview?.name}
+          open={preview !== null}
+          src={preview?.url}
+          onOpenChange={open => {
+            if (!open) setPreview(null);
+          }}
+        />
         <div className="relative min-h-[60px] min-w-0">
           <ComposerOverlay
             text={composer.displayText}
