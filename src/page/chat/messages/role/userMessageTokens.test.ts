@@ -8,14 +8,42 @@ import {
   collectUserMessageResourceIds,
   createUserMessageCopyHtml,
   formatUserContextResourceLabel,
+  getUserMessageImages,
   getUserMessageResources,
   getUserMessageToolTokens,
   hasVisibleUserMessageResources,
   resourceMetaFromPrivateSearchResource,
   splitUserMessageResourceTokens,
+  withoutUserMessageImages,
 } from './userMessageTokens';
 
 describe('user message resource tokens', () => {
+  it('extracts conversation images and drops them from bubble parts', () => {
+    const displayParts: ChatMessageDisplayPart[] = [
+      {
+        type: 'image',
+        attachment_id: 'att-1',
+        name: 'a.png',
+        preview_url: '/preview/a.png',
+      },
+      { type: 'text', text: '这两个图片有啥区别?' },
+      {
+        type: 'image',
+        attachment_id: 'att-2',
+        name: 'b.png',
+        preview_url: '/preview/b.png',
+      },
+    ];
+
+    expect(getUserMessageImages(displayParts)).toEqual([
+      displayParts[0],
+      displayParts[2],
+    ]);
+    expect(withoutUserMessageImages(displayParts)).toEqual([
+      { type: 'text', text: '这两个图片有啥区别?' },
+    ]);
+  });
+
   it('extracts private search resource names longest first', () => {
     expect(
       getUserMessageResources([

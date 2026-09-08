@@ -13,6 +13,26 @@ import {
 
 export type UserMessageToolToken = Exclude<ToolType, ToolType.PRIVATE_SEARCH>;
 
+export type UserMessageImagePart = Extract<
+  ChatMessageDisplayPart,
+  { type: 'image' }
+>;
+
+export function getUserMessageImages(
+  displayParts?: ChatMessageDisplayPart[] | null
+): UserMessageImagePart[] {
+  return (displayParts ?? []).filter(
+    (part): part is UserMessageImagePart => part.type === 'image'
+  );
+}
+
+export function withoutUserMessageImages(
+  displayParts?: ChatMessageDisplayPart[] | null
+): ChatMessageDisplayPart[] | undefined {
+  if (!displayParts) return undefined;
+  return displayParts.filter(part => part.type !== 'image');
+}
+
 type ToolLabelGetter = (tool: UserMessageToolToken) => string;
 
 type UserMessageTokenSegment =

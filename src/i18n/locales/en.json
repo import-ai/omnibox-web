@@ -671,7 +671,8 @@
     "tips": "Enter a message",
     "image": {
       "add": "Add image",
-      "remove": "Remove image"
+      "remove": "Remove image",
+      "preview": "Preview image"
     },
     "title": "OmniBox AI",
     "page_title": "OmniBox",
