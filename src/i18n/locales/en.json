@@ -641,10 +641,11 @@
   },
   "permission": {
     "full_access": "Full Access",
-    "full_access_desc": "Edit, suggest, comment, and share with others",
+    "full_access_desc": "View, comment, edit, and share with others",
     "can_edit": "Can Edit",
+    "can_edit_desc": "View, comment, and edit",
     "can_comment": "Can Comment",
-    "can_comment_desc": "Suggest and comment",
+    "can_comment_desc": "View and comment",
     "can_view": "Can View",
     "no_access": "No Access",
     "remove": "Remove",

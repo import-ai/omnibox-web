@@ -41,6 +41,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { SpaceType } from '@/interface';
 import { cn } from '@/lib/utils';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
 import { useSpaceDrop } from '@/page/sidebar/hooks/useSpaceDrop';
 import {
@@ -153,7 +154,7 @@ export function SpaceSectionContent({
       .getState()
       .create(rootId, 'doc')
       .then(async id => {
-        navigate(`/${namespaceId}/${id}/edit`, {
+        navigateToResource(navigate, `/${namespaceId}/${id}/edit`, {
           state: { fromSidebar: true },
         });
         await locateSidebarResource(id);

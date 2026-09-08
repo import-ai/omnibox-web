@@ -33,7 +33,6 @@ export default function MainSidebar() {
     state => getCopilotWorkspace(state, namespaceId).previewResourceId
   );
   const { setOpenMobile } = useSidebar();
-  const resetCopilot = useCopilotStore(state => state.reset);
   const { config, loading: configLoading } = useConfig();
   const openSourceNamespaces = useNamespaces({
     disabled: configLoading || config.commercial,
@@ -48,15 +47,11 @@ export default function MainSidebar() {
     item => item.id === namespaceId
   );
   const handleActiveKey = (id: string) => {
-    if (id === 'chat' || id === 'chat/conversations') {
-      // Leave any citation/resource Copilot split and show the full chat page.
-      resetCopilot(namespaceId);
-    }
-    if (id === 'chat') {
-      navigate(`/${namespaceId}/chat`);
-    } else {
-      navigateToResource(navigate, `/${namespaceId}/${id}`);
-    }
+    // Do not reset Copilot before navigate: history is lazy, and clearing the
+    // citation split first lets the conversation Outlet jump into the resource pane.
+    // Chat/history still go through navigateToResource so an in-flight warm is
+    // cancelled before React Router updates the URL.
+    navigateToResource(navigate, `/${namespaceId}/${id}`);
     if (isMobile) {
       setOpenMobile(false);
     }

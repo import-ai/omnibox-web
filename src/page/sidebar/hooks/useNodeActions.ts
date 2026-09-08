@@ -10,6 +10,7 @@ import type { Resource } from '@/interface';
 import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { useRssFolderConfig } from '@/page/sidebar/components/rss-folder/useRssFolderConfig';
 import {
   getSmartFolderSourceParentId,
@@ -113,7 +114,7 @@ export function useNodeActions(
       .getState()
       .create(nodeId, 'doc')
       .then(async id => {
-        navigate(`/${namespaceId}/${id}/edit`, {
+        navigateToResource(navigate, `/${namespaceId}/${id}/edit`, {
           state: { fromSidebar: true },
         });
         await locateSidebarResource(id);
@@ -193,7 +194,7 @@ export function useNodeActions(
       return;
     }
 
-    navigate(`/${namespaceId}/${sourceResourceId}/edit`, {
+    navigateToResource(navigate, `/${namespaceId}/${sourceResourceId}/edit`, {
       state: isSmartFolderChild ? { sidebarActiveKey: nodeId } : undefined,
     });
     if (isMobile) setOpenMobile(false);

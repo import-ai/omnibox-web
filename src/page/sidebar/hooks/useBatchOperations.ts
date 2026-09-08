@@ -144,7 +144,7 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
         });
         app.fire('scroll_to_resource', result.nextId);
       } else if (result.navigateToChat) {
-        navigate(`/${namespaceId}/chat`);
+        navigateToResource(navigate, `/${namespaceId}/chat`);
       }
     } catch {
       toast.error(t('batch.delete_failed'), { position: 'bottom-right' });
