@@ -5,6 +5,11 @@ import { createRoot, type Root } from 'react-dom/client';
 
 import type { Resource } from '@/interface';
 import { http } from '@/lib/request';
+import {
+  clearWarmedResource,
+  getWarmedResource,
+  setWarmedResource,
+} from '@/page/resource/resourcePageCache';
 
 import useResource from './userResource';
 
@@ -76,6 +81,7 @@ describe('useResource resource events', () => {
     root = createRoot(container);
     mockPathname = '/namespace-a/resource-a';
     Object.keys(listeners).forEach(key => delete listeners[key]);
+    clearWarmedResource();
   });
 
   afterEach(async () => {
@@ -306,6 +312,58 @@ describe('useResource resource events', () => {
       window.dispatchEvent(new Event('focus'));
     });
 
+    expect(mockedGet).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops a leftover warmed resource that does not match the current route', async () => {
+    mockedGet.mockResolvedValueOnce({
+      id: 'resource-a',
+      content: 'current body',
+    } as Resource);
+    setWarmedResource('namespace-a', 'resource-other', {
+      id: 'resource-other',
+      content: 'stale body',
+    } as Resource);
+
+    await act(async () => root.render(<ResourceHarness />));
+
+    expect(getWarmedResource('namespace-a', 'resource-other')).toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="resource-state"]')
+        ?.getAttribute('data-content')
+    ).toBe('current body');
+  });
+
+  it('paints a warmed resource immediately and revalidates in the background', async () => {
+    let resolveFetch: (resource: Resource) => void = () => undefined;
+    mockedGet.mockReturnValue(
+      new Promise(resolve => {
+        resolveFetch = resolve;
+      })
+    );
+    setWarmedResource('namespace-a', 'resource-a', {
+      id: 'resource-a',
+      content: 'warmed body',
+    } as Resource);
+
+    await act(async () => root.render(<ResourceHarness />));
+
+    const state = container.querySelector('[data-testid="resource-state"]');
+    expect(state?.getAttribute('data-loading')).toBe('false');
+    expect(state?.getAttribute('data-content')).toBe('warmed body');
+    expect(getWarmedResource('namespace-a', 'resource-a')).not.toBeNull();
+
+    await act(async () => {
+      resolveFetch({
+        id: 'resource-a',
+        content: 'fresh body',
+      } as Resource);
+    });
+
+    expect(state?.getAttribute('data-loading')).toBe('false');
+    expect(state?.getAttribute('data-content')).toBe('fresh body');
+    expect(getWarmedResource('namespace-a', 'resource-a')).toBeNull();
     expect(mockedGet).toHaveBeenCalledTimes(1);
   });
 });

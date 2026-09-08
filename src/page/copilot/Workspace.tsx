@@ -291,10 +291,14 @@ export default function Workspace() {
   const showChatBesidePreview = chatPreviewRoute && renderWorkspace.open;
   const showCopilotBesideResource = !isChatRoute && renderWorkspace.open;
   const wantsSideBySide = showChatBesidePreview || showCopilotBesideResource;
-  // Keep page padding through the close animation so layout doesn't jump.
+  // Keep page padding through a normal Copilot close. Drop it immediately when
+  // landing on full-page chat home/history so the next route does not paint
+  // inside leftover citation-split gutter.
+  const dropSplitChromeImmediately =
+    isChatHome || isChatHistory || (isChatRoute && pendingExpandFromResource);
   const sideBySide = useDeferredOpen(
     wantsSideBySide,
-    isChatRoute && pendingExpandFromResource
+    dropSplitChromeImmediately
   );
   const copilotMounted = useWorkspaceLifecycle({
     isChatHistory,
@@ -311,11 +315,11 @@ export default function Workspace() {
   });
   // Chat routes keep their existing Outlet as the only conversation instance.
   const keepCopilotMounted = copilotMounted && !isChatRoute;
-  // Prefetch so the first chat-citation → resource handoff does not flash an
-  // empty Suspense gap while CopilotPanel's chunk loads.
+  // Prefetch Copilot and history so citation-split handoffs do not wait on chunks.
   useEffect(() => {
     if (!chatPreviewRoute || !renderWorkspace.open) return;
     void import('./CopilotPanel');
+    void import('@/page/chat/conversations');
   }, [chatPreviewRoute, renderWorkspace.open]);
   const setChatRouteElement = useCallback(
     (element: HTMLDivElement | null) => {

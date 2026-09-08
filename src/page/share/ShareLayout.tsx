@@ -1,5 +1,7 @@
+import { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
+import Loading from '@/components/loading';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset } from '@/components/ui/Sidebar';
@@ -82,7 +84,9 @@ export function ShareLayout(props: IProps) {
           </header>
         )}
         <div className="flex flex-1 flex-col min-h-0 overflow-auto">
-          <Outlet />
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
         </div>
       </SidebarInset>
     </>

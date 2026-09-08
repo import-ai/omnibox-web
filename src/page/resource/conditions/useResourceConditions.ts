@@ -9,6 +9,7 @@ import {
   createDefaultCondition,
   getDefaultResourceConditionOperator,
   getInitialResourceConditionForField,
+  getResourceConditionExpressionText,
   normalizeResourceConditionValue,
   shouldShowResourceConditionValueInput,
 } from './resourceConditionUtils';
@@ -142,6 +143,13 @@ export function useResourceConditions(maxConditionCount: number) {
     value: ResourceCondition['value']
   ) => {
     const currentCondition = conditions[index];
+    if (currentCondition.field === 'expression') {
+      updateCondition(index, {
+        value: getResourceConditionExpressionText(value),
+      });
+      return;
+    }
+
     updateCondition(index, {
       value: normalizeResourceConditionValue(
         currentCondition.field,

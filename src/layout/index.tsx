@@ -1,11 +1,12 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import Loading from '@/components/loading';
 import { Toaster } from '@/components/ui/Toaster';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme';
@@ -200,7 +201,9 @@ export default function Layout() {
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
       <Toaster />
-      <Outlet />
+      <Suspense fallback={<Loading />}>
+        <Outlet />
+      </Suspense>
     </DndProvider>
   );
 }

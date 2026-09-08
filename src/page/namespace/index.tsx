@@ -1,9 +1,15 @@
+import { useEffect } from 'react';
+
 import { SidebarProvider } from '@/components/ui/Sidebar';
 import Workspace from '@/page/copilot/Workspace';
 import Sidebar from '@/page/sidebar';
 import SidebarStatePersistence from '@/page/sidebar/SidebarStatePersistence';
 
 export default function NamespacePage() {
+  useEffect(() => {
+    void import('@/page/resource');
+  }, []);
+
   if (!localStorage.getItem('uid')) {
     return null;
   }
