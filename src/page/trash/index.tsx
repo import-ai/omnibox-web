@@ -1,5 +1,5 @@
 import { ChevronRight, Trash, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -25,6 +25,10 @@ import { cn } from '@/lib/utils';
 import type { TreeNode } from '@/page/sidebar/store';
 
 import { ConfirmPermanentDeleteDialog } from './ConfirmPermanentDeleteDialog';
+import {
+  getTrashPopoverPlacement,
+  type TrashPopoverPlacement,
+} from './getTrashPopoverPlacement';
 import { TrashEmpty } from './TrashEmpty';
 import { TrashFooter } from './TrashFooter';
 import { TrashItemRow } from './TrashItemRow';
@@ -35,7 +39,12 @@ export function TrashPanel() {
   const app = useApp();
   const { namespace_id } = useParams();
   const [open, setOpen] = useState(false);
+  const [placement, setPlacement] = useState<TrashPopoverPlacement>({
+    align: 'start',
+    side: 'right',
+  });
   const [systemOpen, setSystemOpen] = useState(true);
+  const trashItemRef = useRef<HTMLLIElement | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [isClearAll, setIsClearAll] = useState(false);
@@ -66,12 +75,27 @@ export function TrashPanel() {
 
   const setTrashDropRef = useCallback(
     (node: HTMLLIElement | null) => {
+      trashItemRef.current = node;
       if (node) {
         drop(node);
       }
     },
     [drop]
   );
+
+  const handleOpenChange = useCallback((nextOpen: boolean) => {
+    if (nextOpen && trashItemRef.current) {
+      const rect = trashItemRef.current.getBoundingClientRect();
+      setPlacement(
+        getTrashPopoverPlacement({
+          triggerLeft: rect.left,
+          triggerRight: rect.right,
+          viewportWidth: window.innerWidth,
+        })
+      );
+    }
+    setOpen(nextOpen);
+  }, []);
 
   const {
     items,
@@ -196,7 +220,7 @@ export function TrashPanel() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem ref={setTrashDropRef}>
-                <Popover open={open} onOpenChange={setOpen}>
+                <Popover open={open} onOpenChange={handleOpenChange}>
                   <PopoverTrigger asChild>
                     <SidebarMenuButton
                       className={cn({
@@ -213,14 +237,17 @@ export function TrashPanel() {
                     </SidebarMenuButton>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="w-80 p-3"
-                    side="right"
-                    align="start"
+                    className="flex w-80 max-h-[var(--radix-popover-content-available-height)] flex-col overflow-hidden p-3"
+                    side={placement.side}
+                    align={placement.align}
                     sideOffset={8}
+                    collisionPadding={8}
                     onOpenAutoFocus={e => e.preventDefault()}
                     onCloseAutoFocus={e => e.preventDefault()}
+                    onWheel={e => e.stopPropagation()}
+                    onTouchMove={e => e.stopPropagation()}
                   >
-                    <div className="space-y-3">
+                    <div className="flex min-h-0 flex-1 flex-col gap-3">
                       <SearchField
                         value={searchValue}
                         onValueChange={setSearchValue}
@@ -229,7 +256,7 @@ export function TrashPanel() {
                       />
 
                       <div
-                        className="-mr-3 max-h-[300px] overflow-y-auto pr-3"
+                        className="-mr-3 min-h-0 max-h-[300px] flex-1 overflow-y-auto overscroll-contain pr-3"
                         onScroll={handleScroll}
                       >
                         {loading && items.length === 0 ? (
