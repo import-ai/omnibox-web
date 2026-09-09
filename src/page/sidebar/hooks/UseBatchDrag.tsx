@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useDragLayer } from 'react-dnd';
+import { useDragDropManager, useDragLayer } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
@@ -26,6 +26,7 @@ type SidebarDragItem = BatchDragItem | CardDragItem;
 
 export function SidebarDragLayer() {
   const { t } = useTranslation();
+  const dragDropManager = useDragDropManager();
   const { isDragging, currentOffset, item } = useDragLayer(monitor => ({
     item: monitor.getItem() as SidebarDragItem | null,
     currentOffset: monitor.getClientOffset(),
@@ -35,6 +36,31 @@ export function SidebarDragLayer() {
   const batchDragging = isDragging && item?.type === 'batch';
   const previewNode =
     item?.type === 'batch' ? item.preview : item?.type === 'card' ? item : null;
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const endTouchDrag = () => {
+      // Let TouchBackend process the release first so valid drops still run.
+      window.setTimeout(() => {
+        if (dragDropManager.getMonitor().isDragging()) {
+          dragDropManager.getActions().endDrag();
+        }
+      }, 0);
+    };
+
+    document.addEventListener('touchend', endTouchDrag, true);
+    document.addEventListener('touchcancel', endTouchDrag, true);
+    document.addEventListener('pointerup', endTouchDrag, true);
+    document.addEventListener('pointercancel', endTouchDrag, true);
+
+    return () => {
+      document.removeEventListener('touchend', endTouchDrag, true);
+      document.removeEventListener('touchcancel', endTouchDrag, true);
+      document.removeEventListener('pointerup', endTouchDrag, true);
+      document.removeEventListener('pointercancel', endTouchDrag, true);
+    };
+  }, [dragDropManager, isDragging]);
 
   useEffect(() => {
     useSidebarStore.getState().setBatchDragging(batchDragging);
