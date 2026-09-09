@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { useDragLayer } from 'react-dnd';
 
 const EDGE_SIZE = 60;
 const HORIZONTAL_PAD = 24;
@@ -10,6 +11,60 @@ const MAX_SCROLL_SPEED = 600;
  * editor block drags (document-level dragover) do not scroll the resource tree.
  */
 export function useDragAutoScroll(ref: React.RefObject<HTMLElement | null>) {
+  const touchAnimationRef = useRef<number | null>(null);
+  const { isDragging, currentOffset } = useDragLayer(monitor => ({
+    isDragging: monitor.isDragging(),
+    currentOffset: monitor.getClientOffset(),
+  }));
+
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || !isDragging || !currentOffset) {
+      if (touchAnimationRef.current !== null) {
+        cancelAnimationFrame(touchAnimationRef.current);
+        touchAnimationRef.current = null;
+      }
+      return;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const isNearSidebarX =
+      currentOffset.x >= rect.left - HORIZONTAL_PAD &&
+      currentOffset.x <= rect.right + HORIZONTAL_PAD;
+    const direction = !isNearSidebarX
+      ? 0
+      : currentOffset.y < rect.top + EDGE_SIZE
+        ? -1
+        : currentOffset.y > rect.bottom - EDGE_SIZE
+          ? 1
+          : 0;
+
+    if (direction === 0) {
+      if (touchAnimationRef.current !== null) {
+        cancelAnimationFrame(touchAnimationRef.current);
+        touchAnimationRef.current = null;
+      }
+      return;
+    }
+
+    let lastFrameTime = performance.now();
+    const tick = () => {
+      const now = performance.now();
+      const dt = Math.min((now - lastFrameTime) / 1000, 0.1);
+      lastFrameTime = now;
+      element.scrollTop += direction * MAX_SCROLL_SPEED * dt;
+      touchAnimationRef.current = requestAnimationFrame(tick);
+    };
+    touchAnimationRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (touchAnimationRef.current !== null) {
+        cancelAnimationFrame(touchAnimationRef.current);
+        touchAnimationRef.current = null;
+      }
+    };
+  }, [currentOffset, isDragging, ref]);
+
   useEffect(() => {
     const element = ref.current;
     let scrollAnimId: number | null = null;
