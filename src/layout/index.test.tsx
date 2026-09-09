@@ -14,6 +14,8 @@ const mockClearChatContext = jest.fn();
 const mockClearCopilot = jest.fn();
 const mockClearSidebar = jest.fn();
 const mockResetResourcePreviews = jest.fn();
+const mockDndProvider = jest.fn();
+let mockIsMobile = false;
 
 jest.mock('axios', () => ({
   __esModule: true,
@@ -23,7 +25,10 @@ jest.mock('axios', () => ({
 }));
 
 jest.mock('react-dnd', () => ({
-  DndProvider: ({ children }: { children: React.ReactNode }) => children,
+  DndProvider: ({ children, ...props }: { children: React.ReactNode }) => {
+    mockDndProvider(props);
+    return children;
+  },
 }));
 jest.mock('react-dnd-html5-backend', () => ({ HTML5Backend: {} }));
 jest.mock('react-dnd-touch-backend', () => ({ TouchBackend: {} }));
@@ -42,7 +47,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 jest.mock('@/components/ui/Toaster', () => ({ Toaster: () => null }));
-jest.mock('@/hooks/useMobile', () => ({ useIsMobile: () => false }));
+jest.mock('@/hooks/useMobile', () => ({ useIsMobile: () => mockIsMobile }));
 jest.mock('@/hooks/useTheme', () => ({
   __esModule: true,
   default: () => ({
@@ -91,6 +96,8 @@ describe('Layout authentication storage changes', () => {
     localStorage.setItem('uid', 'user-a');
     mockHttpGet.mockReset();
     mockHttpGet.mockResolvedValue([]);
+    mockDndProvider.mockReset();
+    mockIsMobile = false;
     jest.mocked(clearConversationCache).mockClear();
     mockClearChatContext.mockClear();
     mockClearCopilot.mockClear();
@@ -125,5 +132,20 @@ describe('Layout authentication storage changes', () => {
     expect(mockClearCopilot).toHaveBeenCalledTimes(1);
     expect(mockClearSidebar).toHaveBeenCalledTimes(1);
     expect(mockResetResourcePreviews).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses the touch backend configuration on mobile', async () => {
+    mockIsMobile = true;
+
+    await act(async () => root.render(<Layout />));
+
+    expect(mockDndProvider).toHaveBeenCalledWith({
+      backend: {},
+      options: {
+        delayTouchStart: 300,
+        enableHoverOutsideTarget: true,
+        ignoreContextMenu: true,
+      },
+    });
   });
 });

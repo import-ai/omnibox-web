@@ -199,7 +199,19 @@ export default function Layout() {
   }, [loc.search, uid, shareId, i18n]);
 
   return (
-    <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
+    <DndProvider
+      key={isMobile ? 'touch' : 'html5'}
+      backend={isMobile ? TouchBackend : HTML5Backend}
+      options={
+        isMobile
+          ? {
+              delayTouchStart: 300,
+              enableHoverOutsideTarget: true,
+              ignoreContextMenu: true,
+            }
+          : undefined
+      }
+    >
       <Toaster />
       <Suspense fallback={<Loading />}>
         <Outlet />
