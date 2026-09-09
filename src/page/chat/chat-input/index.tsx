@@ -153,7 +153,7 @@ export default function ChatArea(props: IProps) {
     ]);
   }, []);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     const v = query.trim();
     if (v) {
       const localTools = [...tools];
@@ -165,10 +165,7 @@ export default function ChatArea(props: IProps) {
           ? [{ type: 'text' as const, text: v }]
           : undefined;
       const pendingImages = images;
-      pendingImages.forEach(image => URL.revokeObjectURL(image.url));
-      setImages([]);
-      clearComposerAfterSend();
-      sendMessage({
+      await sendMessage({
         query: v,
         selectedResources: localContext,
         tools: localTools,
@@ -177,6 +174,9 @@ export default function ChatArea(props: IProps) {
         displayParts: localDisplayParts,
         images: pendingImages,
       });
+      pendingImages.forEach(image => URL.revokeObjectURL(image.url));
+      setImages([]);
+      clearComposerAfterSend();
     }
   }, [
     approvalMode,
