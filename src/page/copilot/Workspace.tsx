@@ -232,7 +232,7 @@ function WorkspaceContent({
       ) : (
         <div
           className={cn(
-            'flex min-w-0',
+            'flex h-full min-h-0 min-w-0 overflow-hidden',
             chatPreviewRoute ? 'shrink-0' : 'flex-1',
             chatPreviewRoute &&
               isMobile &&

@@ -86,7 +86,10 @@ export function ConversationFooter({
   }
 
   return (
-    <div className="flex min-w-0 shrink-0 justify-center px-4">
+    <div
+      className="relative z-20 flex min-h-0 max-h-full min-w-0 shrink-0 justify-center bg-white px-4 dark:bg-background"
+      data-chat-composer
+    >
       <div className="min-w-0 w-full max-w-3xl">
         {commercial && (
           <AgentCredits
@@ -109,7 +112,10 @@ export function ConversationFooter({
           waitingForAssistantDelta={context.waitingForAssistantDelta}
           onStop={context.onStop}
         />
-        <div className="truncate pt-2 text-center text-xs text-muted-foreground">
+        <div
+          data-chat-disclaimer
+          className="truncate pt-2 text-center text-xs text-muted-foreground"
+        >
           {t('chat.disclaimer')}
         </div>
       </div>

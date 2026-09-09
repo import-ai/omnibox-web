@@ -133,12 +133,14 @@ html.is-dragging-hide-scrollbars *::-webkit-scrollbar {
 }
 
 html {
-  height: 100%;
-  height: 100dvh;
+  height: var(--app-height, 100dvh);
   min-height: 0;
   overflow: hidden;
+  overflow-anchor: none;
   overscroll-behavior: none;
   background: hsl(var(--sidebar-background));
+  --app-height: 100dvh;
+  --app-offset-top: 0px;
 }
 
 body {
@@ -153,9 +155,24 @@ body {
   background: hsl(var(--sidebar-background));
 }
 
+/* Interpolate the shell to rest once, matching the keyboard animation.
+   CSS variables do not transition, so visualViewport.ts sets pixel height/top. */
+html.keyboard-dismiss-animate,
+html.keyboard-dismiss-animate body {
+  transition-property: height, top;
+  transition-duration: var(--keyboard-dismiss-ms, 300ms);
+  transition-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+html.keyboard-open:not(.keyboard-dismiss-animate),
+html.keyboard-open:not(.keyboard-dismiss-animate) body {
+  transition: none;
+}
+
 #root {
   height: 100%;
   min-height: 0;
+  max-height: 100%;
   box-sizing: border-box;
   overflow: hidden;
   padding-top: env(safe-area-inset-top);
@@ -166,10 +183,22 @@ html.keyboard-open #root {
   padding-bottom: 0;
 }
 
+html.keyboard-dismissing #root {
+  padding-bottom: env(safe-area-inset-bottom);
+  transition: padding-bottom var(--keyboard-dismiss-ms, 300ms)
+    cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+#root > * {
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+}
+
 body::before {
   content: '';
-  position: fixed;
-  top: var(--app-offset-top, 0px);
+  position: absolute;
+  top: 0;
   left: 0;
   right: 0;
   height: env(safe-area-inset-top);
@@ -183,13 +212,10 @@ body::before {
     padding-top: 0;
     padding-bottom: 0;
   }
-
-  #root {
-    padding-bottom: 0;
-  }
 }
 
 @media (max-width: 767px) {
+  html,
   body {
     background: #ffffff;
   }
@@ -198,6 +224,7 @@ body::before {
     background: #ffffff;
   }
 
+  .dark html,
   .dark body {
     background: hsl(var(--background));
   }

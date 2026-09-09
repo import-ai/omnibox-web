@@ -27,7 +27,7 @@ export default function ChatConversationPage() {
   }
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+    <div className="flex min-h-0 max-h-full min-w-0 flex-1 flex-col overflow-hidden">
       <ConversationMessageList
         compact={compact}
         context={context}
