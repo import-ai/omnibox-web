@@ -13,6 +13,10 @@ import {
 } from '@/page/chat/chat-input/types';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import {
+  resolveConversationImages,
+  withUploadedImageParts,
+} from '@/page/chat/conversation/uploadConversationImages';
+import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
@@ -115,6 +119,11 @@ export default function useContext() {
           setWaitingForAssistantDelta(true);
         }
         setLoading(true);
+        const uploadedImages = await resolveConversationImages(
+          namespaceId,
+          conversationId,
+          images
+        );
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
         const askFN = ask(
           conversationId,
@@ -131,10 +140,10 @@ export default function useContext() {
           undefined,
           undefined,
           decisions ? { decisions } : undefined,
-          displayParts,
+          withUploadedImageParts(displayParts, uploadedImages),
           recommendedQuestionId,
           currentResourceId,
-          images
+          uploadedImages
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();

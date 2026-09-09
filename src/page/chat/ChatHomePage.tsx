@@ -7,15 +7,19 @@ import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
-import { AgentTrial } from '@/page/chat/agent-trial/AgentTrial';
+import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import {
   ChatCreatePayload,
-  ChatImageInput,
   ChatMode,
   ConversationEntity,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
+import {
+  resolveConversationImages,
+  withUploadedImageParts,
+} from '@/page/chat/conversation/uploadConversationImages';
 import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import ChatArea from './chat-input';
 import FeatureCards from './home/FeatureCards';
@@ -40,7 +44,6 @@ export default function ChatHomePage() {
   const creatingRecommendedQuestionRef = useRef(false);
   const [loadingRecommendedQuestionId, setLoadingRecommendedQuestionId] =
     useState<string | null>(null);
-  const [draftConversationId, setDraftConversationId] = useState<string>();
   const chatHomeDraftScope = getChatHomeDraftScope(namespaceId);
 
   useEffect(() => {
@@ -97,7 +100,7 @@ export default function ChatHomePage() {
       ? defaultInputTemplate.replaceAll('{username}', username)
       : undefined;
 
-  const sendMessage = ({
+  const sendMessage = async ({
     query,
     tools,
     selectedResources,
@@ -107,58 +110,31 @@ export default function ChatHomePage() {
     recommendedQuestionId,
     images,
   }: SendMessageParams) => {
-    const createConversation = draftConversationId
-      ? Promise.resolve({ id: draftConversationId })
-      : http.post(`/namespaces/${namespaceId}/conversations`);
-    return createConversation.then((conversation: ConversationEntity) => {
-      sessionStorage.setItem(
-        'chat-create-payload',
-        JSON.stringify({
-          mode,
-          query,
-          tools,
-          selectedResources,
-          displayParts,
-          approvalMode,
-          recommendedQuestionId,
-          images,
-          conversation: {
-            id: conversation.id,
-          } as ConversationDetail,
-        } as ChatCreatePayload)
-      );
-      navigate(`/${namespaceId}/chat/${conversation.id}`);
-    });
-  };
-  const uploadHomeImage = async (file: File): Promise<ChatImageInput> => {
-    const conversation = draftConversationId
-      ? { id: draftConversationId }
-      : await http.post<ConversationEntity>(
-          `/namespaces/${namespaceId}/conversations`
-        );
-    if (!draftConversationId) setDraftConversationId(conversation.id);
-    const formData = new FormData();
-    formData.append('file[]', file);
-    const token = localStorage.getItem('token');
-    const response = await fetch(
-      `/api/v1/namespaces/${namespaceId}/conversations/${conversation.id}/attachments`,
-      {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        body: formData,
-      }
+    const conversation = await http.post<ConversationEntity>(
+      `/namespaces/${namespaceId}/conversations`
     );
-    if (!response.ok) throw new Error('Failed to upload image');
-    const attachment = (await response.json()) as {
-      attachment_id: string;
-      name: string;
-      preview_url: string;
-    };
-    return {
-      attachment_id: attachment.attachment_id,
-      url: attachment.preview_url,
-      name: attachment.name,
-    };
+    const uploadedImages = await resolveConversationImages(
+      namespaceId,
+      conversation.id,
+      images
+    );
+    sessionStorage.setItem(
+      'chat-create-payload',
+      JSON.stringify({
+        mode,
+        query,
+        tools,
+        selectedResources,
+        displayParts: withUploadedImageParts(displayParts, uploadedImages),
+        approvalMode,
+        recommendedQuestionId,
+        images: uploadedImages,
+        conversation: {
+          id: conversation.id,
+        } as ConversationDetail,
+      } as ChatCreatePayload)
+    );
+    navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
   };
   const handleQuestionSelect = (item: RecommendedQuestionItem) => {
     if (creatingRecommendedQuestionRef.current) {
@@ -188,10 +164,9 @@ export default function ChatHomePage() {
           <h1 className="text-[28px] text-center mb-[32px] font-medium">
             <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
           </h1>
-          {config.commercial && <AgentTrial namespaceId={namespaceId} />}
+          {config.commercial && <AgentCredits namespaceId={namespaceId} />}
           <ChatArea
             key={chatHomeDraftScope}
-            conversationId={draftConversationId}
             messages={[]}
             namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}
@@ -201,7 +176,6 @@ export default function ChatHomePage() {
             loading={false}
             initialQuery={defaultHomeInput}
             sendMessage={sendMessage}
-            onImageSelect={uploadHomeImage}
           />
           {config.commercial && (
             <RecommendedQuestions

@@ -99,7 +99,6 @@ export function ConversationFooter({
         )}
         <ChatArea
           key={context.conversation.id}
-          conversationId={context.conversation.id}
           selectedResources={context.selectedResources}
           setSelectedResources={context.setSelectedResources}
           messages={context.messages}

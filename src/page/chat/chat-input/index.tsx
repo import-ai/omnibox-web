@@ -1,4 +1,10 @@
-import { type ReactNode, useCallback, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useDrop } from 'react-dnd';
 
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
@@ -8,8 +14,8 @@ import { cn } from '@/lib/utils';
 import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ApprovalMode,
-  ChatImageInput,
   ChatMode,
+  ComposerChatImage,
   IResTypeContext,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
@@ -26,7 +32,6 @@ import { useChatAreaDraftLifecycle } from './useChatAreaDraftLifecycle';
 
 interface IProps {
   messages: MessageDetail[];
-  conversationId?: string;
   namespaceId?: string;
   navigatePrefix: string;
   selectedResources: IResTypeContext[];
@@ -48,13 +53,11 @@ interface IProps {
     decisions,
   }: SendMessageParams) => void;
   onStop?: () => void;
-  onImageSelect?: (file: File) => Promise<ChatImageInput | void>;
 }
 
 export default function ChatArea(props: IProps) {
   const {
     messages,
-    conversationId,
     namespaceId,
     navigatePrefix,
     selectedResources,
@@ -68,11 +71,13 @@ export default function ChatArea(props: IProps) {
     initialQuery,
     sendMessage,
     onStop,
-    onImageSelect,
   } = props;
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const [images, setImages] = useState<ChatImageInput[]>([]);
+  const [images, setImages] = useState<ComposerChatImage[]>([]);
+  const imageIdRef = useRef(0);
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
   const {
     approvalMode,
     clearComposerAfterSend,
@@ -130,42 +135,23 @@ export default function ChatArea(props: IProps) {
     loading ||
     (interrupts.length === 0 && (!query || query.trim().length === 0));
 
-  const handleImageSelect = useCallback(
-    async (file: File) => {
-      if (onImageSelect) {
-        const image = await onImageSelect(file);
-        if (image) setImages(current => [...current, image]);
-        return;
-      }
-      if (!namespaceId || !conversationId) return;
-      const formData = new FormData();
-      formData.append('file[]', file);
-      const token = localStorage.getItem('token');
-      const response = await fetch(
-        `/api/v1/namespaces/${namespaceId}/conversations/${conversationId}/attachments`,
-        {
-          method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          body: formData,
-        }
-      );
-      if (!response.ok) return;
-      const data = (await response.json()) as {
-        attachment_id: string;
-        name: string;
-        preview_url: string;
-      };
-      setImages(current => [
-        ...current,
-        {
-          attachment_id: data.attachment_id,
-          url: data.preview_url,
-          name: data.name,
-        },
-      ]);
-    },
-    [conversationId, namespaceId, onImageSelect]
-  );
+  useEffect(() => {
+    return () => {
+      imagesRef.current.forEach(image => URL.revokeObjectURL(image.url));
+    };
+  }, []);
+
+  const handleImageSelect = useCallback((file: File) => {
+    setImages(current => [
+      ...current,
+      {
+        id: `composer-image-${imageIdRef.current++}`,
+        name: file.name,
+        url: URL.createObjectURL(file),
+        file,
+      },
+    ]);
+  }, []);
 
   const handleSend = useCallback(() => {
     const v = query.trim();
@@ -178,6 +164,9 @@ export default function ChatArea(props: IProps) {
         : images.length
           ? [{ type: 'text' as const, text: v }]
           : undefined;
+      const pendingImages = images;
+      pendingImages.forEach(image => URL.revokeObjectURL(image.url));
+      setImages([]);
       clearComposerAfterSend();
       sendMessage({
         query: v,
@@ -185,18 +174,9 @@ export default function ChatArea(props: IProps) {
         tools: localTools,
         mode,
         approvalMode,
-        displayParts: [
-          ...(localDisplayParts ?? []),
-          ...images.map(image => ({
-            type: 'image' as const,
-            attachment_id: image.attachment_id,
-            name: image.name,
-            preview_url: image.url,
-          })),
-        ],
-        images,
+        displayParts: localDisplayParts,
+        images: pendingImages,
       });
-      setImages([]);
     }
   }, [
     approvalMode,
@@ -237,11 +217,12 @@ export default function ChatArea(props: IProps) {
         onSelectedResourcesChange={setSelectedResources}
         onSend={handleSend}
         images={images}
-        onImageSelect={handleImageSelect}
-        onImageRemove={attachmentId =>
-          setImages(current =>
-            current.filter(image => image.attachment_id !== attachmentId)
-          )
+        onImageRemove={imageId =>
+          setImages(current => {
+            const removed = current.find(image => image.id === imageId);
+            if (removed) URL.revokeObjectURL(removed.url);
+            return current.filter(image => image.id !== imageId);
+          })
         }
         disabled={disabled}
       />

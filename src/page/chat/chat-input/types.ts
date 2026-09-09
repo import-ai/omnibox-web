@@ -64,6 +64,13 @@ export interface ChatImageInput {
   name: string;
 }
 
+export interface ComposerChatImage {
+  id: string;
+  name: string;
+  url: string;
+  file: File;
+}
+
 export interface PrivateSearch extends IChatTool {
   name: ToolType.PRIVATE_SEARCH;
   resources?: PrivateSearchResource[];
@@ -125,7 +132,7 @@ export interface SendMessageParams {
   decisions?: Decision[];
   approvalMode?: ApprovalMode;
   recommendedQuestionId?: string;
-  images?: ChatImageInput[];
+  images?: Array<ChatImageInput | ComposerChatImage>;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {

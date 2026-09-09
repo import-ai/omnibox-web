@@ -8,7 +8,7 @@ import { ImagePreviewDialog } from '@/page/chat/ImagePreviewDialog';
 import { composerTextLayoutClassName } from './composerLayout';
 import ComposerOverlay from './ComposerOverlay';
 import type { ComposerState } from './composerState';
-import { ChatImageInput, IResTypeContext, ToolType } from './types';
+import { ComposerChatImage, IResTypeContext, ToolType } from './types';
 import {
   type ChatInputHandle,
   useChatInputComposer,
@@ -27,14 +27,14 @@ interface IProps {
   onToolsChange: (value: ToolType[]) => void;
   onSelectedResourcesChange: (value: IResTypeContext[]) => void;
   onSend: () => void;
-  images: ChatImageInput[];
-  onImageRemove: (attachmentId: string) => void;
+  images: ComposerChatImage[];
+  onImageRemove: (imageId: string) => void;
 }
 
 const ChatInput = forwardRef<ChatInputHandle, IProps>(
   function ChatInput(props, ref) {
     const { t } = useTranslation();
-    const [preview, setPreview] = useState<ChatImageInput | null>(null);
+    const [preview, setPreview] = useState<ComposerChatImage | null>(null);
     const getToolLabel = useCallback(
       (tool: Exclude<ToolType, ToolType.PRIVATE_SEARCH>) =>
         t(`chat.tools.${tool}`),
@@ -53,7 +53,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
         {props.images.length > 0 && (
           <div className="mb-2 flex flex-wrap gap-2">
             {props.images.map(image => (
-              <div key={image.attachment_id} className="relative">
+              <div key={image.id} className="relative">
                 <button
                   type="button"
                   aria-label={t('chat.image.preview')}
@@ -70,10 +70,10 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
                   aria-label={t('chat.image.remove')}
                   className="absolute -right-1 -top-1 z-10 rounded-full bg-foreground p-0.5 text-background"
                   onClick={() => {
-                    if (preview?.attachment_id === image.attachment_id) {
+                    if (preview?.id === image.id) {
                       setPreview(null);
                     }
-                    props.onImageRemove(image.attachment_id);
+                    props.onImageRemove(image.id);
                   }}
                 >
                   <X className="size-3" />
