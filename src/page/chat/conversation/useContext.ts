@@ -32,6 +32,7 @@ import {
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
+import { getUserMessageImages } from '@/page/chat/messages/role/userMessageTokens';
 import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 import {
   getCopilotWorkspace,
@@ -268,7 +269,14 @@ export default function useContext() {
         undefined,
         undefined,
         undefined,
-        currentResourceId
+        currentResourceId,
+        getUserMessageImages(editedMessage.attrs?.composer?.display_parts).map(
+          image => ({
+            attachment_id: image.attachment_id,
+            name: image.name,
+            url: image.preview_url,
+          })
+        )
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();

@@ -1,3 +1,6 @@
+import i18next from 'i18next';
+import { toast } from 'sonner';
+
 import {
   ChatImageInput,
   ChatMessageDisplayPart,
@@ -20,30 +23,35 @@ export async function uploadConversationImage(
   const formData = new FormData();
   formData.append('file[]', file);
   const token = localStorage.getItem('token');
-  const response = await fetch(
-    `/api/v1/namespaces/${namespaceId}/conversations/${conversationId}/attachments`,
-    {
-      method: 'POST',
-      headers: {
-        'X-Client-Platform': 'web',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: formData,
+  try {
+    const response = await fetch(
+      `/api/v1/namespaces/${namespaceId}/conversations/${conversationId}/attachments`,
+      {
+        method: 'POST',
+        headers: {
+          'X-Client-Platform': 'web',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      }
+    );
+    if (!response.ok) {
+      throw new Error('Failed to upload image');
     }
-  );
-  if (!response.ok) {
-    throw new Error('Failed to upload image');
+    const attachment = (await response.json()) as {
+      attachment_id: string;
+      name: string;
+      preview_url: string;
+    };
+    return {
+      attachment_id: attachment.attachment_id,
+      name: attachment.name,
+      url: attachment.preview_url,
+    };
+  } catch (error) {
+    toast.error(i18next.t('chat.image.upload_failed'));
+    throw error;
   }
-  const attachment = (await response.json()) as {
-    attachment_id: string;
-    name: string;
-    preview_url: string;
-  };
-  return {
-    attachment_id: attachment.attachment_id,
-    name: attachment.name,
-    url: attachment.preview_url,
-  };
 }
 
 export async function resolveConversationImages(

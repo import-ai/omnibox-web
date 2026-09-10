@@ -1,3 +1,11 @@
+import { toast } from 'sonner';
+
+jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
+jest.mock('i18next', () => ({
+  __esModule: true,
+  default: { t: (key: string) => key },
+}));
+
 import {
   resolveConversationImages,
   uploadConversationImage,
@@ -25,6 +33,7 @@ describe('uploadConversationImages', () => {
 
   beforeEach(() => {
     fetchMock.mockReset();
+    jest.mocked(toast.error).mockClear();
     localValues.clear();
     localStorage.setItem('token', 'test-token');
     Object.defineProperty(globalThis, 'fetch', {
@@ -104,6 +113,20 @@ describe('uploadConversationImages', () => {
     ]);
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it.each([false, true])(
+    'reports failed uploads once (network error: %s)',
+    async networkError => {
+      if (networkError)
+        fetchMock.mockRejectedValue(new TypeError('Network failure'));
+      else fetchMock.mockResolvedValue({ ok: false });
+      await expect(
+        uploadConversationImage('ns', 'conv', new File(['png'], 'shot.png'))
+      ).rejects.toThrow();
+      expect(toast.error).toHaveBeenCalledTimes(1);
+      expect(toast.error).toHaveBeenCalledWith('chat.image.upload_failed');
+    }
+  );
 
   it('replaces pending image display parts with uploaded attachments', () => {
     expect(

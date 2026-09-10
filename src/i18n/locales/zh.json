@@ -671,6 +671,7 @@
   "chat": {
     "tips": "请输入消息",
     "image": {
+      "upload_failed": "图片上传失败，请重试。",
       "add": "添加图片",
       "remove": "移除图片",
       "preview": "预览图片",

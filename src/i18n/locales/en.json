@@ -670,6 +670,7 @@
   "chat": {
     "tips": "Enter a message",
     "image": {
+      "upload_failed": "Failed to upload image. Please try again.",
       "add": "Add image",
       "remove": "Remove image",
       "preview": "Preview image",
