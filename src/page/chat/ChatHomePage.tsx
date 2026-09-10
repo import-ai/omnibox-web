@@ -8,6 +8,7 @@ import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
+import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import {
   ChatCreatePayload,
   ChatMode,
@@ -39,6 +40,9 @@ export default function ChatHomePage() {
     boolean | null
   >(null);
   const { config } = useConfig();
+  const { agentCredits } = useAgentCredits(namespaceId, [], config.commercial);
+  const imageUploadDisabled =
+    agentCredits !== undefined && agentCredits.agent_credits_remain <= 0;
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const creatingRecommendedQuestionRef = useRef(false);
@@ -164,7 +168,12 @@ export default function ChatHomePage() {
           <h1 className="text-[28px] text-center mb-[32px] font-medium">
             <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
           </h1>
-          {config.commercial && <AgentCredits namespaceId={namespaceId} />}
+          {config.commercial && (
+            <AgentCredits
+              namespaceId={namespaceId}
+              agentCredits={agentCredits}
+            />
+          )}
           <ChatArea
             key={chatHomeDraftScope}
             messages={[]}
@@ -174,6 +183,7 @@ export default function ChatHomePage() {
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             loading={false}
+            imageUploadDisabled={imageUploadDisabled}
             initialQuery={defaultHomeInput}
             sendMessage={sendMessage}
           />

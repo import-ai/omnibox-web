@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react';
 import { useDrop } from 'react-dnd';
+import { useTranslation } from 'react-i18next';
 
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
@@ -44,6 +45,7 @@ interface IProps {
   suppressInitialToolRestore?: boolean;
   loading: boolean;
   waitingForAssistantDelta?: boolean;
+  imageUploadDisabled?: boolean;
   initialQuery?: string;
   sendMessage: ({
     query,
@@ -68,10 +70,12 @@ export default function ChatArea(props: IProps) {
     suppressInitialToolRestore = false,
     loading,
     waitingForAssistantDelta = false,
+    imageUploadDisabled = false,
     initialQuery,
     sendMessage,
     onStop,
   } = props;
+  const { t } = useTranslation();
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [images, setImages] = useState<ComposerChatImage[]>([]);
@@ -131,8 +135,10 @@ export default function ChatArea(props: IProps) {
     : undefined;
 
   const interrupts = messages.at(-1)?.attrs?.tool_call?.interrupts ?? [];
+  const hasUnsupportedImages = imageUploadDisabled && images.length > 0;
   const disabled =
     loading ||
+    hasUnsupportedImages ||
     (interrupts.length === 0 && (!query || query.trim().length === 0));
 
   useEffect(() => {
@@ -153,7 +159,7 @@ export default function ChatArea(props: IProps) {
     ]);
   }, []);
 
-  const handleSend = useCallback(async () => {
+  const handleSend = useCallback(() => {
     const v = query.trim();
     if (v) {
       const localTools = [...tools];
@@ -165,7 +171,10 @@ export default function ChatArea(props: IProps) {
           ? [{ type: 'text' as const, text: v }]
           : undefined;
       const pendingImages = images;
-      await sendMessage({
+      pendingImages.forEach(image => URL.revokeObjectURL(image.url));
+      setImages([]);
+      clearComposerAfterSend();
+      sendMessage({
         query: v,
         selectedResources: localContext,
         tools: localTools,
@@ -174,9 +183,6 @@ export default function ChatArea(props: IProps) {
         displayParts: localDisplayParts,
         images: pendingImages,
       });
-      pendingImages.forEach(image => URL.revokeObjectURL(image.url));
-      setImages([]);
-      clearComposerAfterSend();
     }
   }, [
     approvalMode,
@@ -237,6 +243,7 @@ export default function ChatArea(props: IProps) {
               inputRef.current?.insertResource(resource)
             }
             onImageSelect={handleImageSelect}
+            imageUploadDisabled={imageUploadDisabled}
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}
@@ -251,6 +258,11 @@ export default function ChatArea(props: IProps) {
             onSend={handleSend}
             onStop={onStop}
             disabled={disabled}
+            disabledReason={
+              hasUnsupportedImages
+                ? t('chat.image.agent_1_1_unsupported')
+                : undefined
+            }
             loading={loading}
             waitingForAssistantDelta={waitingForAssistantDelta}
             mode={mode}

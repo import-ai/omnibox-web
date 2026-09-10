@@ -672,7 +672,8 @@
     "image": {
       "add": "Add image",
       "remove": "Remove image",
-      "preview": "Preview image"
+      "preview": "Preview image",
+      "agent_1_1_unsupported": "Agent 1.1 does not support this feature"
     },
     "title": "OmniBox AI",
     "page_title": "OmniBox",

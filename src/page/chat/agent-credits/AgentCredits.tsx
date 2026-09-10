@@ -5,18 +5,16 @@ import {
   UpgradeUsageTooltip,
 } from '@/components/upgrade-action-button';
 import { useNamespaceRole } from '@/lib/useNamespaceRole.ts';
-import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
-import { MessageDetail } from '@/page/chat/core/types/conversation';
+import type { AgentCreditsResponseDto } from '@/page/chat/agent-credits/useAgentCredits';
 
 export function AgentCredits({
   namespaceId,
-  messages,
+  agentCredits,
 }: {
   namespaceId: string;
-  messages?: MessageDetail[];
+  agentCredits?: AgentCreditsResponseDto;
 }) {
   const { t } = useTranslation();
-  const { agentCredits } = useAgentCredits(namespaceId, messages ?? []);
   const { role } = useNamespaceRole(namespaceId);
   const hasUpgradePermission: boolean = role === 'owner';
 
