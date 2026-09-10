@@ -58,7 +58,10 @@ describe('uploadConversationImages', () => {
       '/api/v1/namespaces/ns-1/conversations/conv-1/attachments'
     );
     expect(init.method).toBe('POST');
-    expect(init.headers).toEqual({ Authorization: 'Bearer test-token' });
+    expect(init.headers).toEqual({
+      Authorization: 'Bearer test-token',
+      'X-Client-Platform': 'web',
+    });
     expect(init.body.get('file[]')).toBe(file);
   });
 

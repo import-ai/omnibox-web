@@ -17,7 +17,10 @@ async function loadNotificationAsset(
   const token = localStorage.getItem('token');
   const response = await fetch(url, {
     credentials: 'same-origin',
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    headers: {
+      'X-Client-Platform': 'web',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     signal,
   });
   if (!response.ok) {
