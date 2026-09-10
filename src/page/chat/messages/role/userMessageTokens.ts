@@ -314,6 +314,7 @@ export function splitDisplayPartsByLine(
   const lines: UserMessageDisplaySegment[][] = [[]];
 
   displayParts.forEach(part => {
+    if (part.type === 'image') return;
     if (part.type !== 'text') {
       lines[lines.length - 1].push(part);
       return;

@@ -156,13 +156,14 @@ describe('useContext conversation cache failures', () => {
     jest.mocked(extractOriginalMessageSettings).mockReturnValue({
       originalTools: [],
       originalContext: [],
-      originalLang: 'zh',
+      originalLang: '简体中文',
       originalEnableThinking: false,
-    } as ReturnType<typeof extractOriginalMessageSettings>);
+    });
     jest.mocked(ask).mockReturnValue({
-      cancel: jest.fn(),
+      cancel: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn(),
       start: jest.fn().mockResolvedValue(undefined),
-    } as ReturnType<typeof ask>);
+    });
     let context!: ReturnType<typeof useContext>;
     function EditProbe() {
       context = useContext();

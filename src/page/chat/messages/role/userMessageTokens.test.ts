@@ -13,6 +13,7 @@ import {
   getUserMessageToolTokens,
   hasVisibleUserMessageResources,
   resourceMetaFromPrivateSearchResource,
+  splitDisplayPartsByLine,
   splitUserMessageResourceTokens,
   withoutUserMessageImages,
 } from './userMessageTokens';
@@ -35,6 +36,7 @@ describe('user message resource tokens', () => {
       },
     ];
 
+    expect(splitDisplayPartsByLine(displayParts)).toEqual([[displayParts[1]]]);
     expect(getUserMessageImages(displayParts)).toEqual([
       displayParts[0],
       displayParts[2],
