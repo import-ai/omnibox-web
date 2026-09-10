@@ -35,7 +35,7 @@ export default function Chat() {
   return (
     <SidebarInset
       className={cn(
-        'min-w-0 overflow-hidden bg-white dark:bg-background min-h-0 h-full md:rounded-2xl',
+        'min-h-0 !min-h-0 max-h-full min-w-0 h-full overflow-hidden bg-white dark:bg-background md:rounded-2xl',
         besideCitationPreview
           ? 'm-0 rounded-none md:h-full'
           : 'm-0 rounded-none md:m-[8px] md:h-[calc(100svh-16px)]'
@@ -43,7 +43,7 @@ export default function Chat() {
     >
       <Header />
       {showRoutePage ? (
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 max-h-full min-w-0 flex-1 flex-col overflow-hidden">
           <ChatRouteParamsProvider
             compact={besideCitationPreview}
             conversationId={conversationId}

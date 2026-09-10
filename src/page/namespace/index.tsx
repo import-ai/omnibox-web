@@ -15,7 +15,7 @@ export default function NamespacePage() {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="min-h-0 max-h-full">
       <SidebarStatePersistence />
       <Sidebar />
       <Workspace />

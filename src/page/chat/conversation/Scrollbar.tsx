@@ -4,6 +4,12 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { KEYBOARD_INSET_CHANGE_EVENT } from '@/lib/visualViewport';
+
+import {
+  nextStickToBottomScrollTop,
+  nextStickToBottomViewportScrollTop,
+} from './followKeyboardInset';
 
 interface IProps {
   children: React.ReactNode;
@@ -53,24 +59,40 @@ export default function Scrollbar(props: IProps) {
     }
 
     shouldStickToBottomRef.current = true;
+    let lastContentHeight = container.offsetHeight;
 
-    const stickToBottom = () => {
+    const followViewport = () => {
       if (shouldStickToBottomRef.current) {
-        scrollToBottom();
+        root.scrollTop = nextStickToBottomViewportScrollTop(
+          root.scrollHeight,
+          root.clientHeight
+        );
       } else {
         updateScrollToBottomVisible();
       }
     };
 
     const observer = new ResizeObserver(() => {
-      stickToBottom();
+      const nextContentHeight = container.offsetHeight;
+      const delta = nextContentHeight - lastContentHeight;
+      lastContentHeight = nextContentHeight;
+      if (shouldStickToBottomRef.current) {
+        root.scrollTop = nextStickToBottomScrollTop(root.scrollTop, delta);
+      } else {
+        updateScrollToBottomVisible();
+      }
     });
     observer.observe(container);
-    stickToBottom();
+    const viewportObserver = new ResizeObserver(followViewport);
+    viewportObserver.observe(root);
+    scrollToBottom();
     root.addEventListener('scroll', updateScrollToBottomVisible);
+    document.addEventListener(KEYBOARD_INSET_CHANGE_EVENT, followViewport);
     return () => {
       observer.disconnect();
+      viewportObserver.disconnect();
       root.removeEventListener('scroll', updateScrollToBottomVisible);
+      document.removeEventListener(KEYBOARD_INSET_CHANGE_EVENT, followViewport);
     };
   }, [props.resetKey, scrollToBottom, updateScrollToBottomVisible]);
 
@@ -88,6 +110,7 @@ export default function Scrollbar(props: IProps) {
         <div
           ref={containerRef}
           className="relative h-fit w-full max-w-3xl min-w-0"
+          data-chat-message-list
         >
           {props.children}
         </div>

@@ -266,6 +266,11 @@ describe('Copilot Workspace', () => {
 
     expect(mockCitationResourcePreview).not.toHaveBeenCalled();
     expect(
+      container
+        .querySelector('[data-testid="route-outlet"]')
+        ?.parentElement?.classList.contains('min-h-0')
+    ).toBe(true);
+    expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
     ).toMatchObject({
       conversationId: null,
