@@ -110,37 +110,43 @@ describe('ChatTool', () => {
     jest.restoreAllMocks();
   });
 
-  it('disables image selection and explains the Agent 1.1 limitation', async () => {
-    const onImageSelect = jest.fn();
-    const inputClick = jest
-      .spyOn(HTMLInputElement.prototype, 'click')
-      .mockImplementation(() => undefined);
+  it.each([undefined, 'chat.image.share_unsupported'])(
+    'disables image selection with reason %s',
+    async reason => {
+      const onImageSelect = jest.fn();
+      const inputClick = jest
+        .spyOn(HTMLInputElement.prototype, 'click')
+        .mockImplementation(() => undefined);
 
-    await act(async () =>
-      root.render(
-        <ChatTool
-          imageUploadDisabled
-          onBeforeOpen={jest.fn()}
-          onImageSelect={onImageSelect}
-          onResourceSelect={jest.fn()}
-          onToolToggle={jest.fn()}
-          tools={[]}
-        />
-      )
-    );
+      await act(async () =>
+        root.render(
+          <ChatTool
+            imageUploadDisabled
+            imageUploadDisabledReason={reason}
+            onBeforeOpen={jest.fn()}
+            onImageSelect={onImageSelect}
+            onResourceSelect={jest.fn()}
+            onToolToggle={jest.fn()}
+            tools={[]}
+          />
+        )
+      );
 
-    const imageMenuItem = Array.from(container.querySelectorAll('button')).find(
-      button => button.textContent?.includes('chat.image.add')
-    );
-    imageMenuItem?.click();
+      const imageMenuItem = Array.from(
+        container.querySelectorAll('button')
+      ).find(button => button.textContent?.includes('chat.image.add'));
+      imageMenuItem?.click();
 
-    expect(imageMenuItem?.getAttribute('aria-disabled')).toBe('true');
-    expect(inputClick).not.toHaveBeenCalled();
-    expect(
-      (container.querySelector('input[type="file"]') as HTMLInputElement)
-        .disabled
-    ).toBe(true);
-    expect(container.textContent).toContain('chat.image.agent_1_1_unsupported');
-    expect(onImageSelect).not.toHaveBeenCalled();
-  });
+      expect(imageMenuItem?.getAttribute('aria-disabled')).toBe('true');
+      expect(inputClick).not.toHaveBeenCalled();
+      expect(
+        (container.querySelector('input[type="file"]') as HTMLInputElement)
+          .disabled
+      ).toBe(true);
+      expect(container.textContent).toContain(
+        reason ?? 'chat.image.agent_1_1_unsupported'
+      );
+      expect(onImageSelect).not.toHaveBeenCalled();
+    }
+  );
 });

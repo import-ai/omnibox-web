@@ -55,6 +55,7 @@ interface IProps {
   onResourceSelect: (resource: ResourceMeta) => void;
   onImageSelect: (file: File) => void;
   imageUploadDisabled?: boolean;
+  imageUploadDisabledReason?: string;
 }
 
 export default function ChatTool(props: IProps) {
@@ -66,6 +67,7 @@ export default function ChatTool(props: IProps) {
     onResourceSelect,
     onImageSelect,
     imageUploadDisabled = false,
+    imageUploadDisabledReason,
   } = props;
   const { t } = useTranslation();
   const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
@@ -133,7 +135,8 @@ export default function ChatTool(props: IProps) {
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>{imageMenuItem}</TooltipTrigger>
               <TooltipContent side="right">
-                {t('chat.image.agent_1_1_unsupported')}
+                {imageUploadDisabledReason ??
+                  t('chat.image.agent_1_1_unsupported')}
               </TooltipContent>
             </Tooltip>
           ) : (
@@ -160,7 +163,7 @@ export default function ChatTool(props: IProps) {
         className="hidden"
         onChange={event => {
           const file = event.target.files?.[0];
-          if (file) onImageSelect(file);
+          if (file && !imageUploadDisabled) onImageSelect(file);
           event.target.value = '';
         }}
       />

@@ -674,6 +674,7 @@
       "add": "添加图片",
       "remove": "移除图片",
       "preview": "预览图片",
+      "share_unsupported": "分享聊天不支持上传图片",
       "agent_1_1_unsupported": "Agent 1.1 不支持该功能"
     },
     "title": "小黑",

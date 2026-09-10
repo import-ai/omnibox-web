@@ -8,6 +8,7 @@ import { createRoot } from 'react-dom/client';
 import ChatArea from './index';
 
 const mockInputClear = jest.fn();
+let mockQueryChange: (value: string) => void;
 
 jest.mock('react-dnd', () => ({
   useDrop: () => [{ isResourceOver: false }, jest.fn()],
@@ -47,10 +48,12 @@ jest.mock('./ChatInput', () => ({
       images: Array<{ id: string }>;
       onImageRemove: (id: string) => void;
       onSend: () => void;
+      onChange: (value: string) => void;
       value: string;
     },
     ref: React.ForwardedRef<unknown>
   ) {
+    mockQueryChange = props.onChange;
     React.useImperativeHandle(ref, () => ({
       clear: mockInputClear,
       getDisplayParts: () => [{ type: 'text', text: props.value }],
@@ -167,61 +170,119 @@ describe('ChatArea', () => {
     jest.clearAllMocks();
   });
 
-  it('clears text and images immediately and blocks repeated Enter sends', async () => {
-    const sendMessage = jest.fn(async () => new Promise<void>(() => undefined));
-
-    await act(async () =>
-      root.render(
-        <ChatArea
-          initialQuery="hello"
-          loading={false}
-          messages={[]}
-          navigatePrefix="/namespace-a"
-          namespaceId="namespace-a"
-          selectedResources={[]}
-          sendMessage={sendMessage}
-          setSelectedResources={jest.fn()}
-        />
-      )
-    );
-
-    await act(async () => {
-      (
-        container.querySelector('[data-testid="add-image"]') as HTMLElement
-      ).click();
-    });
-    expect(
-      container.querySelector('[data-testid="image-count"]')?.textContent
-    ).toBe('1');
-
-    const composer = container.querySelector(
-      '[data-testid="composer"]'
-    ) as HTMLTextAreaElement;
-    await act(async () => {
-      composer.dispatchEvent(
-        new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' })
+  it.each(['Enter', 'click', 'mixed'])(
+    'clears immediately and blocks same-batch %s sends',
+    async method => {
+      const sendMessage = jest.fn(
+        async () => new Promise<void>(() => undefined)
       );
-    });
 
-    expect(sendMessage).toHaveBeenCalledTimes(1);
-    expect(mockInputClear).toHaveBeenCalledTimes(1);
-    expect(revokeObjectURL).toHaveBeenCalledWith('blob:image');
-    expect(composer.value).toBe('');
-    expect(
-      container.querySelector('[data-testid="image-count"]')?.textContent
-    ).toBe('0');
-    expect(
-      (container.querySelector('[data-testid="send"]') as HTMLButtonElement)
-        .disabled
-    ).toBe(true);
-
-    await act(async () => {
-      composer.dispatchEvent(
-        new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' })
+      await act(async () =>
+        root.render(
+          <ChatArea
+            initialQuery="hello"
+            loading={false}
+            messages={[]}
+            navigatePrefix="/namespace-a"
+            namespaceId="namespace-a"
+            selectedResources={[]}
+            sendMessage={sendMessage}
+            setSelectedResources={jest.fn()}
+          />
+        )
       );
-    });
-    expect(sendMessage).toHaveBeenCalledTimes(1);
-  });
+
+      await act(async () => {
+        (
+          container.querySelector('[data-testid="add-image"]') as HTMLElement
+        ).click();
+      });
+      expect(
+        container.querySelector('[data-testid="image-count"]')?.textContent
+      ).toBe('1');
+
+      const composer = container.querySelector(
+        '[data-testid="composer"]'
+      ) as HTMLTextAreaElement;
+      await act(async () => {
+        const button = container.querySelector(
+          '[data-testid="send"]'
+        ) as HTMLButtonElement;
+        for (let index = 0; index < 3; index++) {
+          if (method === 'click' || (method === 'mixed' && index === 1)) {
+            button.click();
+          } else {
+            composer.dispatchEvent(
+              new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' })
+            );
+          }
+        }
+      });
+
+      expect(sendMessage).toHaveBeenCalledTimes(1);
+      expect(mockInputClear).toHaveBeenCalledTimes(1);
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:image');
+      expect(composer.value).toBe('');
+      expect(
+        container.querySelector('[data-testid="image-count"]')?.textContent
+      ).toBe('0');
+      expect(
+        (container.querySelector('[data-testid="send"]') as HTMLButtonElement)
+          .disabled
+      ).toBe(true);
+
+      await act(async () => {
+        composer.dispatchEvent(
+          new KeyboardEvent('keydown', { bubbles: true, key: 'Enter' })
+        );
+      });
+      expect(sendMessage).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it.each(['resolve', 'reject'] as const)(
+    'blocks new text while pending and unlocks after %s',
+    async outcome => {
+      let finish!: () => void;
+      const sendMessage = jest
+        .fn()
+        .mockImplementationOnce(
+          () =>
+            new Promise<void>((resolve, reject) => {
+              finish = () =>
+                outcome === 'resolve'
+                  ? resolve()
+                  : reject(new Error('request failed'));
+            })
+        )
+        .mockResolvedValue(undefined);
+      await act(async () =>
+        root.render(
+          <ChatArea
+            initialQuery="hello"
+            loading={false}
+            messages={[]}
+            navigatePrefix="/namespace-a"
+            selectedResources={[]}
+            setSelectedResources={jest.fn()}
+            sendMessage={sendMessage}
+          />
+        )
+      );
+      const button = container.querySelector(
+        '[data-testid="send"]'
+      ) as HTMLButtonElement;
+      await act(async () => button.click());
+      await act(async () => mockQueryChange('next message'));
+      expect(button.disabled).toBe(true);
+      await act(async () => button.click());
+      expect(sendMessage).toHaveBeenCalledTimes(1);
+      await act(async () => finish());
+      expect(button.disabled).toBe(false);
+      await act(async () => button.click());
+      expect(sendMessage).toHaveBeenCalledTimes(2);
+    }
+  );
 
   it('blocks sending existing images after agent credits are exhausted', async () => {
     const props = {
