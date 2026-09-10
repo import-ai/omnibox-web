@@ -95,7 +95,7 @@ export function useComposerTextareaLayout({
     if (!selection || !textarea) return;
 
     pendingSelectionRef.current = null;
-    textarea.focus();
+    textarea.focus({ preventScroll: true });
     setTextareaSelection(textarea, selection);
     selectionRef.current = selection;
   }, [displayText, pendingSelectionRef, selectionRef, textareaRef]);

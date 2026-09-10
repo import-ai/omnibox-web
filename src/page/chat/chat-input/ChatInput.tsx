@@ -2,10 +2,12 @@ import { forwardRef, useCallback, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { cn } from '@/lib/utils';
+import { isKeyboardOccludingViewport } from '@/lib/visualViewport';
 
 import { composerTextLayoutClassName } from './composerLayout';
 import ComposerOverlay from './ComposerOverlay';
 import type { ComposerState } from './composerState';
+import { focusComposerOnTap } from './composerTapFocus';
 import { IResTypeContext, ToolType } from './types';
 import {
   type ChatInputHandle,
@@ -57,7 +59,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           rows={1}
           placeholder={t('chat.textarea.placeholder')}
           className={cn(
-            'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent text-transparent outline-none',
+            'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent text-transparent outline-none [scroll-margin:0]',
             composerTextLayoutClassName,
             'caret-foreground placeholder:text-[#9CA3AF] selection:bg-[#117bfa]/20 selection:text-transparent dark:placeholder:text-gray-400'
           )}
@@ -66,6 +68,13 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           onClick={composer.rememberSelection}
           onCompositionEnd={() => composer.setIsComposing(false)}
           onCompositionStart={() => composer.setIsComposing(true)}
+          onFocus={composer.rememberSelection}
+          onTouchStart={() =>
+            focusComposerOnTap(
+              composer.textareaRef.current,
+              isKeyboardOccludingViewport(window)
+            )
+          }
           onKeyDown={composer.handleKeyDown}
           onKeyUp={composer.rememberSelection}
           onScroll={composer.handleScroll}

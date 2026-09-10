@@ -3,24 +3,15 @@ import './index.css';
 
 import { createRoot } from 'react-dom/client';
 
+import { bindKeyboardDebug } from '@/lib/keyboardDebug';
+import { bindVisualViewport } from '@/lib/visualViewport';
+
 import App from './App';
 
-// Safari mobile viewport height adaptation
-const setViewportHeight = () => {
-  const isStandalone =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (window.navigator as any).standalone === true;
-
-  if (isStandalone) {
-    document.documentElement.style.setProperty('--vh', '1vh');
-  } else {
-    const vh = window.innerHeight * 0.01;
-    document.documentElement.style.setProperty('--vh', `${vh}px`);
-  }
-};
-setViewportHeight();
-window.addEventListener('resize', setViewportHeight);
-window.addEventListener('orientationchange', setViewportHeight);
+// Pin the app shell to the visible viewport while the keyboard is up
+// (`interactive-widget=resizes-visual`), and interpolate back to rest on dismiss.
+bindVisualViewport();
+bindKeyboardDebug();
 
 createRoot(document.getElementById('root')!).render(<App />);
 

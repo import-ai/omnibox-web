@@ -180,10 +180,12 @@ const router = createBrowserRouter([
 
 export default function Main() {
   return (
-    <AppContext.Provider value={app}>
-      <AuthConfigProvider>
-        <RouterProvider router={router} />
-      </AuthConfigProvider>
-    </AppContext.Provider>
+    <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
+      <AppContext.Provider value={app}>
+        <AuthConfigProvider>
+          <RouterProvider router={router} />
+        </AuthConfigProvider>
+      </AppContext.Provider>
+    </div>
   );
 }

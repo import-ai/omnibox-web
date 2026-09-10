@@ -18,6 +18,8 @@ describe('composer textarea layout', () => {
     );
     expect(composerTextLayoutClassName).toContain('whitespace-pre-wrap');
     expect(composerTextLayoutClassName).toContain('break-words');
+    expect(composerTextLayoutClassName).toContain('text-base');
+    expect(composerTextLayoutClassName).toContain('md:text-sm');
     expect(composerTextLayoutClassName).toContain('[font-weight:inherit]');
     expect(composerTextLayoutClassName).toContain('[overflow-wrap:break-word]');
     expect(composerTextLayoutClassName).toContain('[word-break:normal]');
