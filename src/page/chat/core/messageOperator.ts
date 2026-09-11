@@ -14,6 +14,7 @@ function add(source?: string, delta?: string): string | undefined {
 }
 
 export interface MessageOperator {
+  isUserMessage?: (id?: string) => boolean;
   update: (delta: ChatDeltaResponse, id?: string) => void;
   add: (chatResponse: ChatBOSResponse) => string;
   done: (id?: string) => void;
@@ -76,6 +77,8 @@ export function createMessageOperator(
   setConversation: Dispatch<SetStateAction<ConversationDetail>>
 ): MessageOperator {
   return {
+    isUserMessage: id =>
+      !!id && conversation.mapping[id]?.message.role === OpenAIMessageRole.USER,
     update: (delta: ChatDeltaResponse, id?: string) => {
       setConversation(prev => {
         const message = getMessage(prev, id);
@@ -138,9 +141,25 @@ export function createMessageOperator(
 
       setConversation(prev => {
         const newMapping = { ...prev.mapping, [message.id]: message };
+        const pendingId = chatResponse.attrs?.client_request_id;
+        if (
+          pendingId &&
+          pendingId !== message.id &&
+          newMapping[pendingId]?.attrs?.pending_query
+        ) {
+          delete newMapping[pendingId];
+          for (const parent of Object.values(newMapping)) {
+            if (parent.children.includes(pendingId)) {
+              newMapping[parent.id] = {
+                ...parent,
+                children: parent.children.filter(id => id !== pendingId),
+              };
+            }
+          }
+        }
 
         if (message.parent_id && prev.current_node !== undefined) {
-          const parentMessage = prev.mapping[message.parent_id];
+          const parentMessage = newMapping[message.parent_id];
           if (parentMessage) {
             if (!parentMessage.children.includes(message.id)) {
               parentMessage.children.push(message.id);

@@ -35,6 +35,8 @@ export type Interrupt = {
 };
 
 export interface MessageAttrs {
+  client_request_id?: string;
+  pending_query?: boolean; // frontend only
   citations?: Citation[];
   tools?: ChatTool[];
   enable_thinking?: boolean;

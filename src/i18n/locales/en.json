@@ -668,6 +668,12 @@
     "fail": "Copy failed, please copy manually"
   },
   "chat": {
+    "delivery": {
+      "sending": "Sending",
+      "send_failed": "Failed to send",
+      "retry_send": "Send again",
+      "decision_submitted": "Permission choices submitted"
+    },
     "tips": "Enter a message",
     "image": {
       "upload_failed": "Failed to upload image. Please try again.",

@@ -163,6 +163,25 @@ export function prepareBody(
   return body;
 }
 
+export function beginPendingQuery(
+  operator: MessageOperator,
+  query: string,
+  parentId?: string,
+  attrs?: MessageDetail['attrs'],
+  id: string = crypto.randomUUID()
+): string {
+  operator.add({
+    response_type: 'bos',
+    id,
+    role: OpenAIMessageRole.USER,
+    parentId: parentId || '',
+    created_at: new Date().toISOString(),
+    attrs: { ...attrs, pending_query: true, client_request_id: id },
+  });
+  operator.update({ response_type: 'delta', message: { content: query } }, id);
+  return id;
+}
+
 export function ask(
   conversationId: string,
   query: string,
@@ -181,7 +200,8 @@ export function ask(
   displayParts?: ChatMessageDisplayPart[],
   recommendedQuestionId?: string,
   currentResourceId?: string,
-  images?: ChatImageInput[]
+  images?: ChatImageInput[],
+  pendingQueryId?: string
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -207,12 +227,55 @@ export function ask(
     chatReq.images = images;
   }
   let pendingDisplayParts = displayParts?.length ? displayParts : undefined;
+  const pendingId =
+    pendingQueryId || !messageOperator.isUserMessage?.(parent_message_id)
+      ? beginPendingQuery(
+          messageOperator,
+          query,
+          parent_message_id,
+          {
+            tools: chatReq.tools,
+            lang,
+            enable_thinking,
+            composer: displayParts
+              ? { display_parts: displayParts }
+              : undefined,
+            tool_call: tool_call
+              ? { ...tool_call, status: 'pending' }
+              : undefined,
+          },
+          pendingQueryId
+        )
+      : undefined;
+  if (pendingId) chatReq.client_request_id = pendingId;
+  let acceptedId = pendingId ? undefined : parent_message_id;
+  let assistantId: string | undefined;
+  let streamError = false;
 
-  return createStreamTransport(
+  const transport = createStreamTransport(
     url,
     chatReq,
     async data => {
       const chatResponse = JSON.parse(data) as ChatResponse;
+      if (chatResponse.response_type === 'bos') {
+        if (chatResponse.role === OpenAIMessageRole.USER) {
+          acceptedId = chatResponse.id;
+          // Also reconciles an older backend that does not echo the optional request ID.
+          chatResponse.attrs = {
+            ...chatResponse.attrs,
+            client_request_id: pendingId,
+          };
+          data = JSON.stringify(chatResponse);
+        } else if (chatResponse.role === OpenAIMessageRole.ASSISTANT)
+          assistantId = chatResponse.id;
+      }
+      if (chatResponse.response_type === 'error') {
+        streamError = true;
+        if (!chatResponse.id && !acceptedId) {
+          chatResponse.id = pendingId;
+          data = JSON.stringify(chatResponse);
+        }
+      }
       messageProcessor(messageOperator, data);
 
       if (
@@ -238,6 +301,36 @@ export function ask(
     },
     streamCancelUrl(url)
   );
+  return {
+    ...transport,
+    start: async () => {
+      try {
+        await transport.start();
+      } catch (error) {
+        if (!streamError) {
+          let id = pendingId;
+          if (acceptedId) {
+            id = assistantId || crypto.randomUUID();
+            if (!assistantId)
+              messageOperator.add({
+                response_type: 'bos',
+                id,
+                role: OpenAIMessageRole.ASSISTANT,
+                parentId: acceptedId,
+                created_at: new Date().toISOString(),
+              });
+          }
+          messageOperator.error(
+            {
+              response_type: 'error',
+              message: error instanceof Error ? error.message : String(error),
+            },
+            id
+          );
+        }
+      }
+    },
+  };
 }
 
 export function resumeStream(

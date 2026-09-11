@@ -108,3 +108,40 @@ describe('createMessageOperator', () => {
     });
   });
 });
+
+it('replaces the pending query with the persisted receipt without duplicating text or links', () => {
+  let conversation: ConversationDetail = { id: 'conv', mapping: {} };
+  const operator = createMessageOperator(conversation, updater => {
+    conversation = updateConversation(conversation, updater);
+  });
+  operator.add({
+    response_type: 'bos',
+    id: 'local',
+    role: OpenAIMessageRole.USER,
+    created_at: '',
+    parentId: '',
+    attrs: { pending_query: true, client_request_id: 'local' },
+  });
+  operator.update(
+    { response_type: 'delta', message: { content: 'hello' } },
+    'local'
+  );
+  expect(conversation.mapping.local.message.content).toBe('hello');
+  operator.add({
+    response_type: 'bos',
+    id: 'saved',
+    role: OpenAIMessageRole.USER,
+    created_at: '2026-09-12T02:30:00Z',
+    parentId: '',
+    attrs: { client_request_id: 'local' },
+  });
+  operator.update(
+    { response_type: 'delta', message: { content: 'hello' } },
+    'saved'
+  );
+  operator.done('saved');
+  expect(Object.keys(conversation.mapping)).toEqual(['saved']);
+  expect(conversation.mapping.saved.message.content).toBe('hello');
+  expect(conversation.mapping.saved.status).toBe(MessageStatus.SUCCESS);
+  expect(conversation.current_node).toBe('saved');
+});

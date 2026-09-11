@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Typewriter } from '@/components/typewriter';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope } from '@/lib/chatBridge';
@@ -31,6 +33,9 @@ import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 
 export default function ChatHomePage() {
+  const [pendingMessage, setPendingMessage] =
+    useState<SendMessageParams | null>(null);
+  const [sendFailed, setSendFailed] = useState(false);
   const params = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -114,33 +119,48 @@ export default function ChatHomePage() {
     recommendedQuestionId,
     images,
   }: SendMessageParams) => {
-    // Uploading images delays navigation; dismiss the keyboard before awaiting it.
-    (document.activeElement as HTMLElement | null)?.blur();
-    const conversation = await http.post<ConversationEntity>(
-      `/namespaces/${namespaceId}/conversations`
-    );
-    const uploadedImages = await resolveConversationImages(
-      namespaceId,
-      conversation.id,
-      images
-    );
-    sessionStorage.setItem(
-      'chat-create-payload',
-      JSON.stringify({
-        mode,
-        query,
-        tools,
-        selectedResources,
-        displayParts: withUploadedImageParts(displayParts, uploadedImages),
-        approvalMode,
-        recommendedQuestionId,
-        images: uploadedImages,
-        conversation: {
-          id: conversation.id,
-        } as ConversationDetail,
-      } as ChatCreatePayload)
-    );
-    navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
+    setPendingMessage({
+      query,
+      tools,
+      selectedResources,
+      mode,
+      displayParts,
+      approvalMode,
+      recommendedQuestionId,
+      images,
+    });
+    setSendFailed(false);
+    try {
+      // Uploading images delays navigation; dismiss the keyboard before awaiting it.
+      (document.activeElement as HTMLElement | null)?.blur();
+      const conversation = await http.post<ConversationEntity>(
+        `/namespaces/${namespaceId}/conversations`
+      );
+      const uploadedImages = await resolveConversationImages(
+        namespaceId,
+        conversation.id,
+        images
+      );
+      sessionStorage.setItem(
+        'chat-create-payload',
+        JSON.stringify({
+          mode,
+          query,
+          tools,
+          selectedResources,
+          displayParts: withUploadedImageParts(displayParts, uploadedImages),
+          approvalMode,
+          recommendedQuestionId,
+          images: uploadedImages,
+          conversation: {
+            id: conversation.id,
+          } as ConversationDetail,
+        } as ChatCreatePayload)
+      );
+      navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
+    } catch {
+      setSendFailed(true);
+    }
   };
   const handleQuestionSelect = (item: RecommendedQuestionItem) => {
     if (creatingRecommendedQuestionRef.current) {
@@ -167,9 +187,35 @@ export default function ChatHomePage() {
     <div className="flex justify-center flex-1 p-4 overflow-auto">
       <div className="flex flex-col h-full max-w-3xl w-full">
         <div className="flex flex-col justify-center flex-1 mb-8">
-          <h1 className="text-[28px] text-center mb-[32px] font-medium">
-            <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
-          </h1>
+          {pendingMessage ? (
+            <div
+              className="flex items-center justify-end gap-2"
+              role="status"
+              aria-label={t(
+                sendFailed
+                  ? 'chat.delivery.send_failed'
+                  : 'chat.delivery.sending'
+              )}
+            >
+              {sendFailed ? (
+                <Button
+                  variant="ghost"
+                  onClick={() => void sendMessage(pendingMessage)}
+                >
+                  {t('chat.delivery.retry_send')}
+                </Button>
+              ) : (
+                <Spinner className="size-4" />
+              )}
+              <div className="max-w-[75%] whitespace-pre-wrap rounded-lg bg-secondary px-3 py-2">
+                {pendingMessage.query}
+              </div>
+            </div>
+          ) : (
+            <h1 className="text-[28px] text-center mb-[32px] font-medium">
+              <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
+            </h1>
+          )}
           {config.commercial && (
             <AgentCredits
               namespaceId={namespaceId}
@@ -184,7 +230,7 @@ export default function ChatHomePage() {
             approvalModeResetKey={chatHomeDraftScope}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
-            loading={false}
+            loading={!!pendingMessage && !sendFailed}
             imageUploadDisabled={imageUploadDisabled}
             initialQuery={defaultHomeInput}
             sendMessage={sendMessage}
