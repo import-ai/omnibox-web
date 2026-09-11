@@ -13,11 +13,13 @@ import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 interface CopilotToggleButtonProps {
   namespaceId: string;
   hideWhenOpen?: boolean;
+  showComments?: boolean;
 }
 
 export default function CopilotToggleButton({
   namespaceId,
   hideWhenOpen = false,
+  showComments = true,
 }: CopilotToggleButtonProps) {
   const { t } = useTranslation();
   const open = useCopilotStore(
@@ -25,7 +27,7 @@ export default function CopilotToggleButton({
   );
   const toggle = useCopilotStore(state => state.toggle);
   const commentsPanel = useResourceCommentsPanel();
-  const commentsOpen = !!commentsPanel?.panelOpen;
+  const commentsOpen = showComments && !!commentsPanel?.panelOpen;
   const label = t(
     open && !hideWhenOpen && !commentsOpen
       ? 'copilot.collapse'
@@ -73,7 +75,7 @@ export default function CopilotToggleButton({
         orientation="vertical"
         className="mx-1 h-4 !bg-[#F2F2F2] dark:!bg-[#303132]"
       />
-      {commentsOpen ? null : <ResourceCommentsToggleButton />}
+      {showComments && !commentsOpen ? <ResourceCommentsToggleButton /> : null}
       {hideCopilot ? null : button}
     </>
   );

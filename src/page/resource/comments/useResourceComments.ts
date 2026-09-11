@@ -1,5 +1,4 @@
 import {
-  findResourceCommentRange,
   type OmniboxEditorCommentsConfig,
   type OmniboxEditorCommentSelection,
 } from '@import-ai/omnibox-editor';
@@ -31,6 +30,9 @@ import {
   restoreResourceCommentAnchors,
 } from './commentAnchors';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
+import { useCommentHighlight } from './useCommentHighlight';
+import { useCommentLinkNavigation } from './useCommentLinkNavigation';
+import { useCommentNavigation } from './useCommentNavigation';
 
 const PAGE_SIZE = 20;
 const PERMISSIONS: Permission[] = [
@@ -64,6 +66,9 @@ export function useResourceComments({
   const resourceRef = useRef(resource);
   resourceRef.current = resource;
   const editorRef = useRef<ResourceCommentEditor | null>(null);
+  const [registeredEditor, setRegisteredEditor] =
+    useState<ResourceCommentEditor | null>(null);
+  editorRef.current = registeredEditor;
   const threadsRef = useRef<ResourceCommentThread[]>([]);
   const anchorThreadsRef = useRef<ResourceCommentThread[]>(
     resource.comment_threads ?? []
@@ -87,7 +92,6 @@ export function useResourceComments({
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [createConflict, setCreateConflict] = useState(false);
-  const openedHashRef = useRef<string | null>(null);
 
   anchorThreadsRef.current = anchorThreads;
 
@@ -156,7 +160,6 @@ export function useResourceComments({
     setTotal(0);
     setHasMore(false);
     setCreateConflict(false);
-    openedHashRef.current = null;
     requestIdRef.current += 1;
   }, [resource.comment_threads, resource.id]);
 
@@ -176,7 +179,7 @@ export function useResourceComments({
   }, [anchorThreads]);
 
   const registerEditor = useCallback((editor: ResourceCommentEditor) => {
-    editorRef.current = editor;
+    setRegisteredEditor(editor);
     restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
 
@@ -189,126 +192,26 @@ export function useResourceComments({
         item => item.id === threadId
       );
       if (thread) {
-        setResolved(undefined);
-        setThreads(current => mergeThreads(current, [thread]));
+        setResolved(current =>
+          current !== undefined && current !== thread.resolved
+            ? undefined
+            : current
+        );
       }
     },
     [setPanelOpen]
   );
 
-  const focusAnimationRef = useRef(0);
+  const { focusThread, cancelNavigation, navigatingThreadId } =
+    useCommentNavigation(resource.id, openThread);
 
-  const alignCardWithQuote = useCallback(
+  const selectThread = useCallback(
     (threadId: string) => {
-      const marker = panel?.rootElement?.querySelector<HTMLElement>(
-        `[data-resource-comment-thread="${threadId}"]`
-      );
-      const card = panel?.panelElement?.querySelector<HTMLElement>(
-        `[data-thread-id="${threadId}"]`
-      );
-      const commentsScroll = panel?.panelElement?.querySelector<HTMLElement>(
-        '[data-comments-scroll]'
-      );
-      if (!marker || !card || !commentsScroll || !panel) {
-        return false;
-      }
-      if (panel.commentFocusOffset !== 0) {
-        panel.setCommentFocusOffset(0, false);
-      }
-      const wrapper =
-        card.offsetParent instanceof HTMLElement ? card.offsetParent : card;
-      const maxScroll = Math.max(
-        0,
-        commentsScroll.scrollHeight - commentsScroll.clientHeight
-      );
-      commentsScroll.scrollTop = Math.min(
-        maxScroll,
-        Math.max(
-          0,
-          commentsScroll.scrollTop +
-            wrapper.getBoundingClientRect().top -
-            marker.getBoundingClientRect().top
-        )
-      );
-      return (
-        Math.abs(
-          wrapper.getBoundingClientRect().top -
-            marker.getBoundingClientRect().top
-        ) < 2
-      );
+      cancelNavigation();
+      setPendingSelection(null);
+      setActiveThreadId(threadId);
     },
-    [panel]
-  );
-
-  const focusThread = useCallback(
-    (threadId: string) => {
-      const editor = editorRef.current;
-      if (editor && !editor.isDestroyed) {
-        const range = findResourceCommentRange(editor, threadId);
-        if (range) {
-          editor.chain().setTextSelection(range).run();
-        }
-      }
-      const resourceScroll = panel?.rootElement?.querySelector<HTMLElement>(
-        '[data-resource-scroll]'
-      );
-      const marker = panel?.rootElement?.querySelector<HTMLElement>(
-        `[data-resource-comment-thread="${threadId}"]`
-      );
-      openThread(threadId);
-      cancelAnimationFrame(focusAnimationRef.current);
-
-      const keepAligning = (attempt = 0, hits = 0) => {
-        const aligned = alignCardWithQuote(threadId);
-        const nextHits = aligned ? hits + 1 : 0;
-        if (nextHits >= 3 || attempt >= 45) {
-          return;
-        }
-        focusAnimationRef.current = requestAnimationFrame(() =>
-          keepAligning(attempt + 1, nextHits)
-        );
-      };
-
-      if (!resourceScroll || !marker) {
-        requestAnimationFrame(() => keepAligning());
-        return;
-      }
-
-      const scrollRect = resourceScroll.getBoundingClientRect();
-      const markerRect = marker.getBoundingClientRect();
-      const markerVisible =
-        markerRect.bottom > scrollRect.top + 8 &&
-        markerRect.top < scrollRect.bottom - 8;
-      if (markerVisible) {
-        requestAnimationFrame(() => keepAligning());
-        return;
-      }
-
-      const startTop = resourceScroll.scrollTop;
-      const nextTop = Math.max(
-        0,
-        startTop + markerRect.top - scrollRect.top - 24
-      );
-      const distance = Math.abs(nextTop - startTop);
-      if (distance < 1) {
-        requestAnimationFrame(() => keepAligning());
-        return;
-      }
-      const duration = Math.min(360, Math.max(180, distance * 0.4));
-      const startedAt = performance.now();
-      const tick = (now: number) => {
-        const progress = Math.min(1, (now - startedAt) / duration);
-        const eased = 1 - (1 - progress) * (1 - progress);
-        resourceScroll.scrollTop = startTop + (nextTop - startTop) * eased;
-        if (progress < 1) {
-          focusAnimationRef.current = requestAnimationFrame(tick);
-          return;
-        }
-        requestAnimationFrame(() => keepAligning());
-      };
-      focusAnimationRef.current = requestAnimationFrame(tick);
-    },
-    [alignCardWithQuote, openThread, panel]
+    [cancelNavigation]
   );
 
   const commentsConfig = useMemo<OmniboxEditorCommentsConfig>(
@@ -318,29 +221,23 @@ export function useResourceComments({
         setCreateConflict(false);
         setActiveThreadId(null);
         setPendingSelection(selection);
+        setPanelOpen(true);
       },
       onThreadSelect: focusThread,
     }),
-    [canComment, contentDirty, focusThread]
+    [canComment, contentDirty, focusThread, setPanelOpen]
   );
 
-  useEffect(() => {
-    if (!enabled || loading) {
-      return;
-    }
-    const threadId = getCommentThreadIdFromHash(window.location.hash);
-    if (!threadId || openedHashRef.current === threadId) {
-      return;
-    }
-    const exists =
-      threadsRef.current.some(thread => thread.id === threadId) ||
-      anchorThreadsRef.current.some(thread => thread.id === threadId);
-    if (!exists) {
-      return;
-    }
-    openedHashRef.current = threadId;
-    focusThread(threadId);
-  }, [enabled, focusThread, loading, resource.id, threads]);
+  useCommentLinkNavigation({
+    enabled,
+    loading,
+    resourceId: resource.id,
+    editorReady: !!registeredEditor && !registeredEditor.isDestroyed,
+    activeThreadId,
+    threads: anchorThreads,
+    openThread,
+    focusThread,
+  });
 
   const createThread = useCallback(
     async (content: string, attachmentIds?: string[]) => {
@@ -602,16 +499,22 @@ export function useResourceComments({
     ? (anchorThreads.find(thread => thread.id === activeThreadId) ?? null)
     : null;
 
+  useCommentHighlight({
+    root: panel?.rootElement,
+    activeThreadId,
+    resolved: activeThread?.resolved ?? false,
+  });
+
   return {
     activeThread,
     activeThreadId,
     canComment,
     canEditComment: (comment: ResourceComment) =>
-      !isShared && isCommentAuthor(comment.author.id),
+      canComment && isCommentAuthor(comment.author.id),
     canDeleteComment: (comment: ResourceComment) =>
-      !isShared && (canEditResource || isCommentAuthor(comment.author.id)),
+      canComment && (canEditResource || isCommentAuthor(comment.author.id)),
     canModerateThread: (thread: ResourceCommentThread) =>
-      !isShared && (canEditResource || isCommentAuthor(thread.creator.id)),
+      canComment && (canEditResource || isCommentAuthor(thread.creator.id)),
     commentsConfig,
     contentDirty,
     createConflict,
@@ -626,6 +529,8 @@ export function useResourceComments({
     loadMore: () => loadThreads(true),
     openThread,
     focusThread,
+    selectThread,
+    navigatingThreadId,
     panelOpen,
     pendingSelection,
     registerEditor,
@@ -640,7 +545,12 @@ export function useResourceComments({
     setResolved,
     setThreadResolved,
     submitting,
-    threads,
+    threads:
+      activeThread &&
+      (resolved === undefined || activeThread.resolved === resolved) &&
+      !threads.some(thread => thread.id === activeThread.id)
+        ? [...threads, activeThread]
+        : threads,
     total,
   };
 }
@@ -677,11 +587,6 @@ function waitForCommentAnchor(editor: ResourceCommentEditor, threadId: string) {
       finish(hasAnchor());
     }, 300);
   });
-}
-
-function getCommentThreadIdFromHash(hash: string) {
-  const match = /^#comment-(.+)$/.exec(hash);
-  return match?.[1] ?? null;
 }
 
 function hasPermission(current: Permission, required: Permission) {

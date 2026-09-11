@@ -6,6 +6,7 @@ import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset } from '@/components/ui/Sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
+import { ResourceCommentsProvider } from '@/page/resource/comments/ResourceCommentsContext';
 
 import Header from './header';
 import ShareSidebar from './sidebar/index';
@@ -47,6 +48,39 @@ export function ShareLayout(props: IProps) {
       ? location.state.sidebarActiveKey
       : currentResourceId;
 
+  const showComments =
+    !isChatActive &&
+    !chatOnly &&
+    !!resource?.content?.trim() &&
+    !['folder', 'smart_folder', 'rss_folder'].includes(resource.resource_type);
+
+  const content = (
+    <>
+      {!isChatActive && !chatOnly && (
+        <>
+          <Header
+            resource={resource}
+            wide={wide}
+            onWide={onWide}
+            showSidebarTrigger={showSidebar}
+            showComments={showComments}
+          />
+          <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
+        </>
+      )}
+      {isChatActive && showSidebar && (
+        <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
+          <SidebarTriggerButton collapse />
+        </header>
+      )}
+      <div className="flex flex-1 flex-col min-h-0 overflow-auto">
+        <Suspense fallback={<Loading />}>
+          <Outlet />
+        </Suspense>
+      </div>
+    </>
+  );
+
   return (
     <>
       {showSidebar && (
@@ -67,27 +101,16 @@ export function ShareLayout(props: IProps) {
         />
       )}
       <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">
-        {!isChatActive && !chatOnly && (
-          <>
-            <Header
-              resource={resource}
-              wide={wide}
-              onWide={onWide}
-              showSidebarTrigger={showSidebar}
-            />
-            <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
-          </>
+        {showComments ? (
+          <ResourceCommentsProvider
+            key={currentResourceId ?? resource?.id}
+            namespaceId={`share:${shareInfo.id}`}
+          >
+            {content}
+          </ResourceCommentsProvider>
+        ) : (
+          content
         )}
-        {isChatActive && showSidebar && (
-          <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
-            <SidebarTriggerButton collapse />
-          </header>
-        )}
-        <div className="flex flex-1 flex-col min-h-0 overflow-auto">
-          <Suspense fallback={<Loading />}>
-            <Outlet />
-          </Suspense>
-        </div>
       </SidebarInset>
     </>
   );

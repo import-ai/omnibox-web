@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Image, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
+import { AutosizeTextarea } from '@/components/autosize-textarea';
 import { Button } from '@/components/ui/Button';
-import { Textarea } from '@/components/ui/Textarea';
 
 import type { ResourceCommentsController } from './useResourceComments';
 
 const SURFACE_WIDTH = 360;
-const SURFACE_HEIGHT_ESTIMATE = 180;
+const SURFACE_HEIGHT_ESTIMATE = 220;
 const SURFACE_MARGIN = 12;
 const SURFACE_MIN_TOP = 56;
 
@@ -20,17 +21,39 @@ export function ResourceCommentComposer({
   controller,
 }: ResourceCommentComposerProps) {
   const { t } = useTranslation();
-  const selection = controller.pendingSelection;
+  const selection = controller.canComment ? controller.pendingSelection : null;
   const [content, setContent] = useState('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [attachmentId, setAttachmentId] = useState<string | null>(null);
   const [position, setPosition] = useState<{
     left: number;
     top: number;
   } | null>(null);
+  const previewUrlRef = useRef<string | null>(null);
   const selectionKey = selection ? `${selection.from}:${selection.to}` : null;
+  const hasDraft = !!content.trim() || !!attachmentId;
+
+  const clearImage = useCallback(() => {
+    if (previewUrlRef.current) {
+      URL.revokeObjectURL(previewUrlRef.current);
+      previewUrlRef.current = null;
+    }
+    setImagePreview(null);
+    setAttachmentId(null);
+  }, []);
 
   useEffect(() => {
     setContent('');
-  }, [selectionKey]);
+    clearImage();
+  }, [clearImage, selectionKey]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!selection) {
@@ -112,11 +135,13 @@ export function ResourceCommentComposer({
   }
 
   const submit = async () => {
-    const value = content.trim();
-    if (!value || controller.submitting) {
+    if (!hasDraft || controller.submitting) {
       return;
     }
-    await controller.createThread(value);
+    await controller.createThread(
+      content.trim(),
+      attachmentId ? [attachmentId] : undefined
+    );
   };
 
   return createPortal(
@@ -141,28 +166,78 @@ export function ResourceCommentComposer({
           }}
         >
           <q>{selection.quotedText}</q>
-          <Textarea
-            autoFocus
-            className="border-line"
-            maxLength={10000}
-            placeholder={t('resource_comments.write_comment')}
-            rows={2}
-            value={content}
-            onChange={event => setContent(event.target.value)}
-            onKeyDown={event => {
-              if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
-                return;
-              }
-              if (event.shiftKey) {
-                return;
-              }
-              event.preventDefault();
-              if (event.repeat) {
-                return;
-              }
-              submit().catch(() => undefined);
-            }}
-          />
+          <div
+            className="omnibox-comment-composer__input"
+            data-has-preview={imagePreview ? '' : undefined}
+          >
+            <AutosizeTextarea
+              autoFocus
+              className="border-line"
+              minHeight={0}
+              maxHeight={160}
+              maxLength={10000}
+              placeholder={t('resource_comments.write_comment')}
+              rows={1}
+              value={content}
+              onChange={event => setContent(event.target.value)}
+              onKeyDown={event => {
+                if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
+                  return;
+                }
+                if (event.shiftKey) {
+                  return;
+                }
+                event.preventDefault();
+                if (event.repeat) {
+                  return;
+                }
+                submit().catch(() => undefined);
+              }}
+            />
+            {imagePreview ? (
+              <div className="omnibox-comment-composer__preview">
+                <img src={imagePreview} alt="" />
+                <button
+                  type="button"
+                  aria-label={t('resource_comments.remove_image')}
+                  title={t('resource_comments.remove_image')}
+                  onClick={clearImage}
+                >
+                  <X aria-hidden="true" strokeWidth={2} />
+                </button>
+              </div>
+            ) : null}
+            <label
+              className="omnibox-comment-composer__attach"
+              aria-label={t('resource_comments.attach_image')}
+              title={t('resource_comments.attach_image')}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                disabled={controller.submitting}
+                onChange={event => {
+                  const file = event.target.files?.[0];
+                  event.target.value = '';
+                  if (!file) {
+                    return;
+                  }
+                  clearImage();
+                  const url = URL.createObjectURL(file);
+                  previewUrlRef.current = url;
+                  setImagePreview(url);
+                  controller
+                    .uploadCommentImage(file)
+                    .then(uploaded => {
+                      setAttachmentId(uploaded.id);
+                    })
+                    .catch(clearImage);
+                }}
+              />
+              <Image aria-hidden="true" className="size-4" strokeWidth={1.5} />
+            </label>
+          </div>
           {controller.createConflict ? (
             <p className="omnibox-comment-composer__error" role="alert">
               {t('resource_comments.content_conflict')}
@@ -181,7 +256,8 @@ export function ResourceCommentComposer({
             <Button
               type="submit"
               size="sm"
-              disabled={controller.submitting || !content.trim()}
+              className="omnibox-comment-submit"
+              disabled={controller.submitting || !hasDraft}
             >
               {t('resource_comments.comment')}
             </Button>

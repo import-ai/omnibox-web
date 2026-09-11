@@ -4,11 +4,17 @@ import { cn } from '@/lib/utils';
 import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 
 import Actions, { IActionProps } from '../actions';
+import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import Breadcrumb from './BreadcrumbMain';
 
 export default function Header(props: IActionProps) {
   const { resource, namespaceId } = props;
   const { open } = useSidebar();
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const isFolder =
+    resource?.resource_type === 'folder' ||
+    resource?.resource_type === 'smart_folder' ||
+    resource?.resource_type === 'rss_folder';
 
   return (
     <header className="rounded-[16px] bg-white flex flex-wrap min-h-[48px] shrink-0 items-center gap-2 dark:bg-background">
@@ -25,7 +31,11 @@ export default function Header(props: IActionProps) {
       <div className="ml-auto flex items-center gap-1 pr-3">
         <Actions {...props} />
         {resource && (
-          <CopilotToggleButton hideWhenOpen namespaceId={namespaceId} />
+          <CopilotToggleButton
+            hideWhenOpen
+            namespaceId={namespaceId}
+            showComments={!!useOmniboxEditor && !isFolder}
+          />
         )}
       </div>
     </header>

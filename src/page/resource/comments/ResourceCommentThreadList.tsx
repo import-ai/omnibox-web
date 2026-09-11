@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
@@ -21,18 +21,22 @@ export function ResourceCommentThreadList({
 }: ResourceCommentThreadListProps) {
   const { t } = useTranslation();
   const panel = useResourceCommentsPanel();
+  const root = panel?.rootElement;
+  const panelElement = panel?.panelElement;
+  const panelOpen = panel?.panelOpen;
   const [positions, setPositions] = useState<Record<string, number>>({});
   const [contentHeight, setContentHeight] = useState(0);
   const [orderedThreadIds, setOrderedThreadIds] = useState<string[]>([]);
+  const navigatingThreadIdRef = useRef(controller.navigatingThreadId);
+  navigatingThreadIdRef.current = controller.navigatingThreadId;
 
   useLayoutEffect(() => {
-    const root = panel?.rootElement;
-    const panelElement = panel?.panelElement;
-    if (!root || !panelElement || !panel.panelOpen) {
+    if (!root || !panelElement || !panelOpen) {
       return;
     }
 
     let frame = 0;
+    const previousMarkerPositions = new Map<string, number>();
     const schedule = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
@@ -76,7 +80,7 @@ export function ResourceCommentThreadList({
           const documentIndex = markerOrder.indexOf(thread.id);
           const position = marker
             ? marker.getBoundingClientRect().top - commentsRect.top
-            : Number.NaN;
+            : (previousMarkerPositions.get(thread.id) ?? Number.NaN);
           const element = threadElements.get(thread.id);
           const height =
             element?.getBoundingClientRect().height || DEFAULT_COMMENT_HEIGHT;
@@ -116,6 +120,52 @@ export function ResourceCommentThreadList({
         );
         nextPositions[thread.id] = nextPosition;
         previousBottom = nextPosition + height;
+      });
+
+      // Keep the selected card in place when nearby reply composers resize.
+      const selectedIndex = anchoredThreads.findIndex(({ thread }) =>
+        threadElements.get(thread.id)?.hasAttribute('data-selected')
+      );
+      const selected = anchoredThreads[selectedIndex];
+      if (selected && previousMarkerPositions.has(selected.thread.id)) {
+        const element = threadElements.get(selected.thread.id);
+        const wrapper = element?.parentElement;
+        const previousMarker = previousMarkerPositions.get(selected.thread.id);
+        const markerDelta =
+          navigatingThreadIdRef.current !== selected.thread.id &&
+          Number.isFinite(selected.position) &&
+          previousMarker !== undefined &&
+          Number.isFinite(previousMarker)
+            ? selected.position - previousMarker
+            : 0;
+        if (wrapper) {
+          nextPositions[selected.thread.id] = wrapper.offsetTop + markerDelta;
+          for (let index = selectedIndex - 1; index >= 0; index -= 1) {
+            const { thread, height, position } = anchoredThreads[index];
+            const next = anchoredThreads[index + 1];
+            const gap =
+              Number.isFinite(position) && Number.isFinite(next.position)
+                ? Math.max(COMMENT_GAP, next.position - position - height)
+                : COMMENT_GAP;
+            nextPositions[thread.id] =
+              nextPositions[next.thread.id] - height - gap;
+          }
+          for (
+            let index = selectedIndex + 1;
+            index < anchoredThreads.length;
+            index += 1
+          ) {
+            const { thread } = anchoredThreads[index];
+            const previous = anchoredThreads[index - 1];
+            nextPositions[thread.id] = Math.max(
+              nextPositions[thread.id],
+              nextPositions[previous.thread.id] + previous.height + COMMENT_GAP
+            );
+          }
+        }
+      }
+      anchoredThreads.forEach(({ thread, position }) => {
+        previousMarkerPositions.set(thread.id, position);
       });
       const lastBottom = Math.max(
         0,
@@ -199,13 +249,7 @@ export function ResourceCommentThreadList({
       resizeObserver?.disconnect();
       mutationObserver?.disconnect();
     };
-  }, [
-    controller.threads,
-    panel,
-    panel?.panelOpen,
-    panel?.panelElement,
-    panel?.rootElement,
-  ]);
+  }, [controller.threads, panelOpen, panelElement, root]);
 
   return (
     <div

@@ -24,7 +24,10 @@ import {
 } from '@/page/resource/resourceStore';
 
 import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
-import { useResourceComments } from './comments/useResourceComments';
+import {
+  type ResourceCommentsController,
+  useResourceComments,
+} from './comments/useResourceComments';
 import { parseScrollToLine, scrollRenderedContentToLine } from './scrollToLine';
 import {
   findFirstSearchMatchElement,
@@ -33,6 +36,7 @@ import {
 import { embedImage, getReadonlyResourceEditorKey } from './utils';
 
 interface IProps {
+  comments?: ResourceCommentsController;
   resource: Resource | SharedResource;
   namespaceId?: string;
   forceOmniboxEditor?: boolean;
@@ -160,10 +164,14 @@ function MarkdownRender(props: IProps) {
   );
 }
 
-function OmniboxRender(props: IProps) {
+interface OmniboxRenderProps extends IProps {
+  comments: ResourceCommentsController;
+}
+
+function OmniboxRender(props: OmniboxRenderProps) {
   const {
     resource,
-    namespaceId = '',
+    comments,
     linkBase,
     scrollToLine: requestedLine,
     showToc = true,
@@ -181,12 +189,6 @@ function OmniboxRender(props: IProps) {
     () => getResourceEditorContent(resource, linkBase),
     [linkBase, resource]
   );
-  const commentsEnabled = !!namespaceId;
-  const comments = useResourceComments({
-    namespaceId,
-    resource,
-    enabled: commentsEnabled,
-  });
   const targetScrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;
 
@@ -259,8 +261,24 @@ function OmniboxRender(props: IProps) {
         onReady={comments.registerEditor}
         scrollToLineContent={embedImage(resource)}
       />
-      {commentsEnabled ? <ResourceCommentsSheet controller={comments} /> : null}
     </div>
+  );
+}
+
+function StandaloneOmniboxRender(props: IProps) {
+  const { namespaceId = '', resource } = props;
+  const commentsEnabled = !!namespaceId;
+  const comments = useResourceComments({
+    namespaceId,
+    resource,
+    enabled: commentsEnabled,
+  });
+
+  return (
+    <>
+      <OmniboxRender {...props} comments={comments} />
+      {commentsEnabled ? <ResourceCommentsSheet controller={comments} /> : null}
+    </>
   );
 }
 
@@ -268,7 +286,11 @@ export default function Render(props: IProps) {
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
 
   return useOmniboxEditor || props.forceOmniboxEditor ? (
-    <OmniboxRender {...props} />
+    props.comments ? (
+      <OmniboxRender {...props} comments={props.comments} />
+    ) : (
+      <StandaloneOmniboxRender {...props} />
+    )
   ) : (
     <MarkdownRender {...props} />
   );

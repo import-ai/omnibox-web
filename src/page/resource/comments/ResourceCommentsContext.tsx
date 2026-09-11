@@ -10,8 +10,13 @@ import {
 
 import { cn } from '@/lib/utils';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
+import {
+  COPILOT_PANEL_TRANSITION_MS,
+  useCopilotPanelLayout,
+} from '@/page/copilot/useCopilotPanelLayout';
 
 const COMMENTS_PANEL_STORAGE_KEY = 'resource-comments-panel';
+const COMMENTS_PANEL_GAP = 8;
 
 function readStoredPanelOpen(namespaceId: string) {
   if (typeof sessionStorage === 'undefined') {
@@ -78,8 +83,17 @@ export function ResourceCommentsProvider({
   const [rootElement, setRootElementState] = useState<HTMLDivElement | null>(
     null
   );
+  const { layout, setPanelElement: observePanelElement } =
+    useCopilotPanelLayout();
+  const isShared = namespaceId.startsWith('share:');
+  const registerSharedPanelElement = useCallback(
+    (element: HTMLDivElement | null) => {
+      setPanelElement(element);
+      observePanelElement(element);
+    },
+    [observePanelElement]
+  );
   const rootRef = useRef<HTMLDivElement>(null);
-  const [commentFocusOffset, setCommentFocusOffsetState] = useState(0);
   const shiftRef = useRef(0);
   const writeShift = useCallback((value: number, animate: boolean) => {
     const list = rootRef.current?.querySelector<HTMLElement>(
@@ -103,7 +117,6 @@ export function ResourceCommentsProvider({
   const setCommentFocusOffset = useCallback(
     (offset: number, animate = true) => {
       applyShift(offset, animate);
-      setCommentFocusOffsetState(offset);
     },
     [applyShift]
   );
@@ -124,7 +137,6 @@ export function ResourceCommentsProvider({
       writeStoredPanelOpen(namespaceId, open);
       if (!open) {
         applyShift(0, false);
-        setCommentFocusOffsetState(0);
       }
       setOpen(open);
     },
@@ -138,6 +150,12 @@ export function ResourceCommentsProvider({
       useCopilotStore.getState().open(namespaceId);
     }
   }, [namespaceId]);
+
+  useEffect(() => {
+    if (isShared) {
+      panelElement?.toggleAttribute('inert', !panelOpen);
+    }
+  }, [isShared, panelElement, panelOpen]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -212,7 +230,9 @@ export function ResourceCommentsProvider({
     setPanelElement,
     rootElement,
     namespaceId,
-    commentFocusOffset,
+    get commentFocusOffset() {
+      return shiftRef.current;
+    },
     setCommentFocusOffset,
   };
 
@@ -221,18 +241,50 @@ export function ResourceCommentsProvider({
       <div
         ref={setRootElement}
         data-resource-comments-root
-        className="relative flex h-full min-h-0 min-w-0 flex-1 overflow-hidden"
+        className={cn(
+          'relative flex h-full min-h-0 min-w-0 flex-1 overflow-hidden',
+          isShared && 'bg-sidebar'
+        )}
       >
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">{children}</div>
-        {namespaceId.startsWith('share:') && (
+        <div
+          className={cn(
+            'flex min-h-0 min-w-0 flex-1 flex-col',
+            isShared &&
+              'overflow-hidden rounded-2xl bg-white dark:bg-background'
+          )}
+        >
+          {children}
+        </div>
+        {isShared && layout.mode === 'split' && (
           <div
-            ref={setPanelElement}
+            aria-hidden
+            className="pointer-events-none shrink-0 transition-[width] ease-linear"
+            style={{
+              width: panelOpen ? layout.panelWidth + COMMENTS_PANEL_GAP : 0,
+              transitionDuration: `${COPILOT_PANEL_TRANSITION_MS}ms`,
+            }}
+          />
+        )}
+        {isShared && (
+          <div
+            ref={registerSharedPanelElement}
+            aria-hidden={!panelOpen}
             className={cn(
-              'resource-comments-panel flex min-h-0 flex-col border-l bg-white text-foreground dark:bg-background',
+              'resource-comments-panel absolute inset-y-0 right-0 z-30 flex min-h-0 flex-col overflow-hidden bg-white text-foreground transition-transform ease-linear dark:bg-background',
+              layout.mode === 'split'
+                ? 'rounded-2xl'
+                : layout.mode === 'fullscreen'
+                  ? 'left-0'
+                  : 'rounded-l-2xl shadow-lg',
               panelOpen
-                ? 'absolute inset-0 z-30 md:static md:z-auto md:w-96 md:shrink-0'
-                : 'hidden'
+                ? 'translate-x-0'
+                : 'pointer-events-none translate-x-full'
             )}
+            style={{
+              width:
+                layout.mode === 'fullscreen' ? undefined : layout.panelWidth,
+              transitionDuration: `${COPILOT_PANEL_TRANSITION_MS}ms`,
+            }}
           />
         )}
       </div>

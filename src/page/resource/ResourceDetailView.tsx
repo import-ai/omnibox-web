@@ -71,6 +71,13 @@ function ResourceDetailContent({
   const [compactResourcePane, setCompactResourcePane] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const commentsPanel = useResourceCommentsPanel();
+  const commentsPanelOpen = commentsPanel?.panelOpen ?? false;
+  const closeCommentsPanel = commentsPanel?.setPanelOpen;
+  const isFolderResource =
+    currentResource?.resource_type === 'folder' ||
+    currentResource?.resource_type === 'smart_folder' ||
+    currentResource?.resource_type === 'rss_folder';
   const useFullWidth =
     useOmniboxEditor &&
     !!currentResource &&
@@ -79,6 +86,21 @@ function ResourceDetailContent({
     currentResource.resource_type !== 'rss_folder';
 
   useResourceBodyDragAutoScroll(scrollContainerRef, useFullWidth && editPage);
+
+  useEffect(() => {
+    if (
+      (isFolderResource || !useOmniboxEditor) &&
+      commentsPanelOpen &&
+      closeCommentsPanel
+    ) {
+      closeCommentsPanel(false);
+    }
+  }, [
+    closeCommentsPanel,
+    commentsPanelOpen,
+    isFolderResource,
+    useOmniboxEditor,
+  ]);
 
   useEffect(() => {
     if (copilotOpen) {

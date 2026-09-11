@@ -46,8 +46,7 @@ import {
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
 
-import { ResourceCommentsSheet } from '../comments/ResourceCommentsSheet';
-import { useResourceComments } from '../comments/useResourceComments';
+import type { ResourceCommentsController } from '../comments/useResourceComments';
 import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import {
   type AutosizeTextAreaRef,
@@ -56,6 +55,8 @@ import {
 } from './ResourceTitleTextarea';
 
 interface IEditorProps {
+  comments: ResourceCommentsController;
+  onContentDirtyChange: (dirty: boolean) => void;
   namespaceId: string;
   resource: Resource;
   onResource: (resource: Resource) => void;
@@ -119,7 +120,15 @@ function format(_files: File[], responseText: string): string {
 }
 
 function OmniboxResourceEditor(props: IEditorProps) {
-  const { resource, onResource, namespaceId, showToc, wide } = props;
+  const {
+    resource,
+    onResource,
+    namespaceId,
+    showToc,
+    wide,
+    comments,
+    onContentDirtyChange,
+  } = props;
   const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
@@ -135,7 +144,6 @@ function OmniboxResourceEditor(props: IEditorProps) {
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const hasCachedContentChange =
     cache?.content !== undefined && cache.content !== (resource.content ?? '');
-  const [contentDirty, setContentDirty] = useState(hasCachedContentChange);
   const cachedTitle = cache?.title ?? resource.name ?? '';
   const isFolder = resource.resource_type === 'folder';
   const linkBase = useMemo(
@@ -151,12 +159,6 @@ function OmniboxResourceEditor(props: IEditorProps) {
     () => (isFolder ? null : initialContent),
     [initialContent, isFolder]
   );
-  const comments = useResourceComments({
-    namespaceId,
-    resource,
-    enabled: Boolean(resource.content_hash),
-    contentDirty,
-  });
   const { commentsConfig, getAnchorSync, registerEditor } = comments;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -171,12 +173,12 @@ function OmniboxResourceEditor(props: IEditorProps) {
       const content = serializeResourceEditorContent(payload);
       if (content !== markdownRef.current) {
         dirtyRef.current = true;
-        setContentDirty(content !== (resource.content ?? ''));
+        onContentDirtyChange(content !== (resource.content ?? ''));
         updateCacheContent(resource.id, content);
       }
       markdownRef.current = content;
     },
-    [resource.content, resource.id]
+    [onContentDirtyChange, resource.content, resource.id]
   );
 
   const handleEditorReady = useCallback(
@@ -283,8 +285,13 @@ function OmniboxResourceEditor(props: IEditorProps) {
   useEffect(() => {
     onTitle(cachedTitle);
     markdownRef.current = initialContent;
-    setContentDirty(hasCachedContentChange);
-  }, [cachedTitle, hasCachedContentChange, initialContent]);
+    onContentDirtyChange(hasCachedContentChange);
+  }, [
+    cachedTitle,
+    hasCachedContentChange,
+    initialContent,
+    onContentDirtyChange,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -327,7 +334,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
           app.fire('update_resource', delta);
           onResource(delta);
           dirtyRef.current = false;
-          setContentDirty(false);
+          onContentDirtyChange(false);
           clearCache(resource.id);
           navigate(`/${namespaceId}/${resource.id}`, {
             state: loc.state,
@@ -342,6 +349,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
     namespaceId,
     navigate,
     onResource,
+    onContentDirtyChange,
     resource.content_hash,
     resource.id,
     title,
@@ -411,9 +419,6 @@ function OmniboxResourceEditor(props: IEditorProps) {
           />
         ) : null}
       </div>
-      {resource.content_hash ? (
-        <ResourceCommentsSheet controller={comments} />
-      ) : null}
     </div>
   );
 }

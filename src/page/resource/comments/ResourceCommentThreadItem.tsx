@@ -8,11 +8,13 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { useAutosizeTextArea } from '@/components/autosize-textarea';
 import { Button } from '@/components/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
 import { Textarea } from '@/components/ui/Textarea';
 import type {
@@ -55,6 +57,23 @@ export function ResourceCommentThreadItem({
   }, [active]);
 
   useEffect(() => {
+    if (
+      active &&
+      controller.navigatingThreadId === thread.id &&
+      !thread.resolved &&
+      controller.canComment
+    ) {
+      setReplying(true);
+    }
+  }, [
+    active,
+    controller.navigatingThreadId,
+    controller.canComment,
+    thread.id,
+    thread.resolved,
+  ]);
+
+  useEffect(() => {
     if (!active) {
       return;
     }
@@ -66,7 +85,7 @@ export function ResourceCommentThreadItem({
       const threadElement = target.closest<HTMLElement>(
         '.omnibox-comment-thread'
       );
-      if (threadElement?.dataset.threadId === thread.id) {
+      if (threadElement) {
         return;
       }
       setReplying(false);
@@ -124,9 +143,20 @@ export function ResourceCommentThreadItem({
 
   const handleThreadClick = () => {
     if (!active) {
-      controller.focusThread(thread.id);
+      if (thread.resolved) {
+        controller.focusThread(thread.id);
+      } else {
+        controller.selectThread(thread.id);
+      }
+    }
+    if (!thread.resolved && controller.canComment && !editingCommentId) {
       setReplying(true);
     }
+  };
+
+  const handleQuoteClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    controller.focusThread(thread.id);
   };
 
   return (
@@ -135,11 +165,17 @@ export function ResourceCommentThreadItem({
       data-thread-id={thread.id}
       data-selected={active || undefined}
       data-resolved={thread.resolved || undefined}
+      data-editing={editingCommentId || undefined}
+      data-submitting={controller.submitting || undefined}
       onClick={handleThreadClick}
     >
       {mode === 'all' ? (
         <div className="omnibox-comment-thread__quote-row">
-          <button type="button" className="omnibox-comment-thread__quote">
+          <button
+            type="button"
+            className="omnibox-comment-thread__quote"
+            onClick={handleQuoteClick}
+          >
             <span>{t('resource_comments.quote_label')}</span>
             <q>{thread.quoted_text}</q>
           </button>
@@ -148,62 +184,86 @@ export function ResourceCommentThreadItem({
             aria-label={t('resource_comments.thread_actions')}
             onClick={event => event.stopPropagation()}
           >
-            <button
-              type="button"
-              aria-label={t('resource_comments.next_thread')}
-              title={t('resource_comments.next_thread')}
-              disabled={!nextThreadId}
-              onClick={() => {
-                if (nextThreadId) {
-                  controller.focusThread(nextThreadId);
-                }
-              }}
-            >
-              <ChevronDown aria-hidden="true" strokeWidth={1.75} />
-            </button>
-            <button
-              type="button"
-              aria-label={t('resource_comments.previous_thread')}
-              title={t('resource_comments.previous_thread')}
-              disabled={!previousThreadId}
-              onClick={() => {
-                if (previousThreadId) {
-                  controller.focusThread(previousThreadId);
-                }
-              }}
-            >
-              <ChevronUp aria-hidden="true" strokeWidth={1.75} />
-            </button>
-            <button
-              type="button"
-              aria-label={t('resource_comments.copy_thread_link')}
-              title={t('resource_comments.copy_thread_link')}
-              onClick={handleCopyLink}
-            >
-              <Link2 aria-hidden="true" strokeWidth={1.75} />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={t('resource_comments.next_thread')}
+                  disabled={!nextThreadId}
+                  onClick={() => {
+                    if (nextThreadId) {
+                      controller.focusThread(nextThreadId, { align: 'start' });
+                    }
+                  }}
+                >
+                  <ChevronDown aria-hidden="true" strokeWidth={1.75} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {t('resource_comments.next_thread')}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={t('resource_comments.previous_thread')}
+                  disabled={!previousThreadId}
+                  onClick={() => {
+                    if (previousThreadId) {
+                      controller.focusThread(previousThreadId, {
+                        align: 'start',
+                      });
+                    }
+                  }}
+                >
+                  <ChevronUp aria-hidden="true" strokeWidth={1.75} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {t('resource_comments.previous_thread')}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={t('resource_comments.copy_thread_link')}
+                  onClick={handleCopyLink}
+                >
+                  <Link2 aria-hidden="true" strokeWidth={1.75} />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {t('resource_comments.copy_thread_link')}
+              </TooltipContent>
+            </Tooltip>
             {controller.canModerateThread(thread) ? (
-              <button
-                type="button"
-                aria-label={
-                  thread.resolved
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={
+                      thread.resolved
+                        ? t('resource_comments.reopen')
+                        : t('resource_comments.resolve')
+                    }
+                    disabled={controller.submitting}
+                    onClick={() => {
+                      controller
+                        .setThreadResolved(thread.id, !thread.resolved)
+                        .catch(() => undefined);
+                    }}
+                  >
+                    <Check aria-hidden="true" strokeWidth={1.75} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {thread.resolved
                     ? t('resource_comments.reopen')
-                    : t('resource_comments.resolve')
-                }
-                title={
-                  thread.resolved
-                    ? t('resource_comments.reopen')
-                    : t('resource_comments.resolve')
-                }
-                disabled={controller.submitting}
-                onClick={() => {
-                  controller
-                    .setThreadResolved(thread.id, !thread.resolved)
-                    .catch(() => undefined);
-                }}
-              >
-                <Check aria-hidden="true" strokeWidth={1.75} />
-              </button>
+                    : t('resource_comments.resolve')}
+                </TooltipContent>
+              </Tooltip>
             ) : null}
           </div>
         </div>
@@ -252,15 +312,19 @@ export function ResourceCommentThreadItem({
       !editingCommentId &&
       !thread.resolved &&
       controller.canComment ? (
-        <FigmaReplyComposer
-          author={currentAuthor}
-          reply={reply}
-          submitting={controller.submitting}
-          onCancel={closeReply}
-          onChange={setReply}
-          onSubmit={submitReply}
-          onUploadImage={controller.uploadCommentImage}
-        />
+        <div className="omnibox-comment-reply-reveal">
+          <div className="omnibox-comment-reply-reveal__content">
+            <FigmaReplyComposer
+              author={currentAuthor}
+              reply={reply}
+              submitting={controller.submitting}
+              onCancel={closeReply}
+              onChange={setReply}
+              onSubmit={submitReply}
+              onUploadImage={controller.uploadCommentImage}
+            />
+          </div>
+        </div>
       ) : null}
     </article>
   );
@@ -287,7 +351,16 @@ function FigmaReplyComposer({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [attachmentId, setAttachmentId] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
-  const hasDraft = Boolean(reply.trim() || attachmentId);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  useAutosizeTextArea({
+    textAreaRef: inputRef,
+    triggerAutoSize: `${reply}:${!!imagePreview}`,
+  });
+  const hasDraft = !!(reply.trim() || attachmentId);
+
+  useEffect(() => {
+    inputRef.current?.focus({ preventScroll: true });
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -326,7 +399,7 @@ function FigmaReplyComposer({
         data-has-preview={imagePreview ? '' : undefined}
       >
         <Textarea
-          autoFocus
+          ref={inputRef}
           className="border-line"
           maxLength={10000}
           placeholder={t('resource_comments.reply_placeholder')}
@@ -415,6 +488,7 @@ function FigmaReplyComposer({
         <Button
           type="button"
           size="sm"
+          className="omnibox-comment-submit"
           disabled={submitting || !hasDraft}
           onClick={submitDraft}
         >
@@ -444,13 +518,17 @@ function CommentItem({
   const [editImages, setEditImages] = useState<
     Array<{ id: string; url: string }>
   >([]);
+  const editInputRef = useRef<HTMLTextAreaElement>(null);
   const pendingUrlRef = useRef<string | null>(null);
+  useAutosizeTextArea({
+    textAreaRef: editInputRef,
+    triggerAutoSize: `${editing}:${content}:${editImages.length}`,
+  });
   const author = comment.author.username || t('resource_comments.deleted_user');
 
   const canEdit = !threadResolved && controller.canEditComment(comment);
-  const canSaveEdit = Boolean(
-    content.trim() || editImages.some(image => image.id)
-  );
+  const canSaveEdit =
+    canEdit && !!(content.trim() || editImages.some(image => image.id));
 
   const commentImages = () =>
     (comment.attachments ?? [])
@@ -479,6 +557,12 @@ function CommentItem({
     onEditingChange?.(false);
   };
 
+  useLayoutEffect(() => {
+    if (editing && canEdit) {
+      editInputRef.current?.focus({ preventScroll: true });
+    }
+  }, [canEdit, editing]);
+
   useEffect(() => {
     return () => {
       clearPendingUrl();
@@ -486,11 +570,11 @@ function CommentItem({
   }, []);
 
   useEffect(() => {
-    if (!threadResolved || !editing) {
+    if (canEdit || !editing) {
       return;
     }
     exitEditing();
-  }, [editing, threadResolved]);
+  }, [canEdit, editing]);
 
   const submitEdit = async () => {
     if (!canSaveEdit || threadResolved) {
@@ -518,55 +602,67 @@ function CommentItem({
         <div className="omnibox-comment-message__header">
           <div className="omnibox-comment-message__author">
             <strong>{author}</strong>
-            <time dateTime={comment.updated_at}>
-              {formatRelativeTime(comment.updated_at, i18n.language)}
-            </time>
-            {new Date(comment.updated_at).getTime() -
-              new Date(comment.created_at).getTime() >
-            1000 ? (
-              <span className="omnibox-comment-message__edited">
-                {t('resource_comments.edited')}
-              </span>
-            ) : null}
+            <span>
+              <time dateTime={comment.updated_at}>
+                {formatRelativeTime(comment.updated_at, i18n.language)}
+              </time>
+              {new Date(comment.updated_at).getTime() -
+                new Date(comment.created_at).getTime() >
+              1000 ? (
+                <span className="omnibox-comment-message__edited">
+                  {t('resource_comments.edited')}
+                </span>
+              ) : null}
+            </span>
           </div>
           {canEdit || controller.canDeleteComment(comment) ? (
             <div className="omnibox-comment-message__meta">
               {canEdit && (
-                <button
-                  type="button"
-                  className="omnibox-comment-message__action"
-                  title={t('resource_comments.edit')}
-                  aria-label={t('resource_comments.edit')}
-                  disabled={controller.submitting}
-                  onClick={event => {
-                    event.stopPropagation();
-                    startEditing();
-                  }}
-                >
-                  <Pencil aria-hidden="true" />
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="omnibox-comment-message__action"
+                      aria-label={t('resource_comments.edit')}
+                      disabled={controller.submitting}
+                      onClick={event => {
+                        event.stopPropagation();
+                        startEditing();
+                      }}
+                    >
+                      <Pencil aria-hidden="true" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('resource_comments.edit')}</TooltipContent>
+                </Tooltip>
               )}
               {controller.canDeleteComment(comment) && (
-                <button
-                  type="button"
-                  className="omnibox-comment-message__action"
-                  title={t('resource_comments.delete')}
-                  aria-label={t('resource_comments.delete')}
-                  disabled={controller.submitting}
-                  onClick={event => {
-                    event.stopPropagation();
-                    controller
-                      .removeComment(threadId, comment.id)
-                      .catch(() => undefined);
-                  }}
-                >
-                  <Trash2 aria-hidden="true" />
-                </button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="omnibox-comment-message__action omnibox-comment-message__action--delete"
+                      aria-label={t('resource_comments.delete')}
+                      disabled={controller.submitting}
+                      onClick={event => {
+                        event.stopPropagation();
+                        controller
+                          .removeComment(threadId, comment.id)
+                          .catch(() => undefined);
+                      }}
+                    >
+                      <Trash2 aria-hidden="true" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {t('resource_comments.delete')}
+                  </TooltipContent>
+                </Tooltip>
               )}
             </div>
           ) : null}
         </div>
-        {editing ? (
+        {editing && canEdit ? (
           <div
             className="omnibox-comment-composer--edit"
             onClick={event => event.stopPropagation()}
@@ -577,12 +673,25 @@ function CommentItem({
               data-has-preview={editImages.length ? '' : undefined}
             >
               <Textarea
-                autoFocus
+                ref={editInputRef}
                 className="border-line"
                 maxLength={10000}
-                rows={2}
+                rows={1}
                 value={content}
                 onChange={event => setContent(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
+                    return;
+                  }
+                  if (event.shiftKey) {
+                    return;
+                  }
+                  event.preventDefault();
+                  if (event.repeat) {
+                    return;
+                  }
+                  submitEdit().catch(() => undefined);
+                }}
               />
               {editImages.length ? (
                 <div className="omnibox-comment-composer--edit__preview">
@@ -668,6 +777,7 @@ function CommentItem({
               <Button
                 type="button"
                 size="sm"
+                className="omnibox-comment-submit"
                 disabled={!canSaveEdit || controller.submitting}
                 onClick={() => {
                   submitEdit().catch(() => undefined);

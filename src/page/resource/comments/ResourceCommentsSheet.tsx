@@ -1,6 +1,6 @@
 import './resourceComments.css';
 
-import { ListFilter, MessageSquareText, PanelRight } from 'lucide-react';
+import { Check, ListFilter, MessageSquareText, PanelRight } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -9,11 +9,11 @@ import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Spinner } from '@/components/ui/Spinner';
+import { cn } from '@/lib/utils';
 
 import { ResourceCommentComposer } from './ResourceCommentComposer';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
@@ -23,6 +23,12 @@ import type { ResourceCommentsController } from './useResourceComments';
 interface ResourceCommentsSheetProps {
   controller: ResourceCommentsController;
 }
+
+const FILTER_OPTIONS = [
+  { value: 'all', labelKey: 'resource_comments.all_title' },
+  { value: 'open', labelKey: 'resource_comments.open' },
+  { value: 'resolved', labelKey: 'resource_comments.resolved' },
+] as const;
 
 export function ResourceCommentsSheet({
   controller,
@@ -42,7 +48,7 @@ export function ResourceCommentsSheet({
       : controller.resolved
         ? 'resolved'
         : 'open';
-  const filterLabel = t('resource_comments.all_title');
+  const filterLabel = t('resource_comments.filter');
   const changeFilter = (value: string) => {
     controller.setResolved(value === 'all' ? undefined : value === 'resolved');
   };
@@ -68,35 +74,57 @@ export function ResourceCommentsSheet({
           {t('resource_comments.panel_title', { count: controller.total })}
         </h2>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7"
-              aria-label={filterLabel}
-              title={filterLabel}
-            >
-              <ListFilter className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuRadioGroup value={filter} onValueChange={changeFilter}>
-              <DropdownMenuRadioItem value="all">
-                {t('resource_comments.all_title')}
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="open">
-                {t('resource_comments.open')}
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="resolved">
-                {t('resource_comments.resolved')}
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  aria-label={filterLabel}
+                >
+                  <ListFilter className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>{filterLabel}</TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent
+            align="end"
+            className="w-44"
+            aria-label={filterLabel}
+          >
+            {FILTER_OPTIONS.map(option => {
+              const selected = option.value === filter;
+              return (
+                <DropdownMenuItem
+                  key={option.value}
+                  role="menuitemradio"
+                  aria-checked={selected}
+                  className={cn(
+                    'h-9 items-center justify-between gap-3 py-0 leading-none',
+                    selected && 'bg-accent'
+                  )}
+                  onSelect={() => changeFilter(option.value)}
+                >
+                  <span>{t(option.labelKey)}</span>
+                  <span className="flex size-4 shrink-0 items-center justify-center">
+                    {selected && (
+                      <Check
+                        aria-hidden="true"
+                        className="size-4 text-blue-500"
+                      />
+                    )}
+                  </span>
+                </DropdownMenuItem>
+              );
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
       </header>
       {controller.contentDirty && (
-        <p className="border-b bg-muted px-4 py-2 text-xs text-muted-foreground">
+        <p className="border-b px-4 py-2 text-xs text-muted-foreground">
           {t('resource_comments.save_before_commenting')}
         </p>
       )}
@@ -131,7 +159,8 @@ export function ResourceCommentsSheet({
   return (
     <>
       <ResourceCommentComposer controller={controller} />
-      {panel?.panelElement && controller.panelOpen
+      {panel?.panelElement &&
+      (controller.panelOpen || panel.namespaceId.startsWith('share:'))
         ? createPortal(content, panel.panelElement)
         : null}
     </>
