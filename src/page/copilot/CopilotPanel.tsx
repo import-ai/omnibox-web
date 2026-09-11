@@ -19,6 +19,7 @@ import ConversationSearchDialog from '@/page/chat/conversations/ConversationSear
 import Actions from '@/page/chat/header/Actions';
 import Title from '@/page/chat/header/title';
 import { useChatTitle } from '@/page/chat/header/useChatTitle';
+import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 import CopilotToggleButton from './CopilotToggleButton';
@@ -35,6 +36,7 @@ interface CopilotPanelProps {
 }
 
 function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
+  const commentsPanel = useResourceCommentsPanel();
   const workspace = useCopilotStore(state =>
     getCopilotWorkspace(state, namespaceId)
   );
@@ -47,6 +49,15 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   const conversationId =
     workspace.view === 'conversation' ? (workspace.conversationId ?? '') : '';
   const { chatTitle } = useChatTitle(namespaceId, conversationId);
+
+  if (commentsPanel?.panelOpen) {
+    return (
+      <div
+        ref={commentsPanel.setPanelElement}
+        className="resource-comments-panel flex h-full min-h-0 flex-col bg-white text-foreground dark:bg-background"
+      />
+    );
+  }
 
   return (
     <>

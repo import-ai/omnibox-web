@@ -5,6 +5,7 @@ import '../resourceEditor.css';
 
 import {
   OmniboxEditor,
+  type OmniboxEditorCommentSelection,
   type OmniboxEditorMentionUser,
   type TiptapJsonContent,
   type UploadFunction,
@@ -45,6 +46,7 @@ import {
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
 
+import type { ResourceCommentsController } from '../comments/useResourceComments';
 import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import {
   type AutosizeTextAreaRef,
@@ -53,6 +55,8 @@ import {
 } from './ResourceTitleTextarea';
 
 interface IEditorProps {
+  comments: ResourceCommentsController;
+  onContentDirtyChange: (dirty: boolean) => void;
   namespaceId: string;
   resource: Resource;
   onResource: (resource: Resource) => void;
@@ -72,12 +76,7 @@ interface UploadResponse {
   failed: string[];
 }
 
-type BodyEditorFocus = {
-  isDestroyed: boolean;
-  commands: {
-    focus: (position?: 'start' | 'end' | boolean | number | null) => boolean;
-  };
-};
+type BodyEditorFocus = OmniboxEditorCommentSelection['editor'];
 
 type ResourceOmniboxEditorProps = Omit<
   React.ComponentProps<typeof OmniboxEditor>,
@@ -121,7 +120,15 @@ function format(_files: File[], responseText: string): string {
 }
 
 function OmniboxResourceEditor(props: IEditorProps) {
-  const { resource, onResource, namespaceId, showToc, wide } = props;
+  const {
+    resource,
+    onResource,
+    namespaceId,
+    showToc,
+    wide,
+    comments,
+    onContentDirtyChange,
+  } = props;
   const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
@@ -135,6 +142,8 @@ function OmniboxResourceEditor(props: IEditorProps) {
   );
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
+  const hasCachedContentChange =
+    cache?.content !== undefined && cache.content !== (resource.content ?? '');
   const cachedTitle = cache?.title ?? resource.name ?? '';
   const isFolder = resource.resource_type === 'folder';
   const linkBase = useMemo(
@@ -150,6 +159,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
     () => (isFolder ? null : initialContent),
     [initialContent, isFolder]
   );
+  const { commentsConfig, getAnchorSync, registerEditor } = comments;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newTitle = normalizeTitleInput(e.target.value);
@@ -163,16 +173,21 @@ function OmniboxResourceEditor(props: IEditorProps) {
       const content = serializeResourceEditorContent(payload);
       if (content !== markdownRef.current) {
         dirtyRef.current = true;
+        onContentDirtyChange(content !== (resource.content ?? ''));
+        updateCacheContent(resource.id, content);
       }
       markdownRef.current = content;
-      updateCacheContent(resource.id, content);
     },
-    [resource.id]
+    [onContentDirtyChange, resource.content, resource.id]
   );
 
-  const handleEditorReady = useCallback((editor: BodyEditorFocus) => {
-    bodyEditorRef.current = editor;
-  }, []);
+  const handleEditorReady = useCallback(
+    (editor: BodyEditorFocus) => {
+      bodyEditorRef.current = editor;
+      registerEditor(editor);
+    },
+    [registerEditor]
+  );
 
   const handleTitleEnter = useCallback(() => {
     if (isFolder) {
@@ -270,7 +285,13 @@ function OmniboxResourceEditor(props: IEditorProps) {
   useEffect(() => {
     onTitle(cachedTitle);
     markdownRef.current = initialContent;
-  }, [cachedTitle, initialContent]);
+    onContentDirtyChange(hasCachedContentChange);
+  }, [
+    cachedTitle,
+    hasCachedContentChange,
+    initialContent,
+    onContentDirtyChange,
+  ]);
 
   useEffect(() => {
     return () => {
@@ -296,16 +317,24 @@ function OmniboxResourceEditor(props: IEditorProps) {
         });
         return;
       }
+      const anchorSync = resource.content_hash ? getAnchorSync() : null;
       http
         .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
           name,
           content,
           namespaceId: namespaceId,
+          ...(anchorSync && resource.content_hash
+            ? {
+                expected_content_hash: resource.content_hash,
+                ...anchorSync,
+              }
+            : {}),
         })
         .then((delta: Resource) => {
           app.fire('update_resource', delta);
           onResource(delta);
           dirtyRef.current = false;
+          onContentDirtyChange(false);
           clearCache(resource.id);
           navigate(`/${namespaceId}/${resource.id}`, {
             state: loc.state,
@@ -313,7 +342,18 @@ function OmniboxResourceEditor(props: IEditorProps) {
           onSuccess && onSuccess();
         });
     });
-  }, [app, title, namespaceId, resource.id, loc.state, navigate, onResource]);
+  }, [
+    app,
+    getAnchorSync,
+    loc.state,
+    namespaceId,
+    navigate,
+    onResource,
+    onContentDirtyChange,
+    resource.content_hash,
+    resource.id,
+    title,
+  ]);
 
   useEffect(() => {
     const keydownFN = (e: KeyboardEvent) => {
@@ -330,7 +370,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
 
   return (
     <div
-      className={`resource-editable-page pb-[30vh] ${
+      className={`resource-editable-page relative pb-[30vh] ${
         wide ? 'resource-editable-page--wide' : ''
       }`}
       style={
@@ -372,6 +412,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
             linkBase={linkBase}
             imageUpload={uploadImage}
             mentionUsers={mentionUsers}
+            comments={commentsConfig}
             onReady={handleEditorReady}
             onUpdate={handleEditorUpdate}
             onNavigateToTitle={handleNavigateToTitle}

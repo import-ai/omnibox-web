@@ -1,0 +1,168 @@
+import './resourceComments.css';
+
+import { Check, ListFilter, MessageSquareText, PanelRight } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { Button } from '@/components/ui/Button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/DropdownMenu';
+import { Spinner } from '@/components/ui/Spinner';
+import { cn } from '@/lib/utils';
+
+import { ResourceCommentComposer } from './ResourceCommentComposer';
+import { useResourceCommentsPanel } from './ResourceCommentsContext';
+import { ResourceCommentThreadList } from './ResourceCommentThreadList';
+import type { ResourceCommentsController } from './useResourceComments';
+
+interface ResourceCommentsSheetProps {
+  controller: ResourceCommentsController;
+}
+
+const FILTER_OPTIONS = [
+  { value: 'all', labelKey: 'resource_comments.all_title' },
+  { value: 'open', labelKey: 'resource_comments.open' },
+  { value: 'resolved', labelKey: 'resource_comments.resolved' },
+] as const;
+
+export function ResourceCommentsSheet({
+  controller,
+}: ResourceCommentsSheetProps) {
+  const { t } = useTranslation();
+  const panel = useResourceCommentsPanel();
+  const close = () => {
+    controller.setPanelOpen(false);
+    controller.setActiveThreadId(null);
+  };
+  const loadMore = () => {
+    controller.loadMore().catch(() => undefined);
+  };
+  const filter =
+    controller.resolved === undefined
+      ? 'all'
+      : controller.resolved
+        ? 'resolved'
+        : 'open';
+  const filterLabel = t('resource_comments.filter');
+  const changeFilter = (value: string) => {
+    controller.setResolved(value === 'all' ? undefined : value === 'resolved');
+  };
+  const content = (
+    <>
+      <header className="flex h-12 shrink-0 items-center gap-2 px-3">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7 shrink-0"
+              aria-label={t('resource_comments.collapse')}
+              onClick={close}
+            >
+              <PanelRight className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t('resource_comments.collapse')}</TooltipContent>
+        </Tooltip>
+        <h2 className="min-w-0 flex-1 truncate text-sm font-medium">
+          {t('resource_comments.panel_title', { count: controller.total })}
+        </h2>
+        <DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7"
+                  aria-label={filterLabel}
+                >
+                  <ListFilter className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>{filterLabel}</TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent
+            align="end"
+            className="w-44"
+            aria-label={filterLabel}
+          >
+            {FILTER_OPTIONS.map(option => {
+              const selected = option.value === filter;
+              return (
+                <DropdownMenuItem
+                  key={option.value}
+                  role="menuitemradio"
+                  aria-checked={selected}
+                  className={cn(
+                    'h-9 items-center justify-between gap-3 py-0 leading-none',
+                    selected && 'bg-accent'
+                  )}
+                  onSelect={() => changeFilter(option.value)}
+                >
+                  <span>{t(option.labelKey)}</span>
+                  <span className="flex size-4 shrink-0 items-center justify-center">
+                    {selected && (
+                      <Check
+                        aria-hidden="true"
+                        className="size-4 text-blue-500"
+                      />
+                    )}
+                  </span>
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </header>
+      {controller.contentDirty && (
+        <p className="border-b px-4 py-2 text-xs text-muted-foreground">
+          {t('resource_comments.save_before_commenting')}
+        </p>
+      )}
+      <div
+        data-comments-scroll
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
+        {controller.loading && controller.threads.length === 0 ? (
+          <div className="flex h-40 items-center justify-center">
+            <Spinner />
+          </div>
+        ) : controller.threads.length === 0 ? (
+          <div className="flex h-40 flex-col items-center justify-center px-6 text-center text-sm text-muted-foreground">
+            <MessageSquareText className="mb-3 size-6" />
+            {t(
+              controller.resolved === undefined
+                ? 'resource_comments.no_threads'
+                : controller.resolved
+                  ? 'resource_comments.no_resolved_threads'
+                  : 'resource_comments.no_open_threads'
+            )}
+          </div>
+        ) : (
+          <ResourceCommentThreadList
+            controller={controller}
+            loadMore={loadMore}
+          />
+        )}
+      </div>
+    </>
+  );
+  return (
+    <>
+      <ResourceCommentComposer controller={controller} />
+      {panel?.panelElement &&
+      (controller.panelOpen || panel.namespaceId.startsWith('share:'))
+        ? createPortal(content, panel.panelElement)
+        : null}
+    </>
+  );
+}

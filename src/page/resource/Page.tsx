@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
@@ -14,6 +15,12 @@ import {
 import { splitSearchText } from '@/page/resource/searchHighlight';
 import { RSS_ITEM_SORT } from '@/service/resourceSort';
 
+import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
+import {
+  type ResourceCommentsController,
+  useResourceComments,
+} from './comments/useResourceComments';
+
 interface IProps {
   editPage: boolean;
   resource: Resource;
@@ -24,7 +31,12 @@ interface IProps {
   onResource: (resource: Resource) => void;
 }
 
-export default function Page(props: IProps) {
+interface PageContentProps extends IProps {
+  comments: ResourceCommentsController;
+  onContentDirtyChange: (dirty: boolean) => void;
+}
+
+function PageContent(props: PageContentProps) {
   const {
     editPage,
     resource,
@@ -33,6 +45,8 @@ export default function Page(props: IProps) {
     showToc,
     scrollToLine,
     wide,
+    comments,
+    onContentDirtyChange,
   } = props;
   const { t } = useTranslation();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
@@ -53,6 +67,8 @@ export default function Page(props: IProps) {
   if (editPage && !resource.read_only) {
     return (
       <Editor
+        comments={comments}
+        onContentDirtyChange={onContentDirtyChange}
         resource={resource}
         onResource={onResource}
         namespaceId={namespaceId}
@@ -121,6 +137,8 @@ export default function Page(props: IProps) {
         />
       ) : (
         <Render
+          comments={comments}
+          namespaceId={namespaceId}
           resource={resource}
           showToc={showToc}
           scrollToLine={scrollToLine}
@@ -130,5 +148,34 @@ export default function Page(props: IProps) {
         />
       )}
     </div>
+  );
+}
+
+export default function Page(props: IProps) {
+  const { editPage, namespaceId, resource } = props;
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const [contentDirty, setContentDirty] = useState(false);
+  const commentsEnabled =
+    useOmniboxEditor &&
+    !!namespaceId &&
+    resource.resource_type !== 'folder' &&
+    resource.resource_type !== 'smart_folder' &&
+    resource.resource_type !== 'rss_folder';
+  const comments = useResourceComments({
+    namespaceId,
+    resource,
+    enabled: commentsEnabled,
+    contentDirty: editPage && contentDirty,
+  });
+
+  return (
+    <>
+      <PageContent
+        {...props}
+        comments={comments}
+        onContentDirtyChange={setContentDirty}
+      />
+      {commentsEnabled ? <ResourceCommentsSheet controller={comments} /> : null}
+    </>
   );
 }

@@ -17,6 +17,10 @@ import {
 } from '@/page/resource/resourceStore';
 import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDragAutoScroll';
 
+import {
+  ResourceCommentsProvider,
+  useResourceCommentsPanel,
+} from './comments/ResourceCommentsContext';
 import Header from './header';
 import Wrapper from './Wrapper';
 
@@ -29,7 +33,7 @@ interface ResourceDetailViewProps extends IUseResource {
 }
 
 /** Shared visual shell for routed resources and in-place Copilot previews. */
-export default function ResourceDetailView({
+function ResourceDetailContent({
   error = false,
   flush = false,
   ...resourceProps
@@ -67,6 +71,13 @@ export default function ResourceDetailView({
   const [compactResourcePane, setCompactResourcePane] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const commentsPanel = useResourceCommentsPanel();
+  const commentsPanelOpen = commentsPanel?.panelOpen ?? false;
+  const closeCommentsPanel = commentsPanel?.setPanelOpen;
+  const isFolderResource =
+    currentResource?.resource_type === 'folder' ||
+    currentResource?.resource_type === 'smart_folder' ||
+    currentResource?.resource_type === 'rss_folder';
   const useFullWidth =
     useOmniboxEditor &&
     !!currentResource &&
@@ -75,6 +86,21 @@ export default function ResourceDetailView({
     currentResource.resource_type !== 'rss_folder';
 
   useResourceBodyDragAutoScroll(scrollContainerRef, useFullWidth && editPage);
+
+  useEffect(() => {
+    if (
+      (isFolderResource || !useOmniboxEditor) &&
+      commentsPanelOpen &&
+      closeCommentsPanel
+    ) {
+      closeCommentsPanel(false);
+    }
+  }, [
+    closeCommentsPanel,
+    commentsPanelOpen,
+    isFolderResource,
+    useOmniboxEditor,
+  ]);
 
   useEffect(() => {
     if (copilotOpen) {
@@ -160,6 +186,7 @@ export default function ResourceDetailView({
             // Wide mode needs the default left padding so body clears the TOC rail.
             editPage && !wide && 'pl-2'
           )}
+          data-resource-scroll
           ref={scrollContainerRef}
         >
           <div
@@ -180,5 +207,20 @@ export default function ResourceDetailView({
         </div>
       </SidebarInset>
     </ResourceTasksProvider>
+  );
+}
+
+export default function ResourceDetailView(props: ResourceDetailViewProps) {
+  const commentsPanel = useResourceCommentsPanel();
+  if (commentsPanel) {
+    return <ResourceDetailContent {...props} />;
+  }
+  return (
+    <ResourceCommentsProvider
+      key={`${props.namespaceId}:${props.resourceId}`}
+      namespaceId={props.namespaceId}
+    >
+      <ResourceDetailContent {...props} />
+    </ResourceCommentsProvider>
   );
 }

@@ -23,6 +23,11 @@ import {
   useResourceStore,
 } from '@/page/resource/resourceStore';
 
+import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
+import {
+  type ResourceCommentsController,
+  useResourceComments,
+} from './comments/useResourceComments';
 import { parseScrollToLine, scrollRenderedContentToLine } from './scrollToLine';
 import {
   findFirstSearchMatchElement,
@@ -31,7 +36,10 @@ import {
 import { embedImage, getReadonlyResourceEditorKey } from './utils';
 
 interface IProps {
+  comments?: ResourceCommentsController;
   resource: Resource | SharedResource;
+  namespaceId?: string;
+  forceOmniboxEditor?: boolean;
   showToc?: boolean;
   scrollToLine?: number;
   wide?: boolean;
@@ -156,9 +164,14 @@ function MarkdownRender(props: IProps) {
   );
 }
 
-function OmniboxRender(props: IProps) {
+interface OmniboxRenderProps extends IProps {
+  comments: ResourceCommentsController;
+}
+
+function OmniboxRender(props: OmniboxRenderProps) {
   const {
     resource,
+    comments,
     linkBase,
     scrollToLine: requestedLine,
     showToc = true,
@@ -244,17 +257,40 @@ function OmniboxRender(props: IProps) {
         showToc={showToc}
         searchTerm={search ?? undefined}
         scrollToLine={scrollToLine}
+        comments={comments.commentsConfig}
+        onReady={comments.registerEditor}
         scrollToLineContent={embedImage(resource)}
       />
     </div>
   );
 }
 
+function StandaloneOmniboxRender(props: IProps) {
+  const { namespaceId = '', resource } = props;
+  const commentsEnabled = !!namespaceId;
+  const comments = useResourceComments({
+    namespaceId,
+    resource,
+    enabled: commentsEnabled,
+  });
+
+  return (
+    <>
+      <OmniboxRender {...props} comments={comments} />
+      {commentsEnabled ? <ResourceCommentsSheet controller={comments} /> : null}
+    </>
+  );
+}
+
 export default function Render(props: IProps) {
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
 
-  return useOmniboxEditor ? (
-    <OmniboxRender {...props} />
+  return useOmniboxEditor || props.forceOmniboxEditor ? (
+    props.comments ? (
+      <OmniboxRender {...props} comments={props.comments} />
+    ) : (
+      <StandaloneOmniboxRender {...props} />
+    )
   ) : (
     <MarkdownRender {...props} />
   );

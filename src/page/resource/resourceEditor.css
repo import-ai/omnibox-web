@@ -5,6 +5,25 @@
   min-width: 0;
 }
 
+/* Shared documents start beside the outline instead of being centered in the
+   full viewport, which otherwise leaves an oversized empty left gutter. */
+.shared-resource-content {
+  margin-inline: auto;
+}
+
+.shared-resource-header {
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .shared-resource-content {
+    margin-left: 0;
+  }
+}
+
 /* Positioning context for the absolute TOC rail shell. */
 .resource-readonly-editor {
   position: relative;
@@ -129,6 +148,55 @@
   transform: translate(-0.5rem, -50%) !important;
 }
 
+/* Shared pages have no workspace rail, so keep the outline at the viewport
+   edge instead of inheriting the editor grid's centered static position. */
+.shared-resource-page .resource-readonly-editor .toc-sidebar-wrapper,
+.shared-resource-page
+  .resource-readonly-editor
+  .omnibox-editor-root
+  .toc-sidebar-wrapper {
+  left: 1.5rem !important;
+  transform: translateY(-50%) !important;
+}
+
+/* Do not let the expanded panel cover the document on touch/no-hover
+   devices. Desktop users can still reveal it by hovering the rail. */
+.shared-resource-page .resource-readonly-editor .toc-sidebar-nav,
+.shared-resource-page
+  .resource-readonly-editor
+  .omnibox-editor-root
+  .toc-sidebar-nav {
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-10px, -50%);
+}
+
+@media (hover: hover) {
+  .shared-resource-page
+    .resource-readonly-editor
+    .toc-sidebar-wrapper:hover
+    .toc-sidebar-nav,
+  .shared-resource-page
+    .resource-readonly-editor
+    .omnibox-editor-root
+    .toc-sidebar-wrapper:hover
+    .toc-sidebar-nav {
+    pointer-events: auto;
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+}
+
+@media (hover: none) {
+  .shared-resource-page .resource-readonly-editor .toc-sidebar-nav,
+  .shared-resource-page
+    .resource-readonly-editor
+    .omnibox-editor-root
+    .toc-sidebar-nav {
+    display: none;
+  }
+}
+
 .resource-readonly-editor--wide .toc-sidebar-wrapper,
 .resource-readonly-editor--wide .omnibox-editor-root .toc-sidebar-wrapper,
 .resource-editable-page--wide .toc-sidebar-wrapper,
@@ -196,6 +264,19 @@
 .resource-readonly-editor .language-graphviz {
   margin-bottom: 16px;
   text-align: center;
+}
+
+.tiptap.ProseMirror
+  .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--inline,
+.tiptap.ProseMirror
+  .tiptap-thread.tiptap-thread--unresolved.tiptap-thread--inline
+  * {
+  font-weight: inherit !important;
+}
+
+.tiptap.ProseMirror
+  .tiptap-thread.tiptap-thread--resolved.tiptap-thread--inline {
+  border-bottom: none !important;
 }
 
 .resource-readonly-editor .omnibox-scroll-line-highlight {

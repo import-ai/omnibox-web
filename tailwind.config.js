@@ -1,3 +1,5 @@
+import colors from 'tailwindcss/colors';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ['class'],
@@ -13,6 +15,11 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       colors: {
+        comment: {
+          DEFAULT: colors.yellow[400],
+          surface: colors.yellow[200],
+          'surface-dark': colors.yellow[950],
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -100,7 +107,13 @@ export default {
   plugins: [
     require('tailwindcss-animate'),
     require('@tailwindcss/typography'),
-    function ({ addVariant }) {
+    function ({ addVariant, addComponents }) {
+      addComponents({
+        '.border-line': {
+          '@apply rounded-md border border-neutral-200 bg-transparent dark:border-neutral-700 dark:bg-transparent':
+            {},
+        },
+      });
       addVariant('standalone', '@media (display-mode: standalone)');
     },
   ],
