@@ -114,6 +114,8 @@ export default function ChatHomePage() {
     recommendedQuestionId,
     images,
   }: SendMessageParams) => {
+    // Uploading images delays navigation; dismiss the keyboard before awaiting it.
+    (document.activeElement as HTMLElement | null)?.blur();
     const conversation = await http.post<ConversationEntity>(
       `/namespaces/${namespaceId}/conversations`
     );
