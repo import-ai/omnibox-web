@@ -34,6 +34,7 @@ export default function ChatConversationPage() {
         share={conversationShare}
       />
       <ConversationFooter
+        compact={compact}
         commercial={config.commercial}
         context={context}
         share={conversationShare}

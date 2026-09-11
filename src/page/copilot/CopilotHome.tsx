@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
 
+import useConfig from '@/hooks/useConfig';
 import { getChatHomeDraftScope } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
+import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import ChatArea from '@/page/chat/chat-input';
 import {
   ChatCreatePayload,
@@ -20,6 +22,7 @@ interface CopilotHomeProps {
 
 export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
   const { t } = useTranslation();
+  const { config } = useConfig();
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const showConversation = useCopilotStore(state => state.showConversation);
   const draftScope = getChatHomeDraftScope(namespaceId);
@@ -48,6 +51,9 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
           </h1>
         </div>
         <div className="shrink-0">
+          {config.commercial && (
+            <AgentCredits compact namespaceId={namespaceId} />
+          )}
           <ChatArea
             key={draftScope}
             approvalModeResetKey={draftScope}
