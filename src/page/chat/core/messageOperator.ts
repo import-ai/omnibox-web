@@ -222,7 +222,7 @@ export function createMessageOperator(
      */
     getSiblings: (id: string): string[] => {
       const currentNode = conversation.mapping[id];
-      if (currentNode.message.tool_calls) {
+      if (currentNode?.message.tool_calls) {
         return [id];
       }
       if (currentNode) {
@@ -233,6 +233,7 @@ export function createMessageOperator(
         let parentNode = currentNode;
         while (parentNode.message.role !== OpenAIMessageRole.USER) {
           parentNode = conversation.mapping[parentNode.parent_id];
+          if (!parentNode) return [];
         }
         return getChildren(conversation, parentNode.id, currentRole);
       }
@@ -255,6 +256,7 @@ export function createMessageOperator(
           (currentNode.attrs?.tool_call?.decisions ?? []).length > 0
         ) {
           currentNode = conversation.mapping[currentNode.parent_id];
+          if (!currentNode) return '';
         }
         return currentNode.id;
       }

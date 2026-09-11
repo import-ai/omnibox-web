@@ -1,5 +1,12 @@
-import { type ReactNode, useCallback, useState } from 'react';
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useDrop } from 'react-dnd';
+import { useTranslation } from 'react-i18next';
 
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
@@ -9,6 +16,7 @@ import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
   ApprovalMode,
   ChatMode,
+  ComposerChatImage,
   IResTypeContext,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
@@ -37,6 +45,8 @@ interface IProps {
   suppressInitialToolRestore?: boolean;
   loading: boolean;
   waitingForAssistantDelta?: boolean;
+  imageUploadDisabled?: boolean;
+  imageUploadDisabledReason?: string;
   initialQuery?: string;
   sendMessage: ({
     query,
@@ -44,7 +54,7 @@ interface IProps {
     selectedResources,
     mode,
     decisions,
-  }: SendMessageParams) => void;
+  }: SendMessageParams) => void | Promise<void>;
   onStop?: () => void;
 }
 
@@ -61,12 +71,21 @@ export default function ChatArea(props: IProps) {
     suppressInitialToolRestore = false,
     loading,
     waitingForAssistantDelta = false,
+    imageUploadDisabled = false,
+    imageUploadDisabledReason,
     initialQuery,
     sendMessage,
     onStop,
   } = props;
+  const { t } = useTranslation();
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
+  const [images, setImages] = useState<ComposerChatImage[]>([]);
+  const submittingRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const imageIdRef = useRef(0);
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
   const {
     approvalMode,
     clearComposerAfterSend,
@@ -120,31 +139,75 @@ export default function ChatArea(props: IProps) {
     : undefined;
 
   const interrupts = messages.at(-1)?.attrs?.tool_call?.interrupts ?? [];
+  const hasUnsupportedImages = imageUploadDisabled && images.length > 0;
   const disabled =
     loading ||
+    isSubmitting ||
+    hasUnsupportedImages ||
     (interrupts.length === 0 && (!query || query.trim().length === 0));
 
-  const handleSend = useCallback(() => {
+  useEffect(() => {
+    return () => {
+      imagesRef.current.forEach(image => URL.revokeObjectURL(image.url));
+    };
+  }, []);
+
+  const handleImageSelect = useCallback(
+    (file: File) => {
+      if (imageUploadDisabled) return;
+      setImages(current => [
+        ...current,
+        {
+          id: `composer-image-${imageIdRef.current++}`,
+          name: file.name,
+          url: URL.createObjectURL(file),
+          file,
+        },
+      ]);
+    },
+    [imageUploadDisabled]
+  );
+
+  const handleSend = useCallback(async () => {
+    if (submittingRef.current || disabled) return;
     const v = query.trim();
     if (v) {
-      const localTools = [...tools];
-      const localContext = structuredClone(selectedResources);
-      const displayParts = inputRef.current?.getDisplayParts();
-      const localDisplayParts = displayParts?.some(part => part.type !== 'text')
-        ? displayParts
-        : undefined;
-      clearComposerAfterSend();
-      sendMessage({
-        query: v,
-        selectedResources: localContext,
-        tools: localTools,
-        mode,
-        approvalMode,
-        displayParts: localDisplayParts,
-      });
+      submittingRef.current = true;
+      setIsSubmitting(true);
+      try {
+        const localTools = [...tools];
+        const localContext = structuredClone(selectedResources);
+        const displayParts = inputRef.current?.getDisplayParts();
+        const localDisplayParts = displayParts?.some(
+          part => part.type !== 'text'
+        )
+          ? displayParts
+          : images.length
+            ? [{ type: 'text' as const, text: v }]
+            : undefined;
+        const pendingImages = images;
+        pendingImages.forEach(image => URL.revokeObjectURL(image.url));
+        setImages([]);
+        clearComposerAfterSend();
+        await sendMessage({
+          query: v,
+          selectedResources: localContext,
+          tools: localTools,
+          mode,
+          approvalMode,
+          displayParts: localDisplayParts,
+          images: pendingImages,
+        });
+      } catch {
+        // Request and stream layers report errors; allow a new submission.
+      } finally {
+        submittingRef.current = false;
+        setIsSubmitting(false);
+      }
     }
   }, [
     approvalMode,
+    disabled,
     clearComposerAfterSend,
     inputRef,
     mode,
@@ -152,6 +215,7 @@ export default function ChatArea(props: IProps) {
     selectedResources,
     sendMessage,
     tools,
+    images,
   ]);
 
   return interrupts.length > 0 ? (
@@ -180,6 +244,14 @@ export default function ChatArea(props: IProps) {
         onToolsChange={handleToolsChange}
         onSelectedResourcesChange={setSelectedResources}
         onSend={handleSend}
+        images={images}
+        onImageRemove={imageId =>
+          setImages(current => {
+            const removed = current.find(image => image.id === imageId);
+            if (removed) URL.revokeObjectURL(removed.url);
+            return current.filter(image => image.id !== imageId);
+          })
+        }
         disabled={disabled}
       />
       <div className="flex items-center justify-between">
@@ -192,6 +264,9 @@ export default function ChatArea(props: IProps) {
             onResourceSelect={resource =>
               inputRef.current?.insertResource(resource)
             }
+            onImageSelect={handleImageSelect}
+            imageUploadDisabled={imageUploadDisabled}
+            imageUploadDisabledReason={imageUploadDisabledReason}
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}
@@ -206,6 +281,12 @@ export default function ChatArea(props: IProps) {
             onSend={handleSend}
             onStop={onStop}
             disabled={disabled}
+            disabledReason={
+              hasUnsupportedImages
+                ? (imageUploadDisabledReason ??
+                  t('chat.image.agent_1_1_unsupported'))
+                : undefined
+            }
             loading={loading}
             waitingForAssistantDelta={waitingForAssistantDelta}
             mode={mode}

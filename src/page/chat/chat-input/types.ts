@@ -50,7 +50,26 @@ export type ChatMessageDisplayPart =
   | {
       type: 'resource';
       resource: PrivateSearchResource;
+    }
+  | {
+      type: 'image';
+      attachment_id: string;
+      name: string;
+      preview_url: string;
     };
+
+export interface ChatImageInput {
+  attachment_id: string;
+  url: string;
+  name: string;
+}
+
+export interface ComposerChatImage {
+  id: string;
+  name: string;
+  url: string;
+  file: File;
+}
 
 export interface PrivateSearch extends IChatTool {
   name: ToolType.PRIVATE_SEARCH;
@@ -93,6 +112,7 @@ export interface ChatRequestBody {
     }[];
   };
   channel: AgentRequestChannel;
+  images?: ChatImageInput[];
 }
 
 export type DecisionType = 'approve' | 'reject';
@@ -112,6 +132,7 @@ export interface SendMessageParams {
   decisions?: Decision[];
   approvalMode?: ApprovalMode;
   recommendedQuestionId?: string;
+  images?: Array<ChatImageInput | ComposerChatImage>;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {

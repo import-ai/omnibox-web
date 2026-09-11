@@ -14,9 +14,7 @@ import {
   KEYBOARD_OPEN_DELAY_MS,
   KEYBOARD_OPEN_REBOUND_PX,
   KEYBOARD_OPEN_SETTLED_MS,
-  noteLayoutViewportBaseline,
   notifyKeyboardInsetChange,
-  resetLayoutViewportBaseline,
   resolveKeyboardInset,
   resolveKeyboardOcclusion,
   resolveKeyboardOpen,
@@ -184,14 +182,6 @@ describe('resolveLayoutKeyboardOcclusion', () => {
   it('ignores Safari lowering innerHeight together with visualViewport', () => {
     expect(resolveLayoutKeyboardOcclusion(619, 395, 395)).toBe(0);
     expect(resolveLayoutKeyboardOcclusion(619, 619, 395)).toBe(0);
-  });
-});
-
-describe('noteLayoutViewportBaseline', () => {
-  it('keeps the tallest layout viewport so the keyboard stays measurable', () => {
-    resetLayoutViewportBaseline(852);
-    expect(noteLayoutViewportBaseline(400)).toBe(852);
-    expect(noteLayoutViewportBaseline(900)).toBe(900);
   });
 });
 

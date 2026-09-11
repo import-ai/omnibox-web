@@ -37,7 +37,7 @@ export default function SharedChatHomePage() {
     displayParts,
     approvalMode,
   }: SendMessageParams) => {
-    http
+    return http
       .post(`/shares/${shareId}/conversations`)
       .then((conversation: ConversationEntity) => {
         sessionStorage.setItem(
@@ -68,6 +68,8 @@ export default function SharedChatHomePage() {
           <Typewriter text={t(i18n)} typeSpeed={32} />
         </h1>
         <ChatArea
+          imageUploadDisabled
+          imageUploadDisabledReason={t('chat.image.share_unsupported')}
           key={`share-home:${shareId}`}
           messages={[]}
           navigatePrefix={`/s/${shareId}`}

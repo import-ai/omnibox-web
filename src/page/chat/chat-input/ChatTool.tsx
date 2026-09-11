@@ -1,5 +1,12 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
-import { Check, FileSearch, Globe, Lightbulb, Plus } from 'lucide-react';
+import {
+  Check,
+  FileSearch,
+  Globe,
+  ImagePlus,
+  Lightbulb,
+  Plus,
+} from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import type { ResourceMeta } from '@/interface';
+import { cn } from '@/lib/utils';
 import { ToolType } from '@/page/chat/chat-input/types';
 
 import { focusResourceDialogOnOpen } from './chatToolFocus';
@@ -45,6 +53,9 @@ interface IProps {
   onBeforeOpen: () => void;
   onToolToggle: (tool: ToolType) => void;
   onResourceSelect: (resource: ResourceMeta) => void;
+  onImageSelect: (file: File) => void;
+  imageUploadDisabled?: boolean;
+  imageUploadDisabledReason?: string;
 }
 
 export default function ChatTool(props: IProps) {
@@ -54,11 +65,33 @@ export default function ChatTool(props: IProps) {
     onBeforeOpen,
     onToolToggle,
     onResourceSelect,
+    onImageSelect,
+    imageUploadDisabled = false,
+    imageUploadDisabledReason,
   } = props;
   const { t } = useTranslation();
   const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
   const resourceDialogRef = useRef<HTMLDivElement>(null);
   const resourceDialogOpenedByPointerRef = useRef(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const imageMenuItem = (
+    <DropdownMenuItem
+      className={cn(
+        'cursor-pointer gap-2 rounded-lg px-2 py-2',
+        imageUploadDisabled && 'cursor-not-allowed opacity-50'
+      )}
+      aria-disabled={imageUploadDisabled}
+      onClick={
+        imageUploadDisabled ? undefined : () => imageInputRef.current?.click()
+      }
+      onSelect={event => {
+        if (imageUploadDisabled) event.preventDefault();
+      }}
+    >
+      <ImagePlus className="size-4 text-muted-foreground" />
+      <span className="flex-1">{t('chat.image.add')}</span>
+    </DropdownMenuItem>
+  );
 
   return (
     <>
@@ -98,6 +131,17 @@ export default function ChatTool(props: IProps) {
               <span className="flex-1">{t('chat.tools.select_resource')}</span>
             </DropdownMenuItem>
           )}
+          {imageUploadDisabled ? (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>{imageMenuItem}</TooltipTrigger>
+              <TooltipContent side="right">
+                {imageUploadDisabledReason ??
+                  t('chat.image.agent_1_1_unsupported')}
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            imageMenuItem
+          )}
           {datasource.map(({ label, value, Icon }) => (
             <DropdownMenuItem
               key={value}
@@ -111,6 +155,18 @@ export default function ChatTool(props: IProps) {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+      <input
+        ref={imageInputRef}
+        type="file"
+        disabled={imageUploadDisabled}
+        accept="image/png,image/jpeg,image/webp,image/gif"
+        className="hidden"
+        onChange={event => {
+          const file = event.target.files?.[0];
+          if (file && !imageUploadDisabled) onImageSelect(file);
+          event.target.value = '';
+        }}
+      />
       {renderResourcePicker && (
         <Dialog
           open={resourceDialogOpen}

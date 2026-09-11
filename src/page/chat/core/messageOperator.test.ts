@@ -12,6 +12,36 @@ function updateConversation(
 }
 
 describe('createMessageOperator', () => {
+  it('handles missing messages and incomplete ancestor chains during streaming', () => {
+    const conversation: ConversationDetail = {
+      id: 'conversation',
+      mapping: {
+        assistant: {
+          id: 'assistant',
+          created_at: '2026-09-10T00:00:00.000Z',
+          message: { role: OpenAIMessageRole.ASSISTANT },
+          status: MessageStatus.STREAMING,
+          parent_id: 'missing-user',
+          children: [],
+        },
+      },
+    };
+    const operator = createMessageOperator(conversation, () => undefined);
+    expect(operator.getParent('missing')).toBe('');
+    expect(operator.getParent('assistant')).toBe('');
+    expect(operator.getSiblings('missing')).toEqual([]);
+    expect(operator.getSiblings('assistant')).toEqual([]);
+    conversation.mapping['missing-user'] = {
+      ...conversation.mapping.assistant,
+      id: 'missing-user',
+      parent_id: '',
+      message: { role: OpenAIMessageRole.USER },
+      children: ['assistant'],
+    };
+    expect(operator.getParent('assistant')).toBe('missing-user');
+    expect(operator.getSiblings('assistant')).toEqual(['assistant']);
+  });
+
   it('keeps terminal message status when attrs update later', () => {
     let conversation: ConversationDetail = {
       id: 'conversation',

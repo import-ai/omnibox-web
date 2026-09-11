@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
+import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import ChatArea from '@/page/chat/chat-input';
 import type useContext from '@/page/chat/conversation/useContext';
 import { Messages } from '@/page/chat/messages';
@@ -70,6 +71,14 @@ export function ConversationFooter({
   share: ConversationShareController;
 }) {
   const { t } = useTranslation();
+  const creditsEnabled = commercial && !share.isSelecting;
+  const { agentCredits } = useAgentCredits(
+    context.namespaceId,
+    context.messages,
+    creditsEnabled
+  );
+  const imageUploadDisabled =
+    agentCredits !== undefined && agentCredits.agent_credits_remain <= 0;
   if (share.isSelecting) {
     return (
       <ConversationShareActions
@@ -94,7 +103,7 @@ export function ConversationFooter({
         {commercial && (
           <AgentCredits
             namespaceId={context.namespaceId}
-            messages={context.messages}
+            agentCredits={agentCredits}
           />
         )}
         <ChatArea
@@ -109,6 +118,7 @@ export function ConversationFooter({
           suppressInitialToolRestore={context.suppressInitialToolRestore}
           sendMessage={context.sendMessage}
           loading={context.loading}
+          imageUploadDisabled={imageUploadDisabled}
           waitingForAssistantDelta={context.waitingForAssistantDelta}
           onStop={context.onStop}
         />

@@ -669,6 +669,14 @@
   },
   "chat": {
     "tips": "Enter a message",
+    "image": {
+      "upload_failed": "Failed to upload image. Please try again.",
+      "add": "Add image",
+      "remove": "Remove image",
+      "preview": "Preview image",
+      "share_unsupported": "Image uploads are not supported in shared chats",
+      "agent_1_1_unsupported": "Agent 1.1 does not support this feature"
+    },
     "title": "OmniBox AI",
     "page_title": "OmniBox",
     "citations": "Paragraph",
@@ -726,6 +734,12 @@
           "write_todos": "TODO",
           "ls": "List Resources",
           "list_resources": "List Resources",
+          "list_resource_attachments": "List Resource Attachments",
+          "get_resource_attachment": "Get Resource Attachment",
+          "view_attachment": "View Attachment",
+          "upload_resource_attachment": "Upload Resource Attachment",
+          "insert_image_into_resource": "Insert Image Into Resource",
+          "delete_resource_attachment": "Delete Resource Attachment",
           "read_file": "Read Resource",
           "read_resource": "Read Resource",
           "read_root": "Read Root",

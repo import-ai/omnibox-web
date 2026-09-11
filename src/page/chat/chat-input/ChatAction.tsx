@@ -21,6 +21,7 @@ import { ChatMode } from '@/page/chat/chat-input/types';
 
 interface IActionProps {
   disabled: boolean;
+  disabledReason?: string;
   onSend: () => void;
   onStop?: () => void;
   loading: boolean;
@@ -33,6 +34,7 @@ export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
   const {
     disabled,
+    disabledReason,
     onSend,
     onStop,
     loading,
@@ -116,7 +118,7 @@ export default function ChatAction(props: IActionProps) {
                 </Button>
               </span>
             </TooltipTrigger>
-            <TooltipContent>{t('chat.tips')}</TooltipContent>
+            <TooltipContent>{disabledReason ?? t('chat.tips')}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       ) : (
