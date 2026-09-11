@@ -505,6 +505,7 @@ export function bindVisualViewport(
     safariOpeningMinHeight = 0;
     root.classList.remove('keyboard-dismissing');
     root.classList.remove('keyboard-dismiss-animate');
+    resetLayoutViewportBaseline(target.innerHeight);
     if (
       !isEditableElement(target.document.activeElement) &&
       (target.scrollX !== 0 || target.scrollY !== 0)
