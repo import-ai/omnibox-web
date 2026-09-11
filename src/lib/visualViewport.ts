@@ -155,17 +155,6 @@ export function resolveRestingViewportHeight(
  * makes `innerHeight` itself drop. Comparing against the tallest layout
  * viewport seen so far is the only way to see that keyboard.
  */
-let layoutViewportBaseline = 0;
-
-export function noteLayoutViewportBaseline(innerHeight: number): number {
-  layoutViewportBaseline = Math.max(layoutViewportBaseline, innerHeight);
-  return layoutViewportBaseline;
-}
-
-export function resetLayoutViewportBaseline(innerHeight: number): void {
-  layoutViewportBaseline = innerHeight;
-}
-
 export function resolveLayoutKeyboardOcclusion(
   baselineInnerHeight: number,
   innerHeight: number,
@@ -200,7 +189,7 @@ export function isKeyboardOccludingViewport(
   win: Pick<Window, 'innerHeight'> & {
     visualViewport?: VisualViewportLike | null;
   },
-  baselineInnerHeight = layoutViewportBaseline
+  baselineInnerHeight = 0
 ): boolean {
   const visualHeight = win.visualViewport?.height ?? win.innerHeight;
   const visualOcclusion = win.visualViewport
@@ -484,6 +473,7 @@ export function bindVisualViewport(
   let safariOpenDelayTimer = 0;
   let safariOpenDelayElapsed = false;
   let safariOpeningMinHeight = 0;
+  let trackedLayoutBaseline = target.innerHeight;
 
   root.style.setProperty('--keyboard-dismiss-ms', `${KEYBOARD_DISMISS_MS}ms`);
 
@@ -505,7 +495,7 @@ export function bindVisualViewport(
     safariOpeningMinHeight = 0;
     root.classList.remove('keyboard-dismissing');
     root.classList.remove('keyboard-dismiss-animate');
-    resetLayoutViewportBaseline(target.innerHeight);
+    trackedLayoutBaseline = target.innerHeight;
     if (
       !isEditableElement(target.document.activeElement) &&
       (target.scrollX !== 0 || target.scrollY !== 0)
@@ -567,7 +557,8 @@ export function bindVisualViewport(
     ) {
       return;
     }
-    const layoutBaseline = noteLayoutViewportBaseline(target.innerHeight);
+    trackedLayoutBaseline = Math.max(trackedLayoutBaseline, target.innerHeight);
+    const layoutBaseline = trackedLayoutBaseline;
     const layoutOcclusion = resolveLayoutKeyboardOcclusion(
       layoutBaseline,
       target.innerHeight,
@@ -620,7 +611,8 @@ export function bindVisualViewport(
     const now = Date.now();
     const focused = isEditableElement(target.document.activeElement);
     const visualHeight = target.visualViewport?.height || target.innerHeight;
-    const layoutBaseline = noteLayoutViewportBaseline(target.innerHeight);
+    trackedLayoutBaseline = Math.max(trackedLayoutBaseline, target.innerHeight);
+    const layoutBaseline = trackedLayoutBaseline;
     const height = resolveRestingViewportHeight(
       target.innerHeight,
       visualHeight,
@@ -866,7 +858,7 @@ export function bindVisualViewport(
         focusedInsideHome: isFocusedInsideHome(),
         keyboardVisible:
           keyboardOpen ||
-          isKeyboardOccludingViewport(target, layoutViewportBaseline),
+          isKeyboardOccludingViewport(target, trackedLayoutBaseline),
         userScrolling: homeUserScrolling,
       })
     ) {
@@ -878,11 +870,11 @@ export function bindVisualViewport(
   const onOrientationChange = () => {
     // A rotated device has a different layout viewport, so the old baseline
     // would look like a keyboard that never goes away.
-    resetLayoutViewportBaseline(target.innerHeight);
+    trackedLayoutBaseline = target.innerHeight;
     sync();
   };
 
-  resetLayoutViewportBaseline(target.innerHeight);
+  trackedLayoutBaseline = target.innerHeight;
   sync();
   target.addEventListener('resize', sync);
   target.addEventListener('orientationchange', onOrientationChange);
