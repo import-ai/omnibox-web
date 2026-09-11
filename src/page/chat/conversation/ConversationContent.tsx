@@ -62,10 +62,12 @@ export function ConversationMessageList({
 }
 
 export function ConversationFooter({
+  compact,
   commercial,
   context,
   share,
 }: {
+  compact: boolean;
   commercial: boolean;
   context: ConversationContext;
   share: ConversationShareController;
@@ -102,6 +104,7 @@ export function ConversationFooter({
       <div className="min-w-0 w-full max-w-3xl">
         {commercial && (
           <AgentCredits
+            compact={compact}
             namespaceId={context.namespaceId}
             agentCredits={agentCredits}
           />
