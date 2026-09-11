@@ -6,6 +6,7 @@ import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset } from '@/components/ui/Sidebar';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
+import { cn } from '@/lib/utils';
 import { ResourceCommentsProvider } from '@/page/resource/comments/ResourceCommentsContext';
 
 import Header from './header';
@@ -73,7 +74,12 @@ export function ShareLayout(props: IProps) {
           <SidebarTriggerButton collapse />
         </header>
       )}
-      <div className="flex flex-1 flex-col min-h-0 overflow-auto">
+      <div
+        className={cn(
+          'flex flex-1 flex-col min-h-0',
+          isChatActive ? 'overflow-hidden' : 'overflow-auto'
+        )}
+      >
         <Suspense fallback={<Loading />}>
           <Outlet />
         </Suspense>

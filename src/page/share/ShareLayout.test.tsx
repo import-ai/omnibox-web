@@ -128,6 +128,22 @@ describe('ShareLayout', () => {
     content: '# Content',
   };
 
+  it.each([
+    { chatOnly: false, isChatActive: false, overflow: 'overflow-auto' },
+    { chatOnly: false, isChatActive: true, overflow: 'overflow-hidden' },
+    { chatOnly: true, isChatActive: true, overflow: 'overflow-hidden' },
+  ])(
+    'renders one outlet with $overflow when chatOnly=$chatOnly and isChatActive=$isChatActive',
+    async ({ chatOnly, isChatActive, overflow }) => {
+      await render(chatOnly, isChatActive, documentResource);
+
+      const outlets = container.querySelectorAll('[data-testid="outlet"]');
+      expect(outlets).toHaveLength(1);
+      expect(outlets[0].parentElement?.classList.contains(overflow)).toBe(true);
+      expect(container.querySelectorAll('header')).toHaveLength(1);
+    }
+  );
+
   it.each<SharedResource['resource_type']>(['doc', 'file', 'link', 'rss_item'])(
     'shows the header comment action for a %s with content and toggles the body panel',
     async resourceType => {

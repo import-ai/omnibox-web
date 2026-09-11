@@ -40,8 +40,8 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col px-4 pb-2">
-      <div className="flex min-h-0 flex-1 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col px-4 pb-2" data-chat-home>
+      <div className="flex min-h-0 flex-1 flex-col" data-chat-composer>
         <div className="flex min-h-0 flex-1 items-center justify-center px-1">
           <h1 className="text-center text-[26px] font-medium leading-9">
             {t(`chat.home.greeting.${getGreeting()}`)}
@@ -61,7 +61,10 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
           />
         </div>
       </div>
-      <div className="truncate pt-2 text-center text-xs text-muted-foreground">
+      <div
+        data-chat-disclaimer
+        className="truncate pt-2 text-center text-xs text-muted-foreground"
+      >
         {t('chat.disclaimer')}
       </div>
     </div>

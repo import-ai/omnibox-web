@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useDragLayer } from 'react-dnd';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
@@ -74,8 +75,8 @@ export function SidebarDragLayer() {
     return null;
   }
 
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[9999]">
+  return createPortal(
+    <div className="pointer-events-none fixed inset-0 z-[10000]">
       <div
         style={{
           transform: `translate(${currentOffset.x}px, ${currentOffset.y}px)`,
@@ -102,6 +103,7 @@ export function SidebarDragLayer() {
           </span>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
