@@ -8,12 +8,17 @@ import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
+import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import {
   ChatCreatePayload,
   ChatMode,
   ConversationEntity,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
+import {
+  resolveConversationImages,
+  withUploadedImageParts,
+} from '@/page/chat/conversation/uploadConversationImages';
 import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 
@@ -35,6 +40,9 @@ export default function ChatHomePage() {
     boolean | null
   >(null);
   const { config } = useConfig();
+  const { agentCredits } = useAgentCredits(namespaceId, [], config.commercial);
+  const imageUploadDisabled =
+    agentCredits !== undefined && agentCredits.agent_credits_remain <= 0;
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const creatingRecommendedQuestionRef = useRef(false);
@@ -96,7 +104,7 @@ export default function ChatHomePage() {
       ? defaultInputTemplate.replaceAll('{username}', username)
       : undefined;
 
-  const sendMessage = ({
+  const sendMessage = async ({
     query,
     tools,
     selectedResources,
@@ -104,27 +112,35 @@ export default function ChatHomePage() {
     displayParts,
     approvalMode,
     recommendedQuestionId,
+    images,
   }: SendMessageParams) => {
-    return http
-      .post(`/namespaces/${namespaceId}/conversations`)
-      .then((conversation: ConversationEntity) => {
-        sessionStorage.setItem(
-          'chat-create-payload',
-          JSON.stringify({
-            mode,
-            query,
-            tools,
-            selectedResources,
-            displayParts,
-            approvalMode,
-            recommendedQuestionId,
-            conversation: {
-              id: conversation.id,
-            } as ConversationDetail,
-          } as ChatCreatePayload)
-        );
-        navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
-      });
+    // Uploading images delays navigation; dismiss the keyboard before awaiting it.
+    (document.activeElement as HTMLElement | null)?.blur();
+    const conversation = await http.post<ConversationEntity>(
+      `/namespaces/${namespaceId}/conversations`
+    );
+    const uploadedImages = await resolveConversationImages(
+      namespaceId,
+      conversation.id,
+      images
+    );
+    sessionStorage.setItem(
+      'chat-create-payload',
+      JSON.stringify({
+        mode,
+        query,
+        tools,
+        selectedResources,
+        displayParts: withUploadedImageParts(displayParts, uploadedImages),
+        approvalMode,
+        recommendedQuestionId,
+        images: uploadedImages,
+        conversation: {
+          id: conversation.id,
+        } as ConversationDetail,
+      } as ChatCreatePayload)
+    );
+    navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
   };
   const handleQuestionSelect = (item: RecommendedQuestionItem) => {
     if (creatingRecommendedQuestionRef.current) {
@@ -148,19 +164,18 @@ export default function ChatHomePage() {
   };
 
   return (
-    <div
-      className="flex min-h-0 flex-1 justify-center overflow-auto p-4"
-      data-chat-home
-    >
-      <div className="flex h-full w-full max-w-3xl flex-col">
-        <div
-          className="mb-8 flex flex-1 flex-col justify-center"
-          data-chat-composer
-        >
-          <h1 className="mb-[32px] text-center text-[28px] font-medium">
+    <div className="flex justify-center flex-1 p-4 overflow-auto">
+      <div className="flex flex-col h-full max-w-3xl w-full">
+        <div className="flex flex-col justify-center flex-1 mb-8">
+          <h1 className="text-[28px] text-center mb-[32px] font-medium">
             <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
           </h1>
-          {config.commercial && <AgentCredits namespaceId={namespaceId} />}
+          {config.commercial && (
+            <AgentCredits
+              namespaceId={namespaceId}
+              agentCredits={agentCredits}
+            />
+          )}
           <ChatArea
             key={chatHomeDraftScope}
             messages={[]}
@@ -170,6 +185,7 @@ export default function ChatHomePage() {
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             loading={false}
+            imageUploadDisabled={imageUploadDisabled}
             initialQuery={defaultHomeInput}
             sendMessage={sendMessage}
           />

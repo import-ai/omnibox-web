@@ -13,6 +13,10 @@ import {
 } from '@/page/chat/chat-input/types';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import {
+  resolveConversationImages,
+  withUploadedImageParts,
+} from '@/page/chat/conversation/uploadConversationImages';
+import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
@@ -28,6 +32,7 @@ import {
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
+import { getUserMessageImages } from '@/page/chat/messages/role/userMessageTokens';
 import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 import {
   getCopilotWorkspace,
@@ -105,6 +110,7 @@ export default function useContext() {
     displayParts,
     decisions,
     recommendedQuestionId,
+    images,
   }: SendMessageParams) => {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
@@ -114,6 +120,11 @@ export default function useContext() {
           setWaitingForAssistantDelta(true);
         }
         setLoading(true);
+        const uploadedImages = await resolveConversationImages(
+          namespaceId,
+          conversationId,
+          images
+        );
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
         const askFN = ask(
           conversationId,
@@ -130,9 +141,10 @@ export default function useContext() {
           undefined,
           undefined,
           decisions ? { decisions } : undefined,
-          displayParts,
+          withUploadedImageParts(displayParts, uploadedImages),
           recommendedQuestionId,
-          currentResourceId
+          currentResourceId,
+          uploadedImages
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
@@ -257,7 +269,14 @@ export default function useContext() {
         undefined,
         undefined,
         undefined,
-        currentResourceId
+        currentResourceId,
+        getUserMessageImages(editedMessage.attrs?.composer?.display_parts).map(
+          image => ({
+            attachment_id: image.attachment_id,
+            name: image.name,
+            url: image.preview_url,
+          })
+        )
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();

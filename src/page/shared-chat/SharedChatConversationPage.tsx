@@ -306,6 +306,8 @@ export default function SharedChatConversationPage() {
       >
         <div className="flex-1 max-w-3xl w-full">
           <ChatArea
+            imageUploadDisabled
+            imageUploadDisabledReason={t('chat.image.share_unsupported')}
             key={conversation.id}
             messages={messages}
             navigatePrefix={`/s/${shareId}`}

@@ -197,7 +197,10 @@ function OmniboxResourceEditor(props: IEditorProps) {
         `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
         {
           method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          headers: {
+            'X-Client-Platform': 'web',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: formData,
           signal: abortSignal,
         }

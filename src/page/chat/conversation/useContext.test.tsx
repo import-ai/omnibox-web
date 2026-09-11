@@ -12,6 +12,7 @@ import {
   setCachedConversation,
 } from './conversationCache';
 import useContext from './useContext';
+import { ask, extractOriginalMessageSettings } from './utils';
 
 const mockGet = jest.fn();
 const mockFire = jest.fn();
@@ -134,6 +135,49 @@ describe('useContext conversation cache failures', () => {
     await act(async () => root.unmount());
     container.remove();
     clearConversationCache();
+  });
+
+  it('retains attached images when editing the user query', async () => {
+    const conversation = cachedConversation();
+    conversation.mapping['message-a'].attrs = {
+      composer: {
+        display_parts: [
+          {
+            type: 'image',
+            attachment_id: 'att-1',
+            name: 'image.png',
+            preview_url: '/preview/att-1',
+          },
+        ],
+      },
+    };
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    jest.mocked(extractOriginalMessageSettings).mockReturnValue({
+      originalTools: [],
+      originalContext: [],
+      originalLang: '简体中文',
+      originalEnableThinking: false,
+    });
+    jest.mocked(ask).mockReturnValue({
+      cancel: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn(),
+      start: jest.fn().mockResolvedValue(undefined),
+    });
+    let context!: ReturnType<typeof useContext>;
+    function EditProbe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<EditProbe />);
+    });
+    await act(async () => {
+      await context.onEdit('message-a', 'Updated query');
+    });
+    expect(jest.mocked(ask).mock.calls.at(-1)?.at(-1)).toEqual([
+      { attachment_id: 'att-1', name: 'image.png', url: '/preview/att-1' },
+    ]);
   });
 
   it('clears cached messages when conversation authorization fails', async () => {
