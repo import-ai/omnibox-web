@@ -19,6 +19,7 @@ export type { ChatInputHandle } from './useChatInputComposer';
 interface IProps {
   value: string;
   disabled: boolean;
+  readOnly?: boolean;
   initialComposerState?: ComposerState;
   tools: ToolType[];
   selectedResources: IResTypeContext[];
@@ -69,6 +70,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
                   type="button"
                   aria-label={t('chat.image.remove')}
                   className="absolute -right-1 -top-1 z-10 rounded-full bg-foreground p-0.5 text-background"
+                  disabled={props.readOnly}
                   onClick={() => {
                     if (preview?.id === image.id) {
                       setPreview(null);
@@ -101,6 +103,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
             ref={composer.textareaRef}
             value={composer.displayText}
             rows={1}
+            readOnly={props.readOnly}
             placeholder={t('chat.textarea.placeholder')}
             className={cn(
               'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent text-transparent outline-none',
@@ -112,7 +115,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
             onClick={composer.rememberSelection}
             onCompositionEnd={() => composer.setIsComposing(false)}
             onCompositionStart={() => composer.setIsComposing(true)}
-            onKeyDown={composer.handleKeyDown}
+            onKeyDown={props.readOnly ? undefined : composer.handleKeyDown}
             onKeyUp={composer.rememberSelection}
             onScroll={composer.handleScroll}
             onSelect={composer.rememberSelection}

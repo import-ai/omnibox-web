@@ -1,4 +1,5 @@
 import { X } from 'lucide-react';
+import { type CSSProperties, useLayoutEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -21,12 +22,27 @@ export function ImagePreviewDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
-  const title = alt || t('chat.image.preview');
+  const [retained, setRetained] = useState({ src, alt });
+  useLayoutEffect(() => {
+    if (open) setRetained({ src, alt });
+  }, [open, src, alt]);
+  const imageSrc = open ? src : retained.src;
+  const title = (open ? alt : retained.alt) || t('chat.image.preview');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="fixed left-0 top-0 flex h-full w-full max-w-none translate-x-0 translate-y-0 items-center justify-center gap-0 border-0 bg-transparent p-0 shadow-none data-[state=closed]:slide-out-to-left-0 data-[state=closed]:slide-out-to-top-0 data-[state=open]:slide-in-from-left-0 data-[state=open]:slide-in-from-top-0 [&>button:last-child]:hidden"
+        className="fixed left-0 top-0 flex h-full w-full max-w-none translate-x-0 translate-y-0 items-center justify-center gap-0 border-0 bg-transparent p-0 shadow-none motion-reduce:animate-none [&>button:last-child]:hidden"
+        style={
+          {
+            '--tw-enter-scale': '1',
+            '--tw-exit-scale': '1',
+            '--tw-enter-translate-x': '0px',
+            '--tw-enter-translate-y': '0px',
+            '--tw-exit-translate-x': '0px',
+            '--tw-exit-translate-y': '0px',
+          } as CSSProperties
+        }
         onOpenAutoFocus={event => event.preventDefault()}
         onClick={event => {
           if (event.target === event.currentTarget) onOpenChange(false);
@@ -36,10 +52,10 @@ export function ImagePreviewDialog({
         <DialogDescription className="sr-only">
           {t('chat.image.preview')}
         </DialogDescription>
-        {src ? (
+        {imageSrc ? (
           <div className="relative max-h-[90vh] max-w-[min(90vw,960px)]">
             <img
-              src={src}
+              src={imageSrc}
               alt={title}
               className="max-h-[85vh] w-full rounded-md object-contain"
             />

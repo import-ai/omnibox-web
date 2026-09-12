@@ -8,11 +8,21 @@ import { createRoot } from 'react-dom/client';
 import ChatArea from './index';
 
 const mockInputClear = jest.fn();
+const mockResourceInsert = jest.fn();
+let mockDropSpec: {
+  drop: (item: unknown, monitor: { getItemType: () => string }) => void;
+};
 let mockQueryChange: (value: string) => void;
 
 jest.mock('react-dnd', () => ({
-  useDrop: () => [{ isResourceOver: false }, jest.fn()],
+  useDrop: (spec: typeof mockDropSpec) => {
+    mockDropSpec = spec;
+    return [{ isResourceOver: false }, jest.fn()];
+  },
 }));
+
+jest.mock('react-dnd-html5-backend', () => ({ NativeTypes: { FILE: 'file' } }));
+jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -57,7 +67,7 @@ jest.mock('./ChatInput', () => ({
     React.useImperativeHandle(ref, () => ({
       clear: mockInputClear,
       getDisplayParts: () => [{ type: 'text', text: props.value }],
-      insertResource: jest.fn(),
+      insertResource: mockResourceInsert,
       rememberSelection: jest.fn(),
       toggleTool: jest.fn(),
     }));
@@ -96,13 +106,13 @@ jest.mock('./ChatTool', () => ({
     onImageSelect,
   }: {
     imageUploadDisabled?: boolean;
-    onImageSelect: (file: File) => void;
+    onImageSelect: (files: File[]) => void;
   }) => (
     <button
       data-testid="add-image"
       disabled={imageUploadDisabled}
       onClick={() =>
-        onImageSelect(new File(['image'], 'image.png', { type: 'image/png' }))
+        onImageSelect([new File(['image'], 'image.png', { type: 'image/png' })])
       }
     >
       add image
@@ -171,10 +181,13 @@ describe('ChatArea', () => {
   });
 
   it.each(['Enter', 'click', 'mixed'])(
-    'clears immediately and blocks same-batch %s sends',
+    'keeps images until prepared and blocks same-batch %s sends',
     async method => {
       const sendMessage = jest.fn(
-        async () => new Promise<void>(() => undefined)
+        async ({ onImagesUploaded }: { onImagesUploaded?: () => void }) => {
+          onImagesUploaded?.();
+          return new Promise<void>(() => undefined);
+        }
       );
 
       await act(async () =>
@@ -283,6 +296,116 @@ describe('ChatArea', () => {
       expect(sendMessage).toHaveBeenCalledTimes(2);
     }
   );
+
+  it.each([false, true])(
+    'validates pasted and dropped files (disabled: %s)',
+    async imageUploadDisabled => {
+      await act(async () =>
+        root.render(
+          <ChatArea
+            loading={false}
+            messages={[]}
+            navigatePrefix="/namespace-a"
+            imageUploadDisabled={imageUploadDisabled}
+            selectedResources={[]}
+            setSelectedResources={jest.fn()}
+            sendMessage={jest.fn()}
+          />
+        )
+      );
+      const image = new File(['image'], 'image.png', { type: 'image/png' });
+      const invalid = new File(['text'], 'file.txt', { type: 'text/plain' });
+      const paste = new Event('paste', { bubbles: true, cancelable: true });
+      Object.defineProperty(paste, 'clipboardData', {
+        value: { files: [image, invalid], getData: () => 'keep text' },
+      });
+      await act(async () =>
+        container.querySelector('textarea')!.dispatchEvent(paste)
+      );
+      expect(paste.defaultPrevented).toBe(false);
+      await act(async () =>
+        mockDropSpec.drop(
+          { files: [image, invalid] },
+          { getItemType: () => 'file' }
+        )
+      );
+      expect(
+        container.querySelector('[data-testid="image-count"]')?.textContent
+      ).toBe(imageUploadDisabled ? '0' : '2');
+      expect(createObjectURL).toHaveBeenCalledTimes(
+        imageUploadDisabled ? 0 : 2
+      );
+    }
+  );
+
+  it('still inserts dragged workspace resources as context', async () => {
+    await act(async () =>
+      root.render(
+        <ChatArea
+          loading={false}
+          messages={[]}
+          navigatePrefix="/namespace-a"
+          selectedResources={[]}
+          setSelectedResources={jest.fn()}
+          sendMessage={jest.fn()}
+        />
+      )
+    );
+    await act(async () =>
+      mockDropSpec.drop(
+        { id: 'resource-1', name: 'Document', resource_type: 'doc' },
+        { getItemType: () => 'card' }
+      )
+    );
+    expect(mockResourceInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'resource-1' })
+    );
+    expect(createObjectURL).not.toHaveBeenCalled();
+  });
+
+  it('keeps text and images after upload failure, then clears once prepared', async () => {
+    const sendMessage = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('upload failed'))
+      .mockImplementationOnce(async ({ onImagesUploaded }) =>
+        onImagesUploaded()
+      );
+    await act(async () =>
+      root.render(
+        <ChatArea
+          initialQuery="hello"
+          loading={false}
+          messages={[]}
+          navigatePrefix="/namespace-a"
+          selectedResources={[]}
+          setSelectedResources={jest.fn()}
+          sendMessage={sendMessage}
+        />
+      )
+    );
+    await act(async () =>
+      (
+        container.querySelector('[data-testid="add-image"]') as HTMLElement
+      ).click()
+    );
+    await act(async () =>
+      (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+    );
+    expect(
+      (container.querySelector('textarea') as HTMLTextAreaElement).value
+    ).toBe('hello');
+    expect(
+      container.querySelector('[data-testid="image-count"]')?.textContent
+    ).toBe('1');
+    expect(revokeObjectURL).not.toHaveBeenCalled();
+    await act(async () =>
+      (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+    );
+    expect(
+      container.querySelector('[data-testid="image-count"]')?.textContent
+    ).toBe('0');
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:image');
+  });
 
   it('blocks sending existing images after agent credits are exhausted', async () => {
     const props = {

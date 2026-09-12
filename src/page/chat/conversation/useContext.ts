@@ -111,6 +111,7 @@ export default function useContext() {
     decisions,
     recommendedQuestionId,
     images,
+    onImagesUploaded,
   }: SendMessageParams) => {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
@@ -125,6 +126,7 @@ export default function useContext() {
           conversationId,
           images
         );
+        onImagesUploaded?.();
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
         const askFN = ask(
           conversationId,
