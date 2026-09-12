@@ -110,6 +110,35 @@ describe('ChatTool', () => {
     jest.restoreAllMocks();
   });
 
+  it('passes all selected images in order and resets the file input', async () => {
+    const onImageSelect = jest.fn();
+    await act(async () =>
+      root.render(
+        <ChatTool
+          tools={[]}
+          onBeforeOpen={jest.fn()}
+          onImageSelect={onImageSelect}
+          onResourceSelect={jest.fn()}
+          onToolToggle={jest.fn()}
+        />
+      )
+    );
+    const input = container.querySelector(
+      'input[type=file]'
+    ) as HTMLInputElement;
+    const files = [
+      new File(['a'], 'a.png', { type: 'image/png' }),
+      new File(['b'], 'b.png', { type: 'image/png' }),
+    ];
+    Object.defineProperty(input, 'files', { value: files });
+    await act(async () =>
+      input.dispatchEvent(new Event('change', { bubbles: true }))
+    );
+    expect(input.multiple).toBe(true);
+    expect(onImageSelect).toHaveBeenCalledWith(files);
+    expect(input.value).toBe('');
+  });
+
   it.each([undefined, 'chat.image.share_unsupported'])(
     'disables image selection with reason %s',
     async reason => {

@@ -6,7 +6,9 @@ import {
   useState,
 } from 'react';
 import { useDrop } from 'react-dnd';
+import { NativeTypes } from 'react-dnd-html5-backend';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
@@ -26,6 +28,7 @@ import type { TreeNode } from '@/page/sidebar/store';
 
 import ApprovalModeSelect from './ApprovalModeSelect';
 import ChatAction from './ChatAction';
+import { CHAT_IMAGE_TYPES } from './chatImages';
 import ChatInput from './ChatInput';
 import ChatTool from './ChatTool';
 import ContextCapacityIndicator from './ContextCapacityIndicator';
@@ -83,6 +86,7 @@ export default function ChatArea(props: IProps) {
   const [images, setImages] = useState<ComposerChatImage[]>([]);
   const submittingRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPreparingImages, setIsPreparingImages] = useState(false);
   const imageIdRef = useRef(0);
   const imagesRef = useRef(images);
   imagesRef.current = images;
@@ -110,25 +114,6 @@ export default function ChatArea(props: IProps) {
     initialQuery,
   });
   const contextCompactCapacity = getLatestContextCompactCapacity(messages);
-  const [{ isResourceOver }, connectResourceDrop] = useDrop<
-    TreeNode,
-    void,
-    { isResourceOver: boolean }
-  >({
-    accept: 'card',
-    drop: resource => {
-      inputRef.current?.insertResource(normalizeResourceMeta(resource));
-    },
-    collect: monitor => ({
-      isResourceOver: monitor.isOver() && monitor.canDrop(),
-    }),
-  });
-  const resourceDropRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      connectResourceDrop(node);
-    },
-    [connectResourceDrop]
-  );
   const defaultResourcePicker = namespaceId
     ? (onSelect: (resource: ResourceMeta) => void) => (
         <WorkspaceResourcePicker
@@ -153,21 +138,51 @@ export default function ChatArea(props: IProps) {
   }, []);
 
   const handleImageSelect = useCallback(
-    (file: File) => {
-      if (imageUploadDisabled) return;
-      setImages(current => [
-        ...current,
-        {
-          id: `composer-image-${imageIdRef.current++}`,
-          name: file.name,
-          url: URL.createObjectURL(file),
-          file,
-        },
-      ]);
+    (files: File[]) => {
+      if (imageUploadDisabled || submittingRef.current) return;
+      const accepted = files.filter(file =>
+        CHAT_IMAGE_TYPES.includes(file.type)
+      );
+      if (accepted.length !== files.length)
+        toast.error(t('chat.image.unsupported_format'));
+      const added = accepted.map(file => ({
+        id: `composer-image-${imageIdRef.current++}`,
+        name: file.name,
+        url: URL.createObjectURL(file),
+        file,
+      }));
+      setImages(current => [...current, ...added]);
     },
-    [imageUploadDisabled]
+    [imageUploadDisabled, t]
   );
 
+  const [{ isResourceOver }, connectResourceDrop] = useDrop<
+    TreeNode | { files: File[] },
+    void,
+    { isResourceOver: boolean }
+  >({
+    accept: ['card', NativeTypes.FILE],
+    canDrop: (_item, monitor) =>
+      monitor.getItemType() === 'card' || !imageUploadDisabled,
+    drop: (item, monitor) => {
+      if (monitor.getItemType() === NativeTypes.FILE) {
+        handleImageSelect((item as { files: File[] }).files);
+      } else if (!submittingRef.current) {
+        inputRef.current?.insertResource(
+          normalizeResourceMeta(item as TreeNode)
+        );
+      }
+    },
+    collect: monitor => ({
+      isResourceOver: monitor.isOver() && monitor.canDrop(),
+    }),
+  });
+  const resourceDropRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      connectResourceDrop(node);
+    },
+    [connectResourceDrop]
+  );
   const handleSend = useCallback(async () => {
     if (submittingRef.current || disabled) return;
     const v = query.trim();
@@ -186,9 +201,17 @@ export default function ChatArea(props: IProps) {
             ? [{ type: 'text' as const, text: v }]
             : undefined;
         const pendingImages = images;
-        pendingImages.forEach(image => URL.revokeObjectURL(image.url));
-        setImages([]);
-        clearComposerAfterSend();
+        let prepared = false;
+        const clearPreparedDraft = () => {
+          if (prepared) return;
+          prepared = true;
+          pendingImages.forEach(image => URL.revokeObjectURL(image.url));
+          setImages([]);
+          clearComposerAfterSend();
+          setIsPreparingImages(false);
+        };
+        if (pendingImages.length) setIsPreparingImages(true);
+        else clearPreparedDraft();
         await sendMessage({
           query: v,
           selectedResources: localContext,
@@ -197,12 +220,15 @@ export default function ChatArea(props: IProps) {
           approvalMode,
           displayParts: localDisplayParts,
           images: pendingImages,
+          onImagesUploaded: clearPreparedDraft,
         });
+        clearPreparedDraft();
       } catch {
         // Request and stream layers report errors; allow a new submission.
       } finally {
         submittingRef.current = false;
         setIsSubmitting(false);
+        setIsPreparingImages(false);
       }
     }
   }, [
@@ -228,6 +254,12 @@ export default function ChatArea(props: IProps) {
   ) : (
     <div
       ref={resourceDropRef}
+      onPaste={event => {
+        const files = Array.from(event.clipboardData.files);
+        if (!files.length) return;
+        handleImageSelect(files);
+        if (!event.clipboardData.getData('text/plain')) event.preventDefault();
+      }}
       className={cn(
         'max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]',
         isResourceOver && 'ring-2 ring-blue-300'
@@ -245,17 +277,22 @@ export default function ChatArea(props: IProps) {
         onSelectedResourcesChange={setSelectedResources}
         onSend={handleSend}
         images={images}
-        onImageRemove={imageId =>
+        readOnly={isPreparingImages}
+        onImageRemove={imageId => {
+          if (submittingRef.current) return;
           setImages(current => {
             const removed = current.find(image => image.id === imageId);
             if (removed) URL.revokeObjectURL(removed.url);
             return current.filter(image => image.id !== imageId);
-          })
-        }
+          });
+        }}
         disabled={disabled}
       />
       <div className="flex items-center justify-between">
-        <div className="flex min-w-0 items-center gap-2">
+        <fieldset
+          disabled={isPreparingImages}
+          className="flex min-w-0 items-center gap-2"
+        >
           <ChatTool
             tools={composerTools}
             renderResourcePicker={renderResourcePicker ?? defaultResourcePicker}
@@ -265,14 +302,14 @@ export default function ChatArea(props: IProps) {
               inputRef.current?.insertResource(resource)
             }
             onImageSelect={handleImageSelect}
-            imageUploadDisabled={imageUploadDisabled}
+            imageUploadDisabled={imageUploadDisabled || isSubmitting}
             imageUploadDisabledReason={imageUploadDisabledReason}
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}
             setApprovalMode={setSelectedApprovalMode}
           />
-        </div>
+        </fieldset>
         <div className="flex items-center gap-2">
           {contextCompactCapacity && (
             <ContextCapacityIndicator capacity={contextCompactCapacity} />

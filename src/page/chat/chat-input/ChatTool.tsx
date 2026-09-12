@@ -30,6 +30,7 @@ import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import { ToolType } from '@/page/chat/chat-input/types';
 
+import { CHAT_IMAGE_TYPES } from './chatImages';
 import { focusResourceDialogOnOpen } from './chatToolFocus';
 
 const datasource = [
@@ -53,7 +54,7 @@ interface IProps {
   onBeforeOpen: () => void;
   onToolToggle: (tool: ToolType) => void;
   onResourceSelect: (resource: ResourceMeta) => void;
-  onImageSelect: (file: File) => void;
+  onImageSelect: (files: File[]) => void;
   imageUploadDisabled?: boolean;
   imageUploadDisabledReason?: string;
 }
@@ -159,11 +160,12 @@ export default function ChatTool(props: IProps) {
         ref={imageInputRef}
         type="file"
         disabled={imageUploadDisabled}
-        accept="image/png,image/jpeg,image/webp,image/gif"
+        accept={CHAT_IMAGE_TYPES.join(',')}
+        multiple
         className="hidden"
         onChange={event => {
-          const file = event.target.files?.[0];
-          if (file && !imageUploadDisabled) onImageSelect(file);
+          const files = Array.from(event.target.files ?? []);
+          if (!imageUploadDisabled) onImageSelect(files);
           event.target.value = '';
         }}
       />

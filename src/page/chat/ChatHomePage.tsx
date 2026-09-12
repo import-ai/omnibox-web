@@ -113,6 +113,7 @@ export default function ChatHomePage() {
     approvalMode,
     recommendedQuestionId,
     images,
+    onImagesUploaded,
   }: SendMessageParams) => {
     // Uploading images delays navigation; dismiss the keyboard before awaiting it.
     (document.activeElement as HTMLElement | null)?.blur();
@@ -124,6 +125,7 @@ export default function ChatHomePage() {
       conversation.id,
       images
     );
+    onImagesUploaded?.();
     sessionStorage.setItem(
       'chat-create-payload',
       JSON.stringify({

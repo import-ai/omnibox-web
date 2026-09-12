@@ -6,7 +6,6 @@ import type { IResTypeContext } from './types';
 import { ToolType } from './types';
 import type { ChatInputHandle } from './useChatInputComposer';
 import type { useComposerCommands } from './useComposerCommands';
-import type { useComposerPublisher } from './useComposerPublisher';
 import type { useComposerSelection } from './useComposerSelection';
 
 interface UseComposerHandleParams {
@@ -15,7 +14,6 @@ interface UseComposerHandleParams {
   onChange: (value: string) => void;
   onSelectedResourcesChange: (value: IResTypeContext[]) => void;
   onToolsChange: (value: ToolType[]) => void;
-  publisher: ReturnType<typeof useComposerPublisher>;
   resetComposerState: (text: string) => void;
   selection: ReturnType<typeof useComposerSelection>;
 }
@@ -27,7 +25,6 @@ export function useComposerHandle({
   onChange,
   onSelectedResourcesChange,
   onToolsChange,
-  publisher,
   resetComposerState,
   selection,
 }: UseComposerHandleParams) {
@@ -35,7 +32,6 @@ export function useComposerHandle({
     () => ({
       clear: () => {
         selection.selectionRef.current = { start: 0, end: 0 };
-        publisher.lastPublishedQueryRef.current = '';
         resetComposerState('');
         onChange('');
         onSelectedResourcesChange([]);
@@ -57,7 +53,6 @@ export function useComposerHandle({
       onChange,
       onSelectedResourcesChange,
       onToolsChange,
-      publisher.lastPublishedQueryRef,
       resetComposerState,
       selection.rememberSelection,
       selection.selectionRef,
