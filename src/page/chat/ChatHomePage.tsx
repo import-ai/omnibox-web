@@ -16,6 +16,7 @@ import {
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
 import { withUploadedImageParts } from '@/page/chat/conversation/uploadConversationImages';
+import { createClientKey } from '@/page/chat/core/clientKey';
 import {
   MessageStatus,
   OpenAIMessageRole,
@@ -35,6 +36,7 @@ import { getGreeting } from './utils';
 export default function ChatHomePage() {
   const [pendingMessage, setPendingMessage] =
     useState<SendMessageParams | null>(null);
+  const pendingClientKey = useRef(createClientKey());
   const [sendFailed, setSendFailed] = useState(false);
   const [pendingDisplayParts, setPendingDisplayParts] = useState<
     ChatMessageDisplayPart[] | undefined
@@ -218,6 +220,7 @@ export default function ChatHomePage() {
             hideActions
             message={{
               id: 'pending-home-query',
+              clientKey: pendingClientKey.current,
               message: {
                 role: OpenAIMessageRole.USER,
                 content: pendingMessage.query,
