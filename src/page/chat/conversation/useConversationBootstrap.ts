@@ -30,6 +30,7 @@ import {
 } from './conversationLoadPolicy';
 
 export const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
+const bootstrappedConversationIds = new Set<string>();
 
 interface ConversationBootstrapOptions {
   app: App;
@@ -175,10 +176,14 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
     : undefined;
   const payload =
     takePendingChatPayload(options.conversationId) ?? storedPayload;
+  if (bootstrappedConversationIds.has(options.conversationId)) {
+    return;
+  }
   options.setInitialApprovalMode(payload?.approvalMode);
   options.setSuppressInitialToolRestore(Boolean(payload));
   const runtime: ConversationBootstrapRuntime = { destroyed: false };
   if (payload) {
+    bootstrappedConversationIds.add(options.conversationId);
     sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
     void options
       .sendMessage(payload)
