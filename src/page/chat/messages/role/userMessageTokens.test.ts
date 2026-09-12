@@ -19,6 +19,27 @@ import {
 } from './userMessageTokens';
 
 describe('user message resource tokens', () => {
+  it('renders persisted web search links inline without display cache or duplicate badges', () => {
+    const text = 'Before [web_search](tool://web_search) after';
+    expect(splitUserMessageResourceTokens(text, [])).toEqual([
+      { type: 'text', text: 'Before ' },
+      { type: 'tool', tool: ToolType.WEB_SEARCH },
+      { type: 'text', text: ' after' },
+    ]);
+    for (const tools of [undefined, [{ name: ToolType.WEB_SEARCH }]]) {
+      const html = createUserMessageCopyHtml(
+        text,
+        tools,
+        false,
+        () => '联网搜索'
+      );
+      expect(html).not.toContain('tool://');
+      expect(html?.match(/data-chat-token="tool"/g)).toHaveLength(1);
+      expect(html).toContain('Before <span');
+      expect(html).toContain('</span> after');
+    }
+  });
+
   it('extracts conversation images and drops them from bubble parts', () => {
     const displayParts: ChatMessageDisplayPart[] = [
       {

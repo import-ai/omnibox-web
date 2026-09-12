@@ -11,7 +11,9 @@ import { Button } from '@/components/ui/Button';
 import { Textarea } from '@/components/ui/Textarea';
 import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
+import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
 import { InlineChatToken } from '@/page/chat/chat-input/InlineChatToken';
+import { ToolType } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings.ts';
@@ -73,13 +75,24 @@ export function UserMessage(props: IProps) {
     useMessageSiblings(message.id, messageOperator);
 
   const handleEditClick = () => {
-    setEditedContent(openAIMessage.content || '');
+    setEditedContent(
+      (openAIMessage.content || '').replaceAll(
+        WEB_SEARCH_QUERY_TOKEN,
+        `[${t('chat.tools.web_search')}]`
+      )
+    );
     setIsEditing(true);
   };
 
   const handleSave = () => {
     if (editedContent.trim() && onEdit) {
-      onEdit(message.id, editedContent);
+      onEdit(
+        message.id,
+        editedContent.replaceAll(
+          `[${t('chat.tools.web_search')}]`,
+          WEB_SEARCH_QUERY_TOKEN
+        )
+      );
       setIsEditing(false);
     }
   };
@@ -113,6 +126,10 @@ export function UserMessage(props: IProps) {
   const toolTokens = getUserMessageToolTokens(
     message.attrs?.tools,
     message.attrs?.enable_thinking
+  ).filter(
+    tool =>
+      tool !== ToolType.WEB_SEARCH ||
+      !openAIMessage.content?.includes(WEB_SEARCH_QUERY_TOKEN)
   );
   const resourceIdsKey = collectUserMessageResourceIds(
     [...resources, ...displayResources],
@@ -256,6 +273,13 @@ export function UserMessage(props: IProps) {
               <span key={idx} className="break-words [overflow-wrap:anywhere]">
                 {splitUserMessageResourceTokens(line, resources).map(
                   (segment, segmentIndex) => {
+                    if (segment.type === 'tool') {
+                      return (
+                        <InlineChatToken key={segmentIndex} icon={segment.tool}>
+                          {t(`chat.tools.${segment.tool}`)}
+                        </InlineChatToken>
+                      );
+                    }
                     if (segment.type !== 'resource') {
                       return segment.text;
                     }
