@@ -185,9 +185,7 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
   if (payload) {
     bootstrappedConversationIds.add(options.conversationId);
     sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
-    void options
-      .sendMessage(payload)
-      .then(() => loadConversation(options, runtime, 'refresh'));
+    void options.sendMessage(payload);
     return () => {
       runtime.destroyed = true;
       runtime.resumeFN?.destroy();
