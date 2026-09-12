@@ -257,6 +257,10 @@ export function ask(
     chatReq,
     async data => {
       const chatResponse = JSON.parse(data) as ChatResponse;
+      if (chatResponse.response_type === 'eos' && !chatResponse.id) {
+        chatResponse.id = acceptedId;
+        data = JSON.stringify(chatResponse);
+      }
       if (chatResponse.response_type === 'bos') {
         if (chatResponse.role === OpenAIMessageRole.USER) {
           acceptedId = chatResponse.id;
