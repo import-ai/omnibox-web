@@ -5,26 +5,21 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Typewriter } from '@/components/typewriter';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
-import { getChatHomeDraftScope } from '@/lib/chatBridge';
+import { getChatHomeDraftScope, setPendingChatPayload } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import {
-  ChatCreatePayload,
   ChatMessageDisplayPart,
   ChatMode,
   ConversationEntity,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
-import {
-  resolveConversationImages,
-  withUploadedImageParts,
-} from '@/page/chat/conversation/uploadConversationImages';
+import { withUploadedImageParts } from '@/page/chat/conversation/uploadConversationImages';
 import {
   MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse';
-import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 
@@ -160,11 +155,16 @@ export default function ChatHomePage() {
       const conversation = await http.post<ConversationEntity>(
         `/namespaces/${namespaceId}/conversations`
       );
-      const uploadedImages = await resolveConversationImages(
-        namespaceId,
-        conversation.id,
-        images
-      );
+      setPendingChatPayload(conversation.id, {
+        query,
+        tools,
+        selectedResources,
+        mode,
+        displayParts,
+        approvalMode,
+        recommendedQuestionId,
+        images,
+      });
       sessionStorage.setItem(
         'chat-create-payload',
         JSON.stringify({
@@ -172,14 +172,11 @@ export default function ChatHomePage() {
           query,
           tools,
           selectedResources,
-          displayParts: withUploadedImageParts(displayParts, uploadedImages),
+          displayParts,
           approvalMode,
           recommendedQuestionId,
-          images: uploadedImages,
-          conversation: {
-            id: conversation.id,
-          } as ConversationDetail,
-        } as ChatCreatePayload)
+          conversation: { id: conversation.id },
+        })
       );
       navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
     } catch {

@@ -2,6 +2,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { useEffect } from 'react';
 
 import type App from '@/hooks/app.class';
+import { takePendingChatPayload } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
 import type {
   ApprovalMode,
@@ -169,9 +170,11 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
   if (!options.conversationId) return;
   options.setAccessDenied(false);
   const state = sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY);
-  const payload: ChatCreatePayload | undefined = state
+  const storedPayload: ChatCreatePayload | undefined = state
     ? JSON.parse(state)
     : undefined;
+  const payload =
+    takePendingChatPayload(options.conversationId) ?? storedPayload;
   options.setInitialApprovalMode(payload?.approvalMode);
   options.setSuppressInitialToolRestore(Boolean(payload));
   const runtime: ConversationBootstrapRuntime = { destroyed: false };

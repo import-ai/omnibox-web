@@ -63,3 +63,15 @@ export function removeFromChatContext(resourceIds: string[]) {
     store.removeContext(id);
   }
 }
+
+import type { SendMessageParams } from '@/page/chat/chat-input/types';
+
+const pendingChatPayloads = new Map<string, SendMessageParams>();
+export function setPendingChatPayload(id: string, payload: SendMessageParams) {
+  pendingChatPayloads.set(id, payload);
+}
+export function takePendingChatPayload(id: string) {
+  const payload = pendingChatPayloads.get(id);
+  pendingChatPayloads.delete(id);
+  return payload;
+}
