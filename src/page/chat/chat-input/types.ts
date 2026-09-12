@@ -134,6 +134,7 @@ export interface SendMessageParams {
   approvalMode?: ApprovalMode;
   recommendedQuestionId?: string;
   images?: Array<ChatImageInput | ComposerChatImage>;
+  onImagesUploaded?: () => void;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {

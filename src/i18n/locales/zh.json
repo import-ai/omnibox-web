@@ -678,6 +678,7 @@
     },
     "tips": "请输入消息",
     "image": {
+      "unsupported_format": "仅支持 PNG、JPEG、WebP 和 GIF 图片",
       "upload_failed": "图片上传失败，请重试。",
       "add": "添加图片",
       "remove": "移除图片",

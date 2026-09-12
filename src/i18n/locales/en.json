@@ -677,6 +677,7 @@
     },
     "tips": "Enter a message",
     "image": {
+      "unsupported_format": "Only PNG, JPEG, WebP, and GIF images are supported",
       "upload_failed": "Failed to upload image. Please try again.",
       "add": "Add image",
       "remove": "Remove image",
