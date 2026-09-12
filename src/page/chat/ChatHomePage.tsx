@@ -3,8 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Typewriter } from '@/components/typewriter';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope } from '@/lib/chatBridge';
@@ -13,6 +11,7 @@ import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import {
   ChatCreatePayload,
+  ChatMessageDisplayPart,
   ChatMode,
   ConversationEntity,
   SendMessageParams,
@@ -21,10 +20,16 @@ import {
   resolveConversationImages,
   withUploadedImageParts,
 } from '@/page/chat/conversation/uploadConversationImages';
+import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chatResponse';
 import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
+import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import ChatArea from './chat-input';
+import Scrollbar from './conversation/Scrollbar';
 import FeatureCards from './home/FeatureCards';
 import RecommendedQuestions, {
   RecommendedQuestionItem,
@@ -36,6 +41,25 @@ export default function ChatHomePage() {
   const [pendingMessage, setPendingMessage] =
     useState<SendMessageParams | null>(null);
   const [sendFailed, setSendFailed] = useState(false);
+  const [pendingDisplayParts, setPendingDisplayParts] = useState<
+    ChatMessageDisplayPart[] | undefined
+  >();
+
+  useEffect(() => {
+    const previewUrls: string[] = [];
+    const images = pendingMessage?.images?.map(image => {
+      if ('file' in image) {
+        const url = URL.createObjectURL(image.file);
+        previewUrls.push(url);
+        return { attachment_id: image.id, name: image.name, url };
+      }
+      return image;
+    });
+    setPendingDisplayParts(
+      withUploadedImageParts(pendingMessage?.displayParts, images ?? [])
+    );
+    return () => previewUrls.forEach(url => URL.revokeObjectURL(url));
+  }, [pendingMessage]);
   const params = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -184,34 +208,57 @@ export default function ChatHomePage() {
   };
 
   return (
-    <div className="flex justify-center flex-1 p-4 overflow-auto">
-      <div className="flex flex-col h-full max-w-3xl w-full">
-        <div className="flex flex-col justify-center flex-1 mb-8">
-          {pendingMessage ? (
-            <div
-              className="flex items-center justify-end gap-2"
-              role="status"
-              aria-label={t(
-                sendFailed
-                  ? 'chat.delivery.send_failed'
-                  : 'chat.delivery.sending'
-              )}
-            >
-              {sendFailed ? (
-                <Button
-                  variant="ghost"
-                  onClick={() => void sendMessage(pendingMessage)}
-                >
-                  {t('chat.delivery.retry_send')}
-                </Button>
-              ) : (
-                <Spinner className="size-4" />
-              )}
-              <div className="max-w-[75%] whitespace-pre-wrap rounded-lg bg-secondary px-3 py-2">
-                {pendingMessage.query}
-              </div>
-            </div>
-          ) : (
+    <div
+      className={
+        pendingMessage
+          ? 'flex min-h-0 max-h-full min-w-0 flex-1 flex-col overflow-hidden'
+          : 'flex justify-center flex-1 p-4 overflow-auto'
+      }
+    >
+      {pendingMessage && (
+        <Scrollbar>
+          <UserMessage
+            hideActions
+            message={{
+              id: 'pending-home-query',
+              message: {
+                role: OpenAIMessageRole.USER,
+                content: pendingMessage.query,
+              },
+              status: sendFailed ? MessageStatus.FAILED : MessageStatus.PENDING,
+              parent_id: '',
+              children: [],
+              attrs: {
+                pending_query: true,
+                tools: pendingMessage.tools.map(name => ({ name })),
+                user_context: {
+                  selected_resources: pendingMessage.selectedResources.map(
+                    context => context.resource.id
+                  ),
+                },
+                composer: { display_parts: pendingDisplayParts },
+              },
+            }}
+            onEdit={() => void sendMessage(pendingMessage)}
+          />
+        </Scrollbar>
+      )}
+      <div
+        className={
+          pendingMessage
+            ? 'relative z-20 flex min-h-0 max-h-full min-w-0 shrink-0 justify-center bg-white px-4 dark:bg-background'
+            : 'flex flex-col h-full max-w-3xl w-full'
+        }
+        data-chat-composer={pendingMessage ? '' : undefined}
+      >
+        <div
+          className={
+            pendingMessage
+              ? 'min-w-0 w-full max-w-3xl'
+              : 'flex flex-col justify-center flex-1 mb-8'
+          }
+        >
+          {!pendingMessage && (
             <h1 className="text-[28px] text-center mb-[32px] font-medium">
               <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
             </h1>
@@ -232,10 +279,18 @@ export default function ChatHomePage() {
             setSelectedResources={setSelectedResources}
             loading={!!pendingMessage && !sendFailed}
             imageUploadDisabled={imageUploadDisabled}
-            initialQuery={defaultHomeInput}
+            initialQuery={pendingMessage ? undefined : defaultHomeInput}
             sendMessage={sendMessage}
           />
-          {config.commercial && (
+          {pendingMessage && (
+            <div
+              data-chat-disclaimer
+              className="truncate pt-2 text-center text-xs text-muted-foreground"
+            >
+              {t('chat.disclaimer')}
+            </div>
+          )}
+          {!pendingMessage && config.commercial && (
             <RecommendedQuestions
               key={namespaceId}
               namespaceId={namespaceId}
@@ -244,7 +299,7 @@ export default function ChatHomePage() {
             />
           )}
         </div>
-        <FeatureCards />
+        {!pendingMessage && <FeatureCards />}
       </div>
     </div>
   );

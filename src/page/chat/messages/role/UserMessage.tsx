@@ -40,7 +40,7 @@ import {
 interface IProps {
   hideActions?: boolean;
   message: MessageDetail;
-  messageOperator: MessageOperator;
+  messageOperator?: MessageOperator;
   onEdit: (messageId: string, newContent: string) => void;
   onShare?: (messageId: string) => void;
 }
