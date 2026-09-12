@@ -346,7 +346,8 @@ export default function useContext() {
       !firstUserMessage?.message.content ||
       conversation.title ||
       loading ||
-      waitingForAssistantDelta
+      waitingForAssistantDelta ||
+      firstUserMessage.status !== MessageStatus.SUCCESS
     ) {
       return;
     }
