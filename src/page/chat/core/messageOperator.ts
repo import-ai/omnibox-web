@@ -127,11 +127,18 @@ export function createMessageOperator(
     },
 
     add: (chatResponse: ChatBOSResponse): string => {
+      const pendingId = chatResponse.attrs?.client_request_id;
+      const pendingMessage = pendingId
+        ? conversation.mapping[pendingId]
+        : undefined;
       const message: MessageDetail = {
         id: chatResponse.id,
         created_at: chatResponse.created_at || new Date().toISOString(),
         message: {
           role: chatResponse.role,
+          ...(pendingMessage?.message.content
+            ? { content: pendingMessage.message.content }
+            : {}),
         },
         status: MessageStatus.PENDING,
         parent_id: chatResponse.parentId,
