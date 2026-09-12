@@ -219,7 +219,7 @@ export function UserMessage(props: IProps) {
             message.status
           ) && (
             <span
-              className="absolute right-full top-2 mr-2"
+              className="absolute right-full top-1/2 -translate-y-1/2 mr-2"
               role="status"
               aria-label={t('chat.delivery.sending')}
             >
