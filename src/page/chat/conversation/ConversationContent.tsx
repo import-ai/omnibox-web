@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
+import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/Marker';
 import { Spinner } from '@/components/ui/Spinner';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import ChatArea from '@/page/chat/chat-input';
 import type useContext from '@/page/chat/conversation/useContext';
+import { MessageStatus } from '@/page/chat/core/types/chatResponse';
 import { Messages } from '@/page/chat/messages';
 import { MessageIndex } from '@/page/chat/messages/MessageIndex';
 import { ConversationShareActions } from '@/page/chat/share/ConversationShareControls';
@@ -25,6 +27,7 @@ export function ConversationMessageList({
   context: ConversationContext;
   share: ConversationShareController;
 }) {
+  const { t } = useTranslation();
   return (
     <Scrollbar
       resetKey={context.conversation.id}
@@ -41,21 +44,35 @@ export function ConversationMessageList({
           </Button>
         </div>
       ) : (
-        <Messages
-          conversation={context.conversation}
-          messages={context.messages}
-          messageOperator={context.messageOperator}
-          onEdit={context.onEdit}
-          onRegenerate={context.onRegenerate}
-          onShareMessage={messageId => share.open(messageId, 'latest')}
-          regeneratingParentId={context.regeneratingParentId}
-          shareSelection={{
-            isSelecting: share.isSelecting,
-            messageGroupIds: share.messageGroupIds,
-            onToggleGroup: share.toggleGroup,
-            selectedGroupIds: share.selectedGroupIds,
-          }}
-        />
+        <>
+          <Messages
+            conversation={context.conversation}
+            messages={context.messages}
+            messageOperator={context.messageOperator}
+            onEdit={context.onEdit}
+            onRegenerate={context.onRegenerate}
+            onShareMessage={messageId => share.open(messageId, 'latest')}
+            regeneratingParentId={context.regeneratingParentId}
+            shareSelection={{
+              isSelecting: share.isSelecting,
+              messageGroupIds: share.messageGroupIds,
+              onToggleGroup: share.toggleGroup,
+              selectedGroupIds: share.selectedGroupIds,
+            }}
+          />
+          {context.waitingForAssistantDelta &&
+            context.messages.at(-1)?.message.role === 'user' &&
+            context.messages.at(-1)?.status === MessageStatus.SUCCESS && (
+              <Marker role="status" className="mt-4">
+                <MarkerIcon>
+                  <Spinner />
+                </MarkerIcon>
+                <MarkerContent className="shimmer">
+                  {t('chat.delivery.thinking')}
+                </MarkerContent>
+              </Marker>
+            )}
+        </>
       )}
     </Scrollbar>
   );

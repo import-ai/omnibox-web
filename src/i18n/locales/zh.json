@@ -669,6 +669,13 @@
     "fail": "复制失败，请手动复制"
   },
   "chat": {
+    "delivery": {
+      "sending": "发送中",
+      "send_failed": "发送失败",
+      "retry_send": "重新发送",
+      "decision_submitted": "权限选择已提交",
+      "thinking": "思考中"
+    },
     "tips": "请输入消息",
     "image": {
       "unsupported_format": "仅支持 PNG、JPEG、WebP 和 GIF 图片",

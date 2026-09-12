@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import { ENABLE_NOTIFICATION_POLLING } from '@/const';
 import { http } from '@/lib/request';
 
 import type {
@@ -259,10 +260,10 @@ export function useNotificationUnreadCount() {
     fetchUnreadCount();
   }, [fetchUnreadCount]);
 
-  useEffect(
-    () => startUnreadCountPolling(fetchUnreadCount),
-    [fetchUnreadCount]
-  );
+  useEffect(() => {
+    if (!ENABLE_NOTIFICATION_POLLING) return;
+    return startUnreadCountPolling(fetchUnreadCount);
+  }, [fetchUnreadCount]);
 
   return unreadCount;
 }

@@ -8,11 +8,13 @@ import { ShareIcon } from '@/assets/icons/ShareIcon';
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { Textarea } from '@/components/ui/Textarea';
 import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import { InlineChatToken } from '@/page/chat/chat-input/InlineChatToken';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
+import { MessageStatus } from '@/page/chat/core/types/chatResponse';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings.ts';
 import { fetchResourcesByIds } from '@/service/resource';
@@ -38,7 +40,7 @@ import {
 interface IProps {
   hideActions?: boolean;
   message: MessageDetail;
-  messageOperator: MessageOperator;
+  messageOperator?: MessageOperator;
   onEdit: (messageId: string, newContent: string) => void;
   onShare?: (messageId: string) => void;
 }
@@ -185,15 +187,45 @@ export function UserMessage(props: IProps) {
     (!displayLines && !!(openAIMessage.content || '').trim());
 
   return (
-    <div className="group flex flex-col items-end">
+    <div
+      className="group relative flex flex-col items-end"
+      data-message-id={message.id}
+    >
+      {message.status === MessageStatus.FAILED &&
+        message.attrs?.pending_query && (
+          <div
+            role="alert"
+            className="flex items-center gap-2 text-sm text-destructive"
+          >
+            {t('chat.delivery.send_failed')}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(message.id, openAIMessage.content || '')}
+            >
+              {t('chat.delivery.retry_send')}
+            </Button>
+          </div>
+        )}
       <UserMessageImages images={images} />
       {showBubble && (
         <div
           className={cn(
-            'flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
+            'relative flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
             'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
           )}
         >
+          {[MessageStatus.PENDING, MessageStatus.STREAMING].includes(
+            message.status
+          ) && (
+            <span
+              className="absolute right-full top-1/2 -translate-y-1/2 mr-2"
+              role="status"
+              aria-label={t('chat.delivery.sending')}
+            >
+              <Spinner className="size-4" />
+            </span>
+          )}
           {isEditing ? (
             <div className="flex flex-col gap-2">
               <Textarea
@@ -313,7 +345,7 @@ export function UserMessage(props: IProps) {
           </TooltipContent>
         </Tooltip>
       )}
-      {!hideActions && (
+      {!hideActions && !message.attrs?.pending_query && (
         <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
           {createdAt && (
             <span className="text-xs text-muted-foreground">{createdAt}</span>

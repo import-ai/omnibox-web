@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
 
+import { createClientKey } from './clientKey';
 import {
   ChatBOSResponse,
   ChatDeltaResponse,
@@ -14,6 +15,7 @@ function add(source?: string, delta?: string): string | undefined {
 }
 
 export interface MessageOperator {
+  isUserMessage?: (id?: string) => boolean;
   update: (delta: ChatDeltaResponse, id?: string) => void;
   add: (chatResponse: ChatBOSResponse) => string;
   done: (id?: string) => void;
@@ -76,6 +78,8 @@ export function createMessageOperator(
   setConversation: Dispatch<SetStateAction<ConversationDetail>>
 ): MessageOperator {
   return {
+    isUserMessage: id =>
+      !!id && conversation.mapping[id]?.message.role === OpenAIMessageRole.USER,
     update: (delta: ChatDeltaResponse, id?: string) => {
       setConversation(prev => {
         const message = getMessage(prev, id);
@@ -83,10 +87,21 @@ export function createMessageOperator(
           return prev;
         }
 
-        message.message.content = add(
-          message.message.content,
+        if (
+          message.message.role === OpenAIMessageRole.USER &&
+          message.attrs?.pending_query &&
           delta.message.content
-        );
+        ) {
+          message.message.content = delta.message.content;
+          if (message.attrs.client_request_id !== message.id) {
+            message.attrs = { ...message.attrs, pending_query: false };
+          }
+        } else {
+          message.message.content = add(
+            message.message.content,
+            delta.message.content
+          );
+        }
 
         message.message.reasoning_content = add(
           message.message.reasoning_content,
@@ -124,42 +139,53 @@ export function createMessageOperator(
     },
 
     add: (chatResponse: ChatBOSResponse): string => {
-      const message: MessageDetail = {
-        id: chatResponse.id,
-        created_at: chatResponse.created_at || new Date().toISOString(),
-        message: {
-          role: chatResponse.role,
-        },
-        status: MessageStatus.PENDING,
-        parent_id: chatResponse.parentId,
-        children: [],
-        attrs: chatResponse.attrs,
-      };
-
       setConversation(prev => {
+        const pendingId = chatResponse.attrs?.client_request_id;
+        const pending = pendingId ? prev.mapping[pendingId] : undefined;
+        const existing = pending || prev.mapping[chatResponse.id];
+        const message: MessageDetail = {
+          id: chatResponse.id,
+          clientKey: existing?.clientKey ?? createClientKey(),
+          created_at:
+            chatResponse.created_at ||
+            existing?.created_at ||
+            new Date().toISOString(),
+          message: {
+            ...(existing?.message || {}),
+            role: chatResponse.role,
+          },
+          status: MessageStatus.PENDING,
+          parent_id: chatResponse.parentId,
+          children: existing?.children || [],
+          attrs: { ...(existing?.attrs || {}), ...(chatResponse.attrs || {}) },
+        };
         const newMapping = { ...prev.mapping, [message.id]: message };
-
-        if (message.parent_id && prev.current_node !== undefined) {
-          const parentMessage = prev.mapping[message.parent_id];
-          if (parentMessage) {
-            if (!parentMessage.children.includes(message.id)) {
-              parentMessage.children.push(message.id);
+        if (pendingId && pendingId !== message.id) {
+          delete newMapping[pendingId];
+          for (const parent of Object.values(newMapping)) {
+            if (parent.children.includes(pendingId)) {
+              newMapping[parent.id] = {
+                ...parent,
+                children: parent.children.map(id =>
+                  id === pendingId ? message.id : id
+                ),
+              };
             }
-          } else {
-            console.error(
-              `Parent message with ID ${message.parent_id} not found for message ${message.id}`
-            );
           }
         }
-        return {
-          ...prev,
-          mapping: newMapping,
-          current_node: message.id,
-        };
+        if (message.parent_id) {
+          const parent = newMapping[message.parent_id];
+          if (parent && !parent.children.includes(message.id)) {
+            newMapping[message.parent_id] = {
+              ...parent,
+              children: [...parent.children, message.id],
+            };
+          }
+        }
+        return { ...prev, mapping: newMapping, current_node: message.id };
       });
       return chatResponse.id;
     },
-
     done: (id?: string) => {
       setConversation(prev => {
         const message = getMessage(prev, id);

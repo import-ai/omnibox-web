@@ -95,6 +95,7 @@ export enum AgentRequestChannel {
 }
 
 export interface ChatRequestBody {
+  client_request_id?: string;
   conversation_id: string;
   query: string;
   tools?: ChatTool[];

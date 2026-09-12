@@ -257,3 +257,23 @@ a {
 .dark a {
   color: #60a5fa;
 }
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    currentColor 0%,
+    hsl(var(--foreground)) 50%,
+    currentColor 100%
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: marker-shimmer 1.6s linear infinite;
+}
+
+@keyframes marker-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}

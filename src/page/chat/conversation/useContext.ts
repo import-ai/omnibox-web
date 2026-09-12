@@ -18,6 +18,7 @@ import {
 } from '@/page/chat/conversation/uploadConversationImages';
 import {
   ask,
+  beginPendingQuery,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
   isTerminalMessageStatus,
@@ -53,6 +54,7 @@ export default function useContext() {
   const { i18n } = useTranslation();
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
   const regeneratingRef = useRef(false);
+  const uploadRetries = useRef(new Map<string, () => Promise<void>>());
   const { conversationId, namespaceId } = useChatRouteParams();
   const { resource_id: routeResourceId } = useParams();
   const previewResourceId = useCopilotStore(
@@ -102,20 +104,37 @@ export default function useContext() {
     return createMessageOperator(conversation, setConversation);
   }, [conversation, setConversation]);
 
-  const sendMessage = async ({
-    query,
-    tools,
-    selectedResources,
-    mode,
-    displayParts,
-    decisions,
-    recommendedQuestionId,
-    images,
-    onImagesUploaded,
-  }: SendMessageParams) => {
+  const sendMessage = async (
+    params: SendMessageParams,
+    retryId?: string,
+    retryParentId?: string
+  ) => {
+    const {
+      query,
+      tools,
+      selectedResources,
+      mode,
+      displayParts,
+      decisions,
+      recommendedQuestionId,
+      images,
+    } = params;
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
-      const parentMessageId = messages.at(-1)?.id;
+      const parentMessageId = retryId ? retryParentId : messages.at(-1)?.id;
+      const pendingId = beginPendingQuery(
+        messageOperator,
+        v,
+        parentMessageId,
+        {
+          composer: displayParts ? { display_parts: displayParts } : undefined,
+          tool_call: decisions ? { decisions, status: 'pending' } : undefined,
+        },
+        retryId
+      );
+      uploadRetries.current.set(pendingId, () =>
+        sendMessage(params, pendingId, parentMessageId)
+      );
       try {
         if (v) {
           setWaitingForAssistantDelta(true);
@@ -126,7 +145,7 @@ export default function useContext() {
           conversationId,
           images
         );
-        onImagesUploaded?.();
+        uploadRetries.current.delete(pendingId);
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
         const askFN = ask(
           conversationId,
@@ -146,10 +165,19 @@ export default function useContext() {
           withUploadedImageParts(displayParts, uploadedImages),
           recommendedQuestionId,
           currentResourceId,
-          uploadedImages
+          uploadedImages,
+          pendingId
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
+      } catch (error) {
+        messageOperator.error(
+          {
+            response_type: 'error',
+            message: error instanceof Error ? error.message : String(error),
+          },
+          pendingId
+        );
       } finally {
         askAbortRef.current = null;
         setWaitingForAssistantDelta(false);
@@ -242,6 +270,8 @@ export default function useContext() {
   };
 
   const onEdit = async (messageId: string, newContent: string) => {
+    const retryUpload = uploadRetries.current.get(messageId);
+    if (retryUpload) return retryUpload();
     const parentId = conversation.mapping[messageId].parent_id;
     const editedMessage = conversation.mapping[messageId];
 
@@ -268,7 +298,9 @@ export default function useContext() {
         undefined,
         undefined,
         originalEnableThinking,
-        undefined,
+        editedMessage.attrs?.tool_call?.decisions
+          ? { decisions: editedMessage.attrs.tool_call.decisions }
+          : undefined,
         undefined,
         undefined,
         currentResourceId,
@@ -278,7 +310,11 @@ export default function useContext() {
             name: image.name,
             url: image.preview_url,
           })
-        )
+        ),
+        editedMessage.attrs?.pending_query &&
+          newContent === editedMessage.message.content
+          ? messageId
+          : undefined
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();
@@ -308,7 +344,10 @@ export default function useContext() {
     if (
       !conversationId ||
       !firstUserMessage?.message.content ||
-      conversation.title
+      conversation.title ||
+      loading ||
+      waitingForAssistantDelta ||
+      firstUserMessage.status !== MessageStatus.SUCCESS
     ) {
       return;
     }
@@ -321,6 +360,8 @@ export default function useContext() {
     conversation.title,
     conversationId,
     firstUserMessage?.message.content,
+    loading,
+    waitingForAssistantDelta,
   ]);
 
   return {
