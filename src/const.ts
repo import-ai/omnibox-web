@@ -24,3 +24,6 @@ export const FORCE_ASK =
 
 export const FORCE_PRIVATE_SEARCH =
   import.meta.env.VITE_FORCE_PRIVATE_SEARCH?.toLowerCase() !== 'false';
+
+export const ENABLE_NOTIFICATION_POLLING =
+  import.meta.env.VITE_ENABLE_NOTIFICATION_POLLING?.toLowerCase() !== 'false';
