@@ -50,15 +50,7 @@ export default function useScopedConversationState(
     state.key === stateKey ? state.conversation : scopedFallback;
 
   useEffect(() => {
-    setState(previousState => {
-      if (
-        previousState.key === stateKey &&
-        Object.keys(previousState.conversation.mapping).length > 0
-      ) {
-        return previousState;
-      }
-      return { key: stateKey, conversation: scopedFallback };
-    });
+    setState({ key: stateKey, conversation: scopedFallback });
   }, [scopedFallback, stateKey]);
 
   useEffect(() => {

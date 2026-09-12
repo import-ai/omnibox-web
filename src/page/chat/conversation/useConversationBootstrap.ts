@@ -180,8 +180,13 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
   const runtime: ConversationBootstrapRuntime = { destroyed: false };
   if (payload) {
     sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
-    void options.sendMessage(payload);
-    return;
+    void options
+      .sendMessage(payload)
+      .then(() => loadConversation(options, runtime, 'refresh'));
+    return () => {
+      runtime.destroyed = true;
+      runtime.resumeFN?.destroy();
+    };
   }
   void loadConversation(options, runtime, 'hydrate').then(conversation => {
     if (conversation) resumeLoadedConversation(options, runtime, conversation);
