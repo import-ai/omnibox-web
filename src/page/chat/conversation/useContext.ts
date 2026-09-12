@@ -344,7 +344,9 @@ export default function useContext() {
     if (
       !conversationId ||
       !firstUserMessage?.message.content ||
-      conversation.title
+      conversation.title ||
+      loading ||
+      waitingForAssistantDelta
     ) {
       return;
     }
@@ -357,6 +359,8 @@ export default function useContext() {
     conversation.title,
     conversationId,
     firstUserMessage?.message.content,
+    loading,
+    waitingForAssistantDelta,
   ]);
 
   return {

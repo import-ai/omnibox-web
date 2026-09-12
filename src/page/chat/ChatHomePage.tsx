@@ -138,16 +138,6 @@ export default function ChatHomePage() {
     recommendedQuestionId,
     images,
   }: SendMessageParams) => {
-    setPendingMessage({
-      query,
-      tools,
-      selectedResources,
-      mode,
-      displayParts,
-      approvalMode,
-      recommendedQuestionId,
-      images,
-    });
     setSendFailed(false);
     try {
       // Uploading images delays navigation; dismiss the keyboard before awaiting it.
@@ -155,6 +145,16 @@ export default function ChatHomePage() {
       const conversation = await http.post<ConversationEntity>(
         `/namespaces/${namespaceId}/conversations`
       );
+      setPendingMessage({
+        query,
+        tools,
+        selectedResources,
+        mode,
+        displayParts,
+        approvalMode,
+        recommendedQuestionId,
+        images,
+      });
       setPendingChatPayload(conversation.id, {
         query,
         tools,
