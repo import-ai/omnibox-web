@@ -88,10 +88,21 @@ export function createMessageOperator(
           return prev;
         }
 
-        message.message.content = add(
-          message.message.content,
+        if (
+          message.message.role === OpenAIMessageRole.USER &&
+          message.attrs?.pending_query &&
           delta.message.content
-        );
+        ) {
+          message.message.content = delta.message.content;
+          if (message.attrs.client_request_id !== message.id) {
+            message.attrs = { ...message.attrs, pending_query: false };
+          }
+        } else {
+          message.message.content = add(
+            message.message.content,
+            delta.message.content
+          );
+        }
 
         message.message.reasoning_content = add(
           message.message.reasoning_content,
