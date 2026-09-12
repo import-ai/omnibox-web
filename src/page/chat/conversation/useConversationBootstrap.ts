@@ -10,6 +10,7 @@ import type {
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
 import { getStreamEventId, resumeStream } from '@/page/chat/conversation/utils';
+import { createClientKey } from '@/page/chat/core/clientKey';
 import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
@@ -31,7 +32,6 @@ import {
 
 export const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
 const bootstrappedConversationIds = new Set<string>();
-let nextClientKey = 1;
 
 interface ConversationBootstrapOptions {
   app: App;
@@ -129,7 +129,7 @@ async function loadConversation(
       mapping: Object.fromEntries(
         Object.entries(response.mapping).map(([id, message]) => [
           id,
-          { ...message, clientKey: message.clientKey ?? nextClientKey++ },
+          { ...message, clientKey: message.clientKey ?? createClientKey() },
         ])
       ),
     });

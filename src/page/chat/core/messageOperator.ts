@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
 
+import { createClientKey } from './clientKey';
 import {
   ChatBOSResponse,
   ChatDeltaResponse,
@@ -8,8 +9,6 @@ import {
   OpenAIMessageRole,
 } from './types/chatResponse.ts';
 import { ConversationDetail, MessageDetail } from './types/conversation.ts';
-
-let nextClientKey = 1;
 
 function add(source?: string, delta?: string): string | undefined {
   return delta ? (source || '') + delta : source;
@@ -146,7 +145,7 @@ export function createMessageOperator(
         const existing = pending || prev.mapping[chatResponse.id];
         const message: MessageDetail = {
           id: chatResponse.id,
-          clientKey: existing?.clientKey ?? nextClientKey++,
+          clientKey: existing?.clientKey ?? createClientKey(),
           created_at:
             chatResponse.created_at ||
             existing?.created_at ||
@@ -161,7 +160,19 @@ export function createMessageOperator(
           attrs: { ...(existing?.attrs || {}), ...(chatResponse.attrs || {}) },
         };
         const newMapping = { ...prev.mapping, [message.id]: message };
-        if (pendingId && pendingId !== message.id) delete newMapping[pendingId];
+        if (pendingId && pendingId !== message.id) {
+          delete newMapping[pendingId];
+          for (const parent of Object.values(newMapping)) {
+            if (parent.children.includes(pendingId)) {
+              newMapping[parent.id] = {
+                ...parent,
+                children: parent.children.map(id =>
+                  id === pendingId ? message.id : id
+                ),
+              };
+            }
+          }
+        }
         if (message.parent_id) {
           const parent = newMapping[message.parent_id];
           if (parent && !parent.children.includes(message.id)) {
