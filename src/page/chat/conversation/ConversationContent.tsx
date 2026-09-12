@@ -59,9 +59,7 @@ export function ConversationMessageList({
             }}
           />
           {context.waitingForAssistantDelta &&
-            !context.messages.some(
-              message => message.message.role === 'assistant'
-            ) && (
+            context.messages.at(-1)?.message.role === 'user' && (
               <Marker role="status" className="mt-4">
                 <MarkerIcon>
                   <Spinner />
