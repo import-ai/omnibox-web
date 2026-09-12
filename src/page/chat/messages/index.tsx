@@ -292,7 +292,7 @@ export function Messages(props: IProps) {
 
     return (
       <div
-        key={message.id}
+        key={message.clientKey}
         id={`message-${message.id}`}
         className="scroll-mt-4"
       >

@@ -9,6 +9,8 @@ import {
 } from './types/chatResponse.ts';
 import { ConversationDetail, MessageDetail } from './types/conversation.ts';
 
+let nextClientKey = 1;
+
 function add(source?: string, delta?: string): string | undefined {
   return delta ? (source || '') + delta : source;
 }
@@ -127,65 +129,41 @@ export function createMessageOperator(
     },
 
     add: (chatResponse: ChatBOSResponse): string => {
-      const pendingId = chatResponse.attrs?.client_request_id;
-      const pendingMessage = pendingId
-        ? conversation.mapping[pendingId]
-        : undefined;
-      const message: MessageDetail = {
-        id: chatResponse.id,
-        created_at: chatResponse.created_at || new Date().toISOString(),
-        message: {
-          role: chatResponse.role,
-          ...(pendingMessage?.message.content
-            ? { content: pendingMessage.message.content }
-            : {}),
-        },
-        status: MessageStatus.PENDING,
-        parent_id: chatResponse.parentId,
-        children: [],
-        attrs: chatResponse.attrs,
-      };
-
       setConversation(prev => {
-        const newMapping = { ...prev.mapping, [message.id]: message };
         const pendingId = chatResponse.attrs?.client_request_id;
-        if (
-          pendingId &&
-          pendingId !== message.id &&
-          newMapping[pendingId]?.attrs?.pending_query
-        ) {
-          delete newMapping[pendingId];
-          for (const parent of Object.values(newMapping)) {
-            if (parent.children.includes(pendingId)) {
-              newMapping[parent.id] = {
-                ...parent,
-                children: parent.children.filter(id => id !== pendingId),
-              };
-            }
-          }
-        }
-
-        if (message.parent_id && prev.current_node !== undefined) {
-          const parentMessage = newMapping[message.parent_id];
-          if (parentMessage) {
-            if (!parentMessage.children.includes(message.id)) {
-              parentMessage.children.push(message.id);
-            }
-          } else {
-            console.error(
-              `Parent message with ID ${message.parent_id} not found for message ${message.id}`
-            );
-          }
-        }
-        return {
-          ...prev,
-          mapping: newMapping,
-          current_node: message.id,
+        const pending = pendingId ? prev.mapping[pendingId] : undefined;
+        const existing = pending || prev.mapping[chatResponse.id];
+        const message: MessageDetail = {
+          id: chatResponse.id,
+          clientKey: existing?.clientKey ?? nextClientKey++,
+          created_at:
+            chatResponse.created_at ||
+            existing?.created_at ||
+            new Date().toISOString(),
+          message: {
+            ...(existing?.message || {}),
+            role: chatResponse.role,
+          },
+          status: MessageStatus.PENDING,
+          parent_id: chatResponse.parentId,
+          children: existing?.children || [],
+          attrs: { ...(existing?.attrs || {}), ...(chatResponse.attrs || {}) },
         };
+        const newMapping = { ...prev.mapping, [message.id]: message };
+        if (pendingId && pendingId !== message.id) delete newMapping[pendingId];
+        if (message.parent_id) {
+          const parent = newMapping[message.parent_id];
+          if (parent && !parent.children.includes(message.id)) {
+            newMapping[message.parent_id] = {
+              ...parent,
+              children: [...parent.children, message.id],
+            };
+          }
+        }
+        return { ...prev, mapping: newMapping, current_node: message.id };
       });
       return chatResponse.id;
     },
-
     done: (id?: string) => {
       setConversation(prev => {
         const message = getMessage(prev, id);

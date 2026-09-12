@@ -80,6 +80,7 @@ export interface MessageAttrs {
 
 export interface MessageDetail extends IBase {
   id: string;
+  clientKey: number;
   message: OpenAIMessage;
   status: MessageStatus;
   parent_id: string;

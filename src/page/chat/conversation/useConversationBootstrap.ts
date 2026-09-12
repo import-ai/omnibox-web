@@ -31,6 +31,7 @@ import {
 
 export const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
 const bootstrappedConversationIds = new Set<string>();
+let nextClientKey = 1;
 
 interface ConversationBootstrapOptions {
   app: App;
@@ -123,7 +124,15 @@ async function loadConversation(
     setCachedConversation(cacheScope, response);
     const title = getTitleFromConversationDetail(response);
     if (title) app.fire('chat:title:update', { conversationId, title });
-    setConversation(response);
+    setConversation({
+      ...response,
+      mapping: Object.fromEntries(
+        Object.entries(response.mapping).map(([id, message]) => [
+          id,
+          { ...message, clientKey: message.clientKey ?? nextClientKey++ },
+        ])
+      ),
+    });
     return response;
   } catch (error) {
     if (
