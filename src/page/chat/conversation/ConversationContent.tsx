@@ -26,6 +26,7 @@ export function ConversationMessageList({
   context: ConversationContext;
   share: ConversationShareController;
 }) {
+  const { t } = useTranslation();
   return (
     <Scrollbar
       resetKey={context.conversation.id}
