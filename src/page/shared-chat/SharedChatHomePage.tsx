@@ -31,6 +31,8 @@ export default function SharedChatHomePage() {
 
   const sendMessage = ({
     query,
+    edition,
+    level,
     tools,
     selectedResources,
     mode,
@@ -45,6 +47,8 @@ export default function SharedChatHomePage() {
           JSON.stringify({
             mode,
             query,
+            edition,
+            level,
             tools,
             selectedResources,
             displayParts,

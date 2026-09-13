@@ -23,6 +23,7 @@ import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import ChatArea from './chat-input';
+import type { ThinkingSelection } from './chat-input/useThinkingLevel';
 import FeatureCards from './home/FeatureCards';
 import RecommendedQuestions, {
   RecommendedQuestionItem,
@@ -45,6 +46,7 @@ export default function ChatHomePage() {
     agentCredits !== undefined && agentCredits.agent_credits_remain <= 0;
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
+  const thinkingSelectionRef = useRef<ThinkingSelection | undefined>(undefined);
   const creatingRecommendedQuestionRef = useRef(false);
   const [loadingRecommendedQuestionId, setLoadingRecommendedQuestionId] =
     useState<string | null>(null);
@@ -106,6 +108,8 @@ export default function ChatHomePage() {
 
   const sendMessage = async ({
     query,
+    edition,
+    level,
     tools,
     selectedResources,
     mode,
@@ -131,6 +135,8 @@ export default function ChatHomePage() {
       JSON.stringify({
         mode,
         query,
+        edition,
+        level,
         tools,
         selectedResources,
         displayParts: withUploadedImageParts(displayParts, uploadedImages),
@@ -153,6 +159,7 @@ export default function ChatHomePage() {
     setLoadingRecommendedQuestionId(item.id);
 
     sendMessage({
+      ...thinkingSelectionRef.current,
       query: item.question,
       tools: [],
       selectedResources: [],
@@ -179,6 +186,9 @@ export default function ChatHomePage() {
             />
           )}
           <ChatArea
+            onThinkingSelectionChange={selection => {
+              thinkingSelectionRef.current = selection;
+            }}
             key={chatHomeDraftScope}
             messages={[]}
             namespaceId={namespaceId}

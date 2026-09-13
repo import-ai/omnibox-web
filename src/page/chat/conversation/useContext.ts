@@ -112,6 +112,8 @@ export default function useContext() {
     recommendedQuestionId,
     images,
     onImagesUploaded,
+    edition,
+    level,
   }: SendMessageParams) => {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
@@ -146,7 +148,9 @@ export default function useContext() {
           withUploadedImageParts(displayParts, uploadedImages),
           recommendedQuestionId,
           currentResourceId,
-          uploadedImages
+          uploadedImages,
+          edition,
+          level
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
@@ -229,7 +233,10 @@ export default function useContext() {
         undefined,
         undefined,
         undefined,
-        currentResourceId
+        currentResourceId,
+        undefined,
+        parentMessage.attrs?.edition,
+        parentMessage.attrs?.level
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();
@@ -278,7 +285,9 @@ export default function useContext() {
             name: image.name,
             url: image.preview_url,
           })
-        )
+        ),
+        editedMessage.attrs?.edition,
+        editedMessage.attrs?.level
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();

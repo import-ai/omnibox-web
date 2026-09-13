@@ -21,6 +21,7 @@ import {
   ComposerChatImage,
   IResTypeContext,
   SendMessageParams,
+  ToolType,
 } from '@/page/chat/chat-input/types';
 import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
 import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
@@ -32,7 +33,9 @@ import { CHAT_IMAGE_TYPES } from './chatImages';
 import ChatInput from './ChatInput';
 import ChatTool from './ChatTool';
 import ContextCapacityIndicator from './ContextCapacityIndicator';
+import ThinkingLevelSelector from './ThinkingLevelSelector';
 import { useChatAreaDraftLifecycle } from './useChatAreaDraftLifecycle';
+import { type ThinkingSelection, useThinkingLevel } from './useThinkingLevel';
 
 interface IProps {
   messages: MessageDetail[];
@@ -51,14 +54,11 @@ interface IProps {
   imageUploadDisabled?: boolean;
   imageUploadDisabledReason?: string;
   initialQuery?: string;
-  sendMessage: ({
-    query,
-    tools,
-    selectedResources,
-    mode,
-    decisions,
-  }: SendMessageParams) => void | Promise<void>;
+  sendMessage: (params: SendMessageParams) => void | Promise<void>;
   onStop?: () => void;
+  onThinkingSelectionChange?: (
+    selection: ThinkingSelection | undefined
+  ) => void;
 }
 
 export default function ChatArea(props: IProps) {
@@ -81,6 +81,17 @@ export default function ChatArea(props: IProps) {
     onStop,
   } = props;
   const { t } = useTranslation();
+  const {
+    config: thinkingConfig,
+    selection,
+    changeLevel,
+    group: thinkingGroup,
+    changeGroup,
+  } = useThinkingLevel(navigatePrefix, messages);
+
+  useEffect(() => {
+    props.onThinkingSelectionChange?.(selection);
+  }, [props.onThinkingSelectionChange, selection?.edition, selection?.level]);
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [images, setImages] = useState<ComposerChatImage[]>([]);
@@ -113,6 +124,12 @@ export default function ChatArea(props: IProps) {
     suppressInitialToolRestore,
     initialQuery,
   });
+  useEffect(() => {
+    if (selection && composerTools.includes(ToolType.REASONING)) {
+      inputRef.current?.toggleTool(ToolType.REASONING);
+    }
+  }, [selection?.edition, composerTools, inputRef]);
+
   const contextCompactCapacity = getLatestContextCompactCapacity(messages);
   const defaultResourcePicker = namespaceId
     ? (onSelect: (resource: ResourceMeta) => void) => (
@@ -190,7 +207,9 @@ export default function ChatArea(props: IProps) {
       submittingRef.current = true;
       setIsSubmitting(true);
       try {
-        const localTools = [...tools];
+        const localTools = selection
+          ? tools.filter(tool => tool !== ToolType.REASONING)
+          : [...tools];
         const localContext = structuredClone(selectedResources);
         const displayParts = inputRef.current?.getDisplayParts();
         const localDisplayParts = displayParts?.some(
@@ -220,6 +239,7 @@ export default function ChatArea(props: IProps) {
           approvalMode,
           displayParts: localDisplayParts,
           images: pendingImages,
+          ...selection,
           onImagesUploaded: clearPreparedDraft,
         });
         clearPreparedDraft();
@@ -233,6 +253,7 @@ export default function ChatArea(props: IProps) {
     }
   }, [
     approvalMode,
+    selection,
     disabled,
     clearComposerAfterSend,
     inputRef,
@@ -244,12 +265,23 @@ export default function ChatArea(props: IProps) {
     images,
   ]);
 
+  const interruptedTurn = [...messages]
+    .reverse()
+    .find(message => message.message.role === 'user')?.attrs;
+
   return interrupts.length > 0 ? (
     <DecisionInput
       interrupts={interrupts}
       approvalMode={approvalMode}
       loading={loading}
-      sendMessage={sendMessage}
+      sendMessage={params =>
+        sendMessage({
+          ...params,
+          ...(interruptedTurn?.edition && interruptedTurn.level
+            ? { edition: interruptedTurn.edition, level: interruptedTurn.level }
+            : {}),
+        })
+      }
     />
   ) : (
     <div
@@ -294,6 +326,7 @@ export default function ChatArea(props: IProps) {
           className="flex min-w-0 items-center gap-2"
         >
           <ChatTool
+            thinkingSelectorEnabled={Boolean(selection)}
             tools={composerTools}
             renderResourcePicker={renderResourcePicker ?? defaultResourcePicker}
             onBeforeOpen={() => inputRef.current?.rememberSelection()}
@@ -313,6 +346,16 @@ export default function ChatArea(props: IProps) {
         <div className="flex items-center gap-2">
           {contextCompactCapacity && (
             <ContextCapacityIndicator capacity={contextCompactCapacity} />
+          )}
+          {thinkingConfig && selection && (
+            <ThinkingLevelSelector
+              group={thinkingGroup}
+              onGroupChange={changeGroup}
+              config={thinkingConfig}
+              value={selection}
+              onChange={changeLevel}
+              disabled={isPreparingImages}
+            />
           )}
           <ChatAction
             onSend={handleSend}

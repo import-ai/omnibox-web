@@ -48,6 +48,7 @@ const datasource = [
 
 interface IProps {
   tools: Array<ToolType>;
+  thinkingSelectorEnabled?: boolean;
   renderResourcePicker?: (
     onSelect: (resource: ResourceMeta) => void
   ) => ReactNode;
@@ -143,17 +144,23 @@ export default function ChatTool(props: IProps) {
           ) : (
             imageMenuItem
           )}
-          {datasource.map(({ label, value, Icon }) => (
-            <DropdownMenuItem
-              key={value}
-              className="cursor-pointer gap-2 rounded-lg px-2 py-2"
-              onClick={() => onToolToggle(value)}
-            >
-              <Icon className="size-4 text-muted-foreground" />
-              <span className="flex-1">{t('chat.tools.' + label)}</span>
-              {tools.includes(value) && <Check className="size-4" />}
-            </DropdownMenuItem>
-          ))}
+          {datasource
+            .filter(
+              item =>
+                !props.thinkingSelectorEnabled ||
+                item.value !== ToolType.REASONING
+            )
+            .map(({ label, value, Icon }) => (
+              <DropdownMenuItem
+                key={value}
+                className="cursor-pointer gap-2 rounded-lg px-2 py-2"
+                onClick={() => onToolToggle(value)}
+              >
+                <Icon className="size-4 text-muted-foreground" />
+                <span className="flex-1">{t('chat.tools.' + label)}</span>
+                {tools.includes(value) && <Check className="size-4" />}
+              </DropdownMenuItem>
+            ))}
         </DropdownMenuContent>
       </DropdownMenu>
       <input
