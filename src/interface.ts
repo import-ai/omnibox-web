@@ -305,6 +305,7 @@ export interface PublicShareInfo {
   all_resources: boolean;
   share_type: ShareType;
   username: string;
+  edition?: 'basic' | 'pro';
   // Absent on a chat-only share, which serves no resource metadata.
   resource?: ResourceMeta;
 }

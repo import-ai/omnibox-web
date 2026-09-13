@@ -24,6 +24,7 @@ interface Props {
   value: ThinkingSelection;
   onChange: (level: string) => void;
   disabled?: boolean;
+  proDisabled?: boolean;
 }
 
 export default function ThinkingLevelSelector({
@@ -33,14 +34,16 @@ export default function ThinkingLevelSelector({
   value,
   onChange,
   disabled,
+  proDisabled = false,
 }: Props) {
   const { t } = useTranslation();
   const [modelsOpen, setModelsOpen] = useState(false);
   const options = config[group];
   if (!options) return null;
+  const visibleLevels = options.levels;
   const index = Math.max(
     0,
-    options.levels.findIndex(item => thinkingStep(item) === thinkingStep(value))
+    visibleLevels.findIndex(item => thinkingStep(item) === thinkingStep(value))
   );
   const label = t(`chat.thinking.${value.level}`, {
     defaultValue: value.level,
@@ -82,26 +85,35 @@ export default function ThinkingLevelSelector({
             {(['default', 'pro', 'basic'] as ThinkingGroup[])
               .filter(item => config[item])
               .map(item => (
-                <button
-                  type="button"
+                <span
                   key={item}
-                  aria-pressed={group === item}
-                  className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm text-left hover:bg-black/5 dark:hover:bg-white/10"
-                  onClick={() => {
-                    onGroupChange(item);
-                    setModelsOpen(false);
-                  }}
+                  title={
+                    proDisabled && item === 'pro'
+                      ? t('chat.agent_credits.compact_tooltip')
+                      : undefined
+                  }
                 >
-                  <span>
-                    {t(`chat.model.${item}`)}
-                    {item === 'default' && (
-                      <span className="block text-xs text-muted-foreground">
-                        {t('chat.default_models_description')}
-                      </span>
-                    )}
-                  </span>
-                  {group === item && <Check className="size-4" />}
-                </button>
+                  <button
+                    type="button"
+                    disabled={proDisabled && item === 'pro'}
+                    aria-pressed={group === item}
+                    className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm text-left hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/10"
+                    onClick={() => {
+                      onGroupChange(item);
+                      setModelsOpen(false);
+                    }}
+                  >
+                    <span>
+                      {t(`chat.model.${item}`)}
+                      {item === 'default' && (
+                        <span className="block text-xs text-muted-foreground">
+                          {t('chat.default_models_description')}
+                        </span>
+                      )}
+                    </span>
+                    {group === item && <Check className="size-4" />}
+                  </button>
+                </span>
               ))}
           </div>
         ) : (
@@ -132,7 +144,14 @@ export default function ThinkingLevelSelector({
                 <RotateCcw className="size-4" />
               </button>
             </div>
-            <div className="thinking-slider relative mx-1 h-6 rounded-full bg-black/10 dark:bg-white/10">
+            <div
+              title={
+                proDisabled && group === 'default'
+                  ? t('chat.agent_credits.compact_tooltip')
+                  : undefined
+              }
+              className="thinking-slider relative mx-1 h-6 rounded-full bg-black/10 dark:bg-white/10"
+            >
               <div
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-0 overflow-hidden rounded-full"
@@ -148,7 +167,7 @@ export default function ThinkingLevelSelector({
                 aria-hidden="true"
                 className="pointer-events-none absolute inset-x-3 inset-y-0 flex items-center justify-between"
               >
-                {options.levels.map(item => (
+                {visibleLevels.map(item => (
                   <span
                     key={thinkingStep(item)}
                     className="size-1 rounded-full bg-foreground/30"
@@ -158,15 +177,24 @@ export default function ThinkingLevelSelector({
               <input
                 type="range"
                 min={0}
-                max={options.levels.length - 1}
+                max={visibleLevels.length - 1}
                 step={1}
                 value={index}
-                disabled={disabled || options.levels.length < 2}
+                disabled={
+                  disabled ||
+                  visibleLevels.length < 2 ||
+                  (proDisabled && group === 'default')
+                }
+                title={
+                  proDisabled && group === 'default'
+                    ? t('chat.agent_credits.compact_tooltip')
+                    : undefined
+                }
                 aria-label={t('chat.thinking_level')}
                 aria-valuetext={`${edition} ${label}`}
                 onChange={event =>
                   onChange(
-                    thinkingStep(options.levels[Number(event.target.value)])
+                    thinkingStep(visibleLevels[Number(event.target.value)])
                   )
                 }
                 className="relative block h-6 w-full cursor-pointer appearance-none rounded-full bg-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-default"

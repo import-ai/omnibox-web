@@ -12,7 +12,10 @@ export interface ThinkingEdition {
   default: ThinkingSelection;
   levels: ThinkingSelection[];
 }
-export type ThinkingConfig = Partial<Record<ThinkingGroup, ThinkingEdition>>;
+export type ThinkingConfig = Partial<Record<ThinkingGroup, ThinkingEdition>> & {
+  edition?: 'basic' | 'pro';
+  pro_available?: boolean;
+};
 export const thinkingStep = (selection: ThinkingSelection) =>
   `${selection.edition}.${selection.level}`;
 
@@ -32,7 +35,12 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
     setStep(undefined);
     changed.current = false;
     http
-      .get<ThinkingConfig>('/config/models', { mute: true })
+      .get<ThinkingConfig>(
+        scope.startsWith('/s/')
+          ? `/config/models?share_id=${encodeURIComponent(scope.split('/')[2] || '')}`
+          : '/config/models',
+        { mute: true }
+      )
       .then(result => {
         if (active) setConfig(result);
       })
@@ -104,5 +112,12 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
   const selection = config?.[group]?.levels.find(
     item => thinkingStep(item) === step
   );
-  return { config, group, selection, changeLevel, changeGroup };
+  return {
+    config,
+    group,
+    selection,
+    changeLevel,
+    changeGroup,
+    proDisabled: config?.edition === 'basic' || config?.pro_available === false,
+  };
 }

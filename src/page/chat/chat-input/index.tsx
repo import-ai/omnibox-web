@@ -53,6 +53,7 @@ interface IProps {
   waitingForAssistantDelta?: boolean;
   imageUploadDisabled?: boolean;
   imageUploadDisabledReason?: string;
+  proDisabled?: boolean;
   initialQuery?: string;
   sendMessage: (params: SendMessageParams) => void | Promise<void>;
   onStop?: () => void;
@@ -76,6 +77,7 @@ export default function ChatArea(props: IProps) {
     waitingForAssistantDelta = false,
     imageUploadDisabled = false,
     imageUploadDisabledReason,
+    proDisabled = false,
     initialQuery,
     sendMessage,
     onStop,
@@ -87,11 +89,18 @@ export default function ChatArea(props: IProps) {
     changeLevel,
     group: thinkingGroup,
     changeGroup,
+    proDisabled: configProDisabled,
   } = useThinkingLevel(navigatePrefix, messages);
 
   useEffect(() => {
     props.onThinkingSelectionChange?.(selection);
   }, [props.onThinkingSelectionChange, selection?.edition, selection?.level]);
+
+  useEffect(() => {
+    if (proDisabled && selection?.edition === 'pro') {
+      changeGroup('basic');
+    }
+  }, [changeGroup, proDisabled, selection?.edition]);
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [images, setImages] = useState<ComposerChatImage[]>([]);
@@ -354,6 +363,7 @@ export default function ChatArea(props: IProps) {
               config={thinkingConfig}
               value={selection}
               onChange={changeLevel}
+              proDisabled={proDisabled || configProDisabled}
               disabled={isPreparingImages}
             />
           )}

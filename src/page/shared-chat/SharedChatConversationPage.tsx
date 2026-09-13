@@ -45,6 +45,7 @@ export default function SharedChatConversationPage() {
   const regeneratingRef = useRef(false);
   const { shareInfo, selectedResources, setSelectedResources, mode, password } =
     useShareContext();
+  const proDisabled = shareInfo?.edition !== 'pro';
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState<boolean>(false);
   const [waitingForAssistantDelta, setWaitingForAssistantDelta] =
@@ -352,6 +353,7 @@ export default function SharedChatConversationPage() {
                 : undefined
             }
             loading={mergedLoading}
+            proDisabled={proDisabled}
             waitingForAssistantDelta={waitingForAssistantDelta}
             sendMessage={sendMessage}
             onStop={onStop}

@@ -198,6 +198,7 @@ export default function ChatHomePage() {
             setSelectedResources={setSelectedResources}
             loading={false}
             imageUploadDisabled={imageUploadDisabled}
+            proDisabled={imageUploadDisabled}
             initialQuery={defaultHomeInput}
             sendMessage={sendMessage}
           />
