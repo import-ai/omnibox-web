@@ -112,12 +112,13 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
   const selection = config?.[group]?.levels.find(
     item => thinkingStep(item) === step
   );
+  const proLocked = config?.edition === 'pro' && config.pro_available === false;
   return {
     config,
     group,
     selection,
     changeLevel,
     changeGroup,
-    proDisabled: config?.edition === 'basic' || config?.pro_available === false,
+    proLocked,
   };
 }

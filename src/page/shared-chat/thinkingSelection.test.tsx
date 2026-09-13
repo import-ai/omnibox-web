@@ -44,7 +44,14 @@ jest.mock('@/page/share', () => ({
 }));
 jest.mock('@/page/chat/chat-input', () => ({
   __esModule: true,
-  default: ({ sendMessage }: { sendMessage: typeof mockSend }) => {
+  default: ({
+    sendMessage,
+    proUnsupported,
+  }: {
+    sendMessage: typeof mockSend;
+    proUnsupported?: boolean;
+  }) => {
+    expect(proUnsupported).toBeUndefined();
     mockSend = sendMessage;
     return null;
   },

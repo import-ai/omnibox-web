@@ -101,10 +101,13 @@ export default function ChatHomePage() {
   const defaultHomeInput =
     hasConversationHistory === false &&
     !userLoading &&
+    !imageUploadDisabled &&
     username &&
     defaultInputTemplate
       ? defaultInputTemplate.replaceAll('{username}', username)
       : undefined;
+  const isOnboardingInput = (query: string) =>
+    Boolean(defaultHomeInput && query === defaultHomeInput);
 
   const sendMessage = async ({
     query,
@@ -119,6 +122,11 @@ export default function ChatHomePage() {
     images,
     onImagesUploaded,
   }: SendMessageParams) => {
+    if (isOnboardingInput(query)) {
+      edition = 'pro';
+      level = 'low';
+      approvalMode = 'auto_approve';
+    }
     // Uploading images delays navigation; dismiss the keyboard before awaiting it.
     (document.activeElement as HTMLElement | null)?.blur();
     const conversation = await http.post<ConversationEntity>(
@@ -198,7 +206,7 @@ export default function ChatHomePage() {
             setSelectedResources={setSelectedResources}
             loading={false}
             imageUploadDisabled={imageUploadDisabled}
-            proDisabled={imageUploadDisabled}
+            proUnsupported={imageUploadDisabled}
             initialQuery={defaultHomeInput}
             sendMessage={sendMessage}
           />

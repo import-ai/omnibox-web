@@ -4,6 +4,7 @@ import { Check, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   Popover,
   PopoverContent,
@@ -24,7 +25,8 @@ interface Props {
   value: ThinkingSelection;
   onChange: (level: string) => void;
   disabled?: boolean;
-  proDisabled?: boolean;
+  proLocked?: boolean;
+  proUnsupported?: boolean;
 }
 
 export default function ThinkingLevelSelector({
@@ -34,13 +36,21 @@ export default function ThinkingLevelSelector({
   value,
   onChange,
   disabled,
-  proDisabled = false,
+  proLocked = false,
+  proUnsupported = false,
 }: Props) {
   const { t } = useTranslation();
   const [modelsOpen, setModelsOpen] = useState(false);
   const options = config[group];
   if (!options) return null;
-  const visibleLevels = options.levels;
+  const visibleLevels = options.levels.filter(
+    item =>
+      !(
+        (proLocked || proUnsupported) &&
+        group === 'default' &&
+        item.edition === 'pro'
+      )
+  );
   const index = Math.max(
     0,
     visibleLevels.findIndex(item => thinkingStep(item) === thinkingStep(value))
@@ -61,7 +71,7 @@ export default function ThinkingLevelSelector({
           type="button"
           disabled={disabled}
           aria-label={`${t('chat.thinking_level')}: ${edition} ${label}`}
-          className="rounded-full px-2 py-1 text-xs text-muted-foreground hover:bg-black/5 data-[state=open]:bg-black/5 dark:hover:bg-white/10 dark:data-[state=open]:bg-white/10"
+          className="flex h-8 items-center rounded-full px-2 text-xs text-muted-foreground hover:bg-black/5 data-[state=open]:bg-black/5 dark:hover:bg-white/10 dark:data-[state=open]:bg-white/10"
         >
           {edition} {label}
         </button>
@@ -85,35 +95,39 @@ export default function ThinkingLevelSelector({
             {(['default', 'pro', 'basic'] as ThinkingGroup[])
               .filter(item => config[item])
               .map(item => (
-                <span
-                  key={item}
-                  title={
-                    proDisabled && item === 'pro'
-                      ? t('chat.agent_credits.compact_tooltip')
-                      : undefined
-                  }
-                >
-                  <button
-                    type="button"
-                    disabled={proDisabled && item === 'pro'}
-                    aria-pressed={group === item}
-                    className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm text-left hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/10"
-                    onClick={() => {
-                      onGroupChange(item);
-                      setModelsOpen(false);
-                    }}
-                  >
+                <Tooltip key={item} delayDuration={0}>
+                  <TooltipTrigger asChild>
                     <span>
-                      {t(`chat.model.${item}`)}
-                      {item === 'default' && (
-                        <span className="block text-xs text-muted-foreground">
-                          {t('chat.default_models_description')}
+                      <button
+                        type="button"
+                        disabled={
+                          (proLocked || proUnsupported) && item === 'pro'
+                        }
+                        aria-pressed={group === item}
+                        className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm text-left hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/10"
+                        onClick={() => {
+                          onGroupChange(item);
+                          setModelsOpen(false);
+                        }}
+                      >
+                        <span>
+                          {t(`chat.model.${item}`)}
+                          {item === 'default' && (
+                            <span className="block text-xs text-muted-foreground">
+                              {t('chat.default_models_description')}
+                            </span>
+                          )}
                         </span>
-                      )}
+                        {group === item && <Check className="size-4" />}
+                      </button>
                     </span>
-                    {group === item && <Check className="size-4" />}
-                  </button>
-                </span>
+                  </TooltipTrigger>
+                  {proLocked && item === 'pro' && (
+                    <TooltipContent>
+                      {t('chat.agent_credits.compact_tooltip')}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
               ))}
           </div>
         ) : (
@@ -146,7 +160,7 @@ export default function ThinkingLevelSelector({
             </div>
             <div
               title={
-                proDisabled && group === 'default'
+                (proLocked || proUnsupported) && group === 'default'
                   ? t('chat.agent_credits.compact_tooltip')
                   : undefined
               }
@@ -159,7 +173,7 @@ export default function ThinkingLevelSelector({
                 <div
                   className="h-full bg-[#3098ff]"
                   style={{
-                    width: `calc(12px + (100% - 24px) * ${options.levels.length > 1 ? index / (options.levels.length - 1) : 0})`,
+                    width: `calc(12px + (100% - 24px) * ${visibleLevels.length > 1 ? index / (visibleLevels.length - 1) : 0})`,
                   }}
                 />
               </div>
@@ -180,13 +194,11 @@ export default function ThinkingLevelSelector({
                 max={visibleLevels.length - 1}
                 step={1}
                 value={index}
-                disabled={
-                  disabled ||
-                  visibleLevels.length < 2 ||
-                  (proDisabled && group === 'default')
-                }
+                disabled={disabled || visibleLevels.length < 2}
                 title={
-                  proDisabled && group === 'default'
+                  (proLocked || proUnsupported) &&
+                  group === 'default' &&
+                  visibleLevels.length < options.levels.length
                     ? t('chat.agent_credits.compact_tooltip')
                     : undefined
                 }

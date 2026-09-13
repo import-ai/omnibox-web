@@ -122,7 +122,7 @@ export function ConversationFooter({
           sendMessage={context.sendMessage}
           loading={context.loading}
           imageUploadDisabled={imageUploadDisabled}
-          proDisabled={imageUploadDisabled}
+          proUnsupported={imageUploadDisabled}
           waitingForAssistantDelta={context.waitingForAssistantDelta}
           onStop={context.onStop}
         />
