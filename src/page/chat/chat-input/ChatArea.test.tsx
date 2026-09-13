@@ -5,7 +5,21 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { http } from '@/lib/request';
+
 import ChatArea from './index';
+
+jest.mock('./ThinkingLevelSelector', () => ({
+  __esModule: true,
+  default: ({ onChange }: { onChange: (level: string) => void }) => (
+    <button data-testid="select-high" onClick={() => onChange('basic.high')}>
+      High
+    </button>
+  ),
+}));
+jest.mock('@/lib/request', () => ({
+  http: { get: jest.fn().mockResolvedValue({}) },
+}));
 
 const mockInputClear = jest.fn();
 const mockResourceInsert = jest.fn();
@@ -47,7 +61,16 @@ jest.mock('./ContextCapacityIndicator', () => ({
 }));
 jest.mock('./DecisionInput', () => ({
   __esModule: true,
-  default: () => null,
+  default: ({ sendMessage }: { sendMessage: (params: unknown) => void }) => (
+    <button
+      data-testid="resume"
+      onClick={() =>
+        sendMessage({ query: '', decisions: [{ type: 'approve' }] })
+      }
+    >
+      Resume
+    </button>
+  ),
 }));
 
 jest.mock('./ChatInput', () => ({
@@ -178,6 +201,92 @@ describe('ChatArea', () => {
     await act(async () => root.unmount());
     container.remove();
     jest.clearAllMocks();
+  });
+
+  it('sends the selected Basic strength after typing and remembers it', async () => {
+    (http.get as jest.Mock).mockResolvedValueOnce({
+      basic: {
+        default: { edition: 'basic', level: 'low' },
+        levels: [
+          { edition: 'basic', level: 'low' },
+          { edition: 'basic', level: 'high' },
+        ],
+      },
+    });
+    const sendMessage = jest.fn();
+    const onThinkingSelectionChange = jest.fn();
+    await act(async () =>
+      root.render(
+        <ChatArea
+          onThinkingSelectionChange={onThinkingSelectionChange}
+          initialQuery="hello"
+          loading={false}
+          messages={[]}
+          navigatePrefix="/namespace-a"
+          selectedResources={[]}
+          sendMessage={sendMessage}
+          setSelectedResources={jest.fn()}
+        />
+      )
+    );
+    await act(async () =>
+      (
+        container.querySelector('[data-testid="select-high"]') as HTMLElement
+      ).click()
+    );
+    await act(async () =>
+      (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+    );
+    expect(onThinkingSelectionChange).toHaveBeenLastCalledWith({
+      edition: 'basic',
+      level: 'high',
+    });
+    expect(sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({ edition: 'basic', level: 'high' })
+    );
+    expect(
+      JSON.parse(localStorage.getItem('thinking-level:/namespace-a')!)
+    ).toEqual({ group: 'basic', step: 'basic.high' });
+  });
+
+  it('resumes the interrupted Pro Max turn independently of the saved draft selection', async () => {
+    localStorage.setItem(
+      'thinking-level:/namespace-a',
+      JSON.stringify({ group: 'basic', step: 'basic.low' })
+    );
+    const sendMessage = jest.fn();
+    const messages = [
+      {
+        message: { role: 'user', content: 'Do it' },
+        attrs: { edition: 'pro', level: 'max' },
+      },
+      {
+        message: { role: 'assistant', content: '' },
+        attrs: { tool_call: { interrupts: [{ id: 'approval' }] } },
+      },
+    ] as React.ComponentProps<typeof ChatArea>['messages'];
+    await act(async () =>
+      root.render(
+        <ChatArea
+          loading={false}
+          messages={messages}
+          navigatePrefix="/namespace-a"
+          selectedResources={[]}
+          setSelectedResources={jest.fn()}
+          sendMessage={sendMessage}
+        />
+      )
+    );
+    await act(async () =>
+      (container.querySelector('[data-testid="resume"]') as HTMLElement).click()
+    );
+    expect(sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        edition: 'pro',
+        level: 'max',
+        decisions: [{ type: 'approve' }],
+      })
+    );
   });
 
   it.each(['Enter', 'click', 'mixed'])(

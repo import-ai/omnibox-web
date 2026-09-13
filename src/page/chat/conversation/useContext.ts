@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
@@ -112,6 +113,8 @@ export default function useContext() {
     recommendedQuestionId,
     images,
     onImagesUploaded,
+    edition,
+    level,
   }: SendMessageParams) => {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
@@ -146,10 +149,16 @@ export default function useContext() {
           withUploadedImageParts(displayParts, uploadedImages),
           recommendedQuestionId,
           currentResourceId,
-          uploadedImages
+          uploadedImages,
+          edition,
+          level
         );
         askAbortRef.current = askFN.cancel;
-        await askFN.start();
+        try {
+          await askFN.start();
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : String(error));
+        }
       } finally {
         askAbortRef.current = null;
         setWaitingForAssistantDelta(false);
@@ -229,10 +238,17 @@ export default function useContext() {
         undefined,
         undefined,
         undefined,
-        currentResourceId
+        currentResourceId,
+        undefined,
+        parentMessage.attrs?.edition,
+        parentMessage.attrs?.level
       );
       askAbortRef.current = askFN.cancel;
-      await askFN.start();
+      try {
+        await askFN.start();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : String(error));
+      }
     } finally {
       askAbortRef.current = null;
       regeneratingRef.current = false;
@@ -278,7 +294,9 @@ export default function useContext() {
             name: image.name,
             url: image.preview_url,
           })
-        )
+        ),
+        editedMessage.attrs?.edition,
+        editedMessage.attrs?.level
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();

@@ -20,7 +20,14 @@ export function createStreamTransport(
         body: JSON.stringify(body),
       });
       if (!response.ok) {
-        throw new Error('Failed to fetch from wizard');
+        let message = 'Failed to fetch from wizard';
+        try {
+          const payload = (await response.json()) as { message?: string };
+          if (payload.message) message = payload.message;
+        } catch {
+          // Keep the generic message when the response is not JSON.
+        }
+        throw new Error(message);
       }
       reader = response.body?.getReader();
       if (!reader) {

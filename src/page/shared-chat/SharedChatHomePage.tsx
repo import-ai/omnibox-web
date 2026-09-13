@@ -24,6 +24,7 @@ export default function SharedChatHomePage() {
   const i18n = `chat.home.greeting.${getGreeting()}`;
   const { shareInfo, selectedResources, setSelectedResources } =
     useShareContext();
+  const proDisabled = shareInfo?.edition !== 'pro';
 
   useEffect(() => {
     setDocumentTitle(t('chat.title'));
@@ -31,6 +32,8 @@ export default function SharedChatHomePage() {
 
   const sendMessage = ({
     query,
+    edition,
+    level,
     tools,
     selectedResources,
     mode,
@@ -45,6 +48,8 @@ export default function SharedChatHomePage() {
           JSON.stringify({
             mode,
             query,
+            edition,
+            level,
             tools,
             selectedResources,
             displayParts,
@@ -91,6 +96,7 @@ export default function SharedChatHomePage() {
               : undefined
           }
           loading={false}
+          proDisabled={proDisabled}
           sendMessage={sendMessage}
         />
       </div>

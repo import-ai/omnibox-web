@@ -121,15 +121,22 @@ export function prepareBody(
   parent_message_id: string | undefined,
   lang: WizardLang | undefined,
   enable_thinking?: boolean,
-  currentResourceId?: string
+  currentResourceId?: string,
+  edition?: 'basic' | 'pro',
+  level?: string
 ): ChatRequestBody {
   const body: ChatRequestBody = {
     conversation_id: conversationId,
     query,
-    enable_thinking: enable_thinking ?? false,
     lang,
     channel,
   };
+  if (edition && level) {
+    body.edition = edition;
+    body.level = level;
+  } else {
+    body.enable_thinking = enable_thinking ?? false;
+  }
   if (currentResourceId) {
     body.current_resource_id = currentResourceId;
   }
@@ -141,7 +148,7 @@ export function prepareBody(
   }
   for (const tool of tools) {
     if (tool === ToolType.REASONING) {
-      body.enable_thinking = true;
+      if (!edition) body.enable_thinking = true;
     } else if (tool === ToolType.PRIVATE_SEARCH) {
       body.tools = body?.tools || [];
       const tool: PrivateSearch = {
@@ -181,7 +188,9 @@ export function ask(
   displayParts?: ChatMessageDisplayPart[],
   recommendedQuestionId?: string,
   currentResourceId?: string,
-  images?: ChatImageInput[]
+  images?: ChatImageInput[],
+  edition?: 'basic' | 'pro',
+  level?: string
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -192,7 +201,9 @@ export function ask(
     parent_message_id,
     lang,
     enable_thinking,
-    currentResourceId
+    currentResourceId,
+    edition,
+    level
   );
   chatReq.namespace_id = namespaceId;
   chatReq.share_id = shareId;

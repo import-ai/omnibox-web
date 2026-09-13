@@ -848,6 +848,12 @@
       "reasoning": "深度思考",
       "tool_calls": "工具调用"
     },
+    "default_models_description": "推荐的模型组合",
+    "thinking_level": "思考强度",
+    "reset_thinking_level": "重置思考强度",
+    "model_tier": "模型类型",
+    "model": { "default": "Default", "pro": "Agent 2.1", "basic": "Agent 1.1" },
+    "thinking": { "low": "低", "high": "高", "max": "最大" },
     "textarea": {
       "placeholder": "随便问点什么吧"
     },
