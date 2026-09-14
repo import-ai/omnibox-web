@@ -324,6 +324,21 @@ describe('comment link navigation', () => {
     expect(highlightedQuotes('first')).toHaveLength(0);
   });
 
+  it('clears resolved quote highlights after two seconds without deselecting the card', async () => {
+    const available = threads.map(thread => ({ ...thread, resolved: true }));
+    await render(true, available);
+    await advance(600);
+    expect(highlightedQuotes()).toHaveLength(2);
+
+    await advance(2000);
+    expect(highlightedQuotes()).toHaveLength(0);
+    expect(card()?.hasAttribute('data-selected')).toBe(true);
+
+    await render(true, available, false);
+    await render(true, available);
+    expect(highlightedQuotes()).toHaveLength(0);
+  });
+
   it('highlights a late anchor and waits for navigation to finish', async () => {
     let finishNavigation: (() => void) | undefined;
     focusThread.mockImplementationOnce((_id, options) => {

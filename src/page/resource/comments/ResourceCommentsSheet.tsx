@@ -35,6 +35,7 @@ export function ResourceCommentsSheet({
 }: ResourceCommentsSheetProps) {
   const { t } = useTranslation();
   const panel = useResourceCommentsPanel();
+  const isComposerOpen = controller.canComment && !!controller.pendingSelection;
   const close = () => {
     controller.setPanelOpen(false);
     controller.setActiveThreadId(null);
@@ -137,16 +138,18 @@ export function ResourceCommentsSheet({
             <Spinner />
           </div>
         ) : controller.threads.length === 0 ? (
-          <div className="flex h-40 flex-col items-center justify-center px-6 text-center text-sm text-muted-foreground">
-            <MessageSquareText className="mb-3 size-6" />
-            {t(
-              controller.resolved === undefined
-                ? 'resource_comments.no_threads'
-                : controller.resolved
-                  ? 'resource_comments.no_resolved_threads'
-                  : 'resource_comments.no_open_threads'
-            )}
-          </div>
+          !isComposerOpen && (
+            <div className="flex h-40 flex-col items-center justify-center px-6 text-center text-sm text-muted-foreground">
+              <MessageSquareText className="mb-3 size-6" />
+              {t(
+                controller.resolved === undefined
+                  ? 'resource_comments.no_threads'
+                  : controller.resolved
+                    ? 'resource_comments.no_resolved_threads'
+                    : 'resource_comments.no_open_threads'
+              )}
+            </div>
+          )
         ) : (
           <ResourceCommentThreadList
             controller={controller}
@@ -154,11 +157,11 @@ export function ResourceCommentsSheet({
           />
         )}
       </div>
+      <ResourceCommentComposer controller={controller} />
     </>
   );
   return (
     <>
-      <ResourceCommentComposer controller={controller} />
       {panel?.panelElement &&
       (controller.panelOpen || panel.namespaceId.startsWith('share:'))
         ? createPortal(content, panel.panelElement)

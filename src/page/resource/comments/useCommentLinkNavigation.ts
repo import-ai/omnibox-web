@@ -7,6 +7,7 @@ import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
 export interface CommentFocusOptions {
   align?: 'start';
+  openReply?: boolean;
   onLocated?: () => void;
 }
 

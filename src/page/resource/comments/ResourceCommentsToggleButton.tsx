@@ -6,10 +6,19 @@ import { Button } from '@/components/ui/Button';
 
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
-export function ResourceCommentsToggleButton() {
+interface ResourceCommentsToggleButtonProps {
+  hideWhenOpen?: boolean;
+}
+
+export function ResourceCommentsToggleButton({
+  hideWhenOpen = false,
+}: ResourceCommentsToggleButtonProps) {
   const { t } = useTranslation();
   const panel = useResourceCommentsPanel();
   if (!panel) {
+    return null;
+  }
+  if (hideWhenOpen && panel.panelOpen) {
     return null;
   }
   const label = t(

@@ -211,33 +211,7 @@ function findNearbyQuoteRange(
   if (nearest != null) {
     return mapTextRangeToDocument(segments, nearest, nearest + quote.length);
   }
-  const token = quote
-    .replace(/[`*_\[\]()]/g, ' ')
-    .trim()
-    .split(/\s+/)[0];
-  if (!token) {
-    return clampDocumentRange(editor, selection.from, selection.to);
-  }
-  const tokenStart = text.indexOf(token);
-  if (tokenStart < 0) {
-    return clampDocumentRange(editor, selection.from, selection.to);
-  }
-  return mapTextRangeToDocument(
-    segments,
-    tokenStart,
-    tokenStart + token.length
-  );
-}
-
-function clampDocumentRange(
-  editor: ResourceCommentEditor,
-  from: number,
-  to: number
-) {
-  const maxPosition = editor.state.doc.content.size;
-  const nextFrom = Math.max(0, Math.min(from, maxPosition));
-  const nextTo = Math.max(nextFrom + 1, Math.min(to, maxPosition));
-  return nextFrom < nextTo ? { from: nextFrom, to: nextTo } : null;
+  return null;
 }
 
 function findQuoteRange(

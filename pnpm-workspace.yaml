@@ -5,7 +5,7 @@ onlyBuiltDependencies:
   - '@biomejs/biome'
   - esbuild
 
-# Keep the 0.0.51 editor dependencies aligned until its published ranges are pinned.
+# Keep the editor dependencies aligned until its published ranges are pinned.
 overrides:
   '@tiptap/core': 3.27.1
   '@tiptap/extension-blockquote': 3.27.1

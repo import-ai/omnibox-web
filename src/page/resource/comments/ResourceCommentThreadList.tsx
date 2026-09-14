@@ -90,9 +90,15 @@ export function ResourceCommentThreadList({
           const leftHasMarker = Number.isFinite(left.position);
           const rightHasMarker = Number.isFinite(right.position);
           if (leftHasMarker && rightHasMarker) {
+            const positionDifference = left.position - right.position;
+            if (Math.abs(positionDifference) > 1) {
+              return positionDifference;
+            }
             return (
-              left.position - right.position ||
-              left.documentIndex - right.documentIndex
+              Date.parse(left.thread.created_at) -
+                Date.parse(right.thread.created_at) ||
+              left.documentIndex - right.documentIndex ||
+              left.thread.id.localeCompare(right.thread.id)
             );
           }
           if (leftHasMarker !== rightHasMarker) {
@@ -139,7 +145,9 @@ export function ResourceCommentThreadList({
             ? selected.position - previousMarker
             : 0;
         if (wrapper) {
-          nextPositions[selected.thread.id] = wrapper.offsetTop + markerDelta;
+          // offsetTop rounds subpixel positions and makes selection visibly jump.
+          nextPositions[selected.thread.id] =
+            parseFloat(wrapper.style.top) + markerDelta;
           for (let index = selectedIndex - 1; index >= 0; index -= 1) {
             const { thread, height, position } = anchoredThreads[index];
             const next = anchoredThreads[index + 1];

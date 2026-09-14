@@ -60,10 +60,10 @@ export default function ShareHeader({
         )}
         <LanguageToggle />
         <ThemeToggle />
-        {showComments && <ResourceCommentsToggleButton />}
         {resource && (
           <Actions resource={resource} wide={wide} onWide={onWide} />
         )}
+        {showComments && <ResourceCommentsToggleButton hideWhenOpen />}
       </div>
     </header>
   );

@@ -8,7 +8,13 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  type ClipboardEvent,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -59,7 +65,7 @@ export function ResourceCommentThreadItem({
   useEffect(() => {
     if (
       active &&
-      controller.navigatingThreadId === thread.id &&
+      controller.navigatingReplyThreadId === thread.id &&
       !thread.resolved &&
       controller.canComment
     ) {
@@ -67,7 +73,7 @@ export function ResourceCommentThreadItem({
     }
   }, [
     active,
-    controller.navigatingThreadId,
+    controller.navigatingReplyThreadId,
     controller.canComment,
     thread.id,
     thread.resolved,
@@ -143,11 +149,7 @@ export function ResourceCommentThreadItem({
 
   const handleThreadClick = () => {
     if (!active) {
-      if (thread.resolved) {
-        controller.focusThread(thread.id);
-      } else {
-        controller.selectThread(thread.id);
-      }
+      controller.selectThread(thread.id);
     }
     if (!thread.resolved && controller.canComment && !editingCommentId) {
       setReplying(true);
@@ -156,7 +158,7 @@ export function ResourceCommentThreadItem({
 
   const handleQuoteClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    controller.focusThread(thread.id);
+    handleThreadClick();
   };
 
   return (
@@ -243,6 +245,7 @@ export function ResourceCommentThreadItem({
                 <TooltipTrigger asChild>
                   <button
                     type="button"
+                    className="omnibox-comment-thread__resolve"
                     aria-label={
                       thread.resolved
                         ? t('resource_comments.reopen')
@@ -264,6 +267,14 @@ export function ResourceCommentThreadItem({
                     : t('resource_comments.resolve')}
                 </TooltipContent>
               </Tooltip>
+            ) : thread.resolved ? (
+              <span
+                className="omnibox-comment-thread__resolve"
+                role="img"
+                aria-label={t('resource_comments.resolved')}
+              >
+                <Check aria-hidden="true" strokeWidth={1.75} />
+              </span>
             ) : null}
           </div>
         </div>
@@ -272,10 +283,6 @@ export function ResourceCommentThreadItem({
       {thread.anchor.status === 'orphaned' ? (
         <span className="omnibox-comment-thread__orphaned">
           {t('resource_comments.original_text_removed')}
-        </span>
-      ) : thread.resolved ? (
-        <span className="omnibox-comment-thread__status">
-          {t('resource_comments.resolved')}
         </span>
       ) : null}
 
@@ -351,12 +358,14 @@ function FigmaReplyComposer({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [attachmentId, setAttachmentId] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
+  const uploadRequestRef = useRef(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useAutosizeTextArea({
     textAreaRef: inputRef,
     triggerAutoSize: `${reply}:${!!imagePreview}`,
   });
   const hasDraft = !!(reply.trim() || attachmentId);
+  const uploading = !!imagePreview && !attachmentId;
 
   useEffect(() => {
     inputRef.current?.focus({ preventScroll: true });
@@ -364,6 +373,7 @@ function FigmaReplyComposer({
 
   useEffect(() => {
     return () => {
+      uploadRequestRef.current += 1;
       if (previewUrlRef.current) {
         URL.revokeObjectURL(previewUrlRef.current);
       }
@@ -371,6 +381,7 @@ function FigmaReplyComposer({
   }, []);
 
   const clearImage = () => {
+    uploadRequestRef.current += 1;
     if (previewUrlRef.current) {
       URL.revokeObjectURL(previewUrlRef.current);
       previewUrlRef.current = null;
@@ -379,8 +390,48 @@ function FigmaReplyComposer({
     setAttachmentId(null);
   };
 
+  const uploadImage = (file: File) => {
+    if (submitting || !file.type.startsWith('image/')) {
+      return;
+    }
+    clearImage();
+    const url = URL.createObjectURL(file);
+    previewUrlRef.current = url;
+    setImagePreview(url);
+    const requestId = uploadRequestRef.current;
+    onUploadImage(file)
+      .then(uploaded => {
+        if (requestId === uploadRequestRef.current) {
+          setAttachmentId(uploaded.id);
+        }
+      })
+      .catch(() => {
+        if (requestId === uploadRequestRef.current) {
+          clearImage();
+          toast.error(t('upload.failed'));
+        }
+      });
+  };
+
+  const handlePaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    const file =
+      Array.from(event.clipboardData.files).find(file =>
+        file.type.startsWith('image/')
+      ) ??
+      Array.from(event.clipboardData.items)
+        .find(item => item.kind === 'file' && item.type.startsWith('image/'))
+        ?.getAsFile();
+    if (!file) {
+      return;
+    }
+    if (!event.clipboardData.getData('text/plain')) {
+      event.preventDefault();
+    }
+    uploadImage(file);
+  };
+
   const submitDraft = () => {
-    if (submitting || !hasDraft) {
+    if (submitting || uploading || !hasDraft) {
       return;
     }
     onSubmit(attachmentId ? [attachmentId] : undefined)
@@ -406,6 +457,8 @@ function FigmaReplyComposer({
           rows={1}
           value={reply}
           onChange={event => onChange(event.target.value)}
+          onPaste={handlePaste}
+          aria-busy={uploading}
           onKeyDown={event => {
             if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
               return;
@@ -455,19 +508,7 @@ function FigmaReplyComposer({
               if (!file) {
                 return;
               }
-              if (previewUrlRef.current) {
-                URL.revokeObjectURL(previewUrlRef.current);
-              }
-              const url = URL.createObjectURL(file);
-              previewUrlRef.current = url;
-              setImagePreview(url);
-              onUploadImage(file)
-                .then(uploaded => {
-                  setAttachmentId(uploaded.id);
-                })
-                .catch(() => {
-                  clearImage();
-                });
+              uploadImage(file);
             }}
           />
         </label>
@@ -489,7 +530,7 @@ function FigmaReplyComposer({
           type="button"
           size="sm"
           className="omnibox-comment-submit"
-          disabled={submitting || !hasDraft}
+          disabled={submitting || uploading || !hasDraft}
           onClick={submitDraft}
         >
           {t('resource_comments.reply')}

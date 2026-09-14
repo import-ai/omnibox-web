@@ -71,6 +71,11 @@ function ResourceDetailContent({
   const [compactResourcePane, setCompactResourcePane] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const areFeaturePreviewsLoaded = useResourceStore(
+    state =>
+      state.featurePreviewsUserId !== null &&
+      state.featurePreviewsUserId === localStorage.getItem('uid')
+  );
   const commentsPanel = useResourceCommentsPanel();
   const commentsPanelOpen = commentsPanel?.panelOpen ?? false;
   const closeCommentsPanel = commentsPanel?.setPanelOpen;
@@ -89,13 +94,14 @@ function ResourceDetailContent({
 
   useEffect(() => {
     if (
-      (isFolderResource || !useOmniboxEditor) &&
+      (isFolderResource || (areFeaturePreviewsLoaded && !useOmniboxEditor)) &&
       commentsPanelOpen &&
       closeCommentsPanel
     ) {
       closeCommentsPanel(false);
     }
   }, [
+    areFeaturePreviewsLoaded,
     closeCommentsPanel,
     commentsPanelOpen,
     isFolderResource,

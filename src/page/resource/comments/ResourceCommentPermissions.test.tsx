@@ -6,6 +6,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { TooltipProvider } from '@/components/tooltip';
 import type { Permission, ResourceCommentThread } from '@/interface';
 import {
+  createResourceComment,
   listResourceCommentThreads,
   uploadResourceCommentAttachment,
 } from '@/service/resourceComments';
@@ -26,6 +27,7 @@ jest.mock('@/components/button', () =>
   jest.requireActual('@/components/ui/Button')
 );
 jest.mock('@/service/resourceComments', () => ({
+  createResourceComment: jest.fn(),
   listResourceCommentThreads: jest.fn(),
   uploadResourceCommentAttachment: jest.fn(),
 }));
@@ -122,6 +124,37 @@ describe('comment permissions', () => {
     );
   };
 
+  const paste = async (files: File[], text = '', useItems = false) => {
+    const input = container.querySelector('.omnibox-comment-reply textarea');
+    if (!input) {
+      throw new Error('Missing reply input');
+    }
+    const event = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(event, 'clipboardData', {
+      value: {
+        files: useItems ? [] : files,
+        items: files.map(file => ({
+          kind: 'file',
+          type: file.type,
+          getAsFile: () => file,
+        })),
+        getData: () => text,
+      },
+    });
+    await act(async () => input.dispatchEvent(event));
+    return event;
+  };
+
+  const replyButton = () => {
+    const submit = container.querySelector<HTMLButtonElement>(
+      '.omnibox-comment-reply .omnibox-comment-submit'
+    );
+    if (!submit) {
+      throw new Error('Missing reply submit button');
+    }
+    return submit;
+  };
+
   beforeEach(() => {
     localStorage.setItem('uid', 'author');
     jest.mocked(listResourceCommentThreads).mockResolvedValue({
@@ -141,6 +174,81 @@ describe('comment permissions', () => {
     localStorage.removeItem('uid');
     jest.restoreAllMocks();
     jest.clearAllMocks();
+  });
+
+  it.each([false, true])(
+    'uploads and sends a pasted reply image (clipboard items: %s)',
+    async useItems => {
+      const file = new File(['image'], 'pasted.png', { type: 'image/png' });
+      jest.mocked(uploadResourceCommentAttachment).mockResolvedValue({
+        id: 'pasted-image',
+        url: 'blob:comment-image',
+        name: file.name,
+        mimetype: file.type,
+        size: file.size,
+      });
+      jest.mocked(createResourceComment).mockResolvedValue(thread);
+      await render('can_comment');
+      await selectComment();
+      const event = await paste([file], '', useItems);
+
+      expect(event.defaultPrevented).toBe(true);
+      expect(uploadResourceCommentAttachment).toHaveBeenCalledWith(
+        'namespace',
+        'team-document',
+        file
+      );
+      expect(
+        container.querySelector('.omnibox-comment-reply__preview img')
+      ).not.toBeNull();
+      expect(replyButton().disabled).toBe(false);
+      await act(async () => replyButton().click());
+      expect(createResourceComment).toHaveBeenCalledWith(
+        'namespace',
+        'team-document',
+        'thread',
+        { attachment_ids: ['pasted-image'] }
+      );
+    }
+  );
+
+  it('keeps text paste native and ignores non-image files', async () => {
+    await render('can_comment');
+    await selectComment();
+    const event = await paste(
+      [new File(['text'], 'notes.txt', { type: 'text/plain' })],
+      'Pasted text'
+    );
+    expect(event.defaultPrevented).toBe(false);
+    expect(uploadResourceCommentAttachment).not.toHaveBeenCalled();
+  });
+
+  it('does not reattach a pasted image that was removed before upload finished', async () => {
+    const file = new File(['image'], 'pasted.png', { type: 'image/png' });
+    let finishUpload: (() => void) | undefined;
+    jest.mocked(uploadResourceCommentAttachment).mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finishUpload = () =>
+            resolve({
+              id: 'removed-image',
+              url: 'blob:comment-image',
+              name: file.name,
+              mimetype: file.type,
+              size: file.size,
+            });
+        })
+    );
+    await render('can_comment');
+    await selectComment();
+    await paste([file]);
+    expect(replyButton().disabled).toBe(true);
+    await act(async () => button('remove_image')?.click());
+    await act(async () => finishUpload?.());
+    expect(
+      container.querySelector('.omnibox-comment-reply__preview img')
+    ).toBeNull();
+    expect(replyButton().disabled).toBe(true);
   });
 
   it.each(['edit', 'reply'])(

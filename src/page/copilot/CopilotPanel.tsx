@@ -54,7 +54,7 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
     return (
       <div
         ref={commentsPanel.setPanelElement}
-        className="resource-comments-panel flex h-full min-h-0 flex-col bg-white text-foreground dark:bg-background"
+        className="resource-comments-panel relative flex h-full min-h-0 flex-col bg-white text-foreground dark:bg-background"
       />
     );
   }

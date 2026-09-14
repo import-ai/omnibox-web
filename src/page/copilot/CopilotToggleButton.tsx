@@ -71,10 +71,12 @@ export default function CopilotToggleButton({
 
   return (
     <>
-      <Separator
-        orientation="vertical"
-        className="mx-1 h-4 !bg-[#F2F2F2] dark:!bg-[#303132]"
-      />
+      {showComments || !hideCopilot ? (
+        <Separator
+          orientation="vertical"
+          className="mx-1 h-4 !bg-[#F2F2F2] dark:!bg-[#303132]"
+        />
+      ) : null}
       {showComments && !commentsOpen ? <ResourceCommentsToggleButton /> : null}
       {hideCopilot ? null : button}
     </>

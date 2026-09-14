@@ -43,15 +43,21 @@ export function useCommentNavigation(
   focusThread: (threadId: string, options?: CommentFocusOptions) => void;
   cancelNavigation: () => void;
   navigatingThreadId: string | null;
+  navigatingReplyThreadId: string | null;
 } {
   const panel = useResourceCommentsPanel();
   const frameRef = useRef(0);
-  const [navigatingThreadId, setNavigatingThreadId] = useState<string | null>(
-    null
-  );
+  const [navigation, setNavigation] = useState<{
+    threadId: string;
+    openReply: boolean;
+  } | null>(null);
+  const navigatingThreadId = navigation?.threadId ?? null;
+  const navigatingReplyThreadId = navigation?.openReply
+    ? navigation.threadId
+    : null;
   const cancelNavigation = useCallback(() => {
     cancelAnimationFrame(frameRef.current);
-    setNavigatingThreadId(null);
+    setNavigation(null);
   }, []);
 
   useEffect(() => cancelNavigation, [cancelNavigation, resourceId]);
@@ -65,7 +71,7 @@ export function useCommentNavigation(
       if (!root || !panelElement || !panel) {
         return;
       }
-      setNavigatingThreadId(threadId);
+      setNavigation({ threadId, openReply: options?.openReply ?? true });
 
       let shift = panel.commentFocusOffset;
       let animation: {
@@ -159,7 +165,7 @@ export function useCommentNavigation(
           stableFrames >= STABLE_ALIGNMENT_FRAMES ||
           attempts >= MAX_ALIGNMENT_FRAMES
         ) {
-          setNavigatingThreadId(null);
+          setNavigation(null);
           options?.onLocated?.();
           return;
         }
@@ -170,5 +176,10 @@ export function useCommentNavigation(
     [cancelNavigation, openThread, panel]
   );
 
-  return { focusThread, cancelNavigation, navigatingThreadId };
+  return {
+    focusThread,
+    cancelNavigation,
+    navigatingThreadId,
+    navigatingReplyThreadId,
+  };
 }

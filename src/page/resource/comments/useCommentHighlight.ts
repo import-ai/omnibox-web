@@ -6,6 +6,8 @@ interface UseCommentHighlightOptions {
   resolved: boolean;
 }
 
+const RESOLVED_HIGHLIGHT_DURATION_MS = 1000;
+
 export function useCommentHighlight({
   root,
   activeThreadId,
@@ -16,6 +18,15 @@ export function useCommentHighlight({
       return;
     }
     const highlighted = new Set<HTMLElement>();
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    const clearHighlight = () => {
+      highlighted.forEach(quote => {
+        delete quote.dataset.commentHighlight;
+      });
+      highlighted.clear();
+    };
+    // Editor transactions may replace a quote's DOM while its comment stays selected.
+    const observer = new MutationObserver(() => update());
     const update = () => {
       highlighted.forEach(quote => {
         if (
@@ -34,10 +45,14 @@ export function useCommentHighlight({
             highlighted.add(quote);
           }
         });
+      if (resolved && highlighted.size > 0 && timeout === undefined) {
+        timeout = setTimeout(() => {
+          observer.disconnect();
+          clearHighlight();
+        }, RESOLVED_HIGHLIGHT_DURATION_MS);
+      }
     };
     update();
-    // Editor transactions may replace a quote's DOM while its comment stays selected.
-    const observer = new MutationObserver(update);
     observer.observe(root, {
       childList: true,
       subtree: true,
@@ -46,9 +61,8 @@ export function useCommentHighlight({
     });
     return () => {
       observer.disconnect();
-      highlighted.forEach(quote => {
-        delete quote.dataset.commentHighlight;
-      });
+      clearTimeout(timeout);
+      clearHighlight();
     };
   }, [root, activeThreadId, resolved]);
 }

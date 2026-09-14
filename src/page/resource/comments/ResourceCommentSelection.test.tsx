@@ -79,8 +79,12 @@ function Fixture({ resolved = false }: { resolved?: boolean }) {
     resource: resolved ? resolvedResource : resource,
     enabled: false,
   });
+  const locatePublishedComment = () => {
+    controller.focusThread('b', { openReply: false });
+  };
   return (
     <TooltipProvider>
+      <button data-locate-published onClick={locatePublishedComment} />
       <ResourceCommentThreadList
         controller={{
           ...controller,
@@ -187,7 +191,7 @@ describe('comment selection', () => {
     jest
       .spyOn(HTMLElement.prototype, 'offsetTop', 'get')
       .mockImplementation(function (this: HTMLElement) {
-        return parseFloat(this.style.top) || 0;
+        return Math.round(parseFloat(this.style.top) || 0);
       });
     jest
       .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
@@ -199,7 +203,7 @@ describe('comment selection', () => {
           index >= 0
             ? 100 + index * markerSpacing - source.scrollTop
             : this.hasAttribute('data-thread-id')
-              ? (this.parentElement?.offsetTop ?? 0) -
+              ? (parseFloat(this.parentElement?.style.top ?? '0') || 0) -
                 comments.scrollTop +
                 commentShift
               : 0;
@@ -259,6 +263,69 @@ describe('comment selection', () => {
         .querySelector('[data-resource-comment-thread="a"]')
         ?.hasAttribute('data-comment-highlight')
     ).toBe(false);
+  });
+
+  it('keeps fractional card coordinates while selecting and opening replies', async () => {
+    source.scrollTop = 0.5;
+    await settle();
+    const before = card('b').getBoundingClientRect().top;
+    expect(before % 1).toBe(0.5);
+
+    await act(async () => card('b').click());
+    for (let frame = 0; frame < 20; frame += 1) {
+      await act(async () => jest.advanceTimersByTime(16));
+      expect(card('b').getBoundingClientRect().top).toBe(before);
+    }
+    expect(card('b').hasAttribute('data-selected')).toBe(true);
+    expect(card('b').querySelector('textarea')).not.toBeNull();
+  });
+
+  it.each([false, true])(
+    'selects the quote inside a card without moving it (resolved: %s)',
+    async resolved => {
+      await act(async () => root.render(<Fixture resolved={resolved} />));
+      source.scrollTop = 700;
+      await settle();
+      comments.scrollTop = 180;
+      const before = card('b').getBoundingClientRect().top;
+      const quoteButton = card('b').querySelector<HTMLButtonElement>(
+        '.omnibox-comment-thread__quote'
+      );
+      if (!quoteButton) {
+        throw new Error('Missing quote button');
+      }
+      await act(async () => quoteButton.click());
+      for (let frame = 0; frame < 50; frame += 1) {
+        await act(async () => jest.advanceTimersByTime(16));
+        expect(card('b').getBoundingClientRect().top).toBe(before);
+        expect(source.scrollTop).toBe(700);
+        expect(comments.scrollTop).toBe(180);
+      }
+      expect(card('b').hasAttribute('data-selected')).toBe(true);
+    }
+  );
+
+  it('aligns a published comment without opening a reply until the card is clicked', async () => {
+    const trigger = comments.querySelector<HTMLButtonElement>(
+      '[data-locate-published]'
+    );
+    if (!trigger) {
+      throw new Error('Missing publish navigation control');
+    }
+    await act(async () => trigger.click());
+    for (let frame = 0; frame < 50; frame += 1) {
+      await act(async () => jest.advanceTimersByTime(16));
+      expect(card('b').querySelector('textarea')).toBeNull();
+    }
+    const quote = source.querySelector<HTMLElement>(
+      '[data-resource-comment-thread="b"]'
+    );
+    expect(card('b').hasAttribute('data-selected')).toBe(true);
+    expect(card('b').getBoundingClientRect().top).toBeCloseTo(
+      quote?.getBoundingClientRect().top ?? Number.NaN
+    );
+    await click('b');
+    expect(card('b').querySelector('textarea')).not.toBeNull();
   });
 
   it('keeps the next card in place while the previous reply collapses', async () => {
@@ -466,7 +533,7 @@ describe('comment selection', () => {
     );
   });
 
-  it('jumps to a resolved quote and highlights only its four referenced characters', async () => {
+  it('navigates to a resolved quote and highlights only its four referenced characters', async () => {
     await act(async () => root.render(<Fixture resolved />));
     const quote = source.querySelector<HTMLElement>(
       '[data-resource-comment-thread="b"]'
@@ -482,8 +549,14 @@ describe('comment selection', () => {
     manualHighlight.textContent = '手动高亮';
     paragraph.append(manualHighlight);
     source.scrollTop = 700;
-    await click('b');
-    await act(async () => jest.advanceTimersByTime(1200));
+    const nextButton = card('a').querySelector<HTMLButtonElement>(
+      '[aria-label="resource_comments.next_thread"]'
+    );
+    if (!nextButton) {
+      throw new Error('Missing next comment button');
+    }
+    await act(async () => nextButton.click());
+    await act(async () => jest.advanceTimersByTime(600));
     expect(setPanelOpen).toHaveBeenCalledWith(true);
     expect(source.scrollTop).toBeLessThan(700);
     expect(quote.dataset.commentHighlight).toBe('resolved');
@@ -492,6 +565,8 @@ describe('comment selection', () => {
     expect(paragraph.hasAttribute('data-comment-highlight')).toBe(false);
     expect(manualHighlight.hasAttribute('data-comment-highlight')).toBe(false);
     expect(window.getSelection()?.toString()).toBe('');
+    await act(async () => jest.advanceTimersByTime(500));
+    expect(quote.hasAttribute('data-comment-highlight')).toBe(false);
   });
 
   it('restores the selected quote highlight after editor DOM updates', async () => {

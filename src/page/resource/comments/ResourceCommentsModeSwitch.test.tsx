@@ -95,14 +95,14 @@ describe('resource comments across view and edit modes', () => {
   let source: HTMLDivElement;
   let panel: HTMLDivElement;
 
-  const render = async (editPage: boolean) => {
+  const render = async (editPage: boolean, currentResource = resource) => {
     await act(async () => {
       root.render(
         <TooltipProvider>
           <Page
             editPage={editPage}
             namespaceId="namespace"
-            resource={resource}
+            resource={currentResource}
             showToc
             wide={false}
             onResource={onResource}
@@ -211,5 +211,59 @@ describe('resource comments across view and edit modes', () => {
       'resource_comments.save_before_commenting'
     );
     expect(listResourceCommentThreads).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([undefined, false])(
+    'preserves sidebar comments and the %s filter after saving the document',
+    async resolved => {
+      await render(false);
+      await act(async () => readonlyComments().setResolved(resolved));
+      const card = panel.querySelector('[data-thread-id="thread"]');
+      expect(card).not.toBeNull();
+      const requestCount = jest.mocked(listResourceCommentThreads).mock.calls
+        .length;
+      await render(true);
+      const savedThread = {
+        ...thread,
+        anchor: { ...thread.anchor, from: 10, to: 14 },
+      };
+
+      await render(false, {
+        ...resource,
+        content: 'New paragraph\nQuoted text',
+        content_hash: 'saved-hash',
+        comment_threads: [savedThread],
+      });
+
+      expect(readonlyComments().threads).toEqual([savedThread]);
+      expect(readonlyComments().total).toBe(1);
+      expect(readonlyComments().resolved).toBe(resolved);
+      expect(panel.querySelector('[data-thread-id="thread"]')).toBe(card);
+      expect(listResourceCommentThreads).toHaveBeenCalledTimes(requestCount);
+    }
+  );
+
+  it('accepts an in-flight comment list when the same resource receives a new snapshot', async () => {
+    let finishLoading: (() => void) | undefined;
+    jest.mocked(listResourceCommentThreads).mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finishLoading = () =>
+            resolve({
+              items: [thread],
+              total: 1,
+              has_more: false,
+              offlet: 0,
+              limits: 20,
+            });
+        })
+    );
+    await render(false);
+    await render(false, { ...resource, comment_threads: [{ ...thread }] });
+    await act(async () => finishLoading?.());
+
+    expect(readonlyComments().threads).toEqual([thread]);
+    expect(readonlyComments().loading).toBe(false);
+    expect(panel.querySelector('[data-thread-id="thread"]')).not.toBeNull();
   });
 });

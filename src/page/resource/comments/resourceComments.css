@@ -12,6 +12,14 @@
   @apply border-border bg-white text-foreground shadow-lg dark:bg-background;
 }
 
+.resource-comments-draft-surface {
+  position: absolute !important;
+  width: auto !important;
+  @apply inset-x-0 mx-3 my-0;
+  transform: none !important;
+  flex-shrink: 0;
+}
+
 .omnibox-comment-surface .omnibox-comment-composer {
   display: flex;
   flex-direction: column;
@@ -140,6 +148,7 @@
 
 .resource-comments-panel .omnibox-comment-thread {
   @apply relative mx-3 mt-3 max-w-md rounded-md border border-border bg-white p-2 text-foreground shadow-none dark:bg-muted;
+  transform: translateY(var(--resource-comment-draft-offset, 0px));
   transition: box-shadow 180ms ease;
 }
 
@@ -154,7 +163,13 @@
 }
 
 .tiptap.ProseMirror [data-resource-comment-thread] {
-  @apply transition-none !important;
+  transition: background-color 300ms ease-in-out !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tiptap.ProseMirror [data-resource-comment-thread] {
+    @apply transition-none !important;
+  }
 }
 
 .tiptap.ProseMirror
@@ -168,6 +183,11 @@
   @apply bg-comment-surface dark:bg-comment-surface-dark !important;
 }
 
+.tiptap.ProseMirror
+  [data-resource-comment-thread][data-resource-comment-resolved='true'][data-comment-highlight] {
+  @apply bg-comment-resolved dark:bg-comment-resolved-dark !important;
+}
+
 .resource-comments-panel
   .resource-comments-anchored-list
   .omnibox-comment-thread[data-selected]::before {
@@ -177,6 +197,12 @@
 
 .resource-comments-panel .omnibox-comment-thread[data-resolved] {
   @apply bg-white dark:bg-muted;
+}
+
+.resource-comments-panel
+  .resource-comments-anchored-list
+  .omnibox-comment-thread[data-selected][data-resolved]::before {
+  @apply bg-comment-success-surface;
 }
 
 .resource-comments-panel > header {
@@ -204,10 +230,6 @@
   @apply flex min-w-0 items-start gap-2;
 }
 
-.resource-comments-panel .omnibox-comment-thread__status {
-  @apply mb-3 mt-0 flex items-center leading-5;
-}
-
 .resource-comments-panel .omnibox-comment-thread__toolbar {
   @apply hidden h-5 shrink-0 items-center overflow-hidden rounded-full border border-border/60 bg-transparent;
 }
@@ -232,6 +254,45 @@
   stroke-width: 1.75;
 }
 
+.resource-comments-panel
+  .omnibox-comment-thread[data-resolved]
+  .omnibox-comment-thread__toolbar {
+  @apply flex h-auto;
+}
+
+.resource-comments-panel
+  .omnibox-comment-thread[data-resolved]:not([data-selected]):not(:hover)
+  .omnibox-comment-thread__toolbar {
+  @apply border-transparent;
+}
+
+.resource-comments-panel
+  .omnibox-comment-thread[data-resolved]:not([data-selected]):not(:hover)
+  .omnibox-comment-thread__toolbar
+  > :not(.omnibox-comment-thread__resolve) {
+  @apply hidden;
+}
+
+.resource-comments-panel
+  .omnibox-comment-thread__toolbar
+  span.omnibox-comment-thread__resolve {
+  @apply flex size-5 items-center justify-center border-l border-border/60 text-muted-foreground/80;
+}
+
+.resource-comments-panel
+  .omnibox-comment-thread[data-resolved]:not(:hover)
+  .omnibox-comment-thread__toolbar
+  .omnibox-comment-thread__resolve {
+  @apply flex size-5 shrink-0 items-center justify-center rounded-full border-0 bg-comment-success-surface text-comment-success-foreground;
+}
+
+.resource-comments-panel
+  .omnibox-comment-thread[data-resolved]:not(:hover)
+  .omnibox-comment-thread__resolve
+  svg {
+  stroke-width: 2.5;
+}
+
 .resource-comments-panel .omnibox-comment-message p {
   @apply text-foreground;
 }
@@ -248,6 +309,10 @@
 
 .resource-comments-panel .omnibox-comment-avatar {
   @apply size-8 text-xs;
+}
+
+.resource-comments-panel .omnibox-comment-avatar[data-tone='1'] {
+  @apply bg-comment-success-surface text-comment-success-foreground;
 }
 
 .resource-comments-panel .omnibox-comment-message strong {

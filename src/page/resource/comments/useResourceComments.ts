@@ -151,8 +151,7 @@ export function useResourceComments({
   threadsRef.current = threads;
 
   useEffect(() => {
-    const incoming = resource.comment_threads ?? [];
-    setAnchorThreads(incoming);
+    setAnchorThreads(resourceRef.current.comment_threads ?? []);
     setThreads([]);
     setPendingSelection(null);
     setActiveThreadId(null);
@@ -161,7 +160,19 @@ export function useResourceComments({
     setHasMore(false);
     setCreateConflict(false);
     requestIdRef.current += 1;
-  }, [resource.comment_threads, resource.id]);
+  }, [namespaceId, resource.id]);
+
+  useEffect(() => {
+    const incoming = resource.comment_threads;
+    if (!incoming) {
+      return;
+    }
+    mergeAnchorThreads(incoming);
+    const updatedThreads = new Map(incoming.map(thread => [thread.id, thread]));
+    setThreads(current =>
+      current.map(thread => updatedThreads.get(thread.id) ?? thread)
+    );
+  }, [mergeAnchorThreads, resource.comment_threads, resource.id]);
 
   useEffect(() => {
     if (!enabled) {
@@ -202,8 +213,12 @@ export function useResourceComments({
     [setPanelOpen]
   );
 
-  const { focusThread, cancelNavigation, navigatingThreadId } =
-    useCommentNavigation(resource.id, openThread);
+  const {
+    focusThread,
+    cancelNavigation,
+    navigatingThreadId,
+    navigatingReplyThreadId,
+  } = useCommentNavigation(resource.id, openThread);
 
   const selectThread = useCallback(
     (threadId: string) => {
@@ -303,7 +318,7 @@ export function useResourceComments({
         setTotal(current => current + (response.thread_created ? 1 : 0));
         setPendingSelection(null);
         requestAnimationFrame(() => {
-          focusThread(response.thread.id);
+          focusThread(response.thread.id, { openReply: false });
         });
         return true;
       } catch (error) {
@@ -531,6 +546,7 @@ export function useResourceComments({
     focusThread,
     selectThread,
     navigatingThreadId,
+    navigatingReplyThreadId,
     panelOpen,
     pendingSelection,
     registerEditor,

@@ -337,6 +337,40 @@ describe('ResourceDetailView', () => {
     ).not.toHaveProperty('namespace-a');
   });
 
+  it('preserves the restored comment sidebar while editor preferences load after a refresh', async () => {
+    useResourceStore.getState().resetFeaturePreviews();
+    sessionStorage.setItem(
+      'resource-comments-panel',
+      JSON.stringify({ 'namespace-a': true })
+    );
+    useCopilotStore.getState().open('namespace-a');
+
+    await renderResource();
+
+    expect(
+      JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
+    ).toHaveProperty('namespace-a', true);
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
+    ).toBe(true);
+
+    await act(async () => {
+      useResourceStore
+        .getState()
+        .setFeaturePreviews('viewer', { editor_v2: true });
+    });
+
+    expect(
+      JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
+    ).toHaveProperty('namespace-a', true);
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
+    ).toBe(true);
+    expect(
+      container.querySelector('button[aria-label="resource_comments.title"]')
+    ).toBeNull();
+  });
+
   it('hides comments when the editor feature flag is absent', async () => {
     useResourceStore.getState().setFeaturePreviews('viewer', {});
     await renderResource();
