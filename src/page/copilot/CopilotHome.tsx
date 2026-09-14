@@ -11,6 +11,10 @@ import {
   ConversationEntity,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
+import {
+  resolveConversationImages,
+  withUploadedImageParts,
+} from '@/page/chat/conversation/uploadConversationImages';
 import { ConversationDetail } from '@/page/chat/core/types/conversation';
 import useSelectedResources from '@/page/chat/useSelectedResources';
 import { getGreeting } from '@/page/chat/utils';
@@ -32,11 +36,19 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
   const sendMessage = (params: SendMessageParams) => {
     return http
       .post(`/namespaces/${namespaceId}/conversations`)
-      .then((conversation: ConversationEntity) => {
+      .then(async (conversation: ConversationEntity) => {
+        const images = await resolveConversationImages(
+          namespaceId,
+          conversation.id,
+          params.images
+        );
+        params.onImagesUploaded?.();
         sessionStorage.setItem(
           'chat-create-payload',
           JSON.stringify({
             ...params,
+            images,
+            displayParts: withUploadedImageParts(params.displayParts, images),
             conversation: { id: conversation.id } as ConversationDetail,
           } as ChatCreatePayload)
         );
@@ -63,6 +75,10 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
           <ChatArea
             key={draftScope}
             approvalModeResetKey={draftScope}
+            imageUploadDisabled={
+              agentCredits !== undefined &&
+              agentCredits.agent_credits_remain <= 0
+            }
             loading={false}
             messages={[]}
             namespaceId={namespaceId}

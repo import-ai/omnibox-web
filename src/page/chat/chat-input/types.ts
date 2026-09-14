@@ -95,6 +95,7 @@ export enum AgentRequestChannel {
 }
 
 export interface ChatRequestBody {
+  client_request_id?: string;
   conversation_id: string;
   query: string;
   tools?: ChatTool[];
@@ -133,6 +134,7 @@ export interface SendMessageParams {
   approvalMode?: ApprovalMode;
   recommendedQuestionId?: string;
   images?: Array<ChatImageInput | ComposerChatImage>;
+  onImagesUploaded?: () => void;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {
