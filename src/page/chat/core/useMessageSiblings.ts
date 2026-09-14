@@ -7,10 +7,10 @@ import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
  */
 export function useMessageSiblings(
   messageId: string,
-  messageOperator: MessageOperator
+  messageOperator?: MessageOperator
 ) {
   const siblings = useMemo(() => {
-    return messageOperator.getSiblings(messageId);
+    return messageOperator?.getSiblings(messageId) ?? [];
   }, [messageOperator, messageId]);
 
   const currentIndex = siblings.indexOf(messageId);
@@ -18,13 +18,13 @@ export function useMessageSiblings(
 
   const handlePrevious = () => {
     if (currentIndex > 0) {
-      messageOperator.activate(siblings[currentIndex - 1]);
+      messageOperator?.activate(siblings[currentIndex - 1]);
     }
   };
 
   const handleNext = () => {
     if (currentIndex < siblings.length - 1) {
-      messageOperator.activate(siblings[currentIndex + 1]);
+      messageOperator?.activate(siblings[currentIndex + 1]);
     }
   };
 
