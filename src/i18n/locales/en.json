@@ -668,6 +668,13 @@
     "fail": "Copy failed, please copy manually"
   },
   "chat": {
+    "delivery": {
+      "sending": "Sending",
+      "send_failed": "Failed to send",
+      "retry_send": "Send again",
+      "decision_submitted": "Permission choices submitted",
+      "thinking": "Thinking"
+    },
     "tips": "Enter a message",
     "image": {
       "unsupported_format": "Only PNG, JPEG, WebP, and GIF images are supported",

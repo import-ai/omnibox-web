@@ -15,6 +15,8 @@ export function createStreamTransport(
         headers: {
           'Content-Type': 'application/json',
           'X-Client-Platform': 'web',
+          'X-Timezone':
+            Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
