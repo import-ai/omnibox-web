@@ -26,6 +26,7 @@ import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import ChatArea from './chat-input';
 import type { ThinkingSelection } from './chat-input/useThinkingLevel';
+import { shouldShowChatHomeOnboarding } from './chatHomeOnboarding';
 import Scrollbar from './conversation/Scrollbar';
 import FeatureCards from './home/FeatureCards';
 import RecommendedQuestions, {
@@ -125,9 +126,11 @@ export default function ChatHomePage() {
   )?.trim();
   const username = user.username.trim();
   const defaultHomeInput =
-    hasConversationHistory === false &&
+    shouldShowChatHomeOnboarding({
+      hasConversationHistory,
+      remainingCredits: agentCredits?.agent_credits_remain,
+    }) &&
     !userLoading &&
-    !imageUploadDisabled &&
     username &&
     defaultInputTemplate
       ? defaultInputTemplate.replaceAll('{username}', username)
