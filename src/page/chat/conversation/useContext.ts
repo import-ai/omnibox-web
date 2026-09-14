@@ -146,6 +146,7 @@ export default function useContext() {
           images
         );
         uploadRetries.current.delete(pendingId);
+        params.onImagesUploaded?.();
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
         const askFN = ask(
           conversationId,
