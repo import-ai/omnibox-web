@@ -6,13 +6,19 @@ import {
   type ComposerToolRange,
   createToolTokenText,
 } from './composerToolTokens';
-import type { ChatMessageDisplayPart, PrivateSearchResource } from './types';
+import {
+  type ChatMessageDisplayPart,
+  type PrivateSearchResource,
+  ToolType,
+} from './types';
 
 type QueryDecoration = {
   start: number;
   end: number;
   replacement: string;
 };
+
+export const WEB_SEARCH_QUERY_TOKEN = '[web_search](tool://web_search)';
 
 export function createResourceQueryText(label: string, id: string): string {
   const escapedLabel = label.replace(/[[\]\\]/g, '\\$&');
@@ -53,6 +59,13 @@ function validToolDecorations(
         text.slice(range.start, range.end) === createToolTokenText(range.label)
     )
     .map(range => {
+      if (range.tool === ToolType.WEB_SEARCH) {
+        return {
+          start: range.start,
+          end: range.end,
+          replacement: WEB_SEARCH_QUERY_TOKEN,
+        };
+      }
       const end =
         range.end < text.length && text[range.end] === ' '
           ? range.end + 1

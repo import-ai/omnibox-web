@@ -8,7 +8,7 @@ import {
   displayPartsFromComposerText,
   queryFromComposerDisplayText,
 } from './composerQuery';
-import { insertToolRange } from './composerToolTokens';
+import { insertToolRange, removeToolRange } from './composerToolTokens';
 import { ToolType } from './types';
 
 function resource(id: string, name: string): ResourceMeta {
@@ -22,7 +22,7 @@ function resource(id: string, name: string): ResourceMeta {
 }
 
 describe('composer query', () => {
-  it('serializes resource labels as links while removing layout spacers and tool tokens', () => {
+  it('serializes resource links and explicit web search without layout spacers', () => {
     const withResource = insertResourceMention(
       { text: 'read  now', mentions: [] },
       resource('r1', 'plan.md'),
@@ -42,8 +42,30 @@ describe('composer query', () => {
         withResource.mentions,
         withTool.tools
       )
-    ).toBe('read [plan.md](#r1) now');
+    ).toBe('read [plan.md](#r1) [web_search](tool://web_search) now');
   });
+
+  it.each(['联网搜索', 'Web Search'])(
+    'includes %s only while its tool token is present',
+    label => {
+      const original = { text: 'Latest news', tools: [] };
+      const inserted = insertToolRange(original, ToolType.WEB_SEARCH, label, {
+        start: 0,
+        end: 0,
+      });
+      expect(queryFromComposerDisplayText(original.text, [], [])).toBe(
+        original.text
+      );
+      expect(
+        queryFromComposerDisplayText(inserted.text, [], inserted.tools)
+      ).toBe('[web_search](tool://web_search) Latest news');
+
+      const removed = removeToolRange(inserted, ToolType.WEB_SEARCH);
+      expect(
+        queryFromComposerDisplayText(removed.text, [], removed.tools).trim()
+      ).toBe(original.text);
+    }
+  );
 
   it('escapes markdown syntax in resource labels', () => {
     const withResource = insertResourceMention(

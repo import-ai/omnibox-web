@@ -16,7 +16,7 @@ import {
 import { ToolType } from './types';
 
 describe('composer tool tokens', () => {
-  it('inserts a visible tool token at the selection and keeps it out of query text', () => {
+  it('inserts a visible web search token and includes its intent in query text', () => {
     const doc = insertToolRange(
       { text: '你好', tools: [] },
       ToolType.WEB_SEARCH,
@@ -37,7 +37,9 @@ describe('composer tool tokens', () => {
         end: doc.text.length - 1,
       },
     ]);
-    expect(queryFromComposerDisplayText(doc.text, [], doc.tools)).toBe('你好');
+    expect(queryFromComposerDisplayText(doc.text, [], doc.tools)).toBe(
+      '你好[web_search](tool://web_search) '
+    );
   });
 
   it('keeps both tool ranges valid when visible tool tokens are inserted consecutively', () => {
@@ -67,7 +69,7 @@ describe('composer tool tokens', () => {
     ]);
     expect(
       queryFromComposerDisplayText(withWebSearch.text, [], withWebSearch.tools)
-    ).toBe('');
+    ).toBe('[web_search](tool://web_search) ');
   });
 
   it('keeps existing tool ranges valid when inserting a tool before them', () => {
@@ -97,7 +99,7 @@ describe('composer tool tokens', () => {
     ]);
     expect(
       queryFromComposerDisplayText(withReasoning.text, [], withReasoning.tools)
-    ).toBe('');
+    ).toBe('[web_search](tool://web_search) ');
   });
 
   it('shifts existing tool ranges when a resource mention is inserted before them', () => {
