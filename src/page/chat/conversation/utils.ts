@@ -208,9 +208,9 @@ export function ask(
   recommendedQuestionId?: string,
   currentResourceId?: string,
   images?: ChatImageInput[],
+  pendingQueryId?: string,
   edition?: 'basic' | 'pro',
-  level?: string,
-  pendingQueryId?: string
+  level?: string
 ) {
   const chatReq = prepareBody(
     conversationId,

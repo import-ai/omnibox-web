@@ -119,6 +119,7 @@ export default function SharedChatConversationPage() {
           undefined,
           undefined,
           undefined,
+          undefined,
           edition,
           level
         );
@@ -159,6 +160,7 @@ export default function SharedChatConversationPage() {
         shareId,
         password || undefined,
         originalEnableThinking,
+        undefined,
         undefined,
         undefined,
         undefined,
@@ -212,6 +214,7 @@ export default function SharedChatConversationPage() {
         shareId,
         password || undefined,
         originalEnableThinking,
+        undefined,
         undefined,
         undefined,
         undefined,

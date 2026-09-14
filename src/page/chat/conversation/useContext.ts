@@ -169,9 +169,9 @@ export default function useContext() {
           recommendedQuestionId,
           currentResourceId,
           uploadedImages,
+          pendingId,
           edition,
-          level,
-          pendingId
+          level
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
@@ -264,6 +264,7 @@ export default function useContext() {
         undefined,
         currentResourceId,
         undefined,
+        undefined,
         parentMessage.attrs?.edition,
         parentMessage.attrs?.level
       );
@@ -323,12 +324,12 @@ export default function useContext() {
             url: image.preview_url,
           })
         ),
-        editedMessage.attrs?.edition,
-        editedMessage.attrs?.level,
         editedMessage.attrs?.pending_query &&
           newContent === editedMessage.message.content
           ? messageId
-          : undefined
+          : undefined,
+        editedMessage.attrs?.edition,
+        editedMessage.attrs?.level
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();

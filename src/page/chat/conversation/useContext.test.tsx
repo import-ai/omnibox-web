@@ -185,7 +185,7 @@ describe('useContext conversation cache failures', () => {
     expect(jest.mocked(ask).mock.calls.at(-1)?.[17]).toEqual([
       { attachment_id: 'att-1', name: 'image.png', url: '/preview/att-1' },
     ]);
-    expect(jest.mocked(ask).mock.calls.at(-1)?.slice(-3, -1)).toEqual([
+    expect(jest.mocked(ask).mock.calls.at(-1)?.slice(-2)).toEqual([
       'pro',
       'max',
     ]);
