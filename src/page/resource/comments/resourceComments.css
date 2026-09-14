@@ -64,7 +64,7 @@
   background: transparent;
 }
 
-.omnibox-comment-surface .omnibox-comment-composer > div {
+.omnibox-comment-surface .omnibox-comment-composer__actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
@@ -117,7 +117,8 @@
   @apply border-0;
 }
 
-.omnibox-comment-surface .omnibox-comment-composer__preview {
+.omnibox-comment-surface .omnibox-comment-composer__preview,
+.resource-comments-panel .omnibox-comment-composer__preview {
   @apply relative mx-3 mb-2 flex w-fit gap-2;
 }
 
@@ -582,14 +583,6 @@
 
 .resource-comments-panel .omnibox-comment-composer__input textarea {
   padding-right: 2.25rem;
-}
-
-.resource-comments-panel .omnibox-comment-composer__preview {
-  position: absolute;
-  left: 0.75rem;
-  bottom: 0.5rem;
-  display: flex;
-  gap: 0.5rem;
 }
 
 .resource-comments-panel .omnibox-comment-composer__preview img {

@@ -1,10 +1,12 @@
 import { Image, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { AutosizeTextarea } from '@/components/autosize-textarea';
 import { Button } from '@/components/ui/Button';
 
+import { pasteCommentImage } from './pasteCommentImage';
 import { useCommentDraftPosition } from './useCommentDraftPosition';
 import type { ResourceCommentsController } from './useResourceComments';
 
@@ -28,6 +30,7 @@ export function ResourceCommentComposer({
   const previewUrlRef = useRef<string | null>(null);
   const uploadRequestRef = useRef(0);
   const selectionKey = selection ? `${selection.from}:${selection.to}` : null;
+  const uploading = !!imagePreview && !attachmentId;
   const hasDraft = !!content.trim() || !!attachmentId;
 
   const clearImage = useCallback(() => {
@@ -47,6 +50,7 @@ export function ResourceCommentComposer({
 
   useEffect(() => {
     return () => {
+      uploadRequestRef.current += 1;
       if (previewUrlRef.current) {
         URL.revokeObjectURL(previewUrlRef.current);
       }
@@ -82,12 +86,36 @@ export function ResourceCommentComposer({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [cancel, selection]);
 
+  const uploadImage = (file: File) => {
+    if (controller.submitting || !file.type.startsWith('image/')) {
+      return;
+    }
+    clearImage();
+    const url = URL.createObjectURL(file);
+    previewUrlRef.current = url;
+    setImagePreview(url);
+    const requestId = ++uploadRequestRef.current;
+    controller
+      .uploadCommentImage(file)
+      .then(uploaded => {
+        if (requestId === uploadRequestRef.current) {
+          setAttachmentId(uploaded.id);
+        }
+      })
+      .catch(() => {
+        if (requestId === uploadRequestRef.current) {
+          clearImage();
+          toast.error(t('upload.failed'));
+        }
+      });
+  };
+
   if (!selection) {
     return null;
   }
 
   const submit = async () => {
-    if (!hasDraft || controller.submitting) {
+    if (!hasDraft || uploading || controller.submitting) {
       return;
     }
     await controller.createThread(
@@ -128,7 +156,9 @@ export function ResourceCommentComposer({
             placeholder={t('resource_comments.write_comment')}
             rows={1}
             value={content}
+            aria-busy={uploading}
             onChange={event => setContent(event.target.value)}
+            onPaste={event => pasteCommentImage(event, uploadImage)}
             onKeyDown={event => {
               if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
                 return;
@@ -172,19 +202,7 @@ export function ResourceCommentComposer({
                 if (!file) {
                   return;
                 }
-                clearImage();
-                const url = URL.createObjectURL(file);
-                previewUrlRef.current = url;
-                setImagePreview(url);
-                const requestId = ++uploadRequestRef.current;
-                controller
-                  .uploadCommentImage(file)
-                  .then(uploaded => {
-                    if (requestId === uploadRequestRef.current) {
-                      setAttachmentId(uploaded.id);
-                    }
-                  })
-                  .catch(clearImage);
+                uploadImage(file);
               }}
             />
             <Image aria-hidden="true" className="size-4" strokeWidth={1.5} />
@@ -195,7 +213,7 @@ export function ResourceCommentComposer({
             {t('resource_comments.content_conflict')}
           </p>
         ) : null}
-        <div>
+        <div className="omnibox-comment-composer__actions">
           <Button
             type="button"
             size="sm"
@@ -209,7 +227,7 @@ export function ResourceCommentComposer({
             type="submit"
             size="sm"
             className="omnibox-comment-submit"
-            disabled={controller.submitting || !hasDraft}
+            disabled={controller.submitting || uploading || !hasDraft}
           >
             {t('resource_comments.comment')}
           </Button>

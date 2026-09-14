@@ -160,8 +160,8 @@ describe('comment permissions', () => {
     jest.mocked(listResourceCommentThreads).mockResolvedValue({
       items: threads,
       total: 1,
-      offlet: 0,
-      limits: 20,
+      offset: 0,
+      limit: 20,
       has_more: false,
     });
     container = document.createElement('div');

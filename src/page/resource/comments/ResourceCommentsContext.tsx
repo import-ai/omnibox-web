@@ -181,8 +181,8 @@ export function ResourceCommentsProvider({
       if (!(target instanceof Element)) {
         return;
       }
-      const overComments = Boolean(target.closest('[data-comments-scroll]'));
-      const overDocument = Boolean(target.closest('[data-resource-scroll]'));
+      const overComments = !!target.closest('[data-comments-scroll]');
+      const overDocument = !!target.closest('[data-resource-scroll]');
       if (!overComments && !overDocument) {
         return;
       }

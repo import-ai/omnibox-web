@@ -37,4 +37,52 @@ describe('compiled resource comment styles', () => {
     expect(positions).toContain('absolute');
     expect(positions).not.toContain('relative');
   });
+  it('keeps draft images in the input flow inside the sidebar', async () => {
+    const fixture = document.createElement('div');
+    fixture.className = 'resource-comments-panel';
+    fixture.innerHTML = `<aside class="omnibox-comment-surface">
+      <form class="omnibox-comment-composer">
+        <q>Selected text</q>
+        <div class="omnibox-comment-composer__input" data-has-preview>
+          <textarea></textarea>
+          <div class="omnibox-comment-composer__preview"><img alt="" /></div>
+        </div>
+        <div class="omnibox-comment-composer__actions"><button>Submit</button></div>
+      </form>
+    </aside>`;
+    const config = loadConfig(resolve('tailwind.config.js'));
+    const css = readFileSync(
+      'src/page/resource/comments/resourceComments.css',
+      'utf8'
+    );
+    const result = await postcss([
+      tailwindcss({
+        ...config,
+        content: [{ raw: fixture.outerHTML, extension: 'html' }],
+      }),
+    ]).process(css, { from: undefined });
+    const style = document.createElement('style');
+    style.textContent = result.css;
+    document.head.append(style);
+    document.body.append(fixture);
+    try {
+      const input = fixture.querySelector('.omnibox-comment-composer__input');
+      const preview = fixture.querySelector(
+        '.omnibox-comment-composer__preview'
+      );
+      const actions = fixture.querySelector(
+        '.omnibox-comment-composer__actions'
+      );
+      if (!input || !preview || !actions) {
+        throw new Error('Missing comment composer elements');
+      }
+      expect(getComputedStyle(input).display).toBe('block');
+      expect(getComputedStyle(preview).position).toBe('relative');
+      expect(getComputedStyle(preview).bottom).toBe('');
+      expect(getComputedStyle(actions).display).toBe('flex');
+    } finally {
+      fixture.remove();
+      style.remove();
+    }
+  });
 });

@@ -198,8 +198,8 @@ describe('comment link navigation', () => {
       items: [threads[0]],
       total: 2,
       has_more: true,
-      offlet: 0,
-      limits: 20,
+      offset: 0,
+      limit: 20,
     });
   });
 
@@ -365,7 +365,7 @@ describe('comment link navigation', () => {
     expect(listResourceCommentThreads).toHaveBeenLastCalledWith(
       'namespace',
       'resource',
-      { offlet: 1, limits: 20, resolved: undefined }
+      { offset: 1, limit: 20, resolved: undefined }
     );
     await act(async () => container.querySelectorAll('button')[1].click());
     expect(container.querySelector('output')?.textContent).toContain('target');

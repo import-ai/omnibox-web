@@ -152,8 +152,8 @@ describe('resource comments across view and edit modes', () => {
       items: [thread],
       total: 1,
       has_more: false,
-      offlet: 0,
-      limits: 20,
+      offset: 0,
+      limit: 20,
     });
   });
 
@@ -253,8 +253,8 @@ describe('resource comments across view and edit modes', () => {
               items: [thread],
               total: 1,
               has_more: false,
-              offlet: 0,
-              limits: 20,
+              offset: 0,
+              limit: 20,
             });
         })
     );

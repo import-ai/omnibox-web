@@ -14,8 +14,8 @@ export interface ResourceCommentAnchorPayload {
 export interface ResourceCommentThreadList {
   items: ResourceCommentThread[];
   total: number;
-  offlet: number;
-  limits: number;
+  offset: number;
+  limit: number;
   has_more: boolean;
 }
 
@@ -59,14 +59,14 @@ function threadsUrl(namespaceId: string, resourceId: string) {
 export function listResourceCommentThreads(
   namespaceId: string,
   resourceId: string,
-  options: { offlet?: number; limits?: number; resolved?: boolean } = {}
+  options: { offset?: number; limit?: number; resolved?: boolean } = {}
 ) {
   return http.get<ResourceCommentThreadList>(
     threadsUrl(namespaceId, resourceId),
     {
       params: {
-        offlet: options.offlet ?? 0,
-        limits: options.limits ?? 20,
+        offset: options.offset ?? 0,
+        limit: options.limit ?? 20,
         ...(options.resolved === undefined
           ? {}
           : { resolved: String(options.resolved) }),
