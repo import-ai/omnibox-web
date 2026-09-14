@@ -3,6 +3,7 @@ import { ChevronRight, ScrollText } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
@@ -42,6 +43,39 @@ interface IProps {
   };
 }
 
+function DecisionReceipt({
+  message,
+  onRetry,
+}: {
+  message: MessageDetail;
+  onRetry: () => void;
+}) {
+  const { t } = useTranslation();
+  const sending = [MessageStatus.PENDING, MessageStatus.STREAMING].includes(
+    message.status
+  );
+  return (
+    <div
+      role="status"
+      className="flex items-center gap-2 text-sm text-muted-foreground"
+    >
+      {sending && <Spinner className="size-4" />}
+      {t(
+        message.status === MessageStatus.FAILED
+          ? 'chat.delivery.send_failed'
+          : sending
+            ? 'chat.delivery.sending'
+            : 'chat.delivery.decision_submitted'
+      )}
+      {message.status === MessageStatus.FAILED && (
+        <Button variant="ghost" size="sm" onClick={onRetry}>
+          {t('chat.delivery.retry_send')}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function renderMessage(
   message: MessageDetail,
   messages: MessageDetail[],
@@ -56,6 +90,17 @@ function renderMessage(
   onShareMessage?: (messageId: string) => void
 ) {
   const openAIMessage = message.message;
+  if (
+    openAIMessage.role === OpenAIMessageRole.USER &&
+    message.attrs?.tool_call?.decisions?.length
+  ) {
+    return (
+      <DecisionReceipt
+        message={message}
+        onRetry={() => onEdit(message.id, message.message.content || '')}
+      />
+    );
+  }
 
   if (
     openAIMessage.role === OpenAIMessageRole.USER &&
@@ -119,6 +164,7 @@ function formatProcessDuration(seconds: number, t: TFunction) {
 function hasVisibleMessageContent(message: MessageDetail, chatOnly = false) {
   const openAIMessage = message.message;
 
+  if (message.attrs?.tool_call?.decisions?.length) return true;
   if (message.attrs?.compact || message.attrs?.error_message) {
     return true;
   }
@@ -246,7 +292,7 @@ export function Messages(props: IProps) {
 
     return (
       <div
-        key={message.id}
+        key={message.clientKey}
         id={`message-${message.id}`}
         className="scroll-mt-4"
       >

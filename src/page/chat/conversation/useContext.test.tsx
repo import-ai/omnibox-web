@@ -4,6 +4,7 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { ChatMode } from '@/page/chat/chat-input/types';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 
 import {
@@ -11,6 +12,7 @@ import {
   getCachedConversation,
   setCachedConversation,
 } from './conversationCache';
+import * as imageUploads from './uploadConversationImages';
 import useContext from './useContext';
 import { ask, extractOriginalMessageSettings } from './utils';
 
@@ -22,6 +24,8 @@ jest.mock('@/hooks/useApp', () => ({
   __esModule: true,
   default: () => ({ fire: mockFire }),
 }));
+
+jest.mock('react-router-dom', () => ({ useParams: () => ({}) }));
 
 jest.mock('@/const', () => ({ FORCE_ASK: false }));
 
@@ -51,11 +55,12 @@ jest.mock('@/page/chat/useSelectedResources.ts', () => ({
 }));
 
 jest.mock('@/page/chat/core/messageOperator.ts', () => ({
-  createMessageOperator: () => ({}),
+  createMessageOperator: () => ({ error: jest.fn() }),
 }));
 
 jest.mock('@/page/chat/conversation/utils.ts', () => ({
   ask: jest.fn(),
+  beginPendingQuery: jest.fn(() => 'pending-query'),
   extractOriginalMessageSettings: jest.fn(),
   findFirstMessageWithMissingParent: () => undefined,
   getStreamEventId: jest.fn(),
@@ -175,9 +180,61 @@ describe('useContext conversation cache failures', () => {
     await act(async () => {
       await context.onEdit('message-a', 'Updated query');
     });
-    expect(jest.mocked(ask).mock.calls.at(-1)?.at(-1)).toEqual([
+    expect(jest.mocked(ask).mock.calls.at(-1)?.[17]).toEqual([
       { attachment_id: 'att-1', name: 'image.png', url: '/preview/att-1' },
     ]);
+  });
+
+  it('retries the original file and query ID after an image upload fails', async () => {
+    const conversation = cachedConversation();
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    const upload = jest
+      .spyOn(imageUploads, 'resolveConversationImages')
+      .mockRejectedValueOnce(new Error('upload offline'))
+      .mockResolvedValueOnce([
+        { attachment_id: 'uploaded', name: 'image.png', url: '/preview' },
+      ]);
+    const file = new File(['image'], 'image.png', { type: 'image/png' });
+    const images = [
+      { id: 'local-image', name: file.name, file, url: 'blob:preview' },
+    ];
+    jest.mocked(ask).mockReturnValue({
+      cancel: jest.fn(),
+      destroy: jest.fn(),
+      start: jest.fn().mockResolvedValue(undefined),
+    });
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    await act(async () => {
+      await context.sendMessage({
+        query: 'image query',
+        tools: [],
+        selectedResources: [],
+        mode: ChatMode.ASK,
+        images,
+      });
+    });
+    await act(async () => {
+      await context.onEdit('pending-query', 'image query');
+    });
+    expect(upload).toHaveBeenNthCalledWith(
+      2,
+      'namespace-a',
+      'conversation-a',
+      images
+    );
+    expect(jest.mocked(ask).mock.calls.at(-1)?.[18]).toBe('pending-query');
+    expect(jest.mocked(ask).mock.calls.at(-1)?.[17]?.[0].attachment_id).toBe(
+      'uploaded'
+    );
+    upload.mockRestore();
   });
 
   it('clears cached messages when conversation authorization fails', async () => {
