@@ -37,19 +37,19 @@ export default function ShareHeader({
   const timeText = resource ? getTime(resource as any, i18n) : '';
 
   return (
-    <header className="rounded-[16px] bg-white flex flex-wrap min-h-[48px] shrink-0 items-center gap-2 dark:bg-background">
-      <div className="flex flex-1 items-center gap-1 sm:gap-2 px-3">
+    <header className="flex min-h-[48px] min-w-0 shrink-0 flex-wrap items-center gap-2 rounded-[16px] bg-white dark:bg-background">
+      <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
         {showSidebarTrigger && <SidebarTriggerButton collapse />}
         <ShareBreadcrumb
           path={resource?.path}
           fallbackId={resource?.id}
           fallbackName={resource?.name}
-          className={cn({
+          className={cn('min-w-0', {
             'ml-2': open,
           })}
         />
       </div>
-      <div className="ml-auto pr-3 flex items-center gap-2 text-sm">
+      <div className="ml-auto flex shrink-0 items-center gap-2 pr-3 text-sm">
         {timeText && (
           <div className="hidden font-medium text-muted-foreground md:inline-block">
             {timeText}

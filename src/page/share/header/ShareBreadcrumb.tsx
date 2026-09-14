@@ -42,7 +42,7 @@ export default function ShareBreadcrumb(props: IProps) {
 
   if (data.length <= 0) {
     return (
-      <Breadcrumb className={cn(className)}>
+      <Breadcrumb className={cn('min-w-0', className)}>
         <BreadcrumbList className="gap-0 sm:gap-0">
           <BreadcrumbItem>
             <BreadcrumbPage
@@ -61,7 +61,7 @@ export default function ShareBreadcrumb(props: IProps) {
   if (data.length <= 3) {
     const size = data.length - 1;
     return (
-      <Breadcrumb className={cn(className)}>
+      <Breadcrumb className={cn('min-w-0', className)}>
         <BreadcrumbList className="gap-0 sm:gap-0">
           {data.map((item, index) => (
             <React.Fragment key={item.id}>
@@ -80,12 +80,14 @@ export default function ShareBreadcrumb(props: IProps) {
                   <BreadcrumbLink asChild>
                     <Button
                       variant="ghost"
-                      className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+                      className="h-6 max-w-[240px] justify-start overflow-hidden px-2 py-0 font-normal text-foreground"
                       onClick={() => {
                         navigate(`/s/${shareId}/${item.id}`);
                       }}
                     >
-                      {item.name || t('untitled')}
+                      <span className="min-w-0 truncate text-left">
+                        {item.name || t('untitled')}
+                      </span>
                     </Button>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
@@ -103,18 +105,20 @@ export default function ShareBreadcrumb(props: IProps) {
   const middleItems = data.slice(1, -1); // Items between root and current
 
   return (
-    <Breadcrumb className={cn(className)}>
+    <Breadcrumb className={cn('min-w-0', className)}>
       <BreadcrumbList className="gap-0 sm:gap-0">
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
             <Button
               variant="ghost"
-              className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+              className="h-6 max-w-[240px] justify-start overflow-hidden px-2 py-0 font-normal text-foreground"
               onClick={() => {
                 navigate(`/s/${shareId}/${rootItem.id}`);
               }}
             >
-              {rootItem.name || t('untitled')}
+              <span className="min-w-0 truncate text-left">
+                {rootItem.name || t('untitled')}
+              </span>
             </Button>
           </BreadcrumbLink>
         </BreadcrumbItem>
