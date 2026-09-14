@@ -63,10 +63,17 @@ function isDisplayPart(value: unknown): value is ChatMessageDisplayPart {
       (value.tool === ToolType.WEB_SEARCH || value.tool === ToolType.REASONING)
     );
   }
+  if (value.type === 'image') {
+    return ['attachment_id', 'name', 'preview_url'].every(
+      key =>
+        key in value &&
+        typeof (value as Record<string, unknown>)[key] === 'string'
+    );
+  }
   return (
     value.type === 'resource' &&
     'resource' in value &&
-    Boolean(value.resource) &&
+    value.resource !== null &&
     typeof value.resource === 'object' &&
     'id' in value.resource &&
     typeof value.resource.id === 'string' &&

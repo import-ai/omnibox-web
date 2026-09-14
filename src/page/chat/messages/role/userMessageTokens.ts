@@ -13,6 +13,26 @@ import {
 
 export type UserMessageToolToken = Exclude<ToolType, ToolType.PRIVATE_SEARCH>;
 
+export type UserMessageImagePart = Extract<
+  ChatMessageDisplayPart,
+  { type: 'image' }
+>;
+
+export function getUserMessageImages(
+  displayParts?: ChatMessageDisplayPart[] | null
+): UserMessageImagePart[] {
+  return (displayParts ?? []).filter(
+    (part): part is UserMessageImagePart => part.type === 'image'
+  );
+}
+
+export function withoutUserMessageImages(
+  displayParts?: ChatMessageDisplayPart[] | null
+): ChatMessageDisplayPart[] | undefined {
+  if (!displayParts) return undefined;
+  return displayParts.filter(part => part.type !== 'image');
+}
+
 type ToolLabelGetter = (tool: UserMessageToolToken) => string;
 
 type UserMessageTokenSegment =
@@ -278,6 +298,9 @@ function displayPartHtml(
 ) {
   if (part.type === 'text') return escapeHtml(part.text).replace(/\n/g, '<br>');
   if (part.type === 'resource') return resourceTokenHtml(part.resource);
+  if (part.type === 'image') {
+    return `<img src="${escapeHtml(part.preview_url)}" alt="${escapeHtml(part.name)}" class="max-h-40 max-w-40 rounded-md object-contain" />`;
+  }
   return toolTokenHtml(part.tool, getToolLabel);
 }
 
@@ -291,6 +314,7 @@ export function splitDisplayPartsByLine(
   const lines: UserMessageDisplaySegment[][] = [[]];
 
   displayParts.forEach(part => {
+    if (part.type === 'image') return;
     if (part.type !== 'text') {
       lines[lines.length - 1].push(part);
       return;

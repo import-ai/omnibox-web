@@ -66,7 +66,10 @@ describe('SystemNotificationContent', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(assetUrl, {
       credentials: 'same-origin',
-      headers: { Authorization: 'Bearer test-token' },
+      headers: {
+        Authorization: 'Bearer test-token',
+        'X-Client-Platform': 'web',
+      },
       signal: expect.any(AbortSignal),
     });
     expect(container.textContent).toBe(

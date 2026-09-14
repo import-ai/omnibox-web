@@ -44,11 +44,13 @@ const credits = (remain: number) => ({
 function Harness({
   namespaceId,
   messages,
+  enabled,
 }: {
   namespaceId: string;
   messages: MessageDetail[];
+  enabled?: boolean;
 }) {
-  const { agentCredits } = useAgentCredits(namespaceId, messages);
+  const { agentCredits } = useAgentCredits(namespaceId, messages, enabled);
   return <span>{String(agentCredits?.agent_credits_remain ?? 'none')}</span>;
 }
 
@@ -80,6 +82,18 @@ describe('useAgentCredits', () => {
       '/namespaces/namespace-a/usages/agent'
     );
     expect(container.textContent).toBe('4200');
+  });
+
+  it('does not request agent credits when disabled', async () => {
+    await act(async () =>
+      root.render(
+        <Harness namespaceId="namespace-a" messages={[]} enabled={false} />
+      )
+    );
+    await act(async () => Promise.resolve());
+
+    expect(mockGet).not.toHaveBeenCalled();
+    expect(container.textContent).toBe('none');
   });
 
   it('refetches after an assistant message completes', async () => {

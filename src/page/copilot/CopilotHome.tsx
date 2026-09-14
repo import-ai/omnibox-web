@@ -1,13 +1,20 @@
 import { useTranslation } from 'react-i18next';
 
+import useConfig from '@/hooks/useConfig';
 import { getChatHomeDraftScope } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
+import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
+import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import ChatArea from '@/page/chat/chat-input';
 import {
   ChatCreatePayload,
   ConversationEntity,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
+import {
+  resolveConversationImages,
+  withUploadedImageParts,
+} from '@/page/chat/conversation/uploadConversationImages';
 import { ConversationDetail } from '@/page/chat/core/types/conversation';
 import useSelectedResources from '@/page/chat/useSelectedResources';
 import { getGreeting } from '@/page/chat/utils';
@@ -20,6 +27,8 @@ interface CopilotHomeProps {
 
 export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
   const { t } = useTranslation();
+  const { config } = useConfig();
+  const { agentCredits } = useAgentCredits(namespaceId, [], config.commercial);
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const showConversation = useCopilotStore(state => state.showConversation);
   const draftScope = getChatHomeDraftScope(namespaceId);
@@ -27,11 +36,19 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
   const sendMessage = (params: SendMessageParams) => {
     return http
       .post(`/namespaces/${namespaceId}/conversations`)
-      .then((conversation: ConversationEntity) => {
+      .then(async (conversation: ConversationEntity) => {
+        const images = await resolveConversationImages(
+          namespaceId,
+          conversation.id,
+          params.images
+        );
+        params.onImagesUploaded?.();
         sessionStorage.setItem(
           'chat-create-payload',
           JSON.stringify({
             ...params,
+            images,
+            displayParts: withUploadedImageParts(params.displayParts, images),
             conversation: { id: conversation.id } as ConversationDetail,
           } as ChatCreatePayload)
         );
@@ -48,9 +65,20 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
           </h1>
         </div>
         <div className="shrink-0">
+          {config.commercial && (
+            <AgentCredits
+              compact
+              namespaceId={namespaceId}
+              agentCredits={agentCredits}
+            />
+          )}
           <ChatArea
             key={draftScope}
             approvalModeResetKey={draftScope}
+            imageUploadDisabled={
+              agentCredits !== undefined &&
+              agentCredits.agent_credits_remain <= 0
+            }
             loading={false}
             messages={[]}
             namespaceId={namespaceId}

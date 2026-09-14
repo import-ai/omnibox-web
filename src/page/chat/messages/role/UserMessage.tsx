@@ -8,34 +8,39 @@ import { ShareIcon } from '@/assets/icons/ShareIcon';
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { Textarea } from '@/components/ui/Textarea';
 import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import { InlineChatToken } from '@/page/chat/chat-input/InlineChatToken';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
+import { MessageStatus } from '@/page/chat/core/types/chatResponse';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings.ts';
 import { fetchResourcesByIds } from '@/service/resource';
 import { fetchShareResource } from '@/service/share';
 
 import { getCachedMessageDisplayParts } from '../messageDisplayPartsCache';
+import { UserMessageImages } from './UserMessageImages';
 import {
   buildResourceNameById,
   collectUserMessageResourceIds,
   createUserMessageCopyHtml,
   formatUserContextResourceLabel,
+  getUserMessageImages,
   getUserMessageResources,
   getUserMessageToolTokens,
   hasVisibleUserMessageResources,
   resourceMetaFromPrivateSearchResource,
   splitDisplayPartsByLine,
   splitUserMessageResourceTokens,
+  withoutUserMessageImages,
 } from './userMessageTokens';
 
 interface IProps {
   hideActions?: boolean;
   message: MessageDetail;
-  messageOperator: MessageOperator;
+  messageOperator?: MessageOperator;
   onEdit: (messageId: string, newContent: string) => void;
   onShare?: (messageId: string) => void;
 }
@@ -93,6 +98,8 @@ export function UserMessage(props: IProps) {
   const displayParts =
     message.attrs?.composer?.display_parts ??
     getCachedMessageDisplayParts(message.id);
+  const images = getUserMessageImages(displayParts);
+  const contentDisplayParts = withoutUserMessageImages(displayParts);
   const resources = getUserMessageResources(message.attrs?.tools);
   const displayResources =
     displayParts
@@ -168,114 +175,154 @@ export function UserMessage(props: IProps) {
     tool => t(`chat.tools.${tool}`),
     displayParts
   );
-  const displayLines = displayParts?.some(part => part.type !== 'text')
-    ? splitDisplayPartsByLine(displayParts)
+  const displayLines = contentDisplayParts?.some(part => part.type !== 'text')
+    ? splitDisplayPartsByLine(contentDisplayParts)
     : undefined;
+  const hasDisplayBubble = !!displayLines?.some(line =>
+    line.some(part => part.type !== 'text' || part.text.trim())
+  );
+  const showBubble =
+    isEditing ||
+    hasDisplayBubble ||
+    (!displayLines && !!(openAIMessage.content || '').trim());
 
   return (
-    <div className="group flex flex-col items-end">
-      <div
-        className={cn(
-          'flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
-          'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
-        )}
-      >
-        {isEditing ? (
-          <div className="flex flex-col gap-2">
-            <Textarea
-              value={editedContent}
-              onChange={e => setEditedContent(e.target.value)}
-              className="min-h-[100px] resize-y"
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end">
-              <Button size="sm" variant="outline" onClick={handleCancel}>
-                {t('chat.messages.actions.cancel_edit')}
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSave}
-                disabled={!editedContent.trim()}
-              >
-                {t('chat.messages.actions.save_edit')}
-              </Button>
-            </div>
+    <div
+      className="group relative flex flex-col items-end"
+      data-message-id={message.id}
+    >
+      {message.status === MessageStatus.FAILED &&
+        message.attrs?.pending_query && (
+          <div
+            role="alert"
+            className="flex items-center gap-2 text-sm text-destructive"
+          >
+            {t('chat.delivery.send_failed')}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(message.id, openAIMessage.content || '')}
+            >
+              {t('chat.delivery.retry_send')}
+            </Button>
           </div>
-        ) : displayLines ? (
-          displayLines.map((line, idx) => (
-            <span key={idx} className="break-words [overflow-wrap:anywhere]">
-              {line.map((part, partIndex) => {
-                if (part.type === 'text') return part.text;
-                if (part.type === 'tool') {
-                  return (
-                    <InlineChatToken key={partIndex} icon={part.tool}>
-                      {t(`chat.tools.${part.tool}`)}
-                    </InlineChatToken>
-                  );
-                }
-
-                const tokenResource =
-                  resourceMetaById[part.resource.id] ??
-                  resourceMetaFromPrivateSearchResource(part.resource);
-                return (
-                  <InlineChatToken
-                    key={partIndex}
-                    icon="resource"
-                    resource={tokenResource}
-                    contextType={part.resource.type}
-                    resourceId={part.resource.id}
-                    href={
-                      resourceLinkPrefix
-                        ? `${resourceLinkPrefix}/${part.resource.id}`
-                        : undefined
-                    }
-                  >
-                    {part.resource.name}
-                  </InlineChatToken>
-                );
-              })}
-              {idx !== displayLines.length - 1 && <br />}
+        )}
+      <UserMessageImages images={images} />
+      {showBubble && (
+        <div
+          className={cn(
+            'relative flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
+            'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
+          )}
+        >
+          {[MessageStatus.PENDING, MessageStatus.STREAMING].includes(
+            message.status
+          ) && (
+            <span
+              className="absolute right-full top-1/2 -translate-y-1/2 mr-2"
+              role="status"
+              aria-label={t('chat.delivery.sending')}
+            >
+              <Spinner className="size-4" />
             </span>
-          ))
-        ) : (
-          lines.map((line, idx) => (
-            <span key={idx} className="break-words [overflow-wrap:anywhere]">
-              {splitUserMessageResourceTokens(line, resources).map(
-                (segment, segmentIndex) => {
-                  if (segment.type !== 'resource') {
-                    return segment.text;
+          )}
+          {isEditing ? (
+            <div className="flex flex-col gap-2">
+              <Textarea
+                value={editedContent}
+                onChange={e => setEditedContent(e.target.value)}
+                className="min-h-[100px] resize-y"
+                autoFocus
+              />
+              <div className="flex gap-2 justify-end">
+                <Button size="sm" variant="outline" onClick={handleCancel}>
+                  {t('chat.messages.actions.cancel_edit')}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={!editedContent.trim()}
+                >
+                  {t('chat.messages.actions.save_edit')}
+                </Button>
+              </div>
+            </div>
+          ) : displayLines ? (
+            displayLines.map((line, idx) => (
+              <span key={idx} className="break-words [overflow-wrap:anywhere]">
+                {line.map((part, partIndex) => {
+                  if (part.type === 'text') return part.text;
+                  if (part.type === 'tool') {
+                    return (
+                      <InlineChatToken key={partIndex} icon={part.tool}>
+                        {t(`chat.tools.${part.tool}`)}
+                      </InlineChatToken>
+                    );
                   }
-
-                  const tokenResource = resourceByName.get(segment.text);
+                  if (part.type !== 'resource') return null;
+                  const tokenResource =
+                    resourceMetaById[part.resource.id] ??
+                    resourceMetaFromPrivateSearchResource(part.resource);
                   return (
                     <InlineChatToken
-                      key={segmentIndex}
+                      key={partIndex}
                       icon="resource"
-                      resource={tokenResource?.resource}
-                      contextType={tokenResource?.contextType}
-                      resourceId={tokenResource?.resource.id}
+                      resource={tokenResource}
+                      contextType={part.resource.type}
+                      resourceId={part.resource.id}
                       href={
-                        resourceLinkPrefix && tokenResource
-                          ? `${resourceLinkPrefix}/${tokenResource.resource.id}`
+                        resourceLinkPrefix
+                          ? `${resourceLinkPrefix}/${part.resource.id}`
                           : undefined
                       }
                     >
-                      {segment.text}
+                      {part.resource.name}
                     </InlineChatToken>
                   );
-                }
-              )}
-              {idx === lines.length - 1 &&
-                toolTokens.map(tool => (
-                  <InlineChatToken key={tool} icon={tool}>
-                    {t(`chat.tools.${tool}`)}
-                  </InlineChatToken>
-                ))}
-              {idx !== lines.length - 1 && <br />}
-            </span>
-          ))
-        )}
-      </div>
+                })}
+                {idx !== displayLines.length - 1 && <br />}
+              </span>
+            ))
+          ) : (
+            lines.map((line, idx) => (
+              <span key={idx} className="break-words [overflow-wrap:anywhere]">
+                {splitUserMessageResourceTokens(line, resources).map(
+                  (segment, segmentIndex) => {
+                    if (segment.type !== 'resource') {
+                      return segment.text;
+                    }
+
+                    const tokenResource = resourceByName.get(segment.text);
+                    return (
+                      <InlineChatToken
+                        key={segmentIndex}
+                        icon="resource"
+                        resource={tokenResource?.resource}
+                        contextType={tokenResource?.contextType}
+                        resourceId={tokenResource?.resource.id}
+                        href={
+                          resourceLinkPrefix && tokenResource
+                            ? `${resourceLinkPrefix}/${tokenResource.resource.id}`
+                            : undefined
+                        }
+                      >
+                        {segment.text}
+                      </InlineChatToken>
+                    );
+                  }
+                )}
+                {idx === lines.length - 1 &&
+                  toolTokens.map(tool => (
+                    <InlineChatToken key={tool} icon={tool}>
+                      {t(`chat.tools.${tool}`)}
+                    </InlineChatToken>
+                  ))}
+                {idx !== lines.length - 1 && <br />}
+              </span>
+            ))
+          )}
+        </div>
+      )}
       {showSelectedResourcesTip && selectedResources && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -298,7 +345,7 @@ export function UserMessage(props: IProps) {
           </TooltipContent>
         </Tooltip>
       )}
-      {!hideActions && (
+      {!hideActions && !message.attrs?.pending_query && (
         <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
           {createdAt && (
             <span className="text-xs text-muted-foreground">{createdAt}</span>

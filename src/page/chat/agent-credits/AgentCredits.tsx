@@ -5,18 +5,19 @@ import {
   UpgradeUsageTooltip,
 } from '@/components/upgrade-action-button';
 import { useNamespaceRole } from '@/lib/useNamespaceRole.ts';
-import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
-import { MessageDetail } from '@/page/chat/core/types/conversation';
+import { cn } from '@/lib/utils';
+import type { AgentCreditsResponseDto } from '@/page/chat/agent-credits/useAgentCredits';
 
 export function AgentCredits({
   namespaceId,
-  messages,
+  agentCredits,
+  compact = false,
 }: {
   namespaceId: string;
-  messages?: MessageDetail[];
+  agentCredits?: AgentCreditsResponseDto;
+  compact?: boolean;
 }) {
   const { t } = useTranslation();
-  const { agentCredits } = useAgentCredits(namespaceId, messages ?? []);
   const { role } = useNamespaceRole(namespaceId);
   const hasUpgradePermission: boolean = role === 'owner';
 
@@ -26,7 +27,7 @@ export function AgentCredits({
 
   return (
     <div className="flex min-w-0 items-center justify-end mb-1 gap-3 text-sm">
-      <div className="min-w-0 flex-1 text-right sm:hidden">
+      <div className={cn('min-w-0 flex-1 text-right', !compact && 'sm:hidden')}>
         <UpgradeUsageTooltip
           textKey="chat.agent_credits.compact_text"
           tooltipItems={[t('chat.agent_credits.compact_tooltip')]}
@@ -34,12 +35,14 @@ export function AgentCredits({
           triggerClassName="inline-block max-w-full truncate text-muted-foreground cursor-pointer align-middle"
         />
       </div>
-      <div className="hidden min-w-0 text-right sm:block">
-        <UpgradeUsageTooltip
-          textKey="chat.agent_credits.text"
-          tooltipItems={[t('chat.agent_credits.tooltip.base')]}
-        />
-      </div>
+      {!compact && (
+        <div className="hidden min-w-0 text-right sm:block">
+          <UpgradeUsageTooltip
+            textKey="chat.agent_credits.text"
+            tooltipItems={[t('chat.agent_credits.tooltip.base')]}
+          />
+        </div>
+      )}
       <UpgradeActionButton
         namespaceId={namespaceId}
         hasPermission={hasUpgradePermission}

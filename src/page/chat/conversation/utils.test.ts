@@ -197,4 +197,57 @@ describe('chat request body tools', () => {
     );
     expect(getCachedMessageDisplayParts('u1')).toEqual(displayParts);
   });
+
+  it('forwards conversation images on the wizard request body', () => {
+    const images = [
+      {
+        attachment_id: 'att-1',
+        url: '/api/v1/namespaces/n1/conversations/c1/attachments/att-1',
+        name: 'IMG_8769.PNG',
+      },
+    ];
+    const messageOperator: MessageOperator = {
+      update: jest.fn(),
+      add: jest.fn(),
+      done: jest.fn(),
+      stop: jest.fn(),
+      error: jest.fn(),
+      activate: jest.fn(),
+      getSiblings: jest.fn(() => []),
+      getParent: jest.fn(() => ''),
+    };
+
+    ask(
+      'c1',
+      '这个图片里有什么？',
+      [],
+      [],
+      AgentRequestChannel.WEB,
+      undefined,
+      messageOperator,
+      '/ask',
+      '简体中文',
+      'n1',
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      [
+        { type: 'text', text: '这个图片里有什么？' },
+        {
+          type: 'image',
+          attachment_id: 'att-1',
+          name: 'IMG_8769.PNG',
+          preview_url: images[0].url,
+        },
+      ],
+      undefined,
+      undefined,
+      images
+    );
+
+    const [, requestBody] = (createStreamTransport as jest.Mock).mock.calls[0];
+    expect(requestBody.images).toEqual(images);
+    expect(requestBody.query).toBe('这个图片里有什么？');
+  });
 });

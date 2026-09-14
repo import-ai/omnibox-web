@@ -14,7 +14,8 @@ export interface AgentCreditsResponseDto {
 
 export function useAgentCredits(
   namespaceId: string,
-  messages: MessageDetail[]
+  messages: MessageDetail[],
+  enabled = true
 ) {
   const [agentCredits, setAgentCredits] = useState<
     AgentCreditsResponseDto | undefined
@@ -39,7 +40,7 @@ export function useAgentCredits(
   useEffect(() => {
     fetchGenerationRef.current += 1;
     setAgentCredits(undefined);
-  }, [namespaceId]);
+  }, [enabled, namespaceId]);
 
   useEffect(() => {
     let lastUserMessage: MessageDetail | undefined = undefined;
@@ -66,8 +67,9 @@ export function useAgentCredits(
   }, [messages, setAssistantMessageIds]);
 
   useEffect(() => {
+    if (!enabled) return;
     void fetchAgentCredits();
-  }, [assistantMessageIds.length, fetchAgentCredits]);
+  }, [assistantMessageIds.length, enabled, fetchAgentCredits]);
 
   return {
     agentCredits,

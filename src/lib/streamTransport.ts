@@ -14,6 +14,9 @@ export function createStreamTransport(
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Client-Platform': 'web',
+          'X-Timezone':
+            Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(body),
@@ -67,6 +70,7 @@ export function createStreamTransport(
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-Client-Platform': 'web',
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({ conversation_id: body.conversation_id }),

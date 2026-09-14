@@ -2,6 +2,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { useEffect } from 'react';
 
 import type App from '@/hooks/app.class';
+import { takePendingChatPayload } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
 import type {
   ApprovalMode,
@@ -9,6 +10,7 @@ import type {
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
 import { getStreamEventId, resumeStream } from '@/page/chat/conversation/utils';
+import { createClientKey } from '@/page/chat/core/clientKey';
 import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
@@ -29,6 +31,7 @@ import {
 } from './conversationLoadPolicy';
 
 export const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
+const bootstrappedConversationIds = new Set<string>();
 
 interface ConversationBootstrapOptions {
   app: App;
@@ -121,7 +124,15 @@ async function loadConversation(
     setCachedConversation(cacheScope, response);
     const title = getTitleFromConversationDetail(response);
     if (title) app.fire('chat:title:update', { conversationId, title });
-    setConversation(response);
+    setConversation({
+      ...response,
+      mapping: Object.fromEntries(
+        Object.entries(response.mapping).map(([id, message]) => [
+          id,
+          { ...message, clientKey: message.clientKey ?? createClientKey() },
+        ])
+      ),
+    });
     return response;
   } catch (error) {
     if (
@@ -169,16 +180,25 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
   if (!options.conversationId) return;
   options.setAccessDenied(false);
   const state = sessionStorage.getItem(CHAT_CREATE_PAYLOAD_KEY);
-  const payload: ChatCreatePayload | undefined = state
+  const storedPayload: ChatCreatePayload | undefined = state
     ? JSON.parse(state)
     : undefined;
+  const payload =
+    takePendingChatPayload(options.conversationId) ?? storedPayload;
+  if (bootstrappedConversationIds.has(options.conversationId)) {
+    return;
+  }
   options.setInitialApprovalMode(payload?.approvalMode);
   options.setSuppressInitialToolRestore(Boolean(payload));
   const runtime: ConversationBootstrapRuntime = { destroyed: false };
   if (payload) {
+    bootstrappedConversationIds.add(options.conversationId);
     sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
     void options.sendMessage(payload);
-    return;
+    return () => {
+      runtime.destroyed = true;
+      runtime.resumeFN?.destroy();
+    };
   }
   void loadConversation(options, runtime, 'hydrate').then(conversation => {
     if (conversation) resumeLoadedConversation(options, runtime, conversation);

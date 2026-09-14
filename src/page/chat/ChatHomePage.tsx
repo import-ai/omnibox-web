@@ -5,19 +5,27 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Typewriter } from '@/components/typewriter';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
-import { getChatHomeDraftScope } from '@/lib/chatBridge';
+import { getChatHomeDraftScope, setPendingChatPayload } from '@/lib/chatBridge';
 import { http } from '@/lib/request';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
+import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import {
-  ChatCreatePayload,
+  ChatMessageDisplayPart,
   ChatMode,
   ConversationEntity,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
-import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
+import { withUploadedImageParts } from '@/page/chat/conversation/uploadConversationImages';
+import { createClientKey } from '@/page/chat/core/clientKey';
+import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chatResponse';
+import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import ChatArea from './chat-input';
+import Scrollbar from './conversation/Scrollbar';
 import FeatureCards from './home/FeatureCards';
 import RecommendedQuestions, {
   RecommendedQuestionItem,
@@ -26,6 +34,29 @@ import useSelectedResources from './useSelectedResources.ts';
 import { getGreeting } from './utils';
 
 export default function ChatHomePage() {
+  const [pendingMessage, setPendingMessage] =
+    useState<SendMessageParams | null>(null);
+  const pendingClientKey = useRef(createClientKey());
+  const [sendFailed, setSendFailed] = useState(false);
+  const [pendingDisplayParts, setPendingDisplayParts] = useState<
+    ChatMessageDisplayPart[] | undefined
+  >();
+
+  useEffect(() => {
+    const previewUrls: string[] = [];
+    const images = pendingMessage?.images?.map(image => {
+      if ('file' in image) {
+        const url = URL.createObjectURL(image.file);
+        previewUrls.push(url);
+        return { attachment_id: image.id, name: image.name, url };
+      }
+      return image;
+    });
+    setPendingDisplayParts(
+      withUploadedImageParts(pendingMessage?.displayParts, images ?? [])
+    );
+    return () => previewUrls.forEach(url => URL.revokeObjectURL(url));
+  }, [pendingMessage]);
   const params = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -35,6 +66,9 @@ export default function ChatHomePage() {
     boolean | null
   >(null);
   const { config } = useConfig();
+  const { agentCredits } = useAgentCredits(namespaceId, [], config.commercial);
+  const imageUploadDisabled =
+    agentCredits !== undefined && agentCredits.agent_credits_remain <= 0;
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const creatingRecommendedQuestionRef = useRef(false);
@@ -96,7 +130,7 @@ export default function ChatHomePage() {
       ? defaultInputTemplate.replaceAll('{username}', username)
       : undefined;
 
-  const sendMessage = ({
+  const sendMessage = async ({
     query,
     tools,
     selectedResources,
@@ -104,27 +138,52 @@ export default function ChatHomePage() {
     displayParts,
     approvalMode,
     recommendedQuestionId,
+    images,
   }: SendMessageParams) => {
-    return http
-      .post(`/namespaces/${namespaceId}/conversations`)
-      .then((conversation: ConversationEntity) => {
-        sessionStorage.setItem(
-          'chat-create-payload',
-          JSON.stringify({
-            mode,
-            query,
-            tools,
-            selectedResources,
-            displayParts,
-            approvalMode,
-            recommendedQuestionId,
-            conversation: {
-              id: conversation.id,
-            } as ConversationDetail,
-          } as ChatCreatePayload)
-        );
-        navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
+    setSendFailed(false);
+    try {
+      // Uploading images delays navigation; dismiss the keyboard before awaiting it.
+      (document.activeElement as HTMLElement | null)?.blur();
+      const conversation = await http.post<ConversationEntity>(
+        `/namespaces/${namespaceId}/conversations`
+      );
+      setPendingMessage({
+        query,
+        tools,
+        selectedResources,
+        mode,
+        displayParts,
+        approvalMode,
+        recommendedQuestionId,
+        images,
       });
+      setPendingChatPayload(conversation.id, {
+        query,
+        tools,
+        selectedResources,
+        mode,
+        displayParts,
+        approvalMode,
+        recommendedQuestionId,
+        images,
+      });
+      sessionStorage.setItem(
+        'chat-create-payload',
+        JSON.stringify({
+          mode,
+          query,
+          tools,
+          selectedResources,
+          displayParts,
+          approvalMode,
+          recommendedQuestionId,
+          conversation: { id: conversation.id },
+        })
+      );
+      navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
+    } catch {
+      setSendFailed(true);
+    }
   };
   const handleQuestionSelect = (item: RecommendedQuestionItem) => {
     if (creatingRecommendedQuestionRef.current) {
@@ -149,18 +208,67 @@ export default function ChatHomePage() {
 
   return (
     <div
-      className="flex min-h-0 flex-1 justify-center overflow-auto p-4"
-      data-chat-home
+      className={
+        pendingMessage
+          ? 'flex min-h-0 max-h-full min-w-0 flex-1 flex-col overflow-hidden'
+          : 'flex justify-center flex-1 p-4 overflow-auto'
+      }
     >
-      <div className="flex h-full w-full max-w-3xl flex-col">
+      {pendingMessage && (
+        <Scrollbar>
+          <UserMessage
+            hideActions
+            message={{
+              id: 'pending-home-query',
+              clientKey: pendingClientKey.current,
+              message: {
+                role: OpenAIMessageRole.USER,
+                content: pendingMessage.query,
+              },
+              status: sendFailed ? MessageStatus.FAILED : MessageStatus.PENDING,
+              parent_id: '',
+              children: [],
+              attrs: {
+                pending_query: true,
+                tools: pendingMessage.tools.map(name => ({ name })),
+                user_context: {
+                  selected_resources: pendingMessage.selectedResources.map(
+                    context => context.resource.id
+                  ),
+                },
+                composer: { display_parts: pendingDisplayParts },
+              },
+            }}
+            onEdit={() => void sendMessage(pendingMessage)}
+          />
+        </Scrollbar>
+      )}
+      <div
+        className={
+          pendingMessage
+            ? 'relative z-20 flex min-h-0 max-h-full min-w-0 shrink-0 justify-center bg-white px-4 dark:bg-background'
+            : 'flex flex-col h-full max-w-3xl w-full'
+        }
+        data-chat-composer={pendingMessage ? '' : undefined}
+      >
         <div
-          className="mb-8 flex flex-1 flex-col justify-center"
-          data-chat-composer
+          className={
+            pendingMessage
+              ? 'min-w-0 w-full max-w-3xl'
+              : 'flex flex-col justify-center flex-1 mb-8'
+          }
         >
-          <h1 className="mb-[32px] text-center text-[28px] font-medium">
-            <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
-          </h1>
-          {config.commercial && <AgentCredits namespaceId={namespaceId} />}
+          {!pendingMessage && (
+            <h1 className="text-[28px] text-center mb-[32px] font-medium">
+              <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
+            </h1>
+          )}
+          {config.commercial && (
+            <AgentCredits
+              namespaceId={namespaceId}
+              agentCredits={agentCredits}
+            />
+          )}
           <ChatArea
             key={chatHomeDraftScope}
             messages={[]}
@@ -169,11 +277,20 @@ export default function ChatHomePage() {
             approvalModeResetKey={chatHomeDraftScope}
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
-            loading={false}
-            initialQuery={defaultHomeInput}
+            loading={!!pendingMessage && !sendFailed}
+            imageUploadDisabled={imageUploadDisabled}
+            initialQuery={pendingMessage ? undefined : defaultHomeInput}
             sendMessage={sendMessage}
           />
-          {config.commercial && (
+          {pendingMessage && (
+            <div
+              data-chat-disclaimer
+              className="truncate pt-2 text-center text-xs text-muted-foreground"
+            >
+              {t('chat.disclaimer')}
+            </div>
+          )}
+          {!pendingMessage && config.commercial && (
             <RecommendedQuestions
               key={namespaceId}
               namespaceId={namespaceId}
@@ -182,7 +299,7 @@ export default function ChatHomePage() {
             />
           )}
         </div>
-        <FeatureCards />
+        {!pendingMessage && <FeatureCards />}
       </div>
     </div>
   );
