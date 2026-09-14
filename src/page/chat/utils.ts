@@ -1,6 +1,7 @@
 import type { i18n as I18nType } from 'i18next';
 
 import { getLangOnly } from '@/lib/lang';
+import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
 import {
   ConversationDetail,
   ConversationSummary,
@@ -121,7 +122,9 @@ export function getTitleFromConversationDetail(
       messageItem?.message?.content &&
       messageItem.message.content.trim() !== ''
     ) {
-      return messageItem.message.content;
+      return messageItem.message.content
+        .replaceAll(WEB_SEARCH_QUERY_TOKEN, '')
+        .trim();
     }
   }
 
