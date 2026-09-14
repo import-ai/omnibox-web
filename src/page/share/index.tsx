@@ -25,6 +25,8 @@ import {
 import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
 import { getSmartFolderSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 
+import { Password } from './Password';
+import { ShareChatOnlyProvider } from './ShareChatOnlyContext';
 import { ShareLayout } from './ShareLayout';
 
 const SHARE_PASSWORD_COOKIE = 'share-password';
