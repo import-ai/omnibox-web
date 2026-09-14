@@ -11,10 +11,21 @@ import ChatArea from './index';
 
 jest.mock('./ThinkingLevelSelector', () => ({
   __esModule: true,
-  default: ({ onChange }: { onChange: (level: string) => void }) => (
-    <button data-testid="select-high" onClick={() => onChange('basic.high')}>
-      High
-    </button>
+  default: ({
+    onChange,
+    basicUnsupported,
+  }: {
+    onChange: (level: string) => void;
+    basicUnsupported?: boolean;
+  }) => (
+    <>
+      <button data-testid="select-high" onClick={() => onChange('basic.high')}>
+        High
+      </button>
+      <span data-testid="basic-unsupported">
+        {String(Boolean(basicUnsupported))}
+      </span>
+    </>
   ),
 }));
 jest.mock('@/lib/request', () => ({
@@ -556,5 +567,41 @@ describe('ChatArea', () => {
       ).click();
     });
     expect(sendButton.disabled).toBe(false);
+  });
+
+  it('marks Agent 1.1 as unsupported while composer images are present', async () => {
+    (http.get as jest.Mock).mockResolvedValue({
+      pro: {
+        default: { edition: 'pro', level: 'low' },
+        levels: [{ edition: 'pro', level: 'low' }],
+      },
+    });
+    await act(async () =>
+      root.render(
+        <ChatArea
+          initialQuery="hello"
+          loading={false}
+          messages={[]}
+          navigatePrefix="/namespace-a"
+          namespaceId="namespace-a"
+          selectedResources={[]}
+          sendMessage={jest.fn()}
+          setSelectedResources={jest.fn()}
+        />
+      )
+    );
+    await act(async () => Promise.resolve());
+    await act(async () => Promise.resolve());
+    expect(
+      container.querySelector('[data-testid="basic-unsupported"]')?.textContent
+    ).toBe('false');
+    await act(async () => {
+      (
+        container.querySelector('[data-testid="add-image"]') as HTMLElement
+      ).click();
+    });
+    expect(
+      container.querySelector('[data-testid="basic-unsupported"]')?.textContent
+    ).toBe('true');
   });
 });

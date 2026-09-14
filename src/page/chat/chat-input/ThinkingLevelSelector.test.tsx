@@ -23,7 +23,7 @@ jest.mock('@/components/tooltip', () => ({
   Tooltip: ({ children }: { children: React.ReactNode }) => children,
   TooltipTrigger: ({ children }: { children: React.ReactNode }) => children,
   TooltipContent: ({ children }: { children: React.ReactNode }) => (
-    <span data-testid="pro-tooltip">{children}</span>
+    <span data-testid="model-tooltip">{children}</span>
   ),
 }));
 
@@ -87,7 +87,7 @@ describe('ThinkingLevelSelector', () => {
       );
       expect(pro?.disabled).toBe(true);
       expect(
-        container.querySelector('[data-testid="pro-tooltip"]')?.textContent
+        container.querySelector('[data-testid="model-tooltip"]')?.textContent
       ).toBe('chat.agent_credits.compact_tooltip');
     } finally {
       await act(async () => root.unmount());
@@ -101,7 +101,53 @@ describe('ThinkingLevelSelector', () => {
         button.textContent?.includes('chat.model.pro')
       );
       expect(pro?.disabled).toBe(false);
-      expect(container.querySelector('[data-testid="pro-tooltip"]')).toBeNull();
+      expect(
+        container.querySelector('[data-testid="model-tooltip"]')
+      ).toBeNull();
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
+
+  it('disables Agent 1.1 with a tooltip when the composer has images', async () => {
+    const { container, root } = await renderSelector({
+      group: 'pro',
+      value: { edition: 'pro', level: 'low' },
+      basicUnsupported: true,
+    });
+    try {
+      const basic = [...container.querySelectorAll('button')].find(button =>
+        button.textContent?.includes('chat.model.basic')
+      );
+      expect(basic?.disabled).toBe(true);
+      expect(
+        container.querySelector('[data-testid="model-tooltip"]')?.textContent
+      ).toBe('chat.image.agent_1_1_unsupported');
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
+
+  it('hides Agent 1.1 steps from the default slider when the composer has images', async () => {
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () =>
+      root.render(
+        <ThinkingLevelSelector
+          config={config}
+          group="default"
+          onGroupChange={jest.fn()}
+          value={{ edition: 'pro', level: 'low' }}
+          onChange={jest.fn()}
+          basicUnsupported
+        />
+      )
+    );
+    try {
+      const slider = container.querySelector(
+        'input[type="range"]'
+      ) as HTMLInputElement;
+      expect(slider.max).toBe('0');
     } finally {
       await act(async () => root.unmount());
     }

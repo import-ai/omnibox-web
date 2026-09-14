@@ -683,7 +683,7 @@
       "remove": "Remove image",
       "preview": "Preview image",
       "share_unsupported": "Image uploads are not supported in shared chats",
-      "agent_1_1_unsupported": "Agent 1.1 does not support this feature"
+      "agent_1_1_unsupported": "Agent 1.1 does not support image input"
     },
     "title": "OmniBox AI",
     "page_title": "OmniBox",

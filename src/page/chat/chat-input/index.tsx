@@ -150,7 +150,10 @@ export default function ChatArea(props: IProps) {
     : undefined;
 
   const interrupts = messages.at(-1)?.attrs?.tool_call?.interrupts ?? [];
-  const hasUnsupportedImages = imageUploadDisabled && images.length > 0;
+  const basicUnsupported = images.length > 0;
+  const imageUploadBlocked =
+    imageUploadDisabled || selection?.edition === 'basic';
+  const hasUnsupportedImages = imageUploadBlocked && images.length > 0;
   const disabled =
     loading ||
     isSubmitting ||
@@ -165,7 +168,7 @@ export default function ChatArea(props: IProps) {
 
   const handleImageSelect = useCallback(
     (files: File[]) => {
-      if (imageUploadDisabled || submittingRef.current) return;
+      if (imageUploadBlocked || submittingRef.current) return;
       const accepted = files.filter(file =>
         CHAT_IMAGE_TYPES.includes(file.type)
       );
@@ -179,7 +182,7 @@ export default function ChatArea(props: IProps) {
       }));
       setImages(current => [...current, ...added]);
     },
-    [imageUploadDisabled, t]
+    [imageUploadBlocked, t]
   );
 
   const [{ isResourceOver }, connectResourceDrop] = useDrop<
@@ -189,7 +192,7 @@ export default function ChatArea(props: IProps) {
   >({
     accept: ['card', NativeTypes.FILE],
     canDrop: (_item, monitor) =>
-      monitor.getItemType() === 'card' || !imageUploadDisabled,
+      monitor.getItemType() === 'card' || !imageUploadBlocked,
     drop: (item, monitor) => {
       if (monitor.getItemType() === NativeTypes.FILE) {
         handleImageSelect((item as { files: File[] }).files);
@@ -344,8 +347,14 @@ export default function ChatArea(props: IProps) {
               inputRef.current?.insertResource(resource)
             }
             onImageSelect={handleImageSelect}
-            imageUploadDisabled={imageUploadDisabled || isSubmitting}
-            imageUploadDisabledReason={imageUploadDisabledReason}
+            imageUploadDisabled={imageUploadBlocked || isSubmitting}
+            imageUploadDisabledReason={
+              imageUploadDisabled
+                ? imageUploadDisabledReason
+                : selection?.edition === 'basic'
+                  ? t('chat.image.agent_1_1_unsupported')
+                  : imageUploadDisabledReason
+            }
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}
@@ -359,12 +368,19 @@ export default function ChatArea(props: IProps) {
           {thinkingConfig && selection && (
             <ThinkingLevelSelector
               group={thinkingGroup}
-              onGroupChange={changeGroup}
+              onGroupChange={next => {
+                if (basicUnsupported && next === 'basic') return;
+                changeGroup(next);
+              }}
               config={thinkingConfig}
               value={selection}
-              onChange={changeLevel}
+              onChange={next => {
+                if (basicUnsupported && next.startsWith('basic.')) return;
+                changeLevel(next);
+              }}
               proLocked={proLocked}
               proUnsupported={proUnsupported}
+              basicUnsupported={basicUnsupported}
               disabled={isPreparingImages}
             />
           )}

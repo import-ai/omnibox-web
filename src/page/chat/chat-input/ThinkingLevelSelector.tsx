@@ -32,6 +32,7 @@ interface Props {
   disabled?: boolean;
   proLocked?: boolean;
   proUnsupported?: boolean;
+  basicUnsupported?: boolean;
 }
 
 export default function ThinkingLevelSelector({
@@ -43,19 +44,26 @@ export default function ThinkingLevelSelector({
   disabled,
   proLocked = false,
   proUnsupported = false,
+  basicUnsupported = false,
 }: Props) {
   const { t } = useTranslation();
   const [modelsOpen, setModelsOpen] = useState(false);
   const options = config[group];
   if (!options) return null;
-  const visibleLevels = options.levels.filter(
-    item =>
-      !(
-        (proLocked || proUnsupported) &&
-        group === 'default' &&
-        item.edition === 'pro'
-      )
-  );
+  const visibleLevels = options.levels.filter(item => {
+    if (group !== 'default') return true;
+    if ((proLocked || proUnsupported) && item.edition === 'pro') return false;
+    if (basicUnsupported && item.edition === 'basic') return false;
+    return true;
+  });
+  const defaultSliderHint =
+    group !== 'default'
+      ? undefined
+      : proLocked || proUnsupported
+        ? t('chat.agent_credits.compact_tooltip')
+        : basicUnsupported
+          ? t('chat.image.agent_1_1_unsupported')
+          : undefined;
   const index = Math.max(
     0,
     visibleLevels.findIndex(item => thinkingStep(item) === thinkingStep(value))
@@ -100,12 +108,16 @@ export default function ThinkingLevelSelector({
             {(['default', 'pro', 'basic'] as ThinkingGroup[])
               .filter(item => config[item])
               .map(item => {
-                const proDisabled =
-                  (proLocked || proUnsupported) && item === 'pro';
+                const disabledReason =
+                  (proLocked || proUnsupported) && item === 'pro'
+                    ? t('chat.agent_credits.compact_tooltip')
+                    : basicUnsupported && item === 'basic'
+                      ? t('chat.image.agent_1_1_unsupported')
+                      : undefined;
                 const button = (
                   <button
                     type="button"
-                    disabled={proDisabled}
+                    disabled={Boolean(disabledReason)}
                     aria-pressed={group === item}
                     className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm text-left hover:bg-black/5 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/10"
                     onClick={() => {
@@ -124,7 +136,7 @@ export default function ThinkingLevelSelector({
                     {group === item && <Check className="size-4" />}
                   </button>
                 );
-                if (!proDisabled) return <div key={item}>{button}</div>;
+                if (!disabledReason) return <div key={item}>{button}</div>;
                 return (
                   <TooltipProvider key={item} delayDuration={0}>
                     <Tooltip>
@@ -133,9 +145,7 @@ export default function ThinkingLevelSelector({
                           {button}
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent>
-                        {t('chat.agent_credits.compact_tooltip')}
-                      </TooltipContent>
+                      <TooltipContent>{disabledReason}</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 );
@@ -163,18 +173,25 @@ export default function ThinkingLevelSelector({
                 type="button"
                 disabled={disabled}
                 aria-label={t('chat.reset_thinking_level')}
-                onClick={() => onChange(thinkingStep(options.default))}
+                onClick={() =>
+                  onChange(
+                    thinkingStep(
+                      visibleLevels.some(
+                        item =>
+                          thinkingStep(item) === thinkingStep(options.default)
+                      )
+                        ? options.default
+                        : (visibleLevels[0] ?? options.default)
+                    )
+                  )
+                }
                 className="absolute right-0 top-1 rounded-full p-1.5 text-muted-foreground hover:bg-muted"
               >
                 <RotateCcw className="size-4" />
               </button>
             </div>
             <div
-              title={
-                (proLocked || proUnsupported) && group === 'default'
-                  ? t('chat.agent_credits.compact_tooltip')
-                  : undefined
-              }
+              title={defaultSliderHint}
               className="thinking-slider relative mx-1 h-6 rounded-full bg-black/10 dark:bg-white/10"
             >
               <div
@@ -207,10 +224,8 @@ export default function ThinkingLevelSelector({
                 value={index}
                 disabled={disabled || visibleLevels.length < 2}
                 title={
-                  (proLocked || proUnsupported) &&
-                  group === 'default' &&
                   visibleLevels.length < options.levels.length
-                    ? t('chat.agent_credits.compact_tooltip')
+                    ? defaultSliderHint
                     : undefined
                 }
                 aria-label={t('chat.thinking_level')}
