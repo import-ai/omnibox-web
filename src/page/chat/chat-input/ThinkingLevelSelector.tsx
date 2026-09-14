@@ -4,7 +4,12 @@ import { Check, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import {
   Popover,
   PopoverContent,
@@ -94,41 +99,47 @@ export default function ThinkingLevelSelector({
             </button>
             {(['default', 'pro', 'basic'] as ThinkingGroup[])
               .filter(item => config[item])
-              .map(item => (
-                <Tooltip key={item} delayDuration={0}>
-                  <TooltipTrigger asChild>
+              .map(item => {
+                const proDisabled =
+                  (proLocked || proUnsupported) && item === 'pro';
+                const button = (
+                  <button
+                    type="button"
+                    disabled={proDisabled}
+                    aria-pressed={group === item}
+                    className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm text-left hover:bg-black/5 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/10"
+                    onClick={() => {
+                      onGroupChange(item);
+                      setModelsOpen(false);
+                    }}
+                  >
                     <span>
-                      <button
-                        type="button"
-                        disabled={
-                          (proLocked || proUnsupported) && item === 'pro'
-                        }
-                        aria-pressed={group === item}
-                        className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm text-left hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/10"
-                        onClick={() => {
-                          onGroupChange(item);
-                          setModelsOpen(false);
-                        }}
-                      >
-                        <span>
-                          {t(`chat.model.${item}`)}
-                          {item === 'default' && (
-                            <span className="block text-xs text-muted-foreground">
-                              {t('chat.default_models_description')}
-                            </span>
-                          )}
+                      {t(`chat.model.${item}`)}
+                      {item === 'default' && (
+                        <span className="block text-xs text-muted-foreground">
+                          {t('chat.default_models_description')}
                         </span>
-                        {group === item && <Check className="size-4" />}
-                      </button>
+                      )}
                     </span>
-                  </TooltipTrigger>
-                  {proLocked && item === 'pro' && (
-                    <TooltipContent>
-                      {t('chat.agent_credits.compact_tooltip')}
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              ))}
+                    {group === item && <Check className="size-4" />}
+                  </button>
+                );
+                if (!proDisabled) return <div key={item}>{button}</div>;
+                return (
+                  <TooltipProvider key={item} delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="block w-full cursor-not-allowed">
+                          {button}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {t('chat.agent_credits.compact_tooltip')}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
           </div>
         ) : (
           <>
