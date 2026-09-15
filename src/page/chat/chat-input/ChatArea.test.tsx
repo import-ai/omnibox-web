@@ -13,15 +13,26 @@ jest.mock('./ThinkingLevelSelector', () => ({
   __esModule: true,
   default: ({
     onChange,
+    onGroupChange,
+    group,
     basicUnsupported,
   }: {
     onChange: (level: string) => void;
+    onGroupChange: (group: string) => void;
+    group?: string;
     basicUnsupported?: boolean;
   }) => (
     <>
       <button data-testid="select-high" onClick={() => onChange('basic.high')}>
         High
       </button>
+      <button
+        data-testid="select-default"
+        onClick={() => onGroupChange('default')}
+      >
+        Default
+      </button>
+      <span data-testid="thinking-group">{group}</span>
       <span data-testid="basic-unsupported">
         {String(Boolean(basicUnsupported))}
       </span>
@@ -258,6 +269,60 @@ describe('ChatArea', () => {
     expect(
       JSON.parse(localStorage.getItem('thinking-level:/namespace-a')!)
     ).toEqual({ group: 'basic', step: 'basic.high' });
+  });
+
+  it('stays on Default when Agent 2.1 credits are exhausted', async () => {
+    (http.get as jest.Mock).mockResolvedValue({
+      basic: {
+        default: { edition: 'basic', level: 'low' },
+        levels: [{ edition: 'basic', level: 'low' }],
+      },
+      pro: {
+        default: { edition: 'pro', level: 'low' },
+        levels: [{ edition: 'pro', level: 'low' }],
+      },
+      default: {
+        default: { edition: 'pro', level: 'low' },
+        levels: [
+          { edition: 'basic', level: 'low' },
+          { edition: 'pro', level: 'low' },
+        ],
+      },
+    });
+    localStorage.setItem(
+      'thinking-level:/namespace-a',
+      JSON.stringify({ group: 'basic', step: 'basic.low' })
+    );
+    await act(async () =>
+      root.render(
+        <ChatArea
+          proUnsupported
+          initialQuery="hello"
+          loading={false}
+          messages={[]}
+          navigatePrefix="/namespace-a"
+          selectedResources={[]}
+          sendMessage={jest.fn()}
+          setSelectedResources={jest.fn()}
+        />
+      )
+    );
+    await act(async () => Promise.resolve());
+    await act(async () => Promise.resolve());
+    expect(
+      container.querySelector('[data-testid="thinking-group"]')?.textContent
+    ).toBe('basic');
+    await act(async () => {
+      (
+        container.querySelector('[data-testid="select-default"]') as HTMLElement
+      ).click();
+    });
+    expect(
+      container.querySelector('[data-testid="thinking-group"]')?.textContent
+    ).toBe('default');
+    expect(
+      JSON.parse(localStorage.getItem('thinking-level:/namespace-a')!)
+    ).toEqual({ group: 'default', step: 'basic.low' });
   });
 
   it('resumes the interrupted Pro Max turn independently of the saved draft selection', async () => {

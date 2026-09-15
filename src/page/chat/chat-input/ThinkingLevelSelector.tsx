@@ -15,7 +15,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/Popover';
+import { cn } from '@/lib/utils';
 
+import { composerControlHoverClass } from './composerControlClass';
 import {
   type ThinkingConfig,
   type ThinkingGroup,
@@ -84,7 +86,10 @@ export default function ThinkingLevelSelector({
           type="button"
           disabled={disabled}
           aria-label={`${t('chat.thinking_level')}: ${edition} ${label}`}
-          className="flex h-8 items-center rounded-full px-2 text-xs text-muted-foreground hover:bg-black/5 data-[state=open]:bg-black/5 dark:hover:bg-white/10 dark:data-[state=open]:bg-white/10"
+          className={cn(
+            'flex h-8 items-center rounded-full px-2 text-xs',
+            composerControlHoverClass
+          )}
         >
           {edition} {label}
         </button>
@@ -93,7 +98,7 @@ export default function ThinkingLevelSelector({
         side="top"
         align="end"
         sideOffset={8}
-        className="w-[240px] max-w-[calc(100vw-32px)] rounded-2xl border-black/10 bg-background px-3 pb-3 pt-2 shadow-xl dark:border-white/10 dark:bg-[#292929]"
+        className="w-[240px] max-w-[calc(100vw-32px)] rounded-2xl border-black/10 bg-popover px-3 pb-3 pt-2 shadow-xl dark:border-white/10"
       >
         {modelsOpen ? (
           <div className="space-y-1">
@@ -119,7 +124,7 @@ export default function ThinkingLevelSelector({
                     type="button"
                     disabled={Boolean(disabledReason)}
                     aria-pressed={group === item}
-                    className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm text-left hover:bg-black/5 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/10"
+                    className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-left text-sm hover:bg-accent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={() => {
                       onGroupChange(item);
                       setModelsOpen(false);
@@ -159,7 +164,7 @@ export default function ThinkingLevelSelector({
                 aria-label={t('chat.model_tier')}
                 disabled={disabled}
                 onClick={() => setModelsOpen(true)}
-                className="rounded-xl px-1 py-1 hover:bg-black/5 dark:hover:bg-white/10"
+                className="rounded-xl px-1 py-1 hover:bg-accent"
               >
                 <span className="flex items-center justify-center gap-1 text-base font-medium text-[#3098ff]">
                   {title}
@@ -169,26 +174,29 @@ export default function ThinkingLevelSelector({
                   {t(`chat.model.${group}`)}
                 </span>
               </button>
-              <button
-                type="button"
-                disabled={disabled}
-                aria-label={t('chat.reset_thinking_level')}
-                onClick={() =>
-                  onChange(
-                    thinkingStep(
-                      visibleLevels.some(
-                        item =>
-                          thinkingStep(item) === thinkingStep(options.default)
-                      )
-                        ? options.default
-                        : (visibleLevels[0] ?? options.default)
-                    )
-                  )
-                }
-                className="absolute right-0 top-1 rounded-full p-1.5 text-muted-foreground hover:bg-muted"
-              >
-                <RotateCcw className="size-4" />
-              </button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="absolute right-0 top-1">
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        aria-label={t('chat.restore_default')}
+                        onClick={() => onGroupChange('default')}
+                        className={cn(
+                          'rounded-full p-1.5',
+                          composerControlHoverClass
+                        )}
+                      >
+                        <RotateCcw className="size-4" />
+                      </button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="z-[60]">
+                    {t('chat.restore_default')}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div
               title={defaultSliderHint}

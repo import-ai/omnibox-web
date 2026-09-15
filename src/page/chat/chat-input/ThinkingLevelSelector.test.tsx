@@ -128,6 +128,50 @@ describe('ThinkingLevelSelector', () => {
     }
   });
 
+  it('keeps Default enabled when Agent 2.1 credits are exhausted', async () => {
+    const { container, root } = await renderSelector({ proUnsupported: true });
+    try {
+      const fallback = [...container.querySelectorAll('button')].find(button =>
+        button.textContent?.includes('chat.model.default')
+      );
+      expect(fallback?.disabled).toBe(false);
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
+
+  it('resets to the Default group', async () => {
+    const onGroupChange = jest.fn();
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    await act(async () =>
+      root.render(
+        <ThinkingLevelSelector
+          config={config}
+          group="basic"
+          onGroupChange={onGroupChange}
+          value={{ edition: 'basic', level: 'low' }}
+          onChange={jest.fn()}
+        />
+      )
+    );
+    try {
+      expect(
+        container.querySelector('[data-testid="model-tooltip"]')?.textContent
+      ).toBe('chat.restore_default');
+      await act(async () => {
+        container
+          .querySelector<HTMLButtonElement>(
+            'button[aria-label="chat.restore_default"]'
+          )
+          ?.click();
+      });
+      expect(onGroupChange).toHaveBeenCalledWith('default');
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
+
   it('hides Agent 1.1 steps from the default slider when the composer has images', async () => {
     const container = document.createElement('div');
     const root = createRoot(container);

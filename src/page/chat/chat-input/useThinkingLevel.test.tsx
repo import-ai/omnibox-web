@@ -5,7 +5,7 @@ import { createRoot } from 'react-dom/client';
 
 import { http } from '@/lib/request';
 
-import { useThinkingLevel } from './useThinkingLevel';
+import { availableThinkingStep, useThinkingLevel } from './useThinkingLevel';
 
 jest.mock('@/lib/request', () => ({ http: { get: jest.fn() } }));
 (
@@ -65,4 +65,52 @@ it('selects five Default steps, switches 3/2 groups and restores the selection',
     await act(async () => root.unmount());
     localStorage.clear();
   }
+});
+
+it('selects an explicit step when changing groups', async () => {
+  const basic = ['low', 'high'].map(level => ({
+    edition: 'basic' as const,
+    level,
+  }));
+  const pro = ['low', 'high'].map(level => ({
+    edition: 'pro' as const,
+    level,
+  }));
+  (http.get as jest.Mock).mockResolvedValue({
+    basic: { default: basic[0], levels: basic },
+    pro: { default: pro[0], levels: pro },
+    default: { default: pro[0], levels: [...basic, ...pro] },
+  });
+  localStorage.clear();
+  let result!: ReturnType<typeof useThinkingLevel>;
+  function Harness() {
+    result = useThinkingLevel('/full', []);
+    return null;
+  }
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () => root.render(React.createElement(Harness)));
+    await act(async () => result.changeGroup('default', 'basic.high'));
+    expect(result.group).toBe('default');
+    expect(result.selection).toEqual(basic[1]);
+  } finally {
+    await act(async () => root.unmount());
+    localStorage.clear();
+  }
+});
+
+it('prefers the group default when it is still available', () => {
+  const options = {
+    default: { edition: 'pro' as const, level: 'low' },
+    levels: [
+      { edition: 'basic' as const, level: 'low' },
+      { edition: 'pro' as const, level: 'low' },
+    ],
+  };
+  expect(availableThinkingStep(options)).toBe('pro.low');
+  expect(availableThinkingStep(options, { pro: true })).toBe('basic.low');
+  expect(availableThinkingStep(options, { pro: true, basic: true })).toBe(
+    undefined
+  );
 });
