@@ -33,7 +33,7 @@ export function Header(props: IProps) {
   const active = useLocation().pathname.includes('/chat');
   const [search, setSearch] = useState(false);
   const { t, i18n } = useTranslation();
-  const downloadAppHref = `https://www.omnibox.pro/${i18n.language.startsWith('zh') ? 'zh-cn' : 'en'}/download/`;
+  const downloadAppHref = `/${i18n.language.startsWith('zh') ? 'zh-cn' : 'en'}/download/`;
   const isTouch = useIsTouch();
   const unreadCount = useNotificationUnreadCount();
   const onChat = () => {

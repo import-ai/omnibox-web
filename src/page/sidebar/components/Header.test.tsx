@@ -75,7 +75,7 @@ describe('Header', () => {
   it('opens the Chinese download page from the community entry', () => {
     const html = renderHeader('zh-CN');
 
-    expect(html).toContain('href="https://www.omnibox.pro/zh-cn/download/"');
+    expect(html).toContain('href="/zh-cn/download/"');
     expect(html).toContain('lucide-download');
     expect(html).toContain('download_app');
     expect(html).not.toContain('download_app_qr_title');
@@ -88,9 +88,7 @@ describe('Header', () => {
   it('opens the English download page when the UI language is English', () => {
     const html = renderHeader('en-US');
 
-    expect(html).toContain('href="https://www.omnibox.pro/en/download/"');
-    expect(html).not.toContain(
-      'href="https://www.omnibox.pro/zh-cn/download/"'
-    );
+    expect(html).toContain('href="/en/download/"');
+    expect(html).not.toContain('href="/zh-cn/download/"');
   });
 });
