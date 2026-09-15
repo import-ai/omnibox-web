@@ -253,7 +253,7 @@ export default function Folder(props: IProps) {
   }
 
   return (
-    <div className="space-y-6 pb-[30vh]">
+    <div className="min-w-0 space-y-6 pb-[30vh]">
       {data.length > 0 && (initialSyncLoading || initialSyncFailed) && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           {initialSyncLoading && <Spinner className="size-4" />}
@@ -266,7 +266,7 @@ export default function Folder(props: IProps) {
         <>
           {groupTimestampedItemsByTimestamp(data, i18n, itemTimestamp).map(
             ([key, items]) => (
-              <div key={key}>
+              <div key={key} className="min-w-0">
                 <div className="pb-4">
                   <p className="text-sm text-muted-foreground font-light ml-0.5">
                     {key}
@@ -290,7 +290,7 @@ export default function Folder(props: IProps) {
                       : undefined;
                   return (
                     <div
-                      className="cursor-pointer group"
+                      className="group min-w-0 cursor-pointer"
                       key={item.id}
                       onClick={() => {
                         navigateToResource(
@@ -315,13 +315,13 @@ export default function Folder(props: IProps) {
                         );
                       }}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2 min-w-0">
+                      <div className="mb-2 flex min-w-0 items-center justify-between">
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
                           <RssItemFeedBadge
                             name={feedName}
                             size="page"
                             fallback={
-                              <div className="[&>svg]:w-5 [&>svg]:h-5 text-muted-foreground">
+                              <div className="shrink-0 text-muted-foreground [&>svg]:h-5 [&>svg]:w-5">
                                 <ResourceIcon
                                   expand={false}
                                   resource={iconResource}
@@ -329,7 +329,7 @@ export default function Folder(props: IProps) {
                               </div>
                             }
                           />
-                          <h3 className="text-lg font-medium line-clamp-2 group-hover:text-blue-500 truncate">
+                          <h3 className="min-w-0 flex-1 truncate text-lg font-medium group-hover:text-blue-500">
                             {item.name || t('untitled')}
                           </h3>
                         </div>

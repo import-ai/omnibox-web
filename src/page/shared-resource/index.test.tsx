@@ -8,33 +8,51 @@ import { TooltipProvider } from '@/components/tooltip';
 import SharedResourcePage from '.';
 
 let mockShareContext: Record<string, unknown>;
+let mockOutletContext: { showToc?: boolean } | null = { showToc: true };
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
-jest.mock('@/components/attributes', () => ({
-  __esModule: true,
-  default: () => <div data-testid="attributes" />,
+jest.mock('react-router-dom', () => ({
+  useOutletContext: () => mockOutletContext,
 }));
 jest.mock('@/components/loading', () => 'div');
-jest.mock('@/components/ui/Sidebar', () => ({
-  useSidebar: () => ({ open: false }),
-}));
 jest.mock('@/lib/utils', () => ({
-  cn: (...classes: string[]) => classes.filter(Boolean).join(' '),
   setDocumentTitle: jest.fn(),
 }));
 jest.mock('@/page/auth/DeletedResourcePage', () => 'div');
-jest.mock('../resource/folder', () => ({
+jest.mock('@/page/resource/Page', () => ({
   __esModule: true,
-  default: ({ resourceId }: { resourceId: string }) => (
-    <div data-testid="folder" data-resource-id={resourceId} />
-  ),
-}));
-jest.mock('../resource/Render', () => ({
-  __esModule: true,
-  default: ({ resource }: { resource: { id: string } }) => (
-    <div data-testid="render" data-resource-id={resource.id} />
+  default: ({
+    resource,
+    apiPrefix,
+    navigationPrefix,
+    readOnly,
+    wide,
+    showToc,
+  }: {
+    resource: { id: string; resource_type: string };
+    apiPrefix?: string;
+    navigationPrefix?: string;
+    readOnly?: boolean;
+    wide: boolean;
+    showToc: boolean;
+  }) => (
+    <div
+      data-testid={
+        resource.resource_type === 'folder' ||
+        resource.resource_type === 'smart_folder' ||
+        resource.resource_type === 'rss_folder'
+          ? 'folder'
+          : 'render'
+      }
+      data-resource-id={resource.id}
+      data-api-prefix={apiPrefix}
+      data-navigation-prefix={navigationPrefix}
+      data-readonly={String(!!readOnly)}
+      data-wide={String(wide)}
+      data-show-toc={String(showToc)}
+    />
   ),
 }));
 jest.mock('../share', () => ({
@@ -51,6 +69,7 @@ describe('SharedResourcePage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOutletContext = { showToc: true };
     container = document.createElement('div');
     root = createRoot(container);
   });
@@ -81,9 +100,15 @@ describe('SharedResourcePage', () => {
 
     const folder = container.querySelector('[data-testid="folder"]');
     expect(folder?.getAttribute('data-resource-id')).toBe('folder-1');
+    expect(folder?.getAttribute('data-api-prefix')).toBe(
+      '/shares/share-1/resources'
+    );
+    expect(folder?.getAttribute('data-navigation-prefix')).toBe('/s/share-1');
+    expect(folder?.getAttribute('data-readonly')).toBe('true');
   });
 
   it('renders a shared rss item through the generic markdown view', async () => {
+    mockOutletContext = { showToc: false };
     mockShareContext = {
       notFound: false,
       shareInfo: { id: 'share-1' },
@@ -94,7 +119,7 @@ describe('SharedResourcePage', () => {
         read_only: true,
         content: '# Article',
       },
-      wide: false,
+      wide: true,
     };
 
     await act(async () => {
@@ -107,6 +132,8 @@ describe('SharedResourcePage', () => {
 
     const render = container.querySelector('[data-testid="render"]');
     expect(render?.getAttribute('data-resource-id')).toBe('item-1');
+    expect(render?.getAttribute('data-wide')).toBe('true');
+    expect(render?.getAttribute('data-show-toc')).toBe('false');
     expect(container.querySelector('[data-testid="folder"]')).toBeNull();
   });
 });

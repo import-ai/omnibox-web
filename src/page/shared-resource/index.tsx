@@ -1,37 +1,23 @@
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 
-import Attributes from '@/components/attributes';
 import Loading from '@/components/loading';
-import { useSidebar } from '@/components/ui/Sidebar';
-import { cn, setDocumentTitle } from '@/lib/utils';
+import { Resource } from '@/interface';
+import { setDocumentTitle } from '@/lib/utils';
 import DeletedResourcePage from '@/page/auth/DeletedResourcePage';
+import Page from '@/page/resource/Page';
 
-import Folder from '../resource/folder';
-import Render from '../resource/Render';
 import { useShareContext } from '../share';
 
 export default function SharedResourcePage() {
-  const { t } = useTranslation();
   const { notFound, shareInfo, resource, wide } = useShareContext();
-  const { open } = useSidebar();
-  const [large, onLarge] = useState(window.innerWidth > 1500);
+  const { showToc = true } = useOutletContext<{ showToc?: boolean }>() ?? {};
 
   useEffect(() => {
     if (resource?.name) {
       setDocumentTitle(resource.name);
     }
   }, [resource?.name]);
-
-  useEffect(() => {
-    function handleSize() {
-      onLarge(window.innerWidth > 1500);
-    }
-    window.addEventListener('resize', handleSize);
-    return () => {
-      window.removeEventListener('resize', handleSize);
-    };
-  }, []);
 
   if (notFound) {
     return <DeletedResourcePage />;
@@ -42,67 +28,16 @@ export default function SharedResourcePage() {
   }
 
   return (
-    <div
-      data-resource-scroll
-      className="shared-resource-page flex h-full w-full min-w-0 justify-center overflow-y-auto overflow-x-hidden p-4"
-    >
-      <div
-        className={cn(
-          'shared-resource-content flex min-w-0 w-full max-w-full flex-col',
-          {
-            'max-w-[680px]': !wide && (open || !large),
-            'max-w-[800px]': !wide && (!open || large),
-            'max-w-7xl': wide,
-          }
-        )}
-      >
-        <div className="shared-resource-header">
-          <h1 className="mb-4 min-w-0 max-w-full text-[34px] font-bold break-all">
-            {resource.name || t('untitled')}
-          </h1>
-          <Attributes
-            resource={resource as any}
-            namespaceId={shareInfo.id}
-            readOnly
-          />
-        </div>
-        {resource.resource_type === 'smart_folder' ? (
-          <Folder
-            resourceId={resource.id}
-            apiPrefix={`/shares/${shareInfo.id}/resources`}
-            namespaceId={shareInfo.id}
-            emptyText={t('smart_folder.empty')}
-            navigationPrefix={`/s/${shareInfo.id}`}
-            loadAll
-            smartFolderParentId={resource.id}
-          />
-        ) : resource.resource_type === 'rss_folder' ? (
-          <Folder
-            resourceId={resource.id}
-            apiPrefix={`/shares/${shareInfo.id}/resources`}
-            namespaceId={shareInfo.id}
-            emptyText={t('rss_folder.empty')}
-            navigationPrefix={`/s/${shareInfo.id}`}
-            // Paged like the workspace folder view: a shared feed can hold
-            // thousands of articles. The share endpoint already orders an rss
-            // folder newest-published first, so no sort override is needed.
-          />
-        ) : resource.resource_type === 'folder' ? (
-          <Folder
-            resourceId={resource.id}
-            apiPrefix={`/shares/${shareInfo.id}/resources`}
-            namespaceId={shareInfo.id}
-            navigationPrefix={`/s/${shareInfo.id}`}
-          />
-        ) : (
-          <Render
-            resource={resource}
-            forceOmniboxEditor
-            namespaceId={`share:${shareInfo.id}`}
-            linkBase={`/s/${shareInfo.id}/${resource.id}`}
-          />
-        )}
-      </div>
-    </div>
+    <Page
+      editPage={false}
+      resource={resource as Resource}
+      namespaceId={shareInfo.id}
+      commentsNamespaceId={`share:${shareInfo.id}`}
+      showToc={showToc}
+      wide={wide}
+      readOnly
+      apiPrefix={`/shares/${shareInfo.id}/resources`}
+      navigationPrefix={`/s/${shareInfo.id}`}
+    />
   );
 }

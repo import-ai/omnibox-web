@@ -13,6 +13,7 @@ import {
   useResourceStore,
 } from '@/page/resource/resourceStore';
 import { splitSearchText } from '@/page/resource/searchHighlight';
+import { isFolderLikeResourceType } from '@/page/resource/useResourcePaneLayout';
 import { RSS_ITEM_SORT } from '@/service/resourceSort';
 
 import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
@@ -28,7 +29,12 @@ interface IProps {
   showToc: boolean;
   scrollToLine?: number;
   wide: boolean;
-  onResource: (resource: Resource) => void;
+  onResource?: (resource: Resource) => void;
+  readOnly?: boolean;
+  apiPrefix?: string;
+  navigationPrefix?: string;
+  rssFeedNames?: boolean;
+  commentsNamespaceId?: string;
 }
 
 interface PageContentProps extends IProps {
@@ -47,24 +53,29 @@ function PageContent(props: PageContentProps) {
     wide,
     comments,
     onContentDirtyChange,
+    readOnly,
+    apiPrefix,
+    navigationPrefix,
+    rssFeedNames,
   } = props;
   const { t } = useTranslation();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
-  const constrainHeader =
-    useOmniboxEditor &&
-    resource.resource_type !== 'folder' &&
-    resource.resource_type !== 'smart_folder' &&
-    resource.resource_type !== 'rss_folder';
-  const constrainFolderContent =
-    resource.resource_type === 'folder' ||
-    resource.resource_type === 'smart_folder' ||
-    resource.resource_type === 'rss_folder';
+  const folderLike = isFolderLikeResourceType(resource.resource_type);
+  const constrainHeader = useOmniboxEditor && !folderLike;
+  const constrainFolderContent = folderLike;
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query') ?? '';
   const title = resource.name || t('untitled');
+  const childrenApiPrefix =
+    apiPrefix ??
+    (resource.resource_type === 'smart_folder'
+      ? `/namespaces/${namespaceId}/smart-folders`
+      : `/namespaces/${namespaceId}/resources`);
+  const childrenNavigationPrefix = navigationPrefix ?? `/${namespaceId}`;
+  const showRssFeedNames = rssFeedNames ?? !apiPrefix;
 
   // Read-only resources (rss items) have no editor, even on the /edit route.
-  if (editPage && !resource.read_only) {
+  if (editPage && !resource.read_only && onResource) {
     return (
       <Editor
         comments={comments}
@@ -106,44 +117,48 @@ function PageContent(props: PageContentProps) {
           namespaceId={namespaceId}
           resource={resource}
           onResource={onResource}
+          readOnly={readOnly}
         />
       </div>
       {resource.resource_type === 'smart_folder' ? (
         <Folder
           resourceId={resource.id}
-          apiPrefix={`/namespaces/${namespaceId}/smart-folders`}
+          apiPrefix={childrenApiPrefix}
           namespaceId={namespaceId}
           emptyText={t('smart_folder.empty')}
-          navigationPrefix={`/${namespaceId}`}
+          navigationPrefix={childrenNavigationPrefix}
           loadAll
           smartFolderParentId={resource.id}
         />
       ) : resource.resource_type === 'rss_folder' ? (
         <Folder
           resourceId={resource.id}
-          apiPrefix={`/namespaces/${namespaceId}/resources`}
+          apiPrefix={childrenApiPrefix}
           namespaceId={namespaceId}
           emptyText={t('rss_folder.empty')}
-          navigationPrefix={`/${namespaceId}`}
-          sort={RSS_ITEM_SORT}
-          rssFeedNames
+          navigationPrefix={childrenNavigationPrefix}
+          // Paged like the workspace folder view: a shared feed can hold
+          // thousands of articles. The share endpoint already orders an rss
+          // folder newest-published first, so no sort override is needed.
+          sort={apiPrefix ? undefined : RSS_ITEM_SORT}
+          rssFeedNames={showRssFeedNames}
         />
       ) : resource.resource_type === 'folder' ? (
         <Folder
           resourceId={resource.id}
-          apiPrefix={`/namespaces/${namespaceId}/resources`}
+          apiPrefix={childrenApiPrefix}
           namespaceId={namespaceId}
-          navigationPrefix={`/${namespaceId}`}
+          navigationPrefix={childrenNavigationPrefix}
         />
       ) : (
         <Render
           comments={comments}
-          namespaceId={namespaceId}
+          namespaceId={props.commentsNamespaceId ?? namespaceId}
           resource={resource}
           showToc={showToc}
           scrollToLine={scrollToLine}
           wide={wide}
-          linkBase={`/${namespaceId}/${resource.id}`}
+          linkBase={`${childrenNavigationPrefix}/${resource.id}`}
           style={{ overflow: 'inherit' }}
         />
       )}
@@ -153,16 +168,15 @@ function PageContent(props: PageContentProps) {
 
 export default function Page(props: IProps) {
   const { editPage, namespaceId, resource } = props;
+  const commentsNamespaceId = props.commentsNamespaceId ?? namespaceId;
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const [contentDirty, setContentDirty] = useState(false);
   const commentsEnabled =
     useOmniboxEditor &&
-    !!namespaceId &&
-    resource.resource_type !== 'folder' &&
-    resource.resource_type !== 'smart_folder' &&
-    resource.resource_type !== 'rss_folder';
+    !!commentsNamespaceId &&
+    !isFolderLikeResourceType(resource.resource_type);
   const comments = useResourceComments({
-    namespaceId,
+    namespaceId: commentsNamespaceId,
     resource,
     enabled: commentsEnabled,
     contentDirty: editPage && contentDirty,

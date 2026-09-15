@@ -1,13 +1,23 @@
-import { Suspense } from 'react';
+import { type CSSProperties, Suspense, useCallback, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { Separator } from '@/components/ui/Separator';
-import { SidebarInset } from '@/components/ui/Sidebar';
+import { SidebarInset, useSidebar } from '@/components/ui/Sidebar';
+import useApp from '@/hooks/useApp';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { cn } from '@/lib/utils';
 import { ResourceCommentsProvider } from '@/page/resource/comments/ResourceCommentsContext';
+import {
+  selectUseOmniboxEditor,
+  useResourceStore,
+} from '@/page/resource/resourceStore';
+import {
+  resourcePaneColumnClassName,
+  shouldUseFullWidthResourcePane,
+  useResourcePaneLayout,
+} from '@/page/resource/useResourcePaneLayout';
 
 import Header from './header';
 import ShareSidebar from './sidebar/index';
@@ -38,16 +48,33 @@ export function ShareLayout(props: IProps) {
     currentResourcePath,
     handleAddToContext,
     resource,
-    wide,
+    wide = false,
     onWide,
     showSidebar = true,
     chatOnly = false,
   } = props;
+  const app = useApp();
+  const { open, width: sidebarWidth } = useSidebar();
   const location = useLocation();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const useFullWidth = shouldUseFullWidthResourcePane(
+    useOmniboxEditor,
+    resource?.resource_type
+  );
+  const showResourcePane = !isChatActive && !chatOnly;
+  const onNearBottom = useCallback(() => {
+    app.fire('scroll-to-bottom');
+  }, [app]);
+  const { large, compactResourcePane } = useResourcePaneLayout(
+    scrollContainerRef,
+    { enabled: showResourcePane, onNearBottom }
+  );
   const sidebarActiveKey =
     typeof location.state?.sidebarActiveKey === 'string'
       ? location.state.sidebarActiveKey
       : currentResourceId;
+  const showToc = !compactResourcePane;
 
   const showComments =
     !isChatActive &&
@@ -57,7 +84,7 @@ export function ShareLayout(props: IProps) {
 
   const content = (
     <>
-      {!isChatActive && !chatOnly && (
+      {showResourcePane && (
         <>
           <Header
             resource={resource}
@@ -70,20 +97,40 @@ export function ShareLayout(props: IProps) {
         </>
       )}
       {isChatActive && showSidebar && (
-        <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
+        <header className="sticky top-0 z-[30] flex min-h-12 min-w-0 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
           <SidebarTriggerButton collapse />
         </header>
       )}
-      <div
-        className={cn(
-          'flex flex-1 flex-col min-h-0',
-          isChatActive ? 'overflow-hidden' : 'overflow-auto'
-        )}
-      >
-        <Suspense fallback={<Loading />}>
-          <Outlet />
-        </Suspense>
-      </div>
+      {showResourcePane ? (
+        <div
+          ref={scrollContainerRef}
+          data-resource-scroll
+          className="no-scrollbar flex min-w-0 flex-1 justify-center overflow-x-hidden overflow-y-auto p-4"
+        >
+          <div
+            className={cn(
+              'flex w-full min-w-0 max-w-full flex-col',
+              resourcePaneColumnClassName({
+                wide,
+                useFullWidth,
+                sidebarOpen: open,
+                large,
+              })
+            )}
+            style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
+          >
+            <Suspense fallback={<Loading />}>
+              <Outlet context={{ showToc }} />
+            </Suspense>
+          </div>
+        </div>
+      ) : (
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
+        </div>
+      )}
     </>
   );
 
@@ -106,7 +153,19 @@ export function ShareLayout(props: IProps) {
           showResources={!chatOnly}
         />
       )}
-      <SidebarInset className="m-[8px] bg-white rounded-[16px] dark:bg-background min-h-0 h-full md:h-[calc(100svh-16px)]">
+      <SidebarInset
+        className={cn(
+          'm-[8px] h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]',
+          showResourcePane &&
+            compactResourcePane &&
+            'resource-detail-view--compact'
+        )}
+        style={
+          {
+            '--resource-toc-left': `${(open ? sidebarWidth : 0) + 16}px`,
+          } as CSSProperties
+        }
+      >
         {showComments ? (
           <ResourceCommentsProvider
             key={currentResourceId ?? resource?.id}

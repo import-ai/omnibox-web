@@ -151,6 +151,26 @@ describe('Folder rss item rows', () => {
     expect(container.querySelector('[data-testid="resource-icon"]')).toBeNull();
   });
 
+  it('truncates long item titles so they stay inside the list pane', async () => {
+    respondWith(
+      [
+        rssItem(
+          'item-1',
+          'A very long shared article title that should ellipsize',
+          { link_id: FEED_A }
+        ),
+      ],
+      [{ id: FEED_A, name: 'hacker news' }]
+    );
+
+    await renderFolder();
+
+    const title = container.querySelector('h3');
+    expect(title?.className).toContain('truncate');
+    expect(title?.className).toContain('min-w-0');
+    expect(title?.className).toContain('flex-1');
+  });
+
   it('gives items of two feeds in one folder different initials', async () => {
     respondWith(
       [

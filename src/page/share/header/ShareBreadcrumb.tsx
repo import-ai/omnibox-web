@@ -42,12 +42,12 @@ export default function ShareBreadcrumb(props: IProps) {
 
   if (data.length <= 0) {
     return (
-      <Breadcrumb className={cn(className)}>
-        <BreadcrumbList className="gap-0 sm:gap-0">
-          <BreadcrumbItem>
+      <Breadcrumb className={cn('min-w-0 max-w-full', className)}>
+        <BreadcrumbList className="min-w-0 flex-nowrap gap-0 overflow-hidden sm:gap-0">
+          <BreadcrumbItem className="min-w-0 flex-1 overflow-hidden">
             <BreadcrumbPage
               title={fallbackName || t('untitled')}
-              className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+              className="block min-w-0 truncate pl-2 font-normal text-foreground"
             >
               {fallbackName || t('untitled')}
             </BreadcrumbPage>
@@ -61,31 +61,33 @@ export default function ShareBreadcrumb(props: IProps) {
   if (data.length <= 3) {
     const size = data.length - 1;
     return (
-      <Breadcrumb className={cn(className)}>
-        <BreadcrumbList className="gap-0 sm:gap-0">
+      <Breadcrumb className={cn('min-w-0 max-w-full', className)}>
+        <BreadcrumbList className="min-w-0 flex-nowrap gap-0 overflow-hidden sm:gap-0">
           {data.map((item, index) => (
             <React.Fragment key={item.id}>
-              {index > 0 && <BreadcrumbSeparator />}
+              {index > 0 && <BreadcrumbSeparator className="shrink-0" />}
               {index >= size ? (
-                <BreadcrumbItem>
+                <BreadcrumbItem className="min-w-0 flex-1 overflow-hidden">
                   <BreadcrumbPage
                     title={item.name || t('untitled')}
-                    className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+                    className="block min-w-0 truncate pl-2 font-normal text-foreground"
                   >
                     {item.name || t('untitled')}
                   </BreadcrumbPage>
                 </BreadcrumbItem>
               ) : (
-                <BreadcrumbItem>
+                <BreadcrumbItem className="min-w-0 shrink">
                   <BreadcrumbLink asChild>
                     <Button
                       variant="ghost"
-                      className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+                      className="h-6 max-w-[7rem] justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
                       onClick={() => {
                         navigate(`/s/${shareId}/${item.id}`);
                       }}
                     >
-                      {item.name || t('untitled')}
+                      <span className="min-w-0 truncate text-left">
+                        {item.name || t('untitled')}
+                      </span>
                     </Button>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
@@ -103,23 +105,25 @@ export default function ShareBreadcrumb(props: IProps) {
   const middleItems = data.slice(1, -1); // Items between root and current
 
   return (
-    <Breadcrumb className={cn(className)}>
-      <BreadcrumbList className="gap-0 sm:gap-0">
-        <BreadcrumbItem>
+    <Breadcrumb className={cn('min-w-0 max-w-full', className)}>
+      <BreadcrumbList className="min-w-0 flex-nowrap gap-0 overflow-hidden sm:gap-0">
+        <BreadcrumbItem className="min-w-0 shrink">
           <BreadcrumbLink asChild>
             <Button
               variant="ghost"
-              className="h-6 px-2 py-0 font-normal text-foreground truncate max-w-[240px]"
+              className="h-6 max-w-[7rem] justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
               onClick={() => {
                 navigate(`/s/${shareId}/${rootItem.id}`);
               }}
             >
-              {rootItem.name || t('untitled')}
+              <span className="min-w-0 truncate text-left">
+                {rootItem.name || t('untitled')}
+              </span>
             </Button>
           </BreadcrumbLink>
         </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
+        <BreadcrumbSeparator className="shrink-0" />
+        <BreadcrumbItem className="shrink-0">
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-1">
               <BreadcrumbEllipsis className="size-4" />
@@ -140,11 +144,11 @@ export default function ShareBreadcrumb(props: IProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
+        <BreadcrumbSeparator className="shrink-0" />
+        <BreadcrumbItem className="min-w-0 flex-1 overflow-hidden">
           <BreadcrumbPage
             title={currentItem.name || t('untitled')}
-            className="font-normal text-foreground line-clamp-1 pl-2 truncate max-w-[240px]"
+            className="block min-w-0 truncate pl-2 font-normal text-foreground"
           >
             {currentItem.name || t('untitled')}
           </BreadcrumbPage>

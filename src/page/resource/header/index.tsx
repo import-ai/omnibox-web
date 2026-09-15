@@ -17,18 +17,18 @@ export default function Header(props: IActionProps) {
     resource?.resource_type === 'rss_folder';
 
   return (
-    <header className="rounded-[16px] bg-white flex flex-wrap min-h-[48px] shrink-0 items-center gap-2 dark:bg-background">
-      <div className="flex flex-1 items-center gap-1 sm:gap-2 px-3">
+    <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-white dark:bg-background">
+      <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
         <SidebarTriggerButton collapse />
         <Breadcrumb
           namespaceId={namespaceId}
           path={resource?.path}
-          className={cn({
+          className={cn('min-w-0', {
             'ml-2': open,
           })}
         />
       </div>
-      <div className="ml-auto flex items-center gap-1 pr-3">
+      <div className="ml-auto flex shrink-0 items-center gap-1 pr-3">
         <Actions {...props} />
         {resource && (
           <CopilotToggleButton
