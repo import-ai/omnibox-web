@@ -16,6 +16,7 @@
   "toggle_language": "Toggle Language",
   "toggle_theme": "Toggle Theme",
   "notification": "Notification",
+  "download_app": "Download",
   "notification_modal": {
     "title": "Notification",
     "all": "All",
