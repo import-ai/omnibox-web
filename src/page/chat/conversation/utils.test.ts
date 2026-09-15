@@ -251,3 +251,28 @@ describe('chat request body tools', () => {
     expect(requestBody.query).toBe('这个图片里有什么？');
   });
 });
+
+describe('thinking selection request', () => {
+  it('forwards opaque selection without legacy or model parameters', () => {
+    for (const level of ['low', 'high', 'ultra']) {
+      const body = prepareBody(
+        'c1',
+        'Hi',
+        [ToolType.REASONING],
+        [],
+        AgentRequestChannel.WEB,
+        undefined,
+        'English',
+        true,
+        undefined,
+        'basic',
+        level
+      );
+      expect(body).toMatchObject({ edition: 'basic', level });
+      expect(body).not.toHaveProperty('enable_thinking');
+      expect(body).not.toHaveProperty('model');
+      expect(body).not.toHaveProperty('parameters');
+      expect(body).not.toHaveProperty('reasoning_effort');
+    }
+  });
+});

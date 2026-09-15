@@ -21,6 +21,7 @@ import {
   ComposerChatImage,
   IResTypeContext,
   SendMessageParams,
+  ToolType,
 } from '@/page/chat/chat-input/types';
 import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
 import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
@@ -32,7 +33,9 @@ import { CHAT_IMAGE_TYPES } from './chatImages';
 import ChatInput from './ChatInput';
 import ChatTool from './ChatTool';
 import ContextCapacityIndicator from './ContextCapacityIndicator';
+import ThinkingLevelSelector from './ThinkingLevelSelector';
 import { useChatAreaDraftLifecycle } from './useChatAreaDraftLifecycle';
+import { type ThinkingSelection, useThinkingLevel } from './useThinkingLevel';
 
 interface IProps {
   messages: MessageDetail[];
@@ -50,15 +53,13 @@ interface IProps {
   waitingForAssistantDelta?: boolean;
   imageUploadDisabled?: boolean;
   imageUploadDisabledReason?: string;
+  proUnsupported?: boolean;
   initialQuery?: string;
-  sendMessage: ({
-    query,
-    tools,
-    selectedResources,
-    mode,
-    decisions,
-  }: SendMessageParams) => void | Promise<void>;
+  sendMessage: (params: SendMessageParams) => void | Promise<void>;
   onStop?: () => void;
+  onThinkingSelectionChange?: (
+    selection: ThinkingSelection | undefined
+  ) => void;
 }
 
 export default function ChatArea(props: IProps) {
@@ -76,11 +77,30 @@ export default function ChatArea(props: IProps) {
     waitingForAssistantDelta = false,
     imageUploadDisabled = false,
     imageUploadDisabledReason,
+    proUnsupported = false,
     initialQuery,
     sendMessage,
     onStop,
   } = props;
   const { t } = useTranslation();
+  const {
+    config: thinkingConfig,
+    selection,
+    changeLevel,
+    group: thinkingGroup,
+    changeGroup,
+    proLocked,
+  } = useThinkingLevel(navigatePrefix, messages);
+
+  useEffect(() => {
+    props.onThinkingSelectionChange?.(selection);
+  }, [props.onThinkingSelectionChange, selection?.edition, selection?.level]);
+
+  useEffect(() => {
+    if ((proUnsupported || proLocked) && selection?.edition === 'pro') {
+      changeGroup('basic');
+    }
+  }, [changeGroup, proUnsupported, proLocked, selection?.edition]);
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [images, setImages] = useState<ComposerChatImage[]>([]);
@@ -113,6 +133,12 @@ export default function ChatArea(props: IProps) {
     suppressInitialToolRestore,
     initialQuery,
   });
+  useEffect(() => {
+    if (selection && composerTools.includes(ToolType.REASONING)) {
+      inputRef.current?.toggleTool(ToolType.REASONING);
+    }
+  }, [selection?.edition, composerTools, inputRef]);
+
   const contextCompactCapacity = getLatestContextCompactCapacity(messages);
   const defaultResourcePicker = namespaceId
     ? (onSelect: (resource: ResourceMeta) => void) => (
@@ -124,7 +150,10 @@ export default function ChatArea(props: IProps) {
     : undefined;
 
   const interrupts = messages.at(-1)?.attrs?.tool_call?.interrupts ?? [];
-  const hasUnsupportedImages = imageUploadDisabled && images.length > 0;
+  const basicUnsupported = images.length > 0;
+  const imageUploadBlocked =
+    imageUploadDisabled || selection?.edition === 'basic';
+  const hasUnsupportedImages = imageUploadBlocked && images.length > 0;
   const disabled =
     loading ||
     isSubmitting ||
@@ -139,7 +168,7 @@ export default function ChatArea(props: IProps) {
 
   const handleImageSelect = useCallback(
     (files: File[]) => {
-      if (imageUploadDisabled || submittingRef.current) return;
+      if (imageUploadBlocked || submittingRef.current) return;
       const accepted = files.filter(file =>
         CHAT_IMAGE_TYPES.includes(file.type)
       );
@@ -153,7 +182,7 @@ export default function ChatArea(props: IProps) {
       }));
       setImages(current => [...current, ...added]);
     },
-    [imageUploadDisabled, t]
+    [imageUploadBlocked, t]
   );
 
   const [{ isResourceOver }, connectResourceDrop] = useDrop<
@@ -163,7 +192,7 @@ export default function ChatArea(props: IProps) {
   >({
     accept: ['card', NativeTypes.FILE],
     canDrop: (_item, monitor) =>
-      monitor.getItemType() === 'card' || !imageUploadDisabled,
+      monitor.getItemType() === 'card' || !imageUploadBlocked,
     drop: (item, monitor) => {
       if (monitor.getItemType() === NativeTypes.FILE) {
         handleImageSelect((item as { files: File[] }).files);
@@ -190,7 +219,9 @@ export default function ChatArea(props: IProps) {
       submittingRef.current = true;
       setIsSubmitting(true);
       try {
-        const localTools = [...tools];
+        const localTools = selection
+          ? tools.filter(tool => tool !== ToolType.REASONING)
+          : [...tools];
         const localContext = structuredClone(selectedResources);
         const displayParts = inputRef.current?.getDisplayParts();
         const localDisplayParts = displayParts?.some(
@@ -220,6 +251,7 @@ export default function ChatArea(props: IProps) {
           approvalMode,
           displayParts: localDisplayParts,
           images: pendingImages,
+          ...selection,
           onImagesUploaded: clearPreparedDraft,
         });
         clearPreparedDraft();
@@ -233,6 +265,7 @@ export default function ChatArea(props: IProps) {
     }
   }, [
     approvalMode,
+    selection,
     disabled,
     clearComposerAfterSend,
     inputRef,
@@ -244,12 +277,23 @@ export default function ChatArea(props: IProps) {
     images,
   ]);
 
+  const interruptedTurn = [...messages]
+    .reverse()
+    .find(message => message.message.role === 'user')?.attrs;
+
   return interrupts.length > 0 ? (
     <DecisionInput
       interrupts={interrupts}
       approvalMode={approvalMode}
       loading={loading}
-      sendMessage={sendMessage}
+      sendMessage={params =>
+        sendMessage({
+          ...params,
+          ...(interruptedTurn?.edition && interruptedTurn.level
+            ? { edition: interruptedTurn.edition, level: interruptedTurn.level }
+            : {}),
+        })
+      }
     />
   ) : (
     <div
@@ -294,6 +338,7 @@ export default function ChatArea(props: IProps) {
           className="flex min-w-0 items-center gap-2"
         >
           <ChatTool
+            thinkingSelectorEnabled={Boolean(selection)}
             tools={composerTools}
             renderResourcePicker={renderResourcePicker ?? defaultResourcePicker}
             onBeforeOpen={() => inputRef.current?.rememberSelection()}
@@ -302,8 +347,14 @@ export default function ChatArea(props: IProps) {
               inputRef.current?.insertResource(resource)
             }
             onImageSelect={handleImageSelect}
-            imageUploadDisabled={imageUploadDisabled || isSubmitting}
-            imageUploadDisabledReason={imageUploadDisabledReason}
+            imageUploadDisabled={imageUploadBlocked || isSubmitting}
+            imageUploadDisabledReason={
+              imageUploadDisabled
+                ? imageUploadDisabledReason
+                : selection?.edition === 'basic'
+                  ? t('chat.image.agent_1_1_unsupported')
+                  : imageUploadDisabledReason
+            }
           />
           <ApprovalModeSelect
             approvalMode={approvalMode}
@@ -313,6 +364,25 @@ export default function ChatArea(props: IProps) {
         <div className="flex items-center gap-2">
           {contextCompactCapacity && (
             <ContextCapacityIndicator capacity={contextCompactCapacity} />
+          )}
+          {thinkingConfig && selection && (
+            <ThinkingLevelSelector
+              group={thinkingGroup}
+              onGroupChange={next => {
+                if (basicUnsupported && next === 'basic') return;
+                changeGroup(next);
+              }}
+              config={thinkingConfig}
+              value={selection}
+              onChange={next => {
+                if (basicUnsupported && next.startsWith('basic.')) return;
+                changeLevel(next);
+              }}
+              proLocked={proLocked}
+              proUnsupported={proUnsupported}
+              basicUnsupported={basicUnsupported}
+              disabled={isPreparingImages}
+            />
           )}
           <ChatAction
             onSend={handleSend}

@@ -85,6 +85,8 @@ export default function SharedChatConversationPage() {
 
   const sendMessage = async ({
     query,
+    edition,
+    level,
     tools,
     selectedResources,
     mode,
@@ -113,7 +115,13 @@ export default function SharedChatConversationPage() {
           password || undefined,
           undefined,
           decisions ? { decisions } : undefined,
-          displayParts
+          displayParts,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          edition,
+          level
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
@@ -151,7 +159,15 @@ export default function SharedChatConversationPage() {
         undefined,
         shareId,
         password || undefined,
-        originalEnableThinking
+        originalEnableThinking,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        editedMessage.attrs?.edition,
+        editedMessage.attrs?.level
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();
@@ -197,7 +213,15 @@ export default function SharedChatConversationPage() {
         undefined,
         shareId,
         password || undefined,
-        originalEnableThinking
+        originalEnableThinking,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        parentMessage.attrs?.edition,
+        parentMessage.attrs?.level
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();
