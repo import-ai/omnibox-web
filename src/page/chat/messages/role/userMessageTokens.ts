@@ -3,7 +3,10 @@ import type { TFunction } from 'i18next';
 import type { ResourceMeta } from '@/interface';
 import { pathI18n, trimMiddle } from '@/lib/toolArgs.ts';
 
-import { createResourceQueryText } from '../../chat-input/composerQuery';
+import {
+  createResourceQueryText,
+  WEB_SEARCH_QUERY_TOKEN,
+} from '../../chat-input/composerQuery';
 import {
   type ChatMessageDisplayPart,
   type ChatTool,
@@ -43,6 +46,10 @@ type UserMessageTokenSegment =
   | {
       type: 'resource';
       text: string;
+    }
+  | {
+      type: 'tool';
+      tool: UserMessageToolToken;
     };
 
 export type UserMessageDisplaySegment =
@@ -184,7 +191,7 @@ export function splitUserMessageResourceTokens(
   text: string,
   resources: PrivateSearchResource[]
 ): UserMessageTokenSegment[] {
-  if (resources.length === 0 || text.length === 0) {
+  if (text.length === 0) {
     return [{ type: 'text', text }];
   }
 
@@ -198,7 +205,7 @@ export function splitUserMessageResourceTokens(
       resourceByToken.set(resource.name, resource);
     }
   });
-  const tokens = Array.from(resourceByToken.keys()).sort(
+  const tokens = [WEB_SEARCH_QUERY_TOKEN, ...resourceByToken.keys()].sort(
     (a, b) => b.length - a.length
   );
   const pattern = new RegExp(`(${tokens.map(escapeRegExp).join('|')})`);
@@ -206,6 +213,9 @@ export function splitUserMessageResourceTokens(
     .split(pattern)
     .filter(Boolean)
     .map<UserMessageTokenSegment>(part => {
+      if (part === WEB_SEARCH_QUERY_TOKEN) {
+        return { type: 'tool', tool: ToolType.WEB_SEARCH };
+      }
       const resource = resourceByToken.get(part);
       return resource
         ? { type: 'resource', text: resource.name }
@@ -343,8 +353,16 @@ export function createUserMessageCopyHtml(
   }
 
   const resources = getUserMessageResources(tools);
-  const toolTokens = getUserMessageToolTokens(tools, enableThinking);
-  if (resources.length === 0 && toolTokens.length === 0) return undefined;
+  const toolTokens = getUserMessageToolTokens(tools, enableThinking).filter(
+    tool =>
+      tool !== ToolType.WEB_SEARCH || !text.includes(WEB_SEARCH_QUERY_TOKEN)
+  );
+  if (
+    resources.length === 0 &&
+    toolTokens.length === 0 &&
+    !text.includes(WEB_SEARCH_QUERY_TOKEN)
+  )
+    return undefined;
 
   const resourceByName = new Map(
     resources.map(resource => [resource.name, resource])
@@ -354,6 +372,8 @@ export function createUserMessageCopyHtml(
     .map((line, index) => {
       const lineHtml = splitUserMessageResourceTokens(line, resources)
         .map(segment => {
+          if (segment.type === 'tool')
+            return toolTokenHtml(segment.tool, getToolLabel);
           if (segment.type === 'text') return escapeHtml(segment.text);
           const resource = resourceByName.get(segment.text);
           return resource

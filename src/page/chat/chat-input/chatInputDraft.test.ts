@@ -66,7 +66,7 @@ describe('chat input draft', () => {
 
     const restored = getChatInputDraft('home:n1', storage);
     expect(restored).toEqual({
-      query: '[plan.md](#r1) ',
+      query: '[plan.md](#r1) [web_search](tool://web_search) ',
       tools: [ToolType.REASONING, ToolType.WEB_SEARCH],
       composerState,
       selectedResources: [{ type: 'resource', resource: resource() }],

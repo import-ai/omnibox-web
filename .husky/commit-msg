@@ -1,1 +1,3 @@
-npx --no-install commitlint --edit $1
+# Absolute path: commitlint prefers a parent worktree .git file over this repo.
+npx --no-install commitlint --edit "$(git rev-parse --absolute-git-dir)/COMMIT_EDITMSG"
+
