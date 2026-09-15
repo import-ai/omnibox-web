@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
 import {
-  MessageStatus,
+  isTerminalMessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
 import type { MessageDetail } from '@/page/chat/core/types/conversation';
@@ -51,10 +51,14 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
   const configUrl = shareId
     ? `/config/models?share_id=${encodeURIComponent(shareId)}`
     : '/config/models';
+  // Terminal statuses only. A streaming answer is still running up the bill
+  // that decides what comes back, so counting it would re-read the catalog
+  // before the turn was charged — and the count would then be unchanged when
+  // the turn really did settle, leaving the stale answer in place.
   const settledTurns = messages.filter(
     message =>
       message.message.role === OpenAIMessageRole.ASSISTANT &&
-      message.status !== MessageStatus.PENDING
+      isTerminalMessageStatus(message.status)
   ).length;
 
   useEffect(() => {

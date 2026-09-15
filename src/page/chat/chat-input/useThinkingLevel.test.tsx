@@ -120,7 +120,7 @@ it('prefers the group default when it is still available', () => {
   );
 });
 
-it('re-reads a share catalog as turns settle and locks Pro when the space runs dry', async () => {
+it('re-reads a share catalog only once a turn reaches a terminal status', async () => {
   const basic = [{ edition: 'basic' as const, level: 'low' }];
   const pro = [{ edition: 'pro' as const, level: 'max' }];
   const catalog = (proAvailable: boolean) => ({
@@ -146,30 +146,26 @@ it('re-reads a share catalog as turns settle and locks Pro when the space runs d
   }
   const container = document.createElement('div');
   const root = createRoot(container);
-  try {
-    await act(async () =>
-      root.render(
-        React.createElement(Harness, {
-          messages: [turn(MessageStatus.PENDING)],
-        })
-      )
+  const render = (status: MessageStatus) =>
+    act(async () =>
+      root.render(React.createElement(Harness, { messages: [turn(status)] }))
     );
+  try {
+    await render(MessageStatus.PENDING);
     expect(http.get).toHaveBeenCalledWith('/config/models?share_id=share', {
       mute: true,
     });
-    // Still streaming: the balance it will spend is not final, so nothing is
-    // re-read and Agent 2.1 stays on offer.
+    expect(http.get).toHaveBeenCalledTimes(1);
+
+    // The answer is streaming: it is still running up the bill that decides
+    // what comes back, so the catalog must not be re-read yet.
+    (http.get as jest.Mock).mockResolvedValue(catalog(false));
+    await render(MessageStatus.STREAMING);
     expect(http.get).toHaveBeenCalledTimes(1);
     expect(result.proLocked).toBe(false);
 
-    (http.get as jest.Mock).mockResolvedValue(catalog(false));
-    await act(async () =>
-      root.render(
-        React.createElement(Harness, {
-          messages: [turn(MessageStatus.SUCCESS)],
-        })
-      )
-    );
+    // Settled, and the space turns out to have run dry.
+    await render(MessageStatus.SUCCESS);
     expect(http.get).toHaveBeenCalledTimes(2);
     expect(result.proLocked).toBe(true);
     expect(result.config?.pro).toBeDefined();

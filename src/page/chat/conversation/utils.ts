@@ -21,7 +21,7 @@ import { messageProcessor } from '@/page/chat/core/messageProcessor.ts';
 import {
   ChatDeltaResponse,
   ChatResponse,
-  MessageStatus,
+  isTerminalMessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
 import {
@@ -375,15 +375,6 @@ export function getStreamEventId(conversation: ConversationDetail) {
   )?.attrs?.stream_event_id;
 }
 
-export function isTerminalMessageStatus(status?: MessageStatus): boolean {
-  return (
-    !status ||
-    status === MessageStatus.FAILED ||
-    status === MessageStatus.STOPPED ||
-    status === MessageStatus.SUCCESS
-  );
-}
-
 export async function stopStream({
   cancel,
   cancelUrl,
@@ -423,3 +414,5 @@ export function findFirstMessageWithMissingParent(
   const idSet = new Set(messages.map(msg => msg.id));
   return messages.find(msg => !idSet.has(msg.parent_id));
 }
+
+export { isTerminalMessageStatus };
