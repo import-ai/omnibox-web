@@ -4,6 +4,11 @@ import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { http } from '@/lib/request';
+import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chatResponse.ts';
+import type { MessageDetail } from '@/page/chat/core/types/conversation';
 
 import { availableThinkingStep, useThinkingLevel } from './useThinkingLevel';
 
@@ -113,4 +118,63 @@ it('prefers the group default when it is still available', () => {
   expect(availableThinkingStep(options, { pro: true, basic: true })).toBe(
     undefined
   );
+});
+
+it('re-reads a share catalog as turns settle and locks Pro when the space runs dry', async () => {
+  const basic = [{ edition: 'basic' as const, level: 'low' }];
+  const pro = [{ edition: 'pro' as const, level: 'max' }];
+  const catalog = (proAvailable: boolean) => ({
+    basic: { default: basic[0], levels: basic },
+    pro: { default: pro[0], levels: pro },
+    default: { default: pro[0], levels: [...basic, ...pro] },
+    edition: 'pro',
+    pro_available: proAvailable,
+  });
+  const turn = (status: MessageStatus): MessageDetail =>
+    ({
+      id: 'assistant',
+      message: { role: OpenAIMessageRole.ASSISTANT, content: 'Hi' },
+      status,
+    }) as MessageDetail;
+  localStorage.clear();
+  (http.get as jest.Mock).mockReset();
+  (http.get as jest.Mock).mockResolvedValue(catalog(true));
+  let result!: ReturnType<typeof useThinkingLevel>;
+  function Harness({ messages }: { messages: MessageDetail[] }) {
+    result = useThinkingLevel('/s/share', messages);
+    return null;
+  }
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        React.createElement(Harness, {
+          messages: [turn(MessageStatus.PENDING)],
+        })
+      )
+    );
+    expect(http.get).toHaveBeenCalledWith('/config/models?share_id=share', {
+      mute: true,
+    });
+    // Still streaming: the balance it will spend is not final, so nothing is
+    // re-read and Agent 2.1 stays on offer.
+    expect(http.get).toHaveBeenCalledTimes(1);
+    expect(result.proLocked).toBe(false);
+
+    (http.get as jest.Mock).mockResolvedValue(catalog(false));
+    await act(async () =>
+      root.render(
+        React.createElement(Harness, {
+          messages: [turn(MessageStatus.SUCCESS)],
+        })
+      )
+    );
+    expect(http.get).toHaveBeenCalledTimes(2);
+    expect(result.proLocked).toBe(true);
+    expect(result.config?.pro).toBeDefined();
+  } finally {
+    await act(async () => root.unmount());
+    localStorage.clear();
+  }
 });
