@@ -93,7 +93,7 @@ export default function ThinkingLevelSelector({
         side="top"
         align="end"
         sideOffset={8}
-        className="w-[240px] max-w-[calc(100vw-32px)] rounded-2xl border-black/10 bg-background px-3 pb-3 pt-2 shadow-xl dark:border-white/10 dark:bg-[#292929]"
+        className="w-[240px] max-w-[calc(100vw-32px)] rounded-2xl border-black/10 bg-popover px-3 pb-3 pt-2 shadow-xl dark:border-white/10"
       >
         {modelsOpen ? (
           <div className="space-y-1">
@@ -169,26 +169,42 @@ export default function ThinkingLevelSelector({
                   {t(`chat.model.${group}`)}
                 </span>
               </button>
-              <button
-                type="button"
-                disabled={disabled}
-                aria-label={t('chat.reset_thinking_level')}
-                onClick={() =>
-                  onChange(
-                    thinkingStep(
-                      visibleLevels.some(
-                        item =>
-                          thinkingStep(item) === thinkingStep(options.default)
-                      )
-                        ? options.default
-                        : (visibleLevels[0] ?? options.default)
-                    )
-                  )
-                }
-                className="absolute right-0 top-1 rounded-full p-1.5 text-muted-foreground hover:bg-muted"
-              >
-                <RotateCcw className="size-4" />
-              </button>
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="absolute right-0 top-1">
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        aria-label={t('chat.restore_default')}
+                        onClick={() => {
+                          if (config.default) {
+                            onGroupChange('default');
+                            return;
+                          }
+                          onChange(
+                            thinkingStep(
+                              visibleLevels.some(
+                                item =>
+                                  thinkingStep(item) ===
+                                  thinkingStep(options.default)
+                              )
+                                ? options.default
+                                : (visibleLevels[0] ?? options.default)
+                            )
+                          );
+                        }}
+                        className="rounded-full p-1.5 text-muted-foreground hover:bg-muted"
+                      >
+                        <RotateCcw className="size-4" />
+                      </button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="z-[60]">
+                    {t('chat.restore_default')}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div
               title={defaultSliderHint}

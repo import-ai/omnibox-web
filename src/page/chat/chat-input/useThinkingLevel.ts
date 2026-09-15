@@ -19,6 +19,21 @@ export type ThinkingConfig = Partial<Record<ThinkingGroup, ThinkingEdition>> & {
 export const thinkingStep = (selection: ThinkingSelection) =>
   `${selection.edition}.${selection.level}`;
 
+export function availableThinkingStep(
+  options: ThinkingEdition | undefined,
+  locked: { pro?: boolean; basic?: boolean } = {}
+) {
+  if (!options) return undefined;
+  const allowed = options.levels.filter(
+    item =>
+      !(locked.pro && item.edition === 'pro') &&
+      !(locked.basic && item.edition === 'basic')
+  );
+  const preferred = thinkingStep(options.default);
+  if (allowed.some(item => thinkingStep(item) === preferred)) return preferred;
+  return allowed[0] ? thinkingStep(allowed[0]) : undefined;
+}
+
 export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
   const [config, setConfig] = useState<ThinkingConfig>();
   const [group, setGroup] = useState<ThinkingGroup>('default');
@@ -105,9 +120,14 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
     }
   };
   const changeLevel = (next: string) => select(group, next);
-  const changeGroup = (next: ThinkingGroup) => {
+  const changeGroup = (next: ThinkingGroup, nextStep?: string) => {
     const options = config?.[next];
-    if (options) select(next, thinkingStep(options.default));
+    if (!options) return;
+    const step =
+      nextStep && options.levels.some(item => thinkingStep(item) === nextStep)
+        ? nextStep
+        : thinkingStep(options.default);
+    select(next, step);
   };
   const selection = config?.[group]?.levels.find(
     item => thinkingStep(item) === step
