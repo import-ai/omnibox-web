@@ -83,4 +83,31 @@ describe('ShareBreadcrumb', () => {
     // The shared root is the current page, so it is not a link.
     expect(container.querySelectorAll('button')).toHaveLength(0);
   });
+
+  it('ellipsis-truncates a long current shared resource name', async () => {
+    const longName =
+      '河南省2026年普通高校招生定向培养军士政治考核和体格检查控制分数线';
+
+    await act(async () => {
+      root.render(
+        <ShareBreadcrumb
+          path={[
+            { id: 'root-1', name: 'Root' },
+            { id: 'item-1', name: longName },
+          ]}
+        />
+      );
+    });
+
+    const currentPage = Array.from(container.querySelectorAll('span')).find(
+      node => node.textContent === longName
+    );
+
+    expect(currentPage?.classList.contains('truncate')).toBe(true);
+    expect(currentPage?.classList.contains('min-w-0')).toBe(true);
+    expect(currentPage?.classList.contains('block')).toBe(true);
+    expect(
+      currentPage?.parentElement?.classList.contains('overflow-hidden')
+    ).toBe(true);
+  });
 });
