@@ -35,7 +35,11 @@ import ChatTool from './ChatTool';
 import ContextCapacityIndicator from './ContextCapacityIndicator';
 import ThinkingLevelSelector from './ThinkingLevelSelector';
 import { useChatAreaDraftLifecycle } from './useChatAreaDraftLifecycle';
-import { type ThinkingSelection, useThinkingLevel } from './useThinkingLevel';
+import {
+  availableThinkingStep,
+  type ThinkingSelection,
+  useThinkingLevel,
+} from './useThinkingLevel';
 
 interface IProps {
   messages: MessageDetail[];
@@ -97,10 +101,23 @@ export default function ChatArea(props: IProps) {
   }, [props.onThinkingSelectionChange, selection?.edition, selection?.level]);
 
   useEffect(() => {
-    if ((proUnsupported || proLocked) && selection?.edition === 'pro') {
-      changeGroup('basic');
+    if (!(proUnsupported || proLocked) || selection?.edition !== 'pro') return;
+    if (thinkingGroup === 'default') {
+      const step = availableThinkingStep(thinkingConfig?.default, {
+        pro: true,
+      });
+      if (step) changeGroup('default', step);
+      return;
     }
-  }, [changeGroup, proUnsupported, proLocked, selection?.edition]);
+    if (thinkingGroup === 'pro') changeGroup('basic');
+  }, [
+    changeGroup,
+    proUnsupported,
+    proLocked,
+    selection?.edition,
+    thinkingGroup,
+    thinkingConfig,
+  ]);
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
   const [images, setImages] = useState<ComposerChatImage[]>([]);
@@ -370,7 +387,12 @@ export default function ChatArea(props: IProps) {
               group={thinkingGroup}
               onGroupChange={next => {
                 if (basicUnsupported && next === 'basic') return;
-                changeGroup(next);
+                if ((proLocked || proUnsupported) && next === 'pro') return;
+                const step = availableThinkingStep(thinkingConfig?.[next], {
+                  pro: next === 'default' && (proLocked || proUnsupported),
+                  basic: next === 'default' && basicUnsupported,
+                });
+                if (step) changeGroup(next, step);
               }}
               config={thinkingConfig}
               value={selection}

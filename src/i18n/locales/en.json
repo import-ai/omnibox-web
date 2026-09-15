@@ -898,7 +898,7 @@
     },
     "default_models_description": "Recommended set of models",
     "thinking_level": "Thinking level",
-    "reset_thinking_level": "Reset thinking level",
+    "restore_default": "Restore default",
     "model_tier": "Model tier",
     "model": { "default": "Default", "pro": "Agent 2.1", "basic": "Agent 1.1" },
     "thinking": { "low": "Low", "high": "High", "max": "Max" },
