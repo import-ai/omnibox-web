@@ -25,6 +25,8 @@ import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import ChatArea from './chat-input';
+import type { ThinkingSelection } from './chat-input/useThinkingLevel';
+import { shouldShowChatHomeOnboarding } from './chatHomeOnboarding';
 import Scrollbar from './conversation/Scrollbar';
 import FeatureCards from './home/FeatureCards';
 import RecommendedQuestions, {
@@ -71,6 +73,7 @@ export default function ChatHomePage() {
     agentCredits !== undefined && agentCredits.agent_credits_remain <= 0;
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
+  const thinkingSelectionRef = useRef<ThinkingSelection | undefined>(undefined);
   const creatingRecommendedQuestionRef = useRef(false);
   const [loadingRecommendedQuestionId, setLoadingRecommendedQuestionId] =
     useState<string | null>(null);
@@ -123,15 +126,22 @@ export default function ChatHomePage() {
   )?.trim();
   const username = user.username.trim();
   const defaultHomeInput =
-    hasConversationHistory === false &&
+    shouldShowChatHomeOnboarding({
+      hasConversationHistory,
+      remainingCredits: agentCredits?.agent_credits_remain,
+    }) &&
     !userLoading &&
     username &&
     defaultInputTemplate
       ? defaultInputTemplate.replaceAll('{username}', username)
       : undefined;
+  const isOnboardingInput = (query: string) =>
+    Boolean(defaultHomeInput && query === defaultHomeInput);
 
   const sendMessage = async ({
     query,
+    edition,
+    level,
     tools,
     selectedResources,
     mode,
@@ -142,6 +152,11 @@ export default function ChatHomePage() {
   }: SendMessageParams) => {
     setSendFailed(false);
     try {
+      if (isOnboardingInput(query)) {
+        edition = 'pro';
+        level = 'low';
+        approvalMode = 'auto_approve';
+      }
       // Uploading images delays navigation; dismiss the keyboard before awaiting it.
       (document.activeElement as HTMLElement | null)?.blur();
       const conversation = await http.post<ConversationEntity>(
@@ -149,6 +164,8 @@ export default function ChatHomePage() {
       );
       setPendingMessage({
         query,
+        edition,
+        level,
         tools,
         selectedResources,
         mode,
@@ -159,6 +176,8 @@ export default function ChatHomePage() {
       });
       setPendingChatPayload(conversation.id, {
         query,
+        edition,
+        level,
         tools,
         selectedResources,
         mode,
@@ -172,6 +191,8 @@ export default function ChatHomePage() {
         JSON.stringify({
           mode,
           query,
+          edition,
+          level,
           tools,
           selectedResources,
           displayParts,
@@ -194,6 +215,7 @@ export default function ChatHomePage() {
     setLoadingRecommendedQuestionId(item.id);
 
     sendMessage({
+      ...thinkingSelectionRef.current,
       query: item.question,
       tools: [],
       selectedResources: [],
@@ -270,6 +292,9 @@ export default function ChatHomePage() {
             />
           )}
           <ChatArea
+            onThinkingSelectionChange={selection => {
+              thinkingSelectionRef.current = selection;
+            }}
             key={chatHomeDraftScope}
             messages={[]}
             namespaceId={namespaceId}
@@ -279,6 +304,7 @@ export default function ChatHomePage() {
             setSelectedResources={setSelectedResources}
             loading={!!pendingMessage && !sendFailed}
             imageUploadDisabled={imageUploadDisabled}
+            proUnsupported={imageUploadDisabled}
             initialQuery={pendingMessage ? undefined : defaultHomeInput}
             sendMessage={sendMessage}
           />

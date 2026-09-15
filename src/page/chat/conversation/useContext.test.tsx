@@ -142,9 +142,11 @@ describe('useContext conversation cache failures', () => {
     clearConversationCache();
   });
 
-  it('retains attached images when editing the user query', async () => {
+  it('retains attached images and original strength when editing the user query', async () => {
     const conversation = cachedConversation();
     conversation.mapping['message-a'].attrs = {
+      edition: 'pro',
+      level: 'max',
       composer: {
         display_parts: [
           {
@@ -182,6 +184,10 @@ describe('useContext conversation cache failures', () => {
     });
     expect(jest.mocked(ask).mock.calls.at(-1)?.[17]).toEqual([
       { attachment_id: 'att-1', name: 'image.png', url: '/preview/att-1' },
+    ]);
+    expect(jest.mocked(ask).mock.calls.at(-1)?.slice(-2)).toEqual([
+      'pro',
+      'max',
     ]);
   });
 

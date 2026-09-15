@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
@@ -118,6 +119,8 @@ export default function useContext() {
       decisions,
       recommendedQuestionId,
       images,
+      edition,
+      level,
     } = params;
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
@@ -146,6 +149,7 @@ export default function useContext() {
           images
         );
         uploadRetries.current.delete(pendingId);
+        params.onImagesUploaded?.();
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
         const askFN = ask(
           conversationId,
@@ -166,7 +170,9 @@ export default function useContext() {
           recommendedQuestionId,
           currentResourceId,
           uploadedImages,
-          pendingId
+          pendingId,
+          edition,
+          level
         );
         askAbortRef.current = askFN.cancel;
         await askFN.start();
@@ -257,10 +263,18 @@ export default function useContext() {
         undefined,
         undefined,
         undefined,
-        currentResourceId
+        currentResourceId,
+        undefined,
+        undefined,
+        parentMessage.attrs?.edition,
+        parentMessage.attrs?.level
       );
       askAbortRef.current = askFN.cancel;
-      await askFN.start();
+      try {
+        await askFN.start();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : String(error));
+      }
     } finally {
       askAbortRef.current = null;
       regeneratingRef.current = false;
@@ -314,7 +328,9 @@ export default function useContext() {
         editedMessage.attrs?.pending_query &&
           newContent === editedMessage.message.content
           ? messageId
-          : undefined
+          : undefined,
+        editedMessage.attrs?.edition,
+        editedMessage.attrs?.level
       );
       askAbortRef.current = askFN.cancel;
       await askFN.start();
