@@ -134,4 +134,30 @@ describe('BreadcrumbMain', () => {
     expect(folderName?.classList.contains('truncate')).toBe(true);
     expect(folderName?.classList.contains('text-left')).toBe(true);
   });
+
+  it('ellipsis-truncates a long current resource name', async () => {
+    const longName = '宁波发布“患儿术后离世医疗事件”最新通报这是一个很长的标题';
+
+    await act(async () => {
+      root.render(
+        <BreadcrumbMain
+          namespaceId="namespace-1"
+          path={[
+            { id: 'root-1', name: 'Root' },
+            { id: 'folder-1', name: '测试 3' },
+            { id: 'resource-1', name: longName },
+          ]}
+        />
+      );
+    });
+
+    const currentPage = Array.from(container.querySelectorAll('span')).find(
+      node => node.textContent === longName
+    );
+
+    expect(currentPage?.classList.contains('truncate')).toBe(true);
+    expect(currentPage?.classList.contains('min-w-0')).toBe(true);
+    expect(currentPage?.classList.contains('block')).toBe(true);
+    expect(currentPage?.parentElement?.classList.contains('flex-1')).toBe(true);
+  });
 });

@@ -1,4 +1,10 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { ResourceTasksProvider } from '@/components/attributes/resource-tasks/ResourceTasksContext';
 import { Separator } from '@/components/ui/Separator';
@@ -16,11 +22,14 @@ import {
   useResourceStore,
 } from '@/page/resource/resourceStore';
 import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDragAutoScroll';
+import {
+  resourcePaneColumnClassName,
+  shouldUseFullWidthResourcePane,
+  useResourcePaneLayout,
+} from '@/page/resource/useResourcePaneLayout';
 
 import Header from './header';
 import Wrapper from './Wrapper';
-
-const COMPACT_RESOURCE_PANE_WIDTH = 768;
 
 interface ResourceDetailViewProps extends IUseResource {
   error?: boolean;
@@ -63,16 +72,19 @@ export default function ResourceDetailView({
     state => getCopilotWorkspace(state, namespaceId).open
   );
   const [copilotLayoutOpen, setCopilotLayoutOpen] = useState(copilotOpen);
-  const [large, setLarge] = useState(window.innerWidth > 1500);
-  const [compactResourcePane, setCompactResourcePane] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
-  const useFullWidth =
-    useOmniboxEditor &&
-    !!currentResource &&
-    currentResource.resource_type !== 'folder' &&
-    currentResource.resource_type !== 'smart_folder' &&
-    currentResource.resource_type !== 'rss_folder';
+  const useFullWidth = shouldUseFullWidthResourcePane(
+    useOmniboxEditor,
+    currentResource?.resource_type
+  );
+  const onNearBottom = useCallback(() => {
+    app.fire('scroll-to-bottom');
+  }, [app]);
+  const { large, compactResourcePane } = useResourcePaneLayout(
+    scrollContainerRef,
+    { onNearBottom }
+  );
 
   useResourceBodyDragAutoScroll(scrollContainerRef, useFullWidth && editPage);
 
@@ -87,49 +99,6 @@ export default function ResourceDetailView({
     );
     return () => window.clearTimeout(timer);
   }, [copilotOpen]);
-
-  useEffect(() => {
-    function handleSize() {
-      setLarge(window.innerWidth > 1500);
-    }
-    window.addEventListener('resize', handleSize);
-    return () => window.removeEventListener('resize', handleSize);
-  }, []);
-
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!scrollContainer) return;
-
-    const updateCompactLayout = () =>
-      setCompactResourcePane(
-        scrollContainer.clientWidth <= COMPACT_RESOURCE_PANE_WIDTH
-      );
-    updateCompactLayout();
-
-    if (typeof ResizeObserver === 'undefined') {
-      window.addEventListener('resize', updateCompactLayout);
-      return () => window.removeEventListener('resize', updateCompactLayout);
-    }
-
-    const observer = new ResizeObserver(updateCompactLayout);
-    observer.observe(scrollContainer);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!scrollContainer) return;
-
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = scrollContainer;
-      if (scrollHeight - scrollTop - clientHeight < 100) {
-        app.fire('scroll-to-bottom');
-      }
-    };
-
-    scrollContainer.addEventListener('scroll', handleScroll);
-    return () => scrollContainer.removeEventListener('scroll', handleScroll);
-  }, [app]);
 
   const flushLayout = flush || copilotLayoutOpen;
 
@@ -163,11 +132,15 @@ export default function ResourceDetailView({
           ref={scrollContainerRef}
         >
           <div
-            className={cn('flex w-full min-w-0 max-w-full flex-col', {
-              'max-w-[680px]': !wide && !useFullWidth && (open || !large),
-              'max-w-[800px]': !wide && !useFullWidth && (!open || large),
-              'max-w-7xl': wide,
-            })}
+            className={cn(
+              'flex w-full min-w-0 max-w-full flex-col',
+              resourcePaneColumnClassName({
+                wide,
+                useFullWidth,
+                sidebarOpen: open,
+                large,
+              })
+            )}
             style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
           >
             <Wrapper

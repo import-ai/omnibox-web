@@ -12,6 +12,7 @@ import {
   useResourceStore,
 } from '@/page/resource/resourceStore';
 import { splitSearchText } from '@/page/resource/searchHighlight';
+import { isFolderLikeResourceType } from '@/page/resource/useResourcePaneLayout';
 import { RSS_ITEM_SORT } from '@/service/resourceSort';
 
 interface IProps {
@@ -21,7 +22,11 @@ interface IProps {
   showToc: boolean;
   scrollToLine?: number;
   wide: boolean;
-  onResource: (resource: Resource) => void;
+  onResource?: (resource: Resource) => void;
+  readOnly?: boolean;
+  apiPrefix?: string;
+  navigationPrefix?: string;
+  rssFeedNames?: boolean;
 }
 
 export default function Page(props: IProps) {
@@ -33,24 +38,29 @@ export default function Page(props: IProps) {
     showToc,
     scrollToLine,
     wide,
+    readOnly,
+    apiPrefix,
+    navigationPrefix,
+    rssFeedNames,
   } = props;
   const { t } = useTranslation();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
-  const constrainHeader =
-    useOmniboxEditor &&
-    resource.resource_type !== 'folder' &&
-    resource.resource_type !== 'smart_folder' &&
-    resource.resource_type !== 'rss_folder';
-  const constrainFolderContent =
-    resource.resource_type === 'folder' ||
-    resource.resource_type === 'smart_folder' ||
-    resource.resource_type === 'rss_folder';
+  const folderLike = isFolderLikeResourceType(resource.resource_type);
+  const constrainHeader = useOmniboxEditor && !folderLike;
+  const constrainFolderContent = folderLike;
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query') ?? '';
   const title = resource.name || t('untitled');
+  const childrenApiPrefix =
+    apiPrefix ??
+    (resource.resource_type === 'smart_folder'
+      ? `/namespaces/${namespaceId}/smart-folders`
+      : `/namespaces/${namespaceId}/resources`);
+  const childrenNavigationPrefix = navigationPrefix ?? `/${namespaceId}`;
+  const showRssFeedNames = rssFeedNames ?? !apiPrefix;
 
   // Read-only resources (rss items) have no editor, even on the /edit route.
-  if (editPage && !resource.read_only) {
+  if (editPage && !resource.read_only && onResource) {
     return (
       <Editor
         resource={resource}
@@ -90,34 +100,35 @@ export default function Page(props: IProps) {
           namespaceId={namespaceId}
           resource={resource}
           onResource={onResource}
+          readOnly={readOnly}
         />
       </div>
       {resource.resource_type === 'smart_folder' ? (
         <Folder
           resourceId={resource.id}
-          apiPrefix={`/namespaces/${namespaceId}/smart-folders`}
+          apiPrefix={childrenApiPrefix}
           namespaceId={namespaceId}
           emptyText={t('smart_folder.empty')}
-          navigationPrefix={`/${namespaceId}`}
+          navigationPrefix={childrenNavigationPrefix}
           loadAll
           smartFolderParentId={resource.id}
         />
       ) : resource.resource_type === 'rss_folder' ? (
         <Folder
           resourceId={resource.id}
-          apiPrefix={`/namespaces/${namespaceId}/resources`}
+          apiPrefix={childrenApiPrefix}
           namespaceId={namespaceId}
           emptyText={t('rss_folder.empty')}
-          navigationPrefix={`/${namespaceId}`}
-          sort={RSS_ITEM_SORT}
-          rssFeedNames
+          navigationPrefix={childrenNavigationPrefix}
+          sort={apiPrefix ? undefined : RSS_ITEM_SORT}
+          rssFeedNames={showRssFeedNames}
         />
       ) : resource.resource_type === 'folder' ? (
         <Folder
           resourceId={resource.id}
-          apiPrefix={`/namespaces/${namespaceId}/resources`}
+          apiPrefix={childrenApiPrefix}
           namespaceId={namespaceId}
-          navigationPrefix={`/${namespaceId}`}
+          navigationPrefix={childrenNavigationPrefix}
         />
       ) : (
         <Render
@@ -125,7 +136,7 @@ export default function Page(props: IProps) {
           showToc={showToc}
           scrollToLine={scrollToLine}
           wide={wide}
-          linkBase={`/${namespaceId}/${resource.id}`}
+          linkBase={`${childrenNavigationPrefix}/${resource.id}`}
           style={{ overflow: 'inherit' }}
         />
       )}
