@@ -107,7 +107,6 @@ export default function ChatArea(props: IProps) {
         pro: true,
       });
       if (step) changeGroup('default', step);
-      else changeGroup('basic');
       return;
     }
     if (thinkingGroup === 'pro') changeGroup('basic');

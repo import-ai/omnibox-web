@@ -122,12 +122,7 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
   const changeLevel = (next: string) => select(group, next);
   const changeGroup = (next: ThinkingGroup, nextStep?: string) => {
     const options = config?.[next];
-    if (!options) return;
-    const step =
-      nextStep && options.levels.some(item => thinkingStep(item) === nextStep)
-        ? nextStep
-        : thinkingStep(options.default);
-    select(next, step);
+    if (options) select(next, nextStep ?? thinkingStep(options.default));
   };
   const selection = config?.[group]?.levels.find(
     item => thinkingStep(item) === step

@@ -182,23 +182,7 @@ export default function ThinkingLevelSelector({
                         type="button"
                         disabled={disabled}
                         aria-label={t('chat.restore_default')}
-                        onClick={() => {
-                          if (config.default) {
-                            onGroupChange('default');
-                            return;
-                          }
-                          onChange(
-                            thinkingStep(
-                              visibleLevels.some(
-                                item =>
-                                  thinkingStep(item) ===
-                                  thinkingStep(options.default)
-                              )
-                                ? options.default
-                                : (visibleLevels[0] ?? options.default)
-                            )
-                          );
-                        }}
+                        onClick={() => onGroupChange('default')}
                         className={cn(
                           'rounded-full p-1.5',
                           composerControlHoverClass
