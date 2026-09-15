@@ -1,4 +1,4 @@
-import { Bell, BellDot, History, Search, Users } from 'lucide-react';
+import { Bell, BellDot, Download, History, Search, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -32,7 +32,8 @@ export function Header(props: IProps) {
   const { onActiveKey } = props;
   const active = useLocation().pathname.includes('/chat');
   const [search, setSearch] = useState(false);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const downloadAppHref = `/${i18n.language.startsWith('zh') ? 'zh-cn' : 'en'}/download/`;
   const isTouch = useIsTouch();
   const unreadCount = useNotificationUnreadCount();
   const onChat = () => {
@@ -121,6 +122,19 @@ export function Header(props: IProps) {
           >
             {close => <Notification onClose={close} />}
           </ActionDialog>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <a
+              href={downloadAppHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 !text-sidebar-foreground hover:!text-sidebar-accent-foreground"
+            >
+              <Download className="size-4 text-neutral-400" />
+              <span>{t('download_app')}</span>
+            </a>
+          </SidebarMenuButton>
         </SidebarMenuItem>
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
