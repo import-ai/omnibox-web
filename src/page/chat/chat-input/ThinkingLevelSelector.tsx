@@ -15,7 +15,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/Popover';
+import { cn } from '@/lib/utils';
 
+import { composerControlHoverClass } from './composerControlClass';
 import {
   type ThinkingConfig,
   type ThinkingGroup,
@@ -84,7 +86,10 @@ export default function ThinkingLevelSelector({
           type="button"
           disabled={disabled}
           aria-label={`${t('chat.thinking_level')}: ${edition} ${label}`}
-          className="flex h-8 items-center rounded-full px-2 text-xs text-muted-foreground hover:bg-black/5 data-[state=open]:bg-black/5 dark:hover:bg-white/10 dark:data-[state=open]:bg-white/10"
+          className={cn(
+            'flex h-8 items-center rounded-full px-2 text-xs',
+            composerControlHoverClass
+          )}
         >
           {edition} {label}
         </button>
@@ -119,7 +124,7 @@ export default function ThinkingLevelSelector({
                     type="button"
                     disabled={Boolean(disabledReason)}
                     aria-pressed={group === item}
-                    className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-sm text-left hover:bg-black/5 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-white/10"
+                    className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-left text-sm hover:bg-accent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={() => {
                       onGroupChange(item);
                       setModelsOpen(false);
@@ -159,7 +164,7 @@ export default function ThinkingLevelSelector({
                 aria-label={t('chat.model_tier')}
                 disabled={disabled}
                 onClick={() => setModelsOpen(true)}
-                className="rounded-xl px-1 py-1 hover:bg-black/5 dark:hover:bg-white/10"
+                className="rounded-xl px-1 py-1 hover:bg-accent"
               >
                 <span className="flex items-center justify-center gap-1 text-base font-medium text-[#3098ff]">
                   {title}
@@ -194,7 +199,10 @@ export default function ThinkingLevelSelector({
                             )
                           );
                         }}
-                        className="rounded-full p-1.5 text-muted-foreground hover:bg-muted"
+                        className={cn(
+                          'rounded-full p-1.5',
+                          composerControlHoverClass
+                        )}
                       >
                         <RotateCcw className="size-4" />
                       </button>

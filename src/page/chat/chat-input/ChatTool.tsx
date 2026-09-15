@@ -32,6 +32,7 @@ import { ToolType } from '@/page/chat/chat-input/types';
 
 import { CHAT_IMAGE_TYPES } from './chatImages';
 import { focusResourceDialogOnOpen } from './chatToolFocus';
+import { composerControlHoverClass } from './composerControlClass';
 
 const datasource = [
   {
@@ -104,7 +105,7 @@ export default function ChatTool(props: IProps) {
               <Button
                 size="icon"
                 variant="ghost"
-                className="size-8 rounded-full text-muted-foreground hover:text-foreground"
+                className={cn('size-8 rounded-full', composerControlHoverClass)}
                 aria-label={t('chat.tools.more')}
                 onPointerDown={onBeforeOpen}
               >
