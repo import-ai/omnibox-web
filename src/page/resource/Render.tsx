@@ -9,6 +9,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { Markdown } from '@/components/markdown';
 import useTheme from '@/hooks/useTheme';
@@ -178,7 +179,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
     style,
     wide = false,
   } = props;
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { theme } = useTheme();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -191,6 +192,12 @@ function OmniboxRender(props: OmniboxRenderProps) {
   );
   const targetScrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;
+
+  const handleCodeBlockCopy = useCallback(() => {
+    toast(t('actions.copy_content_success'), {
+      position: 'bottom-right',
+    });
+  }, [t]);
 
   useEffect(() => {
     setIsScrollLineVisible(true);
@@ -259,6 +266,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
         scrollToLine={scrollToLine}
         comments={comments.commentsConfig}
         onReady={comments.registerEditor}
+        onCodeBlockCopy={handleCodeBlockCopy}
         scrollToLineContent={embedImage(resource)}
       />
     </div>

@@ -20,6 +20,7 @@ import {
 } from './commentAnchors';
 import { createAnchoredCommentThread } from './createAnchoredCommentThread';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
+import { useCommentDraftHighlight } from './useCommentDraftHighlight';
 import { useCommentHighlight } from './useCommentHighlight';
 import { useCommentLinkNavigation } from './useCommentLinkNavigation';
 import { useCommentMutations } from './useCommentMutations';
@@ -85,6 +86,7 @@ export function useResourceComments({
   const [createConflict, setCreateConflict] = useState(false);
 
   anchorThreadsRef.current = anchorThreads;
+  useCommentDraftHighlight(pendingSelection);
 
   const isShared = namespaceId.startsWith('share:');
   const permission = resource.current_permission ?? 'can_view';

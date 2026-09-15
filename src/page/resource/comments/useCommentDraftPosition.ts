@@ -34,9 +34,7 @@ export function useCommentDraftPosition({
         return;
       }
       const panelTop = panelElement.getBoundingClientRect().top;
-      const selectionTop = selection.editor.view.coordsAtPos(
-        selection.from
-      ).top;
+      const selectionTop = selection.editor.view.coordsAtPos(selection.to).top;
       const elements = Array.from(
         panelElement.querySelectorAll<HTMLElement>('[data-thread-id]')
       );
@@ -51,7 +49,7 @@ export function useCommentDraftPosition({
         return {
           range,
           anchorTop: range
-            ? selection.editor.view.coordsAtPos(range.from).top
+            ? selection.editor.view.coordsAtPos(range.to).top
             : undefined,
           top: bounds.top - offset,
           bottom: bounds.bottom - offset,

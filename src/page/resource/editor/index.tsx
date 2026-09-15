@@ -19,6 +19,7 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import Vditor from 'vditor';
 
 import { Input } from '@/components/input';
@@ -201,6 +202,12 @@ function OmniboxResourceEditor(props: IEditorProps) {
 
     editor.commands.focus('start');
   }, [isFolder]);
+
+  const handleCodeBlockCopy = useCallback(() => {
+    toast(t('actions.copy_content_success'), {
+      position: 'bottom-right',
+    });
+  }, [t]);
 
   const uploadImage = useCallback<UploadFunction>(
     async (file, onProgress, abortSignal) => {
@@ -419,6 +426,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
             onReady={handleEditorReady}
             onUpdate={handleEditorUpdate}
             onNavigateToTitle={handleNavigateToTitle}
+            onCodeBlockCopy={handleCodeBlockCopy}
           />
         ) : null}
       </div>

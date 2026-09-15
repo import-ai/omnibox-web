@@ -18,7 +18,7 @@ export default {
         comment: {
           DEFAULT: colors.yellow[400],
           surface: colors.yellow[200],
-          'surface-dark': colors.yellow[950],
+          'surface-dark': '#f0b62240',
           resolved: 'var(--tt-selection-color, rgba(0, 144, 255, 0.2))',
           'resolved-dark': 'var(--tt-selection-color, rgba(61, 168, 255, 0.2))',
           'success-surface': '#e7f3ef',

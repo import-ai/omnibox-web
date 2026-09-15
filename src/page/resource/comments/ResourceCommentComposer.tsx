@@ -3,7 +3,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { AutosizeTextarea } from '@/components/autosize-textarea';
+import {
+  AutosizeTextarea,
+  type AutosizeTextAreaRef,
+} from '@/components/autosize-textarea';
 import { Button } from '@/components/ui/Button';
 
 import { pasteCommentImage } from './pasteCommentImage';
@@ -14,6 +17,8 @@ interface ResourceCommentComposerProps {
   controller: ResourceCommentsController;
 }
 
+const COMMENT_DRAFT_DISMISS_MS = 180;
+
 export function ResourceCommentComposer({
   controller,
 }: ResourceCommentComposerProps) {
@@ -22,13 +27,17 @@ export function ResourceCommentComposer({
   const [content, setContent] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [attachmentId, setAttachmentId] = useState<string | null>(null);
+  const [isClosing, setIsClosing] = useState(false);
   const surfaceRef = useRef<HTMLElement>(null);
+  const inputRef = useRef<AutosizeTextAreaRef>(null);
   const panelTop = useCommentDraftPosition({
     selection,
     surfaceRef,
   });
   const previewUrlRef = useRef<string | null>(null);
   const uploadRequestRef = useRef(0);
+  const closeTimerRef = useRef<number | null>(null);
+  const previousSelectionRef = useRef(selection);
   const selectionKey = selection ? `${selection.from}:${selection.to}` : null;
   const uploading = !!imagePreview && !attachmentId;
   const hasDraft = !!content.trim() || !!attachmentId;
@@ -49,8 +58,22 @@ export function ResourceCommentComposer({
   }, [clearImage, selectionKey]);
 
   useEffect(() => {
+    if (selection && selection !== previousSelectionRef.current) {
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+        closeTimerRef.current = null;
+      }
+      setIsClosing(false);
+    }
+    previousSelectionRef.current = selection;
+  }, [selection]);
+
+  useEffect(() => {
     return () => {
       uploadRequestRef.current += 1;
+      if (closeTimerRef.current !== null) {
+        window.clearTimeout(closeTimerRef.current);
+      }
       if (previewUrlRef.current) {
         URL.revokeObjectURL(previewUrlRef.current);
       }
@@ -58,20 +81,23 @@ export function ResourceCommentComposer({
   }, []);
 
   useEffect(() => {
-    if (selection) {
-      surfaceRef.current
-        ?.querySelector('textarea')
-        ?.focus({ preventScroll: true });
+    if (selection && panelTop !== null) {
+      inputRef.current?.textArea.focus({ preventScroll: true });
     }
-  }, [selection]);
+  }, [panelTop, selection]);
 
   const cancel = useCallback(() => {
-    if (controller.submitting) {
+    if (controller.submitting || isClosing) {
       return;
     }
-    controller.setPendingSelection(null);
-    controller.setCreateConflict(false);
-  }, [controller]);
+    setIsClosing(true);
+    closeTimerRef.current = window.setTimeout(() => {
+      closeTimerRef.current = null;
+      controller.setPendingSelection(null);
+      controller.setCreateConflict(false);
+      setIsClosing(false);
+    }, COMMENT_DRAFT_DISMISS_MS);
+  }, [controller, isClosing]);
 
   useEffect(() => {
     if (!selection) {
@@ -85,6 +111,23 @@ export function ResourceCommentComposer({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [cancel, selection]);
+
+  useEffect(() => {
+    if (!selection || hasDraft || uploading) {
+      return;
+    }
+    const handleOutsidePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node) || surfaceRef.current?.contains(target)) {
+        return;
+      }
+      cancel();
+    };
+    document.addEventListener('pointerdown', handleOutsidePointerDown);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsidePointerDown);
+    };
+  }, [cancel, hasDraft, selection, uploading]);
 
   const uploadImage = (file: File) => {
     if (controller.submitting || !file.type.startsWith('image/')) {
@@ -129,6 +172,7 @@ export function ResourceCommentComposer({
       ref={surfaceRef}
       className="omnibox-comment-surface resource-comments-draft-surface"
       aria-label={t('resource_comments.write_comment')}
+      data-closing={isClosing ? '' : undefined}
       data-mode="draft"
       role="dialog"
       style={{
@@ -138,6 +182,7 @@ export function ResourceCommentComposer({
     >
       <form
         className="omnibox-comment-composer"
+        data-has-draft={hasDraft ? '' : undefined}
         onSubmit={event => {
           event.preventDefault();
           submit().catch(() => undefined);
@@ -149,6 +194,7 @@ export function ResourceCommentComposer({
           data-has-preview={imagePreview ? '' : undefined}
         >
           <AutosizeTextarea
+            ref={inputRef}
             className="border-line"
             minHeight={0}
             maxHeight={160}

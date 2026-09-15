@@ -11,6 +11,7 @@ import type { ResourceComment, ResourceCommentAttachment } from '@/interface';
 import { ResourceCommentComposer } from './ResourceCommentComposer';
 import { ResourceCommentItem } from './ResourceCommentItem';
 import { ResourceCommentReplyComposer } from './ResourceCommentReplyComposer';
+import { useCommentDraftPosition } from './useCommentDraftPosition';
 import { useResourceComments } from './useResourceComments';
 
 jest.mock('react', () => {
@@ -22,7 +23,7 @@ jest.mock('./ResourceCommentsContext', () => ({
   useResourceCommentsPanel: () => null,
 }));
 jest.mock('./useCommentDraftPosition', () => ({
-  useCommentDraftPosition: () => 0,
+  useCommentDraftPosition: jest.fn(() => 0),
 }));
 jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default', hash: '' }),
@@ -72,7 +73,14 @@ const upload = jest.fn<Promise<ResourceCommentAttachment>, [File]>();
 const create = jest.fn(() => Promise.resolve(true));
 const edit = jest.fn(() => Promise.resolve(undefined));
 const reply = jest.fn<Promise<void>, [string[]?]>();
+const setPendingSelection = jest.fn();
 let editor: Editor;
+let pendingSelection: {
+  editor: Editor;
+  from: number;
+  to: number;
+  quotedText: string;
+};
 type Mode = 'create' | 'edit' | 'reply';
 
 function Fixture({ mode }: { mode: Mode }) {
@@ -88,7 +96,8 @@ function Fixture({ mode }: { mode: Mode }) {
     createThread: create,
     editComment: edit,
     canEditComment: () => true,
-    pendingSelection: { editor, from: 0, to: 4, quotedText: 'Text' },
+    pendingSelection,
+    setPendingSelection,
   };
   return (
     <TooltipProvider>
@@ -166,7 +175,7 @@ describe('comment upload races', () => {
     await act(async () => textarea.dispatchEvent(event));
     return event;
   };
-  const render = async (mode: Mode) => {
+  const render = async (mode: Mode, content: string | null = 'Text') => {
     await act(async () => root.render(<Fixture mode={mode} />));
     if (mode === 'edit') {
       await act(async () =>
@@ -185,13 +194,16 @@ describe('comment upload races', () => {
     if (!textarea || !setter) {
       throw new Error('Missing textarea');
     }
-    await act(async () => {
-      setter.call(textarea, 'Text');
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    if (content !== null) {
+      await act(async () => {
+        setter.call(textarea, content);
+        textarea.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
   };
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useCommentDraftPosition).mockReturnValue(0);
     reply.mockResolvedValue();
     urlIndex = 0;
     Object.assign(URL, {
@@ -204,14 +216,79 @@ describe('comment upload races', () => {
         Node.create({ name: 'text', group: 'inline' }),
       ],
     });
+    pendingSelection = { editor, from: 0, to: 4, quotedText: 'Text' };
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
   });
   afterEach(async () => {
     await act(async () => root.unmount());
+    jest.useRealTimers();
     container.remove();
     editor.destroy();
+  });
+
+  describe('create draft dismissal', () => {
+    it('focuses the input after the draft position is ready', async () => {
+      jest.mocked(useCommentDraftPosition).mockReturnValue(null);
+      await act(async () => root.render(<Fixture mode="create" />));
+      const textarea = container.querySelector('textarea');
+      expect(document.activeElement).not.toBe(textarea);
+
+      jest.mocked(useCommentDraftPosition).mockReturnValue(0);
+      await act(async () => root.render(<Fixture mode="create" />));
+      expect(document.activeElement).toBe(textarea);
+    });
+
+    it('closes an empty draft when clicking outside', async () => {
+      jest.useFakeTimers();
+      await render('create', null);
+      await act(async () => {
+        document.body.dispatchEvent(
+          new Event('pointerdown', { bubbles: true })
+        );
+      });
+      expect(
+        container
+          .querySelector('.resource-comments-draft-surface')
+          ?.hasAttribute('data-closing')
+      ).toBe(true);
+      expect(setPendingSelection).not.toHaveBeenCalled();
+      await act(async () => jest.advanceTimersByTime(180));
+      expect(setPendingSelection).toHaveBeenCalledWith(null);
+    });
+
+    it('keeps an empty draft open when clicking inside', async () => {
+      await render('create', null);
+      await act(async () => {
+        container
+          .querySelector('.resource-comments-draft-surface')
+          ?.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      });
+      expect(setPendingSelection).not.toHaveBeenCalled();
+    });
+
+    it('keeps a text draft open when clicking outside', async () => {
+      await render('create');
+      await act(async () => {
+        document.body.dispatchEvent(
+          new Event('pointerdown', { bubbles: true })
+        );
+      });
+      expect(setPendingSelection).not.toHaveBeenCalled();
+    });
+
+    it('keeps an image draft open while its upload is pending', async () => {
+      upload.mockReturnValueOnce(deferredUpload().promise);
+      await render('create', null);
+      await attach();
+      await act(async () => {
+        document.body.dispatchEvent(
+          new Event('pointerdown', { bubbles: true })
+        );
+      });
+      expect(setPendingSelection).not.toHaveBeenCalled();
+    });
   });
 
   it.each<Mode>(['create', 'edit', 'reply'])(

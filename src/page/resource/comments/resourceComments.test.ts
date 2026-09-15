@@ -39,8 +39,8 @@ describe('compiled resource comment styles', () => {
   });
   it('keeps draft images in the input flow inside the sidebar', async () => {
     const fixture = document.createElement('div');
-    fixture.className = 'resource-comments-panel';
-    fixture.innerHTML = `<aside class="omnibox-comment-surface">
+    fixture.className = 'resource-comments-panel dark';
+    fixture.innerHTML = `<aside class="omnibox-comment-surface resource-comments-draft-surface" data-closing>
       <form class="omnibox-comment-composer">
         <q>Selected text</q>
         <div class="omnibox-comment-composer__input" data-has-preview>
@@ -49,7 +49,10 @@ describe('compiled resource comment styles', () => {
         </div>
         <div class="omnibox-comment-composer__actions"><button>Submit</button></div>
       </form>
-    </aside>`;
+    </aside>
+    <div class="tiptap ProseMirror">
+      <span class="resource-comment-draft-highlight">Selected text</span>
+    </div>`;
     const config = loadConfig(resolve('tailwind.config.js'));
     const css = readFileSync(
       'src/page/resource/comments/resourceComments.css',
@@ -73,13 +76,18 @@ describe('compiled resource comment styles', () => {
       const actions = fixture.querySelector(
         '.omnibox-comment-composer__actions'
       );
-      if (!input || !preview || !actions) {
-        throw new Error('Missing comment composer elements');
+      const draftHighlight = fixture.querySelector(
+        '.resource-comment-draft-highlight'
+      );
+      if (!input || !preview || !actions || !draftHighlight) {
+        throw new Error('Missing comment draft elements');
       }
       expect(getComputedStyle(input).display).toBe('block');
       expect(getComputedStyle(preview).position).toBe('relative');
       expect(getComputedStyle(preview).bottom).toBe('');
       expect(getComputedStyle(actions).display).toBe('flex');
+      expect(getComputedStyle(draftHighlight).borderBottomWidth).toBe('2px');
+      expect(getComputedStyle(draftHighlight).borderBottomStyle).toBe('solid');
     } finally {
       fixture.remove();
       style.remove();
