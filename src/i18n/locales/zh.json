@@ -684,7 +684,7 @@
       "remove": "移除图片",
       "preview": "预览图片",
       "share_unsupported": "分享聊天不支持上传图片",
-      "agent_1_1_unsupported": "Agent 1.1 不支持该功能"
+      "agent_1_1_unsupported": "Agent 1.1 不支持图片输入"
     },
     "title": "小黑",
     "page_title": "小黑",
@@ -855,6 +855,12 @@
       "reasoning": "深度思考",
       "tool_calls": "工具调用"
     },
+    "default_models_description": "推荐的模型组合",
+    "thinking_level": "思考强度",
+    "restore_default": "恢复默认",
+    "model_tier": "模型类型",
+    "model": { "default": "默认", "pro": "Agent 2.1", "basic": "Agent 1.1" },
+    "thinking": { "low": "轻", "high": "高", "max": "最大" },
     "textarea": {
       "placeholder": "随便问点什么吧"
     },
@@ -867,7 +873,7 @@
     "agent_credits": {
       "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1，扩容后可恢复",
       "compact_text": "当前已切换至 Agent 1.1",
-      "compact_tooltip": "Agent 2.1 积分已用尽",
+      "compact_tooltip": "额度不足",
       "not_owner": "请联系空间所有者进行扩容",
       "expand_button": "扩容",
       "tooltip": {

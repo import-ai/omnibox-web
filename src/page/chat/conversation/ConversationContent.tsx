@@ -139,6 +139,7 @@ export function ConversationFooter({
           sendMessage={context.sendMessage}
           loading={context.loading}
           imageUploadDisabled={imageUploadDisabled}
+          proUnsupported={imageUploadDisabled}
           waitingForAssistantDelta={context.waitingForAssistantDelta}
           onStop={context.onStop}
         />

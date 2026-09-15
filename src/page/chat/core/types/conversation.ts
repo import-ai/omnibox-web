@@ -40,6 +40,8 @@ export interface MessageAttrs {
   citations?: Citation[];
   tools?: ChatTool[];
   enable_thinking?: boolean;
+  edition?: 'basic' | 'pro';
+  level?: string;
   lang?: '简体中文' | 'English';
   error_message?: string;
   compact?: {

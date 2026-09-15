@@ -1,14 +1,15 @@
 import { Check, ChevronDown, Hand, ShieldCheck, ShieldX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
+import { cn } from '@/lib/utils';
 
+import { composerControlHoverClass } from './composerControlClass';
 import type { ApprovalMode } from './types';
 
 interface ApprovalModeSelectProps {
@@ -33,17 +34,19 @@ export default function ApprovalModeSelect({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          size="sm"
-          variant="ghost"
-          className="shrink-0 px-2 text-xs font-normal rounded-full md:pl-2 md:pr-1"
+        <button
+          type="button"
+          className={cn(
+            'inline-flex h-8 shrink-0 items-center gap-2 rounded-full px-2 text-xs font-normal md:pl-2 md:pr-1',
+            composerControlHoverClass
+          )}
         >
           {TriggerIcon && <TriggerIcon className="size-4" />}
           <span className="hidden md:block">
             {t(`chat.decision.mode.${approvalMode}`)}
           </span>
           <ChevronDown className="size-4" />
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         side="top"

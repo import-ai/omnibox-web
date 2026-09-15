@@ -32,6 +32,7 @@ import { ToolType } from '@/page/chat/chat-input/types';
 
 import { CHAT_IMAGE_TYPES } from './chatImages';
 import { focusResourceDialogOnOpen } from './chatToolFocus';
+import { composerControlHoverClass } from './composerControlClass';
 
 const datasource = [
   {
@@ -48,6 +49,7 @@ const datasource = [
 
 interface IProps {
   tools: Array<ToolType>;
+  thinkingSelectorEnabled?: boolean;
   renderResourcePicker?: (
     onSelect: (resource: ResourceMeta) => void
   ) => ReactNode;
@@ -103,7 +105,7 @@ export default function ChatTool(props: IProps) {
               <Button
                 size="icon"
                 variant="ghost"
-                className="size-8 rounded-full text-muted-foreground hover:text-foreground"
+                className={cn('size-8 rounded-full', composerControlHoverClass)}
                 aria-label={t('chat.tools.more')}
                 onPointerDown={onBeforeOpen}
               >
@@ -143,17 +145,23 @@ export default function ChatTool(props: IProps) {
           ) : (
             imageMenuItem
           )}
-          {datasource.map(({ label, value, Icon }) => (
-            <DropdownMenuItem
-              key={value}
-              className="cursor-pointer gap-2 rounded-lg px-2 py-2"
-              onClick={() => onToolToggle(value)}
-            >
-              <Icon className="size-4 text-muted-foreground" />
-              <span className="flex-1">{t('chat.tools.' + label)}</span>
-              {tools.includes(value) && <Check className="size-4" />}
-            </DropdownMenuItem>
-          ))}
+          {datasource
+            .filter(
+              item =>
+                !props.thinkingSelectorEnabled ||
+                item.value !== ToolType.REASONING
+            )
+            .map(({ label, value, Icon }) => (
+              <DropdownMenuItem
+                key={value}
+                className="cursor-pointer gap-2 rounded-lg px-2 py-2"
+                onClick={() => onToolToggle(value)}
+              >
+                <Icon className="size-4 text-muted-foreground" />
+                <span className="flex-1">{t('chat.tools.' + label)}</span>
+                {tools.includes(value) && <Check className="size-4" />}
+              </DropdownMenuItem>
+            ))}
         </DropdownMenuContent>
       </DropdownMenu>
       <input

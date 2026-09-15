@@ -101,7 +101,9 @@ export interface ChatRequestBody {
   tools?: ChatTool[];
   parent_message_id?: string;
   recommended_question_id?: string;
-  enable_thinking: boolean;
+  enable_thinking?: boolean;
+  edition?: 'basic' | 'pro';
+  level?: string;
   lang?: '简体中文' | 'English';
   namespace_id?: string;
   current_resource_id?: string;
@@ -135,6 +137,8 @@ export interface SendMessageParams {
   recommendedQuestionId?: string;
   images?: Array<ChatImageInput | ComposerChatImage>;
   onImagesUploaded?: () => void;
+  edition?: 'basic' | 'pro';
+  level?: string;
 }
 
 export interface ChatCreatePayload extends SendMessageParams {
