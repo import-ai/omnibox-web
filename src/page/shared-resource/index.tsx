@@ -32,6 +32,7 @@ export default function SharedResourcePage() {
       editPage={false}
       resource={resource as Resource}
       namespaceId={shareInfo.id}
+      commentsNamespaceId={`share:${shareInfo.id}`}
       showToc={showToc}
       wide={wide}
       readOnly

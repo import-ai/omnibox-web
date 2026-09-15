@@ -6,6 +6,7 @@ import { ThemeToggle } from '@/components/toggle/ThemeToggle';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { PathItem } from '@/interface';
 import { cn } from '@/lib/utils';
+import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceCommentsToggleButton';
 import { getTime } from '@/page/resource/utils';
 
 import Actions from './ShareActions';
@@ -23,6 +24,7 @@ interface ShareHeaderProps {
   wide?: boolean;
   onWide?: (wide: boolean) => void;
   showSidebarTrigger?: boolean;
+  showComments?: boolean;
 }
 
 export default function ShareHeader({
@@ -30,6 +32,7 @@ export default function ShareHeader({
   wide,
   onWide,
   showSidebarTrigger = true,
+  showComments = false,
 }: ShareHeaderProps) {
   const { i18n } = useTranslation();
   const { open } = useSidebar();
@@ -60,6 +63,7 @@ export default function ShareHeader({
         {resource && (
           <Actions resource={resource} wide={wide} onWide={onWide} />
         )}
+        {showComments && <ResourceCommentsToggleButton hideWhenOpen />}
       </div>
     </header>
   );

@@ -12,6 +12,7 @@ import { Outlet, useLocation, useParams } from 'react-router-dom';
 import Loading from '@/components/loading';
 import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
+import { ResourceCommentsProvider } from '@/page/resource/comments/ResourceCommentsContext';
 
 import {
   defaultCopilotWorkspace,
@@ -176,7 +177,8 @@ function WorkspaceContent({
   sideBySide,
   workspaceOpen,
 }: WorkspaceContentProps) {
-  return (
+  const { resource_id: resourceId } = useParams();
+  const content = (
     <div
       className={cn(
         'relative flex min-h-0 min-w-0 flex-1 overflow-hidden',
@@ -253,6 +255,13 @@ function WorkspaceContent({
         </Suspense>
       )}
     </div>
+  );
+  return resourceId || previewResourceId ? (
+    <ResourceCommentsProvider namespaceId={namespaceId}>
+      {content}
+    </ResourceCommentsProvider>
+  ) : (
+    content
   );
 }
 

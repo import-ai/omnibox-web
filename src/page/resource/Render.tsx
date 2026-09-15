@@ -9,6 +9,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { Markdown } from '@/components/markdown';
 import useTheme from '@/hooks/useTheme';
@@ -23,6 +24,11 @@ import {
   useResourceStore,
 } from '@/page/resource/resourceStore';
 
+import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
+import {
+  type ResourceCommentsController,
+  useResourceComments,
+} from './comments/useResourceComments';
 import { parseScrollToLine, scrollRenderedContentToLine } from './scrollToLine';
 import {
   findFirstSearchMatchElement,
@@ -31,7 +37,10 @@ import {
 import { embedImage, getReadonlyResourceEditorKey } from './utils';
 
 interface IProps {
+  comments?: ResourceCommentsController;
   resource: Resource | SharedResource;
+  namespaceId?: string;
+  forceOmniboxEditor?: boolean;
   showToc?: boolean;
   scrollToLine?: number;
   wide?: boolean;
@@ -156,16 +165,21 @@ function MarkdownRender(props: IProps) {
   );
 }
 
-function OmniboxRender(props: IProps) {
+interface OmniboxRenderProps extends IProps {
+  comments: ResourceCommentsController;
+}
+
+function OmniboxRender(props: OmniboxRenderProps) {
   const {
     resource,
+    comments,
     linkBase,
     scrollToLine: requestedLine,
     showToc = true,
     style,
     wide = false,
   } = props;
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { theme } = useTheme();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -178,6 +192,12 @@ function OmniboxRender(props: IProps) {
   );
   const targetScrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;
+
+  const handleCodeBlockCopy = useCallback(() => {
+    toast(t('actions.copy_content_success'), {
+      position: 'bottom-right',
+    });
+  }, [t]);
 
   useEffect(() => {
     setIsScrollLineVisible(true);
@@ -244,17 +264,41 @@ function OmniboxRender(props: IProps) {
         showToc={showToc}
         searchTerm={search ?? undefined}
         scrollToLine={scrollToLine}
+        comments={comments.commentsConfig}
+        onReady={comments.registerEditor}
+        onCodeBlockCopy={handleCodeBlockCopy}
         scrollToLineContent={embedImage(resource)}
       />
     </div>
   );
 }
 
+function StandaloneOmniboxRender(props: IProps) {
+  const { namespaceId = '', resource } = props;
+  const commentsEnabled = !!namespaceId;
+  const comments = useResourceComments({
+    namespaceId,
+    resource,
+    enabled: commentsEnabled,
+  });
+
+  return (
+    <>
+      <OmniboxRender {...props} comments={comments} />
+      {commentsEnabled ? <ResourceCommentsSheet controller={comments} /> : null}
+    </>
+  );
+}
+
 export default function Render(props: IProps) {
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
 
-  return useOmniboxEditor ? (
-    <OmniboxRender {...props} />
+  return useOmniboxEditor || props.forceOmniboxEditor ? (
+    props.comments ? (
+      <OmniboxRender {...props} comments={props.comments} />
+    ) : (
+      <StandaloneOmniboxRender {...props} />
+    )
   ) : (
     <MarkdownRender {...props} />
   );
