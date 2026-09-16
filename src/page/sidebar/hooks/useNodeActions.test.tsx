@@ -19,6 +19,7 @@ const create = jest.fn();
 const move = jest.fn();
 const rename = jest.fn();
 const patch = jest.fn();
+const openCreateFolderDialog = jest.fn();
 let node: TreeNode;
 
 jest.mock('react-i18next', () => ({
@@ -69,6 +70,7 @@ jest.mock('@/page/sidebar/store', () => ({
       create,
       move,
       nodes: { [node.id]: node },
+      openCreateFolderDialog,
       patch,
       rename,
     }),
@@ -180,9 +182,9 @@ describe('useNodeActions', () => {
     await act(async () => Promise.resolve());
     expect(locateSidebarResource).toHaveBeenLastCalledWith('created');
 
-    current.handleCreateFolderDirect();
-    await act(async () => Promise.resolve());
-    expect(locateSidebarResource).toHaveBeenCalledTimes(2);
+    current.handleCreateFolderWithDialog();
+    expect(openCreateFolderDialog).toHaveBeenCalledWith('folder');
+    expect(locateSidebarResource).toHaveBeenCalledTimes(1);
 
     await act(async () => current.handleMoveFinished(['folder'], 'target'));
     expect(locateSidebarResource).toHaveBeenLastCalledWith('folder');

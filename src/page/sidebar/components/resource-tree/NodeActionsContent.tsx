@@ -49,7 +49,7 @@ export function NodeActionsContent({
   const isTouch = useIsTouch();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const menu = useNodeMenu(actions, 'dialog', () => {
+  const menu = useNodeMenu(actions, () => {
     setMenuOpen(false);
     window.setTimeout(() => {
       onRename?.();
