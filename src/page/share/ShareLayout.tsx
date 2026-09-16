@@ -8,6 +8,7 @@ import { SidebarInset, useSidebar } from '@/components/ui/Sidebar';
 import useApp from '@/hooks/useApp';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { cn } from '@/lib/utils';
+import { ResourceCommentsProvider } from '@/page/resource/comments/ResourceCommentsContext';
 import {
   selectUseOmniboxEditor,
   useResourceStore,
@@ -75,6 +76,64 @@ export function ShareLayout(props: IProps) {
       : currentResourceId;
   const showToc = !compactResourcePane;
 
+  const showComments =
+    !isChatActive &&
+    !chatOnly &&
+    !!resource?.content?.trim() &&
+    !['folder', 'smart_folder', 'rss_folder'].includes(resource.resource_type);
+
+  const content = (
+    <>
+      {showResourcePane && (
+        <>
+          <Header
+            resource={resource}
+            wide={wide}
+            onWide={onWide}
+            showSidebarTrigger={showSidebar}
+            showComments={showComments}
+          />
+          <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
+        </>
+      )}
+      {isChatActive && showSidebar && (
+        <header className="sticky top-0 z-[30] flex min-h-12 min-w-0 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
+          <SidebarTriggerButton collapse />
+        </header>
+      )}
+      {showResourcePane ? (
+        <div
+          ref={scrollContainerRef}
+          data-resource-scroll
+          className="no-scrollbar flex min-w-0 flex-1 justify-center overflow-x-hidden overflow-y-auto p-4"
+        >
+          <div
+            className={cn(
+              'flex w-full min-w-0 max-w-full flex-col',
+              resourcePaneColumnClassName({
+                wide,
+                useFullWidth,
+                sidebarOpen: open,
+                large,
+              })
+            )}
+            style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
+          >
+            <Suspense fallback={<Loading />}>
+              <Outlet context={{ showToc }} />
+            </Suspense>
+          </div>
+        </div>
+      ) : (
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <Suspense fallback={<Loading />}>
+            <Outlet />
+          </Suspense>
+        </div>
+      )}
+    </>
+  );
+
   return (
     <>
       {showSidebar && (
@@ -107,50 +166,15 @@ export function ShareLayout(props: IProps) {
           } as CSSProperties
         }
       >
-        {showResourcePane && (
-          <>
-            <Header
-              resource={resource}
-              wide={wide}
-              onWide={onWide}
-              showSidebarTrigger={showSidebar}
-            />
-            <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
-          </>
-        )}
-        {isChatActive && showSidebar && (
-          <header className="sticky top-0 z-[30] flex min-h-12 min-w-0 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
-            <SidebarTriggerButton collapse />
-          </header>
-        )}
-        {showResourcePane ? (
-          <div
-            ref={scrollContainerRef}
-            className="no-scrollbar flex min-w-0 flex-1 justify-center overflow-x-hidden overflow-y-auto p-4"
+        {showComments ? (
+          <ResourceCommentsProvider
+            key={currentResourceId ?? resource?.id}
+            namespaceId={`share:${shareInfo.id}`}
           >
-            <div
-              className={cn(
-                'flex w-full min-w-0 max-w-full flex-col',
-                resourcePaneColumnClassName({
-                  wide,
-                  useFullWidth,
-                  sidebarOpen: open,
-                  large,
-                })
-              )}
-              style={!wide && useFullWidth ? { maxWidth: '100%' } : undefined}
-            >
-              <Suspense fallback={<Loading />}>
-                <Outlet context={{ showToc }} />
-              </Suspense>
-            </div>
-          </div>
+            {content}
+          </ResourceCommentsProvider>
         ) : (
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
-            <Suspense fallback={<Loading />}>
-              <Outlet />
-            </Suspense>
-          </div>
+          content
         )}
       </SidebarInset>
     </>

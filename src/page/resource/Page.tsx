@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
@@ -15,6 +16,12 @@ import { splitSearchText } from '@/page/resource/searchHighlight';
 import { isFolderLikeResourceType } from '@/page/resource/useResourcePaneLayout';
 import { RSS_ITEM_SORT } from '@/service/resourceSort';
 
+import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
+import {
+  type ResourceCommentsController,
+  useResourceComments,
+} from './comments/useResourceComments';
+
 interface IProps {
   editPage: boolean;
   resource: Resource;
@@ -27,9 +34,15 @@ interface IProps {
   apiPrefix?: string;
   navigationPrefix?: string;
   rssFeedNames?: boolean;
+  commentsNamespaceId?: string;
 }
 
-export default function Page(props: IProps) {
+interface PageContentProps extends IProps {
+  comments: ResourceCommentsController;
+  onContentDirtyChange: (dirty: boolean) => void;
+}
+
+function PageContent(props: PageContentProps) {
   const {
     editPage,
     resource,
@@ -38,6 +51,8 @@ export default function Page(props: IProps) {
     showToc,
     scrollToLine,
     wide,
+    comments,
+    onContentDirtyChange,
     readOnly,
     apiPrefix,
     navigationPrefix,
@@ -63,6 +78,8 @@ export default function Page(props: IProps) {
   if (editPage && !resource.read_only && onResource) {
     return (
       <Editor
+        comments={comments}
+        onContentDirtyChange={onContentDirtyChange}
         resource={resource}
         onResource={onResource}
         namespaceId={namespaceId}
@@ -120,6 +137,9 @@ export default function Page(props: IProps) {
           namespaceId={namespaceId}
           emptyText={t('rss_folder.empty')}
           navigationPrefix={childrenNavigationPrefix}
+          // Paged like the workspace folder view: a shared feed can hold
+          // thousands of articles. The share endpoint already orders an rss
+          // folder newest-published first, so no sort override is needed.
           sort={apiPrefix ? undefined : RSS_ITEM_SORT}
           rssFeedNames={showRssFeedNames}
         />
@@ -132,6 +152,8 @@ export default function Page(props: IProps) {
         />
       ) : (
         <Render
+          comments={comments}
+          namespaceId={props.commentsNamespaceId ?? namespaceId}
           resource={resource}
           showToc={showToc}
           scrollToLine={scrollToLine}
@@ -141,5 +163,33 @@ export default function Page(props: IProps) {
         />
       )}
     </div>
+  );
+}
+
+export default function Page(props: IProps) {
+  const { editPage, namespaceId, resource } = props;
+  const commentsNamespaceId = props.commentsNamespaceId ?? namespaceId;
+  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const [contentDirty, setContentDirty] = useState(false);
+  const commentsEnabled =
+    useOmniboxEditor &&
+    !!commentsNamespaceId &&
+    !isFolderLikeResourceType(resource.resource_type);
+  const comments = useResourceComments({
+    namespaceId: commentsNamespaceId,
+    resource,
+    enabled: commentsEnabled,
+    contentDirty: editPage && contentDirty,
+  });
+
+  return (
+    <>
+      <PageContent
+        {...props}
+        comments={comments}
+        onContentDirtyChange={setContentDirty}
+      />
+      {commentsEnabled ? <ResourceCommentsSheet controller={comments} /> : null}
+    </>
   );
 }

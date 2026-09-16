@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx && prettier --check .",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix && prettier --write .",
     "format": "prettier --write .",
@@ -15,7 +16,7 @@
   "dependencies": {
     "@fingerprintjs/fingerprintjs": "^4.6.2",
     "@hookform/resolvers": "^5.2.2",
-    "@import-ai/omnibox-editor": "^0.0.50",
+    "@import-ai/omnibox-editor": "^0.0.53",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.11",
@@ -38,7 +39,10 @@
     "@radix-ui/react-visually-hidden": "^1.2.4",
     "@remixicon/react": "^4.7.0",
     "@tailwindcss/typography": "^0.5.19",
-    "@tiptap/markdown": "^3.27.1",
+    "@tiptap/core": "3.27.1",
+    "@tiptap/extension-node-range": "3.27.1",
+    "@tiptap/markdown": "3.27.1",
+    "@tiptap/pm": "3.27.1",
     "axios": "^1.13.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

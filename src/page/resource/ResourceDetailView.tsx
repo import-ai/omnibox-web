@@ -23,11 +23,16 @@ import {
 } from '@/page/resource/resourceStore';
 import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDragAutoScroll';
 import {
+  isFolderLikeResourceType,
   resourcePaneColumnClassName,
   shouldUseFullWidthResourcePane,
   useResourcePaneLayout,
 } from '@/page/resource/useResourcePaneLayout';
 
+import {
+  ResourceCommentsProvider,
+  useResourceCommentsPanel,
+} from './comments/ResourceCommentsContext';
 import Header from './header';
 import Wrapper from './Wrapper';
 
@@ -38,7 +43,7 @@ interface ResourceDetailViewProps extends IUseResource {
 }
 
 /** Shared visual shell for routed resources and in-place Copilot previews. */
-export default function ResourceDetailView({
+function ResourceDetailContent({
   error = false,
   flush = false,
   ...resourceProps
@@ -61,7 +66,7 @@ export default function ResourceDetailView({
     ...resourceProps,
     loading:
       loading ||
-      (Boolean(resourceId) &&
+      (!!resourceId &&
         !resourceMatchesTarget &&
         !error &&
         !forbidden &&
@@ -74,6 +79,17 @@ export default function ResourceDetailView({
   const [copilotLayoutOpen, setCopilotLayoutOpen] = useState(copilotOpen);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
+  const areFeaturePreviewsLoaded = useResourceStore(
+    state =>
+      state.featurePreviewsUserId !== null &&
+      state.featurePreviewsUserId === localStorage.getItem('uid')
+  );
+  const commentsPanel = useResourceCommentsPanel();
+  const commentsPanelOpen = commentsPanel?.panelOpen ?? false;
+  const closeCommentsPanel = commentsPanel?.setPanelOpen;
+  const isFolderResource = isFolderLikeResourceType(
+    currentResource?.resource_type
+  );
   const useFullWidth = shouldUseFullWidthResourcePane(
     useOmniboxEditor,
     currentResource?.resource_type
@@ -87,6 +103,22 @@ export default function ResourceDetailView({
   );
 
   useResourceBodyDragAutoScroll(scrollContainerRef, useFullWidth && editPage);
+
+  useEffect(() => {
+    if (
+      (isFolderResource || (areFeaturePreviewsLoaded && !useOmniboxEditor)) &&
+      commentsPanelOpen &&
+      closeCommentsPanel
+    ) {
+      closeCommentsPanel(false);
+    }
+  }, [
+    areFeaturePreviewsLoaded,
+    closeCommentsPanel,
+    commentsPanelOpen,
+    isFolderResource,
+    useOmniboxEditor,
+  ]);
 
   useEffect(() => {
     if (copilotOpen) {
@@ -129,6 +161,7 @@ export default function ResourceDetailView({
             // Wide mode needs the default left padding so body clears the TOC rail.
             editPage && !wide && 'pl-2'
           )}
+          data-resource-scroll
           ref={scrollContainerRef}
         >
           <div
@@ -153,5 +186,20 @@ export default function ResourceDetailView({
         </div>
       </SidebarInset>
     </ResourceTasksProvider>
+  );
+}
+
+export default function ResourceDetailView(props: ResourceDetailViewProps) {
+  const commentsPanel = useResourceCommentsPanel();
+  if (commentsPanel) {
+    return <ResourceDetailContent {...props} />;
+  }
+  return (
+    <ResourceCommentsProvider
+      key={`${props.namespaceId}:${props.resourceId}`}
+      namespaceId={props.namespaceId}
+    >
+      <ResourceDetailContent {...props} />
+    </ResourceCommentsProvider>
   );
 }
