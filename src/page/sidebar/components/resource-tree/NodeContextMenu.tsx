@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useDragLayer } from 'react-dnd';
 
+import { ContextMenuContent } from '@/components/ContextMenuContent';
 import {
   ContextMenu,
-  ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
