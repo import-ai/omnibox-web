@@ -1,6 +1,5 @@
 import * as React from 'react';
 
-import { preventNonPrimaryPointerUp } from '@/components/preventNonPrimaryPointerUp';
 import {
   ContextMenuContent as UiContextMenuContent,
   ContextMenuSubContent as UiContextMenuSubContent,
@@ -17,7 +16,10 @@ function mergePointerUpCapture<T extends HTMLElement>(
   onPointerUpCapture?: React.PointerEventHandler<T>
 ): React.PointerEventHandler<T> {
   return event => {
-    preventNonPrimaryPointerUp(event);
+    // Right-click uses button 2. macOS Control+click still reports button 0.
+    if (event.button !== 0 || event.ctrlKey) {
+      event.preventDefault();
+    }
     onPointerUpCapture?.(event);
   };
 }
