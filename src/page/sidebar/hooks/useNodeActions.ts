@@ -37,9 +37,7 @@ export interface UseNodeActionsReturn {
   setFolderEditOpen: (open: boolean) => void;
 
   handleCreateFile: () => void;
-  /** Creates a folder directly without a name dialog (context-menu path) */
-  handleCreateFolderDirect: () => void;
-  /** Opens the create-folder dialog (dropdown-menu path) */
+  /** Opens the create-folder dialog */
   handleCreateFolderWithDialog: () => void;
   /** Opens the create-subscription-folder dialog under this node */
   handleCreateRssFolder: () => void;
@@ -117,23 +115,6 @@ export function useNodeActions(
         navigateToResource(navigate, `/${namespaceId}/${id}/edit`, {
           state: { fromSidebar: true },
         });
-        await locateSidebarResource(id);
-        if (isMobile) setOpenMobile(false);
-      })
-      .catch(() => {
-        // request.ts handles backend error toasts.
-      });
-  };
-
-  const handleCreateFolderDirect = () => {
-    if (hasManagedChildren || isSmartFolderChild) {
-      return;
-    }
-
-    useSidebarStore
-      .getState()
-      .create(nodeId, 'folder')
-      .then(async id => {
         await locateSidebarResource(id);
         if (isMobile) setOpenMobile(false);
       })
@@ -317,7 +298,6 @@ export function useNodeActions(
     folderEditOpen,
     setFolderEditOpen,
     handleCreateFile,
-    handleCreateFolderDirect,
     handleCreateFolderWithDialog,
     handleCreateRssFolder,
     handleEdit,

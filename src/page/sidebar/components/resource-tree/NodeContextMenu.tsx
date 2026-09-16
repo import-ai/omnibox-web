@@ -62,7 +62,6 @@ export default function NodeContextMenu({
 
   const menu = useNodeMenu(
     actions,
-    'direct',
     () => {
       setContextOpen(false);
       window.setTimeout(() => {
