@@ -42,8 +42,8 @@
     }
   },
   "welcome": {
-    "title": "Create Your Space",
-    "description": "Get started by creating your first workspace to organize your content and collaborate with others."
+    "title": "Create Your Namespace",
+    "description": "Get started by creating your first namespace to organize your content and collaborate with others."
   },
   "resource_header": {
     "updated": "Updated {{related_time}}",
@@ -77,7 +77,7 @@
   },
   "copilot": {
     "title": "Copilot",
-    "description": "Continue the AI conversation in this workspace",
+    "description": "Continue the AI conversation in this namespace",
     "expand": "Expand Copilot",
     "collapse": "Collapse Copilot",
     "preview": "Citation preview",
@@ -263,7 +263,7 @@
     "receive_link": "Receive Link",
     "join": "{{ user }} invites you to join {{ namespace }}",
     "add": "Invite Member",
-    "owner": "Workspace Owner",
+    "owner": "Owner",
     "admin": "Admin",
     "member": "Member",
     "min": "At least 2 characters",
@@ -296,14 +296,14 @@
     "member_count": "{{ size }} members",
     "conflict": "There's already a namespace with the same name",
     "no_special_chars": "Special characters are not allowed in namespace name",
-    "quota_exceeded": "Free Space Creation Limit Reached",
-    "quota_exceeded_desc": "Each account can create one space for free. Additional spaces must be purchased.",
+    "quota_exceeded": "Free Namespace Creation Limit Reached",
+    "quota_exceeded_desc": "Each account can create one namespace for free. Additional namespaces must be purchased.",
     "quota_expand_button": "Purchase and Create",
     "usage": "Usage",
     "auto_renewal": {
       "tier_basic": "Basic",
       "tier_premium": "Premium",
-      "space": "Space {{id}}",
+      "space": "Namespace {{id}}",
       "loading": "Checking automatic renewal status",
       "enabled": "Automatic renewal: Monthly plan enabled.",
       "signing": "Automatic renewal: Payment pending.",
@@ -327,23 +327,23 @@
       "cancel_timeout": "Confirmation timed out. Check your automatic renewal status again later."
     },
     "leave": {
-      "title": "Leave Space",
-      "description": "Leave this workspace. Your private data will be deleted.",
-      "button": "Leave Space",
-      "confirm_title": "Leave Space?",
+      "title": "Leave Namespace",
+      "description": "Leave this namespace. Your private data will be deleted.",
+      "button": "Leave Namespace",
+      "confirm_title": "Leave Namespace?",
       "confirm_description": "Are you sure you want to leave? Your private data will be permanently deleted.",
-      "success": "You have left the space"
+      "success": "You have left the namespace"
     },
     "delete": {
-      "title": "Delete Space",
-      "description": "Permanently delete this workspace and all its data.",
-      "button": "Delete Space",
-      "confirm_title": "Delete Space?",
+      "title": "Delete Namespace",
+      "description": "Permanently delete this namespace and all its data.",
+      "button": "Delete Namespace",
+      "confirm_title": "Delete Namespace?",
       "confirm_description": "All data will be permanently deleted and cannot be recovered.",
       "warning_title": "⚠️ This action requires confirmation",
-      "warning_body": "All data in this workspace will be permanently deleted and cannot be recovered.",
+      "warning_body": "All data in this namespace will be permanently deleted and cannot be recovered.",
       "confirm_label": "Type \"{{name}}\" to confirm",
-      "success": "Space deleted successfully"
+      "success": "Namespace deleted successfully"
     }
   },
   "login": {
@@ -419,7 +419,7 @@
   },
   "accept_invite": {
     "accepting": "Accepting invitation...",
-    "accepting_description": "Creating your account and joining the space",
+    "accepting_description": "Creating your account and joining the namespace",
     "error_accept": "Failed to accept invitation. The link may be expired or invalid.",
     "error_title": "Invitation Error",
     "back_to_login": "Back to login"
@@ -490,7 +490,7 @@
     "feature_previews": "Feature Previews",
     "account": "Account",
     "auto_renewal_management": "Automatic Renewal",
-    "space": "Space",
+    "space": "Namespace",
     "general": "General",
     "binding": "Sign-in Methods",
     "binding_tooltip": "Link more accounts and sign in with any of them",
@@ -610,7 +610,7 @@
       "error": "Failed to unbind application",
       "confirm": {
         "title": "Unbind Application",
-        "description": "Are you sure you want to unbind {{ name }}? This will disconnect the application from your workspace.",
+        "description": "Are you sure you want to unbind {{ name }}? This will disconnect the application from your namespace.",
         "button": "Confirm Unbind"
       }
     }
@@ -624,17 +624,17 @@
   "manage": {
     "search": "Enter and search",
     "disable": "Disable",
-    "remove": "Remove from Workspace",
+    "remove": "Remove from Namespace",
     "add_member": "Add Member",
     "user": "User",
     "permission": "Permission",
     "role": "Role",
-    "owner": "Workspace Owner",
-    "owner_desc": "Can change workspace settings and invite new members to the workspace.",
+    "owner": "Owner",
+    "owner_desc": "Can change namespace settings and invite new members to the namespace.",
     "admin": "Admin",
-    "admin_desc": "Can manage members and change workspace settings, but cannot transfer ownership or delete the workspace.",
+    "admin_desc": "Can manage members and change namespace settings, but cannot transfer ownership or delete the namespace.",
     "member": "Member",
-    "member_desc": "Cannot change workspace settings or invite new members to the workspace.",
+    "member_desc": "Cannot change namespace settings or invite new members to the namespace.",
     "sure_to_remove": "Are you sure you want to delete the member?",
     "group": "Group",
     "add": "Add",
@@ -700,7 +700,7 @@
     "remove_self_resource": "Are you sure you want to remove your access from this resource?",
     "grant_permission": "Before removing this permission, please grant 'Full Access' to someone else.",
     "owner_full_access_required": "The owner must retain full access",
-    "invite_owner_or_admin_required": "Only the workspace owner or admin can invite users",
+    "invite_owner_or_admin_required": "Only the namespace owner or admin can invite users",
     "edit_required": "You only have view permission and cannot edit this resource.",
     "delete_required": "You only have view permission and cannot delete this resource.",
     "you": "(You)"
@@ -754,7 +754,7 @@
       "context_compacted": "Context automatically compacted",
       "actions": {
         "regenerate": "Regenerate",
-        "save": "Save current response to private space",
+        "save": "Save current response to private namespace",
         "copy": "Copy Markdown",
         "copy_simple": "Copy",
         "edit": "Edit message",
@@ -916,14 +916,14 @@
       "text": "Agent 2.1 credits used up. Switched to Agent 1.1. Expand to restore.",
       "compact_text": "Switched to Agent 1.1",
       "compact_tooltip": "Agent 2.1 credits used up",
-      "not_owner": "Please contact space owner to expand",
+      "not_owner": "Please contact namespace owner to expand",
       "expand_button": "Expand",
       "tooltip": {
         "base": "Buy or upgrade to keep using Agent 2.1"
       }
     },
     "trial": {
-      "not_owner": "Please contact space owner to upgrade"
+      "not_owner": "Please contact namespace owner to upgrade"
     },
     "decision": {
       "approve": "Approve",
@@ -1214,7 +1214,7 @@
     "storage_usage": "Storage",
     "upload": "Upload",
     "file": "File",
-    "other_users": "Other Users in Space",
+    "other_users": "Other Users in Namespace",
     "my_usage": "My Usage",
     "audio_video_parse_usage": "Audio / Video Parse",
     "audio": "Audio",
@@ -1225,7 +1225,7 @@
     "image": "Image",
     "other": "Other",
     "expand_button": "Expand",
-    "basic_period": "Space validity period: ",
+    "basic_period": "Namespace validity period: ",
     "premium_period": "Pro validity period: ",
     "days_remaining": "{{days}} days remaining (expires {{date}})",
     "page_unit": "pages",
