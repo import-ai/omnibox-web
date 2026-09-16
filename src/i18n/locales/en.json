@@ -754,7 +754,7 @@
       "context_compacted": "Context automatically compacted",
       "actions": {
         "regenerate": "Regenerate",
-        "save": "Save current response to private namespace",
+        "save": "Save current response to private space",
         "copy": "Copy Markdown",
         "copy_simple": "Copy",
         "edit": "Edit message",
