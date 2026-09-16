@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
+import {
+  isTerminalMessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chatResponse.ts';
 import type { MessageDetail } from '@/page/chat/core/types/conversation';
 
 export interface ThinkingSelection {
@@ -43,6 +47,19 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
   const latest = [...messages]
     .reverse()
     .find(message => message.message.role === 'user')?.attrs;
+  const shareId = scope.startsWith('/s/') ? scope.split('/')[2] || '' : '';
+  const configUrl = shareId
+    ? `/config/models?share_id=${encodeURIComponent(shareId)}`
+    : '/config/models';
+  // Terminal statuses only. A streaming answer is still running up the bill
+  // that decides what comes back, so counting it would re-read the catalog
+  // before the turn was charged — and the count would then be unchanged when
+  // the turn really did settle, leaving the stale answer in place.
+  const settledTurns = messages.filter(
+    message =>
+      message.message.role === OpenAIMessageRole.ASSISTANT &&
+      isTerminalMessageStatus(message.status)
+  ).length;
 
   useEffect(() => {
     let active = true;
@@ -50,12 +67,7 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
     setStep(undefined);
     changed.current = false;
     http
-      .get<ThinkingConfig>(
-        scope.startsWith('/s/')
-          ? `/config/models?share_id=${encodeURIComponent(scope.split('/')[2] || '')}`
-          : '/config/models',
-        { mute: true }
-      )
+      .get<ThinkingConfig>(configUrl, { mute: true })
       .then(result => {
         if (active) setConfig(result);
       })
@@ -63,7 +75,26 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
     return () => {
       active = false;
     };
-  }, [scope]);
+  }, [configUrl, scope]);
+
+  // Which models a share offers depends on the shared space's credit balance,
+  // and the share's own turns are what spend it. Re-read the catalog as each
+  // turn settles so a space running dry moves the visitor to Agent 1.1 there
+  // and then, rather than at their next page load. Replaced in place: dropping
+  // the config first would tear the selector down between turns.
+  useEffect(() => {
+    if (!shareId || settledTurns === 0) return;
+    let active = true;
+    http
+      .get<ThinkingConfig>(configUrl, { mute: true })
+      .then(result => {
+        if (active) setConfig(result);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [configUrl, shareId, settledTurns]);
 
   useEffect(() => {
     if (!config || changed.current) return;

@@ -9,6 +9,20 @@ export enum MessageStatus {
   FAILED = 'failed',
 }
 
+/**
+ * Whether a message has stopped moving: no further deltas, no pending work.
+ * Lives with the enum rather than in conversation/utils so that leaf modules
+ * can ask the question without pulling the chat stream machinery in with it.
+ */
+export function isTerminalMessageStatus(status?: MessageStatus): boolean {
+  return (
+    !status ||
+    status === MessageStatus.FAILED ||
+    status === MessageStatus.STOPPED ||
+    status === MessageStatus.SUCCESS
+  );
+}
+
 export enum OpenAIMessageRole {
   SYSTEM = 'system',
   USER = 'user',
