@@ -32,6 +32,8 @@ describe('EmailSuggestionInput', () => {
   let container: HTMLDivElement;
   let root: Root;
   const onChange = jest.fn();
+  const scrollIntoView = jest.fn();
+  const originalScrollIntoView = HTMLElement.prototype.scrollIntoView;
 
   const renderInput = (value: string) => {
     act(() => {
@@ -47,8 +49,18 @@ describe('EmailSuggestionInput', () => {
     });
   };
 
+  const pressKey = (key: string) => {
+    act(() => {
+      getInput().dispatchEvent(
+        new KeyboardEvent('keydown', { key, bubbles: true })
+      );
+    });
+  };
+
   beforeEach(() => {
     onChange.mockClear();
+    scrollIntoView.mockClear();
+    HTMLElement.prototype.scrollIntoView = scrollIntoView;
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -57,6 +69,7 @@ describe('EmailSuggestionInput', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+    HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
   });
 
   it('does not show suggestions before @', () => {
@@ -116,5 +129,60 @@ describe('EmailSuggestionInput', () => {
     });
 
     expect(onChange).toHaveBeenCalledWith('483339@gmail.com');
+  });
+
+  it('keeps keyboard selections visible when navigating and wrapping the list', () => {
+    renderInput('483339@');
+    focusInput();
+
+    const expectActiveOption = (email: string) => {
+      const activeOption = container.querySelector(
+        '[role="option"][aria-selected="true"]'
+      );
+      expect(activeOption?.textContent).toBe(email);
+      expect(getInput().getAttribute('aria-activedescendant')).toBe(
+        activeOption?.id
+      );
+      expect(
+        scrollIntoView.mock.contexts[scrollIntoView.mock.contexts.length - 1]
+      ).toBe(activeOption);
+      expect(scrollIntoView).toHaveBeenLastCalledWith({ block: 'nearest' });
+      expect(document.activeElement).toBe(getInput());
+    };
+
+    expectActiveOption('483339@gmail.com');
+    pressKey('ArrowUp');
+    expectActiveOption('483339@sohu.com');
+    pressKey('ArrowDown');
+    expectActiveOption('483339@gmail.com');
+
+    for (let index = 0; index < 6; index += 1) {
+      pressKey('ArrowDown');
+    }
+    expectActiveOption('483339@foxmail.com');
+    pressKey('ArrowUp');
+    expectActiveOption('483339@126.com');
+    pressKey('Enter');
+
+    expect(onChange).toHaveBeenCalledWith('483339@126.com');
+    expect(container.querySelector('[role="listbox"]')).toBeNull();
+  });
+
+  it('returns to the first suggestion when the input filters the list', () => {
+    renderInput('483339@');
+    focusInput();
+    pressKey('ArrowUp');
+
+    renderInput('483339@o');
+
+    const activeOption = container.querySelector(
+      '[role="option"][aria-selected="true"]'
+    );
+    expect(activeOption?.textContent).toBe('483339@outlook.com');
+    expect(
+      scrollIntoView.mock.contexts[scrollIntoView.mock.contexts.length - 1]
+    ).toBe(activeOption);
+    pressKey('Enter');
+    expect(onChange).toHaveBeenCalledWith('483339@outlook.com');
   });
 });

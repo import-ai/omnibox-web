@@ -6,6 +6,7 @@ import {
   type KeyboardEvent,
   useEffect,
   useId,
+  useRef,
   useState,
 } from 'react';
 
@@ -30,14 +31,11 @@ export const EmailSuggestionInput = forwardRef<
   ref
 ) {
   const listId = useId();
+  const activeOptionRef = useRef<HTMLLIElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const suggestions = getEmailSuggestions(value);
   const showSuggestions = isOpen && suggestions.length > 0;
-
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [value]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.value);
@@ -94,8 +92,18 @@ export const EmailSuggestionInput = forwardRef<
     onKeyDown?.(event);
   };
 
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [value]);
+
+  useEffect(() => {
+    if (showSuggestions) {
+      activeOptionRef.current?.scrollIntoView({ block: 'nearest' });
+    }
+  }, [activeIndex, showSuggestions, value]);
+
   return (
-    <div>
+    <div className="relative">
       <Input
         {...props}
         ref={ref}
@@ -123,11 +131,12 @@ export const EmailSuggestionInput = forwardRef<
         <ul
           id={listId}
           role="listbox"
-          className="no-scrollbar mt-1 max-h-60 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
+          className="no-scrollbar absolute inset-x-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-md border bg-popover p-1 text-popover-foreground shadow-md"
         >
           {suggestions.map((email, index) => (
             <li
               key={email}
+              ref={index === activeIndex ? activeOptionRef : undefined}
               id={`${listId}-${index}`}
               role="option"
               aria-selected={index === activeIndex}
