@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -8,22 +7,20 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
-import { Input } from '@/components/input';
 import { PhoneNumberInput } from '@/components/phone-input';
-import { SupportedEmailLink } from '@/components/SupportedEmailLink';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
-import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validationSchemas';
+import { isSupportedEmail } from '@/page/user/login/emailDomains';
+import { EmailSuggestionInput } from '@/page/user/login/EmailSuggestionInput';
 
 import type { ContactMethod } from './index';
 
@@ -31,7 +28,7 @@ const emailSchema = z.object({
   email: z
     .string()
     .min(1, 'form.email_required')
-    .refine(val => isEmail(val), { message: 'form.email_invalid' }),
+    .refine(val => isSupportedEmail(val), { message: 'form.email_invalid' }),
 });
 
 const phoneFormSchema = z.object({
@@ -157,19 +154,23 @@ export function RegisterForm({ children, contactMethod }: IProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input
-                      type="email"
-                      startIcon={Mail}
-                      placeholder={t('form.email')}
-                      autoComplete="email"
+                    <EmailSuggestionInput
                       className="text-base md:text-sm"
                       disabled={isLoading}
-                      {...field}
+                      placeholder={t('form.email')}
+                      name={field.name}
+                      value={field.value}
+                      onBlur={() => {
+                        field.onBlur();
+                        void emailForm.trigger('email');
+                      }}
+                      onChange={value => {
+                        field.onChange(value);
+                        emailForm.clearErrors('email');
+                      }}
+                      ref={field.ref}
                     />
                   </FormControl>
-                  <FormDescription>
-                    <SupportedEmailLink />
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
