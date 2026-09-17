@@ -11,7 +11,6 @@ import {
 } from 'react';
 
 import { Input, type InputProps } from '@/components/input';
-import { ScrollArea } from '@/components/ui/ScrollArea';
 import { cn } from '@/lib/utils';
 
 import { getEmailSuggestions } from './emailDomains';
@@ -129,31 +128,30 @@ export const EmailSuggestionInput = forwardRef<
         className={cn('aria-[invalid=true]:border-destructive', className)}
       />
       {showSuggestions && (
-        <ScrollArea
-          type="scroll"
-          className="absolute inset-x-0 top-full z-50 mt-1 rounded-md border bg-popover text-popover-foreground shadow-md [&>[data-radix-scroll-area-viewport]]:max-h-60"
+        <ul
+          id={listId}
+          role="listbox"
+          className="absolute inset-x-0 top-full z-50 mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-md border bg-popover p-1 text-popover-foreground shadow-md [scrollbar-gutter:stable_both-edges]"
           onMouseDown={event => event.preventDefault()}
         >
-          <ul id={listId} role="listbox" className="p-1">
-            {suggestions.map((email, index) => (
-              <li
-                key={email}
-                ref={index === activeIndex ? activeOptionRef : undefined}
-                id={`${listId}-${index}`}
-                role="option"
-                aria-selected={index === activeIndex}
-                className={cn(
-                  'cursor-pointer rounded-sm px-3 py-2 text-sm text-muted-foreground',
-                  index === activeIndex && 'bg-accent text-accent-foreground'
-                )}
-                onMouseEnter={() => setActiveIndex(index)}
-                onClick={() => selectEmail(email)}
-              >
-                {email}
-              </li>
-            ))}
-          </ul>
-        </ScrollArea>
+          {suggestions.map((email, index) => (
+            <li
+              key={email}
+              ref={index === activeIndex ? activeOptionRef : undefined}
+              id={`${listId}-${index}`}
+              role="option"
+              aria-selected={index === activeIndex}
+              className={cn(
+                'cursor-pointer rounded-sm px-3 py-2 text-sm text-muted-foreground',
+                index === activeIndex && 'bg-accent text-accent-foreground'
+              )}
+              onMouseEnter={() => setActiveIndex(index)}
+              onClick={() => selectEmail(email)}
+            >
+              {email}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
