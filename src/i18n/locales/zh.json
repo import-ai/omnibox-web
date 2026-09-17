@@ -903,7 +903,14 @@
     "restore_default": "恢复默认",
     "model_tier": "模型类型",
     "model": { "default": "默认", "pro": "Agent 2.1", "basic": "Agent 1.1" },
-    "thinking": { "low": "轻", "high": "高", "max": "最大" },
+    "thinking": {
+      "low": "轻",
+      "medium": "中",
+      "high": "高",
+      "xhigh": "极高",
+      "max": "最大",
+      "ultra": "超"
+    },
     "textarea": {
       "placeholder": "随便问点什么吧"
     },
