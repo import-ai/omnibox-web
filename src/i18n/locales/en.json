@@ -902,7 +902,14 @@
     "restore_default": "Restore default",
     "model_tier": "Model tier",
     "model": { "default": "Default", "pro": "Agent 2.1", "basic": "Agent 1.1" },
-    "thinking": { "low": "Low", "high": "High", "max": "Max" },
+    "thinking": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "xhigh": "Extra high",
+      "max": "Max",
+      "ultra": "Ultra"
+    },
     "textarea": {
       "placeholder": "Ask anything"
     },
