@@ -28,8 +28,6 @@ import {
 import type { UseNodeActionsReturn } from './useNodeActions';
 import { useRssFolderQuotaExhausted } from './useRssFolderQuotaExhausted';
 
-export type CreateFolderMode = 'direct' | 'dialog';
-
 export type MenuItem = MenuActionItem | MenuSeparatorItem;
 
 export type MenuIcon = LucideIcon | ComponentType<SVGProps<SVGSVGElement>>;
@@ -60,7 +58,6 @@ export interface MenuSeparatorItem {
 
 export function useNodeMenu(
   actions: UseNodeActionsReturn,
-  createFolderMode: CreateFolderMode = 'dialog',
   onRename?: () => void,
   batchActions?: BatchMenuActions
 ): {
@@ -266,10 +263,7 @@ export function useNodeMenu(
           key: 'create_folder',
           icon: FolderPlus,
           label: t('actions.create_folder'),
-          onClick:
-            createFolderMode === 'direct'
-              ? actions.handleCreateFolderDirect
-              : actions.handleCreateFolderWithDialog,
+          onClick: actions.handleCreateFolderWithDialog,
         },
         {
           key: 'create_rss_folder',
@@ -319,7 +313,6 @@ export function useNodeMenu(
   }, [
     actions,
     t,
-    createFolderMode,
     onRename,
     node,
     nodes,

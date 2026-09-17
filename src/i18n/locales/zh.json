@@ -264,7 +264,7 @@
     "receive_link": "拷贝链接",
     "join": "{{ user }} 邀请您加入 {{ namespace }}",
     "add": "邀请成员",
-    "owner": "空间所有者",
+    "owner": "所有者",
     "admin": "管理员",
     "member": "成员",
     "min": "至少2个字符",
@@ -630,7 +630,7 @@
     "user": "用户",
     "permission": "权限",
     "role": "角色",
-    "owner": "空间所有者",
+    "owner": "所有者",
     "owner_desc": "可以更改空间设置并邀请新成员加入空间。",
     "admin": "管理员",
     "admin_desc": "可以管理成员和更改空间设置，但不能转移所有权或删除空间。",
@@ -916,7 +916,7 @@
     "agent_credits": {
       "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1，扩容后可恢复",
       "compact_text": "当前已切换至 Agent 1.1",
-      "compact_tooltip": "额度不足",
+      "compact_tooltip": "积分不足",
       "not_owner": "请联系空间所有者进行扩容",
       "expand_button": "扩容",
       "tooltip": {

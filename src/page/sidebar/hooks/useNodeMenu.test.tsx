@@ -67,6 +67,7 @@ const rssFolder: TreeNode = {
 
 const handleAddAllToChat = jest.fn();
 const handleAddToChat = jest.fn();
+const handleCreateFolderWithDialog = jest.fn();
 
 const actions = {
   get node() {
@@ -74,7 +75,20 @@ const actions = {
   },
   handleAddAllToChat,
   handleAddToChat,
+  handleCreateFolderWithDialog,
 } as unknown as UseNodeActionsReturn;
+
+const folder: TreeNode = {
+  id: 'folder',
+  parentId: 'private',
+  spaceType: 'private',
+  name: 'Folder',
+  resourceType: 'folder',
+  hasChildren: false,
+  createdAt: '',
+  updatedAt: '',
+  children: [],
+};
 
 describe('useNodeMenu', () => {
   let container: HTMLDivElement;
@@ -99,6 +113,17 @@ describe('useNodeMenu', () => {
 
   afterEach(async () => {
     await act(async () => root.unmount());
+  });
+
+  it('opens the name dialog when creating a folder', async () => {
+    node = { ...folder };
+    storeNodes = { [folder.id]: folder };
+
+    await act(async () => root.render(<Probe />));
+
+    const createFolder = items.find(item => item.key === 'create_folder');
+    (createFolder as { onClick?: () => void }).onClick?.();
+    expect(handleCreateFolderWithDialog).toHaveBeenCalled();
   });
 
   it('offers an rss folder as chat context, all articles at once', async () => {
