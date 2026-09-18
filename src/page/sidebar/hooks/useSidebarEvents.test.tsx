@@ -292,7 +292,7 @@ describe('useSidebarEvents delete undo restores the detail page', () => {
     expect(locateSidebarResource).toHaveBeenCalledWith('doc-1');
   });
 
-  it('does not steal the current detail page when undoing another resource', async () => {
+  it('opens the restored resource even if another page was showing', async () => {
     window.history.pushState({}, '', `/${NAMESPACE_ID}/folder-1`);
     mockSidebarState.remove.mockReturnValue({
       nextId: null,
@@ -305,7 +305,10 @@ describe('useSidebarEvents delete undo restores the detail page', () => {
 
     await undoDelete();
 
-    expect(navigateToResource).not.toHaveBeenCalled();
+    expect(navigateToResource).toHaveBeenCalledWith(
+      expect.any(Function),
+      `/${NAMESPACE_ID}/doc-1`
+    );
     expect(locateSidebarResource).toHaveBeenCalledWith('doc-1');
   });
 

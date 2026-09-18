@@ -253,9 +253,6 @@ export function useSidebarEvents(namespaceId: string) {
           const result = useSidebarStore
             .getState()
             .remove(id, currentResourceId);
-          const leftDeletedView = Boolean(
-            result.nextId || result.navigateToChat
-          );
 
           if (result.nextId) {
             navigateToResource(navigate, `/${namespaceId}/${result.nextId}`);
@@ -294,17 +291,7 @@ export function useSidebarEvents(namespaceId: string) {
                     } as Resource);
                   }
                   const currentNs = useSidebarStore.getState().namespaceId;
-                  const nowResourceId = extractResourceId(
-                    window.location.pathname,
-                    currentNs
-                  );
-                  if (
-                    leftDeletedView ||
-                    !nowResourceId ||
-                    nowResourceId === id
-                  ) {
-                    navigateToResource(navigate, `/${currentNs}/${restoredId}`);
-                  }
+                  navigateToResource(navigate, `/${currentNs}/${restoredId}`);
                   handleScrollToResource(restoredId);
                   refreshLoadedSmartFolders(currentNs, app);
                   if (isDeletedSmartFolder) {
