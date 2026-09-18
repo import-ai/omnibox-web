@@ -19,10 +19,12 @@ import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
   OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
+import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import {
   selectUseOmniboxEditor,
   useResourceStore,
 } from '@/page/resource/resourceStore';
+import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
 import {
@@ -62,9 +64,13 @@ const ResourceOmniboxEditor =
 
 function getResourceEditorContent(
   resource: Resource | SharedResource,
-  linkBase?: string
+  linkBase?: string,
+  namesById: Record<string, string> = {}
 ): TiptapJsonContent {
-  return contentToTiptapJson(embedImage(resource), { linkBase });
+  return contentToTiptapJson(
+    resolveMentionLabels(embedImage(resource), namesById),
+    { linkBase }
+  );
 }
 
 function useSearchHighlight(
@@ -126,13 +132,24 @@ function useSearchHighlight(
 }
 
 function MarkdownRender(props: IProps) {
-  const { resource, linkBase, scrollToLine: requestedLine, style } = props;
+  const {
+    resource,
+    namespaceId,
+    linkBase,
+    scrollToLine: requestedLine,
+    style,
+  } = props;
+  const { namesById, ready } = useMentionUsers(namespaceId);
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
   const scrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const containerRef = useRef<HTMLDivElement>(null);
-  const contentKey = embedImage(resource);
+  const rawContent = embedImage(resource);
+  const contentKey = useMemo(
+    () => (ready ? resolveMentionLabels(rawContent, namesById) : rawContent),
+    [namesById, rawContent, ready]
+  );
   const applySearchHighlight = useSearchHighlight(
     containerRef,
     search,
@@ -146,18 +163,22 @@ function MarkdownRender(props: IProps) {
       if (containerRef.current && scrollToLine) {
         scrollRenderedContentToLine(
           containerRef.current,
-          contentKey,
+          rawContent,
           scrollToLine
         );
       }
     });
-  }, [applySearchHighlight, contentKey, scrollToLine]);
+  }, [applySearchHighlight, contentKey, rawContent, scrollToLine]);
+
+  if (!ready) {
+    return <div ref={containerRef} className="pb-[30vh]" />;
+  }
 
   return (
     <div ref={containerRef} className="pb-[30vh]">
       <Markdown
         style={style}
-        content={embedImage(resource)}
+        content={contentKey}
         linkBase={linkBase}
         onRendered={onRendered}
       />
@@ -173,6 +194,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
   const {
     resource,
     comments,
+    namespaceId,
     linkBase,
     scrollToLine: requestedLine,
     showToc = true,
@@ -181,14 +203,15 @@ function OmniboxRender(props: OmniboxRenderProps) {
   } = props;
   const { i18n, t } = useTranslation();
   const { theme } = useTheme();
+  const { mentionUsers, namesById, ready } = useMentionUsers(namespaceId);
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
   const [isScrollLineVisible, setIsScrollLineVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const content = useMemo(
-    () => getResourceEditorContent(resource, linkBase),
-    [linkBase, resource]
+    () => getResourceEditorContent(resource, linkBase, namesById),
+    [linkBase, namesById, resource]
   );
   const targetScrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;
@@ -236,21 +259,23 @@ function OmniboxRender(props: OmniboxRenderProps) {
     };
   }, [isScrollLineVisible]);
 
+  const editorClassName = cn(
+    'resource-readonly-editor pb-[30vh]',
+    !isScrollLineVisible && 'resource-readonly-editor--scroll-line-dismissed',
+    wide && 'resource-readonly-editor--wide'
+  );
+
+  if (!ready) {
+    return <div ref={containerRef} style={style} className={editorClassName} />;
+  }
+
   return (
-    <div
-      ref={containerRef}
-      style={style}
-      className={cn(
-        'resource-readonly-editor pb-[30vh]',
-        !isScrollLineVisible &&
-          'resource-readonly-editor--scroll-line-dismissed',
-        wide && 'resource-readonly-editor--wide'
-      )}
-    >
+    <div ref={containerRef} style={style} className={editorClassName}>
       <ResourceOmniboxEditor
         key={getReadonlyResourceEditorKey(resource)}
         editable={false}
         content={content}
+        mentionUsers={mentionUsers}
         linkBase={linkBase}
         locale={i18n.language}
         theme={theme.content}

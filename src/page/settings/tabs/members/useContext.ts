@@ -55,7 +55,7 @@ export default function useContext(canManageMembers: boolean) {
     }
     onData({
       group,
-      member,
+      member: Array.isArray(member) ? member : [],
       invitation,
     });
     setNamespace(namespaceData);

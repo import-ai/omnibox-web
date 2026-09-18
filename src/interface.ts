@@ -187,6 +187,8 @@ export interface Member {
   user_id: string;
   username: string;
   email: string | null;
+  nickname?: string | null;
+  note?: string | null;
   role: Role;
   permission: Permission;
 }
