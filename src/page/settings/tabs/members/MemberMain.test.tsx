@@ -14,6 +14,9 @@ jest.mock('react-i18next', () => ({
         'manage.permission': 'Permission',
         'manage.role': 'Role',
         'manage.user': 'User',
+        'manage.nickname': 'Nickname',
+        'manage.note': 'Note',
+        'manage.submit': 'Save',
         'permission.you': '（你）',
       })[key] ?? key,
   }),
@@ -39,6 +42,11 @@ jest.mock('@/components/permission-action', () => ({
   default: ({ disabled }: { disabled?: boolean }) => (
     <button data-testid="permission" disabled={disabled} />
   ),
+}));
+
+jest.mock('./MemberDisplayEditor', () => ({
+  __esModule: true,
+  default: () => <button type="button" aria-label="Edit nickname and note" />,
 }));
 
 jest.mock('./Action', () => ({
@@ -79,6 +87,7 @@ describe('MemberMain', () => {
           canManageMembers={false}
           data={[
             {
+              id: 'member-1',
               user_id: 'user-1',
               username: 'Alice',
               email: 'alice@example.com',
@@ -86,6 +95,7 @@ describe('MemberMain', () => {
               permission: 'can_view',
             },
             {
+              id: 'member-2',
               user_id: 'user-2',
               username: 'Bob',
               email: 'bob@example.com',
@@ -98,11 +108,88 @@ describe('MemberMain', () => {
     );
 
     expect(container.textContent).toContain('Alice（你）');
+    expect(container.textContent).toContain('alice@example.com');
     expect(container.textContent).not.toContain('Add');
     expect(
-      Array.from(container.querySelectorAll<HTMLButtonElement>('button')).every(
-        button => button.disabled
+      container.querySelectorAll<HTMLButtonElement>(
+        '[data-testid="permission"]'
       )
+    ).toHaveLength(2);
+    expect(
+      Array.from(
+        container.querySelectorAll<HTMLButtonElement>(
+          '[data-testid="permission"], [data-testid="role"]'
+        )
+      ).every(button => button.disabled)
     ).toBe(true);
+  });
+
+  it('shows nickname and private note instead of username and email', async () => {
+    await act(async () =>
+      root.render(
+        <MemberMain
+          search=""
+          refetch={jest.fn()}
+          onSearch={jest.fn()}
+          namespace_id="namespace-1"
+          namespaceName="Workspace"
+          canManageMembers={false}
+          data={[
+            {
+              id: 'member-1',
+              user_id: 'user-1',
+              username: 'Alice',
+              email: 'alice@example.com',
+              nickname: 'Lizhi',
+              note: 'Finance',
+              role: 'member',
+              permission: 'can_view',
+            },
+          ]}
+        />
+      )
+    );
+
+    expect(container.textContent).toContain('Lizhi（Alice）');
+    expect(container.textContent).toContain('Finance');
+    expect(container.textContent).not.toContain('alice@example.com');
+  });
+
+  it('shows another member nickname without treating it as the current user', async () => {
+    await act(async () =>
+      root.render(
+        <MemberMain
+          search=""
+          refetch={jest.fn()}
+          onSearch={jest.fn()}
+          namespace_id="namespace-1"
+          namespaceName="Workspace"
+          canManageMembers={false}
+          data={[
+            {
+              id: 'member-1',
+              user_id: 'user-1',
+              username: 'Alice',
+              email: 'alice@example.com',
+              role: 'member',
+              permission: 'can_view',
+            },
+            {
+              id: 'member-2',
+              user_id: 'user-2',
+              username: 'Bob',
+              email: 'bob@example.com',
+              nickname: '荔枝',
+              role: 'admin',
+              permission: 'full_access',
+            },
+          ]}
+        />
+      )
+    );
+
+    expect(container.textContent).toContain('荔枝（Bob）');
+    expect(container.textContent).toContain('Alice（你）');
+    expect(container.textContent).not.toContain('Bob（你）');
   });
 });

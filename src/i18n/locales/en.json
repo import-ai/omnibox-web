@@ -665,7 +665,15 @@
     "theme_dark": "Dark",
     "theme_system": "System",
     "auto_tag_setting": "AI-Powered Tag Extraction",
-    "auto_tag_description": "Automatically extract and generate tags from content using AI"
+    "auto_tag_description": "Automatically extract and generate tags from content using AI",
+    "nickname": "Nickname",
+    "note": "Note",
+    "note_private_hint": "Only visible to you",
+    "nickname_visible_hint": "Visible to all members in this team",
+    "nickname_placeholder": "What to call you in this namespace",
+    "note_placeholder": "A note about this person",
+    "nickname_length_error": "Nickname cannot exceed {{max}} characters",
+    "note_length_error": "Note cannot exceed {{max}} characters"
   },
   "unauth_page": {
     "title": "Access Denied",
@@ -901,7 +909,11 @@
     "thinking_level": "Thinking level",
     "restore_default": "Restore default",
     "model_tier": "Model tier",
-    "model": { "default": "Default", "pro": "Agent 2.1", "basic": "Agent 1.1" },
+    "model": {
+      "default": "Default",
+      "pro": "Agent 2.1",
+      "basic": "Agent 1.1"
+    },
     "thinking": {
       "low": "Low",
       "medium": "Medium",
