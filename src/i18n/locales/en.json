@@ -863,6 +863,7 @@
       }
     },
     "home": {
+      "nextRecommendedQuestion": "Next recommended question",
       "greeting": {
         "morning": "Good morning, how can I help you today?",
         "afternoon": "Good afternoon, how can I help you today?",

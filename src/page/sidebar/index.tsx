@@ -22,6 +22,7 @@ import { BodyForSidebar } from './BodyForSidebar';
 import { FooterSidebar } from './components/FooterSidebar';
 import { Header } from './components/Header';
 import { Switcher } from './components/namespace-switcher';
+import { SidebarBrowseTabs } from './components/SidebarBrowseTabs';
 
 export default function MainSidebar() {
   const params = useParams();
@@ -57,6 +58,10 @@ export default function MainSidebar() {
     }
   };
 
+  const handleConversationSelect = (conversationId: string) => {
+    handleActiveKey(`chat/${conversationId}`);
+  };
+
   return (
     <React.Fragment>
       <Sidebar className="border-none">
@@ -68,12 +73,18 @@ export default function MainSidebar() {
           />
           <Header onActiveKey={handleActiveKey} />
         </SidebarHeader>
-        <BodyForSidebar
-          currentNamespace={currentProNamespace}
-          previewResourceId={previewResourceId}
-          resourceId={resourceId}
+        <SidebarBrowseTabs
+          key={namespaceId}
           namespaceId={namespaceId}
-        />
+          onConversationSelect={handleConversationSelect}
+        >
+          <BodyForSidebar
+            currentNamespace={currentProNamespace}
+            previewResourceId={previewResourceId}
+            resourceId={resourceId}
+            namespaceId={namespaceId}
+          />
+        </SidebarBrowseTabs>
         <FooterSidebar
           commercial={configLoading ? undefined : config.commercial}
           currentNamespace={currentProNamespace}

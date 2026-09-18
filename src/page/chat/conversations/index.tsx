@@ -168,12 +168,37 @@ export default function ChatConversationsPage({
                     })}
                   </div>
                 ))}
-                <Pagination
-                  total={data.total}
-                  current={current}
-                  pageSize={pageSize}
-                  onChange={onPagerChange}
-                />
+                {compact ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={current <= 1}
+                      onClick={() => onPagerChange(current - 1)}
+                    >
+                      {t('pagination.prev')}
+                    </Button>
+                    <span className="text-xs text-muted-foreground">
+                      {current} /{' '}
+                      {Math.max(1, Math.ceil(data.total / pageSize))}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={current * pageSize >= data.total}
+                      onClick={() => onPagerChange(current + 1)}
+                    >
+                      {t('pagination.next')}
+                    </Button>
+                  </div>
+                ) : (
+                  <Pagination
+                    total={data.total}
+                    current={current}
+                    pageSize={pageSize}
+                    onChange={onPagerChange}
+                  />
+                )}
               </>
             ) : (
               <div className="text-gray-500">

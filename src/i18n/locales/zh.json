@@ -864,6 +864,7 @@
       }
     },
     "home": {
+      "nextRecommendedQuestion": "下一个推荐问题",
       "greeting": {
         "morning": "早上好，今天有什么可以帮您的吗？",
         "afternoon": "下午好，今天有什么可以帮您的吗？",

@@ -76,6 +76,10 @@ export default {
         },
       },
       keyframes: {
+        'cat-blink': {
+          '0%, 100%': { transform: 'scaleY(1)' },
+          '40%': { transform: 'scaleY(0.08)' },
+        },
         'accordion-down': {
           from: {
             height: '0',
@@ -102,6 +106,7 @@ export default {
         },
       },
       animation: {
+        'cat-blink-on-press': 'cat-blink 170ms linear',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'blink-caret': 'blink-caret 1s step-end infinite',

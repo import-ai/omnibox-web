@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { Typewriter } from '@/components/typewriter';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope, setPendingChatPayload } from '@/lib/chatBridge';
@@ -33,7 +32,6 @@ import RecommendedQuestions, {
   RecommendedQuestionItem,
 } from './home/RecommendedQuestions';
 import useSelectedResources from './useSelectedResources.ts';
-import { getGreeting } from './utils';
 
 export default function ChatHomePage() {
   const [pendingMessage, setPendingMessage] =
@@ -63,7 +61,6 @@ export default function ChatHomePage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const namespaceId = params.namespace_id || '';
-  const greetingI18nKey = `chat.home.greeting.${getGreeting()}`;
   const [hasConversationHistory, setHasConversationHistory] = useState<
     boolean | null
   >(null);
@@ -280,15 +277,28 @@ export default function ChatHomePage() {
               : 'flex flex-col justify-center flex-1 mb-8'
           }
         >
-          {!pendingMessage && (
-            <h1 className="text-[28px] text-center mb-[32px] font-medium">
-              <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
-            </h1>
-          )}
-          {config.commercial && (
-            <AgentCredits
+          {pendingMessage ? (
+            config.commercial && (
+              <AgentCredits
+                namespaceId={namespaceId}
+                agentCredits={agentCredits}
+              />
+            )
+          ) : (
+            <RecommendedQuestions
+              key={namespaceId}
+              enabled={config.commercial}
               namespaceId={namespaceId}
-              agentCredits={agentCredits}
+              loadingQuestionId={loadingRecommendedQuestionId}
+              onSelect={handleQuestionSelect}
+              footer={
+                config.commercial && (
+                  <AgentCredits
+                    namespaceId={namespaceId}
+                    agentCredits={agentCredits}
+                  />
+                )
+              }
             />
           )}
           <ChatArea
@@ -315,14 +325,6 @@ export default function ChatHomePage() {
             >
               {t('chat.disclaimer')}
             </div>
-          )}
-          {!pendingMessage && config.commercial && (
-            <RecommendedQuestions
-              key={namespaceId}
-              namespaceId={namespaceId}
-              loadingQuestionId={loadingRecommendedQuestionId}
-              onSelect={handleQuestionSelect}
-            />
           )}
         </div>
         {!pendingMessage && <FeatureCards />}
