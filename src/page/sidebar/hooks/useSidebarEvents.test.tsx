@@ -35,10 +35,17 @@ const app = {
   },
 };
 const mockSidebarState = {
+  namespaceId: NAMESPACE_ID,
   nodes: {} as Record<string, Record<string, unknown>>,
   ui: {} as Record<string, unknown>,
   patch: jest.fn(),
   refreshChildren: jest.fn(),
+  remove: jest.fn(),
+  restore: jest.fn(),
+  refetchSmartFolderEntitlements: jest.fn(),
+  refetchRssFolderLimits: jest.fn(),
+  collapse: jest.fn(),
+  activate: jest.fn(),
 };
 
 jest.mock('@/lib/request', () => ({
@@ -199,5 +206,126 @@ describe('useSidebarEvents rss folder updates', () => {
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(badges()).toEqual(['H']);
+  });
+});
+
+const deletedNode = {
+  id: 'doc-1',
+  parentId: 'folder-1',
+  name: 'Deleted note',
+  resourceType: 'link',
+  spaceType: 'private',
+  hasChildren: false,
+  attrs: {},
+  content: '',
+  createdAt: '',
+  updatedAt: '',
+};
+
+describe('useSidebarEvents delete undo restores the detail page', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+  const showActionToast = jest.requireMock('@/components/sonner')
+    .showActionToast as jest.Mock;
+  const navigateToResource = jest.requireMock(
+    '@/page/resource/resourceNavigation'
+  ).navigateToResource as jest.Mock;
+  const locateSidebarResource = jest.requireMock('@/page/sidebar/utils')
+    .locateSidebarResource as jest.Mock;
+
+  beforeEach(async () => {
+    showActionToast.mockClear();
+    navigateToResource.mockClear();
+    locateSidebarResource.mockClear();
+    mockSidebarState.namespaceId = NAMESPACE_ID;
+    mockSidebarState.nodes = { 'doc-1': { ...deletedNode } };
+    mockSidebarState.ui = {};
+    mockSidebarState.remove = jest.fn();
+    mockSidebarState.restore = jest.fn(async (id: string) => {
+      mockSidebarState.nodes[id] = { ...deletedNode };
+      return id;
+    });
+    mockSidebarState.refetchSmartFolderEntitlements = jest.fn();
+    mockSidebarState.refetchRssFolderLimits = jest.fn();
+    mockSidebarState.collapse = jest.fn();
+    mockSidebarState.activate = jest.fn();
+    window.history.pushState({}, '', `/${NAMESPACE_ID}/doc-1`);
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+    await act(async () => {
+      root.render(<EventsProbe />);
+    });
+  });
+
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    container.remove();
+  });
+
+  async function undoDelete() {
+    const onAction = showActionToast.mock.calls.at(-1)?.[1]?.onAction as
+      (() => void) | undefined;
+    expect(onAction).toEqual(expect.any(Function));
+    await act(async () => {
+      await onAction?.();
+    });
+  }
+
+  it('navigates back to the restored resource after deleting the current page', async () => {
+    mockSidebarState.remove.mockReturnValue({
+      nextId: 'doc-2',
+      navigateToChat: false,
+    });
+
+    await act(async () => {
+      app.fire('delete_resource', 'doc-1', 'folder-1', 'link');
+    });
+    window.history.pushState({}, '', `/${NAMESPACE_ID}/doc-2`);
+
+    await undoDelete();
+
+    expect(navigateToResource).toHaveBeenCalledWith(
+      expect.any(Function),
+      `/${NAMESPACE_ID}/doc-1`
+    );
+    expect(locateSidebarResource).toHaveBeenCalledWith('doc-1');
+  });
+
+  it('does not steal the current detail page when undoing another resource', async () => {
+    window.history.pushState({}, '', `/${NAMESPACE_ID}/folder-1`);
+    mockSidebarState.remove.mockReturnValue({
+      nextId: null,
+      navigateToChat: false,
+    });
+
+    await act(async () => {
+      app.fire('delete_resource', 'doc-1', 'folder-1', 'link');
+    });
+
+    await undoDelete();
+
+    expect(navigateToResource).not.toHaveBeenCalled();
+    expect(locateSidebarResource).toHaveBeenCalledWith('doc-1');
+  });
+
+  it('navigates back from chat after deleting the last visible resource', async () => {
+    mockSidebarState.remove.mockReturnValue({
+      nextId: null,
+      navigateToChat: true,
+    });
+
+    await act(async () => {
+      app.fire('delete_resource', 'doc-1', 'folder-1', 'link');
+    });
+    window.history.pushState({}, '', `/${NAMESPACE_ID}/chat`);
+
+    await undoDelete();
+
+    expect(navigateToResource).toHaveBeenCalledWith(
+      expect.any(Function),
+      `/${NAMESPACE_ID}/doc-1`
+    );
+    expect(locateSidebarResource).toHaveBeenCalledWith('doc-1');
   });
 });
