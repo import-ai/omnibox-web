@@ -206,6 +206,47 @@ export default function Folder(props: IProps) {
   }, [app, reloadSmartFolderChildren, smartFolderParentId]);
 
   useEffect(() => {
+    if (smartFolderParentId) return;
+
+    const hooks = [
+      app.on('delete_resource', (id: string, parentId?: string | null) => {
+        onData(prev => {
+          if (parentId !== resourceId && !prev.some(item => item.id === id)) {
+            return prev;
+          }
+          return prev.filter(item => item.id !== id);
+        });
+      }),
+      app.on('restore_resource', (resource: Resource) => {
+        if (!resource?.id || resource.parent_id !== resourceId) {
+          return;
+        }
+        onData(prev => {
+          if (prev.some(item => item.id === resource.id)) {
+            return prev;
+          }
+          return [
+            {
+              id: resource.id,
+              name: resource.name || '',
+              resource_type: resource.resource_type,
+              attrs: resource.attrs || {},
+              content: resource.content || '',
+              has_children: !!resource.has_children,
+              created_at: resource.created_at || '',
+              updated_at: resource.updated_at || '',
+            },
+            ...prev,
+          ];
+        });
+      }),
+    ];
+    return () => {
+      hooks.forEach(unsub => unsub());
+    };
+  }, [app, resourceId, smartFolderParentId]);
+
+  useEffect(() => {
     return app.on('batch_move_resource_children_changed', (id: string) => {
       if (id === resourceId) {
         if (smartFolderParentId) {

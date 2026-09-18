@@ -21,9 +21,24 @@ jest.mock('react-i18next', () => ({
 jest.mock('react-router-dom', () => ({
   useNavigate: () => jest.fn(),
 }));
+const mockListeners: Record<string, Array<(...args: unknown[]) => void>> = {};
+
+const mockApp = {
+  fire: jest.fn(),
+  on: jest.fn((event: string, cb: (...args: unknown[]) => void) => {
+    mockListeners[event] = mockListeners[event] || [];
+    mockListeners[event].push(cb);
+    return () => {
+      mockListeners[event] = (mockListeners[event] || []).filter(
+        listener => listener !== cb
+      );
+    };
+  }),
+};
+
 jest.mock('@/hooks/useApp', () => ({
   __esModule: true,
-  default: () => ({ on: () => () => {}, fire: jest.fn() }),
+  default: () => mockApp,
 }));
 jest.mock('@/assets/icons/ResourceIcon', () => ({
   __esModule: true,
@@ -91,6 +106,9 @@ describe('Folder rss item rows', () => {
   beforeEach(() => {
     clearRssFolderLinkNamesCache();
     mockGet.mockReset();
+    Object.keys(mockListeners).forEach(key => {
+      delete mockListeners[key];
+    });
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -326,4 +344,109 @@ describe('Folder rss item rows', () => {
       expect(container.textContent).toContain(message);
     }
   );
+});
+
+function fireApp(event: string, ...args: unknown[]) {
+  (mockListeners[event] || []).forEach(cb => cb(...args));
+}
+
+function fileItem(id: string, name: string) {
+  return {
+    id,
+    name,
+    resource_type: 'link',
+    attrs: {},
+    content: '',
+    has_children: false,
+    created_at: '2026-05-04T09:08:07.000Z',
+    updated_at: '2026-05-04T09:08:07.000Z',
+  };
+}
+
+describe('Folder sidebar delete refresh', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    mockGet.mockReset();
+    Object.keys(mockListeners).forEach(key => {
+      delete mockListeners[key];
+    });
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    container.remove();
+  });
+
+  async function renderRegularFolder() {
+    mockGet.mockResolvedValue([
+      fileItem('item-1', 'Kept note'),
+      fileItem('item-2', 'Deleted note'),
+    ]);
+    await act(async () => {
+      root.render(
+        <Folder
+          resourceId={FOLDER_ID}
+          apiPrefix={`/namespaces/${NAMESPACE_ID}/resources`}
+          namespaceId={NAMESPACE_ID}
+          navigationPrefix={`/${NAMESPACE_ID}`}
+        />
+      );
+    });
+  }
+
+  it('removes a child after a sidebar delete_resource event', async () => {
+    await renderRegularFolder();
+
+    expect(container.textContent).toContain('Kept note');
+    expect(container.textContent).toContain('Deleted note');
+
+    await act(async () => {
+      fireApp('delete_resource', 'item-2', FOLDER_ID);
+    });
+
+    expect(container.textContent).toContain('Kept note');
+    expect(container.textContent).not.toContain('Deleted note');
+  });
+
+  it('ignores deletes from another folder', async () => {
+    await renderRegularFolder();
+
+    await act(async () => {
+      fireApp('delete_resource', 'other-item', 'other-folder');
+    });
+
+    expect(container.textContent).toContain('Kept note');
+    expect(container.textContent).toContain('Deleted note');
+  });
+
+  it('puts a restored child back into the listing', async () => {
+    await renderRegularFolder();
+
+    await act(async () => {
+      fireApp('delete_resource', 'item-2', FOLDER_ID);
+    });
+    expect(container.textContent).not.toContain('Deleted note');
+
+    await act(async () => {
+      fireApp('restore_resource', {
+        id: 'item-2',
+        parent_id: FOLDER_ID,
+        name: 'Deleted note',
+        resource_type: 'link',
+        has_children: false,
+        attrs: {},
+        content: '',
+        created_at: '2026-05-04T09:08:07.000Z',
+        updated_at: '2026-05-04T09:08:07.000Z',
+      });
+    });
+
+    expect(container.textContent).toContain('Deleted note');
+    expect(container.textContent).toContain('Kept note');
+  });
 });
