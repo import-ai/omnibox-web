@@ -291,15 +291,8 @@ export function useSidebarEvents(namespaceId: string) {
                     } as Resource);
                   }
                   const currentNs = useSidebarStore.getState().namespaceId;
-                  const nowResourceId = extractResourceId(
-                    window.location.pathname,
-                    currentNs
-                  );
-                  if (!nowResourceId || nowResourceId === id) {
-                    navigateToResource(navigate, `/${currentNs}/${restoredId}`);
-                  } else {
-                    handleScrollToResource(restoredId);
-                  }
+                  navigateToResource(navigate, `/${currentNs}/${restoredId}`);
+                  handleScrollToResource(restoredId);
                   refreshLoadedSmartFolders(currentNs, app);
                   if (isDeletedSmartFolder) {
                     useSidebarStore.getState().refetchSmartFolderEntitlements();
