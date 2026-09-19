@@ -17,6 +17,7 @@ import { clearConversationCache } from '@/page/chat/conversation/conversationCac
 import { useCopilotStore } from '@/page/copilot/copilotStore';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { removeGlobalCredential } from '@/page/user/util';
 
 import {
   getAuthChangeRedirectPath,
@@ -108,9 +109,7 @@ export default function Layout() {
       searchParams.get('from') === 'extension_login' &&
       uid
     ) {
-      clearConversationCache();
-      localStorage.removeItem('uid');
-      localStorage.removeItem('token');
+      removeGlobalCredential();
       return;
     }
 

@@ -10,6 +10,10 @@ import { lazyRoute } from '@/lib/lazyRoute';
 import ChatPage from '@/page/chat';
 import ChatHomePage from '@/page/chat/ChatHomePage';
 import NamespacePage from '@/page/namespace';
+import {
+  type SettingsExtension,
+  SettingsExtensionsContext,
+} from '@/page/settings/SettingsExtensionsContext';
 
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/InvitePage'));
@@ -178,12 +182,18 @@ const router = createBrowserRouter([
   },
 ]);
 
-export default function Main() {
+export interface AppProps {
+  settingsExtensions?: readonly SettingsExtension[];
+}
+
+export default function Main({ settingsExtensions = [] }: AppProps = {}) {
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <AppContext.Provider value={app}>
         <AuthConfigProvider>
-          <RouterProvider router={router} />
+          <SettingsExtensionsContext.Provider value={settingsExtensions}>
+            <RouterProvider router={router} />
+          </SettingsExtensionsContext.Provider>
         </AuthConfigProvider>
       </AppContext.Provider>
     </div>
