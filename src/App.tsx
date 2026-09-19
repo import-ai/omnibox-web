@@ -3,7 +3,10 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import CoreApp from '@/hooks/app.class';
 import AppContext from '@/hooks/appContext';
-import { AuthConfigProvider } from '@/hooks/AuthConfigContext';
+import {
+  AuthConfigProvider,
+  type AuthProvider,
+} from '@/hooks/AuthConfigContext';
 import Layout from '@/layout';
 import Error from '@/layout/ErrorPage';
 import { lazyRoute } from '@/lib/lazyRoute';
@@ -184,13 +187,17 @@ const router = createBrowserRouter([
 
 export interface AppProps {
   settingsExtensions?: readonly SettingsExtension[];
+  authProviders?: readonly AuthProvider[];
 }
 
-export default function Main({ settingsExtensions = [] }: AppProps = {}) {
+export default function Main({
+  settingsExtensions = [],
+  authProviders,
+}: AppProps = {}) {
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <AppContext.Provider value={app}>
-        <AuthConfigProvider>
+        <AuthConfigProvider supportedProviders={authProviders}>
           <SettingsExtensionsContext.Provider value={settingsExtensions}>
             <RouterProvider router={router} />
           </SettingsExtensionsContext.Provider>

@@ -47,6 +47,7 @@ import {
   FormMessage,
 } from '@/components/ui/Form';
 import { Spinner } from '@/components/ui/Spinner';
+import { type AuthProvider, useAuthConfig } from '@/hooks/AuthConfigContext';
 import useUser from '@/hooks/useUser';
 import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
@@ -262,6 +263,7 @@ interface BindingData extends UserBinding {
 
 export default function ProfileForm() {
   const { t } = useTranslation();
+  const { config: authConfig } = useAuthConfig();
   const { user, onChange, loading, refetch } = useUser();
 
   // Dialog states
@@ -497,7 +499,11 @@ export default function ProfileForm() {
 
       {/* WeChat, Google & Apple Bindings */}
       {bindingData
-        .filter(item => item.login_type !== 'phone')
+        .filter(
+          item =>
+            item.login_type !== 'phone' &&
+            (item.id || authConfig[item.login_type as AuthProvider])
+        )
         .map(item => {
           let displayValue = t('setting.not_bound');
           if (item.id) {
