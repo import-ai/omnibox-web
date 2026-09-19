@@ -1,6 +1,7 @@
 import { ArrowLeft, History, Loader2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -80,6 +81,8 @@ export default function ResourceHistoryPanel({
       );
       selectRevision(namespaceId, resourceId, revision);
       setRevisionQuery(revisionId);
+    } catch {
+      toast.error(t('resource.history.load_failed'));
     } finally {
       setLoadingRevision(null);
     }
