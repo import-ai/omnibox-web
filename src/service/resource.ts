@@ -66,6 +66,25 @@ export type BatchCreateFolderResponse = Partial<Resource> & {
   name_conflict_ids?: string[];
 };
 
+export interface ResourceRevisionAuthor {
+  id: string;
+  username: string;
+}
+
+export interface ResourceRevisionSummary {
+  id: string;
+  name: string;
+  created_at: string;
+  author: ResourceRevisionAuthor | null;
+  is_current: boolean;
+}
+
+export interface ResourceRevisionDetail extends ResourceRevisionSummary {
+  resource_id: string;
+  content: string;
+  content_hash: string;
+}
+
 interface IndexedResourceSearchResult {
   type: 'resource';
   id: string;
@@ -202,6 +221,35 @@ export function fetchResource(
       mute: true,
       signal,
     }
+  );
+}
+
+export function fetchResourceRevisions(
+  namespaceId: string,
+  resourceId: string
+) {
+  return http.get<ResourceRevisionSummary[]>(
+    `/namespaces/${namespaceId}/resources/${resourceId}/revisions`
+  );
+}
+
+export function fetchResourceRevision(
+  namespaceId: string,
+  resourceId: string,
+  revisionId: string
+) {
+  return http.get<ResourceRevisionDetail>(
+    `/namespaces/${namespaceId}/resources/${resourceId}/revisions/${revisionId}`
+  );
+}
+
+export function restoreResourceRevision(
+  namespaceId: string,
+  resourceId: string,
+  revisionId: string
+) {
+  return http.post<Resource>(
+    `/namespaces/${namespaceId}/resources/${resourceId}/revisions/${revisionId}/restore`
   );
 }
 

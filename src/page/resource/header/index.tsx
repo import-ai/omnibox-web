@@ -1,6 +1,11 @@
+import { History } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
+import { Button } from '@/components/ui/Button';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
+import { useCopilotStore } from '@/page/copilot/copilotStore';
 import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 
 import Actions, { IActionProps } from '../actions';
@@ -9,6 +14,10 @@ import Breadcrumb from './BreadcrumbMain';
 
 export default function Header(props: IActionProps) {
   const { resource, namespaceId } = props;
+  const { t } = useTranslation();
+  const showResourceHistory = useCopilotStore(
+    state => state.showResourceHistory
+  );
   const { open } = useSidebar();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const isFolder =
@@ -30,6 +39,20 @@ export default function Header(props: IActionProps) {
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1 pr-3">
         <Actions {...props} />
+        {resource?.resource_type === 'doc' &&
+        !resource.read_only &&
+        !props.editPage ? (
+          <Button
+            aria-label={t('resource.history.open')}
+            className="h-7 w-7 shrink-0"
+            onClick={() => showResourceHistory(namespaceId, resource.id)}
+            size="icon"
+            type="button"
+            variant="ghost"
+          >
+            <History />
+          </Button>
+        ) : null}
         {resource && (
           <CopilotToggleButton
             hideWhenOpen

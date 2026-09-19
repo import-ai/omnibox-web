@@ -114,6 +114,23 @@
     "no_content": "资源没有内容可下载",
     "read_only_target": "只读资源不能包含其他资源",
     "untitled": "未命名",
+    "history": {
+      "open": "打开编辑历史",
+      "title": "编辑历史",
+      "back_to_copilot": "返回 Copilot",
+      "current": "当前版本",
+      "historical_version": "历史版本",
+      "back_to_current": "返回当前版本",
+      "restore": "恢复此版本",
+      "restore_title": "恢复此版本吗？",
+      "restore_description": "恢复会创建新的当前版本，现有历史记录仍会保留。",
+      "restore_confirm": "恢复",
+      "restore_cancel": "取消",
+      "restore_failed": "恢复版本失败",
+      "empty": "暂无编辑历史",
+      "load_failed": "加载编辑历史失败",
+      "retry": "重试"
+    },
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",

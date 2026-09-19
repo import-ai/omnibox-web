@@ -114,6 +114,23 @@
     "no_content": "Resource has no content to download",
     "read_only_target": "Read-only resources can't contain other resources.",
     "untitled": "Untitled",
+    "history": {
+      "open": "Open edit history",
+      "title": "Edit history",
+      "back_to_copilot": "Back to Copilot",
+      "current": "Current",
+      "historical_version": "Historical version",
+      "back_to_current": "Back to current",
+      "restore": "Restore this version",
+      "restore_title": "Restore this version?",
+      "restore_description": "Restoring creates a new current version and keeps the existing history.",
+      "restore_confirm": "Restore",
+      "restore_cancel": "Cancel",
+      "restore_failed": "Unable to restore this version",
+      "empty": "No edit history yet",
+      "load_failed": "Unable to load edit history",
+      "retry": "Retry"
+    },
     "attrs": {
       "tag": "Tag",
       "add_tag": "Add tag",

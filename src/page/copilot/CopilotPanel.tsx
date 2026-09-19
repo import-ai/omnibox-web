@@ -20,6 +20,7 @@ import Actions from '@/page/chat/header/Actions';
 import Title from '@/page/chat/header/title';
 import { useChatTitle } from '@/page/chat/header/useChatTitle';
 import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
+import ResourceHistoryPanel from '@/page/resource/history/ResourceHistoryPanel';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 import CopilotToggleButton from './CopilotToggleButton';
@@ -46,6 +47,17 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const homePage = workspace.view === 'home';
   const conversationsPage = workspace.view === 'history';
+  if (
+    workspace.view === 'resource_history' &&
+    workspace.resourceHistoryResourceId
+  ) {
+    return (
+      <ResourceHistoryPanel
+        namespaceId={namespaceId}
+        resourceId={workspace.resourceHistoryResourceId}
+      />
+    );
+  }
   const conversationId =
     workspace.view === 'conversation' ? (workspace.conversationId ?? '') : '';
   const { chatTitle } = useChatTitle(namespaceId, conversationId);
