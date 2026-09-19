@@ -18,6 +18,12 @@ interface ResourceHistoryPanelProps {
   resourceId: string;
 }
 
+function loadResourceRevisions(namespaceId: string, resourceId: string) {
+  return import('@/service/resource').then(({ fetchResourceRevisions }) =>
+    fetchResourceRevisions(namespaceId, resourceId)
+  );
+}
+
 function formatRevisionDate(value: string, language: string) {
   return new Intl.DateTimeFormat(
     language.startsWith('zh') ? 'zh-CN' : 'en-US',
@@ -49,10 +55,7 @@ export default function ResourceHistoryPanel({
     let active = true;
     setLoading(true);
     setFailed(false);
-    import('@/service/resource')
-      .then(({ fetchResourceRevisions }) =>
-        fetchResourceRevisions(namespaceId, resourceId)
-      )
+    loadResourceRevisions(namespaceId, resourceId)
       .then(items => active && setRevisions(items))
       .catch(() => active && setFailed(true))
       .finally(() => active && setLoading(false));
@@ -87,10 +90,7 @@ export default function ResourceHistoryPanel({
   const retry = () => {
     setFailed(false);
     setLoading(true);
-    import('@/service/resource')
-      .then(({ fetchResourceRevisions }) =>
-        fetchResourceRevisions(namespaceId, resourceId)
-      )
+    loadResourceRevisions(namespaceId, resourceId)
       .then(setRevisions)
       .catch(() => setFailed(true))
       .finally(() => setLoading(false));
