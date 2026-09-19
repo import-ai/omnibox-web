@@ -16,6 +16,13 @@ export function resourceHistoryKey(namespaceId: string, resourceId: string) {
   return `${namespaceId}:${resourceId}`;
 }
 
+export function setResourceRevisionQuery(value: string | null) {
+  const next = new URL(window.location.href);
+  if (value) next.searchParams.set('revision', value);
+  else next.searchParams.delete('revision');
+  window.history.replaceState(window.history.state, '', next);
+}
+
 export const useResourceHistoryStore = create<ResourceHistoryState>(set => ({
   selections: {},
   selectRevision: (namespaceId, resourceId, revision) =>

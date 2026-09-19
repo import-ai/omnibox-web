@@ -8,7 +8,10 @@ import { cn } from '@/lib/utils';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
 import type { ResourceRevisionSummary } from '@/service/resource';
 
-import { useResourceHistoryStore } from './resourceHistoryStore';
+import {
+  setResourceRevisionQuery,
+  useResourceHistoryStore,
+} from './resourceHistoryStore';
 
 interface ResourceHistoryPanelProps {
   namespaceId: string;
@@ -23,13 +26,6 @@ function formatRevisionDate(value: string, language: string) {
       timeStyle: 'short',
     }
   ).format(new Date(value));
-}
-
-function setRevisionQuery(value: string | null) {
-  const next = new URL(window.location.href);
-  if (value) next.searchParams.set('revision', value);
-  else next.searchParams.delete('revision');
-  window.history.replaceState(window.history.state, '', next);
 }
 
 export default function ResourceHistoryPanel({
@@ -68,7 +64,7 @@ export default function ResourceHistoryPanel({
   const chooseRevision = async (revisionId: string) => {
     if (revisionId === 'current') {
       clearRevision(namespaceId, resourceId);
-      setRevisionQuery(null);
+      setResourceRevisionQuery(null);
       return;
     }
     setLoadingRevision(revisionId);
@@ -80,7 +76,7 @@ export default function ResourceHistoryPanel({
         revisionId
       );
       selectRevision(namespaceId, resourceId, revision);
-      setRevisionQuery(revisionId);
+      setResourceRevisionQuery(revisionId);
     } catch {
       toast.error(t('resource.history.load_failed'));
     } finally {

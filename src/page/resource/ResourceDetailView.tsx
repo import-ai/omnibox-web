@@ -37,7 +37,10 @@ import {
   useResourceCommentsPanel,
 } from './comments/ResourceCommentsContext';
 import Header from './header';
-import { useResourceHistoryStore } from './history/resourceHistoryStore';
+import {
+  setResourceRevisionQuery,
+  useResourceHistoryStore,
+} from './history/resourceHistoryStore';
 import Wrapper from './Wrapper';
 
 interface ResourceDetailViewProps extends IUseResource {
@@ -90,13 +93,7 @@ function ResourceDetailContent({
       })
       .catch(() => {
         if (active) {
-          const next = new URLSearchParams(window.location.search);
-          next.delete('revision');
-          window.history.replaceState(
-            window.history.state,
-            '',
-            `${window.location.pathname}${next.toString() ? `?${next}` : ''}${window.location.hash}`
-          );
+          setResourceRevisionQuery(null);
         }
       });
     return () => {
@@ -235,13 +232,7 @@ function ResourceDetailContent({
               className="shrink-0 font-medium text-foreground hover:underline"
               onClick={() => {
                 clearRevision(namespaceId, resourceId);
-                const next = new URLSearchParams(window.location.search);
-                next.delete('revision');
-                window.history.replaceState(
-                  window.history.state,
-                  '',
-                  `${window.location.pathname}${next.toString() ? `?${next}` : ''}${window.location.hash}`
-                );
+                setResourceRevisionQuery(null);
               }}
               type="button"
             >
@@ -314,13 +305,7 @@ function ResourceDetailContent({
             resourceProps.onResource(updated);
             resourceProps.app.fire('update_resource', updated);
             clearRevision(namespaceId, resourceId);
-            const next = new URLSearchParams(window.location.search);
-            next.delete('revision');
-            window.history.replaceState(
-              window.history.state,
-              '',
-              `${window.location.pathname}${next.toString() ? `?${next}` : ''}${window.location.hash}`
-            );
+            setResourceRevisionQuery(null);
             setRestoreOpen(false);
           } catch {
             toast.error(t('resource.history.restore_failed'));
