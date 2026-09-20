@@ -1,6 +1,7 @@
 import type { Option } from '@/components/multiple-selector';
 import type { Group, Member } from '@/interface';
 import isEmail from '@/lib/isEmail';
+import { memberRecipientLabel } from '@/page/settings/tabs/members/memberDisplay';
 
 import type { ResourcePermissionsData } from './useResourcePermissions';
 
@@ -84,9 +85,7 @@ export function buildRecipientOptions(
       .filter(member => member.user_id && !existingUserIds.has(member.user_id))
       .map(member => ({
         value: `member:${member.user_id}`,
-        label: member.email
-          ? `${member.username || member.email} (${member.email})`
-          : member.username,
+        label: memberRecipientLabel(member),
         recipient_type: 'member' as const,
         recipient_id: member.user_id,
         raw_value: member.user_id,
