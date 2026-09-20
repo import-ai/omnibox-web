@@ -12,7 +12,7 @@ interface ResourceHistoryState {
   clearRevision: (namespaceId: string, resourceId: string) => void;
 }
 
-export function resourceHistoryKey(namespaceId: string, resourceId: string) {
+function resourceHistoryKey(namespaceId: string, resourceId: string) {
   return `${namespaceId}:${resourceId}`;
 }
 
