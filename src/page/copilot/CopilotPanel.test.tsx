@@ -63,6 +63,11 @@ jest.mock('./CopilotView', () => ({
   },
 }));
 
+jest.mock('@/page/resource/history/ResourceHistoryPanel', () => ({
+  __esModule: true,
+  default: () => <div data-testid="resource-history-panel" />,
+}));
+
 class ResizeObserverMock implements ResizeObserver {
   constructor(callback: ResizeObserverCallback) {
     resizeCallback = callback;
@@ -203,5 +208,27 @@ describe('CopilotPanel', () => {
     expect(document.body.style.overflow).toBe('clip');
     expect(document.activeElement).toBe(trigger);
     trigger.remove();
+  });
+
+  it('returns from resource history to Copilot without changing hook order', async () => {
+    act(() => {
+      setViewportWidth(1200);
+      useCopilotStore
+        .getState()
+        .showResourceHistory('namespace-a', 'resource-a');
+    });
+
+    await act(async () =>
+      root.render(<CopilotPanel namespaceId="namespace-a" />)
+    );
+    expect(
+      container.querySelector('[data-testid="resource-history-panel"]')
+    ).not.toBeNull();
+
+    act(() => useCopilotStore.getState().showHome('namespace-a'));
+
+    expect(
+      container.querySelector('[data-testid="copilot-view"]')
+    ).not.toBeNull();
   });
 });

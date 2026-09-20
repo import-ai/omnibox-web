@@ -45,6 +45,9 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   const showHistory = useCopilotStore(state => state.showHistory);
   const showConversation = useCopilotStore(state => state.showConversation);
   const [searchOpen, setSearchOpen] = useState(false);
+  const conversationId =
+    workspace.view === 'conversation' ? (workspace.conversationId ?? '') : '';
+  const { chatTitle } = useChatTitle(namespaceId, conversationId);
   const homePage = workspace.view === 'home';
   const conversationsPage = workspace.view === 'history';
   if (
@@ -58,9 +61,6 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
       />
     );
   }
-  const conversationId =
-    workspace.view === 'conversation' ? (workspace.conversationId ?? '') : '';
-  const { chatTitle } = useChatTitle(namespaceId, conversationId);
 
   if (commentsPanel?.panelOpen) {
     return (
