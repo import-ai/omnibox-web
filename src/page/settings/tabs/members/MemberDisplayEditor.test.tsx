@@ -7,7 +7,9 @@ import { createRoot } from 'react-dom/client';
 import { Member } from '@/interface';
 import { http } from '@/lib/request';
 
-import MemberDisplayEditor from './MemberDisplayEditor';
+import MemberDisplayEditor, {
+  focusEditorFieldAtEnd,
+} from './MemberDisplayEditor';
 
 const mockPatch = http.patch as jest.Mock;
 
@@ -63,13 +65,41 @@ jest.mock('@/components/ui/Textarea', () => ({
   ),
 }));
 
-jest.mock('@/components/ui/Popover', () => ({
-  Popover: ({ children }: { children: React.ReactNode }) => children,
-  PopoverTrigger: ({ children }: { children: React.ReactNode }) => children,
-  PopoverContent: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="display-editor">{children}</div>
-  ),
-}));
+jest.mock('@/components/ui/Popover', () => {
+  const React = require('react');
+  return {
+    Popover: ({
+      children,
+    }: {
+      children: React.ReactNode;
+      onOpenChange?: (open: boolean) => void;
+    }) => children,
+    PopoverTrigger: ({ children }: { children: React.ReactNode }) => children,
+    PopoverContent: ({
+      children,
+      onOpenAutoFocus,
+    }: {
+      children: React.ReactNode;
+      onOpenAutoFocus?: (event: Event) => void;
+    }) => {
+      const ref = React.useRef<HTMLDivElement>(null);
+      React.useLayoutEffect(() => {
+        if (!ref.current) {
+          return;
+        }
+        onOpenAutoFocus?.({
+          preventDefault() {},
+          currentTarget: ref.current,
+        } as unknown as Event);
+      }, [onOpenAutoFocus]);
+      return (
+        <div ref={ref} data-testid="display-editor">
+          {children}
+        </div>
+      );
+    },
+  };
+});
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -101,6 +131,7 @@ describe('MemberDisplayEditor', () => {
   beforeEach(() => {
     localStorage.setItem('uid', 'user-1');
     container = document.createElement('div');
+    document.body.appendChild(container);
     root = createRoot(container);
     mockPatch.mockReset();
     mockPatch.mockResolvedValue({});
@@ -108,6 +139,7 @@ describe('MemberDisplayEditor', () => {
 
   afterEach(async () => {
     await act(async () => root.unmount());
+    container.remove();
     localStorage.clear();
   });
 
@@ -216,5 +248,46 @@ describe('MemberDisplayEditor', () => {
       '/namespaces/namespace-1/members/user-1/profile',
       { nickname: '荔枝' }
     );
+  });
+
+  it('places the caret at the end when the editor opens', async () => {
+    await act(async () =>
+      root.render(
+        <MemberDisplayEditor
+          member={otherMember}
+          namespaceId="namespace-1"
+          canEditNickname={false}
+          refetch={jest.fn()}
+        />
+      )
+    );
+
+    const textarea = container.querySelector(
+      '#member-note-user-2'
+    ) as HTMLTextAreaElement;
+    expect(textarea.selectionStart).toBe(textarea.value.length);
+    expect(textarea.selectionEnd).toBe(textarea.value.length);
+  });
+});
+
+describe('focusEditorFieldAtEnd', () => {
+  it('moves the caret to the end of an existing value', () => {
+    const wrapper = document.createElement('div');
+    const field = document.createElement('textarea');
+    field.value = '水清源';
+    wrapper.appendChild(field);
+    document.body.appendChild(wrapper);
+    field.setSelectionRange(0, 0);
+
+    const preventDefault = jest.fn();
+    focusEditorFieldAtEnd({
+      preventDefault,
+      currentTarget: wrapper,
+    } as unknown as Event);
+
+    expect(preventDefault).toHaveBeenCalled();
+    expect(field.selectionStart).toBe(3);
+    expect(field.selectionEnd).toBe(3);
+    wrapper.remove();
   });
 });

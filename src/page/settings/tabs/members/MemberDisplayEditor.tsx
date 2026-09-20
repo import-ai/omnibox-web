@@ -1,5 +1,5 @@
 import { Pencil } from 'lucide-react';
-import { type KeyboardEvent, useEffect, useState } from 'react';
+import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
@@ -32,6 +32,19 @@ interface MemberDisplayEditorProps {
   refetch: () => void;
 }
 
+export function focusEditorFieldAtEnd(event: Event) {
+  event.preventDefault();
+  const field = (event.currentTarget as HTMLElement | null)?.querySelector(
+    'input, textarea'
+  ) as HTMLInputElement | HTMLTextAreaElement | null;
+  if (!field) {
+    return;
+  }
+  field.focus();
+  const length = field.value.length;
+  field.setSelectionRange(length, length);
+}
+
 export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
   const { member, namespaceId, canEditNickname, refetch } = props;
   const { t } = useTranslation();
@@ -39,10 +52,21 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
   const [saving, setSaving] = useState(false);
   const [nickname, setNickname] = useState(member.nickname || '');
   const [note, setNote] = useState(member.note || '');
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const ignoreTooltipRef = useRef(false);
   const tooltipLabel = canEditNickname
     ? t('manage.nickname')
     : t('manage.note');
 
+  const handlePopoverOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    setTooltipOpen(false);
+    ignoreTooltipRef.current = true;
+  };
+
+  const releaseTooltip = () => {
+    ignoreTooltipRef.current = false;
+  };
   useEffect(() => {
     if (!open) {
       return;
@@ -66,7 +90,7 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
         `/namespaces/${namespaceId}/members/${member.user_id}/profile`,
         payload
       );
-      setOpen(false);
+      handlePopoverOpenChange(false);
       refetch();
     } finally {
       setSaving(false);
@@ -81,7 +105,7 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
   ) => {
     if (event.key === 'Escape') {
       event.preventDefault();
-      setOpen(false);
+      handlePopoverOpenChange(false);
       return;
     }
     if (event.key !== 'Enter' || isComposingKey(event) || saving) {
@@ -99,14 +123,27 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
 
   return (
     <TooltipProvider delayDuration={100}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <Tooltip>
+      <Popover open={open} onOpenChange={handlePopoverOpenChange}>
+        <Tooltip
+          open={!open && tooltipOpen}
+          onOpenChange={nextOpen => {
+            if (nextOpen && ignoreTooltipRef.current) {
+              return;
+            }
+            setTooltipOpen(nextOpen);
+          }}
+        >
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
               <button
                 type="button"
                 className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground opacity-100 hover:bg-muted hover:text-foreground md:opacity-0 md:group-hover:opacity-100 md:data-[state=open]:opacity-100"
                 aria-label={tooltipLabel}
+                onPointerEnter={releaseTooltip}
+                onPointerLeave={() => {
+                  ignoreTooltipRef.current = false;
+                  setTooltipOpen(false);
+                }}
               >
                 <Pencil className="size-3.5" />
               </button>
@@ -114,7 +151,12 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
           </TooltipTrigger>
           <TooltipContent side="top">{tooltipLabel}</TooltipContent>
         </Tooltip>
-        <PopoverContent align="start" className="w-72 space-y-3 p-3">
+        <PopoverContent
+          align="start"
+          className="w-72 space-y-3 p-3"
+          onOpenAutoFocus={focusEditorFieldAtEnd}
+          onCloseAutoFocus={event => event.preventDefault()}
+        >
           {canEditNickname ? (
             <div className="space-y-1.5">
               <Label htmlFor={`member-nickname-${member.user_id}`}>
