@@ -82,8 +82,8 @@ function ResourceDetailContent({
   const showResourceHistory = useCopilotStore(
     state => state.showResourceHistory
   );
-  const historyResourceId = useCopilotStore(
-    state => getCopilotWorkspace(state, namespaceId).resourceHistoryResourceId
+  const copilotWorkspace = useCopilotStore(state =>
+    getCopilotWorkspace(state, namespaceId)
   );
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [restoring, setRestoring] = useState(false);
@@ -143,9 +143,7 @@ function ResourceDetailContent({
     resource: historicalResource,
     isHistorical,
   };
-  const copilotOpen = useCopilotStore(
-    state => getCopilotWorkspace(state, namespaceId).open
-  );
+  const copilotOpen = copilotWorkspace.open;
   const [copilotLayoutOpen, setCopilotLayoutOpen] = useState(copilotOpen);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
@@ -175,16 +173,12 @@ function ResourceDetailContent({
   useResourceBodyDragAutoScroll(scrollContainerRef, useFullWidth && editPage);
 
   useEffect(() => {
-    const workspace = getCopilotWorkspace(
-      useCopilotStore.getState(),
-      namespaceId
-    );
     if (
       loading ||
       !resourceMatchesTarget ||
-      !workspace.open ||
-      workspace.view !== 'resource_history' ||
-      workspace.resourceHistoryResourceId === resourceId
+      !copilotWorkspace.open ||
+      copilotWorkspace.view !== 'resource_history' ||
+      copilotWorkspace.resourceHistoryResourceId === resourceId
     ) {
       return;
     }
@@ -204,7 +198,7 @@ function ResourceDetailContent({
     loading,
     namespaceId,
     resourceId,
-    historyResourceId,
+    copilotWorkspace,
     resourceMatchesTarget,
     showHome,
     showResourceHistory,

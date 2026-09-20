@@ -48,6 +48,7 @@ export default function ResourceHistoryPanel({
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [loadingRevision, setLoadingRevision] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -60,7 +61,7 @@ export default function ResourceHistoryPanel({
     return () => {
       active = false;
     };
-  }, [namespaceId, resourceId]);
+  }, [namespaceId, reloadKey, resourceId]);
 
   const chooseRevision = async (revisionId: string) => {
     if (revisionId === 'current') {
@@ -86,12 +87,7 @@ export default function ResourceHistoryPanel({
   };
 
   const retry = () => {
-    setFailed(false);
-    setLoading(true);
-    loadResourceRevisions(namespaceId, resourceId)
-      .then(setRevisions)
-      .catch(() => setFailed(true))
-      .finally(() => setLoading(false));
+    setReloadKey(key => key + 1);
   };
 
   return (
