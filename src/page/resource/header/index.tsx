@@ -5,7 +5,10 @@ import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { Button } from '@/components/ui/Button';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
-import { useCopilotStore } from '@/page/copilot/copilotStore';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
 import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceCommentsToggleButton';
@@ -20,6 +23,9 @@ export default function Header(props: IActionProps) {
   const showResourceHistory = useCopilotStore(
     state => state.showResourceHistory
   );
+  const copilotWorkspace = useCopilotStore(state =>
+    getCopilotWorkspace(state, namespaceId)
+  );
   const commentsPanel = useResourceCommentsPanel();
   const { open } = useSidebar();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
@@ -27,6 +33,13 @@ export default function Header(props: IActionProps) {
     resource?.resource_type === 'folder' ||
     resource?.resource_type === 'smart_folder' ||
     resource?.resource_type === 'rss_folder';
+  const commentsActive = !!commentsPanel?.panelOpen;
+  const historyActive =
+    copilotWorkspace.open &&
+    !commentsActive &&
+    copilotWorkspace.view === 'resource_history';
+  const copilotActive =
+    copilotWorkspace.open && !commentsActive && !historyActive;
 
   return (
     <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-white dark:bg-background">
@@ -42,12 +55,13 @@ export default function Header(props: IActionProps) {
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1 pr-3">
         <Actions {...props} />
-        {resource && useOmniboxEditor && !isFolder ? (
+        {resource && useOmniboxEditor && !isFolder && !commentsActive ? (
           <ResourceCommentsToggleButton />
         ) : null}
         {resource?.resource_type === 'doc' &&
         !resource.read_only &&
-        !props.editPage ? (
+        !props.editPage &&
+        !historyActive ? (
           <Button
             aria-label={t('resource.history.open')}
             className="h-7 w-7 shrink-0"
@@ -62,7 +76,9 @@ export default function Header(props: IActionProps) {
             <History />
           </Button>
         ) : null}
-        {resource && <CopilotToggleButton namespaceId={namespaceId} />}
+        {resource && !copilotActive ? (
+          <CopilotToggleButton namespaceId={namespaceId} />
+        ) : null}
       </div>
     </header>
   );
