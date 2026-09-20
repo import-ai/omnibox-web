@@ -50,6 +50,15 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   const { chatTitle } = useChatTitle(namespaceId, conversationId);
   const homePage = workspace.view === 'home';
   const conversationsPage = workspace.view === 'history';
+  if (commentsPanel?.panelOpen) {
+    return (
+      <div
+        ref={commentsPanel.setPanelElement}
+        className="resource-comments-panel relative flex h-full min-h-0 flex-col bg-white text-foreground dark:bg-background"
+      />
+    );
+  }
+
   if (
     workspace.view === 'resource_history' &&
     workspace.resourceHistoryResourceId
@@ -58,15 +67,6 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
       <ResourceHistoryPanel
         namespaceId={namespaceId}
         resourceId={workspace.resourceHistoryResourceId}
-      />
-    );
-  }
-
-  if (commentsPanel?.panelOpen) {
-    return (
-      <div
-        ref={commentsPanel.setPanelElement}
-        className="resource-comments-panel relative flex h-full min-h-0 flex-col bg-white text-foreground dark:bg-background"
       />
     );
   }
@@ -260,7 +260,7 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
     <>
       {visible && modal && (
         <button
-          aria-label={t('copilot.collapse')}
+          aria-label={t('right_sidebar.collapse')}
           className="fixed inset-0 z-40 cursor-default bg-black/20 motion-safe:animate-in motion-safe:fade-in-0"
           onClick={handleClose}
           type="button"

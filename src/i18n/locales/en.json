@@ -78,11 +78,13 @@
   "copilot": {
     "title": "Copilot",
     "description": "Continue the AI conversation in this namespace",
-    "expand": "Expand Copilot",
-    "collapse": "Collapse Copilot",
+    "expand": "Open Copilot",
     "preview": "Citation preview",
     "close_preview": "Close citation preview",
     "preview_error": "Unable to load this resource. Please try again."
+  },
+  "right_sidebar": {
+    "collapse": "Collapse right sidebar"
   },
   "resource_picker": {
     "expand_resource": "Expand {{name}}",

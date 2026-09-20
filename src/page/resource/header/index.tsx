@@ -7,6 +7,8 @@ import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
 import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
+import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
+import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceCommentsToggleButton';
 
 import Actions, { IActionProps } from '../actions';
 import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
@@ -18,6 +20,7 @@ export default function Header(props: IActionProps) {
   const showResourceHistory = useCopilotStore(
     state => state.showResourceHistory
   );
+  const commentsPanel = useResourceCommentsPanel();
   const { open } = useSidebar();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const isFolder =
@@ -39,13 +42,19 @@ export default function Header(props: IActionProps) {
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1 pr-3">
         <Actions {...props} />
+        {resource && useOmniboxEditor && !isFolder ? (
+          <ResourceCommentsToggleButton />
+        ) : null}
         {resource?.resource_type === 'doc' &&
         !resource.read_only &&
         !props.editPage ? (
           <Button
             aria-label={t('resource.history.open')}
             className="h-7 w-7 shrink-0"
-            onClick={() => showResourceHistory(namespaceId, resource.id)}
+            onClick={() => {
+              commentsPanel?.setPanelOpen(false);
+              showResourceHistory(namespaceId, resource.id);
+            }}
             size="icon"
             type="button"
             variant="ghost"
@@ -53,13 +62,7 @@ export default function Header(props: IActionProps) {
             <History />
           </Button>
         ) : null}
-        {resource && (
-          <CopilotToggleButton
-            hideWhenOpen
-            namespaceId={namespaceId}
-            showComments={!!useOmniboxEditor && !isFolder}
-          />
-        )}
+        {resource && <CopilotToggleButton namespaceId={namespaceId} />}
       </div>
     </header>
   );

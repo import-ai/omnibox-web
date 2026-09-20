@@ -78,11 +78,13 @@
   "copilot": {
     "title": "Copilot",
     "description": "在当前工作区中继续 AI 对话",
-    "expand": "展开 Copilot",
-    "collapse": "收起 Copilot",
+    "expand": "打开小黑",
     "preview": "引用预览",
     "close_preview": "关闭引用预览",
     "preview_error": "无法加载引用资源，请稍后重试"
+  },
+  "right_sidebar": {
+    "collapse": "收起右侧边栏"
   },
   "resource_picker": {
     "expand_resource": "展开{{name}}",
