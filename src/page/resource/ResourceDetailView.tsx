@@ -55,7 +55,7 @@ function ResourceDetailContent({
   flush = false,
   ...resourceProps
 }: ResourceDetailViewProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { wide, onWide } = useWide();
   const { open, width: sidebarWidth } = useSidebar();
   const {
@@ -259,46 +259,24 @@ function ResourceDetailContent({
           } as CSSProperties
         }
       >
-        <Header {...currentResourceProps} onWide={onWide} wide={wide} />
-        {selectedRevision && historicalResource ? (
-          <div className="flex min-h-10 items-center gap-3 border-y border-border/60 bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
-            <span className="min-w-0 flex-1 truncate">
-              {t('resource.history.historical_version')} ·{' '}
-              {new Intl.DateTimeFormat(
-                i18n?.language?.startsWith('zh') ? 'zh-CN' : 'en-US',
-                {
-                  dateStyle: 'medium',
-                  timeStyle: 'short',
-                }
-              ).format(new Date(selectedRevision.created_at))}
-              {selectedRevision.author
-                ? ` · ${selectedRevision.author.username}`
-                : ''}
-            </span>
-            <button
-              className="shrink-0 font-medium text-foreground hover:underline"
-              onClick={() => {
-                clearRevision(namespaceId, resourceId);
-                setResourceRevisionQuery(null);
-              }}
-              type="button"
-            >
-              {t('resource.history.back_to_current')}
-            </button>
-            {(currentResource?.current_permission === 'can_edit' ||
+        <Header
+          {...currentResourceProps}
+          onRestore={
+            isHistorical &&
+            (currentResource?.current_permission === 'can_edit' ||
               currentResource?.current_permission === 'full_access' ||
-              !currentResource?.current_permission) && (
-              <button
-                className="shrink-0 font-medium text-foreground hover:underline disabled:opacity-50"
-                disabled={restoring}
-                onClick={() => setRestoreOpen(true)}
-                type="button"
-              >
-                {t('resource.history.restore')}
-              </button>
-            )}
-          </div>
-        ) : null}
+              !currentResource?.current_permission)
+              ? () => setRestoreOpen(true)
+              : undefined
+          }
+          onViewCurrent={() => {
+            clearRevision(namespaceId, resourceId);
+            setResourceRevisionQuery(null);
+          }}
+          onWide={onWide}
+          restoring={restoring}
+          wide={wide}
+        />
         <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
         <div
           className={cn(

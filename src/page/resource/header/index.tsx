@@ -14,12 +14,27 @@ import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceComme
 import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceCommentsToggleButton';
 
 import Actions, { IActionProps } from '../actions';
+import {
+  setResourceRevisionQuery,
+  useResourceHistoryStore,
+} from '../history/resourceHistoryStore';
 import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import Breadcrumb from './BreadcrumbMain';
 
 export default function Header(props: IActionProps) {
-  const { resource, namespaceId, isHistorical = false } = props;
-  const { t } = useTranslation();
+  const {
+    onRestore,
+    onViewCurrent,
+    resource,
+    namespaceId,
+    isHistorical = false,
+    restoring = false,
+  } = props;
+  const { t, i18n } = useTranslation();
+  const selectedRevision = useResourceHistoryStore(
+    state => state.selections[`${namespaceId}:${resource?.id}`]
+  );
+  const clearRevision = useResourceHistoryStore(state => state.clearRevision);
   const showResourceHistory = useCopilotStore(
     state => state.showResourceHistory
   );
@@ -40,6 +55,17 @@ export default function Header(props: IActionProps) {
     copilotWorkspace.view === 'resource_history';
   const copilotActive =
     copilotWorkspace.open && !commentsActive && !historyActive;
+  const historyRevision = isHistorical ? selectedRevision : null;
+  const viewCurrent = () => {
+    if (onViewCurrent) {
+      onViewCurrent();
+      return;
+    }
+    if (resource) {
+      clearRevision(namespaceId, resource.id);
+      setResourceRevisionQuery(null);
+    }
+  };
 
   return (
     <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-white dark:bg-background">
@@ -54,6 +80,44 @@ export default function Header(props: IActionProps) {
         />
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1 pr-3">
+        {historyRevision ? (
+          <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+            <span className="hidden max-w-[18rem] truncate lg:inline">
+              {t('resource.history.historical_version')} ·{' '}
+              {new Intl.DateTimeFormat(
+                i18n?.language?.startsWith('zh') ? 'zh-CN' : 'en-US',
+                {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }
+              ).format(new Date(historyRevision.created_at))}
+              {historyRevision.author
+                ? ` · ${historyRevision.author.username}`
+                : ''}
+            </span>
+            <Button
+              className="h-7 shrink-0 px-2 text-xs"
+              onClick={viewCurrent}
+              size="sm"
+              type="button"
+              variant="ghost"
+            >
+              {t('resource.history.back_to_current')}
+            </Button>
+            {onRestore ? (
+              <Button
+                className="h-7 shrink-0 px-2 text-xs"
+                disabled={restoring}
+                onClick={onRestore}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                {t('resource.history.restore')}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
         <Actions {...props} />
         {resource &&
         !isHistorical &&

@@ -110,6 +110,9 @@ export interface IActionProps extends IUseResource {
   wide: boolean;
   onWide: (wide: boolean) => void;
   isHistorical?: boolean;
+  onRestore?: () => void;
+  onViewCurrent?: () => void;
+  restoring?: boolean;
 }
 
 export default function Actions(props: IActionProps) {

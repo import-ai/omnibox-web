@@ -243,6 +243,11 @@ describe('ResourceDetailView', () => {
     expect(
       container.querySelector('button[aria-label="resource.history.open"]')
     ).not.toBeNull();
+    expect(container.textContent).toContain(
+      'resource.history.historical_version'
+    );
+    expect(container.textContent).toContain('resource.history.back_to_current');
+    expect(container.textContent).toContain('resource.history.restore');
   });
 
   it('uses compact layout when the resource pane becomes narrow', async () => {
