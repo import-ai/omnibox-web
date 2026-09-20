@@ -30,6 +30,8 @@ export default function CopilotToggleButton({
   const label = t(
     collapseOnly || copilotActive ? 'right_sidebar.collapse' : 'copilot.expand'
   );
+  const tooltipLabel =
+    collapseOnly || copilotActive ? label : t('copilot.tooltip');
   const handleToggle = () => {
     if (collapseOnly || copilotActive) {
       close(namespaceId);
@@ -59,7 +61,7 @@ export default function CopilotToggleButton({
           )}
         </Button>
       </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
+      <TooltipContent>{tooltipLabel}</TooltipContent>
     </Tooltip>
   );
   return button;

@@ -79,6 +79,7 @@
     "title": "Copilot",
     "description": "Continue the AI conversation in this namespace",
     "expand": "Open Copilot",
+    "tooltip": "OmniBox AI",
     "preview": "Citation preview",
     "close_preview": "Close citation preview",
     "preview_error": "Unable to load this resource. Please try again."
@@ -119,6 +120,7 @@
     "history": {
       "open": "Open edit history",
       "title": "Edit history",
+      "tooltip": "Edit history",
       "current": "Current",
       "historical_version": "Historical version",
       "back_to_current": "View current version",
@@ -150,6 +152,7 @@
     "panel_title": "Comments ({{count}})",
     "no_threads": "No comments yet",
     "title": "Comments",
+    "tooltip": "Comments",
     "all_title": "All comments",
     "filter": "Filter comments",
     "open_all": "View all comments",

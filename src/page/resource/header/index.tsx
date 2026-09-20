@@ -147,7 +147,7 @@ export default function Header(props: IActionProps) {
                 <History />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{t('resource.history.open')}</TooltipContent>
+            <TooltipContent>{t('resource.history.tooltip')}</TooltipContent>
           </Tooltip>
         ) : null}
         {resource && !isHistorical && !copilotActive ? (
