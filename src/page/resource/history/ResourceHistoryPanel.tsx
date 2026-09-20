@@ -1,11 +1,11 @@
-import { ArrowLeft, History, Loader2, X } from 'lucide-react';
+import { History, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
-import { useCopilotStore } from '@/page/copilot/copilotStore';
+import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 import type { ResourceRevisionSummary } from '@/service/resource';
 
 import {
@@ -39,8 +39,6 @@ export default function ResourceHistoryPanel({
   resourceId,
 }: ResourceHistoryPanelProps) {
   const { t, i18n } = useTranslation();
-  const close = useCopilotStore(state => state.close);
-  const showHome = useCopilotStore(state => state.showHome);
   const selectRevision = useResourceHistoryStore(state => state.selectRevision);
   const clearRevision = useResourceHistoryStore(state => state.clearRevision);
   const selected = useResourceHistoryStore(
@@ -99,26 +97,11 @@ export default function ResourceHistoryPanel({
   return (
     <div className="flex h-full min-h-0 flex-col bg-white dark:bg-background">
       <header className="flex min-h-12 shrink-0 items-center gap-2 border-b border-border/60 px-3">
-        <Button
-          aria-label={t('resource.history.back_to_copilot')}
-          onClick={() => showHome(namespaceId)}
-          size="icon"
-          variant="ghost"
-        >
-          <ArrowLeft />
-        </Button>
+        <CopilotToggleButton namespaceId={namespaceId} />
         <History className="size-4 text-muted-foreground" />
         <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">
           {t('resource.history.title')}
         </h2>
-        <Button
-          aria-label={t('copilot.collapse')}
-          onClick={() => close(namespaceId)}
-          size="icon"
-          variant="ghost"
-        >
-          <X />
-        </Button>
       </header>
       <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {loading ? (
