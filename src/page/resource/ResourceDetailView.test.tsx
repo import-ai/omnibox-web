@@ -11,6 +11,7 @@ import {
 } from '@/page/copilot/copilotStore';
 
 import type { IActionProps } from './actions';
+import { useResourceHistoryStore } from './history/resourceHistoryStore';
 import ResourceDetailView from './ResourceDetailView';
 import { useResourceStore } from './resourceStore';
 
@@ -145,6 +146,9 @@ describe('ResourceDetailView', () => {
       .getState()
       .setFeaturePreviews('viewer', { editor_v2: false });
     useCopilotStore.getState().reset('namespace-a');
+    useResourceHistoryStore
+      .getState()
+      .clearRevision('namespace-a', 'resource-a');
     originalResizeObserver = global.ResizeObserver;
     global.ResizeObserver = class implements ResizeObserver {
       constructor(callback: ResizeObserverCallback) {
@@ -218,6 +222,27 @@ describe('ResourceDetailView', () => {
         resourceHistoryResourceId: 'resource-b',
       })
     );
+  });
+
+  it('keeps the history entry available after collapsing a historical preview', async () => {
+    useResourceHistoryStore
+      .getState()
+      .selectRevision('namespace-a', 'resource-a', {
+        id: 'revision-a',
+        resource_id: 'resource-a',
+        name: 'Resource A',
+        content: '# Previous Resource A',
+        content_hash: 'hash-a',
+        created_at: '2026-09-20T07:00:00.000Z',
+        author: null,
+        is_current: false,
+      });
+
+    await renderResource(resource);
+
+    expect(
+      container.querySelector('button[aria-label="resource.history.open"]')
+    ).not.toBeNull();
   });
 
   it('uses compact layout when the resource pane becomes narrow', async () => {

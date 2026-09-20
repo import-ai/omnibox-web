@@ -128,6 +128,9 @@ function ResourceDetailContent({
           read_only: true,
         }
       : currentResource;
+  const isHistorical = Boolean(
+    currentResource && selectedRevision?.resource_id === currentResource.id
+  );
   const currentResourceProps = {
     ...resourceProps,
     loading:
@@ -138,6 +141,7 @@ function ResourceDetailContent({
         !forbidden &&
         !notFound),
     resource: historicalResource,
+    isHistorical,
   };
   const copilotOpen = useCopilotStore(
     state => getCopilotWorkspace(state, namespaceId).open

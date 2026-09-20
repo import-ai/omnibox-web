@@ -18,7 +18,7 @@ import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import Breadcrumb from './BreadcrumbMain';
 
 export default function Header(props: IActionProps) {
-  const { resource, namespaceId } = props;
+  const { resource, namespaceId, isHistorical = false } = props;
   const { t } = useTranslation();
   const showResourceHistory = useCopilotStore(
     state => state.showResourceHistory
@@ -55,11 +55,15 @@ export default function Header(props: IActionProps) {
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1 pr-3">
         <Actions {...props} />
-        {resource && useOmniboxEditor && !isFolder && !commentsActive ? (
+        {resource &&
+        !isHistorical &&
+        useOmniboxEditor &&
+        !isFolder &&
+        !commentsActive ? (
           <ResourceCommentsToggleButton />
         ) : null}
         {resource?.resource_type === 'doc' &&
-        !resource.read_only &&
+        (!resource.read_only || isHistorical) &&
         !props.editPage &&
         !historyActive ? (
           <Button
@@ -76,7 +80,7 @@ export default function Header(props: IActionProps) {
             <History />
           </Button>
         ) : null}
-        {resource && !copilotActive ? (
+        {resource && !isHistorical && !copilotActive ? (
           <CopilotToggleButton namespaceId={namespaceId} />
         ) : null}
       </div>

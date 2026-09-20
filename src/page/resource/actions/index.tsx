@@ -109,6 +109,7 @@ const hasTeamspaceCache = new Map<string, boolean>();
 export interface IActionProps extends IUseResource {
   wide: boolean;
   onWide: (wide: boolean) => void;
+  isHistorical?: boolean;
 }
 
 export default function Actions(props: IActionProps) {
@@ -121,6 +122,7 @@ export default function Actions(props: IActionProps) {
     resourceId,
     editPage,
     namespaceId,
+    isHistorical = false,
   } = props;
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -589,6 +591,10 @@ export default function Actions(props: IActionProps) {
         setOpen(false);
       });
   };
+
+  if (isHistorical) {
+    return null;
+  }
 
   return (
     <div className="flex items-center gap-2 text-sm">

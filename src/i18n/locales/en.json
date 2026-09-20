@@ -121,7 +121,7 @@
       "title": "Edit history",
       "current": "Current",
       "historical_version": "Historical version",
-      "back_to_current": "Back to current",
+      "back_to_current": "View current version",
       "restore": "Restore this version",
       "restore_title": "Restore this version?",
       "restore_description": "Restoring creates a new current version and keeps the existing history.",
