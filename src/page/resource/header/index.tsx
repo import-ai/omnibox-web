@@ -1,4 +1,4 @@
-import { History } from 'lucide-react';
+import { Eye, History, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
@@ -81,8 +81,8 @@ export default function Header(props: IActionProps) {
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1 pr-3">
         {historyRevision ? (
-          <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
-            <span className="hidden max-w-[18rem] truncate lg:inline">
+          <div className="flex min-w-0 items-center gap-2 text-sm">
+            <span className="hidden max-w-[18rem] truncate font-medium text-muted-foreground md:inline-block">
               {t('resource.history.historical_version')} ·{' '}
               {new Intl.DateTimeFormat(
                 i18n?.language?.startsWith('zh') ? 'zh-CN' : 'en-US',
@@ -96,23 +96,23 @@ export default function Header(props: IActionProps) {
                 : ''}
             </span>
             <Button
-              className="h-7 shrink-0 px-2 text-xs"
               onClick={viewCurrent}
               size="sm"
               type="button"
               variant="ghost"
             >
+              <Eye />
               {t('resource.history.back_to_current')}
             </Button>
             {onRestore ? (
               <Button
-                className="h-7 shrink-0 px-2 text-xs"
                 disabled={restoring}
                 onClick={onRestore}
                 size="sm"
                 type="button"
                 variant="ghost"
               >
+                <RotateCcw />
                 {t('resource.history.restore')}
               </Button>
             ) : null}
