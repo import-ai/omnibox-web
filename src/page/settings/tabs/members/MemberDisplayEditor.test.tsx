@@ -5,8 +5,11 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import { Member } from '@/interface';
+import { http } from '@/lib/request';
 
 import MemberDisplayEditor from './MemberDisplayEditor';
+
+const mockPatch = http.patch as jest.Mock;
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -99,6 +102,8 @@ describe('MemberDisplayEditor', () => {
     localStorage.setItem('uid', 'user-1');
     container = document.createElement('div');
     root = createRoot(container);
+    mockPatch.mockReset();
+    mockPatch.mockResolvedValue({});
   });
 
   afterEach(async () => {
@@ -155,6 +160,61 @@ describe('MemberDisplayEditor', () => {
     expect(container.querySelector('#member-nickname-user-2')).toBeNull();
     expect(editor?.textContent).not.toContain(
       'Visible to all members in this team'
+    );
+  });
+
+  it('saves on Enter and ignores Shift+Enter or IME Enter', async () => {
+    await act(async () =>
+      root.render(
+        <MemberDisplayEditor
+          member={selfMember}
+          namespaceId="namespace-1"
+          canEditNickname
+          refetch={jest.fn()}
+        />
+      )
+    );
+
+    const input = container.querySelector(
+      '#member-nickname-user-1'
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          bubbles: true,
+          cancelable: true,
+          shiftKey: true,
+        })
+      );
+    });
+    expect(mockPatch).not.toHaveBeenCalled();
+
+    await act(async () => {
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          bubbles: true,
+          cancelable: true,
+          isComposing: true,
+        })
+      );
+    });
+    expect(mockPatch).not.toHaveBeenCalled();
+
+    await act(async () => {
+      input.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Enter',
+          bubbles: true,
+          cancelable: true,
+        })
+      );
+    });
+    expect(mockPatch).toHaveBeenCalledWith(
+      '/namespaces/namespace-1/members/user-1/profile',
+      { nickname: '荔枝' }
     );
   });
 });

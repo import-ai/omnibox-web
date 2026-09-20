@@ -25,3 +25,24 @@ export function memberMentionSubtext(
   }
   return member.role || undefined;
 }
+
+export function memberRecipientLabel(
+  member: Pick<Member, 'nickname' | 'username' | 'email' | 'user_id'>
+) {
+  const display = memberDisplayName(member);
+  const email = member.email?.trim() || '';
+  if (email && email !== display) {
+    return `${display} (${email})`;
+  }
+  return display;
+}
+
+export function findMemberByUserId<T extends Pick<Member, 'user_id'>>(
+  members: T[],
+  userId?: string
+) {
+  if (!userId) {
+    return undefined;
+  }
+  return members.find(member => member.user_id === userId);
+}

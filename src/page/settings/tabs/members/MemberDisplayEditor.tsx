@@ -1,5 +1,5 @@
 import { Pencil } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type KeyboardEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/button';
@@ -73,6 +73,30 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
     }
   };
 
+  const isComposingKey = (event: KeyboardEvent) =>
+    event.nativeEvent.isComposing || event.keyCode === 229;
+
+  const handleEditorKeyDown = (
+    event: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setOpen(false);
+      return;
+    }
+    if (event.key !== 'Enter' || isComposingKey(event) || saving) {
+      return;
+    }
+    if (event.shiftKey) {
+      if (event.currentTarget instanceof HTMLInputElement) {
+        event.preventDefault();
+      }
+      return;
+    }
+    event.preventDefault();
+    void handleSave();
+  };
+
   return (
     <TooltipProvider delayDuration={100}>
       <Popover open={open} onOpenChange={setOpen}>
@@ -102,6 +126,7 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
                 maxLength={MEMBER_NICKNAME_MAX_LENGTH}
                 placeholder={t('manage.nickname_placeholder')}
                 onChange={event => setNickname(event.target.value)}
+                onKeyDown={handleEditorKeyDown}
               />
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{t('manage.nickname_visible_hint')}</span>
@@ -122,6 +147,7 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
                 placeholder={t('manage.note_placeholder')}
                 className="min-h-[72px]"
                 onChange={event => setNote(event.target.value)}
+                onKeyDown={handleEditorKeyDown}
               />
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{t('manage.note_private_hint')}</span>
