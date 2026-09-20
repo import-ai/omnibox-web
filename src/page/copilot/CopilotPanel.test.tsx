@@ -147,8 +147,10 @@ describe('CopilotPanel', () => {
     );
 
     const panel = container.querySelector('aside');
+    const header = panel?.querySelector('header');
     expect(copilotViewMounts).toBe(1);
     expect(panel?.dataset.layout).toBe('overlay');
+    expect(header?.classList).not.toContain('rounded-2xl');
     expect(
       container.querySelector('[data-testid="copilot-title"]')?.textContent
     ).toBe('Panel title');

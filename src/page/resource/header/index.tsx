@@ -2,6 +2,7 @@ import { Eye, History, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
@@ -130,19 +131,24 @@ export default function Header(props: IActionProps) {
         (!resource.read_only || isHistorical) &&
         !props.editPage &&
         !historyActive ? (
-          <Button
-            aria-label={t('resource.history.open')}
-            className="h-7 w-7 shrink-0"
-            onClick={() => {
-              commentsPanel?.setPanelOpen(false);
-              showResourceHistory(namespaceId, resource.id);
-            }}
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
-            <History />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                aria-label={t('resource.history.open')}
+                className="h-7 w-7 shrink-0"
+                onClick={() => {
+                  commentsPanel?.setPanelOpen(false);
+                  showResourceHistory(namespaceId, resource.id);
+                }}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <History />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('resource.history.open')}</TooltipContent>
+          </Tooltip>
         ) : null}
         {resource && !isHistorical && !copilotActive ? (
           <CopilotToggleButton namespaceId={namespaceId} />
