@@ -78,6 +78,13 @@ function ResourceDetailContent({
   );
   const selectRevision = useResourceHistoryStore(state => state.selectRevision);
   const clearRevision = useResourceHistoryStore(state => state.clearRevision);
+  const showHome = useCopilotStore(state => state.showHome);
+  const showResourceHistory = useCopilotStore(
+    state => state.showResourceHistory
+  );
+  const historyResourceId = useCopilotStore(
+    state => getCopilotWorkspace(state, namespaceId).resourceHistoryResourceId
+  );
   const [restoreOpen, setRestoreOpen] = useState(false);
   const [restoring, setRestoring] = useState(false);
 
@@ -162,6 +169,42 @@ function ResourceDetailContent({
   );
 
   useResourceBodyDragAutoScroll(scrollContainerRef, useFullWidth && editPage);
+
+  useEffect(() => {
+    const workspace = getCopilotWorkspace(
+      useCopilotStore.getState(),
+      namespaceId
+    );
+    if (
+      loading ||
+      !resourceMatchesTarget ||
+      !workspace.open ||
+      workspace.view !== 'resource_history' ||
+      workspace.resourceHistoryResourceId === resourceId
+    ) {
+      return;
+    }
+    setResourceRevisionQuery(null);
+    if (
+      currentResource?.resource_type === 'doc' &&
+      !currentResource.read_only &&
+      !editPage
+    ) {
+      showResourceHistory(namespaceId, resourceId);
+    } else {
+      showHome(namespaceId);
+    }
+  }, [
+    currentResource,
+    editPage,
+    loading,
+    namespaceId,
+    resourceId,
+    historyResourceId,
+    resourceMatchesTarget,
+    showHome,
+    showResourceHistory,
+  ]);
 
   useEffect(() => {
     if (

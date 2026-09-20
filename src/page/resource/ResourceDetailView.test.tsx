@@ -200,6 +200,26 @@ describe('ResourceDetailView', () => {
     expect(wrapper?.getAttribute('data-loading')).toBe('true');
   });
 
+  it('follows the active resource history panel when switching resources', async () => {
+    useCopilotStore.getState().showResourceHistory('namespace-a', 'resource-a');
+    await renderResource(resource);
+
+    await renderResource(
+      { ...resource, id: 'resource-b', name: 'Resource B' },
+      'resource-b'
+    );
+
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toEqual(
+      expect.objectContaining({
+        open: true,
+        view: 'resource_history',
+        resourceHistoryResourceId: 'resource-b',
+      })
+    );
+  });
+
   it('uses compact layout when the resource pane becomes narrow', async () => {
     await renderResource();
 

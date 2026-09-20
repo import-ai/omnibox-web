@@ -74,7 +74,7 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   return (
     <>
       <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-white dark:bg-background">
-        <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 rounded-2xl bg-white dark:bg-background">
+        <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b border-border/60 rounded-2xl bg-white dark:bg-background">
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <CopilotToggleButton namespaceId={namespaceId} />
             {conversationId && (
