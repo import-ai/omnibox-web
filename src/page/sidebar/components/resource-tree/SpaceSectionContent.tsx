@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
 import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
+import { ContextMenuContent } from '@/components/ContextMenuContent';
 import {
   Tooltip,
   TooltipContent,
@@ -18,7 +19,6 @@ import {
 } from '@/components/tooltip';
 import {
   ContextMenu,
-  ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from '@/components/ui/ContextMenu';

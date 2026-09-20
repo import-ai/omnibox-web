@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Lock, Mail } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -11,17 +11,14 @@ import { Button } from '@/components/button';
 import { Input } from '@/components/input';
 import { PhoneNumberInput } from '@/components/phone-input';
 import Space from '@/components/space';
-import { SupportedEmailLink } from '@/components/SupportedEmailLink';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
-import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
 import { passwordSchema, phoneSchema } from '@/lib/validationSchemas';
@@ -29,17 +26,26 @@ import { withInviteCode } from '@/page/inviteReferral/authInviteParams';
 import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 import { InviteCodeEntry } from '@/page/inviteReferral/InviteCodeEntry';
 
+import { isSupportedEmail } from './emailDomains';
+import { EmailSuggestionInput } from './EmailSuggestionInput';
 import type { AuthMethod, ContactMethod } from './index';
 
 const emailFormSchema = z.object({
   email: z
     .string()
     .min(1, 'form.email_required')
-    .refine(val => isEmail(val), { message: 'form.email_invalid' }),
+    .refine(val => isSupportedEmail(val), {
+      message: 'form.email_invalid',
+    }),
 });
 
 const emailPasswordFormSchema = z.object({
-  email: z.string().min(1, 'form.email_or_username_invalid'),
+  email: z
+    .string()
+    .min(1, 'form.email_or_username_invalid')
+    .refine(val => !val.includes('@') || isSupportedEmail(val), {
+      message: 'form.email_or_username_invalid',
+    }),
   password: passwordSchema,
 });
 
@@ -408,19 +414,23 @@ export function LoginForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input
-                      type="email"
-                      startIcon={Mail}
-                      autoComplete="email"
+                    <EmailSuggestionInput
                       disabled={isLoading}
                       placeholder={t('form.email')}
                       className="text-base md:text-sm"
-                      {...field}
+                      name={field.name}
+                      value={field.value}
+                      onBlur={() => {
+                        field.onBlur();
+                        void emailForm.trigger('email');
+                      }}
+                      onChange={value => {
+                        field.onChange(value);
+                        emailForm.clearErrors('email');
+                      }}
+                      ref={field.ref}
                     />
                   </FormControl>
-                  <FormDescription>
-                    <SupportedEmailLink />
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -452,19 +462,23 @@ export function LoginForm({
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input
-                      type="text"
-                      startIcon={Mail}
-                      autoComplete="email"
+                    <EmailSuggestionInput
                       disabled={isLoading}
                       placeholder={t('form.email_or_username')}
                       className="text-base md:text-sm"
-                      {...field}
+                      name={field.name}
+                      value={field.value}
+                      onBlur={() => {
+                        field.onBlur();
+                        void emailPasswordForm.trigger('email');
+                      }}
+                      onChange={value => {
+                        field.onChange(value);
+                        emailPasswordForm.clearErrors('email');
+                      }}
+                      ref={field.ref}
                     />
                   </FormControl>
-                  <FormDescription>
-                    <SupportedEmailLink />
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

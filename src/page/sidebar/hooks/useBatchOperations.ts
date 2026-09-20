@@ -110,6 +110,17 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
       const result = await useSidebarStore
         .getState()
         .batchRemove(topLevelSelectedIds, currentResourceId);
+      if (result.success.length > 0) {
+        for (const id of result.success) {
+          const node = previousNodes[id];
+          app.fire(
+            'delete_resource',
+            id,
+            node?.parentId ?? null,
+            node?.resourceType
+          );
+        }
+      }
       app.fire('trash_updated');
       if (result.success.length > 0) {
         app.fire('refresh_loaded_smart_folders');

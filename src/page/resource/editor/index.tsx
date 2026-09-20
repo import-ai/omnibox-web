@@ -6,7 +6,6 @@ import '../resourceEditor.css';
 import {
   OmniboxEditor,
   type OmniboxEditorCommentSelection,
-  type OmniboxEditorMentionUser,
   type TiptapJsonContent,
   type UploadFunction,
 } from '@import-ai/omnibox-editor';
@@ -27,7 +26,7 @@ import { markdownPreviewConfig } from '@/components/markdown';
 import { normalizeListIndentForLute } from '@/components/markdown/normalizeListIndent';
 import { VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/useTheme';
-import type { Member, Resource } from '@/interface';
+import type { Resource } from '@/interface';
 import { addReferrerPolicyForElement } from '@/lib/addReferrerPolicy';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
@@ -46,6 +45,8 @@ import {
   type EditorUpdatePayload,
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
+import { resolveMentionLabels } from '@/page/resource/mentionLabels';
+import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import type { ResourceCommentsController } from '../comments/useResourceComments';
 import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
@@ -138,9 +139,7 @@ function OmniboxResourceEditor(props: IEditorProps) {
   const loc = useLocation();
   const { app, theme } = useTheme();
   const [title, onTitle] = useState('');
-  const [mentionUsers, setMentionUsers] = useState<OmniboxEditorMentionUser[]>(
-    []
-  );
+  const { mentionUsers, namesById, ready } = useMentionUsers(namespaceId);
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const hasCachedContentChange =
@@ -156,9 +155,16 @@ function OmniboxResourceEditor(props: IEditorProps) {
     () => cache?.content ?? resource.content ?? '',
     [resource.id]
   );
+  const resolvedContent = useMemo(
+    () => resolveMentionLabels(initialContent, namesById),
+    [initialContent, namesById]
+  );
+  if (ready && !dirtyRef.current) {
+    markdownRef.current = resolvedContent;
+  }
   const editorContent = useMemo(
-    () => (isFolder ? null : initialContent),
-    [initialContent, isFolder]
+    () => (isFolder || !ready ? null : resolvedContent),
+    [isFolder, ready, resolvedContent]
   );
   const { commentsConfig, getAnchorSync, registerEditor } = comments;
 
@@ -245,62 +251,17 @@ function OmniboxResourceEditor(props: IEditorProps) {
   );
 
   useEffect(() => {
-    let ignore = false;
-
-    async function loadMentionUsers() {
-      try {
-        const members = await http.get<Member[]>(
-          `/namespaces/${namespaceId}/members`,
-          { mute: true }
-        );
-
-        if (ignore) {
-          return;
-        }
-
-        setMentionUsers(
-          (Array.isArray(members) ? members : []).reduce<
-            OmniboxEditorMentionUser[]
-          >((users, member) => {
-            const id = member.user_id;
-            const name = member.username || member.email || id;
-
-            if (!id || !name) {
-              return users;
-            }
-
-            users.push({
-              id,
-              name,
-              position: member.role,
-            });
-
-            return users;
-          }, [])
-        );
-      } catch {
-        if (!ignore) {
-          setMentionUsers([]);
-        }
-      }
-    }
-
-    loadMentionUsers();
-
-    return () => {
-      ignore = true;
-    };
-  }, [namespaceId]);
-
-  useEffect(() => {
     onTitle(cachedTitle);
-    markdownRef.current = initialContent;
+    if (ready && !dirtyRef.current) {
+      markdownRef.current = resolvedContent;
+    }
     onContentDirtyChange(hasCachedContentChange);
   }, [
     cachedTitle,
     hasCachedContentChange,
-    initialContent,
     onContentDirtyChange,
+    ready,
+    resolvedContent,
   ]);
 
   useEffect(() => {
@@ -402,10 +363,10 @@ function OmniboxResourceEditor(props: IEditorProps) {
         />
       </div>
       <div className="resource-editable-editor">
-        {!isFolder ? (
+        {editorContent !== null ? (
           <ResourceOmniboxEditor
             key={resource.id}
-            content={editorContent ?? ''}
+            content={editorContent}
             locale={i18n.language}
             theme={theme.content}
             variant="embedded"

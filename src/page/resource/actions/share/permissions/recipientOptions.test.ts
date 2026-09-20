@@ -55,6 +55,22 @@ describe('recipient options', () => {
     ]);
   });
 
+  it('labels invite options with nickname, username, and email', () => {
+    const nicknamed: Member[] = [
+      {
+        ...members[0],
+        username: 'mz2',
+        email: 'wenguang.fe@gmail.com',
+        nickname: '文光嘻嘻',
+      },
+    ];
+    const options = buildRecipientOptions(nicknamed, groups, {
+      ...emptyPermissions,
+      current_role: 'member',
+    });
+    expect(options[0].label).toBe('文光嘻嘻（mz2） (wenguang.fe@gmail.com)');
+  });
+
   it('does not expose group options to members', () => {
     const options = buildRecipientOptions(members, groups, {
       ...emptyPermissions,

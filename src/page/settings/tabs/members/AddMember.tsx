@@ -14,6 +14,8 @@ import { Member } from '@/interface';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 
+import { memberRecipientLabel } from './memberDisplay';
+
 interface AddMemberProps {
   group_id: string;
   namespace_id: string;
@@ -114,7 +116,7 @@ export default function AddMember(props: AddMemberProps) {
           onChange={onChange}
           inputValue={inputValue}
           options={data.map(item => ({
-            label: item.email || item.username,
+            label: memberRecipientLabel(item),
             value: item.user_id,
           }))}
           inputProps={{

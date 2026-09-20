@@ -264,7 +264,7 @@
     "receive_link": "拷贝链接",
     "join": "{{ user }} 邀请您加入 {{ namespace }}",
     "add": "邀请成员",
-    "owner": "空间所有者",
+    "owner": "所有者",
     "admin": "管理员",
     "member": "成员",
     "min": "至少2个字符",
@@ -630,7 +630,7 @@
     "user": "用户",
     "permission": "权限",
     "role": "角色",
-    "owner": "空间所有者",
+    "owner": "所有者",
     "owner_desc": "可以更改空间设置并邀请新成员加入空间。",
     "admin": "管理员",
     "admin_desc": "可以管理成员和更改空间设置，但不能转移所有权或删除空间。",
@@ -666,7 +666,15 @@
     "theme_dark": "深色",
     "theme_system": "系统",
     "auto_tag_setting": "AI 智能标签提取",
-    "auto_tag_description": "使用 AI 自动从内容中提取和生成标签"
+    "auto_tag_description": "使用 AI 自动从内容中提取和生成标签",
+    "nickname": "昵称",
+    "note": "备注",
+    "note_private_hint": "仅自己可见",
+    "nickname_visible_hint": "该团队内所有成员可见",
+    "nickname_placeholder": "这个空间里怎么叫你",
+    "note_placeholder": "关于这个人的说明",
+    "nickname_length_error": "昵称不能超过 {{max}} 个字符",
+    "note_length_error": "备注不能超过 {{max}} 个字符"
   },
   "unauth_page": {
     "title": "访问被拒绝",
@@ -902,8 +910,19 @@
     "thinking_level": "思考强度",
     "restore_default": "恢复默认",
     "model_tier": "模型类型",
-    "model": { "default": "默认", "pro": "Agent 2.1", "basic": "Agent 1.1" },
-    "thinking": { "low": "轻", "high": "高", "max": "最大" },
+    "model": {
+      "default": "默认",
+      "pro": "Agent 2.1",
+      "basic": "Agent 1.1"
+    },
+    "thinking": {
+      "low": "轻",
+      "medium": "中",
+      "high": "高",
+      "xhigh": "极高",
+      "max": "最大",
+      "ultra": "超"
+    },
     "textarea": {
       "placeholder": "随便问点什么吧"
     },
@@ -916,7 +935,7 @@
     "agent_credits": {
       "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1，扩容后可恢复",
       "compact_text": "当前已切换至 Agent 1.1",
-      "compact_tooltip": "额度不足",
+      "compact_tooltip": "积分不足",
       "not_owner": "请联系空间所有者进行扩容",
       "expand_button": "扩容",
       "tooltip": {

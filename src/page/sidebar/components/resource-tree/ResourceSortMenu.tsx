@@ -1,10 +1,10 @@
 import { ArrowUpDown, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { ContextMenuSubContent } from '@/components/ContextMenuContent';
 import {
   ContextMenuItem,
   ContextMenuSub,
-  ContextMenuSubContent,
   ContextMenuSubTrigger,
 } from '@/components/ui/ContextMenu';
 import {
