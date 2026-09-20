@@ -7,8 +7,7 @@ import { AppleIcon } from '@/assets/icons/AppleIcon';
 import { Button } from '@/components/button';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
-import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
-import { setGlobalCredential } from '@/page/user/util';
+import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 
 declare global {
   interface Window {
@@ -110,8 +109,7 @@ export default function Apple(props: IProps) {
           lang: i18n.language,
         })
         .then(async res => {
-          setGlobalCredential(res.id, res.access_token);
-          location.href = await getAuthSuccessRedirect(redirect);
+          await completeAuthRedirect(res, redirect);
         });
     };
     const handleFailure = (event: CustomEvent) => {

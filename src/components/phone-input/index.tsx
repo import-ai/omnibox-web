@@ -77,19 +77,21 @@ function PhoneNumberInput({
 
   // Parse initial value to extract country and national number
   useEffect(() => {
-    if (value) {
-      try {
-        const phoneNumber = parsePhoneNumberFromString(value);
-        if (phoneNumber) {
-          const country = phoneNumber.country;
-          if (country && allowedCountries.some(c => c.code === country)) {
-            setSelectedCountry(country);
-          }
-          setNationalNumber(phoneNumber.nationalNumber);
+    if (!value) {
+      setNationalNumber('');
+      return;
+    }
+    try {
+      const phoneNumber = parsePhoneNumberFromString(value);
+      if (phoneNumber) {
+        const country = phoneNumber.country;
+        if (country && allowedCountries.some(c => c.code === country)) {
+          setSelectedCountry(country);
         }
-      } catch {
-        // Invalid phone number, ignore
+        setNationalNumber(phoneNumber.nationalNumber);
       }
+    } catch {
+      // Invalid phone number, ignore
     }
   }, [value, allowedCountries]);
 
