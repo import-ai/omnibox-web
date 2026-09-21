@@ -2,7 +2,7 @@ import { format } from 'date-fns';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import logoUrl from '@/assets/logo.svg';
+import inviteeAvatarUrl from '@/assets/inviteReferral/inviteeAvatar.svg';
 import { Button } from '@/components/button';
 import { Spinner } from '@/components/ui/Spinner';
 import {
@@ -122,7 +122,7 @@ export function InviteRecordsPanel({ invitedCount }: InviteRecordsPanelProps) {
                       <div>
                         <div className="relative h-9">
                           <img
-                            src={item.invitee.avatar_url || logoUrl}
+                            src={item.invitee.avatar_url || inviteeAvatarUrl}
                             alt=""
                             width={36}
                             height={36}
