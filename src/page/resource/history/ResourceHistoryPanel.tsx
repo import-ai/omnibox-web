@@ -4,6 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
+import {
+  getResourceEventId,
+  RESOURCE_CONTENT_UPDATE_EVENTS,
+} from '@/hooks/resourceUpdateEvent';
+import useApp from '@/hooks/useApp';
+import type { Resource } from '@/interface';
 import { cn } from '@/lib/utils';
 import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 import type { ResourceRevisionSummary } from '@/service/resource';
@@ -39,6 +45,7 @@ export default function ResourceHistoryPanel({
   resourceId,
 }: ResourceHistoryPanelProps) {
   const { t, i18n } = useTranslation();
+  const app = useApp();
   const selectRevision = useResourceHistoryStore(state => state.selectRevision);
   const clearRevision = useResourceHistoryStore(state => state.clearRevision);
   const selected = useResourceHistoryStore(
@@ -52,16 +59,58 @@ export default function ResourceHistoryPanel({
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
-    setFailed(false);
-    loadResourceRevisions(namespaceId, resourceId)
-      .then(items => active && setRevisions(items))
-      .catch(() => active && setFailed(true))
-      .finally(() => active && setLoading(false));
+    let requestId = 0;
+    let inflightMode: 'full' | 'silent' | null = null;
+    let pendingSilent = false;
+
+    const load = (mode: 'full' | 'silent') => {
+      if (mode === 'silent' && inflightMode === 'full') {
+        pendingSilent = true;
+        return;
+      }
+      const id = ++requestId;
+      inflightMode = mode;
+      if (mode === 'full') {
+        pendingSilent = false;
+        setLoading(true);
+        setFailed(false);
+      }
+      loadResourceRevisions(namespaceId, resourceId)
+        .then(items => {
+          if (!active || id !== requestId) return;
+          setRevisions(items);
+          setFailed(false);
+        })
+        .catch(() => {
+          if (!active || id !== requestId) return;
+          if (mode === 'full') setFailed(true);
+        })
+        .finally(() => {
+          if (!active || id !== requestId) return;
+          inflightMode = null;
+          setLoading(false);
+          if (pendingSilent) {
+            pendingSilent = false;
+            load('silent');
+          }
+        });
+    };
+
+    load('full');
+
+    const handleResourceEvent = (delta: Resource | string) => {
+      if (getResourceEventId(delta) !== resourceId) return;
+      load('silent');
+    };
+    const unbind = RESOURCE_CONTENT_UPDATE_EVENTS.map(event =>
+      app.on(event, handleResourceEvent)
+    );
+
     return () => {
       active = false;
+      unbind.forEach(off => off());
     };
-  }, [namespaceId, reloadKey, resourceId]);
+  }, [app, namespaceId, reloadKey, resourceId]);
 
   const chooseRevision = async (revisionId: string) => {
     if (revisionId === 'current') {
