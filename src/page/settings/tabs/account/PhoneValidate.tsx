@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { CaptchaMount } from '@/components/captcha/CaptchaMount';
 import { PhoneNumberInput } from '@/components/phone-input';
 import { formatPhone } from '@/components/phone-input/utils.ts';
 import {
@@ -14,11 +15,13 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
+import { useCaptcha } from '@/hooks/useCaptcha';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
 import {
   getOtpErrorMessage,
   useVerificationCode,
 } from '@/hooks/useVerificationCode';
+import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { phoneSchema } from '@/lib/validationSchemas';
 import { OtpInput } from '@/page/user/components/OtpInput';
@@ -189,30 +192,45 @@ export default function PhoneValidate(props: IProps) {
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const captcha = useCaptcha({ scene: 'web', mode: 'popup' });
 
   const handleSendCode = async (phoneNumber: string) => {
-    setSubmitting(true);
-    try {
-      await http.post('/user/phone/send-code', { phone: phoneNumber });
-      setPhone(phoneNumber);
-      setStep('code');
-      setError('');
-      toast.success(t('phone.code_sent'), { position: 'bottom-right' });
-    } catch {
-      // Error toast is handled automatically by http client
-    } finally {
-      setSubmitting(false);
-    }
+    await captcha.run(async captchaVerifyParam => {
+      setSubmitting(true);
+      try {
+        await http.post(
+          '/user/phone/send-code',
+          withCaptchaParam({ phone: phoneNumber }, captchaVerifyParam)
+        );
+        setPhone(phoneNumber);
+        setStep('code');
+        setError('');
+        toast.success(t('phone.code_sent'), { position: 'bottom-right' });
+        return { captchaResult: true, bizResult: true };
+      } catch (err) {
+        // Error toast is handled automatically by http client
+        return captchaResultFromError(err);
+      } finally {
+        setSubmitting(false);
+      }
+    });
   };
 
   const handleResendCode = async () => {
-    try {
-      await http.post('/user/phone/send-code', { phone });
-      setError('');
-      toast.success(t('phone.code_sent'), { position: 'bottom-right' });
-    } catch {
-      // Error toast is handled automatically by http client
-    }
+    await captcha.run(async captchaVerifyParam => {
+      try {
+        await http.post(
+          '/user/phone/send-code',
+          withCaptchaParam({ phone }, captchaVerifyParam)
+        );
+        setError('');
+        toast.success(t('phone.code_sent'), { position: 'bottom-right' });
+        return { captchaResult: true, bizResult: true };
+      } catch (err) {
+        // Error toast is handled automatically by http client
+        return captchaResultFromError(err);
+      }
+    });
   };
 
   const handleVerify = async (code: string) => {
@@ -233,24 +251,25 @@ export default function PhoneValidate(props: IProps) {
     setError('');
   };
 
-  if (step === 'phone') {
-    return (
-      <PhoneInputStep
-        currentPhone={currentPhone}
-        onSendCode={handleSendCode}
-        submitting={submitting}
-      />
-    );
-  }
-
   return (
-    <VerificationCodeStep
-      phone={phone}
-      onVerify={handleVerify}
-      onResend={handleResendCode}
-      submitting={submitting}
-      error={error}
-      onClearError={handleClearError}
-    />
+    <>
+      {step === 'phone' ? (
+        <PhoneInputStep
+          currentPhone={currentPhone}
+          onSendCode={handleSendCode}
+          submitting={submitting}
+        />
+      ) : (
+        <VerificationCodeStep
+          phone={phone}
+          onVerify={handleVerify}
+          onResend={handleResendCode}
+          submitting={submitting}
+          error={error}
+          onClearError={handleClearError}
+        />
+      )}
+      <CaptchaMount captcha={captcha} />
+    </>
   );
 }

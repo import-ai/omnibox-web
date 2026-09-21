@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { CaptchaMount } from '@/components/captcha/CaptchaMount';
 import { formatPhone } from '@/components/phone-input/utils.ts';
+import { useCaptcha } from '@/hooks/useCaptcha';
+import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
@@ -37,6 +40,7 @@ export default function VerifyOtpPage() {
   const [canResend, setCanResend] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [isResending, setIsResending] = useState(false);
+  const captcha = useCaptcha({ scene: 'web', mode: 'popup' });
 
   useEffect(() => {
     // Check if user is already logged in
@@ -137,39 +141,45 @@ export default function VerifyOtpPage() {
   const handleResend = async () => {
     if (!identifier || !canResend || isResending) return;
 
-    setIsResending(true);
-    setError('');
+    await captcha.run(async captchaVerifyParam => {
+      setIsResending(true);
+      setError('');
 
-    try {
-      if (isPhoneVerification) {
-        await http.post(
-          'auth/send-phone-otp',
-          {
-            phone: identifier,
-          },
-          { mute: true }
-        );
-      } else {
-        await http.post(
-          'auth/send-otp',
-          {
-            email: identifier,
-            url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
-          },
-          { mute: true }
-        );
+      try {
+        if (isPhoneVerification) {
+          await http.post(
+            'auth/send-phone-otp',
+            withCaptchaParam({ phone: identifier }, captchaVerifyParam),
+            { mute: true }
+          );
+        } else {
+          await http.post(
+            'auth/send-otp',
+            withCaptchaParam(
+              {
+                email: identifier,
+                url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+              },
+              captchaVerifyParam
+            ),
+            { mute: true }
+          );
+        }
+
+        toast.success(t('verify_otp.resend_success'), {
+          position: 'bottom-right',
+        });
+        setCanResend(false);
+        setCountdown(60);
+        return { captchaResult: true, bizResult: true };
+      } catch (err: any) {
+        // The request is muted, so surface the server message inline.
+        setError(err.response?.data?.message || t('verify_otp.error_resend'));
+        return captchaResultFromError(err);
+      } finally {
+        setIsResending(false);
       }
-
-      toast.success(t('verify_otp.resend_success'), {
-        position: 'bottom-right',
-      });
-      setCanResend(false);
-      setCountdown(60);
-    } catch {
-      // Global axios interceptor will handle the error toast
-    } finally {
-      setIsResending(false);
-    }
+    });
   };
 
   // Don't render if magic link is being verified
@@ -216,6 +226,7 @@ export default function VerifyOtpPage() {
             disabled={isVerifying}
           />
         </div>
+        <CaptchaMount captcha={captcha} />
 
         <div className="flex flex-col items-center gap-3 w-full max-w-sm">
           <div className="text-sm text-muted-foreground">

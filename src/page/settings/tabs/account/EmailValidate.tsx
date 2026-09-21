@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { CaptchaMount } from '@/components/captcha/CaptchaMount';
 import { Input } from '@/components/input';
 import { SupportedEmailLink } from '@/components/SupportedEmailLink';
 import {
@@ -15,11 +16,13 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
+import { useCaptcha } from '@/hooks/useCaptcha';
 import useUser from '@/hooks/useUser';
 import {
   getOtpErrorMessage,
   useVerificationCode,
 } from '@/hooks/useVerificationCode';
+import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { OtpInput } from '@/page/user/components/OtpInput';
@@ -203,32 +206,45 @@ export default function EmailValidate(props: IProps) {
   const [newEmail, setNewEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const captcha = useCaptcha({ scene: 'web', mode: 'popup' });
 
   const handleSendCode = async (email: string) => {
-    setSubmitting(true);
-    try {
-      await http.post('/user/email/validate', {
-        email,
-      });
-      setNewEmail(email);
-      setStep('code');
-      setError('');
-      toast.success(t('email.code_sent'), { position: 'bottom-right' });
-    } finally {
-      setSubmitting(false);
-    }
+    await captcha.run(async captchaVerifyParam => {
+      setSubmitting(true);
+      try {
+        await http.post(
+          '/user/email/validate',
+          withCaptchaParam({ email }, captchaVerifyParam)
+        );
+        setNewEmail(email);
+        setStep('code');
+        setError('');
+        toast.success(t('email.code_sent'), { position: 'bottom-right' });
+        return { captchaResult: true, bizResult: true };
+      } catch (err) {
+        // Error is handled by the request library
+        return captchaResultFromError(err);
+      } finally {
+        setSubmitting(false);
+      }
+    });
   };
 
   const handleResendCode = async () => {
-    try {
-      await http.post('/user/email/validate', {
-        email: newEmail,
-      });
-      setError('');
-      toast.success(t('email.code_sent'), { position: 'bottom-right' });
-    } catch {
-      // Error is handled by the request library
-    }
+    await captcha.run(async captchaVerifyParam => {
+      try {
+        await http.post(
+          '/user/email/validate',
+          withCaptchaParam({ email: newEmail }, captchaVerifyParam)
+        );
+        setError('');
+        toast.success(t('email.code_sent'), { position: 'bottom-right' });
+        return { captchaResult: true, bizResult: true };
+      } catch (err) {
+        // Error is handled by the request library
+        return captchaResultFromError(err);
+      }
+    });
   };
 
   const handleVerify = async (code: string) => {
@@ -247,24 +263,25 @@ export default function EmailValidate(props: IProps) {
     setError('');
   };
 
-  if (step === 'email') {
-    return (
-      <EmailInputStep
-        currentEmail={user?.email || ''}
-        onSendCode={handleSendCode}
-        submitting={submitting}
-      />
-    );
-  }
-
   return (
-    <VerificationCodeStep
-      email={newEmail}
-      onVerify={handleVerify}
-      onResend={handleResendCode}
-      submitting={submitting}
-      error={error}
-      onClearError={handleClearError}
-    />
+    <>
+      {step === 'email' ? (
+        <EmailInputStep
+          currentEmail={user?.email || ''}
+          onSendCode={handleSendCode}
+          submitting={submitting}
+        />
+      ) : (
+        <VerificationCodeStep
+          email={newEmail}
+          onVerify={handleVerify}
+          onResend={handleResendCode}
+          submitting={submitting}
+          error={error}
+          onClearError={handleClearError}
+        />
+      )}
+      <CaptchaMount captcha={captcha} />
+    </>
   );
 }

@@ -43,6 +43,7 @@ Routes are defined in `src/App.tsx` using `createBrowserRouter` with lazy loadin
   - `/user/account/delete/confirm`
   - `/user/auth/confirm`, `/user/auth/miniprogram`, `/user/auth/confirm/google`
 - `/oauth/authorize` - OAuth authorization screen
+- `/captcha` - Aliyun captcha H5 page loaded by the mobile app's WebView
 - `/invite/confirm` and `/invite/:namespace_id/:invitation_id` - Invite flows
 - `/:namespace_id` - Authenticated workspace with the main sidebar layout
   - `/:resource_id?` - Resource viewer
