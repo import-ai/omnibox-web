@@ -1,9 +1,16 @@
 import { ChevronLeft } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 
 import { Button } from '@/components/button';
+import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
+import { useSidebar } from '@/components/ui/Sidebar';
 import { Skeleton } from '@/components/ui/Skeleton';
 import useApp from '@/hooks/useApp';
 import { useIsMobile } from '@/hooks/useMobile';
@@ -24,15 +31,15 @@ export function InviteReferralContent() {
   const { t } = useTranslation();
   const app = useApp();
   const isMobile = useIsMobile();
+  const { open: sidebarOpen } = useSidebar();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { namespace_id: namespaceId = '' } = useParams();
   const [overview, setOverview] = useState<InviteOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [mobileView, setMobileView] = useState<'activity' | 'records'>(
-    'activity'
-  );
   const [phoneBindingOpen, setPhoneBindingOpen] = useState(() =>
     hasInvitePhoneBinding()
   );
@@ -84,33 +91,75 @@ export function InviteReferralContent() {
     }
   };
 
-  const showRecords = isMobile && mobileView === 'records';
+  const showRecords = isMobile && searchParams.get('view') === 'records';
+
+  const openRecords = () => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('view', 'records');
+    setSearchParams(nextParams, {
+      state: { ...location.state, fromInviteActivity: true },
+    });
+  };
+
+  const closeRecords = () => {
+    if (location.state?.fromInviteActivity) {
+      navigate(-1);
+      return;
+    }
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('view');
+    setSearchParams(nextParams, { replace: true });
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white dark:bg-[#262626]">
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-[#F2F2F7] px-6 dark:border-border">
-        {showRecords ? (
-          <button
-            type="button"
-            className="flex items-center gap-1 text-sm"
-            onClick={() => setMobileView('activity')}
-          >
-            <ChevronLeft className="size-4" />
-            {t('inviteReferral.records.title')}
-          </button>
-        ) : (
-          <h1 className="text-sm font-medium">{t('inviteReferral.title')}</h1>
-        )}
-        {isMobile && !showRecords ? (
-          <button
-            type="button"
-            className="text-sm"
-            onClick={() => setMobileView('records')}
-          >
-            {t('inviteReferral.records.subtitle')}
-          </button>
-        ) : null}
-      </header>
+      {isMobile ? (
+        <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-[#F2F2F7] px-3 dark:border-border">
+          <div className="flex min-w-0 items-center">
+            {showRecords ? (
+              <button
+                type="button"
+                aria-label={t('login.back')}
+                className="flex size-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={closeRecords}
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+            ) : (
+              <SidebarTriggerButton collapse />
+            )}
+          </div>
+          <h1 className="text-center text-[17px] font-medium">
+            {t(
+              showRecords
+                ? 'inviteReferral.records.subtitle'
+                : 'inviteReferral.title'
+            )}
+          </h1>
+          <div className="flex min-w-0 justify-end">
+            {!showRecords && (
+              <button
+                type="button"
+                className="flex min-h-11 items-end pb-1 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={openRecords}
+              >
+                {t('inviteReferral.records.subtitle')}
+              </button>
+            )}
+          </div>
+        </header>
+      ) : (
+        <header className="flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-[#F2F2F7] dark:border-border">
+          <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
+            <SidebarTriggerButton collapse />
+            <div className={sidebarOpen ? 'min-w-0 ml-2' : 'min-w-0'}>
+              <h1 className="text-sm font-medium">
+                {t('inviteReferral.title')}
+              </h1>
+            </div>
+          </div>
+        </header>
+      )}
 
       {loading ? (
         <div className="flex flex-1 gap-4 p-6">

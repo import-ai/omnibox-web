@@ -66,8 +66,8 @@ export function InviteRecordsPanel({ invitedCount }: InviteRecordsPanelProps) {
   };
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-      <h2 className="shrink-0 px-[25px] py-6 text-center text-sm font-medium">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col pt-6 md:pt-0">
+      <h2 className="hidden shrink-0 px-[25px] py-6 text-center text-sm font-medium md:block">
         {t('inviteReferral.records.title')}
       </h2>
       {loading ? (

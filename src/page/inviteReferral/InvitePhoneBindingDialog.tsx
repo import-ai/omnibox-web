@@ -186,10 +186,15 @@ export function InvitePhoneBindingDialog({
                 </div>
                 {t('login.product_name')}
               </div>
-              <div className="relative h-[316px] w-[510px] max-w-[calc(100vw-32px)] overflow-visible rounded-[18px] bg-white shadow-[0px_10px_14px_rgba(0,0,0,0.16)] dark:bg-[#171717]">
+              <div
+                className={cn(
+                  'relative w-[510px] max-w-[calc(100vw-32px)] overflow-visible rounded-[18px] bg-white shadow-[0px_10px_28px_rgba(0,0,0,0.16)] dark:bg-[#171717]',
+                  step === 'phone' ? 'min-h-[316px]' : 'min-h-[309px]'
+                )}
+              >
                 <button
                   type="button"
-                  className="absolute right-[18px] top-[15px] z-30 text-[14px] leading-[23px] text-muted-foreground hover:text-foreground"
+                  className="absolute right-[18px] top-[15px] z-30 text-[14px] font-normal leading-[23px] text-muted-foreground hover:text-foreground"
                   onClick={skip}
                 >
                   {t('inviteReferral.phoneBinding.skip')}
@@ -223,7 +228,7 @@ export function InvitePhoneBindingDialog({
                     </div>
                     <Form {...form}>
                       <form
-                        className="absolute left-[88px] top-[146px] z-10 w-[335px]"
+                        className="relative z-10 ml-[88px] w-[335px] pb-5 pt-[146px]"
                         onSubmit={form.handleSubmit(
                           values => void handleSendCode(values.phone)
                         )}
@@ -255,61 +260,64 @@ export function InvitePhoneBindingDialog({
                         >
                           {t('phone.send_verification_code')}
                         </Button>
+                        <p className="mt-2.5 text-center text-[10px] leading-[18px] text-muted-foreground">
+                          {t('phone.will_send_verification')}
+                        </p>
                       </form>
                     </Form>
-                    <p className="absolute left-1/2 top-[277px] z-10 w-[315px] -translate-x-1/2 text-center text-[10px] leading-[18px] text-muted-foreground">
-                      {t('phone.will_send_verification')}
-                    </p>
                   </>
                 ) : (
-                  <div className="mx-auto flex h-full w-full max-w-[335px] flex-col pt-[15px]">
-                    <h2 className="text-[18px] font-bold leading-normal text-foreground">
+                  <div className="flex min-h-[309px] w-full flex-col pb-5 pt-6">
+                    <h2 className="pl-7 pr-20 text-[18px] font-bold leading-normal text-foreground">
                       {t('phone.input_verification_code')}
                     </h2>
-                    <p className="mt-8 text-center text-[15px] leading-[23px] text-[#737373]">
-                      {t('phone.sent_code_to')}
-                      <span className="font-bold">{formatPhone(phone)}</span>
-                    </p>
-                    <div className="mt-4">
-                      <OtpInput
-                        value={code}
-                        disabled={submitting}
-                        error={error}
-                        onChange={value => {
-                          setCode(value);
-                          if (error) setError('');
-                        }}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      className="mt-4 h-[49px] w-full rounded-lg bg-[#0A0A0A] text-[14px] font-medium disabled:bg-[#737373] disabled:text-white dark:disabled:bg-[#737373] dark:disabled:text-white"
-                      loading={submitting}
-                      disabled={!canBind}
-                      onClick={() => void handleVerify()}
-                    >
-                      {t('inviteReferral.phoneBinding.submit')}
-                    </Button>
-                    <p className="mt-2.5 text-center text-[12px] font-medium leading-[18px]">
-                      <span className="text-muted-foreground">
-                        {t('phone.not_received')}
-                      </span>
-                      {canResend ? (
-                        <button
-                          type="button"
-                          className="text-foreground hover:underline"
-                          onClick={() => void handleResendCode()}
-                        >
-                          {t('phone.resend')}
-                        </button>
-                      ) : (
-                        <span className="text-foreground">
-                          {t('phone.resend_after_seconds', {
-                            seconds: countdown,
-                          })}
+                    <div className="mx-auto flex w-full max-w-[335px] flex-col px-4 sm:px-0">
+                      <p className="mt-8 text-center text-[15px] font-normal leading-[23px] text-[#737373]">
+                        {t('phone.sent_code_to')}
+                        <span className="font-bold">{formatPhone(phone)}</span>
+                      </p>
+                      <div className="mt-4 flex min-h-[56px] items-center justify-center">
+                        <OtpInput
+                          value={code}
+                          disabled={submitting}
+                          error={error}
+                          errorAlign="center"
+                          onChange={value => {
+                            setCode(value);
+                            if (error) setError('');
+                          }}
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        className="mt-[30px] h-[49px] w-full rounded-lg bg-[#0A0A0A] text-[15px] font-medium leading-[23px] disabled:bg-[#737373] disabled:text-white dark:disabled:bg-[#737373] dark:disabled:text-white"
+                        loading={submitting}
+                        disabled={!canBind}
+                        onClick={() => void handleVerify()}
+                      >
+                        {t('inviteReferral.phoneBinding.submit')}
+                      </Button>
+                      <p className="mt-2.5 text-center text-[12px] font-normal leading-[18px]">
+                        <span className="text-muted-foreground">
+                          {t('phone.not_received')}
                         </span>
-                      )}
-                    </p>
+                        {canResend ? (
+                          <button
+                            type="button"
+                            className="font-medium text-foreground hover:underline"
+                            onClick={() => void handleResendCode()}
+                          >
+                            {t('phone.resend')}
+                          </button>
+                        ) : (
+                          <span className="font-medium text-foreground">
+                            {t('phone.resend_after_seconds', {
+                              seconds: countdown,
+                            })}
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
