@@ -48,7 +48,7 @@ export function SidebarBrowseTabs({
       <div className="sticky top-0 z-10 shrink-0 bg-sidebar">
         <TabsList
           aria-label={`${t('search.resources')} / ${t('search.chats')}`}
-          className="relative mx-3 mt-2 mb-1 grid h-[30px] w-[calc(100%-1.5rem)] shrink-0 grid-cols-2 rounded-[30px] bg-[rgba(229,229,229,0.4)] p-0 text-muted-foreground dark:bg-[#171717] dark:text-[#e5e5e5]"
+          className="relative mx-3 mt-2 mb-3 grid h-[30px] w-[calc(100%-1.5rem)] shrink-0 grid-cols-2 rounded-[30px] bg-[rgba(229,229,229,0.4)] p-0 text-muted-foreground dark:bg-[#171717] dark:text-[#e5e5e5]"
         >
           <div
             aria-hidden="true"
@@ -75,7 +75,7 @@ export function SidebarBrowseTabs({
           </TabsTrigger>
         </TabsList>
         {activeTab === 'chats' ? (
-          <div className="flex min-h-5 items-center justify-end py-1 pl-4 pr-1">
+          <div className="flex min-h-5 items-center justify-end pl-4 pr-1">
             <div className="flex items-center gap-2">
               <ToolbarButton
                 icon={Search}

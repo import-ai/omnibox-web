@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import SpeechBubbleIcon from '@/assets/icons/SpeechBubbleIcon';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
@@ -89,9 +90,7 @@ export default function RecommendedQuestions({
     <div
       className={cn(
         'flex items-end overflow-hidden pt-8',
-        compact
-          ? 'min-h-0 gap-2 pl-4 sm:pl-8'
-          : 'min-h-44 gap-6 pl-10 sm:pl-14',
+        compact ? 'min-h-0 gap-2 pl-4 sm:pl-8' : 'min-h-44 gap-2 pl-4 sm:pl-14',
         className
       )}
     >
@@ -101,7 +100,7 @@ export default function RecommendedQuestions({
         aria-label={t('chat.home.nextRecommendedQuestion')}
         className={cn(
           'shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default',
-          compact ? 'ml-2 -mb-4' : '-mb-6'
+          compact ? 'ml-2 -mb-4' : '-mb-7'
         )}
       >
         <HomeMascot blinkSignal={blinkSignal} compact={compact} />
@@ -115,17 +114,10 @@ export default function RecommendedQuestions({
             'relative mb-4 flex min-w-0 items-center rounded-full text-left text-muted-foreground transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60',
             compact
               ? 'h-16 w-full pl-6 pr-5 text-xs'
-              : 'h-[86px] max-h-[86px] w-[430.048px] pl-16 pr-8 text-sm sm:text-base'
+              : 'h-[88px] w-full max-w-lg pl-6 pr-5 text-sm sm:pl-20 sm:pr-10 sm:text-base'
           )}
         >
-          <svg
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full fill-white stroke-border dark:fill-muted"
-            preserveAspectRatio="none"
-            viewBox="0 0 403.033 124.392"
-          >
-            <path d="M75.529 0.5H341.472C375.195 0.5 402.533 27.8373 402.533 61.5596C402.533 95.1301 375.432 122.404 341.862 122.618L141.974 123.891L110.852 123.882L80.3015 123.873L13.0896 123.853C2.60239 123.849 -3.26877 111.762 3.21166 103.517L12.198 92.083C15.2767 88.1659 16.8343 83.2669 16.5837 78.291L15.8279 63.2832C14.1081 29.132 41.3346 0.500163 75.529 0.5Z" />
-          </svg>
+          <SpeechBubbleIcon className="absolute inset-0 h-full w-full fill-white stroke-border dark:fill-muted" />
           <span className="relative min-w-0 w-full line-clamp-3 break-words">
             {question?.question ?? t('chat.textarea.placeholder')}
           </span>
