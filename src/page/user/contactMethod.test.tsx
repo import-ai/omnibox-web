@@ -36,7 +36,7 @@ jest.mock('./wechat/h5WechatAuthSync', () => ({
   useH5WechatAuthPoll: jest.fn(),
 }));
 jest.mock('./wechat/Scan', () => () => null);
-jest.mock('./MetaPage', () => () => null);
+jest.mock('./MetaPage', () => ({ __esModule: true, default: () => null }));
 jest.mock('./WrapperPage', () => ({
   __esModule: true,
   default: ({ children }: { children: ReactNode }) => children,
