@@ -1,3 +1,5 @@
+import './inviteRecords.css';
+
 import { format } from 'date-fns';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +13,7 @@ import {
 } from '@/service/inviteReferral';
 
 import { InviteEmptyState } from './InviteEmptyState';
-import { formatInviteeName } from './inviteeName';
+import { formatInviteeName, isShortInviteeName } from './inviteeName';
 
 const PAGE_SIZE = 20;
 
@@ -115,7 +117,7 @@ export function InviteRecordsPanel({
             onScroll={onScroll}
             className="min-h-0 flex-1 overflow-y-auto px-[25px] pb-6 pt-6"
           >
-            <div className="flex flex-col gap-6">
+            <div className="invite-records-list flex flex-col gap-6">
               {items.map(item => {
                 const displayName = formatInviteeName(
                   item.invitee.display_name
@@ -123,10 +125,10 @@ export function InviteRecordsPanel({
                 return (
                   <div
                     key={item.id}
-                    className="min-w-0 rounded-[10px] border border-[#f2f2f7] bg-white p-4 dark:border-border dark:bg-[#262626]"
+                    className="invite-record-card min-w-0 rounded-[10px] border border-[#f2f2f7] bg-white p-4 dark:border-border dark:bg-[#262626]"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-                      <div className="flex min-w-0 max-w-full items-center gap-2">
+                      <div className="invite-record-user flex min-w-0 max-w-full items-center gap-2">
                         <img
                           src={item.invitee.avatar_url || inviteeAvatarUrl}
                           alt=""
@@ -135,27 +137,27 @@ export function InviteRecordsPanel({
                           className="size-9 shrink-0 rounded-full object-cover"
                         />
                         <p
-                          className="min-w-0 truncate text-sm font-medium leading-[21px]"
+                          className={`invite-record-name min-w-0 truncate text-sm font-medium leading-[21px] ${isShortInviteeName(displayName) ? 'invite-record-name-short' : ''}`}
                           title={displayName}
                         >
                           {displayName}
                         </p>
                       </div>
-                      <p className="ml-auto text-xs leading-[17px] text-muted-foreground">
+                      <p className="invite-record-time ml-auto text-xs leading-[17px] text-muted-foreground">
                         {format(
                           new Date(item.completed_at),
                           'yyyy-MM-dd HH:mm:ss'
                         )}
                       </p>
                     </div>
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-center text-xs">
-                      <div className="min-w-0 break-words">
+                    <div className="invite-record-details mt-4 grid grid-cols-2 gap-3 text-center text-xs">
+                      <div className="invite-record-task min-w-0 break-words">
                         <p className="leading-6 text-muted-foreground">
                           {t('inviteReferral.records.task')}
                         </p>
                         <p className="leading-6">{item.task_text}</p>
                       </div>
-                      <div className="min-w-0 break-words">
+                      <div className="invite-record-reward min-w-0 break-words">
                         <p className="leading-6 text-muted-foreground">
                           {t('inviteReferral.records.rewardColumn')}
                         </p>
