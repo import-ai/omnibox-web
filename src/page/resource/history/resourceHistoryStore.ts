@@ -2,6 +2,10 @@ import { create } from 'zustand';
 
 import type { ResourceRevisionDetail } from '@/service/resource';
 
+export function supportsResourceHistory(resourceType?: string) {
+  return ['doc', 'file', 'link'].includes(resourceType ?? '');
+}
+
 interface ResourceHistoryState {
   selections: Record<string, ResourceRevisionDetail>;
   selectRevision: (

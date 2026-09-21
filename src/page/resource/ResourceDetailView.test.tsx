@@ -204,51 +204,66 @@ describe('ResourceDetailView', () => {
     expect(wrapper?.getAttribute('data-loading')).toBe('true');
   });
 
-  it('follows the active resource history panel when switching resources', async () => {
-    useCopilotStore.getState().showResourceHistory('namespace-a', 'resource-a');
-    await renderResource(resource);
+  it.each(['doc', 'file', 'link'] as const)(
+    'follows the active history panel when switching to %s',
+    async resourceType => {
+      useCopilotStore
+        .getState()
+        .showResourceHistory('namespace-a', 'resource-a');
+      await renderResource(resource);
 
-    await renderResource(
-      { ...resource, id: 'resource-b', name: 'Resource B' },
-      'resource-b'
-    );
+      await renderResource(
+        {
+          ...resource,
+          id: 'resource-b',
+          name: 'Resource B',
+          resource_type: resourceType,
+        },
+        'resource-b'
+      );
 
-    expect(
-      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
-    ).toEqual(
-      expect.objectContaining({
-        open: true,
-        view: 'resource_history',
-        resourceHistoryResourceId: 'resource-b',
-      })
-    );
-  });
+      expect(
+        getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+      ).toEqual(
+        expect.objectContaining({
+          open: true,
+          view: 'resource_history',
+          resourceHistoryResourceId: 'resource-b',
+        })
+      );
+    }
+  );
 
-  it('keeps the history entry available after collapsing a historical preview', async () => {
-    useResourceHistoryStore
-      .getState()
-      .selectRevision('namespace-a', 'resource-a', {
-        id: 'revision-a',
-        resource_id: 'resource-a',
-        name: 'Resource A',
-        content: '# Previous Resource A',
-        content_hash: 'hash-a',
-        created_at: '2026-09-20T07:00:00.000Z',
-        author: null,
-        is_current: false,
-      });
+  it.each(['doc', 'file', 'link'] as const)(
+    'keeps the history entry available for %s after collapsing a preview',
+    async resourceType => {
+      useResourceHistoryStore
+        .getState()
+        .selectRevision('namespace-a', 'resource-a', {
+          id: 'revision-a',
+          resource_id: 'resource-a',
+          name: 'Resource A',
+          content: '# Previous Resource A',
+          content_hash: 'hash-a',
+          created_at: '2026-09-20T07:00:00.000Z',
+          author: null,
+          is_current: false,
+        });
 
-    await renderResource(resource);
+      await renderResource({ ...resource, resource_type: resourceType });
 
-    expect(
-      container.querySelector('button[aria-label="resource.history.open"]')
-    ).not.toBeNull();
-    expect(container.textContent).toContain(
-      'resource.history.historical_version'
-    );
-    expect(container.textContent).toContain('resource.history.back_to_current');
-    expect(container.textContent).toContain('resource.history.restore');
-  });
+      expect(
+        container.querySelector('button[aria-label="resource.history.open"]')
+      ).not.toBeNull();
+      expect(container.textContent).toContain(
+        'resource.history.historical_version'
+      );
+      expect(container.textContent).toContain(
+        'resource.history.back_to_current'
+      );
+      expect(container.textContent).toContain('resource.history.restore');
+    }
+  );
 
   it('uses compact layout when the resource pane becomes narrow', async () => {
     await renderResource();

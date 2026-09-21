@@ -17,6 +17,7 @@ import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceC
 import Actions, { IActionProps } from '../actions';
 import {
   setResourceRevisionQuery,
+  supportsResourceHistory,
   useResourceHistoryStore,
 } from '../history/resourceHistoryStore';
 import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
@@ -127,8 +128,9 @@ export default function Header(props: IActionProps) {
         !commentsActive ? (
           <ResourceCommentsToggleButton />
         ) : null}
-        {resource?.resource_type === 'doc' &&
-        (!resource.read_only || isHistorical) &&
+        {resource &&
+        supportsResourceHistory(resource.resource_type) &&
+        (!resource?.read_only || isHistorical) &&
         !props.editPage &&
         !historyActive ? (
           <Tooltip>

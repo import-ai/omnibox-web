@@ -39,6 +39,7 @@ import {
 import Header from './header';
 import {
   setResourceRevisionQuery,
+  supportsResourceHistory,
   useResourceHistoryStore,
 } from './history/resourceHistoryStore';
 import Wrapper from './Wrapper';
@@ -184,8 +185,8 @@ function ResourceDetailContent({
     }
     setResourceRevisionQuery(null);
     if (
-      currentResource?.resource_type === 'doc' &&
-      !currentResource.read_only &&
+      supportsResourceHistory(currentResource?.resource_type) &&
+      !currentResource?.read_only &&
       !editPage
     ) {
       showResourceHistory(namespaceId, resourceId);
