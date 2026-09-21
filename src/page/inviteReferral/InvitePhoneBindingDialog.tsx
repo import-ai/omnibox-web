@@ -186,54 +186,44 @@ export function InvitePhoneBindingDialog({
                 </div>
                 {t('login.product_name')}
               </div>
-              <div className="relative w-[510px] max-w-[calc(100vw-32px)] overflow-visible rounded-[18px] bg-white px-[18px] pb-5 pt-[15px] shadow-[0px_10px_14px_rgba(0,0,0,0.16)] dark:bg-[#171717]">
-                <div className="mb-1 flex min-h-[28px] items-center justify-between">
-                  {step === 'code' ? (
-                    <h2 className="text-[18px] font-bold leading-normal text-foreground">
-                      {t('phone.input_verification_code')}
-                    </h2>
-                  ) : (
-                    <span />
-                  )}
-                  <button
-                    type="button"
-                    className="text-[15px] leading-[23px] text-muted-foreground hover:text-foreground"
-                    onClick={skip}
-                  >
-                    {t('inviteReferral.phoneBinding.skip')}
-                  </button>
-                </div>
+              <div className="relative h-[316px] w-[510px] max-w-[calc(100vw-32px)] overflow-visible rounded-[18px] bg-white shadow-[0px_10px_14px_rgba(0,0,0,0.16)] dark:bg-[#171717]">
+                <button
+                  type="button"
+                  className="absolute right-[18px] top-[15px] z-30 text-[14px] leading-[23px] text-muted-foreground hover:text-foreground"
+                  onClick={skip}
+                >
+                  {t('inviteReferral.phoneBinding.skip')}
+                </button>
                 {step === 'phone' ? (
-                  <div className="relative mx-auto w-full max-w-[335px] overflow-visible">
+                  <>
                     <img
                       src={isDark ? bindPhoneCatDark : bindPhoneCatLight}
                       alt=""
-                      width={isDark ? 122 : 116}
-                      height={isDark ? 129 : 123}
+                      width={isDark ? 95 : 89}
+                      height={isDark ? 99 : 93}
                       className={cn(
                         'pointer-events-none absolute z-0 object-contain',
                         isDark
-                          ? 'left-[9px] top-[-6px] h-[129px] w-[122px]'
-                          : 'left-3 top-0 h-[123px] w-[116px]'
+                          ? 'left-[97px] top-[74px] h-[99px] w-[95px]'
+                          : 'left-[100px] top-[77px] h-[93px] w-[89px]'
                       )}
                     />
-                    <div className="pointer-events-none absolute left-[148px] top-0 z-20 h-[71px] w-[179px]">
+                    <div className="pointer-events-none absolute left-[208px] top-[53px] z-20 h-[71px] w-[215px]">
                       <img
                         src={
                           isDark ? bindPhoneBubbleDark : bindPhoneBubbleLight
                         }
                         alt=""
-                        width={179}
+                        width={207}
                         height={71}
-                        className="h-[71px] w-[179px]"
                       />
-                      <p className="absolute left-[40px] top-[10px] w-[126px] text-[14px] font-medium leading-[18px] text-muted-foreground dark:text-[hsl(0_0%_98%)]">
+                      <p className="absolute left-[41px] top-[17px] w-[146px] text-[14px] font-medium leading-[18px] text-muted-foreground dark:text-[hsl(0_0%_98%)]">
                         {t('inviteReferral.phoneBinding.bubble')}
                       </p>
                     </div>
                     <Form {...form}>
                       <form
-                        className="relative z-10 pt-[87px]"
+                        className="absolute left-[88px] top-[146px] z-10 w-[335px]"
                         onSubmit={form.handleSubmit(
                           values => void handleSendCode(values.phone)
                         )}
@@ -250,6 +240,7 @@ export function InvitePhoneBindingDialog({
                                   disabled={submitting}
                                   placeholder={t('phone.enter_phone')}
                                   allowedCountries={allowedCountries}
+                                  variant="bind"
                                   className="h-[52px] rounded-lg border-[#E5E5E5] bg-white opacity-100 focus-within:ring-0 disabled:opacity-100 dark:border-[#303030] dark:bg-[#171717] [&_input]:disabled:opacity-100"
                                 />
                               </FormControl>
@@ -259,19 +250,22 @@ export function InvitePhoneBindingDialog({
                         />
                         <Button
                           type="submit"
-                          className="mt-4 h-[49px] w-full rounded-lg bg-[#0A0A0A] text-[16px] font-medium"
+                          className="mt-5 h-[49px] w-full rounded-lg bg-[#0A0A0A] text-[14px] font-medium"
                           loading={submitting}
                         >
                           {t('phone.send_verification_code')}
                         </Button>
                       </form>
                     </Form>
-                    <p className="relative z-10 mt-2.5 text-center text-[12px] leading-[18px] text-muted-foreground">
+                    <p className="absolute left-1/2 top-[277px] z-10 w-[315px] -translate-x-1/2 text-center text-[10px] leading-[18px] text-muted-foreground">
                       {t('phone.will_send_verification')}
                     </p>
-                  </div>
+                  </>
                 ) : (
-                  <div className="mx-auto flex w-full max-w-[335px] flex-col">
+                  <div className="mx-auto flex h-full w-full max-w-[335px] flex-col pt-[15px]">
+                    <h2 className="text-[18px] font-bold leading-normal text-foreground">
+                      {t('phone.input_verification_code')}
+                    </h2>
                     <p className="mt-8 text-center text-[15px] leading-[23px] text-[#737373]">
                       {t('phone.sent_code_to')}
                       <span className="font-bold">{formatPhone(phone)}</span>
@@ -289,7 +283,7 @@ export function InvitePhoneBindingDialog({
                     </div>
                     <Button
                       type="button"
-                      className="mt-4 h-[49px] w-full rounded-lg bg-[#0A0A0A] text-[16px] font-medium disabled:bg-[#737373] disabled:text-white dark:disabled:bg-[#737373] dark:disabled:text-white"
+                      className="mt-4 h-[49px] w-full rounded-lg bg-[#0A0A0A] text-[14px] font-medium disabled:bg-[#737373] disabled:text-white dark:disabled:bg-[#737373] dark:disabled:text-white"
                       loading={submitting}
                       disabled={!canBind}
                       onClick={() => void handleVerify()}
