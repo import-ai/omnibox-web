@@ -93,6 +93,8 @@ describe('ResourceHistoryPanel', () => {
     Object.keys(listeners).forEach(key => {
       delete listeners[key];
     });
+    window.history.replaceState({}, '', '/namespace-a/resource-a');
+    mockedFetchRevision.mockReset();
     useResourceHistoryStore.setState({ selections: {} });
     mockedFetchRevisions.mockResolvedValue(initialRevisions);
   });
@@ -287,5 +289,103 @@ describe('ResourceHistoryPanel', () => {
     });
 
     expect(container.textContent).toContain('Doc v2');
+  });
+  it.each(['current', 'header', 'resource', 'unmount'])(
+    'ignores a pending detail response after navigating via %s',
+    async navigation => {
+      mockedFetchRevisions.mockResolvedValue(updatedRevisions);
+      let resolveDetail!: (value: ResourceRevisionDetail) => void;
+      mockedFetchRevision.mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            resolveDetail = resolve;
+          })
+      );
+      await renderPanel();
+      const buttons = Array.from(container.querySelectorAll('button'));
+      const historical = buttons.find(
+        button =>
+          button.textContent?.includes('Doc') &&
+          !button.textContent?.includes('Doc v2')
+      )!;
+      await act(async () => historical.click());
+      if (navigation === 'current') {
+        await act(async () =>
+          buttons
+            .find(button =>
+              button.textContent?.includes('resource.history.current')
+            )!
+            .click()
+        );
+      } else if (navigation === 'header') {
+        await act(async () =>
+          useResourceHistoryStore
+            .getState()
+            .clearRevision('namespace-a', 'resource-a')
+        );
+      } else if (navigation === 'resource') {
+        window.history.replaceState({}, '', '/namespace-a/resource-b');
+        await renderPanel('resource-b');
+      } else {
+        await act(async () => root.render(null));
+      }
+      await act(async () =>
+        resolveDetail({
+          ...updatedRevisions[1],
+          resource_id: 'resource-a',
+          content: 'Old',
+          content_hash: 'hash',
+        })
+      );
+      expect(
+        useResourceHistoryStore.getState().selections['namespace-a:resource-a']
+      ).toBeUndefined();
+      expect(window.location.search).toBe('');
+    }
+  );
+
+  it('keeps the last clicked revision when details arrive out of order', async () => {
+    const second = revision('revision-b', 'Second', '2026-09-20T07:00:00.000Z');
+    mockedFetchRevisions.mockResolvedValue([...updatedRevisions, second]);
+    let resolveFirst!: (value: ResourceRevisionDetail) => void;
+    mockedFetchRevision.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          resolveFirst = resolve;
+        })
+    );
+    mockedFetchRevision.mockResolvedValue({
+      ...second,
+      resource_id: 'resource-a',
+      content: 'Second',
+      content_hash: 'second',
+    });
+    await renderPanel();
+    const buttons = Array.from(container.querySelectorAll('button'));
+    await act(async () =>
+      buttons
+        .find(
+          button =>
+            button.textContent?.includes('Doc') &&
+            !button.textContent?.includes('Doc v2')
+        )!
+        .click()
+    );
+    await act(async () =>
+      buttons.find(button => button.textContent?.includes('Second'))!.click()
+    );
+    await act(async () =>
+      resolveFirst({
+        ...updatedRevisions[1],
+        resource_id: 'resource-a',
+        content: 'First',
+        content_hash: 'first',
+      })
+    );
+    expect(
+      useResourceHistoryStore.getState().selections['namespace-a:resource-a'].id
+    ).toBe('revision-b');
+    expect(window.location.search).toBe('?revision=revision-b');
+    expect(container.querySelector('.animate-spin')).toBeNull();
   });
 });

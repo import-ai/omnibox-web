@@ -1,7 +1,6 @@
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/Button';
 import {
@@ -56,6 +55,20 @@ export default function ResourceHistoryPanel({
   const [failed, setFailed] = useState(false);
   const [loadingRevision, setLoadingRevision] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const detailRequest = useRef(0);
+
+  useEffect(() => {
+    const cancelSelection = () => {
+      detailRequest.current += 1;
+      setLoadingRevision(null);
+    };
+    cancelSelection();
+    const unsubscribe = useResourceHistoryStore.subscribe(cancelSelection);
+    return () => {
+      detailRequest.current += 1;
+      unsubscribe();
+    };
+  }, [namespaceId, resourceId]);
 
   useEffect(() => {
     let active = true;
@@ -113,6 +126,8 @@ export default function ResourceHistoryPanel({
   }, [app, namespaceId, reloadKey, resourceId]);
 
   const chooseRevision = async (revisionId: string) => {
+    const requestId = ++detailRequest.current;
+    const pathname = window.location.pathname;
     if (revisionId === 'current') {
       clearRevision(namespaceId, resourceId);
       setResourceRevisionQuery(null);
@@ -126,12 +141,17 @@ export default function ResourceHistoryPanel({
         resourceId,
         revisionId
       );
+      if (
+        requestId !== detailRequest.current ||
+        pathname !== window.location.pathname
+      )
+        return;
       selectRevision(namespaceId, resourceId, revision);
       setResourceRevisionQuery(revisionId);
     } catch {
-      toast.error(t('resource.history.load_failed'));
+      // The request interceptor displays the error; keep the preview for retry.
     } finally {
-      setLoadingRevision(null);
+      if (requestId === detailRequest.current) setLoadingRevision(null);
     }
   };
 

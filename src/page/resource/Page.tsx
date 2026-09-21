@@ -24,6 +24,7 @@ import {
 
 interface IProps {
   editPage: boolean;
+  isHistorical?: boolean;
   resource: Resource;
   namespaceId: string;
   showToc: boolean;
@@ -152,6 +153,7 @@ function PageContent(props: PageContentProps) {
         />
       ) : (
         <Render
+          commentsDisabled={props.isHistorical}
           comments={comments}
           namespaceId={props.commentsNamespaceId ?? namespaceId}
           resource={resource}
@@ -173,6 +175,7 @@ export default function Page(props: IProps) {
   const [contentDirty, setContentDirty] = useState(false);
   const commentsEnabled =
     useOmniboxEditor &&
+    !props.isHistorical &&
     !!commentsNamespaceId &&
     !isFolderLikeResourceType(resource.resource_type);
   const comments = useResourceComments({
