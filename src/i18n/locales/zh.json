@@ -1508,7 +1508,7 @@
       "linkUnavailable": "邀请链接暂不可用"
     },
     "records": {
-      "title": "邀请奖励记录",
+      "title": "邀请记录",
       "subtitle": "邀请记录",
       "loadFailed": "邀请记录加载失败，请重试",
       "emptyTitle": "空空如也",

@@ -13,7 +13,6 @@ import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { Skeleton } from '@/components/ui/Skeleton';
 import useApp from '@/hooks/useApp';
-import { useIsMobile } from '@/hooks/useMobile';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import {
   fetchInviteOverview,
@@ -26,11 +25,12 @@ import { InvitePhoneBindingDialog } from './InvitePhoneBindingDialog';
 import { InviteRecordsPanel } from './InviteRecordsPanel';
 import { InviteShareDialog } from './InviteShareDialog';
 import { clearInvitePhoneBinding, hasInvitePhoneBinding } from './registration';
+import { useInviteSinglePage } from './useInviteSinglePage';
 
 export function InviteReferralContent() {
   const { t } = useTranslation();
   const app = useApp();
-  const isMobile = useIsMobile();
+  const isMobile = useInviteSinglePage();
   const { open: sidebarOpen } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
@@ -177,18 +177,25 @@ export function InviteReferralContent() {
         </div>
       ) : (
         <div className="flex h-full min-h-0 flex-1 overflow-hidden">
-          {!showRecords ? (
-            <div className="flex h-full min-h-0 w-full shrink-0 flex-col overflow-hidden md:w-[400px]">
-              <InviteActivityPanel
-                overview={overview}
-                onInvite={() => setShareOpen(true)}
-                onTask={runTask}
-              />
-            </div>
-          ) : null}
-          <div className="mt-[11px] hidden w-px shrink-0 bg-[#F2F2F7] dark:bg-border md:block" />
+          <div
+            className={
+              showRecords
+                ? 'hidden'
+                : `flex h-full min-h-0 shrink-0 flex-col overflow-hidden ${isMobile ? 'mx-auto w-full max-w-[680px]' : 'w-[400px]'}`
+            }
+          >
+            <InviteActivityPanel
+              overview={overview}
+              onInvite={() => setShareOpen(true)}
+              onTask={runTask}
+            />
+          </div>
+          {!isMobile && (
+            <div className="mt-[11px] w-px shrink-0 bg-[#F2F2F7] dark:bg-border" />
+          )}
           {!isMobile || showRecords ? (
             <InviteRecordsPanel
+              standalone={isMobile}
               invitedCount={overview.stats.qualified_invitee_count}
             />
           ) : null}

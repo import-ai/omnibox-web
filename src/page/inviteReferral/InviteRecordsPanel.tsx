@@ -11,15 +11,19 @@ import {
 } from '@/service/inviteReferral';
 
 import { InviteEmptyState } from './InviteEmptyState';
-import { formatInviteeName, isShortInviteeName } from './inviteeName';
+import { formatInviteeName } from './inviteeName';
 
 const PAGE_SIZE = 20;
 
 interface InviteRecordsPanelProps {
   invitedCount: number;
+  standalone?: boolean;
 }
 
-export function InviteRecordsPanel({ invitedCount }: InviteRecordsPanelProps) {
+export function InviteRecordsPanel({
+  invitedCount,
+  standalone = false,
+}: InviteRecordsPanelProps) {
   const { t } = useTranslation();
   const [items, setItems] = useState<InviteRecord[]>([]);
   const [total, setTotal] = useState(0);
@@ -66,10 +70,14 @@ export function InviteRecordsPanel({ invitedCount }: InviteRecordsPanelProps) {
   };
 
   return (
-    <div className="flex min-h-0 min-w-0 flex-1 flex-col pt-6 md:pt-0">
-      <h2 className="hidden shrink-0 px-[25px] py-6 text-center text-sm font-medium md:block">
-        {t('inviteReferral.records.title')}
-      </h2>
+    <div
+      className={`flex min-h-0 min-w-0 flex-1 flex-col ${standalone ? 'mx-auto w-full max-w-[760px] pt-6' : ''}`}
+    >
+      {!standalone && (
+        <h2 className="shrink-0 px-6 py-6 text-center text-sm font-medium">
+          {t('inviteReferral.records.title')}
+        </h2>
+      )}
       {loading ? (
         <div className="flex flex-1 items-center justify-center">
           <Spinner className="size-6 text-muted-foreground" />
@@ -112,56 +120,46 @@ export function InviteRecordsPanel({ invitedCount }: InviteRecordsPanelProps) {
                 const displayName = formatInviteeName(
                   item.invitee.display_name
                 );
-                const shortName = isShortInviteeName(displayName);
                 return (
                   <div
                     key={item.id}
-                    className="rounded-[10px] border border-[#f2f2f7] bg-white px-6 py-4 md:px-[99px] dark:border-border dark:bg-[#262626]"
+                    className="min-w-0 rounded-[10px] border border-[#f2f2f7] bg-white p-4 dark:border-border dark:bg-[#262626]"
                   >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="relative h-9">
-                          <img
-                            src={item.invitee.avatar_url || inviteeAvatarUrl}
-                            alt=""
-                            width={36}
-                            height={36}
-                            className="absolute left-0 top-0 size-9 rounded-full object-cover"
-                          />
-                          <p
-                            className={
-                              shortName
-                                ? 'ml-[18px] flex h-9 w-[99px] items-center justify-center text-center text-sm font-medium leading-[21px]'
-                                : 'ml-[46px] flex h-9 items-center whitespace-nowrap text-sm font-medium leading-[21px]'
-                            }
-                          >
-                            {displayName}
-                          </p>
-                        </div>
-                        <div className="ml-[18px] mt-[11px] flex w-[99px] flex-col items-center text-center text-xs">
-                          <p className="flex h-6 items-center leading-6 text-muted-foreground">
-                            {t('inviteReferral.records.task')}
-                          </p>
-                          <p className="flex h-6 items-center leading-6">
-                            {item.task_text}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end">
-                        <p className="flex h-9 items-center whitespace-nowrap text-xs leading-[17px] text-muted-foreground">
-                          {format(
-                            new Date(item.completed_at),
-                            'yyyy-MM-dd HH:mm:ss'
-                          )}
+                    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+                      <div className="flex min-w-0 max-w-full items-center gap-2">
+                        <img
+                          src={item.invitee.avatar_url || inviteeAvatarUrl}
+                          alt=""
+                          width={36}
+                          height={36}
+                          className="size-9 shrink-0 rounded-full object-cover"
+                        />
+                        <p
+                          className="min-w-0 truncate text-sm font-medium leading-[21px]"
+                          title={displayName}
+                        >
+                          {displayName}
                         </p>
-                        <div className="mt-[11px] flex w-[113px] flex-col items-center text-center text-xs">
-                          <p className="flex h-6 items-center leading-6 text-muted-foreground">
-                            {t('inviteReferral.records.rewardColumn')}
-                          </p>
-                          <p className="flex h-6 items-center leading-6">
-                            {item.reward_text}
-                          </p>
-                        </div>
+                      </div>
+                      <p className="ml-auto text-xs leading-[17px] text-muted-foreground">
+                        {format(
+                          new Date(item.completed_at),
+                          'yyyy-MM-dd HH:mm:ss'
+                        )}
+                      </p>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-center text-xs">
+                      <div className="min-w-0 break-words">
+                        <p className="leading-6 text-muted-foreground">
+                          {t('inviteReferral.records.task')}
+                        </p>
+                        <p className="leading-6">{item.task_text}</p>
+                      </div>
+                      <div className="min-w-0 break-words">
+                        <p className="leading-6 text-muted-foreground">
+                          {t('inviteReferral.records.rewardColumn')}
+                        </p>
+                        <p className="leading-6">{item.reward_text}</p>
                       </div>
                     </div>
                   </div>
