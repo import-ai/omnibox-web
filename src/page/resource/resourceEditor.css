@@ -358,3 +358,9 @@
   mark.search-query-mark {
   background-color: #6b6524 !important;
 }
+
+/* Mention chips look interactive; keep a pointer even inside contenteditable. */
+.resource-readonly-editor span[data-type='mention'],
+.resource-editable-editor span[data-type='mention'] {
+  cursor: pointer;
+}

@@ -8,6 +8,8 @@ import UserCard from '@/components/user-card';
 import { Member, Role } from '@/interface';
 
 import Action from './Action';
+import { memberDisplayName } from './memberDisplay';
+import MemberDisplayEditor from './MemberDisplayEditor';
 
 // Role hierarchy levels: lower number = higher privilege
 const ROLE_LEVEL: Record<Role, number> = {
@@ -87,13 +89,21 @@ export default function MemberMain(props: MemberProps) {
               return (
                 <div
                   key={item.user_id}
-                  className="flex h-[50px] items-center border-b border-border lg:h-[60px]"
+                  className="group flex h-[50px] items-center border-b border-border lg:h-[60px]"
                 >
-                  <div className="w-[120px] whitespace-nowrap px-2 lg:w-[210px]">
+                  <div className="flex w-[120px] min-w-0 items-center gap-1 px-2 lg:w-[210px]">
                     <UserCard
                       email={item.email || ''}
                       username={item.username}
+                      nickname={item.nickname}
+                      note={item.note}
                       you={item.user_id === uid}
+                    />
+                    <MemberDisplayEditor
+                      member={item}
+                      namespaceId={namespace_id}
+                      canEditNickname={item.user_id === uid}
+                      refetch={refetch}
                     />
                   </div>
                   <div className="w-[90px] whitespace-nowrap px-2 lg:w-[124px]">
@@ -113,7 +123,7 @@ export default function MemberMain(props: MemberProps) {
                       id={item.user_id}
                       value={item.role}
                       currentUserRole={currentUserRole}
-                      targetUsername={item.username}
+                      targetUsername={memberDisplayName(item)}
                       refetch={refetch}
                       namespace_id={namespace_id}
                       namespaceName={namespaceName}

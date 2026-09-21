@@ -6,6 +6,7 @@ import UserCard from '@/components/user-card';
 import { Member, Role } from '@/interface';
 
 import AddMember from '../AddMember';
+import { findMemberByUserId } from '../memberDisplay';
 import { UseGroupUser } from './useGroupUser';
 
 interface GroupProps extends UseGroupUser {
@@ -34,26 +35,34 @@ export default function GroupDataUser(props: GroupProps) {
 
   return (
     <div className="py-2 pl-6 pr-3">
-      {groupUserData.map(item => (
-        <div key={item.id} className="flex items-center justify-between">
-          <div className="flex items-center">
-            <UserCard username={item.username} />
-            <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
-              {t(`manage.${item.role}`)}
-            </span>
+      {groupUserData.map(item => {
+        const profile = findMemberByUserId(member, item.id);
+        return (
+          <div key={item.id} className="flex items-center justify-between">
+            <div className="flex items-center">
+              <UserCard
+                email={item.email || profile?.email || ''}
+                username={item.username}
+                nickname={profile?.nickname}
+                note={profile?.note}
+              />
+              <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
+                {t(`manage.${item.role}`)}
+              </span>
+            </div>
+            <PopConfirm
+              title={t('manage.remove_member')}
+              onOk={() => onRemove(item.id)}
+              okText={t('ok')}
+              cancelText={t('cancel')}
+            >
+              <Button size="sm" variant="ghost" className="hover:text-red-500">
+                {t('manage.remove_from_group')}
+              </Button>
+            </PopConfirm>
           </div>
-          <PopConfirm
-            title={t('manage.remove_member')}
-            onOk={() => onRemove(item.id)}
-            okText={t('ok')}
-            cancelText={t('cancel')}
-          >
-            <Button size="sm" variant="ghost" className="hover:text-red-500">
-              {t('manage.remove_from_group')}
-            </Button>
-          </PopConfirm>
-        </div>
-      ))}
+        );
+      })}
       <AddMember
         group_id={group_id}
         refetch={groupUserRefetch}
