@@ -84,7 +84,7 @@ function NewcomerTasks({
                     completed &&
                       'border-neutral-200 bg-white text-muted-foreground hover:bg-white disabled:border-neutral-200 disabled:bg-white disabled:text-muted-foreground dark:border-white dark:bg-transparent dark:text-foreground dark:hover:bg-transparent dark:disabled:border-white dark:disabled:bg-transparent dark:disabled:text-foreground',
                     locked &&
-                      'border-neutral-200 bg-white text-foreground hover:bg-white dark:!border-neutral-700 dark:!bg-[#262626] dark:text-foreground dark:hover:!bg-[#262626]'
+                      'border-neutral-200 bg-white text-muted-foreground hover:bg-white hover:text-muted-foreground dark:!border-neutral-700 dark:!bg-[#262626] dark:text-muted-foreground dark:hover:!bg-[#262626] dark:hover:text-muted-foreground'
                   )}
                   disabled={completed}
                   onClick={() => {
@@ -172,10 +172,10 @@ export function InviteActivityPanel({
                       key={rule.task_code}
                       className="grid grid-cols-2 border-t border-[#f2f2f7] dark:border-border"
                     >
-                      <div className="border-r border-[#f2f2f7] px-3 py-3 text-center text-xs dark:border-border">
+                      <div className="flex items-center justify-center border-r border-[#f2f2f7] px-3 py-3 text-center text-xs dark:border-border">
                         {rule.task_text}
                       </div>
-                      <div className="px-3 py-3 text-center text-xs font-normal text-blue-500">
+                      <div className="flex items-center justify-center px-3 py-3 text-center text-xs font-normal text-blue-500">
                         {rule.reward_text}
                       </div>
                     </div>

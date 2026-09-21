@@ -66,7 +66,10 @@ export function InviteReferralContent() {
   const runTask = (task: InviteTask) => {
     if (task.status === 'completed') return;
     if (task.action === 'phone_binding') {
-      app.fire('open_settings', { tab: 'profile' });
+      app.fire('open_settings', {
+        tab: 'profile',
+        autoAction: { type: 'bind_phone' },
+      });
       return;
     }
     if (task.action === 'wechat_assistant_binding') {

@@ -15,10 +15,14 @@ import SettingWrapper from './SettingWrapper';
 
 interface OpenSettingsPayload {
   tab?: string;
-  autoAction?: {
-    type: 'bind';
-    appId: string;
-  };
+  autoAction?:
+    | {
+        type: 'bind';
+        appId: string;
+      }
+    | {
+        type: 'bind_phone';
+      };
 }
 
 // Dialog component with event listener (always mounted)
