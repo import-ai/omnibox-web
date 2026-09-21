@@ -17,6 +17,7 @@ import { clearConversationCache } from '@/page/chat/conversation/conversationCac
 import { useCopilotStore } from '@/page/copilot/copilotStore';
 import {
   consumeInviteReferralLanding,
+  markInviteReferralLanding,
   retryPendingInviteRegistration,
 } from '@/page/inviteReferral/registration';
 import { useResourceStore } from '@/page/resource/resourceStore';
@@ -95,7 +96,11 @@ export default function Layout() {
       once: true,
       userId: uid,
     });
-    void retryPendingInviteRegistration(uid);
+    void retryPendingInviteRegistration(uid).then(result => {
+      if (!result) return;
+      markInviteReferralLanding(result.requires_phone_binding);
+      location.href = '/';
+    });
 
     // Handle extension login - signal extension to close the tab
     const loginFromExtension = localStorage.getItem('extension_login');

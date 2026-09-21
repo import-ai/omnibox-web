@@ -90,9 +90,7 @@ async function submitPendingRegistration(
   userId: string
 ) {
   if (pending.userId !== userId || pending.expiresAt <= Date.now()) {
-    if (pending.userId === userId) {
-      sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
-    }
+    sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
     return null;
   }
   const result = await registerInviteReferral(pending.code, pending.source);
@@ -121,7 +119,12 @@ export async function registerInviteAfterLogin(
   result: InviteRegistrationResult | null;
 }> {
   const { code, source } = getStoredInviteRegistration();
-  if (!shouldRegisterInvite(isNewUser, code)) return { result: null };
+  if (!shouldRegisterInvite(isNewUser, code)) {
+    // Do not let an existing user's invite attribution leak into a later
+    // registration in the same browser session.
+    setStoredInviteRegistration({ code: '', source: 'manual' });
+    return { result: null };
+  }
   try {
     const result = await registerInviteReferral(code, source);
     sessionStorage.removeItem(INVITE_CODE_KEY);
