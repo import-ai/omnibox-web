@@ -11,33 +11,27 @@ const CAT_EYES = [
 
 interface HomeMascotProps {
   blinkSignal: number;
+  compact?: boolean;
 }
 
-export default function HomeMascot({ blinkSignal }: HomeMascotProps) {
-  const [expression, setExpression] = useState<'idle' | 'blink' | 'wink'>(
-    'idle'
-  );
+export default function HomeMascot({
+  blinkSignal,
+  compact = false,
+}: HomeMascotProps) {
+  const [blinking, setBlinking] = useState(false);
 
   useEffect(() => {
     let resetTimer: number | undefined;
-    let nextExpression: 'blink' | 'wink' = 'blink';
-    const playExpression = (next: 'blink' | 'wink') => {
+    const blink = () => {
       window.clearTimeout(resetTimer);
-      setExpression(next);
-      resetTimer = window.setTimeout(
-        () => setExpression('idle'),
-        next === 'wink' ? 700 : 170
-      );
-      nextExpression = next === 'blink' ? 'wink' : 'blink';
+      setBlinking(true);
+      resetTimer = window.setTimeout(() => setBlinking(false), 170);
     };
 
     if (blinkSignal > 0) {
-      playExpression(blinkSignal % 2 === 1 ? 'wink' : 'blink');
+      blink();
     }
-    const interval = window.setInterval(
-      () => playExpression(nextExpression),
-      4200
-    );
+    const interval = window.setInterval(blink, 4200);
     return () => {
       window.clearInterval(interval);
       window.clearTimeout(resetTimer);
@@ -45,7 +39,11 @@ export default function HomeMascot({ blinkSignal }: HomeMascotProps) {
   }, [blinkSignal]);
 
   return (
-    <svg aria-hidden="true" className="size-20" viewBox="0 0 73 77">
+    <svg
+      aria-hidden="true"
+      className={compact ? 'h-[77px] w-[73px]' : 'h-[97.75px] w-[92px]'}
+      viewBox="0 0 73 77"
+    >
       <path
         d={CAT_OUTLINE}
         className="fill-neutral-950 stroke-black dark:fill-background dark:stroke-white"
@@ -55,35 +53,21 @@ export default function HomeMascot({ blinkSignal }: HomeMascotProps) {
       <g
         key={blinkSignal}
         className={
-          expression === 'blink'
+          blinking
             ? 'origin-center motion-safe:animate-cat-blink-on-press'
             : 'origin-center'
         }
       >
-        {[CAT_EYES.slice(0, 2), CAT_EYES.slice(2)].map((eye, eyeIndex) => (
-          <g key={eyeIndex}>
-            {expression === 'wink' && eyeIndex === 1 ? (
-              <path
-                d="M41 44 Q48 36 56 44"
-                fill="none"
-                strokeWidth="3"
-                strokeLinecap="round"
-                className="stroke-orange-50"
-              />
-            ) : (
-              eye.map((path, index) => (
-                <path
-                  key={path}
-                  d={path}
-                  className={
-                    index === 0
-                      ? 'fill-orange-50 stroke-black'
-                      : 'fill-neutral-950 stroke-black dark:fill-background'
-                  }
-                />
-              ))
-            )}
-          </g>
+        {CAT_EYES.map((path, index) => (
+          <path
+            key={path}
+            d={path}
+            className={
+              index % 2 === 0
+                ? 'fill-[#FEF6EC] stroke-black'
+                : 'fill-neutral-950 stroke-black dark:fill-background'
+            }
+          />
         ))}
       </g>
     </svg>

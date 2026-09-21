@@ -59,6 +59,7 @@ interface IProps {
   imageUploadDisabledReason?: string;
   proUnsupported?: boolean;
   initialQuery?: string;
+  fillQuery?: string;
   sendMessage: (params: SendMessageParams) => void | Promise<void>;
   onStop?: () => void;
   onThinkingSelectionChange?: (
@@ -83,6 +84,7 @@ export default function ChatArea(props: IProps) {
     imageUploadDisabledReason,
     proUnsupported = false,
     initialQuery,
+    fillQuery: fillQueryText,
     sendMessage,
     onStop,
   } = props;
@@ -133,6 +135,7 @@ export default function ChatArea(props: IProps) {
     composerInitialState,
     composerSelectedResources,
     composerTools,
+    fillQuery,
     handleComposerStateChange,
     handleQueryChange,
     handleToolsChange,
@@ -150,6 +153,12 @@ export default function ChatArea(props: IProps) {
     suppressInitialToolRestore,
     initialQuery,
   });
+  const appliedFillQueryRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!fillQueryText || appliedFillQueryRef.current === fillQueryText) return;
+    appliedFillQueryRef.current = fillQueryText;
+    fillQuery(fillQueryText);
+  }, [fillQuery, fillQueryText]);
   useEffect(() => {
     if (selection && composerTools.includes(ToolType.REASONING)) {
       inputRef.current?.toggleTool(ToolType.REASONING);

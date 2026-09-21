@@ -3,8 +3,8 @@ import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 import HomeMascot from './HomeMascot';
 
@@ -17,7 +17,8 @@ interface IProps {
   footer?: ReactNode;
   enabled: boolean;
   namespaceId: string;
-  loadingQuestionId?: string | null;
+  className?: string;
+  compact?: boolean;
   onSelect: (item: RecommendedQuestionItem) => void;
 }
 
@@ -25,7 +26,8 @@ export default function RecommendedQuestions({
   footer,
   enabled,
   namespaceId,
-  loadingQuestionId,
+  className,
+  compact = false,
   onSelect,
 }: IProps) {
   const { t } = useTranslation();
@@ -84,40 +86,49 @@ export default function RecommendedQuestions({
   };
 
   return (
-    <div className="flex min-h-36 items-end gap-1 overflow-hidden pl-4 pt-8 sm:pl-8">
+    <div
+      className={cn(
+        'flex items-end overflow-hidden pt-8',
+        compact
+          ? 'min-h-0 gap-2 pl-4 sm:pl-8'
+          : 'min-h-44 gap-6 pl-10 sm:pl-14',
+        className
+      )}
+    >
       <button
         type="button"
         onClick={handleNextQuestion}
         aria-label={t('chat.home.nextRecommendedQuestion')}
-        disabled={!!loadingQuestionId}
-        className="-mb-5 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default"
+        className={cn(
+          'shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default',
+          compact ? 'ml-2 -mb-4' : '-mb-6'
+        )}
       >
-        <HomeMascot blinkSignal={blinkSignal} />
+        <HomeMascot blinkSignal={blinkSignal} compact={compact} />
       </button>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 ml-4">
         <button
           type="button"
           onClick={handleSelect}
-          disabled={!question || !!loadingQuestionId}
-          className="relative mb-4 flex h-20 w-full min-w-0 max-w-sm items-center rounded-full pl-12 pr-6 text-left text-sm text-foreground transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60 sm:pl-14 sm:text-base"
+          disabled={!question}
+          className={cn(
+            'relative mb-4 flex min-w-0 items-center rounded-full text-left text-muted-foreground transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60',
+            compact
+              ? 'h-16 w-full pl-6 pr-5 text-xs'
+              : 'h-[86px] max-h-[86px] w-[430.048px] pl-16 pr-8 text-sm sm:text-base'
+          )}
         >
           <svg
             aria-hidden="true"
             className="absolute inset-0 h-full w-full fill-white stroke-border dark:fill-muted"
             preserveAspectRatio="none"
-            viewBox="0 0 243 71.4334"
+            viewBox="0 0 403.033 124.392"
           >
-            <path
-              transform="matrix(1 0 -0.02478 1 9.79 0)"
-              d="M43.3358 0.5H197.856C217.104 0.50003 232.707 16.1031 232.707 35.3506C232.707 54.512 217.238 70.0788 198.077 70.2002L82.1258 70.9326L64.1161 70.9277L46.4364 70.9229L7.53892 70.9111C1.6635 70.9091 -1.61506 64.1262 2.03306 59.5205L7.18443 53.0166C8.99965 50.7247 9.91846 47.8506 9.77036 44.9307L9.33189 36.2734C8.34461 16.8166 23.8539 0.5 43.3358 0.5Z"
-            />
+            <path d="M75.529 0.5H341.472C375.195 0.5 402.533 27.8373 402.533 61.5596C402.533 95.1301 375.432 122.404 341.862 122.618L141.974 123.891L110.852 123.882L80.3015 123.873L13.0896 123.853C2.60239 123.849 -3.26877 111.762 3.21166 103.517L12.198 92.083C15.2767 88.1659 16.8343 83.2669 16.5837 78.291L15.8279 63.2832C14.1081 29.132 41.3346 0.500163 75.529 0.5Z" />
           </svg>
-          <span className="relative line-clamp-2 break-words">
+          <span className="relative min-w-0 w-full line-clamp-3 break-words">
             {question?.question ?? t('chat.textarea.placeholder')}
           </span>
-          {question && loadingQuestionId === question.id && (
-            <Spinner className="relative ml-2 shrink-0" />
-          )}
         </button>
         <div className="min-h-8">{footer}</div>
       </div>

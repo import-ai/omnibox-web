@@ -60,30 +60,18 @@ it('keeps the mascot mounted before configuration and questions arrive', async (
     const initialEyes = mascot?.querySelector('g');
     expect(mascotButton.disabled).toBe(false);
     await act(async () => mascotButton.click());
-    const winkingEyes = mascot?.querySelector('g');
-    expect(winkingEyes).not.toBe(initialEyes);
-    expect(
-      winkingEyes?.classList.contains('motion-safe:animate-cat-blink-on-press')
-    ).toBe(false);
-    expect(winkingEyes?.children[0].querySelectorAll('path')).toHaveLength(2);
-    expect(winkingEyes?.children[1].querySelectorAll('path')).toHaveLength(1);
-    expect(
-      winkingEyes?.children[1].querySelector('path')?.getAttribute('fill')
-    ).toBe('none');
-    await act(async () => mascotButton.click());
     const blinkingEyes = mascot?.querySelector('g');
-    expect(blinkingEyes).not.toBe(winkingEyes);
+    expect(blinkingEyes).not.toBe(initialEyes);
     expect(
       blinkingEyes?.classList.contains('motion-safe:animate-cat-blink-on-press')
     ).toBe(true);
-    await act(async () => mascotButton.click());
+    expect(blinkingEyes?.querySelectorAll('path')).toHaveLength(4);
+    await act(async () => jest.advanceTimersByTime(170));
     expect(
-      mascot?.querySelector('g')?.children[1].querySelectorAll('path')
-    ).toHaveLength(1);
-    await act(async () => jest.advanceTimersByTime(700));
-    expect(
-      mascot?.querySelector('g')?.children[1].querySelectorAll('path')
-    ).toHaveLength(2);
+      mascot
+        ?.querySelector('g')
+        ?.classList.contains('motion-safe:animate-cat-blink-on-press')
+    ).toBe(false);
     expect(bubble.textContent).toBe('Question');
     await act(async () => bubble.click());
     expect(onSelect).toHaveBeenCalledWith({ id: 'one', question: 'Question' });
@@ -93,7 +81,7 @@ it('keeps the mascot mounted before configuration and questions arrive', async (
   }
 });
 
-it('alternates automatic blinking and winking and clears timers on unmount', async () => {
+it('blinks automatically and clears timers on unmount', async () => {
   jest.useFakeTimers();
   const container = document.createElement('div');
   const root = createRoot(container);
@@ -113,21 +101,11 @@ it('alternates automatic blinking and winking and clears timers on unmount', asy
     ).toBe(false);
     await act(async () => jest.advanceTimersByTime(4030));
     expect(
-      container.querySelector('g')?.children[0].querySelectorAll('path')
-    ).toHaveLength(2);
-    expect(
-      container.querySelector('g')?.children[1].querySelectorAll('path')
-    ).toHaveLength(1);
-    await act(async () => jest.advanceTimersByTime(700));
-    expect(
-      container.querySelector('g')?.children[1].querySelectorAll('path')
-    ).toHaveLength(2);
-    await act(async () => jest.advanceTimersByTime(3500));
-    expect(
       container
         .querySelector('g')
         ?.classList.contains('motion-safe:animate-cat-blink-on-press')
     ).toBe(true);
+    expect(container.querySelectorAll('g path')).toHaveLength(4);
   } finally {
     await act(async () => root.unmount());
     expect(jest.getTimerCount()).toBe(0);

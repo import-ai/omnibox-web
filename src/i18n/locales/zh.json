@@ -969,6 +969,8 @@
     "root": "根目录",
     "resources": "资源",
     "chats": "对话",
+    "search_resources": "搜索资源",
+    "search_chats": "搜索对话",
     "no_results": "暂无匹配资源",
     "filters": {
       "title": "筛选",

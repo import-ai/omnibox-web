@@ -64,7 +64,9 @@ function renderHeader(language: string): string {
     i18n: { language },
     t: (key: string) => key,
   });
-  return renderToStaticMarkup(<Header onActiveKey={jest.fn()} />);
+  return renderToStaticMarkup(
+    <Header onActiveKey={jest.fn()} onSearch={jest.fn()} />
+  );
 }
 
 describe('Header', () => {

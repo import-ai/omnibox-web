@@ -669,4 +669,27 @@ describe('ChatArea', () => {
       container.querySelector('[data-testid="basic-unsupported"]')?.textContent
     ).toBe('true');
   });
+
+  it('fills the composer from fillQuery without sending', async () => {
+    const sendMessage = jest.fn();
+    await act(async () =>
+      root.render(
+        <ChatArea
+          fillQuery="推荐问题"
+          loading={false}
+          messages={[]}
+          navigatePrefix="/namespace-a"
+          selectedResources={[]}
+          sendMessage={sendMessage}
+          setSelectedResources={jest.fn()}
+        />
+      )
+    );
+
+    const composer = container.querySelector(
+      '[data-testid="composer"]'
+    ) as HTMLTextAreaElement;
+    expect(composer.value).toBe('推荐问题');
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
 });

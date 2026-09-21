@@ -968,6 +968,8 @@
     "root": "Root",
     "resources": "Resources",
     "chats": "Chats",
+    "search_resources": "Search resources",
+    "search_chats": "Search chats",
     "no_results": "No results",
     "filters": {
       "title": "Filter",

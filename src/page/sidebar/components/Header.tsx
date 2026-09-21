@@ -1,5 +1,4 @@
 import { Bell, BellDot, Download, History, Search, Users } from 'lucide-react';
-import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
@@ -22,16 +21,15 @@ import {
 } from '@/components/ui/Sidebar';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils';
-import SearchMenu from '@/page/search';
 
 interface IProps {
   onActiveKey: (activeKey: string) => void;
+  onSearch: () => void;
 }
 
 export function Header(props: IProps) {
-  const { onActiveKey } = props;
+  const { onActiveKey, onSearch } = props;
   const active = useLocation().pathname.includes('/chat');
-  const [search, setSearch] = useState(false);
   const { t, i18n } = useTranslation();
   const downloadAppHref = `/${i18n.language.startsWith('zh') ? 'zh-cn' : 'en'}/download/`;
   const isTouch = useIsTouch();
@@ -39,117 +37,111 @@ export function Header(props: IProps) {
   const onChat = () => {
     onActiveKey('chat');
   };
-  const onSearch = () => {
-    setSearch(true);
-  };
   const onChatHistory = () => {
     onActiveKey('chat/conversations');
   };
 
   return (
-    <>
-      <SearchMenu open={search} onOpenChange={setSearch} />
-      <SidebarMenu className="mb-4">
-        <SidebarMenuItem className="group/chat">
-          <SidebarMenuButton
-            asChild
-            isActive={active}
-            className="h-auto py-1.5 pr-1"
+    <SidebarMenu className="mb-4">
+      <SidebarMenuItem className="group/chat">
+        <SidebarMenuButton
+          asChild
+          isActive={active}
+          className="h-auto py-1.5 pr-1"
+        >
+          <div
+            className="flex cursor-pointer items-center gap-2"
+            onClick={onChat}
           >
-            <div
-              className="flex cursor-pointer items-center gap-2"
-              onClick={onChat}
-            >
-              <ChatIcon className="size-4" />
-              <span className="font-normal">{t('chat.title')}</span>
-            </div>
-          </SidebarMenuButton>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={onChatHistory}
-                  className={cn(
-                    'absolute right-1 top-[6px] z-10 h-5 w-5 p-0 focus-visible:outline-none focus-visible:ring-transparent [&_svg]:size-4',
-                    isTouch
-                      ? 'pointer-events-auto opacity-100'
-                      : 'pointer-events-none opacity-0 group-hover/chat:pointer-events-auto group-hover/chat:opacity-100'
-                  )}
-                >
-                  <History className="focus-visible:outline-none focus-visible:ring-transparent" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t('chat.conversations.history')}</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <div
-              className="flex cursor-pointer items-center gap-2"
-              onClick={onSearch}
-            >
-              <Search className="size-4 text-neutral-400" />
-              <span>{t('search.title')}</span>
-            </div>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <ActionDialog
-            contentClassName={notificationDialogContentClassName}
-            closeClassName="mr-2"
-            titleClassName="text-card-foreground pb-2 pl-2"
-            title={t('notification_modal.title')}
-            trigger={
-              <SidebarMenuButton asChild>
-                <div className="flex cursor-pointer items-center gap-2">
-                  {unreadCount > 0 ? (
-                    <BellDot className="size-4 text-neutral-400" />
-                  ) : (
-                    <Bell className="size-4 text-neutral-400" />
-                  )}
-                  <span>{t('notification')}</span>
-                  {unreadCount > 0 ? (
-                    <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-medium leading-none text-white">
-                      {unreadCount}
-                    </span>
-                  ) : null}
-                </div>
-              </SidebarMenuButton>
-            }
+            <ChatIcon className="size-4" />
+            <span className="font-normal">{t('chat.title')}</span>
+          </div>
+        </SidebarMenuButton>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={onChatHistory}
+                className={cn(
+                  'absolute right-1 top-[6px] z-10 h-5 w-5 p-0 focus-visible:outline-none focus-visible:ring-transparent [&_svg]:size-4',
+                  isTouch
+                    ? 'pointer-events-auto opacity-100'
+                    : 'pointer-events-none opacity-0 group-hover/chat:pointer-events-auto group-hover/chat:opacity-100'
+                )}
+              >
+                <History className="focus-visible:outline-none focus-visible:ring-transparent" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('chat.conversations.history')}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <div
+            className="flex cursor-pointer items-center gap-2"
+            onClick={onSearch}
           >
-            {close => <Notification onClose={close} />}
-          </ActionDialog>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <a
-              href={downloadAppHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 !text-sidebar-foreground hover:!text-sidebar-accent-foreground"
-            >
-              <Download className="size-4 text-neutral-400" />
-              <span>{t('download_app')}</span>
-            </a>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <a
-              href="https://www.omnibox.pro/community/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 !text-sidebar-foreground hover:!text-sidebar-accent-foreground"
-            >
-              <Users className="size-4 text-neutral-400" />
-              <span>{t('notification_modal.tags.community')}</span>
-            </a>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </>
+            <Search className="size-4 text-neutral-400" />
+            <span>{t('search.title')}</span>
+          </div>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <ActionDialog
+          contentClassName={notificationDialogContentClassName}
+          closeClassName="mr-2"
+          titleClassName="text-card-foreground pb-2 pl-2"
+          title={t('notification_modal.title')}
+          trigger={
+            <SidebarMenuButton asChild>
+              <div className="flex cursor-pointer items-center gap-2">
+                {unreadCount > 0 ? (
+                  <BellDot className="size-4 text-neutral-400" />
+                ) : (
+                  <Bell className="size-4 text-neutral-400" />
+                )}
+                <span>{t('notification')}</span>
+                {unreadCount > 0 ? (
+                  <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-medium leading-none text-white">
+                    {unreadCount}
+                  </span>
+                ) : null}
+              </div>
+            </SidebarMenuButton>
+          }
+        >
+          {close => <Notification onClose={close} />}
+        </ActionDialog>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <a
+            href={downloadAppHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 !text-sidebar-foreground hover:!text-sidebar-accent-foreground"
+          >
+            <Download className="size-4 text-neutral-400" />
+            <span>{t('download_app')}</span>
+          </a>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <a
+            href="https://www.omnibox.pro/community/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 !text-sidebar-foreground hover:!text-sidebar-accent-foreground"
+          >
+            <Users className="size-4 text-neutral-400" />
+            <span>{t('notification_modal.tags.community')}</span>
+          </a>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </SidebarMenu>
   );
 }
