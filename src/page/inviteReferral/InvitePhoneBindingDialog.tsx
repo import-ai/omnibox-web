@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -65,6 +65,8 @@ export function InvitePhoneBindingDialog({
   const [submitting, setSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const resendPending = useRef(false);
+  const [isResending, setIsResending] = useState(false);
 
   const form = useForm<PhoneFormValues>({
     resolver: zodResolver(PhoneSchema),
@@ -124,7 +126,9 @@ export function InvitePhoneBindingDialog({
   };
 
   const handleResendCode = async () => {
-    if (!canResend) return;
+    if (!canResend || resendPending.current) return;
+    resendPending.current = true;
+    setIsResending(true);
     try {
       await http.post('/user/phone/send-code', { phone });
       setError('');
@@ -132,6 +136,9 @@ export function InvitePhoneBindingDialog({
       toast.success(t('phone.code_sent'), { position: 'bottom-right' });
     } catch {
       // Error toast is handled automatically by http client
+    } finally {
+      resendPending.current = false;
+      setIsResending(false);
     }
   };
 
@@ -178,9 +185,9 @@ export function InvitePhoneBindingDialog({
             <LanguageToggle />
             <ThemeToggle />
           </div>
-          <div className="flex min-h-0 flex-1 items-center justify-center">
-            <div className="relative">
-              <div className="absolute bottom-full left-1/2 mb-[148px] flex -translate-x-1/2 items-center gap-2 font-medium text-black dark:text-white">
+          <div className="flex flex-1 flex-col items-center px-0 py-6 sm:justify-center">
+            <div className="relative my-auto w-full max-w-[510px] shrink-0">
+              <div className="mb-8 flex justify-center items-center gap-2 font-medium text-black dark:text-white sm:absolute sm:bottom-full sm:left-1/2 sm:mb-[148px] sm:-translate-x-1/2">
                 <div className="flex items-center justify-center rounded-md bg-primary text-primary-foreground">
                   <img src={logoSvg} alt="" className="size-6" />
                 </div>
@@ -188,7 +195,7 @@ export function InvitePhoneBindingDialog({
               </div>
               <div
                 className={cn(
-                  'relative w-[510px] max-w-[calc(100vw-32px)] overflow-visible rounded-[18px] bg-white shadow-[0px_10px_28px_rgba(0,0,0,0.16)] dark:bg-[#171717]',
+                  'relative w-full min-w-0 rounded-[18px] bg-white shadow-[0px_10px_28px_rgba(0,0,0,0.16)] dark:bg-[#171717]',
                   step === 'phone' ? 'min-h-[316px]' : 'min-h-[309px]'
                 )}
               >
@@ -201,19 +208,38 @@ export function InvitePhoneBindingDialog({
                 </button>
                 {step === 'phone' ? (
                   <>
+                    <div className="flex items-end gap-2 px-5 pt-16 sm:hidden">
+                      <img
+                        src={isDark ? bindPhoneCatDark : bindPhoneCatLight}
+                        alt=""
+                        className="relative z-0 h-24 w-[84px] shrink-0 translate-y-6 object-contain object-bottom"
+                      />
+                      <div className="relative mb-4 min-w-0 flex-1">
+                        <img
+                          src={
+                            isDark ? bindPhoneBubbleDark : bindPhoneBubbleLight
+                          }
+                          alt=""
+                          className="pointer-events-none absolute inset-0 h-full w-full"
+                        />
+                        <p className="relative py-4 pl-6 pr-4 text-sm font-medium leading-[18px] text-muted-foreground dark:text-foreground">
+                          {t('inviteReferral.phoneBinding.bubble')}
+                        </p>
+                      </div>
+                    </div>
                     <img
                       src={isDark ? bindPhoneCatDark : bindPhoneCatLight}
                       alt=""
                       width={isDark ? 95 : 89}
                       height={isDark ? 99 : 93}
                       className={cn(
-                        'pointer-events-none absolute z-0 object-contain',
+                        'pointer-events-none absolute z-0 hidden object-contain sm:block',
                         isDark
                           ? 'left-[97px] top-[74px] h-[99px] w-[95px]'
                           : 'left-[100px] top-[77px] h-[93px] w-[89px]'
                       )}
                     />
-                    <div className="pointer-events-none absolute left-[208px] top-[53px] z-20 h-[71px] w-[215px]">
+                    <div className="pointer-events-none absolute left-[208px] top-[53px] z-20 hidden h-[71px] w-[215px] sm:block">
                       <img
                         src={
                           isDark ? bindPhoneBubbleDark : bindPhoneBubbleLight
@@ -228,7 +254,7 @@ export function InvitePhoneBindingDialog({
                     </div>
                     <Form {...form}>
                       <form
-                        className="relative z-10 ml-[88px] w-[335px] pb-5 pt-[146px]"
+                        className="relative z-10 mx-5 min-w-0 pb-5 sm:ml-[88px] sm:mr-0 sm:w-[335px] sm:pt-[146px]"
                         onSubmit={form.handleSubmit(
                           values => void handleSendCode(values.phone)
                         )}
@@ -246,7 +272,7 @@ export function InvitePhoneBindingDialog({
                                   placeholder={t('phone.enter_phone')}
                                   allowedCountries={allowedCountries}
                                   variant="bind"
-                                  className="h-[52px] rounded-lg border-[#E5E5E5] bg-white opacity-100 focus-within:ring-0 disabled:opacity-100 dark:border-[#303030] dark:bg-[#171717] [&_input]:disabled:opacity-100"
+                                  className="h-[52px] rounded-lg border-[#E5E5E5] bg-white opacity-100 focus-within:ring-0 disabled:opacity-100 dark:border-[#303030] dark:bg-[#171717] [&_input]:min-w-0 [&_input]:text-base sm:[&_input]:text-[14px] [&_input]:disabled:opacity-100"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -306,6 +332,7 @@ export function InvitePhoneBindingDialog({
                             type="button"
                             className="font-medium text-foreground hover:underline"
                             onClick={() => void handleResendCode()}
+                            disabled={isResending}
                           >
                             {t('phone.resend')}
                           </button>

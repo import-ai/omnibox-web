@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
+import { restoreInviteFromUrl, updateInviteParams } from './authInviteParams';
 import { InviteCodeDialog } from './InviteCodeDialog';
 import {
   getStoredInviteRegistration,
@@ -11,7 +12,7 @@ import {
 
 export function InviteCodeEntry() {
   const { t } = useTranslation();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const linkedCode = params.get('invite_code') || '';
   const [code, setCode] = useState(
     () => getStoredInviteRegistration().code || linkedCode
@@ -21,7 +22,7 @@ export function InviteCodeEntry() {
   useEffect(() => {
     if (!isValidInviteCode(linkedCode)) return;
     setCode(linkedCode);
-    setStoredInviteRegistration({ code: linkedCode, source: 'link' });
+    restoreInviteFromUrl(`invite_code=${linkedCode}`);
   }, [linkedCode]);
 
   return (
@@ -43,8 +44,12 @@ export function InviteCodeEntry() {
           setCode(value);
           setStoredInviteRegistration({
             code: value,
-            source: value === linkedCode ? 'link' : 'manual',
+            source:
+              value === linkedCode
+                ? getStoredInviteRegistration().source
+                : 'manual',
           });
+          setParams(updateInviteParams(params, value), { replace: true });
         }}
       />
     </>

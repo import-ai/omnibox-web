@@ -68,6 +68,7 @@ describe('invite referral registration policy', () => {
       response: { status: 503 },
     });
     await registerInviteAfterLogin(true, 'user-1');
+    expect(getStoredInviteRegistration().code).toBe('');
 
     mockedRegisterInviteReferral.mockResolvedValueOnce({
       is_invited_new_user: true,
@@ -78,5 +79,18 @@ describe('invite referral registration policy', () => {
       expect.objectContaining({ requires_phone_binding: true })
     );
     await expect(retryPendingInviteRegistration('user-1')).resolves.toBeNull();
+    mockedRegisterInviteReferral.mockClear();
+    await registerInviteAfterLogin(true, 'user-2');
+    expect(mockedRegisterInviteReferral).not.toHaveBeenCalled();
+  });
+
+  it('clears ordinary attribution after a terminal failure', async () => {
+    setStoredInviteRegistration({ code: '123456', source: 'link' });
+    mockedRegisterInviteReferral.mockRejectedValueOnce({
+      response: { status: 400 },
+    });
+    await registerInviteAfterLogin(true, 'user-1');
+    expect(getStoredInviteRegistration().code).toBe('');
+    expect(await retryPendingInviteRegistration('user-1')).toBeNull();
   });
 });

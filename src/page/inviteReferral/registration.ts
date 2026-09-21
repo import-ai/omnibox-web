@@ -126,6 +126,7 @@ export async function registerInviteAfterLogin(
     return { result: null };
   }
   try {
+    setStoredInviteRegistration({ code: '', source: 'manual' });
     const result = await registerInviteReferral(code, source);
     sessionStorage.removeItem(INVITE_CODE_KEY);
     sessionStorage.removeItem(INVITE_SOURCE_KEY);

@@ -6,7 +6,10 @@ import { toast } from 'sonner';
 import { formatPhone } from '@/components/phone-input/utils.ts';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
-import { withInviteCode } from '@/page/inviteReferral/authInviteParams';
+import {
+  restoreInviteFromUrl,
+  withInviteCode,
+} from '@/page/inviteReferral/authInviteParams';
 import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 
 import { OtpInput } from './components/OtpInput';
@@ -73,6 +76,7 @@ export default function VerifyOtpPage() {
     access_token: string;
     is_new_user?: boolean;
   }) => {
+    restoreInviteFromUrl(params.toString());
     await completeAuthRedirect(response, redirect);
   };
 

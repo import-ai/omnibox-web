@@ -2,8 +2,16 @@ jest.mock('@/service/inviteReferral', () => ({
   registerInviteReferral: jest.fn(),
 }));
 
-import { getInviteCodeForAuthUrl, withInviteCode } from './authInviteParams';
-import { setStoredInviteRegistration } from './registration';
+import {
+  getInviteCodeForAuthUrl,
+  restoreInviteFromUrl,
+  updateInviteParams,
+  withInviteCode,
+} from './authInviteParams';
+import {
+  getStoredInviteRegistration,
+  setStoredInviteRegistration,
+} from './registration';
 
 const sessionValues = new Map<string, string>();
 const sessionStorageMock: Storage = {
@@ -22,6 +30,27 @@ Object.defineProperty(globalThis, 'sessionStorage', {
 });
 
 describe('auth invite params', () => {
+  it('restores attribution from an email link in an empty session', () => {
+    restoreInviteFromUrl('?token=email-token&invite_code=123456');
+    expect(getStoredInviteRegistration()).toEqual({
+      code: '123456',
+      source: 'link',
+    });
+  });
+
+  it('preserves a manual selection after updating the URL', () => {
+    const params = new URLSearchParams('invite_code=123456&redirect=/welcome');
+    setStoredInviteRegistration({ code: '654321', source: 'manual' });
+    const next = updateInviteParams(params, '654321');
+    restoreInviteFromUrl(next.toString());
+    expect(getInviteCodeForAuthUrl(next.toString())).toBe('654321');
+    expect(getStoredInviteRegistration().source).toBe('manual');
+    expect(next.get('redirect')).toBe('/welcome');
+    setStoredInviteRegistration({ code: '', source: 'manual' });
+    expect(
+      getInviteCodeForAuthUrl(updateInviteParams(next, '').toString())
+    ).toBe('');
+  });
   beforeEach(() => {
     sessionStorage.clear();
   });
