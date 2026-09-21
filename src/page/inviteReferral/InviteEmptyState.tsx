@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import emptyCatDarkUrl from '@/assets/inviteReferral/emptyCatDark.png';
-import emptyCatLightUrl from '@/assets/inviteReferral/emptyCatLight.png';
+import emptyCatDarkUrl from '@/assets/inviteReferral/emptyCatDark.svg';
+import emptyCatLightUrl from '@/assets/inviteReferral/emptyCatLight.svg';
 import useTheme from '@/hooks/useTheme';
 
 export function InviteEmptyState() {

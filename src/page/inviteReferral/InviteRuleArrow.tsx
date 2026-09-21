@@ -1,4 +1,4 @@
-import ruleArrowUrl from '@/assets/inviteReferral/ruleArrow.png';
+import ruleArrowUrl from '@/assets/inviteReferral/ruleArrow.svg';
 
 export function InviteRuleArrow() {
   return (

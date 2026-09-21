@@ -8,8 +8,8 @@ import * as z from 'zod';
 
 import bindPhoneBubbleLight from '@/assets/inviteReferral/bindPhoneBubble.svg';
 import bindPhoneBubbleDark from '@/assets/inviteReferral/bindPhoneBubbleDark.svg';
-import bindPhoneCatDark from '@/assets/inviteReferral/bindPhoneCatDark.png';
-import bindPhoneCatLight from '@/assets/inviteReferral/bindPhoneCatLight.png';
+import bindPhoneCatDark from '@/assets/inviteReferral/bindPhoneCatDark.svg';
+import bindPhoneCatLight from '@/assets/inviteReferral/bindPhoneCatLight.svg';
 import logoSvg from '@/assets/logo.svg';
 import { Button } from '@/components/button';
 import { PhoneNumberInput } from '@/components/phone-input';
