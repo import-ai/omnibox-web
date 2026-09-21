@@ -59,6 +59,9 @@ export function processArgs(
     if (RESOURCE_ID_ARG_KEYS.has(key) && typeof v === 'string' && v) {
       return { key, display: trimMiddle(v), resourceId: v };
     }
+    if (key === 'scope' && (v === 'private' || v === 'teamspace')) {
+      return { key, display: t(`chat.messages.tool_calls.function_args.${v}`) };
+    }
     if (key === 'seconds' && typeof v === 'number') {
       return {
         key,
