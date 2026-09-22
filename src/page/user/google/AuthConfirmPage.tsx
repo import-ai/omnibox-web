@@ -6,8 +6,7 @@ import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
-import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
-import { setGlobalCredential } from '@/page/user/util';
+import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 
 import WrapperPage from '../WrapperPage';
 
@@ -52,10 +51,7 @@ export default function AuthConfirmPage() {
             }, 2000);
           }
         } else {
-          setGlobalCredential(res.id, res.access_token);
-          location.href = await getAuthSuccessRedirect(
-            res.redirectUrl || redirect
-          );
+          await completeAuthRedirect(res, res.redirectUrl || redirect);
         }
       })
       .catch(() => {

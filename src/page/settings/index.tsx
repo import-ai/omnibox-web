@@ -15,10 +15,14 @@ import SettingWrapper from './SettingWrapper';
 
 interface OpenSettingsPayload {
   tab?: string;
-  autoAction?: {
-    type: 'bind';
-    appId: string;
-  };
+  autoAction?:
+    | {
+        type: 'bind';
+        appId: string;
+      }
+    | {
+        type: 'bind_phone';
+      };
 }
 
 // Dialog component with event listener (always mounted)
@@ -38,13 +42,19 @@ export default function Setting() {
     });
   }, [app]);
 
+  const closeSettings = () => {
+    setOpen(false);
+    setInitialTab(undefined);
+    setAutoAction(undefined);
+    app.fire('close_settings');
+  };
+
   const handleOpenChange = (newOpen: boolean) => {
-    setOpen(newOpen);
-    if (!newOpen) {
-      // Reset state when closing
-      setInitialTab(undefined);
-      setAutoAction(undefined);
+    if (newOpen) {
+      setOpen(true);
+      return;
     }
+    closeSettings();
   };
 
   return (
@@ -59,7 +69,7 @@ export default function Setting() {
         <SettingWrapper
           initialTab={initialTab}
           autoAction={autoAction}
-          onClose={() => setOpen(false)}
+          onClose={closeSettings}
         />
       </DialogContent>
     </Dialog>

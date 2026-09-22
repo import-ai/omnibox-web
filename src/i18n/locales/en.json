@@ -1441,5 +1441,78 @@
   },
   "user": {
     "login": "Log in"
+  },
+  "inviteReferral": {
+    "title": "Invite & Earn",
+    "homeEntry": "Invite & Earn",
+    "inviteNow": "Invite now",
+    "loadFailed": "Failed to load invite details. Try again.",
+    "common": {
+      "close": "Close",
+      "retry": "Retry"
+    },
+    "phoneBinding": {
+      "title": "Bind phone",
+      "skip": "Skip",
+      "submit": "Bind and claim",
+      "description": "Bind your phone to verify your identity and receive invite rewards.",
+      "bubble": "Link phone, get 120 min free parsing."
+    },
+    "code": {
+      "entry": "Have an invite code? Enter >",
+      "title": "Enter invite code",
+      "placeholder": "Enter an invite code for exclusive benefits",
+      "paste": "Paste",
+      "confirm": "Submit",
+      "confirmed": "Invite code: {{code}}",
+      "invalid": "Invite code invalid. Check it and try again."
+    },
+    "summary": {
+      "title": "My invite rewards",
+      "people": "{{count}} people",
+      "invited": "Qualified invites"
+    },
+    "tasks": {
+      "title": "Newcomer tasks",
+      "expires": "Expires in {{count}} days",
+      "completed": "Completed",
+      "action": "Start",
+      "phoneRequired": "Please bind your phone first"
+    },
+    "rules": {
+      "inviteTitle": "How invites work",
+      "steps": {
+        "copy": "Copy link",
+        "bind": "Friend signs up",
+        "task": "Friend finishes tasks"
+      },
+      "notesTitle": "Reward details"
+    },
+    "rewards": {
+      "title": "Reward rules",
+      "task": "Friend completes",
+      "both": "Both receive"
+    },
+    "share": {
+      "dialogTitle": "Invite friends for Pro rewards",
+      "dialogDescription": "Share with friends and both receive Pro after they finish tasks",
+      "exclusiveLink": "Your invite link",
+      "exclusiveLinkHint": "Tap Invite now to get your personal invite link. Share it with friends, family, or colleagues so they can sign up.",
+      "inviteCodeLabel": "Invite code",
+      "inviteLinkLabel": "Invite link",
+      "copyInvitation": "Turn scattered information into knowledge you can use anytime, turn everything into memories, and memories into everything~\nOmniBox helps collect webpages, files, and audio or video, then uses AI to organize, search, answer questions, and write. \nSign up with my invite code and complete the newcomer tasks to earn rewards for both of us.\nLink: {{inviteUrl}}\nInvite code: {{inviteCode}}",
+      "copy": "Copy",
+      "copySuccess": "Copied",
+      "copyFailed": "Couldn't copy. Try again.",
+      "linkUnavailable": "Invite link unavailable"
+    },
+    "records": {
+      "title": "Invite history",
+      "subtitle": "Invite history",
+      "loadFailed": "Failed to load invite history. Try again.",
+      "emptyTitle": "Nothing here yet",
+      "task": "Task",
+      "rewardColumn": "Reward received"
+    }
   }
 }
