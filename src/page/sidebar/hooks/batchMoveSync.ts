@@ -1,4 +1,5 @@
 import type { Resource } from '@/interface';
+import { isReservedWorkspaceSegment } from '@/page/resource/resourceNavigation';
 
 import type { TreeNode } from '../store';
 import { useSidebarStore } from '../store';
@@ -15,7 +16,7 @@ export function getCurrentResourceId(pathname: string, namespaceId: string) {
   }
 
   const [resourceId] = pathname.slice(prefix.length).split('/');
-  if (!resourceId || resourceId === 'chat') {
+  if (!resourceId || isReservedWorkspaceSegment(resourceId)) {
     return undefined;
   }
 
