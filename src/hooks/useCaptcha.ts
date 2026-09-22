@@ -291,6 +291,9 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
         mode,
         element: `#${ids.elementId}`,
         button: `#${ids.buttonId}`,
+        // Embed mode only collects the slide until the button is clicked;
+        // nothing clicks it on the H5 page, so verify as soon as it completes.
+        immediate: mode === 'embed',
         captchaVerifyCallback,
         onBizResultCallback: () => {},
         getInstance: instance => {
