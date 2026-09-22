@@ -38,6 +38,7 @@ interface PhoneNumberInputProps {
   placeholder?: string;
   defaultCountry?: CountryCode;
   className?: string;
+  variant?: 'default' | 'bind';
   /**
    * Optional list of allowed country codes (ISO 3166-1 alpha-2).
    * If provided, overrides the default ALLOWED_PHONE_COUNTRIES constant.
@@ -54,6 +55,7 @@ function PhoneNumberInput({
   defaultCountry = 'CN',
   className,
   allowedCountries: allowedCountriesProp,
+  variant = 'default',
 }: PhoneNumberInputProps) {
   // Use prop if provided, otherwise use default constant
   const allowedCountries = useMemo(
@@ -77,19 +79,21 @@ function PhoneNumberInput({
 
   // Parse initial value to extract country and national number
   useEffect(() => {
-    if (value) {
-      try {
-        const phoneNumber = parsePhoneNumberFromString(value);
-        if (phoneNumber) {
-          const country = phoneNumber.country;
-          if (country && allowedCountries.some(c => c.code === country)) {
-            setSelectedCountry(country);
-          }
-          setNationalNumber(phoneNumber.nationalNumber);
+    if (!value) {
+      setNationalNumber('');
+      return;
+    }
+    try {
+      const phoneNumber = parsePhoneNumberFromString(value);
+      if (phoneNumber) {
+        const country = phoneNumber.country;
+        if (country && allowedCountries.some(c => c.code === country)) {
+          setSelectedCountry(country);
         }
-      } catch {
-        // Invalid phone number, ignore
+        setNationalNumber(phoneNumber.nationalNumber);
       }
+    } catch {
+      // Invalid phone number, ignore
     }
   }, [value, allowedCountries]);
 
@@ -133,21 +137,44 @@ function PhoneNumberInput({
   );
 
   const isSingleCountry = allowedCountries.length === 1;
+  const isBind = variant === 'bind';
+
+  const countryPrefix = (
+    <>
+      <span className={isBind ? 'text-[15px] leading-[18px]' : 'text-base'}>
+        {selectedCountryData.flag}
+      </span>
+      <span
+        className={
+          isBind
+            ? 'text-[15px] leading-[18px] text-foreground'
+            : 'text-muted-foreground'
+        }
+      >
+        {selectedCountryData.dialCode}
+      </span>
+    </>
+  );
 
   return (
     <div
       className={cn(
         'flex h-10 w-full items-center rounded-md border border-line bg-transparent transition-[color,box-shadow] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring',
         disabled && 'cursor-not-allowed opacity-50',
+        isBind && 'overflow-hidden rounded-lg',
         className
       )}
     >
       {isSingleCountry ? (
-        <div className="flex h-full shrink-0 items-center gap-1 border-r px-2 text-sm">
-          <span className="text-base">{selectedCountryData.flag}</span>
-          <span className="text-muted-foreground">
-            {selectedCountryData.dialCode}
-          </span>
+        <div
+          className={cn(
+            'flex shrink-0 items-center',
+            isBind
+              ? 'h-8 w-[85px] gap-1 px-[15px] text-[15px]'
+              : 'h-full gap-1 border-r px-2 text-sm'
+          )}
+        >
+          {countryPrefix}
         </div>
       ) : (
         <DropdownMenu>
@@ -155,13 +182,15 @@ function PhoneNumberInput({
             <Button
               type="button"
               variant="ghost"
-              className="h-full shrink-0 gap-1 rounded-l-md rounded-r-none border-r border-line px-2 text-sm hover:bg-accent focus-visible:ring-0"
+              className={cn(
+                'shrink-0 gap-1 rounded-l-md rounded-r-none text-sm hover:bg-accent focus-visible:ring-0',
+                isBind
+                  ? 'h-8 w-[85px] px-[15px]'
+                  : 'h-full border-r border-line px-2'
+              )}
             >
-              <span className="text-base">{selectedCountryData.flag}</span>
-              <span className="text-muted-foreground">
-                {selectedCountryData.dialCode}
-              </span>
-              <ChevronDown className="size-3.5 opacity-50" />
+              {countryPrefix}
+              {isBind ? null : <ChevronDown className="size-3.5 opacity-50" />}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="p-0">
@@ -183,13 +212,20 @@ function PhoneNumberInput({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
+      {isBind ? (
+        <div className="h-8 w-px shrink-0 bg-[#E5E5E5] dark:bg-[#303030]" />
+      ) : null}
       <Input
         type="tel"
         value={nationalNumber}
         onChange={handleInputChange}
         disabled={disabled}
         placeholder={placeholder}
-        className="h-full flex-1 border-0 shadow-none focus-visible:ring-0"
+        className={cn(
+          'h-full flex-1 border-0 shadow-none focus-visible:ring-0',
+          isBind &&
+            'pl-[18px] text-[14px] leading-[23px] placeholder:text-[14px] placeholder:text-muted-foreground md:text-[14px]'
+        )}
       />
     </div>
   );
