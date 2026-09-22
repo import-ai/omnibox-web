@@ -105,16 +105,14 @@ export default function RecommendedQuestions({
       >
         <HomeMascot blinkSignal={blinkSignal} compact={compact} />
       </button>
-      <div className="min-w-0 flex-1 ml-4">
+      <div className="min-w-0 flex-1 ml-10">
         <button
           type="button"
           onClick={handleSelect}
           disabled={!question}
           className={cn(
-            'relative mb-4 flex min-w-0 items-center rounded-full text-left text-muted-foreground transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60',
-            compact
-              ? 'h-16 w-full pl-6 pr-5 text-xs'
-              : 'h-[88px] w-full max-w-lg pl-6 pr-5 text-sm sm:pl-20 sm:pr-10 sm:text-base'
+            'relative mb-4 flex min-h-12 w-full min-w-0 max-w-recommended-question items-center rounded-full py-recommended-question-block text-left text-sm font-normal leading-recommended-question text-muted-foreground transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60',
+            compact ? 'pl-6 pr-5' : 'pl-10 pr-6'
           )}
         >
           <SpeechBubbleIcon className="absolute inset-0 h-full w-full fill-chat-composer stroke-border dark:fill-chat-composer-dark" />

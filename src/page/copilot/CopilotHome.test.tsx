@@ -75,10 +75,10 @@ it('fills the composer from a recommended question without sending', async () =>
     const mascot = container.querySelector('svg');
     const bubble = container.querySelectorAll('button')[1] as HTMLButtonElement;
     expect(mascot?.getAttribute('class')).toBe('h-[77px] w-[73px]');
-    expect(bubble.className).toContain('h-16');
+    expect(bubble.className).toContain('min-h-12');
     expect(bubble.className).toContain('w-full');
     expect(bubble.className).toContain('pl-6');
-    expect(bubble.className).toContain('text-xs');
+    expect(bubble.className).toContain('text-sm');
     expect(bubble.textContent).toBe('Copilot question');
     await act(async () => bubble.click());
 
