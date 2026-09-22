@@ -16,6 +16,8 @@ const AGENT_TOOLS = [
   'get_rss_folder_config',
   'update_rss_folder_config',
   'view_attachment',
+  'get_agent_asset_resource_id',
+  'create_agent_asset',
 ];
 
 describe('tool call labels', () => {
