@@ -105,7 +105,7 @@ export default function RecommendedQuestions({
       >
         <HomeMascot blinkSignal={blinkSignal} compact={compact} />
       </button>
-      <div className="min-w-0 flex-1 ml-10">
+      <div className="min-w-0 flex-1 ml-4">
         <button
           type="button"
           onClick={handleSelect}
