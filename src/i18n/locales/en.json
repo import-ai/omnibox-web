@@ -50,6 +50,8 @@
     "created": "Created {{related_time}}"
   },
   "sidebar": {
+    "collapse_folder": "Collapse {{name}}",
+    "locate_folder": "Go to {{name}}",
     "expand": "Expand Sidebar",
     "collapse": "Collapse Sidebar",
     "folder_empty": "Nothing here",
