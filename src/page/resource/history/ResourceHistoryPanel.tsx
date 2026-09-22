@@ -202,6 +202,8 @@ export default function ResourceHistoryPanel({
                 >
                   <span className="flex w-full items-center gap-2">
                     <span className="min-w-0 flex-1 truncate font-medium">
+                      {revision.version !== undefined &&
+                        `v${revision.version} · `}
                       {revision.name || t('resource.untitled')}
                     </span>
                     {revision.id === 'current' ? (

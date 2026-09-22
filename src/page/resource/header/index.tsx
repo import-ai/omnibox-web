@@ -85,7 +85,10 @@ export default function Header(props: IActionProps) {
         {historyRevision ? (
           <div className="flex min-w-0 items-center gap-2 text-sm">
             <span className="hidden max-w-[18rem] truncate font-medium text-muted-foreground md:inline-block">
-              {t('resource.history.historical_version')} ·{' '}
+              {t('resource.history.historical_version')}
+              {historyRevision.version !== undefined &&
+                ` v${historyRevision.version}`}
+              {' · '}
               {new Intl.DateTimeFormat(
                 i18n?.language?.startsWith('zh') ? 'zh-CN' : 'en-US',
                 {

@@ -73,6 +73,7 @@ export interface ResourceRevisionAuthor {
 
 export interface ResourceRevisionSummary {
   id: string;
+  version?: number;
   name: string;
   created_at: string;
   author: ResourceRevisionAuthor | null;

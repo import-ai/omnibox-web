@@ -241,6 +241,7 @@ describe('ResourceDetailView', () => {
         .getState()
         .selectRevision('namespace-a', 'resource-a', {
           id: 'revision-a',
+          version: 1,
           resource_id: 'resource-a',
           name: 'Resource A',
           content: '# Previous Resource A',

@@ -63,10 +63,12 @@ function fireApp(event: string, ...args: unknown[]) {
 function revision(
   id: string,
   name: string,
-  createdAt: string
+  createdAt: string,
+  version = 1
 ): ResourceRevisionSummary {
   return {
     id,
+    version,
     name,
     created_at: createdAt,
     author: { id: 'user-a', username: 'Ada' },
@@ -78,7 +80,7 @@ const initialRevisions = [
   revision('current', 'Doc', '2026-09-20T08:00:00.000Z'),
 ];
 const updatedRevisions = [
-  revision('current', 'Doc v2', '2026-09-20T09:00:00.000Z'),
+  revision('current', 'Doc v2', '2026-09-20T09:00:00.000Z', 2),
   revision('revision-a', 'Doc', '2026-09-20T08:00:00.000Z'),
 ];
 
@@ -126,6 +128,7 @@ describe('ResourceHistoryPanel', () => {
     );
     expect(container.textContent).toContain('Doc');
     expect(container.textContent).toContain('resource.history.current');
+    expect(container.textContent).toContain('v1 · Doc');
   });
 
   it('refetches the revision list when the open resource is updated', async () => {
