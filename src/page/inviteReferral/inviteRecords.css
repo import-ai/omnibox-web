@@ -1,0 +1,43 @@
+.invite-records-list {
+  container-type: inline-size;
+  container-name: invite-records;
+}
+
+/* Only restore desktop spacing when the record area itself has enough room. */
+@container invite-records (min-width: 450px) {
+  .invite-record-card {
+    padding-inline: 99px;
+  }
+
+  .invite-record-user {
+    gap: 10px;
+  }
+
+  .invite-record-name-short {
+    width: 99px;
+    margin-left: -28px;
+    text-align: center;
+  }
+
+  .invite-record-time {
+    display: flex;
+    height: 36px;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  .invite-record-details {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 11px;
+  }
+
+  .invite-record-task {
+    width: 99px;
+    margin-left: 18px;
+  }
+
+  .invite-record-reward {
+    width: 113px;
+  }
+}
