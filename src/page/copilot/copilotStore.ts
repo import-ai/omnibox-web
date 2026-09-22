@@ -143,7 +143,6 @@ export const useCopilotStore = create<CopilotState>()(
           workspaces: patchWorkspace(state, namespaceId, {
             open: true,
             view: 'resource_history',
-            conversationId: null,
             resourceHistoryResourceId: resourceId,
           }),
         })),

@@ -23,6 +23,8 @@ export default function CopilotToggleButton({
   );
   const close = useCopilotStore(state => state.close);
   const showHome = useCopilotStore(state => state.showHome);
+  const showConversation = useCopilotStore(state => state.showConversation);
+  const open = useCopilotStore(state => state.open);
   const commentsPanel = useResourceCommentsPanel();
   const commentsOpen = !!commentsPanel?.panelOpen;
   const copilotActive =
@@ -40,10 +42,18 @@ export default function CopilotToggleButton({
     if (commentsOpen) {
       commentsPanel?.setPanelOpen(false);
     }
-    showHome(namespaceId);
+    if (workspace.view === 'resource_history') {
+      if (workspace.conversationId) {
+        showConversation(namespaceId, workspace.conversationId);
+      } else {
+        showHome(namespaceId);
+      }
+    } else {
+      open(namespaceId);
+    }
   };
 
-  const button = (
+  return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
@@ -64,5 +74,4 @@ export default function CopilotToggleButton({
       <TooltipContent>{tooltipLabel}</TooltipContent>
     </Tooltip>
   );
-  return button;
 }

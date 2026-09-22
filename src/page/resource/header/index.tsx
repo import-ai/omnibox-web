@@ -1,4 +1,4 @@
-import { Eye, History, RotateCcw } from 'lucide-react';
+import { Eye, FileClock, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
@@ -16,7 +16,6 @@ import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceC
 
 import Actions, { IActionProps } from '../actions';
 import {
-  setResourceRevisionQuery,
   supportsResourceHistory,
   useResourceHistoryStore,
 } from '../history/resourceHistoryStore';
@@ -36,7 +35,6 @@ export default function Header(props: IActionProps) {
   const selectedRevision = useResourceHistoryStore(
     state => state.selections[`${namespaceId}:${resource?.id}`]
   );
-  const clearRevision = useResourceHistoryStore(state => state.clearRevision);
   const showResourceHistory = useCopilotStore(
     state => state.showResourceHistory
   );
@@ -58,16 +56,6 @@ export default function Header(props: IActionProps) {
   const copilotActive =
     copilotWorkspace.open && !commentsActive && !historyActive;
   const historyRevision = isHistorical ? selectedRevision : null;
-  const viewCurrent = () => {
-    if (onViewCurrent) {
-      onViewCurrent();
-      return;
-    }
-    if (resource) {
-      clearRevision(namespaceId, resource.id);
-      setResourceRevisionQuery(null);
-    }
-  };
 
   return (
     <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-white dark:bg-background">
@@ -101,7 +89,7 @@ export default function Header(props: IActionProps) {
                 : ''}
             </span>
             <Button
-              onClick={viewCurrent}
+              onClick={onViewCurrent}
               size="sm"
               type="button"
               variant="ghost"
@@ -149,7 +137,7 @@ export default function Header(props: IActionProps) {
                 type="button"
                 variant="ghost"
               >
-                <History />
+                <FileClock />
               </Button>
             </TooltipTrigger>
             <TooltipContent>{t('resource.history.tooltip')}</TooltipContent>

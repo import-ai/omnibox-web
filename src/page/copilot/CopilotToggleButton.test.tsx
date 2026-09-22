@@ -6,6 +6,12 @@ import { createRoot, type Root } from 'react-dom/client';
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 import CopilotToggleButton from './CopilotToggleButton';
 
+let mockCommentsOpen = false;
+const mockSetPanelOpen = jest.fn((open: boolean) => {
+  mockCommentsOpen = open;
+  if (!open) useCopilotStore.getState().close('namespace-a');
+});
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
@@ -32,7 +38,10 @@ jest.mock('@/components/ui/Button', () => ({
 }));
 
 jest.mock('@/page/resource/comments/ResourceCommentsContext', () => ({
-  useResourceCommentsPanel: () => null,
+  useResourceCommentsPanel: () => ({
+    panelOpen: mockCommentsOpen,
+    setPanelOpen: mockSetPanelOpen,
+  }),
 }));
 
 beforeAll(() => {
@@ -56,6 +65,8 @@ describe('CopilotToggleButton', () => {
   let root: Root;
 
   beforeEach(() => {
+    mockCommentsOpen = false;
+    mockSetPanelOpen.mockClear();
     useCopilotStore.setState({ workspaces: {}, pendingExpandFromResource: {} });
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -91,5 +102,36 @@ describe('CopilotToggleButton', () => {
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
     ).toBe(false);
+  });
+
+  it.each([
+    'comments',
+    'resource history',
+    'resource history then comments',
+    'closed panel',
+  ])('restores the active conversation after %s', async panel => {
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-a');
+    if (panel.includes('resource history')) {
+      store.showResourceHistory('namespace-a', 'resource-a');
+    }
+    mockCommentsOpen = panel.includes('comments');
+    if (panel === 'closed panel') store.close('namespace-a');
+
+    await act(async () =>
+      root.render(<CopilotToggleButton namespaceId="namespace-a" />)
+    );
+    act(() => container.querySelector('button')?.click());
+
+    expect(mockCommentsOpen).toBe(false);
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toEqual(
+      expect.objectContaining({
+        open: true,
+        view: 'conversation',
+        conversationId: 'conversation-a',
+      })
+    );
   });
 });
