@@ -178,9 +178,9 @@ export default function ChatConversationsPage({
           ) : data.data.length > 0 ? (
             <>
               {groupItemsByTimestamp(data.data, i18n).map(([key, items]) => (
-                <div key={key} className="pb-1">
-                  <div className="flex h-8 items-center px-2">
-                    <p className="text-xs font-normal leading-8 text-[#8F959E]">
+                <div key={key} className="pb-4">
+                  <div className="flex h-8 items-center px-4">
+                    <p className="text-xs font-normal leading-8 text-neutral-400">
                       {key}
                     </p>
                   </div>
@@ -199,6 +199,7 @@ export default function ChatConversationsPage({
                           <div
                             className={cn(
                               'group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent',
+                              'flex items-center',
                               isActive &&
                                 'bg-[#E2E2E6] hover:bg-[#E2E2E6] dark:bg-[#363637]'
                             )}
@@ -215,7 +216,7 @@ export default function ChatConversationsPage({
                                   isActive ? activeConversationRef : undefined
                                 }
                                 data-conversation-id={item.id}
-                                className="flex cursor-pointer items-center gap-1 pl-4"
+                                className="flex cursor-pointer items-center pl-7"
                                 onClick={() => {
                                   if (onConversationSelect) {
                                     onConversationSelect(item.id);
@@ -228,8 +229,8 @@ export default function ChatConversationsPage({
                                   }
                                 }}
                               >
-                                <MessageCircle className="size-4 shrink-0 text-primary" />
-                                <span className="flex-1 truncate text-sm font-normal leading-5 text-primary">
+                                <MessageCircle className="size-4 shrink-0" />
+                                <span className="flex-1 truncate text-sm font-normal leading-5">
                                   {conversationTitle}
                                 </span>
                               </div>

@@ -192,6 +192,14 @@ it('renders compact conversations as title-only rows with resource menu icons', 
     expect(container.querySelector('.lucide-square-pen')).not.toBeNull();
     expect(container.querySelector('.lucide-trash-2')).not.toBeNull();
 
+    const dateLabel = Array.from(container.querySelectorAll('p')).find(
+      element => element.textContent === '今天'
+    );
+    if (!(dateLabel instanceof HTMLParagraphElement)) {
+      throw new Error('Conversation date label is missing');
+    }
+    expect(dateLabel.parentElement?.classList.contains('px-4')).toBe(true);
+
     const title = container.querySelector(
       '[data-conversation-id="conversation-1"]'
     );

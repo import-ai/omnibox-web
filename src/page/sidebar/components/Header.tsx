@@ -1,12 +1,4 @@
-import {
-  Bell,
-  BellDot,
-  Download,
-  Gift,
-  History,
-  Search,
-  Users,
-} from 'lucide-react';
+import { Bell, BellDot, Download, Gift, History, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useParams } from 'react-router-dom';
 
@@ -36,7 +28,7 @@ interface IProps {
 }
 
 export function Header(props: IProps) {
-  const { onActiveKey, onSearch } = props;
+  const { onActiveKey } = props;
   const pathname = useLocation().pathname;
   const { conversation_id: conversationId } = useParams();
   const isChatActive = pathname.includes('/chat') && !conversationId;
@@ -92,17 +84,6 @@ export function Header(props: IProps) {
             <TooltipContent>{t('chat.conversations.history')}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      </SidebarMenuItem>
-      <SidebarMenuItem>
-        <SidebarMenuButton asChild>
-          <div
-            className="flex cursor-pointer items-center gap-2"
-            onClick={onSearch}
-          >
-            <Search className="size-4 text-neutral-400" />
-            <span>{t('search.title')}</span>
-          </div>
-        </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
         <ActionDialog
