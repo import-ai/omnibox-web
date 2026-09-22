@@ -253,9 +253,9 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
     const element = document.createElement('div');
     element.id = ids.elementId;
     mount.appendChild(element);
-    if (mode === 'popup') {
-      mount.appendChild(createHiddenButton(ids.buttonId));
-    }
+    // The SDK dereferences `button` in embed mode too (initEmbed throws and
+    // leaves the widget unsized without it), so always provide one.
+    mount.appendChild(createHiddenButton(ids.buttonId));
 
     const captchaVerifyCallback = async (
       captchaVerifyParam: string
@@ -290,7 +290,7 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
         SceneId: sceneIdRef.current,
         mode,
         element: `#${ids.elementId}`,
-        ...(mode === 'popup' ? { button: `#${ids.buttonId}` } : {}),
+        button: `#${ids.buttonId}`,
         captchaVerifyCallback,
         onBizResultCallback: () => {},
         getInstance: instance => {
