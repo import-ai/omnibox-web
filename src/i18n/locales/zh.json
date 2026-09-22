@@ -830,6 +830,7 @@
           "list_resource_tasks": "查询资源任务",
           "load_docs": "查看文档",
           "get_agent_asset_resource_id": "加载资源",
+          "create_agent_asset": "创建资源",
           "get_current_info": "获取当前信息",
           "wait": "等待",
           "frontend_operations": "前端操作",
@@ -1445,5 +1446,78 @@
   },
   "user": {
     "login": "登录"
+  },
+  "inviteReferral": {
+    "title": "邀请有礼",
+    "homeEntry": "邀请有礼",
+    "inviteNow": "立即邀请",
+    "loadFailed": "邀请信息加载失败，请重试",
+    "common": {
+      "close": "关闭",
+      "retry": "重试"
+    },
+    "phoneBinding": {
+      "title": "绑定手机号",
+      "skip": "跳过",
+      "submit": "绑定并领取奖励",
+      "description": "为确认新用户身份并发放邀请奖励，请绑定手机号。",
+      "bubble": "绑定手机号，领取 120 分钟音视频解析额度～"
+    },
+    "code": {
+      "entry": "有邀请码？填写 >",
+      "title": "填写邀请码",
+      "placeholder": "填写邀请码，获取专享福利",
+      "paste": "粘贴",
+      "confirm": "提交",
+      "confirmed": "邀请码：{{code}}",
+      "invalid": "邀请码无效，请检查后重试"
+    },
+    "summary": {
+      "title": "我的邀请收益",
+      "people": "{{count}} 人",
+      "invited": "已邀请"
+    },
+    "tasks": {
+      "title": "新人任务",
+      "expires": "{{count}} 天后过期",
+      "completed": "已完成",
+      "action": "去完成",
+      "phoneRequired": "请先绑定手机号"
+    },
+    "rules": {
+      "inviteTitle": "邀请规则",
+      "steps": {
+        "copy": "复制链接",
+        "bind": "好友注册绑定",
+        "task": "好友完成任务"
+      },
+      "notesTitle": "奖励获得说明"
+    },
+    "rewards": {
+      "title": "奖励获得规则",
+      "task": "好友完成任务",
+      "both": "双方获得奖励"
+    },
+    "share": {
+      "dialogTitle": "邀请好友获得高级版权益",
+      "dialogDescription": "分享给好友，完成任务后双方获得高级版",
+      "exclusiveLink": "您的专属链接",
+      "exclusiveLinkHint": "点击立即邀请即可获得您的专属邀请链接，您可以通过链接邀请身边的朋友、家人或同事注册体验。",
+      "inviteCodeLabel": "邀请码",
+      "inviteLinkLabel": "邀请链接",
+      "copyInvitation": "把散落的信息，变成随时可用的知识，将万物变成记忆，将记忆变成万物～\n小黑 OmniBox 支持收集网页、文件和音视频，并通过 AI 完成整理、搜索、问答与写作。\n通过我的邀请码注册并完成新人任务，双方均可获得对应权益。\n链接：{{inviteUrl}}\n邀请码：{{inviteCode}}",
+      "copy": "复制",
+      "copySuccess": "复制成功",
+      "copyFailed": "复制失败，请重试",
+      "linkUnavailable": "邀请链接暂不可用"
+    },
+    "records": {
+      "title": "邀请记录",
+      "subtitle": "邀请记录",
+      "loadFailed": "邀请记录加载失败，请重试",
+      "emptyTitle": "空空如也",
+      "task": "任务记录",
+      "rewardColumn": "已获得奖励"
+    }
   }
 }

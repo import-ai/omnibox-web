@@ -1,4 +1,12 @@
-import { Bell, BellDot, Download, History, Search, Users } from 'lucide-react';
+import {
+  Bell,
+  BellDot,
+  Download,
+  Gift,
+  History,
+  Search,
+  Users,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
 
@@ -29,7 +37,9 @@ interface IProps {
 
 export function Header(props: IProps) {
   const { onActiveKey, onSearch } = props;
-  const active = useLocation().pathname.includes('/chat');
+  const pathname = useLocation().pathname;
+  const active = pathname.includes('/chat');
+  const inviteActive = pathname.includes('/invite-referral');
   const { t, i18n } = useTranslation();
   const downloadAppHref = `/${i18n.language.startsWith('zh') ? 'zh-cn' : 'en'}/download/`;
   const isTouch = useIsTouch();
@@ -39,6 +49,10 @@ export function Header(props: IProps) {
   };
   const onChatHistory = () => {
     onActiveKey('chat/conversations');
+  };
+
+  const onInviteReferral = () => {
+    onActiveKey('invite-referral');
   };
 
   return (
@@ -140,6 +154,17 @@ export function Header(props: IProps) {
             <Users className="size-4 text-neutral-400" />
             <span>{t('notification_modal.tags.community')}</span>
           </a>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild isActive={inviteActive}>
+          <div
+            className="flex cursor-pointer items-center gap-2"
+            onClick={onInviteReferral}
+          >
+            <Gift className="size-4 text-blue-500" />
+            <span className="font-normal">{t('inviteReferral.homeEntry')}</span>
+          </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>

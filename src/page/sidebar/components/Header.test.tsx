@@ -85,6 +85,10 @@ describe('Header', () => {
     expect(html.indexOf('download_app')).toBeLessThan(
       html.indexOf('notification_modal.tags.community')
     );
+    expect(html.indexOf('notification_modal.tags.community')).toBeLessThan(
+      html.indexOf('inviteReferral.homeEntry')
+    );
+    expect(html).toContain('lucide-gift');
   });
 
   it('opens the English download page when the UI language is English', () => {

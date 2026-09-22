@@ -28,13 +28,11 @@ export default function LoginPage() {
   const [hasExistingSession] = useState(() =>
     Boolean(localStorage.getItem('uid'))
   );
-  const phoneParam = params.get('phone');
   const modeParam = params.get('mode');
 
-  // Get initial contact method from URL params
   const getInitialContactMethod = (): ContactMethod => {
-    if (modeParam === 'phone' || phoneParam) return 'phone';
-    return 'email';
+    if (modeParam === 'email') return 'email';
+    return 'phone';
   };
 
   // Get initial auth method from URL params
