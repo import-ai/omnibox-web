@@ -274,3 +274,104 @@ it('opens conversation search and new chat from the chat toolbar', async () => {
     container.remove();
   }
 });
+
+it.each([
+  {
+    activeResourceId: 'resource-1',
+    activeConversationId: undefined,
+    saved: 'chats',
+    expected: 'search.resources',
+  },
+  {
+    activeResourceId: undefined,
+    activeConversationId: 'conversation-1',
+    saved: 'resources',
+    expected: 'search.chats',
+  },
+])(
+  'opens the linked item tab instead of the saved $saved tab',
+  async ({ activeResourceId, activeConversationId, saved, expected }) => {
+    localStorage.setItem('sidebar-browse-tab:[null,"space"]', saved);
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    try {
+      await act(async () =>
+        root.render(
+          <SidebarBrowseTabs
+            namespaceId="space"
+            activeResourceId={activeResourceId}
+            activeConversationId={activeConversationId}
+            onConversationSelect={jest.fn()}
+            onSearchConversations={jest.fn()}
+            onNewConversation={jest.fn()}
+          >
+            <ResourceProbe />
+          </SidebarBrowseTabs>
+        )
+      );
+      expect(
+        container.querySelector('[role="tab"][aria-selected="true"]')
+          ?.textContent
+      ).toBe(expected);
+    } finally {
+      await act(async () => root.unmount());
+    }
+  }
+);
+
+it('follows resource and conversation URL changes while allowing manual tab browsing', async () => {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  const renderRoute = async (
+    activeResourceId?: string,
+    activeConversationId?: string
+  ) => {
+    await act(async () =>
+      root.render(
+        <SidebarBrowseTabs
+          namespaceId="space"
+          activeResourceId={activeResourceId}
+          activeConversationId={activeConversationId}
+          onConversationSelect={jest.fn()}
+          onSearchConversations={jest.fn()}
+          onNewConversation={jest.fn()}
+        >
+          <ResourceProbe />
+        </SidebarBrowseTabs>
+      )
+    );
+  };
+  const selectedTab = () =>
+    container.querySelector('[role="tab"][aria-selected="true"]')?.textContent;
+  try {
+    await renderRoute('resource-1');
+    expect(selectedTab()).toBe('search.resources');
+    await renderRoute(undefined, 'conversation-1');
+    expect(selectedTab()).toBe('search.chats');
+
+    const resourceTab = Array.from(
+      container.querySelectorAll('[role="tab"]')
+    ).find(tab => tab.textContent === 'search.resources');
+    if (!resourceTab) {
+      throw new Error('Resource tab is missing');
+    }
+    await act(async () =>
+      resourceTab.dispatchEvent(
+        new MouseEvent('mousedown', { bubbles: true, button: 0 })
+      )
+    );
+    await renderRoute(undefined, 'conversation-1');
+    expect(selectedTab()).toBe('search.resources');
+
+    await renderRoute(undefined, 'conversation-2');
+    expect(selectedTab()).toBe('search.chats');
+    await renderRoute('resource-1');
+    expect(selectedTab()).toBe('search.resources');
+    await renderRoute(undefined, 'conversation-2');
+    expect(selectedTab()).toBe('search.chats');
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});

@@ -1,6 +1,7 @@
 import { MessageCircle, MoreHorizontal, SquarePen, Trash2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import Pagination from '@/components/pagination';
@@ -27,6 +28,7 @@ import {
   menuIconClass,
   menuItemClass,
 } from '@/page/sidebar/components/resource-tree/shared';
+import { centerSidebarElement } from '@/page/sidebar/sidebarScroll';
 
 import { groupItemsByTimestamp } from '../utils';
 import ConversationLoadMore from './ConversationLoadMore';
@@ -38,6 +40,7 @@ interface ChatConversationsPageProps {
   compact?: boolean;
   namespaceId?: string;
   activeConversationId?: string;
+  isSidebarVisible?: boolean;
   onConversationSelect?: (conversationId: string) => void;
 }
 
@@ -45,9 +48,11 @@ export default function ChatConversationsPage({
   compact = false,
   namespaceId: namespaceIdOverride,
   activeConversationId,
+  isSidebarVisible = true,
   onConversationSelect,
 }: ChatConversationsPageProps = {}) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, i18n } = useTranslation();
   const isTouch = useIsTouch();
   const {
@@ -74,6 +79,73 @@ export default function ChatConversationsPage({
   } = useContext(namespaceIdOverride, compact);
 
   const handleLoadMore = () => onPagerChange(current + 1);
+  const activeConversationRef = useRef<HTMLDivElement>(null);
+  const locatedConversationRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!compact || !isSidebarVisible || !activeConversationId) {
+      locatedConversationRef.current = undefined;
+      return;
+    }
+    if (location.state?.fromSidebar === true) {
+      locatedConversationRef.current = activeConversationId;
+      navigate(location.pathname, {
+        replace: true,
+        state: { ...location.state, fromSidebar: undefined },
+      });
+      return;
+    }
+    if (locatedConversationRef.current === activeConversationId) {
+      return;
+    }
+    if (activeConversationRef.current) {
+      const row = activeConversationRef.current;
+      const scrollContainer = row.closest<HTMLElement>(
+        '[data-sidebar="content"]'
+      );
+      if (scrollContainer && hasMore && !hasLoadError) {
+        const rowBounds = row.getBoundingClientRect();
+        const containerBounds = scrollContainer.getBoundingClientRect();
+        const rowCenter =
+          rowBounds.top -
+          containerBounds.top +
+          scrollContainer.scrollTop +
+          rowBounds.height / 2;
+        const remainingHeight = scrollContainer.scrollHeight - rowCenter;
+        if (remainingHeight < scrollContainer.clientHeight / 2) {
+          if (!loading) {
+            onPagerChange(current + 1);
+          }
+          return;
+        }
+      }
+      const controller = new AbortController();
+      centerSidebarElement(
+        `[data-conversation-id="${CSS.escape(activeConversationId)}"]`,
+        { options: { signal: controller.signal } }
+      ).then(() => {
+        if (!controller.signal.aborted) {
+          locatedConversationRef.current = activeConversationId;
+        }
+      });
+      return () => controller.abort();
+    } else if (!loading && !hasLoadError && hasMore) {
+      onPagerChange(current + 1);
+    }
+  }, [
+    compact,
+    isSidebarVisible,
+    activeConversationId,
+    data,
+    loading,
+    hasLoadError,
+    hasMore,
+    current,
+    onPagerChange,
+    location.pathname,
+    location.state,
+    navigate,
+  ]);
 
   if (accessDenied) {
     return <UnauthorizedPage />;
@@ -100,7 +172,7 @@ export default function ChatConversationsPage({
     return (
       <>
         {dialogs}
-        <SidebarContent className="no-scrollbar gap-0 overflow-x-hidden p-2">
+        <SidebarContent className="no-scrollbar gap-0 overflow-x-hidden p-2 pr-0">
           {loading && data.data.length === 0 ? (
             <Loading />
           ) : data.data.length > 0 ? (
@@ -108,11 +180,11 @@ export default function ChatConversationsPage({
               {groupItemsByTimestamp(data.data, i18n).map(([key, items]) => (
                 <div key={key} className="pb-1">
                   <div className="flex h-8 items-center px-2">
-                    <p className="text-xs font-medium leading-8 text-[#8F959E]">
+                    <p className="text-xs font-normal leading-8 text-[#8F959E]">
                       {key}
                     </p>
                   </div>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-0.5">
                     {items.map(item => {
                       const conversationTitle: string =
                         item.title ||
@@ -139,6 +211,9 @@ export default function ChatConversationsPage({
                               )}
                             >
                               <div
+                                ref={
+                                  isActive ? activeConversationRef : undefined
+                                }
                                 data-conversation-id={item.id}
                                 className="flex cursor-pointer items-center gap-1 pl-4"
                                 onClick={() => {
@@ -147,13 +222,14 @@ export default function ChatConversationsPage({
                                   } else {
                                     navigateToResource(
                                       navigate,
-                                      `/${namespaceId}/chat/${item.id}`
+                                      `/${namespaceId}/chat/${item.id}`,
+                                      { state: { fromSidebar: true } }
                                     );
                                   }
                                 }}
                               >
                                 <MessageCircle className="size-4 shrink-0 text-primary" />
-                                <span className="flex-1 truncate text-sm font-normal leading-6 text-primary">
+                                <span className="flex-1 truncate text-sm font-normal leading-5 text-primary">
                                   {conversationTitle}
                                 </span>
                               </div>

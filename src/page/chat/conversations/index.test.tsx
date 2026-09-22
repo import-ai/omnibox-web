@@ -8,6 +8,13 @@ const onEdit = jest.fn();
 const onRemove = jest.fn();
 const onConversationSelect = jest.fn();
 const onPagerChange = jest.fn();
+const scrollIntoView = jest.fn();
+const navigate = jest.fn();
+let mockLocation: {
+  pathname: string;
+  state: { fromSidebar?: boolean } | null;
+} = { pathname: '/space/chat/conversation-1', state: null };
+let mockConversationId = 'conversation-1';
 let observeIntersection:
   ((entries: { isIntersecting: boolean }[]) => void) | undefined;
 
@@ -19,7 +26,14 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('react-router-dom', () => ({
-  useNavigate: () => jest.fn(),
+  useNavigate: () => navigate,
+  useLocation: () => mockLocation,
+}));
+
+jest.mock('@/page/sidebar/sidebarScroll', () => ({
+  centerSidebarElement: async () => {
+    scrollIntoView({ behavior: 'auto', block: 'center' });
+  },
 }));
 
 jest.mock('@/hooks/useIsTouch', () => ({
@@ -35,7 +49,9 @@ jest.mock('@/components/ui/Sidebar', () => {
     ...props
   }: React.HTMLAttributes<HTMLDivElement>) => <div {...props}>{children}</div>;
   return {
-    SidebarContent: Div,
+    SidebarContent: (props: React.HTMLAttributes<HTMLDivElement>) => (
+      <Div {...props} data-sidebar="content" />
+    ),
     SidebarMenu: Passthrough,
     SidebarMenuItem: Div,
     SidebarMenuButton: Passthrough,
@@ -73,7 +89,7 @@ jest.mock('@/page/chat/conversations/useContext', () => ({
         total: 30,
         data: [
           {
-            id: 'conversation-1',
+            id: mockConversationId,
             title: '美甲做做',
             user_content: '用户问题',
             assistant_content: '这里是助手预览，不应该出现在侧边栏',
@@ -120,6 +136,10 @@ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockLocation = { pathname: '/space/chat/conversation-1', state: null };
+  Object.assign(globalThis, { CSS: { escape: (value: string) => value } });
+  mockConversationId = 'conversation-1';
+  HTMLElement.prototype.scrollIntoView = scrollIntoView;
   Object.assign(globalThis, {
     IntersectionObserver: jest.fn(
       (callback: (entries: { isIntersecting: boolean }[]) => void) => {
@@ -156,6 +176,10 @@ it('renders compact conversations as title-only rows with resource menu icons', 
       '这里是助手预览，不应该出现在侧边栏'
     );
     expect(container.querySelector('h1')).toBeNull();
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'auto',
+      block: 'center',
+    });
     expect(container.textContent).not.toContain('pagination.prev');
     expect(container.textContent).not.toContain('pagination.next');
     if (!observeIntersection) {
@@ -179,5 +203,144 @@ it('renders compact conversations as title-only rows with resource menu icons', 
   } finally {
     await act(async () => root.unmount());
     container.remove();
+  }
+});
+
+it('loads more conversations until the linked conversation can be located', async () => {
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const renderConversation = () =>
+    root.render(
+      <ChatConversationsPage
+        compact
+        namespaceId="space"
+        activeConversationId="older-conversation"
+      />
+    );
+  try {
+    await act(async () => renderConversation());
+    expect(onPagerChange).toHaveBeenCalledWith(2);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    mockConversationId = 'older-conversation';
+    await act(async () => renderConversation());
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(onPagerChange).toHaveBeenCalledTimes(1);
+
+    await act(async () => renderConversation());
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  } finally {
+    await act(async () => root.unmount());
+  }
+});
+
+it('keeps the clicked conversation in place and still locates later URL changes', async () => {
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const renderConversation = async (activeConversationId?: string) => {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId={activeConversationId}
+          onConversationSelect={onConversationSelect}
+        />
+      )
+    );
+  };
+  try {
+    await renderConversation();
+    const row = container.querySelector(
+      '[data-conversation-id="conversation-1"]'
+    );
+    if (!(row instanceof HTMLElement)) {
+      throw new Error('Conversation row is missing');
+    }
+    await act(async () => row.click());
+    expect(onConversationSelect).toHaveBeenCalledWith('conversation-1');
+    mockLocation = { ...mockLocation, state: { fromSidebar: true } };
+    await renderConversation('conversation-1');
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(mockLocation.pathname, {
+      replace: true,
+      state: { fromSidebar: undefined },
+    });
+    mockLocation = { ...mockLocation, state: null };
+
+    mockConversationId = 'conversation-2';
+    await renderConversation('conversation-2');
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+
+    mockConversationId = 'conversation-1';
+    await renderConversation('conversation-1');
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+  } finally {
+    await act(async () => root.unmount());
+  }
+});
+
+it('loads enough rows below the target to center it after reopening the page', async () => {
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const renderConversation = async (activeConversationId?: string) => {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId={activeConversationId}
+        />
+      )
+    );
+  };
+  try {
+    await renderConversation();
+    const scrollContainer = container.querySelector('[data-sidebar="content"]');
+    const row = container.querySelector(
+      '[data-conversation-id="conversation-1"]'
+    );
+    if (
+      !(scrollContainer instanceof HTMLElement) ||
+      !(row instanceof HTMLElement)
+    ) {
+      throw new Error('Conversation scroll container or row is missing');
+    }
+    Object.defineProperty(scrollContainer, 'clientHeight', {
+      configurable: true,
+      value: 400,
+    });
+    Object.defineProperty(scrollContainer, 'scrollHeight', {
+      configurable: true,
+      value: 600,
+    });
+    jest.spyOn(row, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 550,
+      top: 550,
+      left: 0,
+      right: 240,
+      bottom: 582,
+      width: 240,
+      height: 32,
+      toJSON: () => ({}),
+    });
+
+    await renderConversation('conversation-1');
+    expect(onPagerChange).toHaveBeenCalledWith(2);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    Object.defineProperty(scrollContainer, 'scrollHeight', {
+      configurable: true,
+      value: 1000,
+    });
+    await renderConversation('conversation-1');
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'auto',
+      block: 'center',
+    });
+    expect(onPagerChange).toHaveBeenCalledTimes(1);
+  } finally {
+    await act(async () => root.unmount());
   }
 });

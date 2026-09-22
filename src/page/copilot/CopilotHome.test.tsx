@@ -29,9 +29,6 @@ jest.mock('@/page/chat/useSelectedResources', () => ({
     setSelectedResources: jest.fn(),
   }),
 }));
-jest.mock('@/page/chat/utils', () => ({
-  getGreeting: () => 'morning',
-}));
 jest.mock('@/page/chat/chat-input', () => ({
   __esModule: true,
   default: ({
@@ -71,6 +68,9 @@ it('fills the composer from a recommended question without sending', async () =>
   try {
     await act(async () => root.render(<CopilotHome namespaceId="space" />));
     await act(async () => undefined);
+
+    expect(container.querySelector('h1')).toBeNull();
+    expect(container.textContent).not.toContain('chat.home.greeting.');
 
     const mascot = container.querySelector('svg');
     const bubble = container.querySelectorAll('button')[1] as HTMLButtonElement;

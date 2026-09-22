@@ -1,5 +1,6 @@
 import {
   History,
+  MessageCirclePlus,
   MoreHorizontal,
   Plus,
   Search,
@@ -26,8 +27,6 @@ import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
-
-import { PlusIcon } from './PlusIcon';
 
 interface IProps {
   compact?: boolean;
@@ -140,7 +139,7 @@ export default function Actions(props: IProps) {
               className="size-[28px]"
               onClick={onChatCreate}
             >
-              <PlusIcon />
+              <MessageCirclePlus />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{t('chat.conversations.new_chat')}</TooltipContent>

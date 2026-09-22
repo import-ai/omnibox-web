@@ -73,6 +73,14 @@ export default function MainSidebar() {
   const handleConversationSelect = (conversationId: string) => {
     handleActiveKey(`chat/${conversationId}`);
   };
+  const handleSidebarConversationSelect = (conversationId: string) => {
+    navigateToResource(navigate, `/${namespaceId}/chat/${conversationId}`, {
+      state: { fromSidebar: true },
+    });
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   return (
     <React.Fragment>
@@ -92,7 +100,8 @@ export default function MainSidebar() {
           key={namespaceId}
           namespaceId={namespaceId}
           activeConversationId={conversationId}
-          onConversationSelect={handleConversationSelect}
+          activeResourceId={resourceId}
+          onConversationSelect={handleSidebarConversationSelect}
           onSearchConversations={() => setConversationSearchOpen(true)}
           onNewConversation={handleNewConversation}
         >

@@ -21,7 +21,6 @@ import RecommendedQuestions, {
   RecommendedQuestionItem,
 } from '@/page/chat/home/RecommendedQuestions';
 import useSelectedResources from '@/page/chat/useSelectedResources';
-import { getGreeting } from '@/page/chat/utils';
 
 import { useCopilotStore } from './copilotStore';
 
@@ -71,12 +70,10 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col px-4 pb-2" data-chat-home>
-      <div className="flex min-h-0 flex-1 flex-col" data-chat-composer>
-        <div className="flex min-h-0 flex-1 items-center justify-center px-1">
-          <h1 className="text-center text-[26px] font-medium leading-9">
-            {t(`chat.home.greeting.${getGreeting()}`)}
-          </h1>
-        </div>
+      <div
+        className="flex min-h-0 flex-1 flex-col justify-end"
+        data-chat-composer
+      >
         <div className="shrink-0">
           <RecommendedQuestions
             key={namespaceId}

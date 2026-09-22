@@ -30,6 +30,10 @@ export default {
         sm: 'calc(var(--radius) - 4px)',
       },
       colors: {
+        'chat-composer': {
+          DEFAULT: colors.white,
+          dark: '#303030',
+        },
         comment: {
           DEFAULT: colors.yellow[400],
           surface: colors.yellow[200],

@@ -1,6 +1,6 @@
 import { MessageCirclePlus, Search } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Loading from '@/components/loading';
@@ -20,6 +20,7 @@ interface SidebarBrowseTabsProps {
   namespaceId: string;
   children: ReactNode;
   activeConversationId?: string;
+  activeResourceId?: string;
   onConversationSelect: (conversationId: string) => void;
   onSearchConversations: () => void;
   onNewConversation: () => void;
@@ -29,14 +30,21 @@ export function SidebarBrowseTabs({
   namespaceId,
   children,
   activeConversationId,
+  activeResourceId,
   onConversationSelect,
   onSearchConversations,
   onNewConversation,
 }: SidebarBrowseTabsProps) {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState(() =>
-    readSidebarBrowseTab(namespaceId)
-  );
+  const [activeTab, setActiveTab] = useState(() => {
+    if (activeConversationId) {
+      return 'chats' as const;
+    }
+    if (activeResourceId) {
+      return 'resources' as const;
+    }
+    return readSidebarBrowseTab(namespaceId);
+  });
   const [hasOpenedChats, setHasOpenedChats] = useState(activeTab === 'chats');
   const deselectAll = useSidebarStore(state => state.deselectAll);
 
@@ -51,6 +59,19 @@ export function SidebarBrowseTabs({
       setHasOpenedChats(true);
     }
   };
+
+  useEffect(() => {
+    if (!activeConversationId && !activeResourceId) {
+      return;
+    }
+    const routeTab = activeConversationId ? 'chats' : 'resources';
+    deselectAll();
+    setActiveTab(routeTab);
+    writeSidebarBrowseTab(namespaceId, routeTab);
+    if (routeTab === 'chats') {
+      setHasOpenedChats(true);
+    }
+  }, [activeConversationId, activeResourceId, namespaceId, deselectAll]);
 
   return (
     <Tabs
@@ -122,6 +143,7 @@ export function SidebarBrowseTabs({
               compact
               namespaceId={namespaceId}
               activeConversationId={activeConversationId}
+              isSidebarVisible={activeTab === 'chats'}
               onConversationSelect={onConversationSelect}
             />
           </Suspense>

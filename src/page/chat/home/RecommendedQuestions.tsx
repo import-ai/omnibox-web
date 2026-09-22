@@ -117,7 +117,7 @@ export default function RecommendedQuestions({
               : 'h-[88px] w-full max-w-lg pl-6 pr-5 text-sm sm:pl-20 sm:pr-10 sm:text-base'
           )}
         >
-          <SpeechBubbleIcon className="absolute inset-0 h-full w-full fill-white stroke-border dark:fill-muted" />
+          <SpeechBubbleIcon className="absolute inset-0 h-full w-full fill-chat-composer stroke-border dark:fill-chat-composer-dark" />
           <span className="relative min-w-0 w-full line-clamp-3 break-words">
             {question?.question ?? t('chat.textarea.placeholder')}
           </span>

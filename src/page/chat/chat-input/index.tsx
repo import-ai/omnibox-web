@@ -331,7 +331,7 @@ export default function ChatArea(props: IProps) {
         if (!event.clipboardData.getData('text/plain')) event.preventDefault();
       }}
       className={cn(
-        'max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]',
+        'max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-chat-composer dark:bg-chat-composer-dark dark:border-chat-composer-dark',
         isResourceOver && 'ring-2 ring-blue-300'
       )}
     >

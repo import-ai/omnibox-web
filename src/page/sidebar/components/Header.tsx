@@ -8,7 +8,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 
 import { ChatIcon } from '@/assets/icons/ChatIcon';
 import ActionDialog from '@/components/invite-dialog/ActionDialog';
@@ -38,7 +38,8 @@ interface IProps {
 export function Header(props: IProps) {
   const { onActiveKey, onSearch } = props;
   const pathname = useLocation().pathname;
-  const active = pathname.includes('/chat');
+  const { conversation_id: conversationId } = useParams();
+  const isChatActive = pathname.includes('/chat') && !conversationId;
   const inviteActive = pathname.includes('/invite-referral');
   const { t, i18n } = useTranslation();
   const downloadAppHref = `/${i18n.language.startsWith('zh') ? 'zh-cn' : 'en'}/download/`;
@@ -60,7 +61,7 @@ export function Header(props: IProps) {
       <SidebarMenuItem className="group/chat">
         <SidebarMenuButton
           asChild
-          isActive={active}
+          isActive={isChatActive}
           className="h-auto py-1.5 pr-1"
         >
           <div

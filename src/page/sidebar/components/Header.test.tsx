@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Header } from './Header';
 
 const useTranslationMock = jest.fn();
+let mockConversationId: string | undefined;
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => useTranslationMock(),
@@ -10,6 +11,7 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('react-router-dom', () => ({
   useLocation: () => ({ pathname: '/namespace-1/chat' }),
+  useParams: () => ({ conversation_id: mockConversationId }),
 }));
 
 jest.mock('@/hooks/useIsTouch', () => ({
@@ -44,7 +46,12 @@ jest.mock('@/components/ui/Sidebar', () => ({
   SidebarMenuItem: ({ children }: React.PropsWithChildren) => (
     <div>{children}</div>
   ),
-  SidebarMenuButton: ({ children }: React.PropsWithChildren) => <>{children}</>,
+  SidebarMenuButton: ({
+    children,
+    isActive,
+  }: React.PropsWithChildren<{ isActive?: boolean }>) => (
+    <div data-active={!!isActive}>{children}</div>
+  ),
 }));
 
 jest.mock('@/components/tooltip', () => ({
@@ -72,6 +79,13 @@ function renderHeader(language: string): string {
 describe('Header', () => {
   beforeEach(() => {
     useTranslationMock.mockReset();
+    mockConversationId = undefined;
+  });
+
+  it('highlights the chat entry only when no conversation is selected', () => {
+    expect(renderHeader('en-US')).toContain('data-active="true"');
+    mockConversationId = 'conversation-1';
+    expect(renderHeader('en-US')).not.toContain('data-active="true"');
   });
 
   it('opens the Chinese download page from the community entry', () => {
