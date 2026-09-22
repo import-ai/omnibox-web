@@ -1,9 +1,9 @@
 import {
-  Edit2,
   History,
   MoreHorizontal,
   Plus,
   Search,
+  SquarePen,
   Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -191,7 +191,7 @@ export default function Actions(props: IProps) {
               className="cursor-pointer gap-2"
               onClick={() => handleAction('rename')}
             >
-              <Edit2 className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <SquarePen className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
               <span>{t('chat.conversations.rename.option')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

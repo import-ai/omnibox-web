@@ -9,6 +9,21 @@ export default {
   },
   theme: {
     extend: {
+      spacing: {
+        7.5: '1.875rem',
+        'sidebar-tab-label-inset': '0.57775rem',
+      },
+      width: {
+        'sidebar-tabs': '12.5rem',
+        'sidebar-tab': '54.622%',
+      },
+      inset: {
+        'sidebar-tab-offset': '45.378%',
+      },
+      boxShadow: {
+        'sidebar-tab':
+          '0 2px 5px 0 rgb(0 0 0 / 0.05), 0 -2px 5px 0 rgb(0 0 0 / 0.05)',
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
@@ -73,6 +88,11 @@ export default {
           'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
+          tab: 'hsl(var(--sidebar-tab-background))',
+          'tab-active': 'hsl(var(--sidebar-tab-active))',
+          'tab-border': 'hsl(var(--sidebar-tab-border))',
+          'tab-foreground': 'hsl(var(--sidebar-tab-foreground))',
+          'tab-active-foreground': 'hsl(var(--sidebar-tab-active-foreground))',
         },
       },
       keyframes: {

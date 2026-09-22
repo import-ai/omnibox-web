@@ -4,6 +4,14 @@ import { createRoot } from 'react-dom/client';
 
 import { SidebarBrowseTabs } from './SidebarBrowseTabs';
 
+const mockDeselectAll = jest.fn();
+
+jest.mock('../store', () => ({
+  useSidebarStore: (
+    selector: (state: { deselectAll: () => void }) => unknown
+  ) => selector({ deselectAll: mockDeselectAll }),
+}));
+
 jest.mock('react', () => {
   const react = jest.requireActual<typeof import('react')>('react');
   return { ...react, default: react };
@@ -54,6 +62,11 @@ jest.mock('@/page/chat/conversations', () => ({
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
+beforeEach(() => {
+  localStorage.clear();
+  mockDeselectAll.mockClear();
+});
+
 function ResourceProbe() {
   const [expanded, setExpanded] = useState(false);
   const handleExpand = () => setExpanded(true);
@@ -99,12 +112,14 @@ it('switches sidebar panels without resetting resources and forwards conversatio
       throw new Error('Sidebar controls are missing');
     }
     await act(async () => resourceButton.click());
+    expect(mockDeselectAll).not.toHaveBeenCalled();
     await act(async () =>
       chatTab.dispatchEvent(
         new MouseEvent('mousedown', { bubbles: true, button: 0 })
       )
     );
     expect(chatTab.getAttribute('aria-selected')).toBe('true');
+    expect(mockDeselectAll).toHaveBeenCalledTimes(1);
     expect(resourceButton.textContent).toBe('Expanded');
     expect(
       resourceButton.closest('[role="tabpanel"]')?.getAttribute('data-state')
@@ -123,6 +138,7 @@ it('switches sidebar panels without resetting resources and forwards conversatio
       )
     );
     expect(resourceTab.getAttribute('aria-selected')).toBe('true');
+    expect(mockDeselectAll).toHaveBeenCalledTimes(2);
     expect(resourceButton.textContent).toBe('Expanded');
     await act(async () =>
       chatTab.dispatchEvent(
@@ -132,6 +148,75 @@ it('switches sidebar panels without resetting resources and forwards conversatio
     expect(
       container.querySelector('[role="tabpanel"][data-state="active"] button')
     ).toBe(conversationButton);
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('restores both tabs after remounting and isolates workspace and account preferences', async () => {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  const onAction = jest.fn();
+  const renderSidebar = async (key: string, namespaceId = 'space') => {
+    await act(async () =>
+      root.render(
+        <SidebarBrowseTabs
+          key={key}
+          namespaceId={namespaceId}
+          onConversationSelect={onAction}
+          onSearchConversations={onAction}
+          onNewConversation={onAction}
+        >
+          <ResourceProbe />
+        </SidebarBrowseTabs>
+      )
+    );
+  };
+  const selectTab = async (name: string) => {
+    const tab = Array.from(container.querySelectorAll('[role="tab"]')).find(
+      element => element.textContent === name
+    );
+    if (!tab) {
+      throw new Error(`Missing sidebar tab: ${name}`);
+    }
+    await act(async () =>
+      tab.dispatchEvent(
+        new MouseEvent('mousedown', { bubbles: true, button: 0 })
+      )
+    );
+  };
+  const selectedTab = () =>
+    container.querySelector('[role="tab"][aria-selected="true"]')?.textContent;
+
+  try {
+    localStorage.setItem('uid', 'user-1');
+    await renderSidebar('initial');
+    await selectTab('search.chats');
+    await renderSidebar('refresh');
+    expect(selectedTab()).toBe('search.chats');
+    expect(
+      container.querySelector('[role="tabpanel"][data-state="active"] button')
+        ?.textContent
+    ).toBe('space');
+    expect(mockDeselectAll).toHaveBeenCalledTimes(1);
+
+    await renderSidebar('other-space', 'other-space');
+    expect(selectedTab()).toBe('search.resources');
+    await renderSidebar('return');
+    expect(selectedTab()).toBe('search.chats');
+
+    localStorage.setItem('uid', 'user-2');
+    await renderSidebar('other-user');
+    expect(selectedTab()).toBe('search.resources');
+    localStorage.setItem('uid', 'user-1');
+    await renderSidebar('original-user');
+    expect(selectedTab()).toBe('search.chats');
+
+    await selectTab('search.resources');
+    await renderSidebar('refresh-resources');
+    expect(selectedTab()).toBe('search.resources');
   } finally {
     await act(async () => root.unmount());
     container.remove();

@@ -29,6 +29,7 @@ import {
 } from '@/page/sidebar/components/resource-tree/shared';
 
 import { groupItemsByTimestamp } from '../utils';
+import ConversationLoadMore from './ConversationLoadMore';
 import EditHistory from './edit';
 import RemoveHistory from './RemoveHistory';
 import useContext from './useContext';
@@ -50,22 +51,29 @@ export default function ChatConversationsPage({
   const { t, i18n } = useTranslation();
   const isTouch = useIsTouch();
   const {
-    data,
+    list: {
+      data,
+      current,
+      pageSize,
+      loading,
+      accessDenied,
+      hasLoadError,
+      hasMore,
+      refetch,
+      onPagerChange,
+    },
     edit,
     onEdit,
     remove,
-    current,
-    pageSize,
-    loading,
-    accessDenied,
     onRemove,
     onEditDone,
     namespaceId,
     onEditChange,
     onRemoveDone,
-    onPagerChange,
     onRemoveChange,
-  } = useContext(namespaceIdOverride);
+  } = useContext(namespaceIdOverride, compact);
+
+  const handleLoadMore = () => onPagerChange(current + 1);
 
   if (accessDenied) {
     return <UnauthorizedPage />;
@@ -93,7 +101,7 @@ export default function ChatConversationsPage({
       <>
         {dialogs}
         <SidebarContent className="no-scrollbar gap-0 overflow-x-hidden p-2">
-          {loading ? (
+          {loading && data.data.length === 0 ? (
             <Loading />
           ) : data.data.length > 0 ? (
             <>
@@ -206,30 +214,20 @@ export default function ChatConversationsPage({
                   </SidebarMenu>
                 </div>
               ))}
-              {data.total > pageSize ? (
-                <div className="flex items-center justify-between gap-2 px-2 py-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={current <= 1}
-                    onClick={() => onPagerChange(current - 1)}
-                  >
-                    {t('pagination.prev')}
-                  </Button>
-                  <span className="text-xs text-[#8F959E]">
-                    {current} / {Math.max(1, Math.ceil(data.total / pageSize))}
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={current * pageSize >= data.total}
-                    onClick={() => onPagerChange(current + 1)}
-                  >
-                    {t('pagination.next')}
-                  </Button>
-                </div>
-              ) : null}
+              <ConversationLoadMore
+                hasMore={hasMore}
+                loading={loading}
+                hasError={hasLoadError}
+                onLoadMore={handleLoadMore}
+              />
             </>
+          ) : hasLoadError ? (
+            <ConversationLoadMore
+              hasMore={false}
+              loading={loading}
+              hasError={hasLoadError}
+              onLoadMore={refetch}
+            />
           ) : (
             <p className="px-3 py-2 text-sm text-muted-foreground">
               {t('chat.conversations.empty')}

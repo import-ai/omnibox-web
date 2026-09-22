@@ -7,6 +7,9 @@ import ChatConversationsPage from './index';
 const onEdit = jest.fn();
 const onRemove = jest.fn();
 const onConversationSelect = jest.fn();
+const onPagerChange = jest.fn();
+let observeIntersection:
+  ((entries: { isIntersecting: boolean }[]) => void) | undefined;
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -65,31 +68,36 @@ jest.mock('@/components/ui/DropdownMenu', () => {
 jest.mock('@/page/chat/conversations/useContext', () => ({
   __esModule: true,
   default: () => ({
-    data: {
-      total: 1,
-      data: [
-        {
-          id: 'conversation-1',
-          title: '美甲做做',
-          user_content: '用户问题',
-          assistant_content: '这里是助手预览，不应该出现在侧边栏',
-          created_at: new Date().toISOString(),
-        },
-      ],
+    list: {
+      data: {
+        total: 30,
+        data: [
+          {
+            id: 'conversation-1',
+            title: '美甲做做',
+            user_content: '用户问题',
+            assistant_content: '这里是助手预览，不应该出现在侧边栏',
+            created_at: new Date().toISOString(),
+          },
+        ],
+      },
+      current: 1,
+      pageSize: 10,
+      loading: false,
+      hasMore: true,
+      hasLoadError: false,
+      accessDenied: false,
+      onPagerChange,
+      refetch: jest.fn(),
     },
     edit: { id: '', title: '', open: false },
     onEdit,
     remove: { id: '', title: '', open: false },
-    current: 1,
-    pageSize: 10,
-    loading: false,
-    accessDenied: false,
     onRemove,
     onEditDone: jest.fn(),
     namespaceId: 'space',
     onEditChange: jest.fn(),
     onRemoveDone: jest.fn(),
-    onPagerChange: jest.fn(),
     onRemoveChange: jest.fn(),
   }),
 }));
@@ -109,6 +117,22 @@ jest.mock('../utils', () => ({
 }));
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  Object.assign(globalThis, {
+    IntersectionObserver: jest.fn(
+      (callback: (entries: { isIntersecting: boolean }[]) => void) => {
+        observeIntersection = callback;
+        return { observe: jest.fn(), disconnect: jest.fn() };
+      }
+    ),
+  });
+});
+
+afterEach(() => {
+  Reflect.deleteProperty(globalThis, 'IntersectionObserver');
+});
 
 it('renders compact conversations as title-only rows with resource menu icons', async () => {
   const container = document.createElement('div');
@@ -132,6 +156,14 @@ it('renders compact conversations as title-only rows with resource menu icons', 
       '这里是助手预览，不应该出现在侧边栏'
     );
     expect(container.querySelector('h1')).toBeNull();
+    expect(container.textContent).not.toContain('pagination.prev');
+    expect(container.textContent).not.toContain('pagination.next');
+    if (!observeIntersection) {
+      throw new Error('Conversation load-more observer is missing');
+    }
+    const intersect = observeIntersection;
+    await act(async () => intersect([{ isIntersecting: true }]));
+    expect(onPagerChange).toHaveBeenCalledWith(2);
     expect(container.querySelector('.lucide-message-circle')).not.toBeNull();
     expect(container.querySelector('.lucide-square-pen')).not.toBeNull();
     expect(container.querySelector('.lucide-trash-2')).not.toBeNull();
