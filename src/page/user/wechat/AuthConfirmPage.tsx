@@ -6,7 +6,11 @@ import { toast } from 'sonner';
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
-import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
+import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
+import {
+  markInviteReferralLanding,
+  registerInviteAfterLogin,
+} from '@/page/inviteReferral/registration';
 import { setGlobalCredential } from '@/page/user/util';
 
 import WrapperPage from '../WrapperPage';
@@ -51,17 +55,19 @@ export default function AuthConfirmPage() {
               });
             }, 2000);
           }
-        } else {
+        } else if (res.source === 'h5' && res.h5_redirect) {
           setGlobalCredential(res.id, res.access_token);
-          // Redirect to H5, OAuth flow, or default based on source
-          if (res.source === 'h5' && res.h5_redirect) {
-            const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
-            window.location.href = h5Url;
-          } else {
-            location.href = await getAuthSuccessRedirect(
-              res.redirectUrl || redirect
-            );
+          const invite = await registerInviteAfterLogin(
+            res.is_new_user === true,
+            res.id
+          );
+          if (invite.result) {
+            markInviteReferralLanding(invite.result.requires_phone_binding);
           }
+          const h5Url = `${res.h5_redirect}?token=${encodeURIComponent(res.access_token)}&uid=${encodeURIComponent(res.id)}`;
+          window.location.href = h5Url;
+        } else {
+          await completeAuthRedirect(res, res.redirectUrl || redirect);
         }
       })
       .catch(() => {

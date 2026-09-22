@@ -2,8 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { BIND_CHECK_INTERVAL } from '@/const';
 import { http } from '@/lib/request';
-import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
-import { setGlobalCredential } from '@/page/user/util';
+import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 
 import { isExternalMobileBrowser } from './launchMiniProgram';
 
@@ -22,6 +21,7 @@ interface WechatCheckResponse {
   user?: {
     id: string;
     access_token: string;
+    is_new_user?: boolean;
   };
 }
 
@@ -79,8 +79,7 @@ async function pollH5WechatOAuthOnce(
 
   if (response.status === 'success' && response.user) {
     clearH5WechatOAuthPoll();
-    setGlobalCredential(response.user.id, response.user.access_token);
-    location.href = await getAuthSuccessRedirect(session.redirect);
+    await completeAuthRedirect(response.user, session.redirect);
     return true;
   }
 

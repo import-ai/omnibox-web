@@ -5,7 +5,11 @@ import type { NavigateFunction, To } from 'react-router-dom';
 import type { Resource } from '@/interface';
 import { fetchResource } from '@/service/resource';
 
-import { navigateToResource } from './resourceNavigation';
+import {
+  isReservedWorkspacePath,
+  isReservedWorkspaceSegment,
+  navigateToResource,
+} from './resourceNavigation';
 import { clearWarmedResource, getWarmedResource } from './resourcePageCache';
 
 jest.mock('@/service/resource', () => ({
@@ -50,14 +54,14 @@ describe('navigateToResource', () => {
     expect(mockedFetchResource).not.toHaveBeenCalled();
   });
 
-  it('does not delay share targets from a chat route', () => {
+  it('does not delay invite referral targets from a chat route', () => {
     window.history.pushState({}, '', '/namespace-a/chat');
     const navigate = mockNavigate();
 
-    navigateToResource(navigate, '/s/share-a/resource-b');
+    navigateToResource(navigate, '/namespace-a/invite-referral');
 
     expect(mockedFetchResource).not.toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith('/s/share-a/resource-b', {
+    expect(navigate).toHaveBeenCalledWith('/namespace-a/invite-referral', {
       flushSync: true,
     });
   });
@@ -161,5 +165,19 @@ describe('navigateToResource', () => {
     expect(navigate).toHaveBeenCalledTimes(2);
     expect(getWarmedResource('namespace-a', 'resource-b')).toBeNull();
     expect(getWarmedResource('namespace-a', 'resource-c')).toBeNull();
+  });
+});
+
+describe('reserved workspace routes', () => {
+  it('treats chat and invite-referral as non-resource namespace routes', () => {
+    expect(isReservedWorkspacePath('/namespace-a/chat')).toBe(true);
+    expect(isReservedWorkspacePath('/namespace-a/chat/conversations')).toBe(
+      true
+    );
+    expect(isReservedWorkspacePath('/namespace-a/invite-referral')).toBe(true);
+    expect(isReservedWorkspacePath('/namespace-a/resource-b')).toBe(false);
+    expect(isReservedWorkspaceSegment('chat')).toBe(true);
+    expect(isReservedWorkspaceSegment('invite-referral')).toBe(true);
+    expect(isReservedWorkspaceSegment('resource-b')).toBe(false);
   });
 });

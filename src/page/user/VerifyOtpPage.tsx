@@ -9,8 +9,11 @@ import { useCaptcha } from '@/hooks/useCaptcha';
 import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
-import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
-import { setGlobalCredential } from '@/page/user/util';
+import {
+  restoreInviteFromUrl,
+  withInviteCode,
+} from '@/page/inviteReferral/authInviteParams';
+import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 
 import { OtpInput } from './components/OtpInput';
 import MetaPage from './MetaPage';
@@ -52,7 +55,7 @@ export default function VerifyOtpPage() {
 
     // If no email or phone provided, redirect to login
     if (!email && !phone && !magicToken) {
-      navigate('/user/login', { replace: true });
+      navigate(buildUrl('/user/login', withInviteCode({})), { replace: true });
       return;
     }
 
@@ -72,9 +75,13 @@ export default function VerifyOtpPage() {
     }
   }, [countdown]);
 
-  const finishLogin = async (userId: string, accessToken: string) => {
-    setGlobalCredential(userId, accessToken);
-    location.href = await getAuthSuccessRedirect(redirect);
+  const finishLogin = async (response: {
+    id: string;
+    access_token: string;
+    is_new_user?: boolean;
+  }) => {
+    restoreInviteFromUrl(params.toString());
+    await completeAuthRedirect(response, redirect);
   };
 
   const verifyMagicLink = async (token: string) => {
@@ -88,7 +95,7 @@ export default function VerifyOtpPage() {
           data: { lang: localStorage.getItem('i18nextLng') },
         }
       );
-      await finishLogin(response.id, response.access_token);
+      await finishLogin(response);
     } catch {
       setIsVerifying(false);
       // If magic link fails, show the OTP input
@@ -127,7 +134,7 @@ export default function VerifyOtpPage() {
         );
       }
 
-      await finishLogin(response.id, response.access_token);
+      await finishLogin(response);
     } catch (err: any) {
       setIsVerifying(false);
       setCode('');
@@ -158,7 +165,7 @@ export default function VerifyOtpPage() {
             withCaptchaParam(
               {
                 email: identifier,
-                url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+                url: `${window.location.origin}${buildUrl('/user/verify-otp', withInviteCode({ redirect }))}`,
               },
               captchaVerifyParam
             ),
@@ -247,12 +254,15 @@ export default function VerifyOtpPage() {
           <button
             onClick={() =>
               navigate(
-                buildUrl('/user/login', {
-                  email: isPhoneVerification ? undefined : email,
-                  phone: isPhoneVerification ? phone : undefined,
-                  mode: isPhoneVerification ? 'phone' : 'email',
-                  redirect,
-                })
+                buildUrl(
+                  '/user/login',
+                  withInviteCode({
+                    email: isPhoneVerification ? undefined : email,
+                    phone: isPhoneVerification ? phone : undefined,
+                    mode: isPhoneVerification ? 'phone' : 'email',
+                    redirect,
+                  })
+                )
               )
             }
             className="text-sm text-muted-foreground hover:underline"

@@ -28,6 +28,7 @@ describe('nginx routes', () => {
       '/invite/confirm',
       '/invite/Ab3xYz/Cd4pQr',
       '/Ab3xYz',
+      '/Ab3xYz/invite-referral',
       '/Ab3xYz/0123456789AbCdEf',
       '/Ab3xYz/0123456789AbCdEf/edit',
       '/Ab3xYz/chat',

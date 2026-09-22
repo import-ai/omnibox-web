@@ -22,6 +22,8 @@ import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validationSchemas';
+import { withInviteCode } from '@/page/inviteReferral/authInviteParams';
+import { InviteCodeEntry } from '@/page/inviteReferral/InviteCodeEntry';
 import { isSupportedEmail } from '@/page/user/login/emailDomains';
 import { EmailSuggestionInput } from '@/page/user/login/EmailSuggestionInput';
 
@@ -89,7 +91,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
           withCaptchaParam(
             {
               email: data.email,
-              url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+              url: `${window.location.origin}${buildUrl('/user/verify-otp', withInviteCode({ redirect }))}`,
             },
             captchaVerifyParam
           )
@@ -100,16 +102,24 @@ export function RegisterForm({ children, contactMethod }: IProps) {
             position: 'bottom-right',
           });
           navigate(
-            buildUrl('/user/login', {
-              email: data.email,
-              mode: 'email',
-              redirect,
-            })
+            buildUrl(
+              '/user/login',
+              withInviteCode({
+                email: data.email,
+                mode: 'email',
+                redirect,
+              })
+            )
           );
           return { captchaResult: true, bizResult: true };
         }
 
-        navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
+        navigate(
+          buildUrl(
+            '/user/verify-otp',
+            withInviteCode({ email: data.email, redirect })
+          )
+        );
         return { captchaResult: true, bizResult: true };
       } catch (err) {
         setIsLoading(false);
@@ -132,16 +142,24 @@ export function RegisterForm({ children, contactMethod }: IProps) {
             position: 'bottom-right',
           });
           navigate(
-            buildUrl('/user/login', {
-              phone: data.phone,
-              mode: 'phone',
-              redirect,
-            })
+            buildUrl(
+              '/user/login',
+              withInviteCode({
+                phone: data.phone,
+                mode: 'phone',
+                redirect,
+              })
+            )
           );
           return { captchaResult: true, bizResult: true };
         }
 
-        navigate(buildUrl('/user/verify-otp', { phone: data.phone, redirect }));
+        navigate(
+          buildUrl(
+            '/user/verify-otp',
+            withInviteCode({ phone: data.phone, redirect })
+          )
+        );
         return { captchaResult: true, bizResult: true };
       } catch (err) {
         setIsLoading(false);
@@ -195,6 +213,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
                 </FormItem>
               )}
             />
+            <InviteCodeEntry />
             <Button
               type="submit"
               className="w-full disabled:opacity-60"
@@ -205,11 +224,14 @@ export function RegisterForm({ children, contactMethod }: IProps) {
             <div className="text-center text-sm">
               {t('form.exist_account')}
               <Link
-                to={buildUrl('/user/login', {
-                  email: emailForm.getValues('email'),
-                  mode: 'email',
-                  redirect,
-                })}
+                to={buildUrl(
+                  '/user/login',
+                  withInviteCode({
+                    email: emailForm.getValues('email'),
+                    mode: 'email',
+                    redirect,
+                  })
+                )}
                 className="text-sm hover:underline underline-offset-2"
               >
                 {t('login.submit')}
@@ -243,6 +265,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
                 </FormItem>
               )}
             />
+            <InviteCodeEntry />
             <Button
               type="submit"
               className="w-full disabled:opacity-60"
@@ -253,11 +276,14 @@ export function RegisterForm({ children, contactMethod }: IProps) {
             <div className="text-center text-sm">
               {t('form.exist_account')}
               <Link
-                to={buildUrl('/user/login', {
-                  phone: phoneForm.getValues('phone'),
-                  mode: 'phone',
-                  redirect,
-                })}
+                to={buildUrl(
+                  '/user/login',
+                  withInviteCode({
+                    phone: phoneForm.getValues('phone'),
+                    mode: 'phone',
+                    redirect,
+                  })
+                )}
                 className="text-sm hover:underline underline-offset-2"
               >
                 {t('login.submit')}
