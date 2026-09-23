@@ -17,6 +17,10 @@
   "toggle_theme": "Toggle Theme",
   "notification": "Notification",
   "download_app": "Download",
+  "app_download_qr": {
+    "title": "Scan to get the app",
+    "hint": "Get the app"
+  },
   "notification_modal": {
     "title": "Notification",
     "all": "All",

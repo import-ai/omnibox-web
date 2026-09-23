@@ -17,6 +17,10 @@
   "toggle_theme": "切换外观",
   "notification": "通知",
   "download_app": "下载",
+  "app_download_qr": {
+    "title": "扫码下载小黑 App",
+    "hint": "下载 App"
+  },
   "notification_modal": {
     "title": "通知",
     "all": "全部",
