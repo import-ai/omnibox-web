@@ -43,11 +43,14 @@ it('keeps the mascot mounted before configuration and questions arrive', async (
     const bubble = container.querySelectorAll('button')[1];
     expect(mascot).not.toBeNull();
     expect(bubble.disabled).toBe(true);
+    expect(bubble.textContent).toBe('chat.textarea.placeholder');
     expect(http.get).not.toHaveBeenCalled();
 
     await act(async () => root.render(render(true)));
     expect(container.querySelector('svg')).toBe(mascot);
     expect(container.querySelectorAll('button')[1]).toBe(bubble);
+
+    expect(bubble.classList.contains('invisible')).toBe(false);
 
     await act(async () =>
       resolveQuestions({ questions: [{ id: 'one', question: 'Question' }] })
@@ -55,6 +58,7 @@ it('keeps the mascot mounted before configuration and questions arrive', async (
     expect(container.querySelector('svg')).toBe(mascot);
     expect(container.querySelectorAll('button')[1]).toBe(bubble);
     expect(bubble.textContent).toBe('Question');
+    expect(bubble.classList.contains('invisible')).toBe(false);
     expect(bubble.disabled).toBe(false);
     const mascotButton = container.querySelectorAll('button')[0];
     const initialEyes = mascot?.querySelector('g');
@@ -77,6 +81,50 @@ it('keeps the mascot mounted before configuration and questions arrive', async (
     expect(onSelect).toHaveBeenCalledWith({ id: 'one', question: 'Question' });
   } finally {
     await act(async () => root.unmount());
+    jest.useRealTimers();
+  }
+});
+
+it('fades out before switching and prevents repeated switching during the fade', async () => {
+  jest.useFakeTimers();
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const questions = [
+    { id: 'one', question: 'First question' },
+    { id: 'two', question: 'Second question' },
+    { id: 'three', question: 'Third question' },
+  ];
+  jest.mocked(http.get).mockResolvedValue({ questions });
+  const onSelect = jest.fn();
+
+  try {
+    await act(async () =>
+      root.render(
+        <RecommendedQuestions enabled namespaceId="space" onSelect={onSelect} />
+      )
+    );
+    const [mascot, bubble] = container.querySelectorAll('button');
+    await act(async () => mascot.click());
+    expect(bubble.textContent).toBe('First question');
+    expect(bubble.classList.contains('opacity-0')).toBe(true);
+    expect(bubble.disabled).toBe(true);
+    await act(async () => {
+      mascot.click();
+      bubble.click();
+      jest.advanceTimersByTime(150);
+    });
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(bubble.textContent).toBe('Second question');
+    expect(bubble.classList.contains('opacity-0')).toBe(false);
+    expect(mascot.disabled).toBe(true);
+    await act(async () => jest.advanceTimersByTime(150));
+    expect(mascot.disabled).toBe(false);
+    await act(async () => bubble.click());
+    expect(onSelect).toHaveBeenCalledWith(questions[1]);
+    await act(async () => mascot.click());
+  } finally {
+    await act(async () => root.unmount());
+    expect(jest.getTimerCount()).toBe(0);
     jest.useRealTimers();
   }
 });

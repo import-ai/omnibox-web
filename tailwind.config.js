@@ -10,7 +10,6 @@ export default {
   theme: {
     extend: {
       spacing: {
-        'recommended-question-block': '0.8125rem',
         7.5: '1.875rem',
         'sidebar-tab-label-inset': '0.57775rem',
       },
@@ -18,8 +17,11 @@ export default {
         'sidebar-tabs': '12.5rem',
         'sidebar-tab': '54.622%',
       },
+      minWidth: {
+        'recommended-question': 'min(100%, 10.25rem)',
+      },
       maxWidth: {
-        'recommended-question': '26.875rem',
+        'recommended-question': 'min(100%, 27rem)',
       },
       lineHeight: {
         'recommended-question': '1.375rem',
