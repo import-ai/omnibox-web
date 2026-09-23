@@ -33,7 +33,6 @@ export default function AppDownload() {
           <button
             type="button"
             className="app-download-card app-download-trigger"
-            aria-label={t('app_download_qr.expand')}
           >
             <span className="app-download-caption">{title}</span>
             <DownloadQrCode url={url} />
