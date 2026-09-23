@@ -21,6 +21,8 @@ export function useStickyFolder(
     let dirty = true;
     let frame = 0;
     let pendingAnchor: { id: string; collapse: boolean } | null = null;
+    let locatedId: string | null = null;
+    let locatedScrollTop = 0;
 
     const getRow = (id: string) =>
       scroller.querySelector<HTMLElement>(
@@ -39,8 +41,10 @@ export function useStickyFolder(
         if (row) {
           scroller.scrollTop = Math.max(
             0,
-            position(row) - (collapse ? STICKY_FOLDER_HEIGHT : 0)
+            position(row) - STICKY_FOLDER_HEIGHT
           );
+          locatedId = collapse ? null : id;
+          locatedScrollTop = scroller.scrollTop;
           row.querySelector<HTMLButtonElement>('button')?.focus({
             preventScroll: true,
           });
@@ -49,10 +53,6 @@ export function useStickyFolder(
         dirty = true;
       }
       if (dirty) {
-        scroller.parentElement?.style.setProperty(
-          '--sidebar-scrollbar-width',
-          `${scroller.offsetWidth - scroller.clientWidth}px`
-        );
         const state = useSidebarStore.getState();
         bounds = [];
         scroller
@@ -73,6 +73,11 @@ export function useStickyFolder(
           });
         dirty = false;
       }
+      if (locatedId && Math.abs(scroller.scrollTop - locatedScrollTop) < 0.5) {
+        setStickyId(null);
+        return;
+      }
+      locatedId = null;
       setStickyId(findStickyFolder(bounds, scroller.scrollTop));
     };
     const schedule = () => {

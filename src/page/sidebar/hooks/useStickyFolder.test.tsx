@@ -160,7 +160,8 @@ it('locates the original title without collapsing or activating it', () => {
   scroll(500);
   act(() => (host.querySelector('[data-locate]') as HTMLButtonElement).click());
   flush();
-  expect(scroller.scrollTop).toBe(400);
+  expect(scroller.scrollTop).toBe(366);
+  expect(host.querySelector('[data-collapse]')).toBeNull();
   expect(useSidebarStore.getState().ui['4'].expanded).toBe(true);
   expect(useSidebarStore.getState().activeId).toBeNull();
 });

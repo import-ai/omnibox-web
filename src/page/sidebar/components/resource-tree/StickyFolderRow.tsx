@@ -31,7 +31,6 @@ export default function StickyFolderRow({
       className="pointer-events-none absolute inset-x-0 top-0 z-20 box-border flex items-center gap-1 border-b border-sidebar-border bg-sidebar px-3 text-sm text-sidebar-foreground shadow-sm"
       style={{
         height: STICKY_FOLDER_HEIGHT,
-        right: 'max(6px, var(--sidebar-scrollbar-width, 0px))',
       }}
       onWheel={event => {
         if (event.ctrlKey || !scrollRef.current) return;
