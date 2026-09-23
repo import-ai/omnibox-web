@@ -28,7 +28,7 @@ export default function StickyFolderRow({
   return (
     <div
       data-sticky-folder-id={node.id}
-      className="pointer-events-none absolute inset-x-0 top-0 z-20 box-border flex items-center gap-1 border-b border-sidebar-border bg-sidebar px-3 text-sm text-sidebar-foreground shadow-sm"
+      className="pointer-events-auto absolute inset-x-0 top-0 z-20 box-border flex items-center gap-1 border-b border-sidebar-border bg-sidebar px-3 text-sm text-sidebar-foreground shadow-sm"
       style={{
         height: STICKY_FOLDER_HEIGHT,
       }}
