@@ -240,7 +240,7 @@ export default function VerifyOtpPage() {
             {t('verify_otp.didnt_receive')}{' '}
             <button
               onClick={handleResend}
-              disabled={!canResend || isResending}
+              disabled={!canResend || isResending || captcha.running}
               className="text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isResending

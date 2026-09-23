@@ -52,6 +52,9 @@ export interface CaptchaController {
   enabled: boolean;
   // The SDK is initialised and bound to this instance's mount.
   ready: boolean;
+  // A `run()` is in flight: setup is awaited, the dialog is open, or the send
+  // handler is running. Call sites keep their submit control disabled on it.
+  running: boolean;
   error?: CaptchaErrorKind;
   // Id of the React-owned wrapper rendered by <CaptchaMount />.
   mountId: string;
@@ -70,6 +73,12 @@ const DEFAULT_SLIDE_STYLE = { width: 360, height: 40 };
 const REINIT_DELAY_MS = 300;
 // Debounce popup removal: the SDK may drop and re-append nodes on refresh.
 const CANCEL_CHECK_DELAY_MS = 250;
+// The trigger button only exists once React has committed `status='ready'` and
+// run the init effect, which can be well after setup resolves (the SDK is
+// still downloading when the user clicks Send). Wait for it instead of
+// deciding, in that same microtask turn, that it will never arrive.
+const BUTTON_WAIT_TIMEOUT_MS = 2000;
+const BUTTON_POLL_INTERVAL_MS = 50;
 const CANCELLED_RESULT: CaptchaRunResult = {
   captchaResult: false,
   bizResult: false,
@@ -111,6 +120,27 @@ function createHiddenButton(id: string): HTMLButtonElement {
   return button;
 }
 
+/** Resolve once the element exists, or with null when the budget runs out. */
+function waitForElement(
+  id: string,
+  timeoutMs: number
+): Promise<HTMLElement | null> {
+  const existing = document.getElementById(id);
+  if (existing) {
+    return Promise.resolve(existing);
+  }
+  return new Promise(resolve => {
+    const deadline = Date.now() + timeoutMs;
+    const timer = window.setInterval(() => {
+      const element = document.getElementById(id);
+      if (element || Date.now() >= deadline) {
+        window.clearInterval(timer);
+        resolve(element);
+      }
+    }, BUTTON_POLL_INTERVAL_MS);
+  });
+}
+
 export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
   const { scene, mode, slideStyle, onVerify: embedVerify } = options;
   const slideWidth = slideStyle?.width ?? DEFAULT_SLIDE_STYLE.width;
@@ -131,19 +161,29 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
   const [status, setStatus] = useState<CaptchaStatus>('loading');
   const [error, setError] = useState<CaptchaErrorKind | undefined>();
   const [configEnabled, setConfigEnabled] = useState(false);
+  const [running, setRunningState] = useState(false);
   // Bumped after every finished verification: one SDK lifecycle per round.
   const [round, setRound] = useState(0);
 
   const mountedRef = useRef(true);
   const statusRef = useRef<CaptchaStatus>('loading');
   const setupRef = useRef<Promise<void>>(Promise.resolve());
+  const retryRef = useRef<Promise<void> | null>(null);
   const sceneIdRef = useRef('');
   const instanceRef = useRef<AliyunCaptchaInstance | null>(null);
   const pendingRef = useRef<PendingRun | null>(null);
+  const runningRef = useRef(false);
   const observerRef = useRef<MutationObserver | null>(null);
   const cancelTimerRef = useRef<number | null>(null);
   const embedVerifyRef = useRef(embedVerify);
   embedVerifyRef.current = embedVerify;
+
+  const markRunning = useCallback((next: boolean) => {
+    runningRef.current = next;
+    if (mountedRef.current) {
+      setRunningState(next);
+    }
+  }, []);
 
   const stopObserver = useCallback(() => {
     observerRef.current?.disconnect();
@@ -196,9 +236,10 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
     observerRef.current = observer;
   }, [cancelPending, stopObserver]);
 
-  // Load config + SDK once per mount.
-  useEffect(() => {
-    mountedRef.current = true;
+  // Load config + SDK. Also used by `run()` to retry after a failure: both
+  // `loadCaptchaConfig` and `ensureAliyunCaptchaScript` drop their memo when
+  // they fail, so a later attempt really does redo the work.
+  const startSetup = useCallback(() => {
     const update = (next: CaptchaStatus, kind?: CaptchaErrorKind) => {
       statusRef.current = next;
       if (mountedRef.current) {
@@ -206,7 +247,7 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
         setError(kind);
       }
     };
-    setupRef.current = (async () => {
+    const setup = (async () => {
       let config;
       try {
         config = await loadCaptchaConfig();
@@ -231,13 +272,21 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
       }
       update('ready');
     })();
+    setupRef.current = setup;
+    return setup;
+  }, [scene]);
+
+  // Kick the setup off once per mount.
+  useEffect(() => {
+    mountedRef.current = true;
+    void startSetup();
     return () => {
       mountedRef.current = false;
       stopObserver();
       pendingRef.current?.resolve(CANCELLED_RESULT);
       pendingRef.current = null;
     };
-  }, [scene, stopObserver]);
+  }, [startSetup, stopObserver]);
 
   // (Re)initialise the SDK for the current round with fresh DOM nodes.
   useEffect(() => {
@@ -308,7 +357,18 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
 
     return () => {
       instanceRef.current = null;
+      // This teardown destroys the element and trigger this round's SDK
+      // instance is bound to, so a run still waiting on it can never complete:
+      // settle it as cancelled rather than leaving the caller's
+      // `await run()` hanging forever (a mid-popup `language` change or a
+      // stale `finishRound()` timer both land here). React runs this cleanup
+      // before the next round's effect body, so the run registered by the
+      // round being set up is never the one resolved here.
+      const pending = pendingRef.current;
+      pendingRef.current = null;
+      stopObserver();
       mount.innerHTML = '';
+      pending?.resolve(CANCELLED_RESULT);
     };
   }, [
     finishRound,
@@ -325,25 +385,51 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
 
   const run = useCallback(
     async (onVerify: CaptchaVerifyHandler): Promise<CaptchaRunResult> => {
-      await setupRef.current;
-      const button =
-        statusRef.current === 'ready' && mode === 'popup'
-          ? document.getElementById(ids.buttonId)
-          : null;
-      if (!button) {
-        // Disabled, failed to load, or embed mode: send without a param.
-        return onVerify(undefined);
+      // Re-entrancy: while a run is in flight the SDK dialog is open (or about
+      // to be), and clicking the trigger again would stack a second dialog and
+      // could send twice. The extra call is resolved as cancelled rather than
+      // handed the first run's promise, so its own `onVerify` never reports the
+      // other attempt's outcome.
+      if (runningRef.current) {
+        return CANCELLED_RESULT;
       }
-      // A previous run whose popup was dismissed without detection is
-      // superseded by this one.
-      pendingRef.current?.resolve(CANCELLED_RESULT);
-      return new Promise<CaptchaRunResult>(resolve => {
-        pendingRef.current = { onVerify, resolve };
-        startObserver();
-        button.click();
-      });
+      markRunning(true);
+      try {
+        await setupRef.current;
+        if (statusRef.current === 'error') {
+          // A failed config request or CDN load is often transient; retry once
+          // per run instead of sending without a param for the life of the
+          // component. Concurrent callers share the one attempt.
+          if (!retryRef.current) {
+            retryRef.current = startSetup().finally(() => {
+              retryRef.current = null;
+            });
+          }
+          await retryRef.current;
+        }
+        const button =
+          statusRef.current === 'ready' && mode === 'popup'
+            ? await waitForElement(ids.buttonId, BUTTON_WAIT_TIMEOUT_MS)
+            : null;
+        if (!button) {
+          // Disabled, failed to load, embed mode, or the trigger never showed
+          // up: send without a param (the server still enforces it).
+          return await onVerify(undefined);
+        }
+        // Defensive: never orphan a pending promise, it would hang its caller.
+        pendingRef.current?.resolve(CANCELLED_RESULT);
+        return await new Promise<CaptchaRunResult>(resolve => {
+          pendingRef.current = { onVerify, resolve };
+          startObserver();
+          // A re-init between the wait and the click replaces the node, so
+          // look it up again to be sure the live trigger is the one clicked.
+          (document.getElementById(ids.buttonId) ?? button).click();
+        });
+      } finally {
+        markRunning(false);
+      }
     },
-    [ids.buttonId, mode, startObserver]
+    [ids.buttonId, markRunning, mode, startObserver, startSetup]
   );
 
   return {
@@ -351,6 +437,7 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
     mode,
     enabled: configEnabled,
     ready: status === 'ready',
+    running,
     error,
     mountId: ids.mountId,
     elementId: ids.elementId,

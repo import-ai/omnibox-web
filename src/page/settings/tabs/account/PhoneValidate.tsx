@@ -124,7 +124,8 @@ function VerificationCodeStep({
 }: {
   phone: string;
   onVerify: (code: string) => void;
-  onResend: () => void;
+  // Resolves true when a code was actually sent (the captcha was not dismissed).
+  onResend: () => Promise<boolean>;
   submitting: boolean;
   error: string;
   onClearError: () => void;
@@ -167,7 +168,7 @@ function VerificationCodeStep({
             {canResend ? (
               <span
                 className="cursor-pointer text-foreground hover:underline"
-                onClick={() => handleResend(onResend)}
+                onClick={() => void handleResend(onResend)}
               >
                 {' '}
                 {t('phone.resend')}
@@ -217,7 +218,7 @@ export default function PhoneValidate(props: IProps) {
   };
 
   const handleResendCode = async () => {
-    await captcha.run(async captchaVerifyParam => {
+    const result = await captcha.run(async captchaVerifyParam => {
       try {
         await http.post(
           '/user/phone/send-code',
@@ -231,6 +232,7 @@ export default function PhoneValidate(props: IProps) {
         return captchaResultFromError(err);
       }
     });
+    return result.bizResult === true;
   };
 
   const handleVerify = async (code: string) => {
@@ -257,7 +259,7 @@ export default function PhoneValidate(props: IProps) {
         <PhoneInputStep
           currentPhone={currentPhone}
           onSendCode={handleSendCode}
-          submitting={submitting}
+          submitting={submitting || captcha.running}
         />
       ) : (
         <VerificationCodeStep

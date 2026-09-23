@@ -136,7 +136,8 @@ function VerificationCodeStep({
 }: {
   email: string;
   onVerify: (code: string) => void;
-  onResend: () => void;
+  // Resolves true when a code was actually sent (the captcha was not dismissed).
+  onResend: () => Promise<boolean>;
   submitting: boolean;
   error: string;
   onClearError: () => void;
@@ -180,7 +181,7 @@ function VerificationCodeStep({
             {canResend ? (
               <span
                 className="cursor-pointer text-foreground hover:underline"
-                onClick={() => handleResend(onResend)}
+                onClick={() => void handleResend(onResend)}
               >
                 {' '}
                 {t('email.resend')}
@@ -231,7 +232,7 @@ export default function EmailValidate(props: IProps) {
   };
 
   const handleResendCode = async () => {
-    await captcha.run(async captchaVerifyParam => {
+    const result = await captcha.run(async captchaVerifyParam => {
       try {
         await http.post(
           '/user/email/validate',
@@ -245,6 +246,7 @@ export default function EmailValidate(props: IProps) {
         return captchaResultFromError(err);
       }
     });
+    return result.bizResult === true;
   };
 
   const handleVerify = async (code: string) => {
@@ -269,7 +271,7 @@ export default function EmailValidate(props: IProps) {
         <EmailInputStep
           currentEmail={user?.email || ''}
           onSendCode={handleSendCode}
-          submitting={submitting}
+          submitting={submitting || captcha.running}
         />
       ) : (
         <VerificationCodeStep

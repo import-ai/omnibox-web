@@ -465,6 +465,7 @@ export function LoginForm({
               variant="default"
               className="w-full disabled:opacity-60"
               loading={isLoading}
+              disabled={isLoading || captcha.running}
             >
               {t('login.continue')}
             </Button>
@@ -572,6 +573,7 @@ export function LoginForm({
               variant="default"
               className="w-full disabled:opacity-60"
               loading={isLoading}
+              disabled={isLoading || captcha.running}
             >
               {t('login.continue')}
             </Button>

@@ -218,6 +218,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
               type="submit"
               className="w-full disabled:opacity-60"
               loading={isLoading}
+              disabled={isLoading || captcha.running}
             >
               {t('register.submit')}
             </Button>
@@ -270,6 +271,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
               type="submit"
               className="w-full disabled:opacity-60"
               loading={isLoading}
+              disabled={isLoading || captcha.running}
             >
               {t('register.submit')}
             </Button>
