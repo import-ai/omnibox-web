@@ -3,12 +3,11 @@ import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import CopilotSpeechBubbleIcon from '@/assets/icons/CopilotSpeechBubbleIcon';
-import SpeechBubbleIcon from '@/assets/icons/SpeechBubbleIcon';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
 import HomeMascot from './HomeMascot';
+import SpeechBubbleShape from './SpeechBubbleShape';
 
 export interface RecommendedQuestionItem {
   id: string;
@@ -113,13 +112,13 @@ export default function RecommendedQuestions({
     }
   };
 
-  const BubbleIcon = compact ? CopilotSpeechBubbleIcon : SpeechBubbleIcon;
-
   return (
     <div
       className={cn(
-        'flex items-end overflow-hidden pt-8',
-        compact ? 'min-h-0 gap-2 pl-4 sm:pl-8' : 'min-h-44 gap-2 pl-4 sm:pl-14',
+        'flex items-end pt-8',
+        compact
+          ? 'min-h-0 gap-2 overflow-hidden pl-4 sm:pl-8'
+          : 'min-h-44 gap-8 pl-4 sm:pl-[50px]',
         className
       )}
     >
@@ -130,26 +129,26 @@ export default function RecommendedQuestions({
         aria-label={t('chat.home.nextRecommendedQuestion')}
         className={cn(
           'shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default',
-          compact ? 'ml-2 -mb-4' : '-mb-7'
+          compact ? 'ml-2 -mb-4' : '-mb-[26px]'
         )}
       >
         <HomeMascot blinkSignal={blinkSignal} compact={compact} />
       </button>
-      <div className="min-w-0 flex-1 ml-4">
+      <div className={cn('min-w-0 flex-1', compact && 'ml-4')}>
         <button
           type="button"
           onClick={handleSelect}
           disabled={!question || transitionPhase !== 'idle'}
           className={cn(
-            'group relative mb-4 flex min-h-18 w-fit min-w-recommended-question max-w-recommended-question items-center rounded-full text-left text-sm font-normal leading-recommended-question text-muted-foreground transition-opacity duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            compact ? 'pl-7 pr-5 py-3' : 'pl-8 pr-4 py-4',
+            'group relative mb-4 flex min-h-12 w-fit min-w-recommended-question max-w-recommended-question items-center rounded-full text-left text-sm font-normal leading-recommended-question text-muted-foreground transition-opacity duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            compact ? 'pl-7 pr-5 py-3' : 'pl-8 pr-4 py-3',
             transitionPhase === 'fadingOut' && 'opacity-0'
           )}
         >
-          <BubbleIcon className="absolute inset-0 h-full w-full fill-chat-composer stroke-border dark:fill-chat-composer-dark dark:stroke-none" />
+          <SpeechBubbleShape compact={compact} />
           <span
             className={cn(
-              'relative line-clamp-3 break-all transition-opacity duration-150 motion-reduce:transition-none',
+              'relative z-[1] line-clamp-3 break-all transition-opacity duration-150 motion-reduce:transition-none',
               !question && 'opacity-60',
               transitionPhase === 'idle' && question && 'group-hover:opacity-80'
             )}

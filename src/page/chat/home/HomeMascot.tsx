@@ -33,7 +33,7 @@ export default function HomeMascot({
 
   return (
     <CatHeadIcon
-      className={compact ? 'h-[77px] w-[73px]' : undefined}
+      className={compact ? 'h-[77px] w-[73px]' : 'h-[98px] w-[92px]'}
       eyesKey={blinkSignal}
       eyesClassName={
         blinking
