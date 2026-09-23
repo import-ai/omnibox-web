@@ -115,6 +115,19 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
         return;
       }
 
+      // The move picker loads its own tree; its destination may not be in
+      // the sidebar cache until the destination path has been loaded.
+      const namespaceId = get().namespaceId;
+      if (!localOnly && !get().nodes[dropId]) {
+        await get().expandPathTo(dropId);
+        if (get().namespaceId !== namespaceId) {
+          throw new Error('Workspace changed while loading move destination');
+        }
+        if (!get().nodes[dropId]) {
+          throw new Error('Move destination could not be loaded');
+        }
+      }
+
       const drag = get().nodes[dragId];
       const drop = get().nodes[dropId];
       if (!drag || !drop) return;
