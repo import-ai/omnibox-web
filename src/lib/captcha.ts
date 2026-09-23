@@ -44,6 +44,9 @@ export interface CaptchaVerifyResult {
   captchaResult: boolean;
   // Outcome of the business request the captcha param was attached to.
   bizResult?: boolean;
+  // Server-side explanation of a rejection, surfaced once the hook stops
+  // retrying. Never handed back to the SDK, which only reads the two flags.
+  message?: string;
 }
 
 export interface AliyunCaptchaInstance {
@@ -170,14 +173,39 @@ export function withCaptchaParam<T extends object>(
 }
 
 /**
- * Translate a failed send request into the SDK result: a 403 means the
- * backend rejected the captcha, so the SDK should refresh the challenge;
+ * Translate a failed send request into the SDK result: a captcha rejection
+ * (the backend answers 403) means the SDK should refresh the challenge;
  * anything else is a business failure with a valid captcha.
+ *
+ * The 403 is ambiguous: the backend's captcha guard returns the same
+ * `403 captcha.errors.failed` for a challenge Aliyun rejected
+ * and for its fail-closed `CREDENTIAL_ERROR` path (rotated AccessKey, missing
+ * RAM policy), so a broken deployment cannot be told from a bad slide here.
+ * `useCaptcha` therefore bounds how many consecutive rejections it refreshes
+ * on. The one discriminator available without a backend change: an omnibox
+ * application error carries a `code` in its body while the captcha guard's
+ * bare `ForbiddenException` does not, so a coded 403 (an unrelated
+ * `ForbiddenException` raised by the endpoint itself) is treated as a business
+ * failure and never refreshes the challenge.
  */
 export function captchaResultFromError(error: unknown): CaptchaVerifyResult {
-  const status = (error as { response?: { status?: number } } | undefined)
-    ?.response?.status;
-  return status === 403
-    ? { captchaResult: false, bizResult: false }
-    : { captchaResult: true, bizResult: false };
+  const response = (
+    error as
+      | {
+          response?: {
+            data?: { code?: unknown; message?: unknown };
+            status?: number;
+          };
+        }
+      | undefined
+  )?.response;
+  const message =
+    typeof response?.data?.message === 'string' && response.data.message
+      ? response.data.message
+      : undefined;
+  const hasErrorCode =
+    typeof response?.data?.code === 'string' && response.data.code.length > 0;
+  return response?.status === 403 && !hasErrorCode
+    ? { captchaResult: false, bizResult: false, message }
+    : { captchaResult: true, bizResult: false, message };
 }

@@ -419,6 +419,7 @@
     "verifying_description": "请稍候..."
   },
   "captcha": {
+    "failed": "验证未通过，请稍后重试。",
     "loading": "正在加载验证...",
     "unavailable": "验证服务暂时不可用，请稍后重试。"
   },

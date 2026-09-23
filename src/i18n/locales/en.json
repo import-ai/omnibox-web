@@ -418,6 +418,7 @@
     "verifying_description": "Please wait..."
   },
   "captcha": {
+    "failed": "Verification failed, please try again later.",
     "loading": "Loading verification...",
     "unavailable": "Verification is temporarily unavailable. Please try again later."
   },

@@ -3,6 +3,7 @@
 import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
+import { toast } from 'sonner';
 
 import {
   type AliyunCaptchaInitOptions,
@@ -21,7 +22,11 @@ jest.mock('@/lib/captcha', () => ({
 }));
 
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ i18n: { language: 'en' } }),
+  useTranslation: () => ({ i18n: { language: 'en' }, t: (key: string) => key }),
+}));
+
+jest.mock('sonner', () => ({
+  toast: { error: jest.fn(), success: jest.fn() },
 }));
 
 (
@@ -80,6 +85,27 @@ describe('useCaptcha run()', () => {
     delete window.initAliyunCaptcha;
     jest.useRealTimers();
   });
+
+  /**
+   * Append an SDK node the way the real popup mode does: on <body>, with a
+   * controllable visibility (the SDK hides rather than removes its nodes).
+   */
+  function appendCaptchaNode(visible: boolean) {
+    const node = document.createElement('div');
+    node.id = 'aliyunCaptcha-window-popup';
+    const state = { visible };
+    Object.defineProperty(node, 'getClientRects', {
+      value: () => (state.visible ? [{}] : []),
+    });
+    document.body.appendChild(node);
+    return {
+      node,
+      show: () => {
+        state.visible = true;
+        node.setAttribute('style', 'display: block');
+      },
+    };
+  }
 
   async function mountReady() {
     await act(async () => root.render(<Probe />));
@@ -246,5 +272,147 @@ describe('useCaptcha run()', () => {
     expect(onVerify).toHaveBeenCalledWith(undefined);
     expect(result).toEqual({ captchaResult: true, bizResult: true });
     expect(current.running).toBe(false);
+  });
+
+  it('keeps waiting for a challenge that paints after the watchdog window', async () => {
+    await mountReady();
+
+    const onVerify = jest
+      .fn()
+      .mockResolvedValue({ captchaResult: true, bizResult: true });
+    let result: Awaited<ReturnType<CaptchaController['run']>> | null = null;
+    await act(async () => {
+      void current.run(onVerify).then(value => {
+        result = value;
+      });
+    });
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(100);
+    });
+    expect(clicks).toBe(1);
+
+    // Slow connection: the SDK attaches its challenge but has not painted it.
+    const popup = appendCaptchaNode(false);
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(4000);
+    });
+    // That is a sign of life: no second click, and the run stays alive.
+    expect(clicks).toBe(1);
+    expect(result).toBeNull();
+    expect(current.running).toBe(true);
+
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(8000);
+    });
+    expect(clicks).toBe(1);
+    expect(result).toBeNull();
+
+    // The challenge finally paints and the user solves it.
+    popup.show();
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(300);
+    });
+    await act(async () => {
+      await initOptions!.captchaVerifyCallback('param');
+    });
+    expect(onVerify).toHaveBeenCalledWith('param');
+    expect(result).toEqual({ captchaResult: true, bizResult: true });
+    popup.node.remove();
+  });
+
+  it('still sends when a solve arrives after the run was abandoned', async () => {
+    await mountReady();
+
+    const onVerify = jest
+      .fn()
+      .mockResolvedValue({ captchaResult: true, bizResult: true });
+    let result: Awaited<ReturnType<CaptchaController['run']>> | null = null;
+    await act(async () => {
+      void current.run(onVerify).then(value => {
+        result = value;
+      });
+    });
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(100);
+    });
+    const popup = appendCaptchaNode(false);
+
+    // A challenge that never paints is abandoned at the stall deadline, with a
+    // message, so the form cannot deadlock.
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(35000);
+    });
+    expect(result).toEqual({
+      captchaResult: false,
+      bizResult: false,
+      cancelled: true,
+    });
+    expect(current.running).toBe(false);
+    expect(toast.error).toHaveBeenCalledWith(
+      'captcha.unavailable',
+      expect.anything()
+    );
+
+    // The popup shows up late and the user solves it: the send must still run
+    // instead of the SDK being told "all good" while nothing happens.
+    popup.show();
+    let sdkResult: unknown = null;
+    await act(async () => {
+      sdkResult = await initOptions!.captchaVerifyCallback('late-param');
+    });
+    expect(onVerify).toHaveBeenCalledWith('late-param');
+    expect(sdkResult).toEqual({ captchaResult: true, bizResult: true });
+    popup.node.remove();
+  });
+
+  it('stops refreshing after repeated rejections and reports the reason', async () => {
+    await mountReady();
+
+    const onVerify = jest.fn().mockResolvedValue({
+      captchaResult: false,
+      bizResult: false,
+      message: 'Captcha verification failed, please try again',
+    });
+    let result: Awaited<ReturnType<CaptchaController['run']>> | null = null;
+    await act(async () => {
+      void current.run(onVerify).then(value => {
+        result = value;
+      });
+    });
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(100);
+    });
+
+    // The first two rejections refresh the challenge and keep the run alive.
+    for (const attempt of [1, 2]) {
+      let sdkResult: unknown = null;
+      await act(async () => {
+        sdkResult = await initOptions!.captchaVerifyCallback(
+          `param-${attempt}`
+        );
+      });
+      expect(sdkResult).toEqual({ captchaResult: false, bizResult: false });
+      expect(result).toBeNull();
+      expect(current.running).toBe(true);
+    }
+
+    // The third tells the SDK to close instead of looping forever, settles the
+    // run and surfaces the server's message.
+    let sdkResult: unknown = null;
+    await act(async () => {
+      sdkResult = await initOptions!.captchaVerifyCallback('param-3');
+    });
+    expect(sdkResult).toEqual({ captchaResult: true, bizResult: false });
+    expect(onVerify).toHaveBeenCalledTimes(3);
+    expect(result).toEqual({
+      captchaResult: false,
+      bizResult: false,
+      message: 'Captcha verification failed, please try again',
+    });
+    expect(current.running).toBe(false);
+    expect(toast.error).toHaveBeenCalledWith(
+      'Captcha verification failed, please try again',
+      expect.anything()
+    );
   });
 });

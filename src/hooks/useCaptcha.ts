@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import {
   ALIYUN_CAPTCHA_NODE_SELECTOR,
@@ -67,6 +68,19 @@ export interface CaptchaController {
 interface PendingRun {
   onVerify: CaptchaVerifyHandler;
   resolve: (result: CaptchaRunResult) => void;
+  // Consecutive `captchaResult: false` rounds this run has refreshed on.
+  failures: number;
+}
+
+/**
+ * A run nothing is waiting on any more, kept reachable so a challenge that
+ * paints (or reports a solve) after the watchdog gave up still performs the
+ * send instead of being answered with a bare success the user never sees.
+ */
+interface LateRun {
+  onVerify: CaptchaVerifyHandler;
+  failures: number;
+  expiresAt: number;
 }
 
 const DEFAULT_SLIDE_STYLE = { width: 360, height: 40 };
@@ -90,9 +104,27 @@ const BUTTON_WAIT_TIMEOUT_MS = 2000;
 const INSTANCE_WAIT_TIMEOUT_MS = 5000;
 // The SDK answers a trigger click either by opening its popup or - for
 // low-risk traffic - by verifying silently and calling
-// `captchaVerifyCallback`. If neither happened within this window the click
-// was swallowed: retry once, then settle the run so nothing hangs.
+// `captchaVerifyCallback`. If neither happened, AND the SDK showed no sign of
+// life at all, within this window the click was swallowed: retry once, then
+// settle the run so nothing hangs.
 const CLICK_WATCHDOG_MS = 3500;
+// A challenge that is being built (the SDK mutated its nodes) but has not
+// painted yet must not be re-clicked or cancelled - on a slow connection that
+// dropped a captcha the user was about to solve. Keep waiting for it, but not
+// forever: this is the outer bound, measured from the trigger click, after
+// which the run is settled so the caller's form can never deadlock.
+const CHALLENGE_STALL_TIMEOUT_MS = 30000;
+// A challenge can still be solved after we stopped waiting for it (a very slow
+// popup that paints post-watchdog). For this long after giving up, a late
+// `captchaVerifyCallback` still runs the abandoned send handler instead of
+// silently telling the SDK "all good" and doing nothing.
+const LATE_VERIFY_WINDOW_MS = 120000;
+// How many consecutive `captchaResult: false` rounds one run refreshes on
+// before giving up. The backend answers 403 both for a rejected challenge and
+// for its fail-closed credential error (see `captchaResultFromError`), so an
+// unbounded refresh loop would trap the user behind an unsolvable slider
+// whenever the server-side captcha credentials are broken.
+const MAX_CONSECUTIVE_CAPTCHA_FAILURES = 3;
 const POLL_INTERVAL_MS = 50;
 // How often the open popup is re-checked while a run waits on it.
 const POPUP_POLL_INTERVAL_MS = 250;
@@ -117,6 +149,26 @@ function isCaptchaPopupNode(node: Node): boolean {
 function hasCaptchaPopup(): boolean {
   return Array.from(document.body.children).some(
     node => isCaptchaPopupNode(node) && node.getClientRects().length > 0
+  );
+}
+
+/** True when a mutation record's target sits inside an SDK node. */
+function isInsideCaptchaNode(node: Node | null): boolean {
+  const element =
+    node instanceof Element ? node : (node?.parentElement ?? null);
+  return element?.closest(ALIYUN_CAPTCHA_NODE_SELECTOR) != null;
+}
+
+/**
+ * The SDK nodes currently attached to <body>, visible or not. Their presence
+ * alone is not a sign of life - the SDK leaves `#aliyunCaptcha-window-popup`
+ * and `#aliyunCaptcha-mask` there with `display: none` after a challenge is
+ * closed, so they are still around on the next run before anything happens -
+ * which is why they are watched for mutations rather than merely counted.
+ */
+function captchaNodes(): HTMLElement[] {
+  return Array.from(document.body.children).filter(
+    (node): node is HTMLElement => isCaptchaPopupNode(node)
   );
 }
 
@@ -172,7 +224,7 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
   const { scene, mode, slideStyle, onVerify: embedVerify } = options;
   const slideWidth = slideStyle?.width ?? DEFAULT_SLIDE_STYLE.width;
   const slideHeight = slideStyle?.height ?? DEFAULT_SLIDE_STYLE.height;
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const language = toCaptchaLanguage(i18n.language);
 
   const reactId = useId();
@@ -208,6 +260,10 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
   const popupPollRef = useRef<number | null>(null);
   // Only a popup that was actually shown can be "gone".
   const popupSeenRef = useRef(false);
+  // Set by the observer/poll as soon as the SDK touches its own nodes: the
+  // challenge is being built even if nothing is on screen yet.
+  const sdkActivityRef = useRef(false);
+  const lateRunRef = useRef<LateRun | null>(null);
   const embedVerifyRef = useRef(embedVerify);
   embedVerifyRef.current = embedVerify;
 
@@ -216,6 +272,26 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
     if (mountedRef.current) {
       setRunningState(next);
     }
+  }, []);
+
+  // The user must never be left with a dead form and no explanation: every
+  // path that abandons a challenge says so.
+  const notifyUnavailable = useCallback(() => {
+    toast.error(t('captcha.unavailable'), { position: 'bottom-right' });
+  }, [t]);
+
+  const notifyRejected = useCallback(
+    (message?: string) => {
+      toast.error(message || t('captcha.failed'), { position: 'bottom-right' });
+    },
+    [t]
+  );
+
+  /** Consume the abandoned run a late `captchaVerifyCallback` belongs to. */
+  const takeLateRun = useCallback((): LateRun | null => {
+    const late = lateRunRef.current;
+    lateRunRef.current = null;
+    return late && late.expiresAt > Date.now() ? late : null;
   }, []);
 
   const stopObserver = useCallback(() => {
@@ -273,15 +349,37 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
   const startObserver = useCallback(() => {
     stopObserver();
     popupSeenRef.current = false;
+    sdkActivityRef.current = false;
     const observer = new MutationObserver(records => {
-      const removedPopup = records.some(record =>
-        Array.from(record.removedNodes).some(isCaptchaPopupNode)
-      );
+      let removedPopup = false;
+      for (const record of records) {
+        if (
+          Array.from(record.addedNodes).some(isCaptchaPopupNode) ||
+          isInsideCaptchaNode(record.target)
+        ) {
+          // The SDK appended, re-showed or re-filled its challenge: a sign of
+          // life the click watchdog must respect even before anything paints.
+          sdkActivityRef.current = true;
+        }
+        if (Array.from(record.removedNodes).some(isCaptchaPopupNode)) {
+          removedPopup = true;
+        }
+      }
       if (removedPopup) {
         scheduleCancelCheck();
       }
     });
     observer.observe(document.body, { childList: true });
+    // Closing a challenge only hides its nodes, so the next round re-uses them:
+    // watch the ones already there for the style flip and iframe swap that
+    // precede a paint, otherwise a slow re-show looks like a swallowed click.
+    for (const node of captchaNodes()) {
+      observer.observe(node, {
+        attributes: true,
+        childList: true,
+        subtree: true,
+      });
+    }
     observerRef.current = observer;
     popupPollRef.current = window.setInterval(() => {
       if (!pendingRef.current) {
@@ -289,6 +387,7 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
       }
       if (hasCaptchaPopup()) {
         popupSeenRef.current = true;
+        sdkActivityRef.current = true;
       } else if (popupSeenRef.current) {
         scheduleCancelCheck();
       }
@@ -344,6 +443,7 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
       stopObserver();
       pendingRef.current?.resolve(CANCELLED_RESULT);
       pendingRef.current = null;
+      lateRunRef.current = null;
     };
   }, [startSetup, stopObserver]);
 
@@ -372,7 +472,12 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
       const pending = pendingRef.current;
       pendingRef.current = null;
       stopObserver();
-      const handler = pending?.onVerify ?? embedVerifyRef.current;
+      // Nothing is waiting: the watchdog gave up on a challenge that painted
+      // late and the user solved it anyway. Run that abandoned handler instead
+      // of reporting success to the SDK and dropping the send on the floor.
+      const late = pending ? null : takeLateRun();
+      const owner = pending ?? late;
+      const handler = owner?.onVerify ?? embedVerifyRef.current;
       let result: CaptchaVerifyResult;
       try {
         result = handler
@@ -381,17 +486,39 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
       } catch {
         result = { captchaResult: true, bizResult: false };
       }
+      // The SDK only reads the two flags; `message` is ours.
+      const forSdk = (value: CaptchaVerifyResult): CaptchaVerifyResult => ({
+        captchaResult: value.captchaResult,
+        bizResult: value.bizResult,
+      });
       if (!result.captchaResult) {
-        // The SDK refreshes the challenge; keep waiting for the retry.
-        if (pending) {
-          pendingRef.current = pending;
-          startObserver();
+        const failures = (owner?.failures ?? 0) + 1;
+        if (owner) {
+          owner.failures = failures;
         }
-        return result;
+        if (failures < MAX_CONSECUTIVE_CAPTCHA_FAILURES) {
+          // The SDK refreshes the challenge; keep waiting for the retry.
+          if (pending) {
+            pendingRef.current = pending;
+            startObserver();
+          } else if (late) {
+            lateRunRef.current = late;
+          }
+          return forSdk(result);
+        }
+        // Bounded: the server rejects every attempt (a failed challenge and a
+        // fail-closed credential error are the same 403 here), so stop the
+        // refresh loop, report the reason and settle the run so the caller's
+        // submit control comes back. `captchaResult: true` is what closes the
+        // SDK's challenge; the caller still gets the failure.
+        notifyRejected(result.message);
+        pending?.resolve({ ...result, captchaResult: false, bizResult: false });
+        finishRound();
+        return { captchaResult: true, bizResult: false };
       }
       pending?.resolve(result);
       finishRound();
-      return result;
+      return forSdk(result);
     };
 
     try {
@@ -435,12 +562,14 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
     ids,
     language,
     mode,
+    notifyRejected,
     round,
     slideHeight,
     slideWidth,
     startObserver,
     status,
     stopObserver,
+    takeLateRun,
   ]);
 
   const run = useCallback(
@@ -453,6 +582,9 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
       if (runningRef.current) {
         return CANCELLED_RESULT;
       }
+      // A new attempt supersedes any abandoned one: its solve, if it ever
+      // arrives, must not send a second time behind this run's back.
+      lateRunRef.current = null;
       markRunning(true);
       try {
         await setupRef.current;
@@ -502,13 +634,33 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
             }
             resolve(result);
           };
-          const pending: PendingRun = { onVerify, resolve: settle };
+          const pending: PendingRun = {
+            onVerify,
+            resolve: settle,
+            failures: 0,
+          };
           const clickTrigger = () => {
             // A re-init between the wait and the click replaces the node, so
             // look it up again to be sure the live trigger is the one clicked.
             (document.getElementById(ids.buttonId) ?? button).click();
           };
           const verifyCountAtClick = verifyCountRef.current;
+          const clickedAt = Date.now();
+          // Stop waiting, but keep the handler reachable: the challenge may
+          // still paint and be solved, and answering that solve with nothing
+          // is exactly the silent no-op this watchdog used to cause.
+          const abandon = () => {
+            pendingRef.current = null;
+            stopObserver();
+            lateRunRef.current = {
+              onVerify: pending.onVerify,
+              failures: pending.failures,
+              expiresAt: Date.now() + LATE_VERIFY_WINDOW_MS,
+            };
+            notifyUnavailable();
+            settle(CANCELLED_RESULT);
+            finishRound();
+          };
           const checkClickLanded = (attempt: number) => {
             watchdog = null;
             if (pendingRef.current !== pending) {
@@ -522,6 +674,21 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
               // The SDK reacted: the popup observer owns the run from here.
               return;
             }
+            if (sdkActivityRef.current) {
+              // The SDK is working on a challenge that has not painted yet (a
+              // slow connection). Re-clicking would restart it and cancelling
+              // would throw away the solve the user is about to make, so wait
+              // - but only up to a deadline, so the form cannot deadlock.
+              if (Date.now() - clickedAt < CHALLENGE_STALL_TIMEOUT_MS) {
+                watchdog = window.setTimeout(
+                  () => checkClickLanded(attempt),
+                  CLICK_WATCHDOG_MS
+                );
+                return;
+              }
+              abandon();
+              return;
+            }
             if (attempt === 0) {
               clickTrigger();
               watchdog = window.setTimeout(
@@ -530,13 +697,10 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
               );
               return;
             }
-            // Two clicks, no popup and no callback: give up instead of
-            // leaving `running` stuck true forever. A fresh SDK round is
-            // queued so the next attempt starts from clean nodes.
-            pendingRef.current = null;
-            stopObserver();
-            settle(CANCELLED_RESULT);
-            finishRound();
+            // Two clicks, no popup, no callback and no sign of life at all:
+            // give up instead of leaving `running` stuck true forever. A fresh
+            // SDK round is queued so the next attempt starts from clean nodes.
+            abandon();
           };
           pendingRef.current = pending;
           startObserver();
@@ -555,6 +719,7 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
       ids.buttonId,
       markRunning,
       mode,
+      notifyUnavailable,
       startObserver,
       startSetup,
       stopObserver,
