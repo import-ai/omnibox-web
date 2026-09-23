@@ -4,6 +4,7 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import {
   getSmartFolderSourceResourceId,
   isSmartFolderChildResource,
@@ -75,6 +76,11 @@ jest.mock('@/page/sidebar/store', () => ({
       rename,
     }),
   },
+}));
+
+jest.mock('@/page/resource/resourceNavigation', () => ({
+  ...jest.requireActual('@/page/resource/resourceNavigation'),
+  navigateToResource: jest.fn(),
 }));
 
 jest.mock('@/page/sidebar/utils', () => ({
@@ -186,8 +192,23 @@ describe('useNodeActions', () => {
     expect(openCreateFolderDialog).toHaveBeenCalledWith('folder');
     expect(locateSidebarResource).toHaveBeenCalledTimes(1);
 
+    jest.mocked(navigateToResource).mockClear();
     await act(async () => current.handleMoveFinished(['folder'], 'target'));
     expect(locateSidebarResource).toHaveBeenLastCalledWith('folder');
+    expect(navigateToResource).not.toHaveBeenCalled();
+  });
+
+  it('opens the moved resource when the detail pane shows another resource', async () => {
+    await act(async () => root.render(<Probe />));
+
+    await act(async () => current.handleMoveFinished(['other'], 'target'));
+
+    expect(navigateToResource).toHaveBeenCalledWith(
+      navigate,
+      '/namespace/other',
+      { state: { fromSidebar: true } }
+    );
+    expect(locateSidebarResource).toHaveBeenLastCalledWith('other');
   });
 
   it('does not move or locate a resource when it targets itself', async () => {
