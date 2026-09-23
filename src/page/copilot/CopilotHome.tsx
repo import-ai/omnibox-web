@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import useConfig from '@/hooks/useConfig';
@@ -16,8 +17,10 @@ import {
   withUploadedImageParts,
 } from '@/page/chat/conversation/uploadConversationImages';
 import { ConversationDetail } from '@/page/chat/core/types/conversation';
+import RecommendedQuestions, {
+  RecommendedQuestionItem,
+} from '@/page/chat/home/RecommendedQuestions';
 import useSelectedResources from '@/page/chat/useSelectedResources';
-import { getGreeting } from '@/page/chat/utils';
 
 import { useCopilotStore } from './copilotStore';
 
@@ -32,7 +35,13 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const showConversation = useCopilotStore(state => state.showConversation);
   const draftScope = getChatHomeDraftScope(namespaceId);
+  const [filledRecommendedQuestion, setFilledRecommendedQuestion] = useState<
+    string | undefined
+  >();
 
+  useEffect(() => {
+    setFilledRecommendedQuestion(undefined);
+  }, [namespaceId]);
   const sendMessage = (params: SendMessageParams) => {
     return http
       .post(`/namespaces/${namespaceId}/conversations`)
@@ -55,23 +64,34 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
         showConversation(namespaceId, conversation.id);
       });
   };
+  const handleQuestionSelect = (item: RecommendedQuestionItem) => {
+    setFilledRecommendedQuestion(item.question);
+  };
 
   return (
     <div className="flex min-h-0 flex-1 flex-col px-4 pb-2" data-chat-home>
-      <div className="flex min-h-0 flex-1 flex-col" data-chat-composer>
-        <div className="flex min-h-0 flex-1 items-center justify-center px-1">
-          <h1 className="text-center text-[26px] font-medium leading-9">
-            {t(`chat.home.greeting.${getGreeting()}`)}
-          </h1>
-        </div>
+      <div
+        className="flex min-h-0 flex-1 flex-col justify-end"
+        data-chat-composer
+      >
         <div className="shrink-0">
-          {config.commercial && (
-            <AgentCredits
-              compact
-              namespaceId={namespaceId}
-              agentCredits={agentCredits}
-            />
-          )}
+          <RecommendedQuestions
+            key={namespaceId}
+            compact
+            className="pl-0 pt-4 sm:pl-0"
+            enabled={config.commercial}
+            namespaceId={namespaceId}
+            onSelect={handleQuestionSelect}
+            footer={
+              config.commercial && (
+                <AgentCredits
+                  compact
+                  namespaceId={namespaceId}
+                  agentCredits={agentCredits}
+                />
+              )
+            }
+          />
           <ChatArea
             key={draftScope}
             approvalModeResetKey={draftScope}
@@ -84,6 +104,7 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
             namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}
             selectedResources={selectedResources}
+            fillQuery={filledRecommendedQuestion}
             sendMessage={sendMessage}
             setSelectedResources={setSelectedResources}
           />

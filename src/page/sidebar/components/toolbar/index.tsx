@@ -5,6 +5,7 @@ import {
   MessageSquarePlus,
   Move,
   RotateCw,
+  Search,
   Trash2,
   X,
 } from 'lucide-react';
@@ -35,6 +36,7 @@ interface IProps {
   locateResourceDisabled: boolean;
   onRefreshResources: () => void;
   refreshingResources: boolean;
+  onSearchResources: () => void;
 }
 
 export function Toolbar({
@@ -49,6 +51,7 @@ export function Toolbar({
   locateResourceDisabled,
   onRefreshResources,
   refreshingResources,
+  onSearchResources,
 }: IProps) {
   const { t } = useTranslation();
   const selectedCount = useSelectedCount();
@@ -148,6 +151,11 @@ export function Toolbar({
           </div>
         ) : (
           <div className="flex items-center gap-2">
+            <ToolbarButton
+              icon={Search}
+              onClick={onSearchResources}
+              label={t('search.search_resources')}
+            />
             <ToolbarButton
               icon={Crosshair}
               onClick={onLocateResource}
