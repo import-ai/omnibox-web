@@ -42,7 +42,7 @@ export default function RegisterPage() {
   }, [navigate, params]);
 
   return (
-    <WrapperPage extra={<MetaPage />}>
+    <WrapperPage extra={<MetaPage />} showAppDownload>
       {scan ? (
         <Scan onScan={onScan} />
       ) : (

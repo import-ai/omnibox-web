@@ -253,6 +253,46 @@ describe('Copilot Workspace', () => {
     });
   });
 
+  it('collapses the right sidebar when opening invite referral', async () => {
+    const store = useCopilotStore.getState();
+    store.showConversation('namespace-a', 'conversation-a');
+    store.previewResource('namespace-a', 'Abcd1234Efgh5678');
+    sessionStorage.setItem(
+      'resource-comments-panel',
+      JSON.stringify({ 'namespace-a': true, 'namespace-b': true })
+    );
+    mockUseLocation.mockReturnValue({
+      key: 'resource',
+      pathname: '/namespace-a/Zyxw9876Vuts5432',
+    });
+
+    await act(async () => root.render(<Workspace />));
+    mockCitationResourcePreview.mockClear();
+    mockUseLocation.mockReturnValue({
+      key: 'invite',
+      pathname: '/namespace-a/invite-referral',
+    });
+    await act(async () => root.render(<Workspace />));
+
+    expect(container.querySelector('[data-testid="copilot-panel"]')).toBeNull();
+    expect(container.firstElementChild?.classList.contains('p-2')).toBe(false);
+    expect(container.firstElementChild?.classList.contains('gap-2')).toBe(
+      false
+    );
+    expect(mockCitationResourcePreview).not.toHaveBeenCalled();
+    expect(
+      JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
+    ).toEqual({ 'namespace-b': true });
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+    ).toMatchObject({
+      conversationId: 'conversation-a',
+      open: false,
+      previewResourceId: null,
+      view: 'conversation',
+    });
+  });
+
   it('does not mount a persisted preview on the first chat-home render', async () => {
     const store = useCopilotStore.getState();
     store.showConversation('namespace-a', 'conversation-a');

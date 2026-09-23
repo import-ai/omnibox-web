@@ -118,7 +118,7 @@ export default function MainSidebar() {
           currentNamespace={currentProNamespace}
           namespaceId={namespaceId}
         />
-        <SidebarRail className="opacity-0" />
+        <SidebarRail className="w-1 translate-x-0 opacity-0 group-data-[side=left]:-right-3" />
       </Sidebar>
       <SettingModal />
       <SearchMenu

@@ -1,0 +1,198 @@
+.app-download-card {
+  --download-qr-surface: #fff;
+  color: #171717;
+  background: var(--download-qr-surface);
+  border: 1px solid #e4e4e7;
+  box-shadow: 0 12px 40px -16px rgb(24 24 27 / 22%);
+}
+
+.dark .app-download-card {
+  --download-qr-surface: #171717;
+  color: #fafafa;
+  border-color: #404040;
+  box-shadow: 0 12px 40px -16px rgb(0 0 0 / 45%);
+}
+
+.app-download-entry {
+  align-self: flex-end;
+  margin-top: 16px;
+  /* Match X.com: enter-fade 390ms + enter-rise 650ms from 40px / 0.97 */
+  animation:
+    app-download-fade 390ms ease-out both,
+    app-download-rise 650ms cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.app-download-trigger {
+  display: flex;
+  width: 178px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border-radius: 16px;
+  padding: 16px;
+  cursor: pointer;
+  transform-origin: bottom right;
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.app-download-caption {
+  font-size: 13px;
+  line-height: 20px;
+  color: #737373;
+}
+
+.dark .app-download-caption {
+  color: #e5e5e5;
+}
+.app-download-qr {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.app-download-qr-compact {
+  width: 144px;
+  height: 144px;
+  flex-shrink: 0;
+}
+
+/* Expanded dialog: QR fills a 430×430 middle area. */
+.app-download-dialog-panel {
+  display: grid;
+  width: min(430px, calc(100vw - 48px));
+  height: min(430px, calc(100vw - 48px), calc(100vh - 120px));
+  box-sizing: border-box;
+  overflow: hidden;
+  border: none;
+  border-radius: 24px;
+  padding: 0;
+  box-shadow: 0 8px 32px -8px rgb(24 24 27 / 18%);
+}
+
+.app-download-dialog-panel .app-download-qr {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.app-download-logo-dark {
+  display: none;
+}
+.dark .app-download-logo-dark {
+  display: block;
+}
+.dark .app-download-logo-light {
+  display: none;
+}
+.app-download-overlay {
+  background: #f2f2f7;
+}
+
+.dark .app-download-overlay {
+  background: #262626;
+}
+
+.dark .app-download-dialog-panel {
+  --download-qr-surface: #171717;
+  background: #171717;
+  border-color: transparent;
+  box-shadow: 0 8px 32px -8px rgb(0 0 0 / 55%);
+}
+
+.app-download-close {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 1;
+  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #171717;
+  transition: background-color 150ms ease;
+}
+
+.dark .app-download-close {
+  color: #fafafa;
+}
+
+.app-download-close:hover {
+  background: rgb(0 0 0 / 6%);
+}
+
+.dark .app-download-close:hover {
+  background: rgb(255 255 255 / 8%);
+}
+
+.app-download-close:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.app-download-dialog-title {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: #171717;
+}
+
+.dark .app-download-dialog-title {
+  color: #fafafa;
+}
+
+.app-download-trigger:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 4px;
+}
+
+@media (hover: hover) {
+  /* X.com: motion-safe:hover:scale-[1.08] */
+  .app-download-trigger:hover {
+    transform: scale(1.08);
+  }
+}
+
+@media (min-width: 900px) and (min-height: 560px) {
+  .app-download-entry {
+    position: fixed;
+    right: 3vw;
+    bottom: 3vw;
+    z-index: 10;
+    margin: 0;
+  }
+}
+
+@keyframes app-download-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes app-download-rise {
+  from {
+    transform: translateY(40px) scale(0.97);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-download-entry,
+  .app-download-trigger,
+  .app-download-dialog-panel {
+    animation: none !important;
+    transition: none;
+  }
+  .app-download-trigger:hover {
+    transform: none;
+  }
+}

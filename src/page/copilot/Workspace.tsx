@@ -12,7 +12,10 @@ import { Outlet, useLocation, useParams } from 'react-router-dom';
 import Loading from '@/components/loading';
 import { useIsMobile } from '@/hooks/useMobile';
 import { cn } from '@/lib/utils';
-import { ResourceCommentsProvider } from '@/page/resource/comments/ResourceCommentsContext';
+import {
+  closeStoredResourceCommentsPanel,
+  ResourceCommentsProvider,
+} from '@/page/resource/comments/ResourceCommentsContext';
 
 import {
   defaultCopilotWorkspace,
@@ -52,6 +55,7 @@ interface WorkspaceLifecycleProps {
   isChatHistory: boolean;
   isChatHome: boolean;
   isChatRoute: boolean;
+  isInviteReferral: boolean;
   isMobile: boolean;
   locationKey: string;
   namespaceId: string;
@@ -80,6 +84,7 @@ function useWorkspaceLifecycle({
   isChatHistory,
   isChatHome,
   isChatRoute,
+  isInviteReferral,
   isMobile,
   locationKey,
   namespaceId,
@@ -121,6 +126,22 @@ function useWorkspaceLifecycle({
     isChatRoute,
     namespaceId,
     pendingExpandFromResource,
+  ]);
+
+  // Invite referral is a full workspace page. Collapse the shared right sidebar
+  // before paint, including a comments panel that would reopen Copilot later.
+  useLayoutEffect(() => {
+    if (!namespaceId || !isInviteReferral) return;
+    closeStoredResourceCommentsPanel(namespaceId);
+    if (previewResourceId) closePreview(namespaceId);
+    if (workspaceOpen) close(namespaceId);
+  }, [
+    close,
+    closePreview,
+    isInviteReferral,
+    namespaceId,
+    previewResourceId,
+    workspaceOpen,
   ]);
 
   useEffect(() => {
@@ -282,6 +303,8 @@ export default function Workspace() {
   const isChatHistory = location.pathname === `${chatRoot}/conversations`;
   const isChatRoute =
     isChatHome || location.pathname.startsWith(`${chatRoot}/`);
+  const isInviteReferral =
+    location.pathname === `/${namespaceId}/invite-referral`;
   const routeResetsWorkspace = isChatHome || isChatHistory;
   const renderWorkspace = routeResetsWorkspace
     ? defaultCopilotWorkspace
@@ -290,21 +313,29 @@ export default function Workspace() {
   // Keep the resource Outlet covered while expanding, even if preview was
   // already cleared, and suppress citation-split chrome on the chat landing frame.
   const previewReplacesResource =
-    (showPreview || pendingExpandFromResource) && !isChatRoute;
+    (showPreview || pendingExpandFromResource) &&
+    !isChatRoute &&
+    !isInviteReferral;
   const chatPreviewRoute =
     showPreview && isChatRoute && !pendingExpandFromResource;
   const visiblePreviewResourceId =
-    showPreview && !(pendingExpandFromResource && isChatRoute)
+    showPreview &&
+    !(pendingExpandFromResource && isChatRoute) &&
+    !isInviteReferral
       ? renderWorkspace.previewResourceId
       : null;
   const showChatBesidePreview = chatPreviewRoute && renderWorkspace.open;
-  const showCopilotBesideResource = !isChatRoute && renderWorkspace.open;
+  const showCopilotBesideResource =
+    !isChatRoute && !isInviteReferral && renderWorkspace.open;
   const wantsSideBySide = showChatBesidePreview || showCopilotBesideResource;
   // Keep page padding through a normal Copilot close. Drop it immediately when
-  // landing on full-page chat home/history so the next route does not paint
-  // inside leftover citation-split gutter.
+  // landing on full-page chat home/history or invite referral so the next route
+  // does not paint inside leftover citation-split gutter.
   const dropSplitChromeImmediately =
-    isChatHome || isChatHistory || (isChatRoute && pendingExpandFromResource);
+    isChatHome ||
+    isChatHistory ||
+    isInviteReferral ||
+    (isChatRoute && pendingExpandFromResource);
   const sideBySide = useDeferredOpen(
     wantsSideBySide,
     dropSplitChromeImmediately
@@ -313,6 +344,7 @@ export default function Workspace() {
     isChatHistory,
     isChatHome,
     isChatRoute,
+    isInviteReferral,
     isMobile,
     locationKey: location.key,
     namespaceId,
@@ -323,7 +355,9 @@ export default function Workspace() {
     workspaceOpen: workspace.open,
   });
   // Chat routes keep their existing Outlet as the only conversation instance.
-  const keepCopilotMounted = copilotMounted && !isChatRoute;
+  // Invite referral never shares the screen with the right sidebar.
+  const keepCopilotMounted =
+    copilotMounted && !isChatRoute && !isInviteReferral;
   // Prefetch Copilot and history so citation-split handoffs do not wait on chunks.
   useEffect(() => {
     if (!chatPreviewRoute || !renderWorkspace.open) return;
