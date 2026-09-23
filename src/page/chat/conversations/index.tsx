@@ -178,7 +178,7 @@ export default function ChatConversationsPage({
           ) : data.data.length > 0 ? (
             <>
               {groupItemsByTimestamp(data.data, i18n).map(([key, items]) => (
-                <div key={key} className="pb-4">
+                <div key={key}>
                   <div className="flex h-8 items-center px-4">
                     <p className="text-xs font-normal leading-8 text-neutral-400">
                       {key}
