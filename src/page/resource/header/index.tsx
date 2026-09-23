@@ -1,20 +1,61 @@
+import { Eye, FileClock, RotateCcw } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { Button } from '@/components/ui/Button';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
+import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
+import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceCommentsToggleButton';
 
 import Actions, { IActionProps } from '../actions';
+import {
+  supportsResourceHistory,
+  useResourceHistoryStore,
+} from '../history/resourceHistoryStore';
 import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import Breadcrumb from './BreadcrumbMain';
 
 export default function Header(props: IActionProps) {
-  const { resource, namespaceId } = props;
+  const {
+    onRestore,
+    onViewCurrent,
+    resource,
+    namespaceId,
+    isHistorical = false,
+    restoring = false,
+  } = props;
+  const { t, i18n } = useTranslation();
+  const selectedRevision = useResourceHistoryStore(
+    state => state.selections[`${namespaceId}:${resource?.id}`]
+  );
+  const showResourceHistory = useCopilotStore(
+    state => state.showResourceHistory
+  );
+  const copilotWorkspace = useCopilotStore(state =>
+    getCopilotWorkspace(state, namespaceId)
+  );
+  const commentsPanel = useResourceCommentsPanel();
   const { open } = useSidebar();
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const isFolder =
     resource?.resource_type === 'folder' ||
     resource?.resource_type === 'smart_folder' ||
     resource?.resource_type === 'rss_folder';
+  const commentsActive = !!commentsPanel?.panelOpen;
+  const historyActive =
+    copilotWorkspace.open &&
+    !commentsActive &&
+    copilotWorkspace.view === 'resource_history';
+  const copilotActive =
+    copilotWorkspace.open && !commentsActive && !historyActive;
+  const historyRevision = isHistorical ? selectedRevision : null;
 
   return (
     <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-white dark:bg-background">
@@ -29,14 +70,82 @@ export default function Header(props: IActionProps) {
         />
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-1 pr-3">
+        {historyRevision ? (
+          <div className="flex min-w-0 items-center gap-2 text-sm">
+            <span className="hidden max-w-[18rem] truncate font-medium text-muted-foreground md:inline-block">
+              {t('resource.history.historical_version')}
+              {historyRevision.version !== undefined &&
+                ` v${historyRevision.version}`}
+              {' · '}
+              {new Intl.DateTimeFormat(
+                i18n?.language?.startsWith('zh') ? 'zh-CN' : 'en-US',
+                {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }
+              ).format(new Date(historyRevision.created_at))}
+              {historyRevision.author
+                ? ` · ${historyRevision.author.username}`
+                : ''}
+            </span>
+            <Button
+              onClick={onViewCurrent}
+              size="sm"
+              type="button"
+              variant="ghost"
+            >
+              <Eye />
+              {t('resource.history.back_to_current')}
+            </Button>
+            {onRestore ? (
+              <Button
+                disabled={restoring}
+                onClick={onRestore}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                <RotateCcw />
+                {t('resource.history.restore')}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
         <Actions {...props} />
-        {resource && (
-          <CopilotToggleButton
-            hideWhenOpen
-            namespaceId={namespaceId}
-            showComments={!!useOmniboxEditor && !isFolder}
-          />
-        )}
+        {resource &&
+        !isHistorical &&
+        useOmniboxEditor &&
+        !isFolder &&
+        !commentsActive ? (
+          <ResourceCommentsToggleButton />
+        ) : null}
+        {resource &&
+        supportsResourceHistory(resource.resource_type) &&
+        (!resource?.read_only || isHistorical) &&
+        !props.editPage &&
+        !historyActive ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                aria-label={t('resource.history.open')}
+                className="h-7 w-7 shrink-0"
+                onClick={() => {
+                  commentsPanel?.setPanelOpen(false);
+                  showResourceHistory(namespaceId, resource.id);
+                }}
+                size="icon"
+                type="button"
+                variant="ghost"
+              >
+                <FileClock />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('resource.history.tooltip')}</TooltipContent>
+          </Tooltip>
+        ) : null}
+        {resource && !isHistorical && !copilotActive ? (
+          <CopilotToggleButton namespaceId={namespaceId} />
+        ) : null}
       </div>
     </header>
   );

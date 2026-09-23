@@ -5,8 +5,11 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { ResourceTasksProvider } from '@/components/attributes/resource-tasks/ResourceTasksContext';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Separator } from '@/components/ui/Separator';
 import { SidebarInset, useSidebar } from '@/components/ui/Sidebar';
 import type { IUseResource } from '@/hooks/userResource';
@@ -34,6 +37,11 @@ import {
   useResourceCommentsPanel,
 } from './comments/ResourceCommentsContext';
 import Header from './header';
+import {
+  setResourceRevisionQuery,
+  supportsResourceHistory,
+  useResourceHistoryStore,
+} from './history/resourceHistoryStore';
 import Wrapper from './Wrapper';
 
 interface ResourceDetailViewProps extends IUseResource {
@@ -48,6 +56,7 @@ function ResourceDetailContent({
   flush = false,
   ...resourceProps
 }: ResourceDetailViewProps) {
+  const { t } = useTranslation();
   const { wide, onWide } = useWide();
   const { open, width: sidebarWidth } = useSidebar();
   const {
@@ -62,6 +71,67 @@ function ResourceDetailContent({
   } = resourceProps;
   const resourceMatchesTarget = resource?.id === resourceId;
   const currentResource = resourceMatchesTarget ? resource : null;
+  const revisionId = new URLSearchParams(window.location.search).get(
+    'revision'
+  );
+  const selectedRevision = useResourceHistoryStore(
+    state => state.selections[`${namespaceId}:${resourceId}`]
+  );
+  const selectRevision = useResourceHistoryStore(state => state.selectRevision);
+  const clearRevision = useResourceHistoryStore(state => state.clearRevision);
+  const showHome = useCopilotStore(state => state.showHome);
+  const showResourceHistory = useCopilotStore(
+    state => state.showResourceHistory
+  );
+  const copilotWorkspace = useCopilotStore(state =>
+    getCopilotWorkspace(state, namespaceId)
+  );
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+
+  useEffect(() => {
+    if (!revisionId || selectedRevision || !currentResource) return;
+    let active = true;
+    import('@/service/resource')
+      .then(({ fetchResourceRevision }) =>
+        fetchResourceRevision(namespaceId, resourceId, revisionId)
+      )
+      .then(revision => {
+        if (active) selectRevision(namespaceId, resourceId, revision);
+      })
+      .catch(() => {
+        if (active) {
+          setResourceRevisionQuery(null);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [
+    currentResource,
+    namespaceId,
+    resourceId,
+    revisionId,
+    selectRevision,
+    selectedRevision,
+  ]);
+
+  const historicalResource =
+    currentResource &&
+    selectedRevision &&
+    selectedRevision.resource_id === currentResource.id
+      ? {
+          ...currentResource,
+          name: selectedRevision.name,
+          content: selectedRevision.content,
+          content_hash: selectedRevision.content_hash,
+          updated_at: selectedRevision.created_at,
+          read_only: true,
+        }
+      : currentResource;
+  const isHistorical = Boolean(
+    currentResource && selectedRevision?.resource_id === currentResource.id
+  );
   const currentResourceProps = {
     ...resourceProps,
     loading:
@@ -71,11 +141,10 @@ function ResourceDetailContent({
         !error &&
         !forbidden &&
         !notFound),
-    resource: currentResource,
+    resource: historicalResource,
+    isHistorical,
   };
-  const copilotOpen = useCopilotStore(
-    state => getCopilotWorkspace(state, namespaceId).open
-  );
+  const copilotOpen = copilotWorkspace.open;
   const [copilotLayoutOpen, setCopilotLayoutOpen] = useState(copilotOpen);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
@@ -103,6 +172,38 @@ function ResourceDetailContent({
   );
 
   useResourceBodyDragAutoScroll(scrollContainerRef, useFullWidth && editPage);
+
+  useEffect(() => {
+    if (
+      loading ||
+      !resourceMatchesTarget ||
+      !copilotWorkspace.open ||
+      copilotWorkspace.view !== 'resource_history' ||
+      copilotWorkspace.resourceHistoryResourceId === resourceId
+    ) {
+      return;
+    }
+    setResourceRevisionQuery(null);
+    if (
+      supportsResourceHistory(currentResource?.resource_type) &&
+      !currentResource?.read_only &&
+      !editPage
+    ) {
+      showResourceHistory(namespaceId, resourceId);
+    } else {
+      showHome(namespaceId);
+    }
+  }, [
+    currentResource,
+    editPage,
+    loading,
+    namespaceId,
+    resourceId,
+    copilotWorkspace,
+    resourceMatchesTarget,
+    showHome,
+    showResourceHistory,
+  ]);
 
   useEffect(() => {
     if (
@@ -153,7 +254,24 @@ function ResourceDetailContent({
           } as CSSProperties
         }
       >
-        <Header {...currentResourceProps} onWide={onWide} wide={wide} />
+        <Header
+          {...currentResourceProps}
+          onRestore={
+            isHistorical &&
+            (currentResource?.current_permission === 'can_edit' ||
+              currentResource?.current_permission === 'full_access' ||
+              !currentResource?.current_permission)
+              ? () => setRestoreOpen(true)
+              : undefined
+          }
+          onViewCurrent={() => {
+            clearRevision(namespaceId, resourceId);
+            setResourceRevisionQuery(null);
+          }}
+          onWide={onWide}
+          restoring={restoring}
+          wide={wide}
+        />
         <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
         <div
           className={cn(
@@ -185,6 +303,37 @@ function ResourceDetailContent({
           </div>
         </div>
       </SidebarInset>
+      <ConfirmDialog
+        open={restoreOpen}
+        title={t('resource.history.restore_title')}
+        description={t('resource.history.restore_description')}
+        confirmText={t('resource.history.restore_confirm')}
+        cancelText={t('resource.history.restore_cancel')}
+        loading={restoring}
+        onOpenChange={setRestoreOpen}
+        onConfirm={async () => {
+          if (!selectedRevision) return;
+          setRestoring(true);
+          try {
+            const { restoreResourceRevision } =
+              await import('@/service/resource');
+            const updated = await restoreResourceRevision(
+              namespaceId,
+              resourceId,
+              selectedRevision.id
+            );
+            resourceProps.onResource(updated);
+            resourceProps.app.fire('update_resource', updated);
+            clearRevision(namespaceId, resourceId);
+            setResourceRevisionQuery(null);
+            setRestoreOpen(false);
+          } catch {
+            toast.error(t('resource.history.restore_failed'));
+          } finally {
+            setRestoring(false);
+          }
+        }}
+      />
     </ResourceTasksProvider>
   );
 }

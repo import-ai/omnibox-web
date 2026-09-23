@@ -11,6 +11,7 @@ import {
 } from '@/page/copilot/copilotStore';
 
 import type { IActionProps } from './actions';
+import { useResourceHistoryStore } from './history/resourceHistoryStore';
 import ResourceDetailView from './ResourceDetailView';
 import { useResourceStore } from './resourceStore';
 
@@ -145,6 +146,9 @@ describe('ResourceDetailView', () => {
       .getState()
       .setFeaturePreviews('viewer', { editor_v2: false });
     useCopilotStore.getState().reset('namespace-a');
+    useResourceHistoryStore
+      .getState()
+      .clearRevision('namespace-a', 'resource-a');
     originalResizeObserver = global.ResizeObserver;
     global.ResizeObserver = class implements ResizeObserver {
       constructor(callback: ResizeObserverCallback) {
@@ -199,6 +203,68 @@ describe('ResourceDetailView', () => {
     expect(wrapper?.getAttribute('data-resource-id')).toBeNull();
     expect(wrapper?.getAttribute('data-loading')).toBe('true');
   });
+
+  it.each(['doc', 'file', 'link'] as const)(
+    'follows the active history panel when switching to %s',
+    async resourceType => {
+      useCopilotStore
+        .getState()
+        .showResourceHistory('namespace-a', 'resource-a');
+      await renderResource(resource);
+
+      await renderResource(
+        {
+          ...resource,
+          id: 'resource-b',
+          name: 'Resource B',
+          resource_type: resourceType,
+        },
+        'resource-b'
+      );
+
+      expect(
+        getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+      ).toEqual(
+        expect.objectContaining({
+          open: true,
+          view: 'resource_history',
+          resourceHistoryResourceId: 'resource-b',
+        })
+      );
+    }
+  );
+
+  it.each(['doc', 'file', 'link'] as const)(
+    'keeps the history entry available for %s after collapsing a preview',
+    async resourceType => {
+      useResourceHistoryStore
+        .getState()
+        .selectRevision('namespace-a', 'resource-a', {
+          id: 'revision-a',
+          version: 1,
+          resource_id: 'resource-a',
+          name: 'Resource A',
+          content: '# Previous Resource A',
+          content_hash: 'hash-a',
+          created_at: '2026-09-20T07:00:00.000Z',
+          author: null,
+          is_current: false,
+        });
+
+      await renderResource({ ...resource, resource_type: resourceType });
+
+      expect(
+        container.querySelector('button[aria-label="resource.history.open"]')
+      ).not.toBeNull();
+      expect(container.textContent).toContain(
+        'resource.history.historical_version'
+      );
+      expect(container.textContent).toContain(
+        'resource.history.back_to_current'
+      );
+      expect(container.textContent).toContain('resource.history.restore');
+    }
+  );
 
   it('uses compact layout when the resource pane becomes narrow', async () => {
     await renderResource();
