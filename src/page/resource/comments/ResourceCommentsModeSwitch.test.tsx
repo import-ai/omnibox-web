@@ -95,11 +95,16 @@ describe('resource comments across view and edit modes', () => {
   let source: HTMLDivElement;
   let panel: HTMLDivElement;
 
-  const render = async (editPage: boolean, currentResource = resource) => {
+  const render = async (
+    editPage: boolean,
+    currentResource = resource,
+    isHistorical = false
+  ) => {
     await act(async () => {
       root.render(
         <TooltipProvider>
           <Page
+            isHistorical={isHistorical}
             editPage={editPage}
             namespaceId="namespace"
             resource={currentResource}
@@ -265,5 +270,21 @@ describe('resource comments across view and edit modes', () => {
     expect(readonlyComments().threads).toEqual([thread]);
     expect(readonlyComments().loading).toBe(false);
     expect(panel.querySelector('[data-thread-id="thread"]')).not.toBeNull();
+  });
+  it('disables comments and hides live threads while previewing history', async () => {
+    await render(false);
+    expect(readonlyComments().canComment).toBe(true);
+    await render(
+      false,
+      { ...resource, read_only: true, content: 'Historical' },
+      true
+    );
+    expect(readonlyComments().canComment).toBe(false);
+    expect(readonlyComments().commentsConfig.enabled).toBe(false);
+    expect(jest.mocked(Render).mock.lastCall?.[0].commentsDisabled).toBe(true);
+    expect(panel.textContent).toBe('');
+    await render(false);
+    expect(readonlyComments().canComment).toBe(true);
+    expect(jest.mocked(Render).mock.lastCall?.[0].commentsDisabled).toBe(false);
   });
 });

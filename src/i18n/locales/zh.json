@@ -78,11 +78,14 @@
   "copilot": {
     "title": "Copilot",
     "description": "在当前工作区中继续 AI 对话",
-    "expand": "展开 Copilot",
-    "collapse": "收起 Copilot",
+    "expand": "打开小黑",
+    "tooltip": "小黑",
     "preview": "引用预览",
     "close_preview": "关闭引用预览",
     "preview_error": "无法加载引用资源，请稍后重试"
+  },
+  "right_sidebar": {
+    "collapse": "收起右侧边栏"
   },
   "resource_picker": {
     "expand_resource": "展开{{name}}",
@@ -114,6 +117,23 @@
     "no_content": "资源没有内容可下载",
     "read_only_target": "只读资源不能包含其他资源",
     "untitled": "未命名",
+    "history": {
+      "open": "打开编辑历史",
+      "title": "编辑历史",
+      "tooltip": "编辑历史",
+      "current": "当前版本",
+      "historical_version": "历史版本",
+      "back_to_current": "查看当前版本",
+      "restore": "恢复此版本",
+      "restore_title": "恢复此版本吗？",
+      "restore_description": "恢复会创建新的当前版本，现有历史记录仍会保留。",
+      "restore_confirm": "恢复",
+      "restore_cancel": "取消",
+      "restore_failed": "恢复版本失败",
+      "empty": "暂无编辑历史",
+      "load_failed": "加载编辑历史失败",
+      "retry": "重试"
+    },
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",
@@ -132,6 +152,7 @@
     "panel_title": "评论（{{count}}）",
     "no_threads": "暂无评论",
     "title": "评论",
+    "tooltip": "评论",
     "all_title": "所有评论",
     "filter": "筛选评论",
     "open_all": "查看全部评论",

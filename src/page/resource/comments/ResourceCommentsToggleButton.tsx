@@ -24,6 +24,7 @@ export function ResourceCommentsToggleButton({
   const label = t(
     panel.panelOpen ? 'resource_comments.collapse' : 'resource_comments.title'
   );
+  const tooltipLabel = t('resource_comments.tooltip');
   const toggle = () => {
     if (panel.panelOpen) {
       panel.setPanelOpen(false);
@@ -46,7 +47,7 @@ export function ResourceCommentsToggleButton({
           <MessageSquareText className="size-4" />
         </Button>
       </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
+      <TooltipContent>{tooltipLabel}</TooltipContent>
     </Tooltip>
   );
 }
