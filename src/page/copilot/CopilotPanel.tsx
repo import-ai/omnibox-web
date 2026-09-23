@@ -20,6 +20,7 @@ import Actions from '@/page/chat/header/Actions';
 import Title from '@/page/chat/header/title';
 import { useChatTitle } from '@/page/chat/header/useChatTitle';
 import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
+import ResourceHistoryPanel from '@/page/resource/history/ResourceHistoryPanel';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 import CopilotToggleButton from './CopilotToggleButton';
@@ -44,12 +45,11 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   const showHistory = useCopilotStore(state => state.showHistory);
   const showConversation = useCopilotStore(state => state.showConversation);
   const [searchOpen, setSearchOpen] = useState(false);
-  const homePage = workspace.view === 'home';
-  const conversationsPage = workspace.view === 'history';
   const conversationId =
     workspace.view === 'conversation' ? (workspace.conversationId ?? '') : '';
   const { chatTitle } = useChatTitle(namespaceId, conversationId);
-
+  const homePage = workspace.view === 'home';
+  const conversationsPage = workspace.view === 'history';
   if (commentsPanel?.panelOpen) {
     return (
       <div
@@ -59,10 +59,22 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
     );
   }
 
+  if (
+    workspace.view === 'resource_history' &&
+    workspace.resourceHistoryResourceId
+  ) {
+    return (
+      <ResourceHistoryPanel
+        namespaceId={namespaceId}
+        resourceId={workspace.resourceHistoryResourceId}
+      />
+    );
+  }
+
   return (
     <>
       <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-white dark:bg-background">
-        <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 rounded-2xl bg-white dark:bg-background">
+        <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b border-border/60 bg-white dark:bg-background">
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <CopilotToggleButton namespaceId={namespaceId} />
             {conversationId && (
@@ -248,7 +260,7 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
     <>
       {visible && modal && (
         <button
-          aria-label={t('copilot.collapse')}
+          aria-label={t('right_sidebar.collapse')}
           className="fixed inset-0 z-40 cursor-default bg-black/20 motion-safe:animate-in motion-safe:fade-in-0"
           onClick={handleClose}
           type="button"

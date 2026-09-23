@@ -70,7 +70,7 @@ export default function LoginPage() {
   }
 
   return (
-    <WrapperPage extra={<MetaPage />}>
+    <WrapperPage extra={<MetaPage />} showAppDownload>
       {scan ? (
         <Scan onScan={onScan} />
       ) : (

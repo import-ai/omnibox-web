@@ -17,6 +17,10 @@
   "toggle_theme": "Toggle Theme",
   "notification": "Notification",
   "download_app": "Download",
+  "app_download_qr": {
+    "title": "Scan to get the app",
+    "hint": "Get the app"
+  },
   "notification_modal": {
     "title": "Notification",
     "all": "All",
@@ -80,11 +84,14 @@
   "copilot": {
     "title": "Copilot",
     "description": "Continue the AI conversation in this namespace",
-    "expand": "Expand Copilot",
-    "collapse": "Collapse Copilot",
+    "expand": "Open Copilot",
+    "tooltip": "OmniBox AI",
     "preview": "Citation preview",
     "close_preview": "Close citation preview",
     "preview_error": "Unable to load this resource. Please try again."
+  },
+  "right_sidebar": {
+    "collapse": "Collapse right sidebar"
   },
   "resource_picker": {
     "expand_resource": "Expand {{name}}",
@@ -116,6 +123,23 @@
     "no_content": "Resource has no content to download",
     "read_only_target": "Read-only resources can't contain other resources.",
     "untitled": "Untitled",
+    "history": {
+      "open": "Open edit history",
+      "title": "Edit history",
+      "tooltip": "Edit history",
+      "current": "Current",
+      "historical_version": "Historical version",
+      "back_to_current": "View current version",
+      "restore": "Restore this version",
+      "restore_title": "Restore this version?",
+      "restore_description": "Restoring creates a new current version and keeps the existing history.",
+      "restore_confirm": "Restore",
+      "restore_cancel": "Cancel",
+      "restore_failed": "Unable to restore this version",
+      "empty": "No edit history yet",
+      "load_failed": "Unable to load edit history",
+      "retry": "Retry"
+    },
     "attrs": {
       "tag": "Tag",
       "add_tag": "Add tag",
@@ -134,6 +158,7 @@
     "panel_title": "Comments ({{count}})",
     "no_threads": "No comments yet",
     "title": "Comments",
+    "tooltip": "Comments",
     "all_title": "All comments",
     "filter": "Filter comments",
     "open_all": "View all comments",
@@ -357,11 +382,13 @@
     "use_email": "Use email code",
     "use_otp": "Use verification code",
     "sign_up": "Sign Up",
+    "phone": "phone number",
+    "email": "email",
     "back": "Back",
     "email_not_exists": "This email doesn't exist. Please sign up to continue.",
     "phone_not_exists": "This phone number doesn't exist. Please sign up to continue.",
     "title": "Login to your account",
-    "description": "Enter your email below to login your account",
+    "description": "Enter your {{contactMethod}} below to login your account",
     "authorizing": "Authorizing, please wait...",
     "login_use_wechat": "Login with WeChat",
     "login_use_google": "Login with Google",

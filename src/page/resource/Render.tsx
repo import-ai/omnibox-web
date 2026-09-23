@@ -40,6 +40,7 @@ import { embedImage, getReadonlyResourceEditorKey } from './utils';
 
 interface IProps {
   comments?: ResourceCommentsController;
+  commentsDisabled?: boolean;
   resource: Resource | SharedResource;
   namespaceId?: string;
   forceOmniboxEditor?: boolean;
@@ -289,8 +290,8 @@ function OmniboxRender(props: OmniboxRenderProps) {
         showToc={showToc}
         searchTerm={search ?? undefined}
         scrollToLine={scrollToLine}
-        comments={comments.commentsConfig}
-        onReady={comments.registerEditor}
+        comments={props.commentsDisabled ? undefined : comments.commentsConfig}
+        onReady={props.commentsDisabled ? undefined : comments.registerEditor}
         onCodeBlockCopy={handleCodeBlockCopy}
         scrollToLineContent={embedImage(resource)}
       />

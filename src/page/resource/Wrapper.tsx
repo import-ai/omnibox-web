@@ -8,6 +8,7 @@ import Page from './Page';
 
 interface IProps extends IUseResource {
   error?: boolean;
+  isHistorical?: boolean;
   scrollToLine?: number;
   showToc: boolean;
   wide: boolean;
@@ -40,6 +41,7 @@ export default function Wrapper(props: IProps) {
     <AuthPage forbidden={forbidden} notFound={notFound} resource={resource}>
       {resource && (
         <Page
+          isHistorical={props.isHistorical}
           editPage={editPage}
           resource={resource}
           onResource={onResource}
