@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoSvg from '@/assets/logo.svg';
@@ -16,7 +16,10 @@ import {
   KEYBOARD_INSET_CHANGE_EVENT,
 } from '@/lib/visualViewport';
 
+const AppDownload = lazy(() => import('./components/appDownload/AppDownload'));
+
 interface WrapperPageProps {
+  showAppDownload?: boolean;
   useCard?: boolean;
   extra?: React.ReactNode;
   children: React.ReactNode;
@@ -29,7 +32,7 @@ function scrollFocusedFieldIntoView(scroller: HTMLElement) {
 }
 
 export default function WrapperPage(props: WrapperPageProps) {
-  const { useCard = true, extra, children } = props;
+  const { useCard = true, extra, children, showAppDownload = false } = props;
   const { t, i18n } = useTranslation();
   const scrollerRef = useRef<HTMLDivElement>(null);
 
@@ -93,6 +96,11 @@ export default function WrapperPage(props: WrapperPageProps) {
             </div>
           )}
         </div>
+        {showAppDownload && (
+          <Suspense fallback={null}>
+            <AppDownload />
+          </Suspense>
+        )}
       </div>
     </div>
   );

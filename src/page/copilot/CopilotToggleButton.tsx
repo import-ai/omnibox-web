@@ -4,45 +4,56 @@ import { useTranslation } from 'react-i18next';
 import { ChatIcon } from '@/assets/icons/ChatIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
-import { Separator } from '@/components/ui/Separator';
 import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
-import { ResourceCommentsToggleButton } from '@/page/resource/comments/ResourceCommentsToggleButton';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 
 interface CopilotToggleButtonProps {
   namespaceId: string;
-  hideWhenOpen?: boolean;
-  showComments?: boolean;
+  collapseOnly?: boolean;
 }
 
 export default function CopilotToggleButton({
   namespaceId,
-  hideWhenOpen = false,
-  showComments = true,
+  collapseOnly = false,
 }: CopilotToggleButtonProps) {
   const { t } = useTranslation();
-  const open = useCopilotStore(
-    state => getCopilotWorkspace(state, namespaceId).open
+  const workspace = useCopilotStore(state =>
+    getCopilotWorkspace(state, namespaceId)
   );
-  const toggle = useCopilotStore(state => state.toggle);
+  const close = useCopilotStore(state => state.close);
+  const showHome = useCopilotStore(state => state.showHome);
+  const showConversation = useCopilotStore(state => state.showConversation);
+  const open = useCopilotStore(state => state.open);
   const commentsPanel = useResourceCommentsPanel();
-  const commentsOpen = showComments && !!commentsPanel?.panelOpen;
+  const commentsOpen = !!commentsPanel?.panelOpen;
+  const copilotActive =
+    workspace.open && !commentsOpen && workspace.view !== 'resource_history';
   const label = t(
-    open && !hideWhenOpen && !commentsOpen
-      ? 'copilot.collapse'
-      : 'copilot.expand'
+    collapseOnly || copilotActive ? 'right_sidebar.collapse' : 'copilot.expand'
   );
+  const tooltipLabel =
+    collapseOnly || copilotActive ? label : t('copilot.tooltip');
   const handleToggle = () => {
-    if (commentsOpen) {
-      commentsPanel.setPanelOpen(false);
-      useCopilotStore.getState().open(namespaceId);
+    if (collapseOnly || copilotActive) {
+      close(namespaceId);
       return;
     }
-    toggle(namespaceId);
+    if (commentsOpen) {
+      commentsPanel?.setPanelOpen(false);
+    }
+    if (workspace.view === 'resource_history') {
+      if (workspace.conversationId) {
+        showConversation(namespaceId, workspace.conversationId);
+      } else {
+        showHome(namespaceId);
+      }
+    } else {
+      open(namespaceId);
+    }
   };
 
-  const button = (
+  return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
@@ -53,32 +64,14 @@ export default function CopilotToggleButton({
           type="button"
           variant="ghost"
         >
-          {open && !hideWhenOpen && !commentsOpen ? (
+          {collapseOnly || copilotActive ? (
             <PanelRight />
           ) : (
             <ChatIcon className="size-4" />
           )}
         </Button>
       </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
+      <TooltipContent>{tooltipLabel}</TooltipContent>
     </Tooltip>
-  );
-
-  const hideCopilot = hideWhenOpen && open && !commentsOpen;
-  if (!hideWhenOpen) {
-    return hideCopilot ? null : button;
-  }
-
-  return (
-    <>
-      {showComments && !commentsOpen ? <ResourceCommentsToggleButton /> : null}
-      {showComments || !hideCopilot ? (
-        <Separator
-          orientation="vertical"
-          className="mx-1 h-4 !bg-[#F2F2F2] dark:!bg-[#303132]"
-        />
-      ) : null}
-      {hideCopilot ? null : button}
-    </>
   );
 }
