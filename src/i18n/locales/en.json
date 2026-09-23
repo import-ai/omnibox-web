@@ -901,6 +901,7 @@
       }
     },
     "home": {
+      "nextRecommendedQuestion": "Next recommended question",
       "greeting": {
         "morning": "Good morning, how can I help you today?",
         "afternoon": "Good afternoon, how can I help you today?",
@@ -1009,6 +1010,8 @@
     "root": "Root",
     "resources": "Resources",
     "chats": "Chats",
+    "search_resources": "Search resources",
+    "search_chats": "Search chat history",
     "no_results": "No results",
     "filters": {
       "title": "Filter",

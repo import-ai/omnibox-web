@@ -1,9 +1,10 @@
 import {
-  Edit2,
   History,
+  MessageCirclePlus,
   MoreHorizontal,
   Plus,
   Search,
+  SquarePen,
   Trash2,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -26,8 +27,6 @@ import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
-
-import { PlusIcon } from './PlusIcon';
 
 interface IProps {
   compact?: boolean;
@@ -140,7 +139,7 @@ export default function Actions(props: IProps) {
               className="size-[28px]"
               onClick={onChatCreate}
             >
-              <PlusIcon />
+              <MessageCirclePlus />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{t('chat.conversations.new_chat')}</TooltipContent>
@@ -191,7 +190,7 @@ export default function Actions(props: IProps) {
               className="cursor-pointer gap-2"
               onClick={() => handleAction('rename')}
             >
-              <Edit2 className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <SquarePen className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
               <span>{t('chat.conversations.rename.option')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
