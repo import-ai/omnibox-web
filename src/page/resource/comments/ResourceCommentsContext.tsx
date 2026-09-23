@@ -52,6 +52,11 @@ function writeStoredPanelOpen(namespaceId: string, open: boolean) {
   }
 }
 
+/** Drop a restored comments sidebar so another workspace page does not reopen it. */
+export function closeStoredResourceCommentsPanel(namespaceId: string) {
+  writeStoredPanelOpen(namespaceId, false);
+}
+
 interface ResourceCommentsPanelContext {
   panelOpen: boolean;
   setPanelOpen: (open: boolean) => void;
