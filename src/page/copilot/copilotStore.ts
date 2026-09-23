@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-export type CopilotView = 'home' | 'conversation' | 'history';
+export type CopilotView =
+  'home' | 'conversation' | 'history' | 'resource_history';
 
 export interface CopilotWorkspaceState {
   open: boolean;
@@ -9,6 +10,7 @@ export interface CopilotWorkspaceState {
   conversationId: string | null;
   previewResourceId: string | null;
   previewLineNumber: number | null;
+  resourceHistoryResourceId?: string | null;
 }
 
 interface CopilotState {
@@ -24,6 +26,7 @@ interface CopilotState {
   toggle: (namespaceId: string) => void;
   showHome: (namespaceId: string) => void;
   showHistory: (namespaceId: string) => void;
+  showResourceHistory: (namespaceId: string, resourceId: string) => void;
   showConversation: (namespaceId: string, conversationId: string) => void;
   showResourceBesideConversation: (
     namespaceId: string,
@@ -133,6 +136,14 @@ export const useCopilotStore = create<CopilotState>()(
             open: true,
             view: 'history',
             conversationId: null,
+          }),
+        })),
+      showResourceHistory: (namespaceId, resourceId) =>
+        set(state => ({
+          workspaces: patchWorkspace(state, namespaceId, {
+            open: true,
+            view: 'resource_history',
+            resourceHistoryResourceId: resourceId,
           }),
         })),
       showConversation: (namespaceId, conversationId) =>

@@ -139,13 +139,13 @@ const FILE_ICON_CONDITIONS: FileIconCondition[] = [
   {
     field: 'original_name',
     type: 'suffix',
-    values: ['.doc', '.docx'],
+    values: ['.doc', '.docx', '.wps', '.wpt', '.rtf', '.odt'],
     icon: <RiFileWordFill color="#5599F2" size={16} className="scale-125" />,
   },
   {
     field: 'original_name',
     type: 'suffix',
-    values: ['.ppt', '.pptx'],
+    values: ['.ppt', '.pptx', '.dps', '.dpt', '.odp'],
     icon: <RiFilePptFill color="#EB313C" size={16} className="scale-125" />,
   },
   {

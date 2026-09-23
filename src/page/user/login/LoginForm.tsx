@@ -87,6 +87,8 @@ export function LoginForm({
   const captcha = useCaptcha({ scene: 'web', mode: 'popup' });
   const linkClass =
     'text-sm hover:underline dark:text-[#60a5fa] text-[#107bfa] underline-offset-2';
+  const loginMethod =
+    contactMethod === 'email' ? t('login.email') : t('login.phone');
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
@@ -418,7 +420,7 @@ export function LoginForm({
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">{t('login.title')}</h1>
         <p className="text-balance text-sm text-muted-foreground">
-          {t('login.description')}
+          {t('login.description', { contactMethod: loginMethod })}
         </p>
       </div>
 
