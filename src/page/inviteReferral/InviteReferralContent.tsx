@@ -153,7 +153,7 @@ export function InviteReferralContent() {
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <SidebarTriggerButton collapse />
             <div className={sidebarOpen ? 'min-w-0 ml-2' : 'min-w-0'}>
-              <h1 className="text-sm font-medium">
+              <h1 className="pl-2 text-sm font-medium">
                 {t('inviteReferral.title')}
               </h1>
             </div>
