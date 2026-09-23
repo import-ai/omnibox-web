@@ -22,8 +22,9 @@ import { usePhoneConfig } from '@/hooks/usePhoneConfig';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
 import { passwordSchema, phoneSchema } from '@/lib/validationSchemas';
-import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
-import { setGlobalCredential } from '@/page/user/util';
+import { withInviteCode } from '@/page/inviteReferral/authInviteParams';
+import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
+import { InviteCodeEntry } from '@/page/inviteReferral/InviteCodeEntry';
 
 import { isSupportedEmail } from './emailDomains';
 import { EmailSuggestionInput } from './EmailSuggestionInput';
@@ -82,6 +83,8 @@ export function LoginForm({
   const { allowedCountries } = usePhoneConfig();
   const linkClass =
     'text-sm hover:underline dark:text-[#60a5fa] text-[#107bfa] underline-offset-2';
+  const loginMethod =
+    contactMethod === 'email' ? t('login.email') : t('login.phone');
 
   const emailForm = useForm<z.infer<typeof emailFormSchema>>({
     resolver: zodResolver(emailFormSchema),
@@ -113,9 +116,12 @@ export function LoginForm({
     },
   });
 
-  const finishLogin = async (userId: string, accessToken: string) => {
-    setGlobalCredential(userId, accessToken);
-    location.href = await getAuthSuccessRedirect(redirect);
+  const finishLogin = async (response: {
+    id: string;
+    access_token: string;
+    is_new_user?: boolean;
+  }) => {
+    await completeAuthRedirect(response, redirect);
   };
 
   const onEmailSubmit = async (data: z.infer<typeof emailFormSchema>) => {
@@ -123,22 +129,30 @@ export function LoginForm({
     try {
       const response = await http.post('auth/send-otp', {
         email: data.email,
-        url: `${window.location.origin}${buildUrl('/user/verify-otp', { redirect })}`,
+        url: `${window.location.origin}${buildUrl('/user/verify-otp', withInviteCode({ redirect }))}`,
       });
 
       if (!response.exists) {
         toast.error(t('login.email_not_exists'), { position: 'bottom-right' });
         navigate(
-          buildUrl('/user/sign-up', {
-            email: data.email,
-            mode: 'email',
-            redirect,
-          })
+          buildUrl(
+            '/user/sign-up',
+            withInviteCode({
+              email: data.email,
+              mode: 'email',
+              redirect,
+            })
+          )
         );
         return;
       }
 
-      navigate(buildUrl('/user/verify-otp', { email: data.email, redirect }));
+      navigate(
+        buildUrl(
+          '/user/verify-otp',
+          withInviteCode({ email: data.email, redirect })
+        )
+      );
     } catch {
       setIsLoading(false);
     }
@@ -155,17 +169,20 @@ export function LoginForm({
         type: 'email',
       })
       .then(async response => {
-        await finishLogin(response.id, response.access_token);
+        await finishLogin(response);
       })
       .catch(err => {
         setIsLoading(false);
         if (err.response?.data?.code === 'user_not_found') {
           navigate(
-            buildUrl('/user/sign-up', {
-              email: data.email,
-              mode: 'email',
-              redirect,
-            })
+            buildUrl(
+              '/user/sign-up',
+              withInviteCode({
+                email: data.email,
+                mode: 'email',
+                redirect,
+              })
+            )
           );
         }
       })
@@ -184,16 +201,24 @@ export function LoginForm({
       if (!response.exists) {
         toast.error(t('login.phone_not_exists'), { position: 'bottom-right' });
         navigate(
-          buildUrl('/user/sign-up', {
-            phone: data.phone,
-            mode: 'phone',
-            redirect,
-          })
+          buildUrl(
+            '/user/sign-up',
+            withInviteCode({
+              phone: data.phone,
+              mode: 'phone',
+              redirect,
+            })
+          )
         );
         return;
       }
 
-      navigate(buildUrl('/user/verify-otp', { phone: data.phone, redirect }));
+      navigate(
+        buildUrl(
+          '/user/verify-otp',
+          withInviteCode({ phone: data.phone, redirect })
+        )
+      );
     } catch {
       setIsLoading(false);
     }
@@ -210,17 +235,20 @@ export function LoginForm({
         type: 'phone',
       })
       .then(async response => {
-        await finishLogin(response.id, response.access_token);
+        await finishLogin(response);
       })
       .catch(err => {
         setIsLoading(false);
         if (err.response?.data?.code === 'user_not_found') {
           navigate(
-            buildUrl('/user/sign-up', {
-              phone: data.phone,
-              mode: 'phone',
-              redirect,
-            })
+            buildUrl(
+              '/user/sign-up',
+              withInviteCode({
+                phone: data.phone,
+                mode: 'phone',
+                redirect,
+              })
+            )
           );
         }
       })
@@ -252,11 +280,14 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={buildUrl('/user/sign-up', {
-              email: emailForm.getValues('email'),
-              mode: 'email',
-              redirect,
-            })}
+            to={buildUrl(
+              '/user/sign-up',
+              withInviteCode({
+                email: emailForm.getValues('email'),
+                mode: 'email',
+                redirect,
+              })
+            )}
             className={linkClass}
           >
             {t('login.sign_up')}
@@ -280,11 +311,14 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={buildUrl('/user/sign-up', {
-              email: emailPasswordForm.getValues('email'),
-              mode: 'email',
-              redirect,
-            })}
+            to={buildUrl(
+              '/user/sign-up',
+              withInviteCode({
+                email: emailPasswordForm.getValues('email'),
+                mode: 'email',
+                redirect,
+              })
+            )}
             className={linkClass}
           >
             {t('login.sign_up')}
@@ -308,11 +342,14 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={buildUrl('/user/sign-up', {
-              phone: phoneForm.getValues('phone'),
-              mode: 'phone',
-              redirect,
-            })}
+            to={buildUrl(
+              '/user/sign-up',
+              withInviteCode({
+                phone: phoneForm.getValues('phone'),
+                mode: 'phone',
+                redirect,
+              })
+            )}
             className={linkClass}
           >
             {t('login.sign_up')}
@@ -336,11 +373,14 @@ export function LoginForm({
           </button>
           {t('form.or')}
           <Link
-            to={buildUrl('/user/sign-up', {
-              phone: phonePasswordForm.getValues('phone'),
-              mode: 'phone',
-              redirect,
-            })}
+            to={buildUrl(
+              '/user/sign-up',
+              withInviteCode({
+                phone: phonePasswordForm.getValues('phone'),
+                mode: 'phone',
+                redirect,
+              })
+            )}
             className={linkClass}
           >
             {t('login.sign_up')}
@@ -357,7 +397,7 @@ export function LoginForm({
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">{t('login.title')}</h1>
         <p className="text-balance text-sm text-muted-foreground">
-          {t('login.description')}
+          {t('login.description', { contactMethod: loginMethod })}
         </p>
       </div>
 
@@ -397,6 +437,7 @@ export function LoginForm({
                 </FormItem>
               )}
             />
+            <InviteCodeEntry />
             <Button
               type="submit"
               variant="default"
@@ -464,6 +505,7 @@ export function LoginForm({
                 </FormItem>
               )}
             />
+            <InviteCodeEntry />
             <Button
               type="submit"
               variant="default"
@@ -502,6 +544,7 @@ export function LoginForm({
                 </FormItem>
               )}
             />
+            <InviteCodeEntry />
             <Button
               type="submit"
               variant="default"
@@ -560,6 +603,7 @@ export function LoginForm({
                 </FormItem>
               )}
             />
+            <InviteCodeEntry />
             <Button
               type="submit"
               variant="default"

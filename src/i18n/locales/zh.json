@@ -17,6 +17,10 @@
   "toggle_theme": "切换外观",
   "notification": "通知",
   "download_app": "下载",
+  "app_download_qr": {
+    "title": "扫码下载小黑 App",
+    "hint": "下载 App"
+  },
   "notification_modal": {
     "title": "通知",
     "all": "全部",
@@ -50,6 +54,8 @@
     "created": "{{related_time}}创建"
   },
   "sidebar": {
+    "collapse_folder": "收起{{name}}",
+    "locate_folder": "回到 {{name}}",
     "expand": "展开侧边栏",
     "collapse": "收起侧边栏",
     "folder_empty": "空空如也",
@@ -78,11 +84,14 @@
   "copilot": {
     "title": "Copilot",
     "description": "在当前工作区中继续 AI 对话",
-    "expand": "展开 Copilot",
-    "collapse": "收起 Copilot",
+    "expand": "打开小黑",
+    "tooltip": "小黑",
     "preview": "引用预览",
     "close_preview": "关闭引用预览",
     "preview_error": "无法加载引用资源，请稍后重试"
+  },
+  "right_sidebar": {
+    "collapse": "收起右侧边栏"
   },
   "resource_picker": {
     "expand_resource": "展开{{name}}",
@@ -114,6 +123,23 @@
     "no_content": "资源没有内容可下载",
     "read_only_target": "只读资源不能包含其他资源",
     "untitled": "未命名",
+    "history": {
+      "open": "打开编辑历史",
+      "title": "编辑历史",
+      "tooltip": "编辑历史",
+      "current": "当前版本",
+      "historical_version": "历史版本",
+      "back_to_current": "查看当前版本",
+      "restore": "恢复此版本",
+      "restore_title": "恢复此版本吗？",
+      "restore_description": "恢复会创建新的当前版本，现有历史记录仍会保留。",
+      "restore_confirm": "恢复",
+      "restore_cancel": "取消",
+      "restore_failed": "恢复版本失败",
+      "empty": "暂无编辑历史",
+      "load_failed": "加载编辑历史失败",
+      "retry": "重试"
+    },
     "attrs": {
       "tag": "标签",
       "add_tag": "点击添加标签",
@@ -132,6 +158,7 @@
     "panel_title": "评论（{{count}}）",
     "no_threads": "暂无评论",
     "title": "评论",
+    "tooltip": "评论",
     "all_title": "所有评论",
     "filter": "筛选评论",
     "open_all": "查看全部评论",
@@ -356,10 +383,12 @@
     "use_email": "使用邮箱验证码",
     "use_otp": "使用验证码登录",
     "sign_up": "注册",
+    "phone": "手机号",
+    "email": "邮箱",
     "email_not_exists": "该邮箱不存在，请注册以继续。",
     "phone_not_exists": "该手机号不存在，请注册以继续。",
     "title": "登录您的账户",
-    "description": "请输入您的邮箱以登录账户",
+    "description": "请输入您的{{contactMethod}}以登录账户",
     "authorizing": "授权中，请稍候...",
     "back": "返回",
     "login_use_email": "使用邮箱登录",
@@ -666,7 +695,15 @@
     "theme_dark": "深色",
     "theme_system": "系统",
     "auto_tag_setting": "AI 智能标签提取",
-    "auto_tag_description": "使用 AI 自动从内容中提取和生成标签"
+    "auto_tag_description": "使用 AI 自动从内容中提取和生成标签",
+    "nickname": "昵称",
+    "note": "备注",
+    "note_private_hint": "仅自己可见",
+    "nickname_visible_hint": "该团队内所有成员可见",
+    "nickname_placeholder": "这个空间里怎么叫你",
+    "note_placeholder": "关于这个人的说明",
+    "nickname_length_error": "昵称不能超过 {{max}} 个字符",
+    "note_length_error": "备注不能超过 {{max}} 个字符"
   },
   "unauth_page": {
     "title": "访问被拒绝",
@@ -822,6 +859,7 @@
           "list_resource_tasks": "查询资源任务",
           "load_docs": "查看文档",
           "get_agent_asset_resource_id": "加载资源",
+          "create_agent_asset": "创建资源",
           "get_current_info": "获取当前信息",
           "wait": "等待",
           "frontend_operations": "前端操作",
@@ -902,7 +940,11 @@
     "thinking_level": "思考强度",
     "restore_default": "恢复默认",
     "model_tier": "模型类型",
-    "model": { "default": "默认", "pro": "Agent 2.1", "basic": "Agent 1.1" },
+    "model": {
+      "default": "默认",
+      "pro": "Agent 2.1",
+      "basic": "Agent 1.1"
+    },
     "thinking": {
       "low": "轻",
       "medium": "中",
@@ -1430,5 +1472,78 @@
   },
   "user": {
     "login": "登录"
+  },
+  "inviteReferral": {
+    "title": "邀请有礼",
+    "homeEntry": "邀请有礼",
+    "inviteNow": "立即邀请",
+    "loadFailed": "邀请信息加载失败，请重试",
+    "common": {
+      "close": "关闭",
+      "retry": "重试"
+    },
+    "phoneBinding": {
+      "title": "绑定手机号",
+      "skip": "跳过",
+      "submit": "绑定并领取奖励",
+      "description": "为确认新用户身份并发放邀请奖励，请绑定手机号。",
+      "bubble": "绑定手机号，领取 120 分钟音视频解析额度～"
+    },
+    "code": {
+      "entry": "有邀请码？填写 >",
+      "title": "填写邀请码",
+      "placeholder": "填写邀请码，获取专享福利",
+      "paste": "粘贴",
+      "confirm": "提交",
+      "confirmed": "邀请码：{{code}}",
+      "invalid": "邀请码无效，请检查后重试"
+    },
+    "summary": {
+      "title": "我的邀请收益",
+      "people": "{{count}} 人",
+      "invited": "已邀请"
+    },
+    "tasks": {
+      "title": "新人任务",
+      "expires": "{{count}} 天后过期",
+      "completed": "已完成",
+      "action": "去完成",
+      "phoneRequired": "请先绑定手机号"
+    },
+    "rules": {
+      "inviteTitle": "邀请规则",
+      "steps": {
+        "copy": "复制链接",
+        "bind": "好友注册绑定",
+        "task": "好友完成任务"
+      },
+      "notesTitle": "奖励获得说明"
+    },
+    "rewards": {
+      "title": "奖励获得规则",
+      "task": "好友完成任务",
+      "both": "双方获得奖励"
+    },
+    "share": {
+      "dialogTitle": "邀请好友获得高级版权益",
+      "dialogDescription": "分享给好友，完成任务后双方获得高级版",
+      "exclusiveLink": "您的专属链接",
+      "exclusiveLinkHint": "点击立即邀请即可获得您的专属邀请链接，您可以通过链接邀请身边的朋友、家人或同事注册体验。",
+      "inviteCodeLabel": "邀请码",
+      "inviteLinkLabel": "邀请链接",
+      "copyInvitation": "把散落的信息，变成随时可用的知识，将万物变成记忆，将记忆变成万物～\n小黑 OmniBox 支持收集网页、文件和音视频，并通过 AI 完成整理、搜索、问答与写作。\n通过我的邀请码注册并完成新人任务，双方均可获得对应权益。\n链接：{{inviteUrl}}\n邀请码：{{inviteCode}}",
+      "copy": "复制",
+      "copySuccess": "复制成功",
+      "copyFailed": "复制失败，请重试",
+      "linkUnavailable": "邀请链接暂不可用"
+    },
+    "records": {
+      "title": "邀请记录",
+      "subtitle": "邀请记录",
+      "loadFailed": "邀请记录加载失败，请重试",
+      "emptyTitle": "空空如也",
+      "task": "任务记录",
+      "rewardColumn": "已获得奖励"
+    }
   }
 }

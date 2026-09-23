@@ -13,6 +13,7 @@ import { TrashPanel } from '@/page/trash';
 import type { ResourceSortOptions } from '@/service/resource';
 
 import SpaceSection from './SpaceSection';
+import StickyFolderRow from './StickyFolderRow';
 
 interface ResourceTreeProps {
   namespaceId: string;
@@ -99,31 +100,34 @@ export default function ResourceTree({
 
   return (
     <>
-      <SidebarContent
-        ref={sidebarRef}
-        className="no-scrollbar gap-0 overflow-x-hidden"
-      >
-        {(['private', 'teamspace'] as SpaceType[]).map(spaceType => (
-          <SpaceSection
-            key={spaceType}
-            spaceType={spaceType}
-            namespaceId={namespaceId}
-            hasTeamspace={hasTeamspace}
-            currentNamespace={currentNamespace}
-            onBatchDelete={onBatchDelete}
-            onBatchMove={onBatchMove}
-            onBatchCreate={onBatchCreate}
-            onAddToChat={onAddToChat}
-            onCreateSmartFolder={onCreateSmartFolder}
-            onCreateRssFolder={onCreateRssFolder}
-            smartFolderQuotaExhausted={smartFolderQuotaExhausted}
-            rssFolderQuotaExhausted={rssFolderQuotaExhausted}
-            sortingSpace={sortingSpace}
-            onResourceSortChange={onResourceSortChange}
-          />
-        ))}
-        <TrashPanel />
-      </SidebarContent>
+      <div className="relative flex min-h-0 flex-1 flex-col bg-sidebar md:-mr-2">
+        <SidebarContent
+          ref={sidebarRef}
+          className="gap-0 overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] md:pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
+        >
+          {(['private', 'teamspace'] as SpaceType[]).map(spaceType => (
+            <SpaceSection
+              key={spaceType}
+              spaceType={spaceType}
+              namespaceId={namespaceId}
+              hasTeamspace={hasTeamspace}
+              currentNamespace={currentNamespace}
+              onBatchDelete={onBatchDelete}
+              onBatchMove={onBatchMove}
+              onBatchCreate={onBatchCreate}
+              onAddToChat={onAddToChat}
+              onCreateSmartFolder={onCreateSmartFolder}
+              onCreateRssFolder={onCreateRssFolder}
+              smartFolderQuotaExhausted={smartFolderQuotaExhausted}
+              rssFolderQuotaExhausted={rssFolderQuotaExhausted}
+              sortingSpace={sortingSpace}
+              onResourceSortChange={onResourceSortChange}
+            />
+          ))}
+          <TrashPanel />
+        </SidebarContent>
+        <StickyFolderRow scrollRef={sidebarRef} namespaceId={namespaceId} />
+      </div>
       <ManualDropLine />
       <SidebarDragLayer />
     </>

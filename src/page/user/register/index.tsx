@@ -21,13 +21,11 @@ export default function RegisterPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const phoneParam = params.get('phone');
   const modeParam = params.get('mode');
 
-  // Get initial contact method from URL params
   const getInitialContactMethod = (): ContactMethod => {
-    if (modeParam === 'phone' || phoneParam) return 'phone';
-    return 'email';
+    if (modeParam === 'email') return 'email';
+    return 'phone';
   };
 
   const [contactMethod, setContactMethod] = useState<ContactMethod>(
@@ -44,7 +42,7 @@ export default function RegisterPage() {
   }, [navigate, params]);
 
   return (
-    <WrapperPage extra={<MetaPage />}>
+    <WrapperPage extra={<MetaPage />} showAppDownload>
       {scan ? (
         <Scan onScan={onScan} />
       ) : (

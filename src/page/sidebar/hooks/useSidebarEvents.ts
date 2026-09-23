@@ -5,7 +5,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceType } from '@/interface';
-import { navigateToResource } from '@/page/resource/resourceNavigation';
+import {
+  isReservedWorkspaceSegment,
+  navigateToResource,
+} from '@/page/resource/resourceNavigation';
 import { invalidateRssFolderLinkNames } from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
@@ -28,7 +31,11 @@ function extractResourceId(
   namespaceId: string
 ): string | undefined {
   const match = pathname.match(new RegExp(`^/${namespaceId}/([^/]+)`));
-  return match?.[1];
+  const resourceId = match?.[1];
+  if (!resourceId || isReservedWorkspaceSegment(resourceId)) {
+    return undefined;
+  }
+  return resourceId;
 }
 
 async function resolveResourceList(
@@ -236,6 +243,9 @@ export function useSidebarEvents(namespaceId: string) {
         'delete_resource',
         (id: string, _parentId?: string, resourceType?: ResourceType) => {
           const deletedNode = useSidebarStore.getState().nodes[id];
+          if (!deletedNode) {
+            return;
+          }
           const isDeletedSmartFolder =
             resourceType === 'smart_folder' ||
             deletedNode?.resourceType === 'smart_folder';
@@ -270,17 +280,26 @@ export function useSidebarEvents(namespaceId: string) {
                 .getState()
                 .restore(id)
                 .then(restoredId => {
+                  const restoredNode =
+                    useSidebarStore.getState().nodes[restoredId];
                   app.fire('trash_updated');
-                  const currentNs = useSidebarStore.getState().namespaceId;
-                  const nowResourceId = extractResourceId(
-                    window.location.pathname,
-                    currentNs
-                  );
-                  if (!nowResourceId || nowResourceId === id) {
-                    navigateToResource(navigate, `/${currentNs}/${restoredId}`);
-                  } else {
-                    handleScrollToResource(restoredId);
+                  if (restoredNode) {
+                    app.fire('restore_resource', {
+                      id: restoredId,
+                      parent_id: restoredNode.parentId ?? '',
+                      name: restoredNode.name,
+                      resource_type: restoredNode.resourceType,
+                      space_type: restoredNode.spaceType,
+                      has_children: restoredNode.hasChildren,
+                      attrs: restoredNode.attrs,
+                      content: restoredNode.content,
+                      created_at: restoredNode.createdAt,
+                      updated_at: restoredNode.updatedAt,
+                    } as Resource);
                   }
+                  const currentNs = useSidebarStore.getState().namespaceId;
+                  navigateToResource(navigate, `/${currentNs}/${restoredId}`);
+                  handleScrollToResource(restoredId);
                   refreshLoadedSmartFolders(currentNs, app);
                   if (isDeletedSmartFolder) {
                     useSidebarStore.getState().refetchSmartFolderEntitlements();
@@ -351,6 +370,9 @@ export function useSidebarEvents(namespaceId: string) {
 
     hooks.push(
       app.on('restore_resource', (resource: Resource) => {
+        if (useSidebarStore.getState().nodes[resource.id]) {
+          return;
+        }
         (async () => {
           const id = await useSidebarStore.getState().restore(resource);
           useSidebarStore.getState().activate(id);
