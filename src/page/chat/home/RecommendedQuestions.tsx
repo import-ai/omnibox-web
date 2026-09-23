@@ -142,6 +142,7 @@ export default function RecommendedQuestions({
           className={cn(
             'group relative mb-4 flex min-h-12 w-fit min-w-recommended-question max-w-recommended-question items-center rounded-full text-left text-sm font-normal leading-recommended-question text-muted-foreground transition-opacity duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             compact ? 'pl-7 pr-5 py-3' : 'pl-8 pr-4 py-3',
+            !question && 'invisible',
             transitionPhase === 'fadingOut' && 'opacity-0'
           )}
         >
@@ -149,11 +150,10 @@ export default function RecommendedQuestions({
           <span
             className={cn(
               'relative z-[1] line-clamp-3 break-all transition-opacity duration-150 motion-reduce:transition-none',
-              !question && 'opacity-60',
               transitionPhase === 'idle' && question && 'group-hover:opacity-80'
             )}
           >
-            {question?.question ?? t('chat.textarea.placeholder')}
+            {question?.question}
           </span>
         </button>
         <div className="min-h-8">{footer}</div>
