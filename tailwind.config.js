@@ -21,7 +21,7 @@ export default {
         'recommended-question': 'min(100%, 10.25rem)',
       },
       maxWidth: {
-        'recommended-question': 'min(100%, 27rem)',
+        'recommended-question': 'min(100%, 34rem)',
       },
       lineHeight: {
         'recommended-question': '1.375rem',

@@ -43,14 +43,16 @@ it('keeps the mascot mounted before configuration and questions arrive', async (
     const bubble = container.querySelectorAll('button')[1];
     expect(mascot).not.toBeNull();
     expect(bubble.disabled).toBe(true);
-    expect(bubble.textContent).toBe('chat.textarea.placeholder');
+    expect(bubble.textContent).toBe('');
+    expect(bubble.classList.contains('invisible')).toBe(true);
     expect(http.get).not.toHaveBeenCalled();
 
     await act(async () => root.render(render(true)));
     expect(container.querySelector('svg')).toBe(mascot);
     expect(container.querySelectorAll('button')[1]).toBe(bubble);
 
-    expect(bubble.classList.contains('invisible')).toBe(false);
+    expect(bubble.classList.contains('invisible')).toBe(true);
+    expect(bubble.textContent).toBe('');
 
     await act(async () =>
       resolveQuestions({ questions: [{ id: 'one', question: 'Question' }] })
