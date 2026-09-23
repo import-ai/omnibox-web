@@ -11,6 +11,22 @@ import { http } from '@/lib/request';
 export const ALIYUN_CAPTCHA_SCRIPT_URL =
   'https://o.alicdn.com/captcha-frontend/aliyunCaptcha/AliyunCaptcha.js';
 
+/**
+ * CSS selector for the root nodes the SDK appends to `<body>` when it raises a
+ * challenge (observed: `#aliyunCaptcha-window-popup`, `#aliyunCaptcha-mask`).
+ * Mirrored by the `pointer-events` rule in `src/index.css`; keep both in sync.
+ */
+export const ALIYUN_CAPTCHA_NODE_SELECTOR =
+  '[id*="aliyunCaptcha" i],[class*="aliyunCaptcha" i]';
+
+/** True when `target` is inside an Aliyun captcha popup/mask. */
+export function isInsideAliyunCaptcha(target: EventTarget | null): boolean {
+  return (
+    target instanceof Element &&
+    target.closest(ALIYUN_CAPTCHA_NODE_SELECTOR) !== null
+  );
+}
+
 export type CaptchaScene = 'web' | 'app';
 export type CaptchaMode = 'popup' | 'embed';
 export type CaptchaLanguage = 'cn' | 'en' | 'tw';

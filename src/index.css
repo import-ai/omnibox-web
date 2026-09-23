@@ -273,3 +273,23 @@ a {
     background-position: -200% 0;
   }
 }
+
+/*
+ * Alibaba Cloud Captcha 2.0 appends its challenge popup and mask directly to
+ * <body> (`#aliyunCaptcha-window-popup`, `#aliyunCaptcha-mask`). Radix sets
+ * `pointer-events: none` on <body> while a modal dialog is open and only
+ * re-enables it inside its own portal, so a captcha raised from a
+ * dialog-hosted form (Settings > Account > Email Change / Phone Bind)
+ * inherited it: the slider rendered but could not be dragged and even the
+ * SDK's close button was unreachable. Restoring pointer events on the roots is
+ * enough - the subtree inherits - and stacking needs no help: the SDK sets
+ * z-index 10000000 on its mask and 10000001 on the popup (measured), well
+ * above the dialog overlay and content at z-index 50, so do not override it.
+ * Radix would also dismiss the dialog on a pointerdown outside its portal;
+ * DialogContent exempts these nodes. Keep the selector in sync with
+ * ALIYUN_CAPTCHA_NODE_SELECTOR in src/lib/captcha.ts.
+ */
+body > [id*='aliyunCaptcha' i],
+body > [class*='aliyunCaptcha' i] {
+  pointer-events: auto;
+}
