@@ -99,3 +99,17 @@ it('does not restore expansion for an rss folder returned by a smart folder', ()
   expect(state.nodes.result.hasChildren).toBe(false);
   expect(state.ui.result.expanded).toBe(false);
 });
+
+it('preserves a user collapse when a background refresh finishes', () => {
+  const state = {
+    nodes: { parent: node('parent', null, 'private') },
+    ui: { parent: { expanded: false, loaded: true, loading: false } },
+    activeId: null,
+  } as unknown as SidebarStore;
+  const actions = buildBaseActions(update => update(state));
+  actions.refreshChildren('parent', [
+    { id: 'child', name: 'Child', resource_type: 'doc' } as Resource,
+  ]);
+  expect(state.ui.parent.expanded).toBe(false);
+  expect(state.nodes.parent.children).toEqual(['child']);
+});

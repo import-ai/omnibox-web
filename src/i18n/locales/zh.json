@@ -54,6 +54,8 @@
     "created": "{{related_time}}创建"
   },
   "sidebar": {
+    "collapse_folder": "收起{{name}}",
+    "locate_folder": "回到 {{name}}",
     "expand": "展开侧边栏",
     "collapse": "收起侧边栏",
     "folder_empty": "空空如也",
