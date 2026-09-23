@@ -6,6 +6,7 @@ import {
   navigateToResource,
 } from '@/page/resource/resourceNavigation';
 import { getSmartFolderParentIdFromChildKey } from '@/page/sidebar/components/smart-folder';
+import { centerSidebarElement } from '@/page/sidebar/sidebarScroll';
 import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
 import type { ResourceSorts } from '@/page/sidebar/store/resourceSort';
 import {
@@ -144,15 +145,11 @@ export function useSidebarInit(props: IProps) {
         : currentResourceId;
 
     store.expandPathTo(expandId, { expandTarget: true }).then(() => {
-      if (cancelled) return;
-      requestAnimationFrame(() => {
-        if (cancelled) return;
-        const element = document.querySelector(
-          `[data-resource-id="${scrollTargetId}"]`
-        );
-        if (element) {
-          element.scrollIntoView({ behavior: 'auto', block: 'center' });
-        }
+      if (cancelled) {
+        return;
+      }
+      return centerSidebarElement(`[data-resource-id="${scrollTargetId}"]`, {
+        options: { shouldApply: () => !cancelled },
       });
     });
 

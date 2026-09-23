@@ -56,6 +56,7 @@ interface IProps {
   previewResourceId: string | null;
   resourceId: string;
   namespaceId: string;
+  onSearchResources: () => void;
 }
 
 interface LocateSnapshot {
@@ -138,8 +139,13 @@ function getLocateSnapshot(
 }
 
 export function BodyForSidebar(props: IProps) {
-  const { currentNamespace, namespaceId, previewResourceId, resourceId } =
-    props;
+  const {
+    currentNamespace,
+    namespaceId,
+    previewResourceId,
+    resourceId,
+    onSearchResources,
+  } = props;
   const app = useApp();
   useSidebarInit({ namespaceId, previewResourceId, resourceId });
   useSidebarEvents(namespaceId);
@@ -649,6 +655,7 @@ export function BodyForSidebar(props: IProps) {
         locateResourceDisabled={!canLocateCurrentResource}
         onRefreshResources={handleRefreshSidebarResources}
         refreshingResources={refreshingResources || !!sortingSpace}
+        onSearchResources={onSearchResources}
       />
       <ResourceTree
         namespaceId={namespaceId}

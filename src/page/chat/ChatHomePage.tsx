@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { Typewriter } from '@/components/typewriter';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope, setPendingChatPayload } from '@/lib/chatBridge';
@@ -11,7 +10,6 @@ import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import {
   ChatMessageDisplayPart,
-  ChatMode,
   ConversationEntity,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
@@ -33,7 +31,6 @@ import RecommendedQuestions, {
   RecommendedQuestionItem,
 } from './home/RecommendedQuestions';
 import useSelectedResources from './useSelectedResources.ts';
-import { getGreeting } from './utils';
 
 export default function ChatHomePage() {
   const [pendingMessage, setPendingMessage] =
@@ -63,7 +60,6 @@ export default function ChatHomePage() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const namespaceId = params.namespace_id || '';
-  const greetingI18nKey = `chat.home.greeting.${getGreeting()}`;
   const [hasConversationHistory, setHasConversationHistory] = useState<
     boolean | null
   >(null);
@@ -74,14 +70,13 @@ export default function ChatHomePage() {
   const { user, loading: userLoading } = useUser();
   const { selectedResources, setSelectedResources } = useSelectedResources();
   const thinkingSelectionRef = useRef<ThinkingSelection | undefined>(undefined);
-  const creatingRecommendedQuestionRef = useRef(false);
-  const [loadingRecommendedQuestionId, setLoadingRecommendedQuestionId] =
-    useState<string | null>(null);
+  const [filledRecommendedQuestion, setFilledRecommendedQuestion] = useState<
+    string | undefined
+  >();
   const chatHomeDraftScope = getChatHomeDraftScope(namespaceId);
 
   useEffect(() => {
-    creatingRecommendedQuestionRef.current = false;
-    setLoadingRecommendedQuestionId(null);
+    setFilledRecommendedQuestion(undefined);
   }, [namespaceId]);
 
   useEffect(() => {
@@ -207,25 +202,7 @@ export default function ChatHomePage() {
     }
   };
   const handleQuestionSelect = (item: RecommendedQuestionItem) => {
-    if (creatingRecommendedQuestionRef.current) {
-      return;
-    }
-
-    creatingRecommendedQuestionRef.current = true;
-    setLoadingRecommendedQuestionId(item.id);
-
-    sendMessage({
-      ...thinkingSelectionRef.current,
-      query: item.question,
-      tools: [],
-      selectedResources: [],
-      mode: ChatMode.ASK,
-      approvalMode: 'manual',
-      recommendedQuestionId: item.id,
-    }).catch(() => {
-      creatingRecommendedQuestionRef.current = false;
-      setLoadingRecommendedQuestionId(null);
-    });
+    setFilledRecommendedQuestion(item.question);
   };
 
   return (
@@ -280,15 +257,27 @@ export default function ChatHomePage() {
               : 'flex flex-col justify-center flex-1 mb-8'
           }
         >
-          {!pendingMessage && (
-            <h1 className="text-[28px] text-center mb-[32px] font-medium">
-              <Typewriter text={t(greetingI18nKey)} typeSpeed={32} />
-            </h1>
-          )}
-          {config.commercial && (
-            <AgentCredits
+          {pendingMessage ? (
+            config.commercial && (
+              <AgentCredits
+                namespaceId={namespaceId}
+                agentCredits={agentCredits}
+              />
+            )
+          ) : (
+            <RecommendedQuestions
+              key={namespaceId}
+              enabled={config.commercial}
               namespaceId={namespaceId}
-              agentCredits={agentCredits}
+              onSelect={handleQuestionSelect}
+              footer={
+                config.commercial && (
+                  <AgentCredits
+                    namespaceId={namespaceId}
+                    agentCredits={agentCredits}
+                  />
+                )
+              }
             />
           )}
           <ChatArea
@@ -306,6 +295,7 @@ export default function ChatHomePage() {
             imageUploadDisabled={imageUploadDisabled}
             proUnsupported={imageUploadDisabled}
             initialQuery={pendingMessage ? undefined : defaultHomeInput}
+            fillQuery={filledRecommendedQuestion}
             sendMessage={sendMessage}
           />
           {pendingMessage && (
@@ -315,14 +305,6 @@ export default function ChatHomePage() {
             >
               {t('chat.disclaimer')}
             </div>
-          )}
-          {!pendingMessage && config.commercial && (
-            <RecommendedQuestions
-              key={namespaceId}
-              namespaceId={namespaceId}
-              loadingQuestionId={loadingRecommendedQuestionId}
-              onSelect={handleQuestionSelect}
-            />
           )}
         </div>
         {!pendingMessage && <FeatureCards />}

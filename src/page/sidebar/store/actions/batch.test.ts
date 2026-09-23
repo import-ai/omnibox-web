@@ -87,6 +87,19 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+it('clears selected resources and exits multi-select mode', () => {
+  const state = createStore({});
+  state.selectedIds = { 'resource-1': true, 'resource-2': true };
+  state.selectionMode = true;
+  state.lastSelectedId = 'resource-2';
+
+  actionsFor(state).deselectAll();
+
+  expect(state.selectedIds).toEqual({});
+  expect(state.selectionMode).toBe(false);
+  expect(state.lastSelectedId).toBeNull();
+});
+
 it('appends batch-moved resources in manual sort mode', async () => {
   const state = createStore({
     private: node('private', null, ['source', 'target']),

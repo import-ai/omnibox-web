@@ -168,6 +168,11 @@ export function useChatAreaDraftLifecycle({
     setQuery(value);
   }, []);
 
+  const fillQuery = useCallback((value: string) => {
+    queryEditedRef.current = true;
+    setQuery(value);
+  }, []);
+
   const handleToolsChange = useCallback((nextTools: ToolType[]) => {
     toolRestoreStateRef.current = markToolsManuallyChanged(
       toolRestoreStateRef.current
@@ -204,6 +209,7 @@ export function useChatAreaDraftLifecycle({
     composerInitialState,
     composerSelectedResources,
     composerTools,
+    fillQuery,
     handleComposerStateChange,
     handleQueryChange,
     handleToolsChange,
