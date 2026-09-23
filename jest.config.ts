@@ -12,6 +12,7 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   transform: {
+    '^.+/uuid/.+\\.js$': ['ts-jest', { tsconfig: { allowJs: true } }],
     '^.+\\.(ts|tsx)$': [
       'ts-jest',
       {
@@ -19,6 +20,7 @@ const config: Config = {
       },
     ],
   },
+  transformIgnorePatterns: ['/node_modules/(?!uuid/|\\.pnpm/uuid@)'],
 };
 
 export default config;
