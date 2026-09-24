@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
 import { http } from '@/lib/request';
@@ -175,7 +177,7 @@ export function beginPendingQuery(
   query: string,
   parentId?: string,
   attrs?: MessageDetail['attrs'],
-  id: string = crypto.randomUUID()
+  id: string = uuidv4()
 ): string {
   operator.add({
     response_type: 'bos',
@@ -325,7 +327,7 @@ export function ask(
         if (!streamError) {
           let id = pendingId;
           if (acceptedId) {
-            id = assistantId || crypto.randomUUID();
+            id = assistantId || uuidv4();
             if (!assistantId)
               messageOperator.add({
                 response_type: 'bos',
