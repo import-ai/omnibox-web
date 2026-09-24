@@ -42,6 +42,11 @@ body.batch-drop-not-allowed * {
     --sidebar-accent-foreground: 0 0% 9%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-tab-background: 0 0% 89.8% / 0.4;
+    --sidebar-tab-active: 0 0% 100% / 0.8;
+    --sidebar-tab-border: 0 0% 0% / 0;
+    --sidebar-tab-foreground: 0 0% 45.1%;
+    --sidebar-tab-active-foreground: 0 0% 3.9%;
   }
 
   .dark {
@@ -77,6 +82,11 @@ body.batch-drop-not-allowed * {
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-tab-background: 0 0% 9%;
+    --sidebar-tab-active: 0 0% 17.25%;
+    --sidebar-tab-border: 0 0% 17.25%;
+    --sidebar-tab-foreground: 0 0% 89.8%;
+    --sidebar-tab-active-foreground: 0 0% 98%;
   }
 }
 

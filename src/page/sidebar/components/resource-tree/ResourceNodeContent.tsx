@@ -298,6 +298,7 @@ export function ResourceNodeContent({
               ref={dropRef}
               data-resource-id={nodeId}
               data-resource-drop-id={nodeId}
+              data-resource-row-id={nodeId}
               className={cn(
                 'group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent',
                 'flex items-center',

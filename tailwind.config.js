@@ -9,12 +9,40 @@ export default {
   },
   theme: {
     extend: {
+      spacing: {
+        7.5: '1.875rem',
+        'sidebar-tab-label-inset': '0.57775rem',
+      },
+      width: {
+        'sidebar-tabs': '12.5rem',
+        'sidebar-tab': '54.622%',
+      },
+      minWidth: {
+        'recommended-question': 'min(100%, 10.25rem)',
+      },
+      maxWidth: {
+        'recommended-question': 'min(100%, 34rem)',
+      },
+      lineHeight: {
+        'recommended-question': '1.375rem',
+      },
+      inset: {
+        'sidebar-tab-offset': '45.378%',
+      },
+      boxShadow: {
+        'sidebar-tab':
+          '0 2px 5px 0 rgb(0 0 0 / 0.05), 0 -2px 5px 0 rgb(0 0 0 / 0.05)',
+      },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
       colors: {
+        'chat-composer': {
+          DEFAULT: colors.white,
+          dark: '#303030',
+        },
         comment: {
           DEFAULT: colors.yellow[400],
           surface: colors.yellow[200],
@@ -73,9 +101,18 @@ export default {
           'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
+          tab: 'hsl(var(--sidebar-tab-background))',
+          'tab-active': 'hsl(var(--sidebar-tab-active))',
+          'tab-border': 'hsl(var(--sidebar-tab-border))',
+          'tab-foreground': 'hsl(var(--sidebar-tab-foreground))',
+          'tab-active-foreground': 'hsl(var(--sidebar-tab-active-foreground))',
         },
       },
       keyframes: {
+        'cat-blink': {
+          '0%, 100%': { transform: 'scaleY(1)' },
+          '40%': { transform: 'scaleY(0.08)' },
+        },
         'accordion-down': {
           from: {
             height: '0',
@@ -102,6 +139,7 @@ export default {
         },
       },
       animation: {
+        'cat-blink-on-press': 'cat-blink 170ms linear',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'blink-caret': 'blink-caret 1s step-end infinite',

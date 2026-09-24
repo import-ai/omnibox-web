@@ -54,6 +54,8 @@
     "created": "{{related_time}}创建"
   },
   "sidebar": {
+    "collapse_folder": "收起{{name}}",
+    "locate_folder": "回到 {{name}}",
     "expand": "展开侧边栏",
     "collapse": "收起侧边栏",
     "folder_empty": "空空如也",
@@ -905,6 +907,7 @@
       }
     },
     "home": {
+      "nextRecommendedQuestion": "下一个推荐问题",
       "greeting": {
         "morning": "早上好，今天有什么可以帮您的吗？",
         "afternoon": "下午好，今天有什么可以帮您的吗？",
@@ -1013,6 +1016,8 @@
     "root": "根目录",
     "resources": "资源",
     "chats": "对话",
+    "search_resources": "搜索资源",
+    "search_chats": "搜索聊天历史",
     "no_results": "暂无匹配资源",
     "filters": {
       "title": "筛选",

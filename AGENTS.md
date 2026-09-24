@@ -165,6 +165,13 @@ Credentials managed in `src/page/user/util.ts`:
 - Do not create kebab-case source filenames under `src`; update import paths whenever a file is renamed.
 - ESLint enforces file naming, unused vars, Prettier, and simple import sorting.
 
+### UUID Generation
+
+Use `v4` from `uuid` (`import { v4 as uuidv4 } from 'uuid'`) for all UUID generation.
+Do not call `crypto.randomUUID()` directly: private deployments must support HTTP
+on intranet origins, where that API is unavailable. `uuid.v4()` uses
+`crypto.getRandomValues()` when the native UUID API is unavailable.
+
 ### Key Patterns
 
 **Sidebar** (`src/page/sidebar/`): Tree view with react-dnd for drag-and-drop,

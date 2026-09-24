@@ -1,3 +1,5 @@
+/** @jest-environment-options {"customExportConditions": ["browser"]} */
+
 jest.mock('@/const', () => ({
   FORCE_PRIVATE_SEARCH: false,
 }));
@@ -9,6 +11,8 @@ jest.mock('@/lib/streamTransport', () => ({
 jest.mock('@/lib/request', () => ({
   http: {},
 }));
+
+import { webcrypto } from 'node:crypto';
 
 import { createStreamTransport } from '@/lib/streamTransport';
 import {
@@ -56,6 +60,76 @@ describe('chat request body tools', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     sessionStorage.clear();
+  });
+
+  it('creates pending and error message UUIDs without crypto.randomUUID', async () => {
+    const originalCrypto = Object.getOwnPropertyDescriptor(
+      globalThis,
+      'crypto'
+    );
+    Object.defineProperty(globalThis, 'crypto', {
+      configurable: true,
+      value: { getRandomValues: webcrypto.getRandomValues.bind(webcrypto) },
+    });
+    try {
+      const operator = {
+        add: jest.fn(),
+        update: jest.fn(),
+        error: jest.fn(),
+      } as unknown as MessageOperator;
+      (createStreamTransport as jest.Mock).mockImplementation(
+        (_url, _body, onData) => ({
+          start: async () => {
+            await onData(
+              JSON.stringify({
+                response_type: 'bos',
+                role: OpenAIMessageRole.USER,
+                id: 'accepted-user',
+                parentId: '',
+              })
+            );
+            throw new Error('Connection lost');
+          },
+        })
+      );
+      await ask(
+        'c1',
+        'Hi',
+        [],
+        [],
+        AgentRequestChannel.WEB,
+        undefined,
+        operator,
+        '/ask',
+        undefined,
+        'n1',
+        undefined,
+        undefined
+      ).start();
+
+      const messages = (operator.add as jest.Mock).mock.calls.map(
+        ([message]) => message
+      );
+      const pending = messages.find(message => message.attrs?.pending_query);
+      const assistant = messages.find(
+        message => message.role === OpenAIMessageRole.ASSISTANT
+      );
+      const uuidV4 =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+      expect(pending.id).toMatch(uuidV4);
+      expect(pending.attrs.client_request_id).toBe(pending.id);
+      expect(assistant.id).toMatch(uuidV4);
+      expect(assistant.id).not.toBe(pending.id);
+      expect(operator.error).toHaveBeenCalledWith(
+        { response_type: 'error', message: 'Connection lost' },
+        assistant.id
+      );
+    } finally {
+      if (originalCrypto)
+        Object.defineProperty(globalThis, 'crypto', originalCrypto);
+      else Reflect.deleteProperty(globalThis, 'crypto');
+      (createStreamTransport as jest.Mock).mockReset();
+    }
   });
 
   it('includes web search when the web search token is selected', () => {
