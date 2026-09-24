@@ -15,6 +15,7 @@ const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/InvitePage'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
 const VerifyOtpPage = lazy(() => import('@/page/user/VerifyOtpPage'));
+const CaptchaPage = lazy(() => import('@/page/captcha/CaptchaPage'));
 const AcceptInvitePage = lazy(() => import('@/page/user/AcceptInvitePage'));
 const InviteRedirectPage = lazy(() => import('@/page/invite-redirect'));
 const AccountDeleteConfirmPage = lazy(
@@ -98,6 +99,11 @@ const router = createBrowserRouter([
       {
         path: 'user/accept-invite',
         element: <AcceptInvitePage />,
+      },
+      {
+        // H5 captcha page loaded by the mobile app's WebView.
+        path: 'captcha',
+        element: <CaptchaPage />,
       },
       {
         path: 'user/account/delete/confirm',
