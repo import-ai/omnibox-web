@@ -22,7 +22,6 @@ import {
   EmbeddedAuthContext,
 } from '@/page/user/EmbeddedAuthContext';
 
-const DesktopAuthPage = lazy(() => import('@/page/user/DesktopAuthPage'));
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/InvitePage'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
@@ -75,10 +74,6 @@ const router = createBrowserRouter([
     element: <Layout />,
     errorElement: <Error />,
     children: [
-      {
-        path: 'user/desktop-auth',
-        element: <DesktopAuthPage />,
-      },
       {
         path: 'user/login',
         element: <LoginPage />,

@@ -1,11 +1,11 @@
 map $uri $safe_request_uri {
     default $request_uri;
-    ~*^/user/desktop-auth/?$ $uri;
+    ~*^/oauth/authorize/?$ $uri;
 }
 
 map $http_referer $safe_referer {
     default $http_referer;
-    ~*/user/desktop-auth "";
+    ~*/oauth/authorize "";
 }
 
 log_format json_log escape=json
@@ -39,7 +39,7 @@ map $upstream_http_cache_control $cache_control_value {
 # Keep browser entry routes in sync with src/App.tsx.
 map $uri $is_spa_route {
     default 0;
-    "~*^/(?:welcome|oauth/authorize|user/(?:desktop-auth|login|sign-up|verify-otp|accept-invite|account/delete/confirm|auth/(?:confirm(?:/google)?|miniprogram))|invite/confirm)/?$" 1;
+    "~*^/(?:welcome|oauth/authorize|user/(?:login|sign-up|verify-otp|accept-invite|account/delete/confirm|auth/(?:confirm(?:/google)?|miniprogram))|invite/confirm)/?$" 1;
     "~*^/invite/[0-9A-Za-z]{6}/[0-9A-Za-z]{6}/?$" 1;
     "~*^/[0-9A-Za-z]{6}(?:/invite-referral|/[0-9A-Za-z]{16}(?:/edit|/rss-items/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?|/chat(?:/conversations|/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?)?/?$" 1;
     "~*^/s/[0-9A-Za-z]{10}(?:/[0-9A-Za-z]{16}(?:/rss-items/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?|/chat(?:/[0-9A-F]{8}(?:-[0-9A-F]{4}){3}-[0-9A-F]{12})?)?/?$" 1;
@@ -82,7 +82,7 @@ server {
         access_log off;
     }
 
-    location ~* ^/user/desktop-auth/?$ {
+    location ~* ^/oauth/authorize/?$ {
         root /usr/share/nginx/html;
         try_files /index.html =404;
         add_header Cache-Control no-store always;

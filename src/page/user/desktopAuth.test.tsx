@@ -4,8 +4,8 @@ import { createRoot } from 'react-dom/client';
 
 import { http } from '@/lib/request';
 
+import OAuthAuthorizePage from '../oauth/OAuthAuthorizePage';
 import Apple from './apple';
-import DesktopAuthPage from './DesktopAuthPage';
 import DesktopLoginPage from './DesktopLoginPage';
 import { EmbeddedAuthContext } from './EmbeddedAuthContext';
 
@@ -86,32 +86,38 @@ it('requires account confirmation before issuing a desktop handoff', async () =>
   const openApp = jest
     .spyOn(HTMLAnchorElement.prototype, 'click')
     .mockImplementation(() => {});
-  const transaction = 'a'.repeat(64);
-  const redirect = `/user/desktop-auth?transaction=${transaction}&provider=google`;
-  history.replaceState(
-    {},
-    '',
-    `${redirect}&redirect=${encodeURIComponent(redirect)}`
-  );
+  const params = {
+    client_id: 'omnibox-desktop',
+    response_type: 'code',
+    redirect_uri: 'omnibox://oauth/callback',
+    state: 's'.repeat(43),
+    code_challenge: 'a'.repeat(43),
+    code_challenge_method: 'S256',
+  };
+  const redirect = `/oauth/authorize?${new URLSearchParams(params)}`;
+  history.replaceState({}, '', redirect);
   localStorage.setItem('uid', 'user');
-  jest.mocked(http.get).mockResolvedValue({ id: 'user', username: 'Alice' });
+  jest.mocked(http.get).mockResolvedValue({
+    client: { first_party: true, name: 'OmniBox Desktop' },
+    account: { id: 'user', username: 'Alice' },
+  });
   jest.mocked(http.post).mockResolvedValue({
-    callback_url: `omnibox-auth-test://login?transaction=${transaction}&code=${'b'.repeat(64)}&state=${'s'.repeat(43)}`,
+    redirect_url: `omnibox://oauth/callback?code=${'b'.repeat(64)}&state=${params.state}`,
   });
   const container = document.createElement('div');
   const root = createRoot(container);
   try {
-    await act(async () => root.render(<DesktopAuthPage />));
+    await act(async () => root.render(<OAuthAuthorizePage />));
     expect(http.post).not.toHaveBeenCalled();
     expect(openApp).not.toHaveBeenCalled();
     await act(async () => container.querySelector('button')!.click());
-    expect(http.post).toHaveBeenCalledWith('/desktop-auth/authorize', {
-      transaction,
+    expect(http.post).toHaveBeenCalledWith('/oauth/authorize', {
+      ...params,
       user_id: 'user',
     });
     expect(openApp).toHaveBeenCalledTimes(1);
     expect(container.querySelector('a')?.href).toContain(
-      'omnibox-auth-test://login'
+      'omnibox://oauth/callback'
     );
   } finally {
     await act(async () => root.unmount());
@@ -152,22 +158,53 @@ it('offers only browser sign-in in the desktop and supports cancellation', async
   }
 });
 
-it('routes provider-free desktop transactions through the existing web login', async () => {
+it('routes OAuth requests through the existing web login', async () => {
   localStorage.clear();
-  const transaction = 'c'.repeat(64);
-  history.replaceState({}, '', `/user/desktop-auth?transaction=${transaction}`);
+  const redirect = '/oauth/authorize?client_id=omnibox-desktop&state=example';
+  history.replaceState({}, '', redirect);
   const container = document.createElement('div');
   const root = createRoot(container);
   try {
-    await act(async () => root.render(<DesktopAuthPage />));
+    await act(async () => root.render(<OAuthAuthorizePage />));
     const link = container.querySelector(
       'a[data-login-redirect]'
     ) as HTMLAnchorElement;
     expect(new URL(link.href).pathname).toBe('/user/login');
-    expect(new URL(link.href).searchParams.get('redirect')).toBe(
-      `/user/desktop-auth?transaction=${transaction}`
-    );
+    expect(new URL(link.href).searchParams.get('redirect')).toBe(redirect);
   } finally {
     await act(async () => root.unmount());
+  }
+});
+
+it.each([
+  'https://example.com/callback',
+  `omnibox://app/callback?code=${'b'.repeat(64)}&state=${'s'.repeat(43)}`,
+  `omnibox://oauth/callback?code=${'b'.repeat(64)}&state=wrong`,
+])('never opens an invalid OAuth callback: %s', async redirect_url => {
+  history.replaceState(
+    {},
+    '',
+    `/oauth/authorize?client_id=omnibox-desktop&state=${'s'.repeat(43)}`
+  );
+  localStorage.setItem('uid', 'user');
+  jest.mocked(http.get).mockResolvedValue({
+    client: { first_party: true },
+    account: { id: 'user', username: 'Alice' },
+  });
+  jest.mocked(http.post).mockResolvedValue({ redirect_url });
+  const openApp = jest
+    .spyOn(HTMLAnchorElement.prototype, 'click')
+    .mockImplementation(() => {});
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () => root.render(<OAuthAuthorizePage />));
+    await act(async () => container.querySelector('button')!.click());
+    expect(openApp).not.toHaveBeenCalled();
+    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+  } finally {
+    await act(async () => root.unmount());
+    localStorage.clear();
+    openApp.mockRestore();
   }
 });

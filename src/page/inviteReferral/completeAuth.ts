@@ -22,7 +22,7 @@ export async function completeAuthRedirect(
   if (invite.result) {
     markInviteReferralLanding(invite.result.requires_phone_binding);
     const target = await getAuthSuccessRedirect(redirect ?? null);
-    location.href = target.startsWith('/user/desktop-auth?') ? target : '/';
+    location.href = target.startsWith('/oauth/authorize?') ? target : '/';
     return;
   }
   location.href = await getAuthSuccessRedirect(redirect ?? null);
