@@ -83,17 +83,17 @@ it.each([
       await act(async () => root.render(<Page />));
       expect(
         container.querySelector('[data-contact]')?.getAttribute('data-contact')
-      ).toBe('email');
-      expect(button().textContent).toBe(phoneLabel);
-      await act(async () => button().click());
-      expect(
-        container.querySelector('[data-contact]')?.getAttribute('data-contact')
       ).toBe('phone');
       expect(button().textContent).toBe(emailLabel);
       await act(async () => button().click());
       expect(
         container.querySelector('[data-contact]')?.getAttribute('data-contact')
       ).toBe('email');
+      expect(button().textContent).toBe(phoneLabel);
+      await act(async () => button().click());
+      expect(
+        container.querySelector('[data-contact]')?.getAttribute('data-contact')
+      ).toBe('phone');
       expect(container.querySelectorAll('button')).toHaveLength(1);
     } finally {
       await act(async () => root.unmount());
