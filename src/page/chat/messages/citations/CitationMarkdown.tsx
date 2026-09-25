@@ -27,6 +27,7 @@ import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 import Save from '@/page/chat/components/SaveMain';
 import { Citation, MessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
+import { ChatMarkdownImage } from '@/page/chat/messages/ChatMarkdownImage';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/CitationHoverIcon';
 import {
   citationUrlTransform,
@@ -112,6 +113,7 @@ export function CitationMarkdown(props: IProps) {
     : null;
 
   const components = {
+    img: ChatMarkdownImage,
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
       const { node } = props;
       const resourceMatch = href?.match(resourceLinkRegex);

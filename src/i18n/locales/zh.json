@@ -760,6 +760,7 @@
     "image": {
       "unsupported_format": "仅支持 PNG、JPEG、WebP 和 GIF 图片",
       "upload_failed": "图片上传失败，请重试。",
+      "load_failed": "图片暂时无法查看",
       "add": "添加图片",
       "remove": "移除图片",
       "preview": "预览图片",
