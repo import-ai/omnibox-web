@@ -61,19 +61,19 @@ export default function DesktopLoginPage({ host }: { host: EmbeddedAuth }) {
         <div className="grid w-full max-w-sm gap-3">
           <Button
             className="h-11 w-full"
-            variant={pending ? 'outline' : 'default'}
+            variant="default"
             onClick={() => void login()}
           >
-            <ExternalLink className="size-4" />
+            {pending && <ExternalLink className="size-4" />}
             {t(pending ? 'desktop_auth.reopen' : 'desktop_auth.open_browser')}
           </Button>
           {(pending || failed) && (
-            <Button variant="ghost" onClick={() => void login('clipboard')}>
+            <Button variant="outline" onClick={() => void login('clipboard')}>
               {t('desktop_auth.copy')}
             </Button>
           )}
           {pending && (
-            <Button variant="ghost" onClick={() => void cancel()}>
+            <Button variant="outline" onClick={() => void cancel()}>
               {t('desktop_auth.cancel')}
             </Button>
           )}

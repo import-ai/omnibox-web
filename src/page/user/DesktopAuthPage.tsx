@@ -1,5 +1,5 @@
 import { Check, Monitor } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router-dom';
 
@@ -21,6 +21,11 @@ export default function DesktopAuthPage() {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
   const [callback, setCallback] = useState('');
+  const callbackLink = useRef<HTMLAnchorElement>(null);
+
+  useEffect(() => {
+    if (callback) callbackLink.current?.click();
+  }, [callback]);
   const [failed, setFailed] = useState(false);
   const valid = /^[a-f0-9]{64}$/.test(transaction);
   const returnPath = `/user/desktop-auth?${new URLSearchParams({ transaction })}`;
@@ -100,7 +105,7 @@ export default function DesktopAuthPage() {
         )}
         {valid && !loading && !callback && account && (
           <div className="grid w-full gap-3">
-            <div className="flex items-center gap-3 rounded-lg bg-muted p-4 text-left">
+            <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-transparent p-4 text-left">
               <div
                 className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background"
                 aria-hidden
@@ -120,7 +125,7 @@ export default function DesktopAuthPage() {
               {t('desktop_auth.confirm')}
             </Button>
             <Button
-              variant="ghost"
+              variant="outline"
               disabled={pending}
               onClick={() => {
                 removeGlobalCredential();
@@ -133,7 +138,9 @@ export default function DesktopAuthPage() {
         )}
         {callback && (
           <Button asChild className="h-11 w-full">
-            <a href={callback}>{t('desktop_auth.return')}</a>
+            <a ref={callbackLink} href={callback}>
+              {t('desktop_auth.return')}
+            </a>
           </Button>
         )}
       </div>

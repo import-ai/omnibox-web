@@ -83,6 +83,9 @@ it('uses the host without loading Apple SDK and allows cancellation', async () =
 });
 
 it('requires account confirmation before issuing a desktop handoff', async () => {
+  const openApp = jest
+    .spyOn(HTMLAnchorElement.prototype, 'click')
+    .mockImplementation(() => {});
   const transaction = 'a'.repeat(64);
   const redirect = `/user/desktop-auth?transaction=${transaction}&provider=google`;
   history.replaceState(
@@ -100,17 +103,20 @@ it('requires account confirmation before issuing a desktop handoff', async () =>
   try {
     await act(async () => root.render(<DesktopAuthPage />));
     expect(http.post).not.toHaveBeenCalled();
+    expect(openApp).not.toHaveBeenCalled();
     await act(async () => container.querySelector('button')!.click());
     expect(http.post).toHaveBeenCalledWith('/desktop-auth/authorize', {
       transaction,
       user_id: 'user',
     });
+    expect(openApp).toHaveBeenCalledTimes(1);
     expect(container.querySelector('a')?.href).toContain(
       'omnibox-auth-test://login'
     );
   } finally {
     await act(async () => root.unmount());
     localStorage.clear();
+    openApp.mockRestore();
   }
 });
 
