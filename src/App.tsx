@@ -61,6 +61,7 @@ const loadChatConversationsPage = lazyRoute(
 const loadChatConversationPage = lazyRoute(
   () => import('@/page/chat/conversation')
 );
+const loadInviteReferralPage = lazyRoute(() => import('@/page/inviteReferral'));
 
 const app = new CoreApp();
 const router = createBrowserRouter([
@@ -121,6 +122,10 @@ const router = createBrowserRouter([
         path: ':namespace_id',
         element: <NamespacePage />,
         children: [
+          {
+            path: 'invite-referral',
+            lazy: loadInviteReferralPage,
+          },
           {
             path: ':resource_id?',
             lazy: loadResourcePage,

@@ -5,7 +5,10 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { showActionToast } from '@/components/sonner';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceType } from '@/interface';
-import { navigateToResource } from '@/page/resource/resourceNavigation';
+import {
+  isReservedWorkspaceSegment,
+  navigateToResource,
+} from '@/page/resource/resourceNavigation';
 import { invalidateRssFolderLinkNames } from '@/page/sidebar/components/rss-folder/useRssFolderLinkNames';
 import { withSmartFolderChildSidebarAttrs } from '@/page/sidebar/components/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
@@ -28,7 +31,11 @@ function extractResourceId(
   namespaceId: string
 ): string | undefined {
   const match = pathname.match(new RegExp(`^/${namespaceId}/([^/]+)`));
-  return match?.[1];
+  const resourceId = match?.[1];
+  if (!resourceId || isReservedWorkspaceSegment(resourceId)) {
+    return undefined;
+  }
+  return resourceId;
 }
 
 async function resolveResourceList(

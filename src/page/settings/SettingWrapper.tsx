@@ -22,10 +22,14 @@ import ProfileForm from './tabs/profile';
 
 interface SettingWrapperProps {
   initialTab?: string;
-  autoAction?: {
-    type: 'bind';
-    appId: string;
-  };
+  autoAction?:
+    | {
+        type: 'bind';
+        appId: string;
+      }
+    | {
+        type: 'bind_phone';
+      };
   onClose?: () => void;
 }
 
@@ -42,6 +46,12 @@ export default function SettingWrapper({
   const { user } = useUser();
   const extensions = useContext(SettingsExtensionsContext);
 
+  useEffect(() => {
+    if (initialTab) {
+      onActiveKey(initialTab);
+    }
+  }, [initialTab]);
+
   const items = [
     ...extensions.map(({ id, component: Component }) => ({
       value: `extension:${id}`,
@@ -51,7 +61,7 @@ export default function SettingWrapper({
     })),
     {
       value: 'profile',
-      children: <ProfileForm />,
+      children: <ProfileForm autoAction={autoAction} />,
     },
     {
       value: 'namespace',
@@ -74,7 +84,11 @@ export default function SettingWrapper({
     },
     {
       value: 'applications',
-      children: <ApplicationsForm autoAction={autoAction} />,
+      children: (
+        <ApplicationsForm
+          autoAction={autoAction?.type === 'bind' ? autoAction : undefined}
+        />
+      ),
     },
     {
       value: 'apikey',

@@ -1,3 +1,8 @@
+import { useEffect, useState } from 'react';
+
+import type { Member } from '@/interface';
+import { http } from '@/lib/request';
+
 import type { ResourcePermissionsData } from '../useResourcePermissions';
 import Group from './Group';
 import User from './User';
@@ -11,11 +16,36 @@ interface UserFormProps {
 
 export default function Wrapper(props: UserFormProps) {
   const { resource_id, namespace_id, data, refetch } = props;
+  const [members, setMembers] = useState<Member[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    if (!namespace_id) {
+      setMembers([]);
+      return;
+    }
+    http
+      .get<Member[]>(`namespaces/${namespace_id}/members`, { mute: true })
+      .then(result => {
+        if (active) {
+          setMembers(Array.isArray(result) ? result : []);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setMembers([]);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [namespace_id]);
 
   return (
     <div className="space-y-2 text-sm max-h-[60vh] sm:max-h-[60vh] overflow-y-auto overflow-x-hidden pr-3">
       <User
         data={data.users}
+        members={members}
         refetch={refetch}
         resource_id={resource_id}
         namespace_id={namespace_id}

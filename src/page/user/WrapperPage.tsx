@@ -1,4 +1,4 @@
-import React from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoSvg from '@/assets/logo.svg';
@@ -11,20 +11,57 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/Card';
+import {
+  isEditableElement,
+  KEYBOARD_INSET_CHANGE_EVENT,
+} from '@/lib/visualViewport';
+
+const AppDownload = lazy(() => import('./components/appDownload/AppDownload'));
 
 interface WrapperPageProps {
+  showAppDownload?: boolean;
   useCard?: boolean;
   extra?: React.ReactNode;
   children: React.ReactNode;
 }
 
+function scrollFocusedFieldIntoView(scroller: HTMLElement) {
+  const active = document.activeElement;
+  if (!isEditableElement(active) || !scroller.contains(active)) return;
+  active.scrollIntoView({ block: 'center', inline: 'nearest' });
+}
+
 export default function WrapperPage(props: WrapperPageProps) {
-  const { useCard = true, extra, children } = props;
+  const { useCard = true, extra, children, showAppDownload = false } = props;
   const { t, i18n } = useTranslation();
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const onFocusIn = () => {
+      requestAnimationFrame(() => scrollFocusedFieldIntoView(scroller));
+    };
+    const onKeyboardInset = () => scrollFocusedFieldIntoView(scroller);
+
+    scroller.addEventListener('focusin', onFocusIn);
+    document.addEventListener(KEYBOARD_INSET_CHANGE_EVENT, onKeyboardInset);
+    return () => {
+      scroller.removeEventListener('focusin', onFocusIn);
+      document.removeEventListener(
+        KEYBOARD_INSET_CHANGE_EVENT,
+        onKeyboardInset
+      );
+    };
+  }, []);
 
   return (
-    <div className="fixed inset-0 overflow-y-auto dark:bg-[#262626]">
-      <div className="flex flex-col gap-4 p-4">
+    <div
+      ref={scrollerRef}
+      className="absolute inset-0 overflow-y-auto dark:bg-[#262626]"
+    >
+      <div className="flex min-h-full flex-col gap-4 p-4">
         <div className="flex justify-end gap-2">
           <LanguageToggle />
           <ThemeToggle />
@@ -42,7 +79,7 @@ export default function WrapperPage(props: WrapperPageProps) {
             </a>
           </div>
           {useCard ? (
-            <div className="w-full max-w-sm flex flex-col gap-6">
+            <div className="flex w-full max-w-sm flex-col gap-6">
               <Card className="dark:border-[#303030] dark:bg-[#171717]">
                 <CardHeader className="hidden">
                   <CardTitle></CardTitle>
@@ -53,12 +90,17 @@ export default function WrapperPage(props: WrapperPageProps) {
               {extra}
             </div>
           ) : (
-            <div className="w-full max-w-sm flex flex-col gap-6">
+            <div className="flex w-full max-w-sm flex-col gap-6">
               {children}
               {extra}
             </div>
           )}
         </div>
+        {showAppDownload && (
+          <Suspense fallback={null}>
+            <AppDownload />
+          </Suspense>
+        )}
       </div>
     </div>
   );

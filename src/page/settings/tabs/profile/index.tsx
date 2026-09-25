@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { CircleHelp, Eye, EyeOff } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -261,7 +261,18 @@ interface BindingData extends UserBinding {
   connected: boolean;
 }
 
-export default function ProfileForm() {
+interface ProfileFormProps {
+  autoAction?:
+    | {
+        type: 'bind';
+        appId: string;
+      }
+    | {
+        type: 'bind_phone';
+      };
+}
+
+export default function ProfileForm({ autoAction }: ProfileFormProps) {
   const { t } = useTranslation();
   const { config: authConfig } = useAuthConfig();
   const { user, onChange, loading, refetch } = useUser();
@@ -272,6 +283,7 @@ export default function ProfileForm() {
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const autoActionProcessedRef = useRef(false);
 
   // Binding states
   const [bindingData, setBindingData] = useState<BindingData[]>([]);
@@ -317,6 +329,17 @@ export default function ProfileForm() {
   useEffect(() => {
     refetchBindings();
   }, []);
+
+  useEffect(() => {
+    autoActionProcessedRef.current = false;
+  }, [autoAction]);
+
+  useEffect(() => {
+    if (autoAction?.type === 'bind_phone' && !autoActionProcessedRef.current) {
+      autoActionProcessedRef.current = true;
+      setPhoneDialogOpen(true);
+    }
+  }, [autoAction]);
 
   useEffect(() => {
     if (user) {

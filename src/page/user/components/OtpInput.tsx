@@ -11,6 +11,7 @@ interface OtpInputProps {
   onChange: (value: string) => void;
   onComplete?: (value: string) => void;
   error?: string;
+  errorAlign?: 'center' | 'left';
   disabled?: boolean;
 }
 
@@ -19,6 +20,7 @@ export function OtpInput({
   onChange,
   onComplete,
   error,
+  errorAlign = 'center',
   disabled = false,
 }: OtpInputProps) {
   const handleChange = (newValue: string) => {
@@ -29,7 +31,9 @@ export function OtpInput({
   };
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div
+      className={`flex flex-col items-center gap-4${errorAlign === 'left' ? ' w-min' : ''}`}
+    >
       <InputOTP
         maxLength={6}
         value={value}
@@ -64,7 +68,14 @@ export function OtpInput({
           />
         </InputOTPGroup>
       </InputOTP>
-      {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+      {error && (
+        <p
+          role="alert"
+          className={`w-full break-words text-sm text-red-500 ${errorAlign === 'left' ? 'text-left' : 'text-center'}`}
+        >
+          {error}
+        </p>
+      )}
     </div>
   );
 }

@@ -61,11 +61,15 @@ export default function ManagePeople({ canManageMembers }: ManagePeopleProps) {
           canManageMembers={canManageMembers}
           data={
             search
-              ? data.member.filter(
-                  item =>
-                    (item.email?.indexOf(search) ?? -1) >= 0 ||
-                    item.username.indexOf(search) >= 0
-                )
+              ? data.member.filter(item => {
+                  const q = search.toLowerCase();
+                  return [
+                    item.email,
+                    item.username,
+                    item.nickname,
+                    item.note,
+                  ].some(value => (value || '').toLowerCase().includes(q));
+                })
               : data.member
           }
         />

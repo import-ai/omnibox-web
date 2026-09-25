@@ -4,6 +4,7 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { fetchRootResources } from '@/service/resource';
 import { fetchResourceSortPreferences } from '@/service/resourceSortPreference';
 
@@ -40,6 +41,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 jest.mock('@/page/resource/resourceNavigation', () => ({
+  ...jest.requireActual('@/page/resource/resourceNavigation'),
   navigateToResource: jest.fn(),
 }));
 
@@ -300,6 +302,42 @@ describe('useSidebarInit Copilot resource sync', () => {
     });
 
     expect(activate).toHaveBeenLastCalledWith(null);
+  });
+});
+
+describe('useSidebarInit invite referral', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.clear();
+    mockSidebarState.activeId = 'first-resource';
+    mockSidebarState.nodes = {
+      'private-root': { children: ['first-resource'] },
+      'first-resource': { id: 'first-resource', children: [] },
+    };
+    location = {
+      pathname: '/namespace/invite-referral',
+      state: null,
+    };
+    container = document.createElement('div');
+    root = createRoot(container);
+  });
+
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    mockSidebarState.nodes = {};
+    mockSidebarState.activeId = null;
+  });
+
+  it('does not auto-open the first personal resource on invite-referral', async () => {
+    await act(async () => {
+      root.render(<Probe resourceId="" />);
+    });
+
+    expect(navigateToResource).not.toHaveBeenCalled();
+    expect(activate).toHaveBeenCalledWith(null);
   });
 });
 

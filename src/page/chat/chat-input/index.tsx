@@ -59,6 +59,7 @@ interface IProps {
   imageUploadDisabledReason?: string;
   proUnsupported?: boolean;
   initialQuery?: string;
+  fillQuery?: string;
   sendMessage: (params: SendMessageParams) => void | Promise<void>;
   onStop?: () => void;
   onThinkingSelectionChange?: (
@@ -83,6 +84,7 @@ export default function ChatArea(props: IProps) {
     imageUploadDisabledReason,
     proUnsupported = false,
     initialQuery,
+    fillQuery: fillQueryText,
     sendMessage,
     onStop,
   } = props;
@@ -133,6 +135,7 @@ export default function ChatArea(props: IProps) {
     composerInitialState,
     composerSelectedResources,
     composerTools,
+    fillQuery,
     handleComposerStateChange,
     handleQueryChange,
     handleToolsChange,
@@ -150,6 +153,12 @@ export default function ChatArea(props: IProps) {
     suppressInitialToolRestore,
     initialQuery,
   });
+  const appliedFillQueryRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!fillQueryText || appliedFillQueryRef.current === fillQueryText) return;
+    appliedFillQueryRef.current = fillQueryText;
+    fillQuery(fillQueryText);
+  }, [fillQuery, fillQueryText]);
   useEffect(() => {
     if (selection && composerTools.includes(ToolType.REASONING)) {
       inputRef.current?.toggleTool(ToolType.REASONING);
@@ -322,7 +331,7 @@ export default function ChatArea(props: IProps) {
         if (!event.clipboardData.getData('text/plain')) event.preventDefault();
       }}
       className={cn(
-        'max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030]',
+        'max-w-[766px] w-full mx-auto rounded-2xl p-3 border border-solid border-gray-200 bg-chat-composer dark:bg-chat-composer-dark dark:border-chat-composer-dark',
         isResourceOver && 'ring-2 ring-blue-300'
       )}
     >

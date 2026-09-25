@@ -15,6 +15,11 @@ import { track } from '@/lib/sendTrackEvent';
 import { useChatStore } from '@/page/chat/chatStore';
 import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
+import {
+  consumeInviteReferralLanding,
+  markInviteReferralLanding,
+  retryPendingInviteRegistration,
+} from '@/page/inviteReferral/registration';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { removeGlobalCredential } from '@/page/user/util';
@@ -92,6 +97,11 @@ export default function Layout() {
       once: true,
       userId: uid,
     });
+    void retryPendingInviteRegistration(uid).then(result => {
+      if (!result) return;
+      markInviteReferralLanding(result.requires_phone_binding);
+      location.href = '/';
+    });
 
     // Handle extension login - signal extension to close the tab
     const loginFromExtension = localStorage.getItem('extension_login');
@@ -138,7 +148,13 @@ export default function Layout() {
     if (loc.pathname === '/') {
       http.get('namespaces').then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          navigate(`/${data[0].id}/chat`, { replace: true });
+          const inviteLanding = consumeInviteReferralLanding();
+          navigate(
+            inviteLanding
+              ? `/${data[0].id}/invite-referral`
+              : `/${data[0].id}/chat`,
+            { replace: true }
+          );
         } else {
           navigate('/welcome', { replace: true });
         }

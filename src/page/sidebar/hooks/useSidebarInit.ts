@@ -1,8 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import { navigateToResource } from '@/page/resource/resourceNavigation';
+import {
+  isReservedWorkspacePath,
+  navigateToResource,
+} from '@/page/resource/resourceNavigation';
 import { getSmartFolderParentIdFromChildKey } from '@/page/sidebar/components/smart-folder';
+import { centerSidebarElement } from '@/page/sidebar/sidebarScroll';
 import { type TreeNode, useSidebarStore } from '@/page/sidebar/store';
 import type { ResourceSorts } from '@/page/sidebar/store/resourceSort';
 import {
@@ -22,9 +26,9 @@ export function useSidebarInit(props: IProps) {
   const { namespaceId, previewResourceId, resourceId } = props;
   const navigate = useNavigate();
   const location = useLocation();
-  // Auto-navigate to first resource when no resourceId and not on chat page
+  // Auto-navigate to first resource when no resourceId and not on chat/invite
   const hasAutoNavigatedRef = useRef(false);
-  const chatPage = location.pathname.includes('/chat');
+  const reservedWorkspacePage = isReservedWorkspacePath(location.pathname);
   // An rss item is an ordinary resource now, so no rss-item route is special
   // cased here any more.
   const currentResourceId = previewResourceId || resourceId;
@@ -101,7 +105,7 @@ export function useSidebarInit(props: IProps) {
   // Auto-expand path when the visible resource changes (only after roots load).
   useEffect(() => {
     if (!initialized || !currentResourceId) return;
-    if (chatPage && !previewResourceId) return;
+    if (reservedWorkspacePage && !previewResourceId) return;
 
     if (previewResourceId) {
       const controller = new AbortController();
@@ -141,15 +145,11 @@ export function useSidebarInit(props: IProps) {
         : currentResourceId;
 
     store.expandPathTo(expandId, { expandTarget: true }).then(() => {
-      if (cancelled) return;
-      requestAnimationFrame(() => {
-        if (cancelled) return;
-        const element = document.querySelector(
-          `[data-resource-id="${scrollTargetId}"]`
-        );
-        if (element) {
-          element.scrollIntoView({ behavior: 'auto', block: 'center' });
-        }
+      if (cancelled) {
+        return;
+      }
+      return centerSidebarElement(`[data-resource-id="${scrollTargetId}"]`, {
+        options: { shouldApply: () => !cancelled },
       });
     });
 
@@ -159,14 +159,14 @@ export function useSidebarInit(props: IProps) {
   }, [
     initialized,
     currentResourceId,
-    chatPage,
+    reservedWorkspacePage,
     location.pathname,
     navigate,
     previewResourceId,
   ]);
 
   useEffect(() => {
-    if (!initialized || resourceId || chatPage) return;
+    if (!initialized || resourceId || reservedWorkspacePage) return;
     if (hasAutoNavigatedRef.current) return;
 
     const store = useSidebarStore.getState();
@@ -182,7 +182,7 @@ export function useSidebarInit(props: IProps) {
       hasAutoNavigatedRef.current = true;
       navigateToResource(navigate, `/${namespaceId}/${firstNode.id}`);
     }
-  }, [initialized, resourceId, chatPage, namespaceId, navigate]);
+  }, [initialized, resourceId, reservedWorkspacePage, namespaceId, navigate]);
 
   // Sync activeId from the resource currently visible in the workspace.
   useEffect(() => {
@@ -203,7 +203,7 @@ export function useSidebarInit(props: IProps) {
       typeof location.state?.sidebarActiveKey === 'string'
         ? location.state.sidebarActiveKey
         : resourceId;
-    if (chatPage) {
+    if (reservedWorkspacePage) {
       if (store.activeId) {
         store.activate(null);
       }
@@ -216,7 +216,7 @@ export function useSidebarInit(props: IProps) {
   }, [
     resourceId,
     previewResourceId,
-    chatPage,
+    reservedWorkspacePage,
     location.pathname,
     location.state,
     navigate,

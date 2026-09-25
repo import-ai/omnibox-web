@@ -239,7 +239,7 @@ export function buildBaseActions(set: SidebarSet) {
           isManagedChildrenNode(parent) || resources.length > 0;
         const pui = ensureUI(s, parentId);
         pui.loaded = true;
-        pui.expanded = !isSmartFolderChildResource(parent);
+        if (isSmartFolderChildResource(parent)) pui.expanded = false;
 
         if (s.activeId && deletedIds.has(s.activeId)) {
           s.activeId = null;

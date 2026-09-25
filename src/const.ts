@@ -1,7 +1,7 @@
 export const API_BASE_URL = '/api/v1';
 export const VDITOR_CDN: string = '/assets/vditor';
 export const ALLOW_FILE_EXTENSIONS =
-  '.md,.doc,.ppt,.docx,.pptx,.txt,.pdf,.wav,.mp3,.m4a,.pcm,.opus,.webm,.mp4,.avi,.mov,.mkv,.flv,.webm,.jpg,.jpeg,.png';
+  '.md,.doc,.ppt,.docx,.pptx,.wps,.wpt,.rtf,.odt,.dps,.dpt,.odp,.txt,.pdf,.wav,.mp3,.m4a,.pcm,.opus,.webm,.mp4,.avi,.mov,.mkv,.flv,.webm,.jpg,.jpeg,.png';
 export const SITE_NAME = 'OmniBox';
 export const LAZY_LOAD_IMAGE: string = '/images/img-loading.svg';
 export const WECHAT_ASSISTANT_QRCODE_CONTENT =

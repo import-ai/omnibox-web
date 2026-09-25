@@ -11,11 +11,22 @@ function pathFromTo(to: To) {
   return to.pathname || '';
 }
 
+const RESERVED_WORKSPACE_SEGMENTS = new Set(['chat', 'invite-referral']);
+
+export function isReservedWorkspaceSegment(segment: string | undefined) {
+  return Boolean(segment && RESERVED_WORKSPACE_SEGMENTS.has(segment));
+}
+
+export function isReservedWorkspacePath(pathname: string) {
+  const parts = pathname.split('/').filter(Boolean);
+  return isReservedWorkspaceSegment(parts[1]);
+}
+
 function getNamespaceResourceTarget(to: To) {
   const parts = pathFromTo(to).split('/').filter(Boolean);
   if (parts.length < 2) return null;
   if (parts[0] === 's' || parts[0] === 'user') return null;
-  if (parts[1] === 'chat') return null;
+  if (isReservedWorkspaceSegment(parts[1])) return null;
   return { namespaceId: parts[0], resourceId: parts[1] };
 }
 

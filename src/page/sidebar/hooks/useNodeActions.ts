@@ -277,14 +277,26 @@ export function useNodeActions(
       .getState()
       .move(resourceId, targetId)
       .then(async () => {
-        await locateSidebarResource(resourceId);
+        const currentResourceId = getCurrentResourceId(
+          loc.pathname,
+          namespaceId
+        );
         syncSingleMoveResult({
           app,
-          currentResourceId: getCurrentResourceId(loc.pathname, namespaceId),
+          currentResourceId,
           movedId: resourceId,
           previousParentId,
           targetId,
         });
+        // Locate selects the moved resource. Open it when the detail pane is
+        // still showing a different resource.
+        if (currentResourceId !== resourceId) {
+          navigateToResource(navigate, `/${namespaceId}/${resourceId}`, {
+            state: { fromSidebar: true },
+          });
+          if (isMobile) setOpenMobile(false);
+        }
+        await locateSidebarResource(resourceId);
       })
       .catch(() => {
         // request.ts handles backend error toasts.
