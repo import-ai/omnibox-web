@@ -17,11 +17,11 @@ export function ChatMarkdownImage({
   const { t } = useTranslation();
   const { share_id: shareId } = useParams();
   const chatOnly = useShareChatOnly();
-  const url = resolveChatImageUrl(src, shareId, chatOnly);
+  const url = resolveChatImageUrl(src, shareId);
   const [failedUrl, setFailedUrl] = useState<string>();
   const [previewUrl, setPreviewUrl] = useState<string>();
 
-  if (chatOnly) return alt || null;
+  if (chatOnly) return null;
   if (!url || failedUrl === url) {
     return (
       <span className="text-sm text-muted-foreground" role="status">

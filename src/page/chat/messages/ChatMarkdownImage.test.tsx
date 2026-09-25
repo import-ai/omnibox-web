@@ -49,7 +49,7 @@ test('previews images, preserves errors across stream renders, and hides chat-on
     expect(container.querySelector('img')).not.toBeNull();
     await render(src, true);
     expect(container.querySelector('img')).toBeNull();
-    expect(container.textContent).toBe('Diagram');
+    expect(container.textContent).toBe('');
   } finally {
     await act(async () => root.unmount());
   }

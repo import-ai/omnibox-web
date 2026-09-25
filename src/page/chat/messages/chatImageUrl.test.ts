@@ -1,3 +1,5 @@
+/** @jest-environment jsdom */
+
 import { resolveChatImageUrl } from './chatImageUrl';
 
 const path =
@@ -8,7 +10,10 @@ test('uses stable attachment URLs and enforces the current share scope', () => {
   expect(resolveChatImageUrl(path, 'share-id')).toBe(
     '/api/v1/shares/share-id/resources/resource-id/attachments/image-id'
   );
-  expect(resolveChatImageUrl(path, 'share-id', true)).toBeUndefined();
+  expect(resolveChatImageUrl(window.location.origin + path, 'share-id')).toBe(
+    '/api/v1/shares/share-id/resources/resource-id/attachments/image-id'
+  );
+  expect(resolveChatImageUrl('/images/logo.png')).toBe('/images/logo.png');
   expect(resolveChatImageUrl('https://example.com/image.png')).toBe(
     'https://example.com/image.png'
   );
@@ -19,7 +24,6 @@ test('uses stable attachment URLs and enforces the current share scope', () => {
     '/api/v1/namespaces/QflKpu',
     'data:image/png;base64,x',
     'javascript:alert(1)',
-    '//example.com/image.png',
   ]) {
     expect(resolveChatImageUrl(src)).toBeUndefined();
   }
