@@ -9,7 +9,10 @@ import { Button } from '@/components/button';
 import { type AuthProvider } from '@/hooks/AuthConfigContext';
 
 export interface EmbeddedAuth {
-  login: (provider: AuthProvider) => Promise<void>;
+  login: (
+    provider?: AuthProvider,
+    target?: 'browser' | 'clipboard'
+  ) => Promise<void>;
   cancel: () => Promise<void>;
 }
 export const EmbeddedAuthContext = createContext<EmbeddedAuth | undefined>(

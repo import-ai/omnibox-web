@@ -1551,13 +1551,21 @@
   "desktop_auth": {
     "title": "Sign in to OmniBox Desktop",
     "account": "Continue as {{account}}?",
-    "confirm": "Sign in to desktop",
+    "confirm": "Continue with this account",
     "switch": "Use another account",
     "browser": "Sign in below, then confirm your desktop login.",
-    "return": "Return to OmniBox",
-    "return_hint": "Open OmniBox within one minute. If the link has expired, start again in the app.",
-    "waiting": "Complete sign-in in your browser.",
+    "return": "Open OmniBox",
+    "return_hint": "Click below and allow your browser to open OmniBox. Open within one minute, or restart sign-in from the app.",
+    "waiting": "Finish signing in, then return to OmniBox.",
     "cancel": "Cancel sign-in",
-    "failed": "Sign-in failed or expired. Please start again in the app."
+    "failed": "Sign-in failed or expired. Please start again in the app.",
+    "slogan": "Anywhere, anything to memory, memory to anything.",
+    "entry_hint": "Sign in or create an account in your browser.",
+    "open_browser": "Sign in with browser",
+    "reopen": "Reopen browser",
+    "copy": "Copy sign-in link",
+    "waiting_title": "Continue in your browser",
+    "confirm_hint": "Use this account to sign in to OmniBox on this computer.",
+    "ready": "Return to OmniBox"
   }
 }

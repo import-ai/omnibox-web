@@ -1,21 +1,18 @@
+import { Check, Monitor } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
-import Apple from './apple';
-import Google from './google';
 import { removeGlobalCredential } from './util';
-import { ScanForm } from './wechat/ScanForm';
 import WrapperPage from './WrapperPage';
 
 export default function DesktopAuthPage() {
   const { t } = useTranslation();
-  const [params, setParams] = useSearchParams();
+  const [params] = useSearchParams();
   const transaction = params.get('transaction') || '';
-  const provider = params.get('provider');
   const [account, setAccount] = useState<{
     id: string;
     username: string;
@@ -25,24 +22,13 @@ export default function DesktopAuthPage() {
   const [pending, setPending] = useState(false);
   const [callback, setCallback] = useState('');
   const [failed, setFailed] = useState(false);
-  const valid =
-    /^[a-f0-9]{64}$/.test(transaction) &&
-    ['google', 'apple', 'wechat'].includes(provider || '');
-  const returnPath = `/user/desktop-auth?${new URLSearchParams({ transaction, provider: provider || '' })}`;
-
-  useEffect(() => {
-    if (!valid) return;
-    if (params.get('redirect') !== returnPath) {
-      setParams(
-        { transaction, provider: provider!, redirect: returnPath },
-        { replace: true }
-      );
-    }
-  }, [valid, params, provider, returnPath, setParams, transaction]);
+  const valid = /^[a-f0-9]{64}$/.test(transaction);
+  const returnPath = `/user/desktop-auth?${new URLSearchParams({ transaction })}`;
+  const loginPath = `/user/login?${new URLSearchParams({ redirect: returnPath })}`;
 
   useEffect(() => {
     const id = localStorage.getItem('uid');
-    if (!id) {
+    if (!id || !valid) {
       setLoading(false);
       return;
     }
@@ -51,7 +37,7 @@ export default function DesktopAuthPage() {
       .then(setAccount)
       .catch(() => setFailed(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [valid]);
 
   const authorize = async () => {
     setPending(true);
@@ -79,54 +65,76 @@ export default function DesktopAuthPage() {
     }
   };
 
+  if (valid && !loading && !account && !failed) {
+    return <Navigate to={loginPath} replace />;
+  }
   return (
-    <WrapperPage>
-      <div className="grid gap-4">
-        {loading && valid && <p role="status">{t('login.authorizing')}</p>}
-        <h1 className="text-xl font-semibold">{t('desktop_auth.title')}</h1>
-        {!valid || failed ? (
-          <p role="alert">{t('desktop_auth.failed')}</p>
-        ) : null}
+    <WrapperPage useCard={false}>
+      <div className="flex flex-col items-center gap-6 px-4 py-8 text-center">
+        {callback ? (
+          <Check className="size-6" aria-hidden />
+        ) : (
+          <Monitor className="size-6 text-muted-foreground" aria-hidden />
+        )}
+        <div className="grid gap-3">
+          <h1 className="text-2xl font-medium text-balance">
+            {t(callback ? 'desktop_auth.ready' : 'desktop_auth.title')}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t(
+              callback
+                ? 'desktop_auth.return_hint'
+                : 'desktop_auth.confirm_hint'
+            )}
+          </p>
+        </div>
+        {loading && valid && (
+          <p role="status" className="text-sm text-muted-foreground">
+            {t('login.authorizing')}
+          </p>
+        )}
+        {(!valid || failed) && (
+          <p role="alert" className="text-sm text-destructive">
+            {t('desktop_auth.failed')}
+          </p>
+        )}
         {valid && !loading && !callback && account && (
-          <>
-            <p>
-              {t('desktop_auth.account', {
-                account: account.email || account.username,
-              })}
-            </p>
-            <Button onClick={authorize} disabled={pending}>
+          <div className="grid w-full gap-3">
+            <div className="flex items-center gap-3 rounded-lg bg-muted p-4 text-left">
+              <div
+                className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background"
+                aria-hidden
+              >
+                {(account.username || account.email || '?')
+                  .slice(0, 1)
+                  .toUpperCase()}
+              </div>
+              <div className="min-w-0 text-sm">
+                <p className="break-words font-medium">{account.username}</p>
+                <p className="break-all text-muted-foreground">
+                  {account.email}
+                </p>
+              </div>
+            </div>
+            <Button className="h-11" onClick={authorize} loading={pending}>
               {t('desktop_auth.confirm')}
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               disabled={pending}
               onClick={() => {
                 removeGlobalCredential();
-                location.replace(returnPath);
+                location.replace(loginPath);
               }}
             >
               {t('desktop_auth.switch')}
             </Button>
-          </>
+          </div>
         )}
-        {valid &&
-          !loading &&
-          !account &&
-          params.get('redirect') === returnPath && (
-            <>
-              <p>{t('desktop_auth.browser')}</p>
-              {provider === 'google' && <Google />}
-              {provider === 'apple' && <Apple />}
-              {provider === 'wechat' && <ScanForm />}
-            </>
-          )}
         {callback && (
-          <>
-            <a className="text-primary underline" href={callback}>
-              {t('desktop_auth.return')}
-            </a>
-            <p role="status">{t('desktop_auth.return_hint')}</p>
-          </>
+          <Button asChild className="h-11 w-full">
+            <a href={callback}>{t('desktop_auth.return')}</a>
+          </Button>
         )}
       </div>
     </WrapperPage>
