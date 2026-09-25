@@ -1559,7 +1559,7 @@
     "waiting": "Finish signing in, then return to OmniBox.",
     "cancel": "Cancel sign-in",
     "failed": "Sign-in failed or expired. Please start again in the app.",
-    "slogan": "Anywhere, anything to memory, memory to anything.",
+    "slogan": "Anywhere\nAnything to memory, memory to anything.",
     "entry_hint": "Sign in or create an account in your browser.",
     "open_browser": "Sign in with browser",
     "reopen": "Reopen browser",

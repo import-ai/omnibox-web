@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/Card';
+import { cn } from '@/lib/utils';
 import {
   isEditableElement,
   KEYBOARD_INSET_CHANGE_EVENT,
@@ -21,6 +22,7 @@ const AppDownload = lazy(() => import('./components/appDownload/AppDownload'));
 interface WrapperPageProps {
   showAppDownload?: boolean;
   useCard?: boolean;
+  contentClassName?: string;
   extra?: React.ReactNode;
   children: React.ReactNode;
 }
@@ -79,7 +81,12 @@ export default function WrapperPage(props: WrapperPageProps) {
             </a>
           </div>
           {useCard ? (
-            <div className="flex w-full max-w-sm flex-col gap-6">
+            <div
+              className={cn(
+                'flex w-full max-w-sm flex-col gap-6',
+                props.contentClassName
+              )}
+            >
               <Card className="dark:border-[#303030] dark:bg-[#171717]">
                 <CardHeader className="hidden">
                   <CardTitle></CardTitle>
@@ -90,7 +97,12 @@ export default function WrapperPage(props: WrapperPageProps) {
               {extra}
             </div>
           ) : (
-            <div className="flex w-full max-w-sm flex-col gap-6">
+            <div
+              className={cn(
+                'flex w-full max-w-sm flex-col gap-6',
+                props.contentClassName
+              )}
+            >
               {children}
               {extra}
             </div>

@@ -42,23 +42,10 @@ export default function DesktopLoginPage({ host }: { host: EmbeddedAuth }) {
     }
   };
   return (
-    <WrapperPage useCard={false}>
+    <WrapperPage useCard={false} contentClassName="max-w-2xl">
       <div className="flex flex-col items-center gap-6 px-4 py-8 text-center">
-        <h1 className="text-xl sm:text-2xl font-medium leading-relaxed text-balance">
-          {pending ? (
-            t('desktop_auth.waiting_title')
-          ) : slogan.includes('，') ? (
-            <>
-              <span className="block">
-                {slogan.slice(0, slogan.indexOf('，') + 1)}
-              </span>
-              <span className="block">
-                {slogan.slice(slogan.indexOf('，') + 1)}
-              </span>
-            </>
-          ) : (
-            slogan
-          )}
+        <h1 className="whitespace-pre-line text-xl sm:text-2xl font-medium leading-relaxed">
+          {pending ? t('desktop_auth.waiting_title') : slogan}
         </h1>
         <p
           className="text-sm text-muted-foreground"
@@ -71,7 +58,7 @@ export default function DesktopLoginPage({ host }: { host: EmbeddedAuth }) {
             {t('desktop_auth.failed')}
           </p>
         )}
-        <div className="grid w-full gap-3">
+        <div className="grid w-full max-w-sm gap-3">
           <Button
             className="h-11 w-full"
             variant={pending ? 'outline' : 'default'}
