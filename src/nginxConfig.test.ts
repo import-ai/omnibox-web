@@ -17,6 +17,7 @@ describe('nginx routes', () => {
       '/welcome',
       '/oauth/authorize',
       '/user/login',
+      '/user/desktop-auth',
       '/user/auth/confirm',
       '/user/auth/miniprogram',
       '/user/auth/confirm/google',
