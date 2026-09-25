@@ -1547,5 +1547,17 @@
       "task": "Task",
       "rewardColumn": "Reward received"
     }
+  },
+  "desktop_auth": {
+    "title": "Sign in to OmniBox Desktop",
+    "account": "Continue as {{account}}?",
+    "confirm": "Sign in to desktop",
+    "switch": "Use another account",
+    "browser": "Sign in below, then confirm your desktop login.",
+    "return": "Return to OmniBox",
+    "return_hint": "Open OmniBox within one minute. If the link has expired, start again in the app.",
+    "waiting": "Complete sign-in in your browser.",
+    "cancel": "Cancel sign-in",
+    "failed": "Sign-in failed or expired. Please start again in the app."
   }
 }

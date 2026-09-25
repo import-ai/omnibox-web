@@ -1548,5 +1548,17 @@
       "task": "任务记录",
       "rewardColumn": "已获得奖励"
     }
+  },
+  "desktop_auth": {
+    "title": "登录 OmniBox 客户端",
+    "account": "以 {{account}} 登录客户端？",
+    "confirm": "确认登录客户端",
+    "switch": "使用其他账号",
+    "browser": "请先完成登录，再确认登录客户端。",
+    "return": "返回 OmniBox",
+    "return_hint": "请在一分钟内打开 OmniBox；链接过期后，请在客户端重新发起登录。",
+    "waiting": "请在浏览器中完成登录。",
+    "cancel": "取消登录",
+    "failed": "登录失败或已过期，请在客户端重新发起登录。"
   }
 }

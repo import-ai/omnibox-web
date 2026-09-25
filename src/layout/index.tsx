@@ -100,7 +100,7 @@ export default function Layout() {
     void retryPendingInviteRegistration(uid).then(result => {
       if (!result) return;
       markInviteReferralLanding(result.requires_phone_binding);
-      location.href = '/';
+      if (location.pathname !== '/user/desktop-auth') location.href = '/';
     });
 
     // Handle extension login - signal extension to close the tab

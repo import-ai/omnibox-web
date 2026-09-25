@@ -17,7 +17,12 @@ import {
   type SettingsExtension,
   SettingsExtensionsContext,
 } from '@/page/settings/SettingsExtensionsContext';
+import {
+  type EmbeddedAuth,
+  EmbeddedAuthContext,
+} from '@/page/user/EmbeddedAuthContext';
 
+const DesktopAuthPage = lazy(() => import('@/page/user/DesktopAuthPage'));
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/InvitePage'));
 const RegisterPage = lazy(() => import('@/page/user/register'));
@@ -70,6 +75,10 @@ const router = createBrowserRouter([
     element: <Layout />,
     errorElement: <Error />,
     children: [
+      {
+        path: 'user/desktop-auth',
+        element: <DesktopAuthPage />,
+      },
       {
         path: 'user/login',
         element: <LoginPage />,
@@ -191,6 +200,7 @@ const router = createBrowserRouter([
 ]);
 
 export interface AppProps {
+  embeddedAuth?: EmbeddedAuth;
   settingsExtensions?: readonly SettingsExtension[];
   authProviders?: readonly AuthProvider[];
 }
@@ -198,13 +208,16 @@ export interface AppProps {
 export default function Main({
   settingsExtensions = [],
   authProviders,
+  embeddedAuth,
 }: AppProps = {}) {
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <AppContext.Provider value={app}>
         <AuthConfigProvider supportedProviders={authProviders}>
           <SettingsExtensionsContext.Provider value={settingsExtensions}>
-            <RouterProvider router={router} />
+            <EmbeddedAuthContext.Provider value={embeddedAuth}>
+              <RouterProvider router={router} />
+            </EmbeddedAuthContext.Provider>
           </SettingsExtensionsContext.Provider>
         </AuthConfigProvider>
       </AppContext.Provider>

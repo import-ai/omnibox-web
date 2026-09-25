@@ -7,6 +7,7 @@ import { WeChatIcon } from '@/assets/icons/Wechat';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
+import { ProviderLogin } from '../EmbeddedAuthContext';
 import { prepareH5WechatOAuthState } from './h5WechatAuthSync';
 import {
   isExternalMobileBrowser,
@@ -18,7 +19,7 @@ interface IProps {
   mode?: 'login' | 'register';
 }
 
-export default function WeChat(props: IProps) {
+function WebWeChat(props: IProps) {
   const { onScan, mode = 'login' } = props;
   const { t } = useTranslation();
   const [params] = useSearchParams();
@@ -106,5 +107,13 @@ export default function WeChat(props: IProps) {
       <WeChatIcon />
       {label}
     </Button>
+  );
+}
+
+export default function WeChat(props: IProps) {
+  return (
+    <ProviderLogin provider="wechat">
+      <WebWeChat {...props} />
+    </ProviderLogin>
   );
 }
