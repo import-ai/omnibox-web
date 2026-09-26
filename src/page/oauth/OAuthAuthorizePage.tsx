@@ -118,7 +118,7 @@ export default function OAuthAuthorizePage() {
           </p>
         )}
         {callback ? (
-          <Button asChild className="h-11 w-full">
+          <Button asChild className="w-full">
             <a href={callback}>{t('desktop_auth.return')}</a>
           </Button>
         ) : (
@@ -140,12 +140,11 @@ export default function OAuthAuthorizePage() {
                   </p>
                 </div>
               </div>
-              <Button className="h-11" onClick={authorize} loading={pending}>
+              <Button onClick={authorize} loading={pending}>
                 {t('desktop_auth.confirm')}
               </Button>
               <Button
                 variant="outline"
-                className="h-11"
                 disabled={pending}
                 onClick={() => {
                   removeGlobalCredential();
