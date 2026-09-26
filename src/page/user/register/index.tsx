@@ -49,13 +49,6 @@ export default function RegisterPage() {
         <RegisterForm contactMethod={contactMethod}>
           <Available>
             {available => {
-              const hasOtherOptions =
-                available.wechat || available.google || available.apple;
-
-              if (!hasOtherOptions) {
-                return null;
-              }
-
               return (
                 <div className="grid gap-6">
                   <div className="flex flex-col gap-2">

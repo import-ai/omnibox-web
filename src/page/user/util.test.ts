@@ -2,7 +2,11 @@
 
 import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
 
-import { removeGlobalCredential, setGlobalCredential } from './util';
+import {
+  removeGlobalCredential,
+  setGlobalCredential,
+  subscribeCredentials,
+} from './util';
 
 jest.mock('@/page/chat/conversation/conversationCache', () => ({
   clearConversationCache: jest.fn(),
@@ -19,6 +23,30 @@ describe('credential conversation cache cleanup', () => {
   beforeEach(() => {
     localStorage.clear();
     mockClearConversationCache.mockClear();
+  });
+
+  it('notifies subscribers on login, logout and cross-tab changes', () => {
+    const listener = jest.fn();
+    const unsubscribe = subscribeCredentials(listener);
+    expect(listener).toHaveBeenLastCalledWith(null);
+    setGlobalCredential('user-a', 'token-a');
+    expect(listener).toHaveBeenLastCalledWith({
+      userId: 'user-a',
+      token: 'token-a',
+    });
+    removeGlobalCredential();
+    expect(listener).toHaveBeenLastCalledWith(null);
+    localStorage.setItem('uid', 'user-b');
+    localStorage.setItem('token', 'token-b');
+    window.dispatchEvent(new StorageEvent('storage', { key: 'token' }));
+    expect(listener).toHaveBeenLastCalledWith({
+      userId: 'user-b',
+      token: 'token-b',
+    });
+    unsubscribe();
+    listener.mockClear();
+    removeGlobalCredential();
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it('clears conversations before removing credentials', () => {

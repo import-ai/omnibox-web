@@ -61,12 +61,14 @@ request.interceptors.request.use(
 );
 
 function handleTokenError(redirect: boolean) {
+  const returnTo = window.location.href;
+  const preserveRedirect =
+    redirect || window.location.pathname === '/oauth/authorize';
+  const target = preserveRedirect
+    ? `/user/login?redirect=${encodeURIComponent(returnTo)}`
+    : '/user/login';
   removeGlobalCredential();
   setTimeout(() => {
-    let target: string = '/user/login';
-    if (redirect) {
-      target = target + `?redirect=${encodeURIComponent(window.location.href)}`;
-    }
     window.location.href = target;
   }, 1000);
 }
