@@ -27,6 +27,8 @@ import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 import Save from '@/page/chat/components/SaveMain';
 import { Citation, MessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
+import { withoutMarkdownImages } from '@/page/chat/messages/chatImageMarkdown';
+import { ChatMarkdownImage } from '@/page/chat/messages/ChatMarkdownImage';
 import { CitationHoverIcon } from '@/page/chat/messages/citations/CitationHoverIcon';
 import {
   citationUrlTransform,
@@ -106,12 +108,16 @@ export function CitationMarkdown(props: IProps) {
   // Copying and saving must match what the page shows: a chat-only share
   // renders no citation, so the markdown carries neither the footnote markers
   // nor the "[n]: url" footer that would name the hidden resources.
-  const copyContent = copyPreprocess(content, chatOnly ? [] : citations);
+  const copyContent = copyPreprocess(
+    chatOnly ? withoutMarkdownImages(content) : content,
+    chatOnly ? [] : citations
+  );
   const createdAtLabel = createdAt
     ? format(new Date(createdAt), 'yyyy-MM-dd HH:mm:ss')
     : null;
 
   const components = {
+    img: ChatMarkdownImage,
     a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
       const { node } = props;
       const resourceMatch = href?.match(resourceLinkRegex);

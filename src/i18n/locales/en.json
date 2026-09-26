@@ -759,6 +759,7 @@
     "image": {
       "unsupported_format": "Only PNG, JPEG, WebP, and GIF images are supported",
       "upload_failed": "Failed to upload image. Please try again.",
+      "load_failed": "Image unavailable",
       "add": "Add image",
       "remove": "Remove image",
       "preview": "Preview image",
