@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { SettingsExtensionsContext } from './SettingsExtensionsContext';
+import { SettingsExtensionsContext } from './settingsExtensionsContext';
 import { SettingsSidebar } from './SettingsSidebar';
 
 jest.mock('react-i18next', () => ({

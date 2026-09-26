@@ -13,7 +13,7 @@ import NamespacePage from '@/page/namespace';
 import {
   type SettingsExtension,
   SettingsExtensionsContext,
-} from '@/page/settings/SettingsExtensionsContext';
+} from '@/page/settings/settingsExtensionsContext';
 
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/InvitePage'));

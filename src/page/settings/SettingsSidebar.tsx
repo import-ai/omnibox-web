@@ -16,7 +16,7 @@ import useConfig from '@/hooks/useConfig';
 import { cn } from '@/lib/utils';
 import { UpgradeButton } from '@/page/sidebar/components/namespace-switcher/UpgradeButton';
 
-import { SettingsExtensionsContext } from './SettingsExtensionsContext';
+import { SettingsExtensionsContext } from './settingsExtensionsContext';
 
 interface SettingsSidebarProps {
   value: string;

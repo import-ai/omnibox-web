@@ -8,7 +8,7 @@ import { http } from '@/lib/request';
 import PeopleForm from '@/page/people';
 import TasksManagement from '@/page/settings/tabs/members/tasks';
 
-import { SettingsExtensionsContext } from './SettingsExtensionsContext';
+import { SettingsExtensionsContext } from './settingsExtensionsContext';
 import { SettingsSidebar } from './SettingsSidebar';
 import { SettingsToastProvider } from './SettingsToastProvider';
 import About from './tabs/about';
