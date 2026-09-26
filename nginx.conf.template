@@ -1,13 +1,3 @@
-map $uri $safe_request_uri {
-    default $request_uri;
-    ~*^/oauth/authorize/?$ $uri;
-}
-
-map $http_referer $safe_referer {
-    default $http_referer;
-    ~*/oauth/authorize "";
-}
-
 log_format json_log escape=json
   '{'
     '"level":"info",'
@@ -19,14 +9,14 @@ log_format json_log escape=json
     '"request_id":"$req_id",'
     '"trace_id":"$upstream_http_x_trace_id",'
     '"method":"$request_method",'
-    '"uri":"$safe_request_uri",'
+    '"uri":"$request_uri",'
     '"server_protocol":"$server_protocol",'
     '"status":$status,'
     '"bytes_sent":$bytes_sent,'
     '"body_bytes_sent":$body_bytes_sent,'
     '"request_time":"$request_time",'
     '"upstream_response_time":"$upstream_response_time",'
-    '"referer":"$safe_referer",'
+    '"referer":"$http_referer",'
     '"user_agent":"$http_user_agent",'
     '"host":"$host"'
   '}';
