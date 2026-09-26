@@ -37,6 +37,10 @@ export default function WrapperPage(props: WrapperPageProps) {
   const { useCard = true, extra, children, showAppDownload = false } = props;
   const { t, i18n } = useTranslation();
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const contentClassName = cn(
+    'flex w-full max-w-sm flex-col gap-6',
+    props.contentClassName
+  );
 
   useEffect(() => {
     const scroller = scrollerRef.current;
@@ -81,12 +85,7 @@ export default function WrapperPage(props: WrapperPageProps) {
             </a>
           </div>
           {useCard ? (
-            <div
-              className={cn(
-                'flex w-full max-w-sm flex-col gap-6',
-                props.contentClassName
-              )}
-            >
+            <div className={contentClassName}>
               <Card className="dark:border-[#303030] dark:bg-[#171717]">
                 <CardHeader className="hidden">
                   <CardTitle></CardTitle>
@@ -97,12 +96,7 @@ export default function WrapperPage(props: WrapperPageProps) {
               {extra}
             </div>
           ) : (
-            <div
-              className={cn(
-                'flex w-full max-w-sm flex-col gap-6',
-                props.contentClassName
-              )}
-            >
+            <div className={contentClassName}>
               {children}
               {extra}
             </div>

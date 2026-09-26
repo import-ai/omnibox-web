@@ -3,10 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import CoreApp from '@/hooks/app.class';
 import AppContext from '@/hooks/appContext';
-import {
-  AuthConfigProvider,
-  type AuthProvider,
-} from '@/hooks/AuthConfigContext';
+import { AuthConfigProvider } from '@/hooks/AuthConfigContext';
 import Layout from '@/layout';
 import Error from '@/layout/ErrorPage';
 import { lazyRoute } from '@/lib/lazyRoute';
@@ -17,10 +14,6 @@ import {
   type SettingsExtension,
   SettingsExtensionsContext,
 } from '@/page/settings/SettingsExtensionsContext';
-import {
-  type EmbeddedAuth,
-  EmbeddedAuthContext,
-} from '@/page/user/EmbeddedAuthContext';
 
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/InvitePage'));
@@ -195,24 +188,16 @@ const router = createBrowserRouter([
 ]);
 
 export interface AppProps {
-  embeddedAuth?: EmbeddedAuth;
   settingsExtensions?: readonly SettingsExtension[];
-  authProviders?: readonly AuthProvider[];
 }
 
-export default function Main({
-  settingsExtensions = [],
-  authProviders,
-  embeddedAuth,
-}: AppProps = {}) {
+export default function Main({ settingsExtensions = [] }: AppProps = {}) {
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <AppContext.Provider value={app}>
-        <AuthConfigProvider supportedProviders={authProviders}>
+        <AuthConfigProvider>
           <SettingsExtensionsContext.Provider value={settingsExtensions}>
-            <EmbeddedAuthContext.Provider value={embeddedAuth}>
-              <RouterProvider router={router} />
-            </EmbeddedAuthContext.Provider>
+            <RouterProvider router={router} />
           </SettingsExtensionsContext.Provider>
         </AuthConfigProvider>
       </AppContext.Provider>

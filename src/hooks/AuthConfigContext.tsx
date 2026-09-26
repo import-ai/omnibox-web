@@ -8,8 +8,6 @@ interface AuthConfig {
   apple: boolean;
 }
 
-export type AuthProvider = keyof AuthConfig;
-
 interface AuthConfigContextValue {
   config: AuthConfig;
   loading: boolean;
@@ -50,10 +48,8 @@ const AuthConfigContext = createContext<AuthConfigContextValue>({
 
 export function AuthConfigProvider({
   children,
-  supportedProviders,
 }: {
   children: React.ReactNode;
-  supportedProviders?: readonly AuthProvider[];
 }) {
   // use cached config as initial value to prevent flickering
   const cachedConfig = getCachedConfig();
@@ -84,22 +80,7 @@ export function AuthConfigProvider({
   }, []);
 
   return (
-    <AuthConfigContext.Provider
-      value={{
-        config: {
-          wechat:
-            config.wechat &&
-            (!supportedProviders || supportedProviders.includes('wechat')),
-          google:
-            config.google &&
-            (!supportedProviders || supportedProviders.includes('google')),
-          apple:
-            config.apple &&
-            (!supportedProviders || supportedProviders.includes('apple')),
-        },
-        loading,
-      }}
-    >
+    <AuthConfigContext.Provider value={{ config, loading }}>
       {children}
     </AuthConfigContext.Provider>
   );

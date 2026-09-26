@@ -9,8 +9,6 @@ import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 
-import { ProviderLogin } from '../EmbeddedAuthContext';
-
 declare global {
   interface Window {
     AppleID: {
@@ -41,7 +39,7 @@ interface IProps {
   mode?: 'login' | 'register';
 }
 
-function WebApple(props: IProps) {
+export default function Apple(props: IProps) {
   const { mode = 'login' } = props;
   const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
@@ -201,13 +199,5 @@ function WebApple(props: IProps) {
           : 'login.login_use_apple'
       )}
     </Button>
-  );
-}
-
-export default function Apple(props: IProps) {
-  return (
-    <ProviderLogin provider="apple">
-      <WebApple {...props} />
-    </ProviderLogin>
   );
 }

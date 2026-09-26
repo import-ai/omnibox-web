@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -7,9 +7,7 @@ import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 
 import Apple from '../apple';
 import { Available } from '../available';
-import DesktopLoginPage from '../DesktopLoginPage';
 import Email from '../email';
-import { EmbeddedAuthContext } from '../EmbeddedAuthContext';
 import Google from '../google';
 import MetaPage from '../MetaPage';
 import Phone from '../phone';
@@ -23,11 +21,6 @@ export type ContactMethod = 'email' | 'phone';
 export type AuthMethod = 'otp' | 'password';
 
 export default function LoginPage() {
-  const host = useContext(EmbeddedAuthContext);
-  return host ? <DesktopLoginPage host={host} /> : <WebLoginPage />;
-}
-
-function WebLoginPage() {
   const [scan, onScan] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();

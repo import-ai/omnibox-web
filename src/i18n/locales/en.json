@@ -1554,15 +1554,7 @@
     "switch": "Use another account",
     "return": "Open OmniBox",
     "return_hint": "Opening OmniBox. Allow your browser to open the app, or click below if it does not open automatically. Open within one minute, or restart sign-in from the app.",
-    "waiting": "Finish signing in, then return to OmniBox.",
-    "cancel": "Cancel sign-in",
     "failed": "Sign-in failed or expired. Please start again in the app.",
-    "slogan": "Anywhere\nAnything to memory, memory to anything.",
-    "entry_hint": "Sign in or create an account in your browser.",
-    "open_browser": "Sign in",
-    "reopen": "Reopen browser",
-    "copy": "Copy sign-in link",
-    "waiting_title": "Continue in your browser",
     "confirm_hint": "Use this account to sign in to OmniBox on this computer.",
     "ready": "Return to OmniBox"
   }

@@ -19,11 +19,11 @@ export async function completeAuthRedirect(
     response.is_new_user === true,
     response.id
   );
+  const target = await getAuthSuccessRedirect(redirect ?? null);
   if (invite.result) {
     markInviteReferralLanding(invite.result.requires_phone_binding);
-    const target = await getAuthSuccessRedirect(redirect ?? null);
     location.href = target.startsWith('/oauth/authorize?') ? target : '/';
     return;
   }
-  location.href = await getAuthSuccessRedirect(redirect ?? null);
+  location.href = target;
 }

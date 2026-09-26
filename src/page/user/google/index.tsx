@@ -6,13 +6,11 @@ import { GoogleIcon } from '@/assets/icons/GoogleIcon';
 import { Button } from '@/components/button';
 import { http } from '@/lib/request';
 
-import { ProviderLogin } from '../EmbeddedAuthContext';
-
 interface IProps {
   mode?: 'login' | 'register';
 }
 
-function WebGoogle(props: IProps) {
+export default function Google(props: IProps) {
   const { mode = 'login' } = props;
   const { t } = useTranslation();
   const [params] = useSearchParams();
@@ -44,13 +42,5 @@ function WebGoogle(props: IProps) {
           : 'login.login_use_google'
       )}
     </Button>
-  );
-}
-
-export default function Google(props: IProps) {
-  return (
-    <ProviderLogin provider="google">
-      <WebGoogle {...props} />
-    </ProviderLogin>
   );
 }

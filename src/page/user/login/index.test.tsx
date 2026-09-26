@@ -20,7 +20,6 @@ jest.mock('react-router-dom', () => ({
 jest.mock('@/page/user/authRedirect', () => ({
   getAuthSuccessRedirect: jest.fn(),
 }));
-jest.mock('@/components/button', () => ({ Button: () => null }));
 jest.mock('../apple', () => () => null);
 jest.mock('../available', () => ({ Available: () => null }));
 jest.mock('../email', () => () => null);
