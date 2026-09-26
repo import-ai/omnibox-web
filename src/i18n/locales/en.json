@@ -1550,10 +1550,8 @@
   },
   "desktop_auth": {
     "title": "Sign in to OmniBox Desktop",
-    "account": "Continue as {{account}}?",
     "confirm": "Continue with this account",
     "switch": "Use another account",
-    "browser": "Sign in below, then confirm your desktop login.",
     "return": "Open OmniBox",
     "return_hint": "Opening OmniBox. Allow your browser to open the app, or click below if it does not open automatically. Open within one minute, or restart sign-in from the app.",
     "waiting": "Finish signing in, then return to OmniBox.",
