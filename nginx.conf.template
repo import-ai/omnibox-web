@@ -72,14 +72,6 @@ server {
         access_log off;
     }
 
-    location ~* ^/oauth/authorize/?$ {
-        root /usr/share/nginx/html;
-        try_files /index.html =404;
-        add_header Cache-Control no-store always;
-        add_header Referrer-Policy no-referrer always;
-        access_log off;
-    }
-
     location = /404.html {
         internal;
         root /usr/share/nginx/html;

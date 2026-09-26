@@ -99,17 +99,3 @@ src/
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-## Embedded applications
-
-Desktop hosts can import `mountApp` from `src/Bootstrap.tsx` and pass a
-`settingsExtensions` array. Each extension has a stable `id`, React `label` and
-`icon`, and a `component` receiving `namespaceId`. The settings context is empty
-in the browser entry point; extension tab keys are prefixed with `extension:`.
-Hosts must build against a pinned Web revision and resolve shared dependencies
-(including React and the router) to one installation.
-
-`subscribeCredentials` in `src/page/user/util.ts` reports the initial credentials,
-same-window login/logout, and cross-tab credential changes. Hosts must unsubscribe
-on teardown and validate credentials before using native capabilities. No native
-capabilities or desktop implementation are included in Web.
