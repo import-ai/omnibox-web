@@ -145,6 +145,7 @@ export default function OAuthAuthorizePage() {
               </Button>
               <Button
                 variant="outline"
+                className="h-11"
                 disabled={pending}
                 onClick={() => {
                   removeGlobalCredential();
