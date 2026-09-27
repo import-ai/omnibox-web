@@ -819,6 +819,8 @@
       },
       "tool_calls": {
         "function_name": {
+          "list_local_devices": "List local devices",
+          "execute_local_command": "Execute local command",
           "write_todos": "TODO",
           "ls": "List Resources",
           "list_resources": "List Resources",

@@ -820,6 +820,8 @@
       },
       "tool_calls": {
         "function_name": {
+          "list_local_devices": "列出本地设备",
+          "execute_local_command": "执行本地命令",
           "write_todos": "待办",
           "ls": "浏览资源",
           "list_resources": "浏览资源",
