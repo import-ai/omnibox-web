@@ -6,13 +6,7 @@ import { Button } from '@/components/ui/Button';
 import ExecutionCard from './ExecutionCard';
 import { LocalDevice, LocalExecution, runtimeApi } from './runtime';
 
-export default function ExecutionList({
-  conversationId,
-  compact = false,
-}: {
-  conversationId?: string;
-  compact?: boolean;
-}) {
+export default function ExecutionList() {
   const { t } = useTranslation();
   const [executions, setExecutions] = useState<LocalExecution[]>([]);
   const [devices, setDevices] = useState<LocalDevice[]>([]);
@@ -24,12 +18,12 @@ export default function ExecutionList({
       runtimeApi.devices(),
       Promise.all(
         Array.from({ length: Math.ceil(limit / 100) }, (_, i) =>
-          runtimeApi.executions(conversationId, i * 100)
+          runtimeApi.executions(undefined, i * 100)
         )
       ).then(p => p.flat()),
     ]);
     return { devices, rows };
-  }, [conversationId, limit]);
+  }, [limit]);
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     let active = true;
@@ -55,16 +49,8 @@ export default function ExecutionList({
       clearTimeout(timer);
     };
   }, [refresh, revision, limit]);
-  if (compact && !executions.length && !error) return null;
   return (
-    <section
-      aria-label={t('local_runtime.executions')}
-      className={
-        compact
-          ? 'max-h-[40vh] shrink-0 space-y-2 overflow-auto border-t p-3'
-          : 'space-y-3'
-      }
-    >
+    <section aria-label={t('local_runtime.executions')} className="space-y-3">
       <h3 className="font-semibold">{t('local_runtime.executions')}</h3>
       {error && <p role="alert">{error}</p>}
       {!executions.length && !error && (

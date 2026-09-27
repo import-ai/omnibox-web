@@ -15,6 +15,7 @@ export interface LocalExecution {
   id: string;
   device_id: string;
   conversation_id: string;
+  tool_call_id: string;
   namespace_id: string;
   command: string;
   cwd: string;
