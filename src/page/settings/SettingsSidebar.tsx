@@ -42,6 +42,11 @@ export function SettingsSidebar({
   // Account section items - icons match Figma design
   const accountItems: MenuItem[] = [
     {
+      label: t('local_runtime.title'),
+      value: 'localRuntime',
+      icon: <MonitorCog className="size-4" />,
+    },
+    {
       label: t('setting.preferences'),
       value: 'basic',
       icon: <UserCog className="size-4" />,

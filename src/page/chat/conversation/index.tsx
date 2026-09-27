@@ -4,6 +4,7 @@ import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import useContext from '@/page/chat/conversation/useContext';
 import { useConversationShare } from '@/page/chat/share/useConversationShare';
 import { useConversationShareEvents } from '@/page/chat/share/useConversationShareEvents';
+import ExecutionList from '@/page/localRuntime/ExecutionList';
 
 import {
   ConversationFooter,
@@ -33,6 +34,13 @@ export default function ChatConversationPage() {
         context={context}
         share={conversationShare}
       />
+      {context.conversation.id && (
+        <ExecutionList
+          key={context.conversation.id}
+          conversationId={context.conversation.id}
+          compact
+        />
+      )}
       <ConversationFooter
         compact={compact}
         commercial={config.commercial}

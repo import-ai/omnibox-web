@@ -1558,5 +1558,47 @@
     "failed": "登录失败或已过期，请在客户端重新发起登录。",
     "confirm_hint": "确认使用此账号登录本机的小黑客户端。",
     "ready": "可以回到小黑了"
+  },
+  "local_runtime": {
+    "title": "本地设备",
+    "description": "设备仅供本人使用。请在桌面客户端设置命令权限。",
+    "executions": "本地执行记录",
+    "empty": "暂无执行记录",
+    "more": "加载更多",
+    "approve": "批准本次操作",
+    "reject": "拒绝",
+    "expired": "审批已过期",
+    "output": "执行输出与产物",
+    "cancel": "取消执行",
+    "exit_code": "退出码",
+    "approved": "批准时间",
+    "device_name": "设备名称",
+    "rename": "保存名称",
+    "paused": "已暂停",
+    "online": "在线",
+    "offline": "离线",
+    "revoked": "已撤销",
+    "revoke": "撤销设备",
+    "revoke_confirm": "撤销后设备无法接收新任务；离线设备将在恢复连接后停止执行。继续？",
+    "no_devices": "登录桌面客户端后，这台电脑将显示在这里。",
+    "policy": {
+      "allow": "允许",
+      "deny": "拒绝",
+      "ask": "询问"
+    },
+    "status": {
+      "queued": "排队中",
+      "accepted": "设备已领取",
+      "awaiting_approval": "等待审批",
+      "approved": "已批准",
+      "running": "执行中",
+      "cancel_requested": "等待设备确认取消",
+      "succeeded": "成功",
+      "failed": "失败",
+      "denied": "已拒绝",
+      "canceled": "已取消",
+      "timed_out": "已超时",
+      "unknown": "状态未知"
+    }
   }
 }

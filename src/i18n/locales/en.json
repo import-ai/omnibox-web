@@ -1557,5 +1557,47 @@
     "failed": "Sign-in failed or expired. Please start again in the app.",
     "confirm_hint": "Use this account to sign in to OmniBox on this computer.",
     "ready": "Return to OmniBox"
+  },
+  "local_runtime": {
+    "title": "Local devices",
+    "description": "Devices are private to your account. Configure command permissions in the desktop client.",
+    "executions": "Local executions",
+    "empty": "No executions yet",
+    "more": "Load more",
+    "approve": "Approve this operation",
+    "reject": "Reject",
+    "expired": "Approval expired",
+    "output": "Output and artifacts",
+    "cancel": "Cancel execution",
+    "exit_code": "Exit code",
+    "approved": "Approved at",
+    "device_name": "Device name",
+    "rename": "Save name",
+    "paused": "Paused",
+    "online": "Online",
+    "offline": "Offline",
+    "revoked": "Revoked",
+    "revoke": "Revoke device",
+    "revoke_confirm": "Revoke access? Offline devices stop when they reconnect.",
+    "no_devices": "Sign in to the desktop client to connect a computer.",
+    "policy": {
+      "allow": "Allow",
+      "deny": "Deny",
+      "ask": "Ask"
+    },
+    "status": {
+      "queued": "Queued",
+      "accepted": "Delivered",
+      "awaiting_approval": "Awaiting approval",
+      "approved": "Approved",
+      "running": "Running",
+      "cancel_requested": "Waiting for cancellation confirmation",
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "denied": "Denied",
+      "canceled": "Canceled",
+      "timed_out": "Timed out",
+      "unknown": "Unknown"
+    }
   }
 }
