@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { format } from 'date-fns';
+import { ChevronDown, Paperclip } from 'lucide-react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
+import ExecutionStatus from './ExecutionStatus';
 import {
   ExecutionEvent,
   LocalExecution,
@@ -11,14 +15,63 @@ import {
   terminal,
 } from './runtime';
 
+const time = (value: string) => format(new Date(value), 'yyyy-MM-dd HH:mm:ss');
+
+function Field({
+  label,
+  children,
+  nowrap = false,
+}: {
+  label: string;
+  children: ReactNode;
+  nowrap?: boolean;
+}) {
+  return (
+    <div className="flex min-w-0 flex-col gap-0.5">
+      <span className="text-xs text-muted-foreground">{label}</span>
+      <span
+        className={cn(
+          'text-sm text-foreground',
+          nowrap ? 'whitespace-nowrap' : 'break-all'
+        )}
+      >
+        {children}
+      </span>
+    </div>
+  );
+}
+
+function Artifact({ data }: { data: string }) {
+  try {
+    const artifact = JSON.parse(data);
+    const url = new URL(artifact.url);
+    if (!['https:', 'http:'].includes(url.protocol)) return null;
+    return (
+      <a
+        className="inline-flex h-6 max-w-full items-center gap-1 rounded-lg border border-border px-2 text-xs font-medium text-foreground hover:bg-muted"
+        href={url.href}
+        target="_blank"
+        rel="noreferrer"
+      >
+        <Paperclip className="size-3 shrink-0 text-muted-foreground" />
+        <span className="truncate">{String(artifact.name)}</span>
+      </a>
+    );
+  } catch {
+    return null;
+  }
+}
+
 export default function ExecutionCard({
   execution: e,
   deviceName,
   refresh,
+  bordered = true,
 }: {
   execution: LocalExecution;
   deviceName: string;
   refresh: () => void;
+  bordered?: boolean;
 }) {
   const { t } = useTranslation();
   const [events, setEvents] = useState<ExecutionEvent[]>([]);
@@ -66,108 +119,142 @@ export default function ExecutionCard({
   };
   const expired =
     !!e.approval_expires_at && Date.parse(e.approval_expires_at) <= Date.now();
+  const output = events
+    .filter(v => v.kind !== 'artifact' && v.kind !== 'status')
+    .map(v => v.data)
+    .join('');
+  const artifacts = events.filter(v => v.kind === 'artifact');
   return (
-    <article className="space-y-2 rounded-md border p-3 text-sm">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <strong>{deviceName}</strong>
-        <span>{t(`local_runtime.status.${e.status}`)}</span>
+    <article
+      className={cn(
+        'flex flex-col gap-3 text-sm',
+        bordered && 'rounded-md border border-border p-4'
+      )}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <span className="min-w-0 truncate font-semibold text-foreground">
+          {deviceName}
+        </span>
+        <ExecutionStatus status={e.status} />
       </div>
-      <p className="break-all text-muted-foreground">
-        {e.cwd} · {e.timeout_seconds}s ·{' '}
-        {new Date(e.created_at).toLocaleString()}
-      </p>
-      <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-muted p-2">
+      <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all rounded-md border border-border bg-muted/40 px-3 py-2 font-mono text-xs text-foreground">
         {e.command}
       </pre>
-      {e.status === 'awaiting_approval' && (
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            disabled={busy || expired}
-            onClick={() =>
-              void action(() => runtimeApi.decide(e.id, 'approve'))
-            }
-          >
-            {t('local_runtime.approve')}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={busy || expired}
-            onClick={() => void action(() => runtimeApi.decide(e.id, 'reject'))}
-          >
-            {t('local_runtime.reject')}
-          </Button>
-          {expired && <span>{t('local_runtime.expired')}</span>}
+      <div className="flex flex-wrap gap-x-8 gap-y-2">
+        <Field label={t('local_runtime.cwd')}>{e.cwd}</Field>
+        <Field label={t('local_runtime.timeout')} nowrap>
+          {t('local_runtime.timeout_value', { count: e.timeout_seconds })}
+        </Field>
+        <Field label={t('local_runtime.created_at')} nowrap>
+          {time(e.created_at)}
+        </Field>
+        {e.exit_code !== null && (
+          <Field label={t('local_runtime.exit_code')} nowrap>
+            {e.exit_code}
+          </Field>
+        )}
+      </div>
+      {e.approvals?.length > 0 && (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs text-muted-foreground">
+            {t('local_runtime.approvals')}
+          </span>
+          {e.approvals.map((approval, index) => (
+            <span key={index} className="flex gap-3 text-sm text-foreground">
+              <span>
+                {t(
+                  `local_runtime.decision.${approval.decision === 'approve' ? 'approve' : 'reject'}`
+                )}
+              </span>
+              <span className="text-muted-foreground">{time(approval.at)}</span>
+            </span>
+          ))}
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant="ghost"
+      {artifacts.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-muted-foreground">
+            {t('local_runtime.artifacts')}
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {artifacts.map(v => (
+              <Artifact key={v.sequence} data={v.data} />
+            ))}
+          </div>
+        </div>
+      )}
+      {open && (
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-muted-foreground">
+            {t('local_runtime.output')}
+          </span>
+          <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-all rounded-md border border-border px-3 py-2 font-mono text-xs text-foreground">
+            {output || (
+              <span className="font-sans text-muted-foreground">
+                {t('local_runtime.no_output')}
+              </span>
+            )}
+          </pre>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
           aria-expanded={open}
           onClick={() => setOpen(!open)}
         >
-          {t('local_runtime.output')}
-        </Button>
-        {!terminal.has(e.status) && (
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={busy || e.status === 'cancel_requested'}
-            onClick={() => void action(() => runtimeApi.cancel(e.id))}
-          >
-            {t('local_runtime.cancel')}
-          </Button>
-        )}
-        {e.exit_code !== null && (
-          <span>
-            {t('local_runtime.exit_code')}: {e.exit_code}
-          </span>
-        )}
-      </div>
-      {e.approvals?.map((approval, index) => (
-        <p key={index}>
-          {t(
-            `local_runtime.${approval.decision === 'approve' ? 'approved' : 'reject'}`
-          )}{' '}
-          · {new Date(approval.at).toLocaleString()}
-        </p>
-      ))}
-      {open && (
-        <div className="max-h-72 overflow-auto rounded bg-muted p-2">
-          <pre className="whitespace-pre-wrap break-all">
-            {events
-              .filter(v => v.kind !== 'artifact')
-              .map(v => v.data)
-              .join('')}
-          </pre>
-          {events
-            .filter(v => v.kind === 'artifact')
-            .map(v => {
-              try {
-                const artifact = JSON.parse(v.data);
-                const url = new URL(artifact.url);
-                if (!['https:', 'http:'].includes(url.protocol)) return null;
-                return (
-                  <a
-                    key={v.sequence}
-                    className="block underline"
-                    href={url.href}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {String(artifact.name)}
-                  </a>
-                );
-              } catch {
-                return null;
-              }
-            })}
+          {t(open ? 'local_runtime.hide_output' : 'local_runtime.show_output')}
+          <ChevronDown
+            className={cn(
+              'size-3.5 transition-transform',
+              open && 'rotate-180'
+            )}
+          />
+        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {e.status === 'awaiting_approval' &&
+            (expired ? (
+              <span className="text-xs text-muted-foreground">
+                {t('local_runtime.expired')}
+              </span>
+            ) : (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() =>
+                    void action(() => runtimeApi.decide(e.id, 'reject'))
+                  }
+                >
+                  {t('local_runtime.reject')}
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={busy}
+                  onClick={() =>
+                    void action(() => runtimeApi.decide(e.id, 'approve'))
+                  }
+                >
+                  {t('local_runtime.approve')}
+                </Button>
+              </>
+            ))}
+          {!terminal.has(e.status) && e.status !== 'awaiting_approval' && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy || e.status === 'cancel_requested'}
+              onClick={() => void action(() => runtimeApi.cancel(e.id))}
+            >
+              {t('local_runtime.cancel')}
+            </Button>
+          )}
         </div>
-      )}
+      </div>
       {error && (
-        <p role="alert" className="text-destructive">
+        <p role="alert" className="text-xs text-destructive">
           {error}
         </p>
       )}

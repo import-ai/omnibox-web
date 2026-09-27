@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import ExecutionCard from './ExecutionCard';
 import { LocalDevice, LocalExecution, runtimeApi, terminal } from './runtime';
@@ -85,6 +86,7 @@ export function ToolCallExecution({
   toolCallId: string;
   toolCallDone: boolean;
 }) {
+  const { t } = useTranslation();
   const store = useContext(ExecutionsContext);
   const execution = store?.executions.get(toolCallId);
   // Poll until both the execution and the tool call that waits on it settle.
@@ -99,7 +101,7 @@ export function ToolCallExecution({
       execution={execution}
       deviceName={
         store.devices.find(d => d.id === execution.device_id)?.name ??
-        execution.device_id
+        t('local_runtime.removed_device')
       }
       refresh={store.refresh}
     />

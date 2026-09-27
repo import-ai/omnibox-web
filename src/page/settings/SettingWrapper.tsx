@@ -58,7 +58,11 @@ export default function SettingWrapper({
     ...extensions.map(({ id, component: Component }) => ({
       value: `extension:${id}`,
       children: (
-        <Component key={`${id}:${namespaceId}`} namespaceId={namespaceId} />
+        <Component
+          key={`${id}:${namespaceId}`}
+          namespaceId={namespaceId}
+          navigate={onActiveKey}
+        />
       ),
     })),
     {

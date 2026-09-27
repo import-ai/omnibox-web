@@ -8,6 +8,7 @@ export interface LocalDevice {
   command_policy: string;
   online: boolean;
   paused: boolean;
+  last_seen_at: string | null;
   revoked_at: string | null;
 }
 export interface LocalExecution {
@@ -24,6 +25,7 @@ export interface LocalExecution {
   approved_at: string | null;
   approval_expires_at: string | null;
   created_at: string;
+  started_at: string | null;
   finished_at: string | null;
   exit_code: number | null;
 }
