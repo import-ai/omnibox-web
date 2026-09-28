@@ -1577,11 +1577,13 @@
     "device_name": "Device name",
     "rename": "Rename",
     "save": "Save",
-    "remove": "Remove device",
-    "remove_confirm": {
-      "title": "Remove this device?",
-      "description": "OmniBox AI will no longer be able to use this computer, and running commands will be stopped. To use it again, enable Local execution in its desktop client.",
-      "button": "Remove"
+    "remove": {
+      "label": "Remove device",
+      "confirm": {
+        "title": "Remove this device?",
+        "description": "OmniBox AI will no longer be able to use this computer, and running commands will be stopped. To use it again, enable Local execution in its desktop client.",
+        "button": "Remove"
+      }
     },
     "removed_device": "Removed device",
     "policy": {

@@ -163,7 +163,7 @@ function DeviceCard({
               <AlertDialogTrigger asChild>
                 <button
                   type="button"
-                  aria-label={t('local_runtime.remove')}
+                  aria-label={t('local_runtime.remove.label')}
                   className="group flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
                 >
                   <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
@@ -171,16 +171,16 @@ function DeviceCard({
               </AlertDialogTrigger>
             </TooltipTrigger>
             <TooltipContent side="top">
-              {t('local_runtime.remove')}
+              {t('local_runtime.remove.label')}
             </TooltipContent>
           </Tooltip>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                {t('local_runtime.remove_confirm.title')}
+                {t('local_runtime.remove.confirm.title')}
               </AlertDialogTitle>
               <AlertDialogDescription>
-                {t('local_runtime.remove_confirm.description')}
+                {t('local_runtime.remove.confirm.description')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -193,7 +193,7 @@ function DeviceCard({
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {removing && <Spinner className="mr-2" />}
-                {t('local_runtime.remove_confirm.button')}
+                {t('local_runtime.remove.confirm.button')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

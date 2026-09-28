@@ -1578,11 +1578,13 @@
     "device_name": "设备名称",
     "rename": "重命名",
     "save": "保存",
-    "remove": "移除设备",
-    "remove_confirm": {
-      "title": "移除这台设备？",
-      "description": "移除后小黑 AI 将无法再调用这台电脑，正在执行的命令会被停止。如需再次使用，请在这台电脑的桌面客户端中重新启用本地执行。",
-      "button": "移除"
+    "remove": {
+      "label": "移除设备",
+      "confirm": {
+        "title": "移除这台设备？",
+        "description": "移除后小黑 AI 将无法再调用这台电脑，正在执行的命令会被停止。如需再次使用，请在这台电脑的桌面客户端中重新启用本地执行。",
+        "button": "移除"
+      }
     },
     "removed_device": "已移除的设备",
     "policy": {
