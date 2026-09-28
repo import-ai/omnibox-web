@@ -13,6 +13,7 @@ import {
   mergeEvents,
   runtimeApi,
   terminal,
+  useCurrentDeviceId,
 } from './runtime';
 
 const time = (value: string) => format(new Date(value), 'yyyy-MM-dd HH:mm:ss');
@@ -74,6 +75,7 @@ export default function ExecutionCard({
   bordered?: boolean;
 }) {
   const { t } = useTranslation();
+  const currentDeviceId = useCurrentDeviceId();
   const [events, setEvents] = useState<ExecutionEvent[]>([]);
   const [open, setOpen] = useState(!terminal.has(e.status));
   const [error, setError] = useState('');
@@ -134,6 +136,11 @@ export default function ExecutionCard({
       <div className="flex items-center justify-between gap-3">
         <span className="min-w-0 truncate font-semibold text-foreground">
           {deviceName}
+          {e.device_id === currentDeviceId && (
+            <span className="ml-2 rounded-lg border px-2 py-0.5 text-xs">
+              {t('local_runtime.this_device')}
+            </span>
+          )}
         </span>
         <ExecutionStatus status={e.status} />
       </div>
@@ -141,6 +148,7 @@ export default function ExecutionCard({
         {e.command}
       </pre>
       <div className="flex flex-wrap gap-x-8 gap-y-2">
+        <Field label={t('local_runtime.device_id')}>{e.device_id}</Field>
         <Field label={t('local_runtime.cwd')}>{e.cwd}</Field>
         <Field label={t('local_runtime.timeout')} nowrap>
           {t('local_runtime.timeout_value', { count: e.timeout_seconds })}

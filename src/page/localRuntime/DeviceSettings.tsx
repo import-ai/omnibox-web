@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
-import { Pencil, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -21,22 +21,15 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/AlertDialog';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/Popover';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 import { getRelatedTime } from '@/lib/time';
 
+import DeviceIdentity from './DeviceIdentity';
 import ExecutionList from './ExecutionList';
-import { LocalDevice, runtimeApi } from './runtime';
-
-const NAME_MAX_LENGTH = 120;
+import RenameDevice from './RenameDevice';
+import { LocalDevice, useCurrentDeviceId, useLocalDevices } from './runtime';
 
 function Chip({ children }: { children: React.ReactNode }) {
   return (
@@ -46,92 +39,16 @@ function Chip({ children }: { children: React.ReactNode }) {
   );
 }
 
-function RenameDevice({
-  device,
-  refresh,
-}: {
-  device: LocalDevice;
-  refresh: () => void;
-}) {
-  const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState(device.name);
-  const [saving, setSaving] = useState(false);
-  const save = async () => {
-    const value = name.trim();
-    if (!value || value === device.name) return setOpen(false);
-    setSaving(true);
-    try {
-      await http.patch(`/local-devices/${device.id}`, { name: value });
-      refresh();
-      setOpen(false);
-    } finally {
-      setSaving(false);
-    }
-  };
-  return (
-    <Popover
-      open={open}
-      onOpenChange={next => {
-        setOpen(next);
-        if (next) setName(device.name);
-      }}
-    >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              aria-label={t('local_runtime.rename')}
-              className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground md:opacity-0 md:group-hover:opacity-100 md:data-[state=open]:opacity-100"
-            >
-              <Pencil className="size-3.5" />
-            </button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="top">{t('local_runtime.rename')}</TooltipContent>
-      </Tooltip>
-      <PopoverContent align="start" className="w-72 space-y-3 p-3">
-        <div className="space-y-1.5">
-          <Label htmlFor={`device-name-${device.id}`}>
-            {t('local_runtime.device_name')}
-          </Label>
-          <Input
-            id={`device-name-${device.id}`}
-            value={name}
-            maxLength={NAME_MAX_LENGTH}
-            onChange={event => setName(event.target.value)}
-            onKeyDown={event => {
-              if (event.key === 'Enter') {
-                event.preventDefault();
-                void save();
-              }
-            }}
-          />
-          <div className="flex justify-end text-xs text-muted-foreground">
-            {name.length}/{NAME_MAX_LENGTH}
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Button
-            className="h-8"
-            disabled={saving || !name.trim()}
-            onClick={() => void save()}
-          >
-            {t('local_runtime.save')}
-          </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 function DeviceCard({
   device,
   refresh,
+  devices,
+  isCurrent,
 }: {
   device: LocalDevice;
   refresh: () => void;
+  devices: LocalDevice[];
+  isCurrent: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const [removing, setRemoving] = useState(false);
@@ -147,7 +64,11 @@ function DeviceCard({
   const platform = t(`local_runtime.platform.${device.platform}`, {
     defaultValue: device.platform,
   });
-  const state = device.paused ? 'paused' : device.online ? 'online' : 'offline';
+  const state = !device.online
+    ? 'offline'
+    : device.paused
+      ? 'paused'
+      : 'online';
   return (
     <div className="flex flex-col gap-4 rounded-md border border-border p-5">
       <div className="flex items-start justify-between gap-3">
@@ -155,7 +76,8 @@ function DeviceCard({
           <span className="truncate text-sm font-semibold text-foreground">
             {device.name}
           </span>
-          <RenameDevice device={device} refresh={refresh} />
+          <RenameDevice device={device} devices={devices} refresh={refresh} />
+          {isCurrent && <Chip>{t('local_runtime.this_device')}</Chip>}
         </div>
         <AlertDialog>
           <Tooltip>
@@ -204,6 +126,7 @@ function DeviceCard({
         <Chip>{t(`local_runtime.${state}`)}</Chip>
         <Chip>{t(`local_runtime.policy.${device.command_policy}`)}</Chip>
       </div>
+      <DeviceIdentity device={device} />
       <div className="flex flex-col gap-1">
         <span className="text-sm text-muted-foreground">
           {t('local_runtime.last_seen')}
@@ -231,32 +154,8 @@ function DeviceCard({
 
 export default function DeviceSettings() {
   const { t } = useTranslation();
-  const [devices, setDevices] = useState<LocalDevice[]>();
-  const [error, setError] = useState('');
-  const [revision, setRevision] = useState(0);
-  const refresh = useCallback(() => setRevision(v => v + 1), []);
-  useEffect(() => {
-    let active = true;
-    let timer: ReturnType<typeof setTimeout>;
-    const load = async () => {
-      try {
-        const result = await runtimeApi.devices();
-        if (active) {
-          setDevices(result);
-          setError('');
-        }
-      } catch (err) {
-        if (active) setError(String(err));
-      } finally {
-        if (active) timer = setTimeout(load, 5000);
-      }
-    };
-    void load();
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [revision]);
+  const { devices, error, refresh } = useLocalDevices();
+  const currentDeviceId = useCurrentDeviceId();
   if (!devices && !error) {
     return (
       <div className="flex size-full items-center justify-center">
@@ -265,7 +164,12 @@ export default function DeviceSettings() {
     );
   }
   // Revoked devices can never reconnect, so only active ones are listed.
-  const active = (devices ?? []).filter(device => !device.revoked_at);
+  const active = (devices ?? [])
+    .filter(device => !device.revoked_at)
+    .sort(
+      (a, b) =>
+        Number(b.id === currentDeviceId) - Number(a.id === currentDeviceId)
+    );
   return (
     <TooltipProvider>
       <div className="flex flex-col">
@@ -292,7 +196,13 @@ export default function DeviceSettings() {
             </div>
           ) : (
             active.map(device => (
-              <DeviceCard key={device.id} device={device} refresh={refresh} />
+              <DeviceCard
+                key={device.id}
+                device={device}
+                devices={active}
+                isCurrent={device.id === currentDeviceId}
+                refresh={refresh}
+              />
             ))
           )}
         </div>

@@ -1563,6 +1563,13 @@
     "ready": "可以回到小黑了"
   },
   "local_runtime": {
+    "this_device": "本机",
+    "hostname": "系统电脑名",
+    "hostname_unknown": "等待客户端上报",
+    "device_id": "设备 ID",
+    "copy_device_id": "复制设备 ID",
+    "rename_offline": "连接后可修改设备名称。",
+    "duplicate_name": "已有同名设备，建议使用不同名称以便区分。",
     "title": "本地设备",
     "description": "管理可以被小黑 AI 调用的电脑。命令权限在各设备的桌面客户端中设置。",
     "no_devices": "在桌面客户端的「本地执行」中启用后，这台电脑会出现在这里。",
@@ -1591,7 +1598,7 @@
     "policy": {
       "allow": "直接执行",
       "deny": "拒绝执行",
-      "ask": "在浏览器询问"
+      "ask": "询问"
     },
     "executions": "执行记录",
     "empty": "暂无执行记录",

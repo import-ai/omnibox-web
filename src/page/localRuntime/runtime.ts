@@ -1,8 +1,17 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+
 import { http } from '@/lib/request';
 
 export interface LocalDevice {
   id: string;
   name: string;
+  hostname?: string | null;
   platform: string;
   shell: string;
   command_policy: string;
@@ -66,3 +75,59 @@ export const runtimeApi = {
     http.post(`/local-executions/${id}/decision`, { decision }),
   cancel: (id: string) => http.post(`/local-executions/${id}/cancel`),
 };
+
+// Hosts supply identity only; cloud APIs remain responsible for device ownership.
+export const CurrentDeviceContext = createContext<
+  (() => Promise<string | null>) | undefined
+>(undefined);
+export function useCurrentDeviceId() {
+  const getId = useContext(CurrentDeviceContext);
+  const [id, setId] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const value = await getId?.();
+        if (active) setId(value ?? null);
+      } catch {
+        if (active) setId(null);
+      }
+    };
+    void load();
+    const timer = setInterval(load, 5000);
+    return () => {
+      active = false;
+      clearInterval(timer);
+    };
+  }, [getId]);
+  return id;
+}
+export function useLocalDevices() {
+  const [devices, setDevices] = useState<LocalDevice[]>();
+  const [error, setError] = useState('');
+  const [revision, setRevision] = useState(0);
+  const refresh = useCallback(() => setRevision(value => value + 1), []);
+  useEffect(() => {
+    let active = true;
+    let timer: ReturnType<typeof setTimeout>;
+    const load = async () => {
+      try {
+        const result = await runtimeApi.devices();
+        if (active) {
+          setDevices(result);
+          setError('');
+        }
+      } catch (err) {
+        if (active) setError(String(err));
+      } finally {
+        if (active) timer = setTimeout(load, 5000);
+      }
+    };
+    void load();
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [revision]);
+  return { devices, error, refresh };
+}

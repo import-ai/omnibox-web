@@ -1562,6 +1562,13 @@
     "ready": "Return to OmniBox"
   },
   "local_runtime": {
+    "this_device": "This device",
+    "hostname": "System computer name",
+    "hostname_unknown": "Waiting for the desktop client",
+    "device_id": "Device ID",
+    "copy_device_id": "Copy device ID",
+    "rename_offline": "Connect this device to rename it.",
+    "duplicate_name": "Another device has this name. Use a different name to distinguish them.",
     "title": "Local devices",
     "description": "Computers OmniBox AI can run commands on. Command permissions are set in each computer's desktop client.",
     "no_devices": "Enable Local execution in the desktop client and the computer will appear here.",
@@ -1590,7 +1597,7 @@
     "policy": {
       "allow": "Run without asking",
       "deny": "Deny",
-      "ask": "Ask in browser"
+      "ask": "Ask"
     },
     "executions": "Executions",
     "empty": "No executions yet",

@@ -10,7 +10,13 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import ExecutionCard from './ExecutionCard';
-import { LocalDevice, LocalExecution, runtimeApi, terminal } from './runtime';
+import {
+  LocalDevice,
+  LocalExecution,
+  runtimeApi,
+  terminal,
+  useLocalDevices,
+} from './runtime';
 
 interface Store {
   executions: Map<string, LocalExecution>;
@@ -31,7 +37,8 @@ export function ConversationExecutionsProvider({
   const [executions, setExecutions] = useState(
     new Map<string, LocalExecution>()
   );
-  const [devices, setDevices] = useState<LocalDevice[]>([]);
+  const { devices: knownDevices } = useLocalDevices();
+  const devices = useMemo(() => knownDevices ?? [], [knownDevices]);
   const [revision, setRevision] = useState(0);
   const [watchers, setWatchers] = useState(0);
   const live = watchers > 0;
@@ -47,10 +54,8 @@ export function ConversationExecutionsProvider({
           page = await runtimeApi.executions(conversationId, rows.length);
           rows.push(...page);
         } while (page.length === 100);
-        const devices = await runtimeApi.devices();
         if (!active) return;
         setExecutions(new Map(rows.map(e => [e.tool_call_id, e])));
-        setDevices(devices);
       } catch {
         // Cards keep the last known state; the next poll retries.
       } finally {
