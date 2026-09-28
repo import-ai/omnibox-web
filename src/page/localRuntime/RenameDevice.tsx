@@ -90,7 +90,11 @@ export default function RenameDevice({
             disabled={saving}
             onChange={event => setName(event.target.value)}
             onKeyDown={event => {
-              if (event.key === 'Enter') {
+              if (
+                event.key === 'Enter' &&
+                !event.nativeEvent.isComposing &&
+                event.keyCode !== 229
+              ) {
                 event.preventDefault();
                 void save();
               }

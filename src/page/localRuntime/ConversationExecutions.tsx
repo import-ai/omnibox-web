@@ -13,9 +13,11 @@ import ExecutionCard from './ExecutionCard';
 import {
   LocalDevice,
   LocalExecution,
+  LocalExecutionPage,
   runtimeApi,
   terminal,
   useLocalDevices,
+  useRuntimeUserId,
 } from './runtime';
 
 interface Store {
@@ -28,6 +30,24 @@ interface Store {
 const ExecutionsContext = createContext<Store | null>(null);
 
 export function ConversationExecutionsProvider({
+  conversationId,
+  children,
+}: {
+  conversationId?: string;
+  children: ReactNode;
+}) {
+  const userId = useRuntimeUserId();
+  return (
+    <ConversationExecutions
+      key={`${userId}:${conversationId}`}
+      conversationId={userId ? conversationId : undefined}
+    >
+      {children}
+    </ConversationExecutions>
+  );
+}
+
+function ConversationExecutions({
   conversationId,
   children,
 }: {
@@ -49,11 +69,12 @@ export function ConversationExecutionsProvider({
     const load = async () => {
       try {
         const rows: LocalExecution[] = [];
-        let page: LocalExecution[];
+        let page: LocalExecutionPage;
         do {
           page = await runtimeApi.executions(conversationId, rows.length);
-          rows.push(...page);
-        } while (page.length === 100);
+          if (!active) return;
+          rows.push(...page.items);
+        } while (page.items.length > 0 && rows.length < page.total);
         if (!active) return;
         setExecutions(new Map(rows.map(e => [e.tool_call_id, e])));
       } catch {

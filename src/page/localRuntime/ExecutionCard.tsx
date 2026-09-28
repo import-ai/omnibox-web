@@ -3,6 +3,7 @@ import { ChevronDown, Paperclip } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Alert, AlertTitle } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
@@ -126,6 +127,9 @@ export default function ExecutionCard({
     .map(v => v.data)
     .join('');
   const artifacts = events.filter(v => v.kind === 'artifact');
+  const failure = ['failed', 'unknown'].includes(e.status)
+    ? events.filter(v => v.kind === 'status').at(-1)?.data
+    : undefined;
   return (
     <article
       className={cn(
@@ -190,6 +194,14 @@ export default function ExecutionCard({
             ))}
           </div>
         </div>
+      )}
+      {failure && (
+        <Alert variant="destructive">
+          <AlertTitle>{t(`local_runtime.status.${e.status}`)}</AlertTitle>
+          <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all font-mono text-xs">
+            {failure}
+          </pre>
+        </Alert>
       )}
       {open && (
         <div className="flex flex-col gap-1">

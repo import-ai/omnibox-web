@@ -6,7 +6,6 @@ import { ErrorStatus } from '@/assets/icons/ErrorStatus';
 import { InProgressStatus } from '@/assets/icons/InProgressStatus';
 import { QueueStatus } from '@/assets/icons/QueueStatus';
 import { TimeoutStatus } from '@/assets/icons/TimeoutStatus';
-import { cn } from '@/lib/utils';
 
 // Reuses the background task status icons so both lists read the same way.
 const icons: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -24,22 +23,12 @@ const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   unknown: ErrorStatus,
 };
 
-export function ExecutionStatusIcon({
-  status,
-  className,
-}: {
-  status: string;
-  className?: string;
-}) {
-  const Icon = icons[status] ?? ErrorStatus;
-  return <Icon className={cn('size-4 shrink-0', className)} />;
-}
-
 export default function ExecutionStatus({ status }: { status: string }) {
   const { t } = useTranslation();
+  const Icon = icons[status] ?? ErrorStatus;
   return (
     <span className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-      <ExecutionStatusIcon status={status} />
+      <Icon className="size-4 shrink-0" />
       {t(`local_runtime.status.${status}`)}
     </span>
   );

@@ -19,13 +19,24 @@ import { getRelatedTime } from '@/lib/time';
 
 import ExecutionCard from './ExecutionCard';
 import ExecutionStatus from './ExecutionStatus';
-import { LocalDevice, LocalExecution, runtimeApi } from './runtime';
+import {
+  LocalDevice,
+  LocalExecution,
+  runtimeApi,
+  useRuntimeUserId,
+} from './runtime';
 
 export default function ExecutionList({ devices }: { devices: LocalDevice[] }) {
+  const userId = useRuntimeUserId();
+  return userId ? <ExecutionHistory key={userId} devices={devices} /> : null;
+}
+
+function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
   const { t, i18n } = useTranslation();
   const [executions, setExecutions] = useState<LocalExecution[]>([]);
   const [error, setError] = useState('');
   const [pages, setPages] = useState(1);
+  const [total, setTotal] = useState(0);
   const [revision, setRevision] = useState(0);
   const [selectedId, setSelectedId] = useState<string>();
   const refresh = useCallback(() => setRevision(v => v + 1), []);
@@ -34,15 +45,14 @@ export default function ExecutionList({ devices }: { devices: LocalDevice[] }) {
     let timer: ReturnType<typeof setTimeout>;
     const load = async () => {
       try {
-        const rows = (
-          await Promise.all(
-            Array.from({ length: pages }, (_, i) =>
-              runtimeApi.executions(undefined, i * 100)
-            )
+        const result = await Promise.all(
+          Array.from({ length: pages }, (_, i) =>
+            runtimeApi.executions(undefined, i * 100)
           )
-        ).flat();
+        );
         if (active) {
-          setExecutions(rows);
+          setExecutions(result.flatMap(page => page.items));
+          setTotal(result[0].total);
           setError('');
         }
       } catch (err) {
@@ -132,7 +142,7 @@ export default function ExecutionList({ devices }: { devices: LocalDevice[] }) {
           </TooltipProvider>
         </div>
       )}
-      {executions.length === pages * 100 && (
+      {executions.length < total && (
         <Button
           variant="outline"
           className="mt-3 self-center"

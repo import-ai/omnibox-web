@@ -4,9 +4,12 @@ import {
   useContext,
   useEffect,
   useState,
+  useSyncExternalStore,
 } from 'react';
 
 import { http } from '@/lib/request';
+import { getCurrentUserId } from '@/page/chat/conversation/conversationCache';
+import { subscribeCredentials } from '@/page/user/util';
 
 export interface LocalDevice {
   id: string;
@@ -38,6 +41,10 @@ export interface LocalExecution {
   finished_at: string | null;
   exit_code: number | null;
 }
+export interface LocalExecutionPage {
+  items: LocalExecution[];
+  total: number;
+}
 export interface ExecutionEvent {
   sequence: number;
   kind: string;
@@ -61,9 +68,13 @@ export function mergeEvents(
 }
 export const runtimeApi = {
   devices: () => http.get<LocalDevice[]>('/local-devices', { mute: true }),
-  executions: (conversationId?: string, offset = 0) =>
-    http.get<LocalExecution[]>('/local-executions', {
-      params: { conversation_id: conversationId, offset },
+  executions: (
+    conversationId?: string,
+    offset = 0,
+    limit = 100
+  ): Promise<LocalExecutionPage> =>
+    http.get<LocalExecutionPage>('/local-executions', {
+      params: { conversation_id: conversationId, offset, limit },
       mute: true,
     }),
   events: (id: string, after: number) =>
@@ -76,21 +87,27 @@ export const runtimeApi = {
   cancel: (id: string) => http.post(`/local-executions/${id}/cancel`),
 };
 
+export function useRuntimeUserId() {
+  return useSyncExternalStore(subscribeCredentials, getCurrentUserId);
+}
+
 // Hosts supply identity only; cloud APIs remain responsible for device ownership.
 export const CurrentDeviceContext = createContext<
   (() => Promise<string | null>) | undefined
 >(undefined);
 export function useCurrentDeviceId() {
+  const userId = useRuntimeUserId();
   const getId = useContext(CurrentDeviceContext);
-  const [id, setId] = useState<string | null>(null);
+  const [state, setState] = useState<{ userId: string; id: string | null }>();
   useEffect(() => {
+    if (!getId || !userId) return;
     let active = true;
     const load = async () => {
       try {
-        const value = await getId?.();
-        if (active) setId(value ?? null);
+        const id = await getId();
+        if (active) setState({ userId, id });
       } catch {
-        if (active) setId(null);
+        if (active) setState({ userId, id: null });
       }
     };
     void load();
@@ -99,26 +116,35 @@ export function useCurrentDeviceId() {
       active = false;
       clearInterval(timer);
     };
-  }, [getId]);
-  return id;
+  }, [getId, userId]);
+  return state?.userId === userId ? state.id : null;
 }
 export function useLocalDevices() {
-  const [devices, setDevices] = useState<LocalDevice[]>();
-  const [error, setError] = useState('');
+  const userId = useRuntimeUserId();
+  const [state, setState] = useState<{
+    userId: string;
+    devices?: LocalDevice[];
+    error: string;
+  }>();
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision(value => value + 1), []);
   useEffect(() => {
+    if (!userId) return;
     let active = true;
     let timer: ReturnType<typeof setTimeout>;
     const load = async () => {
       try {
         const result = await runtimeApi.devices();
         if (active) {
-          setDevices(result);
-          setError('');
+          setState({ userId, devices: result, error: '' });
         }
       } catch (err) {
-        if (active) setError(String(err));
+        if (active)
+          setState(old => ({
+            userId,
+            devices: old?.userId === userId ? old.devices : undefined,
+            error: String(err),
+          }));
       } finally {
         if (active) timer = setTimeout(load, 5000);
       }
@@ -128,6 +154,7 @@ export function useLocalDevices() {
       active = false;
       clearTimeout(timer);
     };
-  }, [revision]);
-  return { devices, error, refresh };
+  }, [revision, userId]);
+  const current = state?.userId === userId ? state : undefined;
+  return { devices: current?.devices, error: current?.error ?? '', refresh };
 }
