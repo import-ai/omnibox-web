@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
 import { http } from '@/lib/request';
 

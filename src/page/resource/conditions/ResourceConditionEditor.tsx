@@ -3,7 +3,7 @@ import type { ReactNode, RefObject } from 'react';
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { cn } from '@/lib/utils';
 

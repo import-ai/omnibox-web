@@ -30,7 +30,7 @@ jest.mock('react-router-dom', () => ({
 }));
 jest.mock('@/service/resourceComments', () => ({}));
 jest.mock('./commentAnchors', () => ({}));
-jest.mock('@/components/button', () =>
+jest.mock('@/components/Button', () =>
   jest.requireActual('@/components/ui/Button')
 );
 jest.mock('react-i18next', () => ({

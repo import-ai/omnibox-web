@@ -11,7 +11,7 @@ import bindPhoneBubbleDark from '@/assets/inviteReferral/bindPhoneBubbleDark.svg
 import bindPhoneCatDark from '@/assets/inviteReferral/bindPhoneCatDark.svg';
 import bindPhoneCatLight from '@/assets/inviteReferral/bindPhoneCatLight.svg';
 import logoSvg from '@/assets/logo.svg';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { PhoneNumberInput } from '@/components/phone-input';
 import { formatPhone } from '@/components/phone-input/utils';
 import { LanguageToggle } from '@/components/toggle/LanguageToggle';

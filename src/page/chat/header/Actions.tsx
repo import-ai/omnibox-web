@@ -12,9 +12,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { ShareIcon } from '@/assets/icons/ShareIcon';
+import { Button } from '@/components/Button';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -162,15 +162,20 @@ export default function Actions(props: IProps) {
       )}
       {conversationId && !compact && (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 data-[state=open]:bg-accent"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 data-[state=open]:bg-accent"
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>{t('common.more_actions')}</TooltipContent>
+          </Tooltip>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuItem
               className="cursor-pointer gap-2"

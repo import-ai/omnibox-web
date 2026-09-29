@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
 import { Input } from '@/components/input';
 import Loading from '@/components/loading';

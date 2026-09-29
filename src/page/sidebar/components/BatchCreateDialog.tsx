@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import { ResourceSelect } from '@/components/resourceSelect';
-import { Button } from '@/components/ui/Button';
 import {
   Dialog,
   DialogContent,

@@ -19,7 +19,7 @@ jest.mock('@/components/tooltip', () => ({
   TooltipTrigger: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock('@/components/ui/Button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: React.forwardRef(function MockButton(
     {
       children,

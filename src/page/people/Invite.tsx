@@ -2,8 +2,8 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import InviteForm from '@/components/invite-dialog/people/InviteForm';
-import { Button } from '@/components/ui/Button';
 import {
   Dialog,
   DialogContent,

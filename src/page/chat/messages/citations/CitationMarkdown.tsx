@@ -17,9 +17,9 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 import { ShareIcon } from '@/assets/icons/ShareIcon';
+import { Button } from '@/components/Button';
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme.ts';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';

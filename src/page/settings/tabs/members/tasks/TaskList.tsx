@@ -3,13 +3,15 @@ import { enUS, zhCN } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
+import Loading from '@/components/loading';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
 import {
   Select,
   SelectContent,
@@ -17,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select';
-import { Spinner } from '@/components/ui/Spinner';
 import { Task } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -142,6 +143,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
       const response = await http.get(`/namespaces/${namespaceId}/tasks`, {
         params,
+        mute: true,
       });
 
       setTasks(response?.tasks || []);
@@ -201,21 +203,17 @@ export function TaskList({ namespaceId }: TaskListProps) {
   const showViewFilter = isOwnerOrAdmin && memberCount > 1;
 
   if (loading) {
-    return (
-      <div className="flex size-full items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
-      </div>
-    );
+    return <Loading />;
   }
 
   if (error) {
     return (
-      <div className="p-4 text-center text-red-600">
-        <p>{error}</p>
+      <Alert variant="destructive" className="text-center">
+        <AlertDescription>{error}</AlertDescription>
         <Button variant="outline" onClick={handleRefresh} className="mt-2">
           {t('common.retry')}
         </Button>
-      </div>
+      </Alert>
     );
   }
 
@@ -248,8 +246,9 @@ export function TaskList({ namespaceId }: TaskListProps) {
       </div>
 
       {tasks.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center text-muted-foreground">
-          <p className="text-sm lg:text-base">{t('tasks.no_tasks')}</p>
+        <div className="rounded-md border border-border p-6 text-center text-muted-foreground">
+          <p className="text-sm">{t('tasks.no_tasks')}</p>
+          <p className="mt-2 text-sm">{t('tasks.empty_description')}</p>
         </div>
       ) : (
         <div className="min-h-0 max-w-[83vw] flex-1 overflow-auto rounded-md border border-border sm:max-w-full">

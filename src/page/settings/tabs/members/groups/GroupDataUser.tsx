@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import PopConfirm from '@/components/popconfirm';
-import { Button } from '@/components/ui/Button';
 import UserCard from '@/components/user-card';
 import { Member, Role } from '@/interface';
 

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { GoogleIcon } from '@/assets/icons/GoogleIcon';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { http } from '@/lib/request';
 
 interface IProps {

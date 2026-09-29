@@ -11,7 +11,7 @@ import {
 import { DateRange, DayButton, getDefaultClassNames } from 'react-day-picker';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Calendar } from '@/components/ui/Calendar';
 import {
   Popover,

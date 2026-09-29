@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { cn } from '@/lib/utils';
 import type { InviteOverview, InviteTask } from '@/service/inviteReferral';
 

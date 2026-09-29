@@ -1,7 +1,7 @@
 import { Settings } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import useApp from '@/hooks/useApp';
 
 export function SettingButton() {

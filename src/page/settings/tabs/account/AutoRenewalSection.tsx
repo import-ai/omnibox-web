@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert';
 import {
   AlertDialog,

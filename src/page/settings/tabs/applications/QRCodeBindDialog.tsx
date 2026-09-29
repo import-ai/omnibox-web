@@ -101,7 +101,7 @@ export function QRCodeBindDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-md">
         <DialogHeader>
           <DialogTitle>{t('applications.bind.title')}</DialogTitle>
           <DialogDescription>

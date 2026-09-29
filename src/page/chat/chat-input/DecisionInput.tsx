@@ -9,8 +9,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
-import { Button as BaseButton } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import {
   Card,
   CardContent,
@@ -394,7 +393,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
           const showSpinner = loading && interrupts.length === 1 && isSelected;
 
           return (
-            <BaseButton
+            <Button
               key={decisionType}
               variant="outline"
               size="sm"
@@ -414,7 +413,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
               {getDecisionIcon(decisionType)}
               <span>{t(`chat.decision.${decisionType.toLowerCase()}`)}</span>
               {showSpinner && <Spinner className="ml-auto" />}
-            </BaseButton>
+            </Button>
           );
         })}
       </CardContent>

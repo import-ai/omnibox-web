@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 
 interface SmartFolderDialogFooterProps {
   canSubmit: boolean;

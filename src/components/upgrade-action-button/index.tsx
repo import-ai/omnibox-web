@@ -1,7 +1,7 @@
 import type { ComponentPropsWithoutRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { getUpgradeLink } from '@/lib/upgradeLink';
 import { cn } from '@/lib/utils';

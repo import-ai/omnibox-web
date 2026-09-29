@@ -29,7 +29,7 @@ jest.mock('@/components/attributes', () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock('@/components/button', () =>
+jest.mock('@/components/Button', () =>
   jest.requireActual('@/components/ui/Button')
 );
 jest.mock('@/page/resource/editor', () => ({

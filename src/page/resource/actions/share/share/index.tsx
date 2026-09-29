@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/Button';
 import { HelpTooltip } from '@/components/help-tooltip';
 import { Input } from '@/components/input';
 import {
@@ -11,7 +12,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
 import {
   parseShareInfo,

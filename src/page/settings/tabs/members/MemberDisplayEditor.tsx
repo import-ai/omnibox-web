@@ -2,7 +2,7 @@ import { Pencil } from 'lucide-react';
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import {
   Tooltip,
   TooltipContent,

@@ -16,7 +16,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     loading,

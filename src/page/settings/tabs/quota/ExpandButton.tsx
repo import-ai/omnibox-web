@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import useProNamespaces from '@/hooks/useProNamespaces';
 
 interface ExpandButtonProps {

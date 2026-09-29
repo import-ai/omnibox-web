@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { WeChatIcon } from '@/assets/icons/Wechat';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { http } from '@/lib/request';
 
 import { prepareH5WechatOAuthState } from './h5WechatAuthSync';

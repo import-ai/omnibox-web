@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { ResourceCommentThreadItem } from './ResourceCommentThreadItem';

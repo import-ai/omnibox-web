@@ -7,10 +7,10 @@ import {
 import { ChevronDown } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { Button } from '@/components/Button';
 import { ALLOWED_PHONE_COUNTRIES } from '@/const';
 import { cn } from '@/lib/utils';
 
-import { Button } from '../ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,

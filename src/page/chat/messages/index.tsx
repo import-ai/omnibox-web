@@ -3,7 +3,7 @@ import { ChevronRight, ScrollText } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';

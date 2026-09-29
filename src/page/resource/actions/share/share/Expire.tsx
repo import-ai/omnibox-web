@@ -3,7 +3,7 @@ import { addDays, startOfDay } from 'date-fns';
 import { t } from 'i18next';
 import { useState } from 'react';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { Calendar } from '@/components/ui/Calendar';
 import {
   Dialog,

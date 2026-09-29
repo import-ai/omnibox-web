@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import Badge from '@/components/badge';
+import { Button } from '@/components/Button';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
-import { Button } from '@/components/ui/Button';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 
 import { IResTypeContext } from './types';

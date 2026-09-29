@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';

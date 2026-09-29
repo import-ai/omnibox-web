@@ -8,7 +8,7 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { Skeleton } from '@/components/ui/Skeleton';

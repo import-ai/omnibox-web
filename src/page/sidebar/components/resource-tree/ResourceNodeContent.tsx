@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Arrow } from '@/assets/icons/Arrow';
+import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   Collapsible,
   CollapsibleContent,

@@ -1,12 +1,16 @@
-import { CircleHelp, Copy, Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
+import { format } from 'date-fns';
+import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
+import CopyMain from '@/components/copy';
+import { HelpTooltip } from '@/components/help-tooltip';
+import Loading from '@/components/loading';
 import { ResourceSelect } from '@/components/resourceSelect';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,7 +34,6 @@ import {
 } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
-import { Spinner } from '@/components/ui/Spinner';
 import useAPIKeys from '@/hooks/useApiKeys';
 import useUser from '@/hooks/useUser';
 import {
@@ -41,7 +44,9 @@ import {
   APIKeyPermissionType,
   type CreateAPIKeyDto,
 } from '@/interface';
+import { getRelatedTime } from '@/lib/time';
 import { cn } from '@/lib/utils';
+import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import {
   APIKeyPermissionScope,
@@ -190,6 +195,7 @@ const formatPermissionLabel = (value: string) =>
     .join(' ');
 
 export function APIKeyForm() {
+  const { showToast } = useSettingsToast();
   const { t, i18n } = useTranslation();
   const params = useParams();
   const { uid } = useUser();
@@ -201,6 +207,9 @@ export function APIKeyForm() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  const [deleteDialogKey, setDeleteDialogKey] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [editingKey, setEditingKey] = useState<APIKey | null>(null);
@@ -240,21 +249,23 @@ export function APIKeyForm() {
   }, [namespaceId, permissionScopeIdsKey]);
 
   const handleCreateAPIKey = async () => {
+    if (creating) return;
+    setErrorMessage('');
     if (formData.note.length > API_KEY_NOTE_MAX_LENGTH) {
-      toast.error(
+      setErrorMessage(
         t('api_key.note_length_error', { max: API_KEY_NOTE_MAX_LENGTH })
       );
       return;
     }
 
     if (!uid || !namespaceId || !formData.root_resource_id) {
-      toast.error(t('api_key.create.validation_error'));
+      setErrorMessage(t('api_key.create.validation_error'));
       return;
     }
 
     const permissions = buildPermissionPayload(formData.permissions);
     if (permissions.length === 0) {
-      toast.error(t('api_key.create.validation_error'));
+      setErrorMessage(t('api_key.create.validation_error'));
       return;
     }
 
@@ -273,26 +284,28 @@ export function APIKeyForm() {
       };
 
       await createAPIKey(createData);
-      toast.success(t('api_key.create.success'));
+      showToast(t('api_key.create.success'), 'success');
       setCreateDialogOpen(false);
       setFormData(createEmptyFormData());
     } catch {
-      toast.error(t('api_key.create.error'));
+      setErrorMessage(t('api_key.create.error'));
     } finally {
       setCreating(false);
     }
   };
 
   const handleUpdateAPIKey = async () => {
+    if (updating) return;
+    setErrorMessage('');
     if (formData.note.length > API_KEY_NOTE_MAX_LENGTH) {
-      toast.error(
+      setErrorMessage(
         t('api_key.note_length_error', { max: API_KEY_NOTE_MAX_LENGTH })
       );
       return;
     }
 
     if (!editingKey || !formData.root_resource_id) {
-      toast.error(t('api_key.create.validation_error'));
+      setErrorMessage(t('api_key.create.validation_error'));
       return;
     }
 
@@ -301,7 +314,7 @@ export function APIKeyForm() {
       editingKey.attrs.permissions
     );
     if (permissions.length === 0) {
-      toast.error(t('api_key.create.validation_error'));
+      setErrorMessage(t('api_key.create.validation_error'));
       return;
     }
 
@@ -314,23 +327,29 @@ export function APIKeyForm() {
       };
 
       await patchAPIKey(editingKey.id, attrs);
-      toast.success(t('api_key.update.success'));
+      showToast(t('api_key.update.success'), 'success');
       setUpdateDialogOpen(false);
       setEditingKey(null);
       setFormData(createEmptyFormData());
     } catch {
-      toast.error(t('api_key.update.error'));
+      setErrorMessage(t('api_key.update.error'));
     } finally {
       setUpdating(false);
     }
   };
 
   const handleDeleteAPIKey = async (key: APIKey) => {
+    if (deleting) return;
+    setErrorMessage('');
+    setDeleting(true);
     try {
       await deleteAPIKey(key.id);
-      toast.success(t('api_key.delete.success'));
+      showToast(t('api_key.delete.success'), 'success');
+      setDeleteDialogKey(null);
     } catch {
-      toast.error(t('api_key.delete.error'));
+      setErrorMessage(t('api_key.delete.error'));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -345,23 +364,21 @@ export function APIKeyForm() {
   };
 
   const handleCreateDialogOpenChange = (open: boolean) => {
+    if (creating) return;
+    setErrorMessage('');
     setCreateDialogOpen(open);
     setFormData(createEmptyFormData());
   };
 
   const handleUpdateDialogOpenChange = (open: boolean) => {
+    if (updating) return;
+    setErrorMessage('');
     setUpdateDialogOpen(open);
 
     if (!open) {
       setEditingKey(null);
       setFormData(createEmptyFormData());
     }
-  };
-
-  const copyToClipboard = (value: string) => {
-    navigator.clipboard
-      .writeText(value)
-      .then(() => toast.success(t('api_key.copy.success')));
   };
 
   const toggleKeyVisibility = (keyId: string) => {
@@ -469,11 +486,7 @@ export function APIKeyForm() {
   );
 
   if (loading) {
-    return (
-      <div className="flex size-full items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
@@ -500,7 +513,7 @@ export function APIKeyForm() {
               {t('create')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="overflow-hidden">
+          <DialogContent className="w-[90%] max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
             <DialogHeader>
               <DialogTitle>{t('api_key.create.title')}</DialogTitle>
               <DialogDescription>
@@ -516,21 +529,9 @@ export function APIKeyForm() {
                   <Label htmlFor="root_resource_id">
                     {t('api_key.permission_scope')}
                   </Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="size-5 p-0 hover:bg-transparent"
-                        type="button"
-                      >
-                        <CircleHelp className="size-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t('api_key.permission_scope_tooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <HelpTooltip
+                    content={t('api_key.permission_scope_tooltip')}
+                  />
                 </div>
                 <ResourceSelect
                   enableManagedFolders
@@ -551,17 +552,23 @@ export function APIKeyForm() {
               {renderPermissionControls('create')}
             </div>
 
+            {errorMessage && (
+              <Alert variant="destructive">
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setCreateDialogOpen(false)}
+                disabled={creating}
+                onClick={() => handleCreateDialogOpenChange(false)}
               >
                 {t('cancel')}
               </Button>
               <Button
                 onClick={handleCreateAPIKey}
-                disabled={creating}
+                loading={creating}
                 variant="default"
               >
                 {creating ? t('creating') : t('create')}
@@ -574,7 +581,7 @@ export function APIKeyForm() {
           open={updateDialogOpen}
           onOpenChange={handleUpdateDialogOpenChange}
         >
-          <DialogContent className="overflow-hidden">
+          <DialogContent className="w-[90%] max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
             <DialogHeader>
               <DialogTitle>{t('api_key.update.title')}</DialogTitle>
               <DialogDescription>
@@ -590,21 +597,9 @@ export function APIKeyForm() {
                   <Label htmlFor="update_root_resource_id">
                     {t('api_key.permission_scope')}
                   </Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="size-5 p-0 hover:bg-transparent"
-                        type="button"
-                      >
-                        <CircleHelp className="size-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{t('api_key.permission_scope_tooltip')}</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <HelpTooltip
+                    content={t('api_key.permission_scope_tooltip')}
+                  />
                 </div>
                 <ResourceSelect
                   enableManagedFolders
@@ -625,17 +620,23 @@ export function APIKeyForm() {
               {renderPermissionControls('update')}
             </div>
 
+            {errorMessage && (
+              <Alert variant="destructive">
+                <AlertDescription>{errorMessage}</AlertDescription>
+              </Alert>
+            )}
             <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setUpdateDialogOpen(false)}
+                disabled={updating}
+                onClick={() => handleUpdateDialogOpenChange(false)}
               >
                 {t('cancel')}
               </Button>
               <Button
                 onClick={handleUpdateAPIKey}
-                disabled={updating}
+                loading={updating}
                 variant="default"
               >
                 {updating ? t('updating') : t('update')}
@@ -653,29 +654,39 @@ export function APIKeyForm() {
         apiKeys.map(key => (
           <div key={key.id} className="rounded-md border border-border p-5">
             <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold text-foreground">
+                  <span className="break-all text-sm font-semibold text-foreground">
                     {visibleKeys.has(key.id) ? key.value : maskKey(key.value)}
                   </span>
-                  <span className="text-sm text-muted-foreground">
-                    {t('created')}
-                    {i18n.language.startsWith('zh') ? '：' : ': '}
-                    {new Date(key.created_at!).toLocaleDateString(
-                      i18n.language.startsWith('zh') ? 'zh-CN' : 'en-US',
-                      {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                      }
-                    )}
-                  </span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <time
+                        dateTime={key.created_at}
+                        className="text-xs text-muted-foreground"
+                      >
+                        {key.created_at
+                          ? getRelatedTime(new Date(key.created_at), i18n)
+                          : '-'}
+                      </time>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {key.created_at
+                        ? format(
+                            new Date(key.created_at),
+                            'yyyy-MM-dd HH:mm:ss'
+                          )
+                        : '-'}
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
 
                 <div className="flex items-center gap-1 lg:gap-4">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => toggleKeyVisibility(key.id)}
                         className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
                       >
@@ -684,7 +695,7 @@ export function APIKeyForm() {
                         ) : (
                           <Eye className="size-4 text-muted-foreground" />
                         )}
-                      </button>
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent side="top">
                       {visibleKeys.has(key.id)
@@ -693,44 +704,46 @@ export function APIKeyForm() {
                     </TooltipContent>
                   </Tooltip>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => copyToClipboard(key.value)}
-                        className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
-                      >
-                        <Copy className="size-4 text-muted-foreground" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      {t('copy.title')}
-                    </TooltipContent>
-                  </Tooltip>
+                  <CopyMain content={key.value} />
 
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleEditClick(key)}
                         className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
                       >
                         <Pencil className="size-4 text-muted-foreground" />
-                      </button>
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent side="top">{t('edit')}</TooltipContent>
                   </Tooltip>
 
-                  <AlertDialog>
+                  <AlertDialog
+                    open={deleteDialogKey === key.id}
+                    onOpenChange={open => {
+                      if (!deleting) {
+                        setErrorMessage('');
+                        setDeleteDialogKey(open ? key.id : null);
+                      }
+                    }}
+                  >
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <AlertDialogTrigger asChild>
-                          <button className="group flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="group flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
+                          >
                             <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
-                          </button>
+                          </Button>
                         </AlertDialogTrigger>
                       </TooltipTrigger>
                       <TooltipContent side="top">{t('delete')}</TooltipContent>
                     </Tooltip>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="w-[85%] max-w-sm rounded-md">
                       <AlertDialogHeader>
                         <AlertDialogTitle>
                           {t('api_key.delete.confirm.title')}
@@ -739,15 +752,30 @@ export function APIKeyForm() {
                           {t('api_key.delete.confirm.description')}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
+                      {errorMessage && (
+                        <Alert variant="destructive">
+                          <AlertDescription>{errorMessage}</AlertDescription>
+                        </Alert>
+                      )}
                       <AlertDialogFooter>
                         <AlertDialogCancel asChild>
-                          <Button variant="outline">{t('cancel')}</Button>
+                          <Button variant="outline" disabled={deleting}>
+                            {t('cancel')}
+                          </Button>
                         </AlertDialogCancel>
                         <AlertDialogAction
-                          onClick={() => handleDeleteAPIKey(key)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          asChild
+                          onClick={event => {
+                            event.preventDefault();
+                            void handleDeleteAPIKey(key);
+                          }}
                         >
-                          {t('delete')}
+                          <Button
+                            loading={deleting}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:text-destructive-foreground dark:hover:bg-destructive/90"
+                          >
+                            {t('delete')}
+                          </Button>
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

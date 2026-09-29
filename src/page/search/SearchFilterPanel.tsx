@@ -2,7 +2,7 @@ import { Plus, X } from 'lucide-react';
 import { ChangeEvent, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { DatePicker, DateRangePicker } from '@/components/date-picker';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/Input';

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import Invite from '@/components/invite-dialog';
 import PermissionAction from '@/components/permission-action';
 import { SearchField } from '@/components/search/SearchField';

@@ -1,6 +1,6 @@
 import { Plus, X } from 'lucide-react';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import ActionDialog from '@/components/invite-dialog/ActionDialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/Input';

@@ -6,7 +6,7 @@ import { http } from '@/lib/request';
 
 import OAuthAuthorizePage from './OAuthAuthorizePage';
 
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     loading,

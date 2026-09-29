@@ -108,8 +108,7 @@ dark:bg-[#363637]`), and the sidebar hover (`hover:bg-[#E6E6EC]`). Prefer
 - An icon inherits its label's colour. Tint it only to signal state or
   emphasis (`text-muted-foreground`, `group-hover:text-destructive`,
   `text-blue-500` for upgrade affordances).
-- Icon-only buttons always get a `Tooltip` **and** an `aria-label`, even though
-  the label is redundant for sighted users.
+- Icon-only buttons always get a `Tooltip`.
 - Render a resource's icon through `ResourceTypeIcon`
   (`src/components/ResourceTypeIcon.tsx`), never `ResourceIcon` directly — the
   wrapper normalises the metadata and forces a uniform `size-4` box. Direct use
@@ -686,7 +685,7 @@ Use these before composing an `AlertDialog`:
 - There is no root `TooltipProvider`. Wrap the region: once around a whole list,
   individually for a standalone icon button.
 - Use `delayDuration={0}` for dense toolbars and in-flow affordances.
-- Tooltips are required on icon-only buttons even when `aria-label` is present.
+- Tooltips are required on icon-only buttons.
 
 ---
 
@@ -933,7 +932,7 @@ right.
   the selected one. See `src/page/settings/tabs/basic/Theme.tsx`.
 - Small action buttons in a section header:
   `className="h-[30px] w-[71px] shrink-0 text-xs font-medium"`.
-- Icon-only actions use `Button` with a `Tooltip`, an `aria-label`, and a
+- Icon-only actions use `Button` with a `Tooltip` and a
   `size-4 text-muted-foreground` icon. Use `hover:opacity-70`. Delete icons
   add `group-hover:text-destructive`.
 - Settings save immediately. Do not add a separate save button for a switch or

@@ -33,7 +33,7 @@ export function AlreadyBoundDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-md">
         <DialogHeader>
           <DialogTitle>{t('applications.already_bound.title')}</DialogTitle>
           <DialogDescription>

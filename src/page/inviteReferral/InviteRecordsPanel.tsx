@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import inviteeAvatarUrl from '@/assets/inviteReferral/inviteeAvatar.svg';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import {
   fetchInviteRecords,

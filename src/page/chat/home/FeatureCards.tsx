@@ -6,8 +6,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ExtensionIcon } from '@/assets/icons/ExtensionIcon';
-import ResourceIcon from '@/assets/icons/ResourceIcon';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import {
   Tooltip,
   TooltipContent,
@@ -266,7 +266,10 @@ export default function FeatureCards() {
                   >
                     <div className="flex min-w-0 items-center gap-2">
                       <div className="[&>svg]:size-4">
-                        <ResourceIcon expand={false} resource={iconResource} />
+                        <ResourceTypeIcon
+                          expand={false}
+                          resource={iconResource}
+                        />
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-sm group-hover:text-foreground">

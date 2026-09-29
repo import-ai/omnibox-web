@@ -208,7 +208,10 @@
     }
   },
   "error": {
-    "title": "404 Not Found"
+    "title": "404 Not Found",
+    "unexpected_title": "Unable to load this page",
+    "not_found_description": "This page does not exist or has been removed. Return home to continue.",
+    "unexpected_description": "Refresh the page to try again, or return home to continue."
   },
   "request": {
     "bad_request": "Bad Request",
@@ -572,7 +575,10 @@
       "error_title": "Deletion Failed",
       "back_to_login": "Back to Login"
     },
-    "select_placeholder": "Please select"
+    "select_placeholder": "Please select",
+    "basic_description": "Choose the appearance and language of your interface.",
+    "content_description": "Manage how your content is processed and organized.",
+    "about_description": "Learn about OmniBox and its open-source project."
   },
   "applications": {
     "title": "Application Management",
@@ -994,7 +1000,8 @@
         "auto_approve": "Automatically approve requests",
         "auto_reject": "Automatically reject requests"
       }
-    }
+    },
+    "send": "Send message"
   },
   "date": {
     "today": "Today",
@@ -1152,7 +1159,8 @@
       "generate_audio_note": "Audio Parsing",
       "collect_url": "Visit URL",
       "web_analysis": "Web Analysis"
-    }
+    },
+    "empty_description": "Upload a file or import a link to see its processing tasks here."
   },
   "common": {
     "actions": "Actions",
@@ -1165,7 +1173,8 @@
         "title": "Delete?",
         "description": "You are going to delete <strong>{{title}}</strong>"
       }
-    }
+    },
+    "more_actions": "More actions"
   },
   "loading": "Loading...",
   "load_more": "Load More",

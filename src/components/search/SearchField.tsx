@@ -8,7 +8,7 @@ import {
   useRef,
 } from 'react';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';

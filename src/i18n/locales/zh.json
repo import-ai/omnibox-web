@@ -208,7 +208,10 @@
     }
   },
   "error": {
-    "title": "404 页面未找到"
+    "title": "404 页面未找到",
+    "unexpected_title": "页面暂时无法加载",
+    "not_found_description": "页面不存在或已被移除，请返回首页继续。",
+    "unexpected_description": "请刷新页面重试，或返回首页继续。"
   },
   "request": {
     "bad_request": "请求错误",
@@ -573,7 +576,10 @@
       "error_title": "删除失败",
       "back_to_login": "返回登录"
     },
-    "select_placeholder": "请选择"
+    "select_placeholder": "请选择",
+    "basic_description": "选择界面主题和显示语言。",
+    "content_description": "管理内容处理和整理功能。",
+    "about_description": "了解小黑和开源项目信息。"
   },
   "applications": {
     "title": "应用管理",
@@ -995,7 +1001,8 @@
         "auto_approve": "自动通过审批请求",
         "auto_reject": "自动拒绝审批请求"
       }
-    }
+    },
+    "send": "发送消息"
   },
   "date": {
     "today": "今天",
@@ -1153,7 +1160,8 @@
       "generate_audio_note": "音频解析",
       "collect_url": "访问网页",
       "web_analysis": "网页分析"
-    }
+    },
+    "empty_description": "上传文件或导入链接后，可在这里查看内容处理任务。"
   },
   "common": {
     "actions": "操作",
@@ -1166,7 +1174,8 @@
         "title": "确认删除？",
         "description": "您将要删除 <strong>{{title}}</strong>"
       }
-    }
+    },
+    "more_actions": "更多操作"
   },
   "loading": "加载中...",
   "load_more": "加载更多",

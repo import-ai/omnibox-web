@@ -2,7 +2,7 @@ import copy from 'copy-to-clipboard';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import {
   Dialog,

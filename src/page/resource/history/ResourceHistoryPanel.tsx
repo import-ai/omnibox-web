@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import {
   getResourceEventId,
   RESOURCE_CONTENT_UPDATE_EVENTS,

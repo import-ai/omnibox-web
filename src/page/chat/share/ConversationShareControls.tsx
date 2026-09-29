@@ -1,7 +1,7 @@
 import { Check, LoaderCircle, Minus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { cn } from '@/lib/utils';
 import type { ConversationShareChannel } from '@/service/conversationShare';
 

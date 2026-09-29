@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { useAutosizeTextArea } from '@/components/autosize-textarea';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Textarea } from '@/components/ui/Textarea';
 import type { ResourceComment } from '@/interface';

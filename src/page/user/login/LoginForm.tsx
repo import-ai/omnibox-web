@@ -7,7 +7,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import { PhoneNumberInput } from '@/components/phone-input';
 import Space from '@/components/space';

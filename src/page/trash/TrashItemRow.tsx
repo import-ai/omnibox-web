@@ -1,9 +1,9 @@
 import { Delete, Undo2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import ResourceIcon from '@/assets/icons/ResourceIcon';
+import { Button } from '@/components/Button';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 
 import { TrashItem as TrashItemType } from './types';
 
@@ -19,7 +19,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
   return (
     <div className="group/trash-item relative flex items-center gap-1.5 rounded-md px-3 py-1.5 hover:bg-sidebar-accent">
       <div className="size-4 shrink-0 [&>svg]:size-4">
-        <ResourceIcon expand={false} resource={item} />
+        <ResourceTypeIcon expand={false} resource={item} />
       </div>
       <span className="flex-1 truncate text-sm group-hover/trash-item:pr-[50px]">
         {item.name || t('untitled')}

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
 import {
   Form,

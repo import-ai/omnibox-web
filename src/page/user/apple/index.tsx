@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { AppleIcon } from '@/assets/icons/AppleIcon';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';

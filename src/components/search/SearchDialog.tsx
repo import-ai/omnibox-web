@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
 import { CommandDialog, CommandInput } from '@/components/ui/Command';
 import { cn } from '@/lib/utils';

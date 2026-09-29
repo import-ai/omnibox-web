@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoUrl from '@/assets/logo.svg';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import CopyMain from '@/components/copy';
 import {
   Dialog,
@@ -109,7 +109,7 @@ export function BindDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t('applications.bind.title')}</DialogTitle>
           <DialogDescription>

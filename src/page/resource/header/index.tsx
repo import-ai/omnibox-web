@@ -1,9 +1,9 @@
 import { Eye, FileClock, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
 import {

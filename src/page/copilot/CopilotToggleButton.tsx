@@ -2,8 +2,8 @@ import { PanelRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ChatIcon } from '@/assets/icons/ChatIcon';
+import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';

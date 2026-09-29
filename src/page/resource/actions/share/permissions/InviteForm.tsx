@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import type { Option } from '@/components/multiple-selector';
 import MultipleSelector from '@/components/multiple-selector';
 import Actions from '@/components/permission-action/Action';

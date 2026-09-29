@@ -2,9 +2,8 @@ import { CircleHelp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   AlertDialog,
@@ -23,6 +22,7 @@ import useApplications from '@/hooks/useApplications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/getDocsLink.ts';
 import { cn } from '@/lib/utils';
+import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
 import { BindDialog } from './BindDialog';
@@ -80,6 +80,7 @@ interface ApplicationsFormProps {
 const BUTTON_CLASS: string = 'text-xs font-medium w-[71px] h-[30px] shrink-0';
 
 export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
+  const { showToast } = useSettingsToast();
   const { t, i18n } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
@@ -131,14 +132,14 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
           setQrcodeContent(application.attrs.qrcode_content);
           setCurrentBindingApplication(application);
           setQrBindDialogOpen(true);
-          toast.success(t('applications.bind.continue'));
+          showToast(t('applications.bind.continue'), 'success');
         } else {
           // Start new binding process
           const response = await bindApplication(application.app_id);
           setQrcodeContent(response.attrs?.qrcode_content || '');
           setCurrentBindingApplication(response);
           setQrBindDialogOpen(true);
-          toast.success(t('applications.bind.initiated'));
+          showToast(t('applications.bind.initiated'), 'success');
         }
         return;
       }
@@ -150,17 +151,17 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         setBindingCode(application.attrs.key);
         setCurrentBindingApplication(application);
         setBindDialogOpen(true);
-        toast.success(t('applications.bind.continue'));
+        showToast(t('applications.bind.continue'), 'success');
       } else {
         // Start new binding process
         const response = await bindApplication(application.app_id);
         setBindingCode(response.attrs?.key!);
         setCurrentBindingApplication(response);
         setBindDialogOpen(true);
-        toast.success(t('applications.bind.initiated'));
+        showToast(t('applications.bind.initiated'), 'success');
       }
-    } catch (error: any) {
-      toast.error(error.message || t('applications.bind.error'));
+    } catch {
+      showToast(t('applications.bind.error'), 'error');
     } finally {
       setBindingLoading(false);
     }
@@ -170,9 +171,9 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     try {
       setUnbindingLoading(true);
       await unbindApplication(application.id);
-      toast.success(t('applications.unbind.success'));
-    } catch (error: any) {
-      toast.error(error.message || t('applications.unbind.error'));
+      showToast(t('applications.unbind.success'), 'success');
+    } catch {
+      showToast(t('applications.unbind.error'), 'error');
     } finally {
       setUnbindingLoading(false);
     }
@@ -186,16 +187,16 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     setQrcodeContent('');
     setCurrentAppId('');
     await refetch();
-    toast.success(t('applications.bind.success'));
+    showToast(t('applications.bind.success'), 'success');
   };
 
   const handleCancelBind = async (application: Application) => {
     try {
       setCancelingLoading(true);
       await unbindApplication(application.id);
-      toast.success(t('applications.bind.cancel.success'));
-    } catch (error: any) {
-      toast.error(error.message || t('applications.unbind.error'));
+      showToast(t('applications.bind.cancel.success'), 'success');
+    } catch {
+      showToast(t('applications.unbind.error'), 'error');
     } finally {
       setCancelingLoading(false);
     }
@@ -336,7 +337,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         {t('applications.unbind.button')}
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="w-[85%] max-w-sm">
                       <AlertDialogHeader>
                         <AlertDialogTitle>
                           {t('applications.unbind.confirm.title')}
@@ -388,7 +389,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                           {t('applications.bind.cancel_button')}
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent>
+                      <AlertDialogContent className="w-[85%] max-w-sm">
                         <AlertDialogHeader>
                           <AlertDialogTitle>
                             {t('applications.bind.cancel.confirm.title')}

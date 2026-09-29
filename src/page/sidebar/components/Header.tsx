@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useParams } from 'react-router-dom';
 
 import { ChatIcon } from '@/assets/icons/ChatIcon';
+import { Button } from '@/components/Button';
 import ActionDialog from '@/components/invite-dialog/ActionDialog';
 import Notification from '@/components/notification';
 import { useNotificationUnreadCount } from '@/components/notification/hooks/useNotifications';
@@ -13,7 +14,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   SidebarMenu,
   SidebarMenuButton,

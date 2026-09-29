@@ -4,7 +4,6 @@ import { CircleHelp, Eye, EyeOff } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { AppleIcon } from '@/assets/icons/AppleIcon';
@@ -12,7 +11,7 @@ import { GoogleIcon } from '@/assets/icons/GoogleIcon';
 import { MailIcon } from '@/assets/icons/MailIcon';
 import { SmartphoneIcon } from '@/assets/icons/SmartphoneIcon';
 import { WeChatIcon } from '@/assets/icons/Wechat';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import {
   Tooltip,
@@ -53,6 +52,7 @@ import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils.ts';
 import { optionalPasswordSchema } from '@/lib/validationSchemas';
+import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { DeleteAccountDialog } from '../account/DeleteAccountDialog';
 import EmailValidate from '../account/EmailValidate';
@@ -272,6 +272,7 @@ interface ProfileFormProps {
 }
 
 export default function ProfileForm({ autoAction }: ProfileFormProps) {
+  const { showToast } = useSettingsToast();
   const { t } = useTranslation();
   const { user, onChange, loading, refetch } = useUser();
 
@@ -348,15 +349,13 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   // Handle username change
   const handleUsernameSubmit = async (data: UsernameFormValues) => {
     if (!data.username.trim().length) {
-      toast.error(t('form.username_not_emptyStr'), {
-        position: 'bottom-right',
-      });
+      showToast(t('form.username_not_emptyStr'), 'error');
       return;
     }
     setSubmitting(true);
     try {
       await onChange({ username: data.username }, () => {
-        toast.success(t('profile.success'), { position: 'bottom-right' });
+        showToast(t('profile.success'), 'success');
       });
       setUsernameDialogOpen(false);
     } finally {
@@ -367,13 +366,13 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   // Handle password change
   const handlePasswordSubmit = async (data: PasswordFormValues) => {
     if (data.password !== data.password_repeat) {
-      toast.error(t('form.password_not_match'), { position: 'bottom-right' });
+      showToast(t('form.password_not_match'), 'error');
       return;
     }
     setSubmitting(true);
     try {
       await onChange({ password: data.password }, () => {
-        toast.success(t('profile.success'), { position: 'bottom-right' });
+        showToast(t('profile.success'), 'success');
       });
       setPasswordDialogOpen(false);
       passwordForm.reset();
@@ -397,7 +396,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         password_repeat: '',
       })
       .then(() => {
-        toast.success(t('profile.success'), { position: 'bottom-right' });
+        showToast(t('profile.success'), 'success');
         setEmailDialogOpen(false);
         refetch();
       });
@@ -413,9 +412,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       .post(unbindUrl)
       .then(() => {
         refetchBindings();
-        toast(t('setting.third_party_account.unbind_success'), {
-          position: 'bottom-right',
-        });
+        showToast(t('setting.third_party_account.unbind_success'), 'success');
       })
       .finally(() => {
         setUnbinding(false);

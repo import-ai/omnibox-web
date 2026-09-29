@@ -1,7 +1,7 @@
 import { Check, ChevronDown, Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,31 +30,29 @@ export default function Language() {
     t('setting.select_placeholder');
 
   return (
-    <div className="flex h-10 w-full items-center justify-between gap-2">
-      <div className="flex shrink-0 items-center gap-2 lg:gap-2.5">
-        <Languages className="size-4 dark:text-neutral-50 lg:size-5" />
-        <span className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-          {t('manage.language_setting')}
-        </span>
-      </div>
+    <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+      <Languages className="size-4 text-muted-foreground" />
+      <span className="min-w-0 text-sm font-medium leading-5 text-foreground">
+        {t('manage.language_setting')}
+      </span>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant="outline"
-            className="h-8 w-[120px] justify-between rounded-md border-border bg-transparent px-2 font-normal shadow-none lg:h-9 lg:w-[180px] lg:px-3"
+            className="h-8 w-[120px] justify-between rounded-md border-border bg-transparent px-2 font-normal shadow-none lg:w-[180px] lg:px-3"
           >
-            <span className="text-xs font-normal text-neutral-950 dark:text-neutral-50 lg:text-sm">
+            <span className="text-sm font-normal text-foreground">
               {selectedLabel}
             </span>
             <ChevronDown className="size-4 text-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[120px] dark:bg-neutral-900 lg:w-[180px]">
+        <DropdownMenuContent className="w-[120px] bg-popover lg:w-[180px]">
           {data.map(item => (
             <DropdownMenuItem
               key={item.value}
-              className="flex justify-between dark:focus:bg-neutral-700"
+              className="flex justify-between focus:bg-accent"
               onClick={() => toggleLanguage(item.value)}
             >
               {item.label}

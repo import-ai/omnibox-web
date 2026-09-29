@@ -2,9 +2,9 @@ import { Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Arrow } from '@/assets/icons/Arrow';
-import ResourceIcon from '@/assets/icons/ResourceIcon';
+import { Button } from '@/components/Button';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 
@@ -46,7 +46,7 @@ function ResourceSelectButton({
       onClick={onSelect}
     >
       <span className="size-4 shrink-0 [&>svg]:size-4">
-        <ResourceIcon expand={expanded} resource={resource} />
+        <ResourceTypeIcon expand={expanded} resource={resource} />
       </span>
       <span className="min-w-0 truncate text-left">{name}</span>
       {selected && <Check className="size-4 shrink-0 text-primary" />}

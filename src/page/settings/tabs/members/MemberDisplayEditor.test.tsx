@@ -32,7 +32,7 @@ jest.mock('@/lib/request', () => ({
   http: { patch: jest.fn() },
 }));
 
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({ children }: { children: React.ReactNode }) => (
     <button type="button">{children}</button>
   ),

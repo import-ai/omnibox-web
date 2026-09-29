@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { SmartphoneIcon } from '@/assets/icons/SmartphoneIcon';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 
 interface IProps {
   onClick: () => void;

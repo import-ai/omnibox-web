@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react';
 import type { MouseEventHandler, UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import ResourceIcon from '@/assets/icons/ResourceIcon';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import {
   CommandGroup,
   CommandItem,
@@ -107,7 +107,7 @@ function ResourceResultContent({
 }) {
   return (
     <SearchResultContent
-      icon={<ResourceIcon expand={false} resource={resource} />}
+      icon={<ResourceTypeIcon expand={false} resource={resource} />}
       title={title}
       preview={preview}
     />

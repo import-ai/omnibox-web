@@ -113,13 +113,13 @@ export function SettingsSidebar({
       : username || 'User';
 
   return (
-    <div className="relative h-auto w-full shrink-0 overflow-y-auto rounded-t-xl bg-muted dark:bg-neutral-900 lg:h-full lg:w-[247px] lg:overflow-visible lg:rounded-l-xl lg:rounded-tr-none">
+    <div className="relative h-auto w-full shrink-0 overflow-y-auto rounded-t-xl bg-muted dark:bg-sidebar lg:h-full lg:w-[247px] lg:overflow-visible lg:rounded-l-xl lg:rounded-tr-none">
       <div className="flex flex-col gap-1 p-2 lg:absolute lg:inset-2 lg:w-[231px] lg:justify-between lg:gap-5 lg:p-0">
         <div className="flex flex-col gap-1 lg:gap-5">
           {/* Account Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
             <div className="hidden px-2 lg:block">
-              <span className="whitespace-nowrap text-xs font-semibold text-neutral-500">
+              <span className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
                 {t('setting.account')}
               </span>
             </div>
@@ -130,8 +130,8 @@ export function SettingsSidebar({
                 className={cn(
                   'flex h-[30px] w-auto items-center gap-2 rounded px-2.5 py-1 text-left lg:w-full lg:gap-3',
                   value === 'profile'
-                    ? 'bg-neutral-200 dark:bg-neutral-800'
-                    : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
+                    ? 'bg-sidebar-accent dark:bg-accent'
+                    : 'hover:bg-sidebar-accent dark:hover:bg-accent'
                 )}
               >
                 <div className="relative flex size-[21px] shrink-0 items-center justify-center">
@@ -154,8 +154,8 @@ export function SettingsSidebar({
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
-                        ? 'bg-neutral-200 dark:bg-neutral-800'
-                        : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
+                        ? 'bg-sidebar-accent dark:bg-accent'
+                        : 'hover:bg-sidebar-accent dark:hover:bg-accent'
                     )}
                   >
                     <span
@@ -183,7 +183,7 @@ export function SettingsSidebar({
           {/* Space Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
             <div className="hidden px-2 lg:block">
-              <span className="w-full text-xs font-semibold text-neutral-500">
+              <span className="w-full text-xs font-semibold text-muted-foreground">
                 {t('setting.space')}
               </span>
             </div>
@@ -199,8 +199,8 @@ export function SettingsSidebar({
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
-                        ? 'bg-neutral-200 dark:bg-neutral-800'
-                        : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
+                        ? 'bg-sidebar-accent dark:bg-accent'
+                        : 'hover:bg-sidebar-accent dark:hover:bg-accent'
                     )}
                   >
                     <span
@@ -234,8 +234,8 @@ export function SettingsSidebar({
               className={cn(
                 'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                 value === aboutItem.value
-                  ? 'bg-neutral-200 dark:bg-neutral-800'
-                  : 'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
+                  ? 'bg-sidebar-accent dark:bg-accent'
+                  : 'hover:bg-sidebar-accent dark:hover:bg-accent'
               )}
             >
               <span

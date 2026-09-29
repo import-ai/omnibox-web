@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/Marker';
 import { Spinner } from '@/components/ui/Spinner';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';

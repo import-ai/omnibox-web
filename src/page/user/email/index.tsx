@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { MailIcon } from '@/assets/icons/MailIcon';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 
 interface IProps {
   onClick: () => void;

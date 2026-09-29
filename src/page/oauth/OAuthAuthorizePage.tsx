@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router-dom';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 import { removeGlobalCredential } from '@/page/user/util';

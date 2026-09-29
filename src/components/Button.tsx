@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 
 import { Button as BaseButton, ButtonProps } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils.ts';
 
 interface ButtonLoadingProps extends Omit<ButtonProps, 'variant'> {
   loading?: boolean;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   variant?: ButtonProps['variant'];
 }
 
@@ -88,18 +88,18 @@ export const Button = React.forwardRef<
   React.ElementRef<typeof BaseButton>,
   ButtonLoadingProps
 >(function Button(props, ref) {
-  const { loading, children, ...rest } = props;
+  const { loading, disabled, children, ...rest } = props;
 
   if (loading) {
     return (
-      <CustomButton ref={ref} disabled {...rest}>
+      <CustomButton ref={ref} {...rest} disabled>
         <Spinner />
         {children}
       </CustomButton>
     );
   }
   return (
-    <CustomButton ref={ref} {...rest}>
+    <CustomButton ref={ref} {...rest} disabled={disabled}>
       {children}
     </CustomButton>
   );

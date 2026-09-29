@@ -2,7 +2,7 @@ import { ArrowDown } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { cn } from '@/lib/utils';
 import { KEYBOARD_INSET_CHANGE_EVENT } from '@/lib/visualViewport';
 

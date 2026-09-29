@@ -3,9 +3,9 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { Button } from '@/components/Button';
 import Loading from '@/components/loading';
 import Pagination from '@/components/pagination';
-import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
