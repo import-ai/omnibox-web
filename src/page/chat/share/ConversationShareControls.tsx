@@ -62,7 +62,7 @@ export function ConversationShareActions({
             aria-checked={
               allSelected ? true : selectedCount > 0 ? 'mixed' : false
             }
-            className="flex min-h-11 shrink-0 items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-11 shrink-0 items-center gap-2 rounded-md outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
             onClick={onToggleAll}
             role="checkbox"
             type="button"

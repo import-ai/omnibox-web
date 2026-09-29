@@ -72,7 +72,7 @@ export default function NodeContextMenu({
               key={item.key}
               className={
                 item.destructive
-                  ? 'group cursor-pointer gap-2 data-[highlighted]:text-destructive'
+                  ? 'group cursor-pointer gap-2 data-highlighted:text-destructive'
                   : menuItemClass
               }
               onClick={item.onClick}

@@ -61,7 +61,7 @@ export default function BreadcrumbMain(props: IProps) {
                   <BreadcrumbLink asChild>
                     <Button
                       variant="ghost"
-                      className="h-6 max-w-[7rem] justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
+                      className="h-6 max-w-28 justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
                       onClick={() => {
                         navigateToResource(
                           navigate,
@@ -95,7 +95,7 @@ export default function BreadcrumbMain(props: IProps) {
           <BreadcrumbLink asChild>
             <Button
               variant="ghost"
-              className="h-6 max-w-[7rem] justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
+              className="h-6 max-w-28 justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
               onClick={() => {
                 navigateToResource(navigate, `/${namespaceId}/${rootItem.id}`);
               }}

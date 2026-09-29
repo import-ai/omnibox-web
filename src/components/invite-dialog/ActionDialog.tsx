@@ -58,7 +58,7 @@ export default function ActionDialog(props: ActionDialogProps) {
           <div className={cn('absolute right-4 top-4', closeWrapperClassName)}>
             <DialogClose
               className={cn(
-                'rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 disabled:pointer-events-none data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground',
+                'rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-0 focus:ring-offset-0 focus-visible:outline-hidden focus-visible:ring-0 focus-visible:ring-offset-0 disabled:pointer-events-none data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground',
                 closeClassName
               )}
             >

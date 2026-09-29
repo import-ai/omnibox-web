@@ -78,7 +78,7 @@ export function FooterSidebar(props: IProps) {
                 {item.icon}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="w-[178px] rounded-xl border-none px-[22px] pb-4 pt-[22px] shadow-sm">
+            <TooltipContent className="w-[178px] rounded-xl border-none px-[22px] pb-4 pt-[22px] shadow-xs">
               <WechatGroupQrCode />
               <p className="mt-2 p-0 text-center">{t('footer.join')}</p>
             </TooltipContent>
@@ -90,7 +90,7 @@ export function FooterSidebar(props: IProps) {
                 href={`${item.value}${item.value === '/docs/' && i18n.language.includes('zh') ? 'zh-cn/' : ''}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="!text-neutral-400"
+                className="text-neutral-400!"
               >
                 <Button
                   variant="ghost"

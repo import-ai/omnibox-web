@@ -211,7 +211,7 @@ export function TrashPanel() {
           {t('trash.system')}
           <ChevronRight
             className={cn(
-              '!size-3 shrink-0 text-neutral-300 transition-transform dark:text-neutral-500',
+              'size-3! shrink-0 text-neutral-300 transition-transform dark:text-neutral-500',
               systemOpen && 'rotate-90'
             )}
           />
@@ -237,7 +237,7 @@ export function TrashPanel() {
                     </SidebarMenuButton>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="flex w-80 max-h-[var(--radix-popover-content-available-height)] flex-col overflow-hidden p-3"
+                    className="flex w-80 max-h-(--radix-popover-content-available-height) flex-col overflow-hidden p-3"
                     side={placement.side}
                     align={placement.align}
                     sideOffset={8}

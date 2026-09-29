@@ -168,7 +168,7 @@ export function InvitePhoneBindingDialog({
     >
       <DialogPortal>
         <DialogPrimitive.Content
-          className="fixed inset-0 z-50 flex h-full w-full max-w-none translate-x-0 translate-y-0 flex-col overflow-y-auto rounded-none border-0 bg-background p-4 shadow-none outline-none"
+          className="fixed inset-0 z-50 flex h-full w-full max-w-none translate-x-0 translate-y-0 flex-col overflow-y-auto rounded-none border-0 bg-background p-4 shadow-none outline-hidden"
           onOpenAutoFocus={event => event.preventDefault()}
           onCloseAutoFocus={event => event.preventDefault()}
           onPointerDownOutside={event => event.preventDefault()}
@@ -272,7 +272,7 @@ export function InvitePhoneBindingDialog({
                                   placeholder={t('phone.enter_phone')}
                                   allowedCountries={allowedCountries}
                                   variant="bind"
-                                  className="h-[52px] rounded-lg border-[#E5E5E5] bg-white opacity-100 focus-within:ring-0 disabled:opacity-100 dark:border-[#303030] dark:bg-[#171717] [&_input]:min-w-0 [&_input]:text-base sm:[&_input]:text-[14px] [&_input]:disabled:opacity-100"
+                                  className="h-[52px] rounded-lg border-[#E5E5E5] bg-white opacity-100 focus-within:ring-0 disabled:opacity-100 dark:border-[#303030] dark:bg-[#171717] [&_input]:min-w-0 [&_input]:text-base sm:[&_input]:text-[14px] disabled:[&_input]:opacity-100"
                                 />
                               </FormControl>
                               <FormMessage />

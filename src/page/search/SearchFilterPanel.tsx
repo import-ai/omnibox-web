@@ -62,9 +62,9 @@ interface SearchFilterPanelProps {
 }
 
 const compactControlClass =
-  'h-8 rounded-md border-line bg-transparent px-3 text-sm shadow-none hover:bg-transparent focus:ring-0 focus:ring-transparent focus:outline-none dark:bg-transparent dark:hover:bg-transparent';
+  'h-8 rounded-md border-line bg-transparent px-3 text-sm shadow-none hover:bg-transparent focus:ring-0 focus:ring-transparent focus:outline-hidden dark:bg-transparent dark:hover:bg-transparent';
 const compactScrollbarClass =
-  '[scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent';
+  'scrollbar-thin [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent';
 export const relativeDateAmountInputClassName = cn(
   compactControlClass,
   'px-2 text-left focus-visible:ring-0 focus-visible:ring-transparent'
@@ -147,7 +147,7 @@ function SearchFilterConditionRow({
           <SelectTrigger
             className={cn(
               compactControlClass,
-              'data-[placeholder]:text-foreground'
+              'data-placeholder:text-foreground'
             )}
           >
             <SelectValue placeholder={t('resource_conditions.select_field')} />

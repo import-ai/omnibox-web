@@ -41,7 +41,7 @@ export function SpaceSectionContent({
             {t('share.share.title')}
             <ChevronRight
               className={cn(
-                '!size-3 shrink-0 text-neutral-300 transition-transform dark:text-neutral-500',
+                'size-3! shrink-0 text-neutral-300 transition-transform dark:text-neutral-500',
                 isOpen && 'rotate-90'
               )}
             />

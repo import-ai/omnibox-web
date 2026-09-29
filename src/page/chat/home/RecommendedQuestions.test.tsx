@@ -15,7 +15,7 @@ jest.mock('react-i18next', () => ({
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 it('keeps the mascot mounted before configuration and questions arrive', async () => {
-  jest.useFakeTimers();
+  jest.useFakeTimers({ doNotFake: ['queueMicrotask'] });
   const container = document.createElement('div');
   const root = createRoot(container);
   let resolveQuestions: (value: {
@@ -88,7 +88,7 @@ it('keeps the mascot mounted before configuration and questions arrive', async (
 });
 
 it('fades out before switching and prevents repeated switching during the fade', async () => {
-  jest.useFakeTimers();
+  jest.useFakeTimers({ doNotFake: ['queueMicrotask'] });
   const container = document.createElement('div');
   const root = createRoot(container);
   const questions = [
@@ -132,7 +132,7 @@ it('fades out before switching and prevents repeated switching during the fade',
 });
 
 it('blinks automatically and clears timers on unmount', async () => {
-  jest.useFakeTimers();
+  jest.useFakeTimers({ doNotFake: ['queueMicrotask'] });
   const container = document.createElement('div');
   const root = createRoot(container);
   try {

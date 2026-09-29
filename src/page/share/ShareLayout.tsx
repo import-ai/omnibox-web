@@ -97,7 +97,7 @@ export function ShareLayout(props: IProps) {
         </>
       )}
       {isChatActive && showSidebar && (
-        <header className="sticky top-0 z-[30] flex min-h-12 min-w-0 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
+        <header className="sticky top-0 z-30 flex min-h-12 min-w-0 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
           <SidebarTriggerButton collapse />
         </header>
       )}

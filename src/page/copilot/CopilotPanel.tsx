@@ -74,7 +74,7 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
   return (
     <>
       <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-white dark:bg-background">
-        <header className="sticky top-0 z-[30] flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b border-border/60 bg-white dark:bg-background">
+        <header className="sticky top-0 z-30 flex min-h-12 shrink-0 flex-wrap items-center gap-2 border-b border-border/60 bg-white dark:bg-background">
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <CopilotToggleButton namespaceId={namespaceId} />
             {conversationId && (
@@ -291,7 +291,7 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
           split
             ? 'fixed z-20 rounded-2xl'
             : cn(
-                'fixed inset-y-0 right-0 z-50 h-[100dvh] shadow-lg',
+                'fixed inset-y-0 right-0 z-50 h-dvh shadow-lg',
                 layout.mode === 'fullscreen' ? 'rounded-none' : 'rounded-l-2xl'
               ),
           visible ? 'translate-x-0' : 'pointer-events-none translate-x-full',
@@ -303,7 +303,7 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
         style={panelStyle}
         tabIndex={modal ? -1 : undefined}
       >
-        <div className="flex h-full min-h-0 w-full min-w-[100%] max-w-[100%] flex-col">
+        <div className="flex h-full min-h-0 w-full min-w-full max-w-full flex-col">
           <CopilotPanelContent namespaceId={namespaceId} />
         </div>
       </aside>

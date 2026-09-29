@@ -311,7 +311,7 @@ export function ResourceNodeContent({
                   'bg-sidebar-accent text-sidebar-accent-foreground',
                 isInsideDrop &&
                   'bg-sidebar-accent text-sidebar-accent-foreground ring-2 ring-inset ring-blue-500',
-                isDisabledOver && 'cursor-not-allowed [&_*]:cursor-not-allowed'
+                isDisabledOver && 'cursor-not-allowed **:cursor-not-allowed'
               )}
             >
               {selectionMode && isSelectable && (
@@ -327,8 +327,8 @@ export function ResourceNodeContent({
                   <SidebarMenuButton
                     asChild
                     className={cn(
-                      'h-auto gap-1 py-1.5 transition-none bg-transparent group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
-                      !selectionMode && 'group-hover/sidebar-item:!pr-[30px]',
+                      'h-auto gap-1 py-1.5 transition-none bg-transparent group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
+                      !selectionMode && 'group-hover/sidebar-item:pr-[30px]!',
                       isDisabledOver && 'cursor-not-allowed'
                     )}
                     onClick={handleClick}
@@ -403,7 +403,7 @@ export function ResourceNodeContent({
                           autoComplete="off"
                           onClick={e => e.stopPropagation()}
                           onDoubleClick={e => e.stopPropagation()}
-                          className="min-w-0 flex-1 bg-transparent text-sm caret-blue-500 outline-none"
+                          className="min-w-0 flex-1 bg-transparent text-sm caret-blue-500 outline-hidden"
                         />
                       ) : (
                         <span className="flex-1 truncate">

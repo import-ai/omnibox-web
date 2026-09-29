@@ -207,8 +207,8 @@ export default function ChatConversationsPage({
                             <SidebarMenuButton
                               asChild
                               className={cn(
-                                'h-auto gap-1 py-1.5 transition-none bg-transparent group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
-                                'group-hover/sidebar-item:!pr-[30px]'
+                                'h-auto gap-1 py-1.5 transition-none bg-transparent group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
+                                'group-hover/sidebar-item:pr-[30px]!'
                               )}
                             >
                               <div
@@ -240,13 +240,13 @@ export default function ChatConversationsPage({
                                 <SidebarMenuAction
                                   asChild
                                   className={cn(
-                                    'right-2 size-4 cursor-pointer !text-neutral-400 hover:bg-transparent hover:!text-sidebar-foreground focus-visible:outline-none focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
+                                    'right-2 size-4 cursor-pointer text-neutral-400! hover:bg-transparent hover:text-sidebar-foreground! focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
                                     isTouch
                                       ? 'pointer-events-auto opacity-100'
                                       : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'
                                   )}
                                 >
-                                  <MoreHorizontal className="cursor-pointer focus-visible:outline-none focus-visible:ring-transparent" />
+                                  <MoreHorizontal className="cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent" />
                                 </SidebarMenuAction>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
@@ -269,7 +269,7 @@ export default function ChatConversationsPage({
                                   {t('chat.conversations.rename.option')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
+                                  className="group cursor-pointer gap-2 data-highlighted:text-destructive"
                                   onClick={event => {
                                     event.stopPropagation();
                                     onRemove({
@@ -382,7 +382,7 @@ export default function ChatConversationsPage({
                                   {t('rename')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="cursor-pointer hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
+                                  className="cursor-pointer hover:text-red-500 focus:text-red-500 data-highlighted:text-red-500"
                                   onClick={event => {
                                     event.stopPropagation();
                                     onRemove({

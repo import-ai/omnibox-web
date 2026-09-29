@@ -53,7 +53,7 @@ export function TagsDisplay(props: IProps) {
         <Badge
           key={tag.value}
           variant="outline"
-          className="text-sm border-neutral-300 text-neutral-500 font-normal rounded-[8px] px-[8px] py-[1px] dark:border-neutral-500 dark:text-neutral-400"
+          className="text-sm border-neutral-300 text-neutral-500 font-normal rounded-[8px] px-[8px] py-px dark:border-neutral-500 dark:text-neutral-400"
         >
           {tag.label}
         </Badge>

@@ -78,7 +78,7 @@ export function Switcher(props: IProps) {
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="h-auto w-full gap-1.5 px-1.5">
-              <div className="flex size-6 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground dark:bg-neutral-700 dark:text-white">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground dark:bg-neutral-700 dark:text-white">
                 {current.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <span className="truncate">{current.name}</span>
@@ -111,7 +111,7 @@ export function Switcher(props: IProps) {
                 className={cn(
                   'h-8 cursor-pointer gap-1 px-2 py-0 text-xs font-medium',
                   'text-blue-500 hover:text-blue-500 focus:text-blue-500',
-                  'active:text-blue-500 data-[highlighted]:text-blue-500'
+                  'active:text-blue-500 data-highlighted:text-blue-500'
                 )}
               >
                 <a

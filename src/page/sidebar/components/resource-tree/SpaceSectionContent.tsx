@@ -191,7 +191,7 @@ export function SpaceSectionContent({
                 {spaceType ? t(spaceType) : ''}
                 <ChevronRight
                   className={cn(
-                    '!size-3 shrink-0 dark:text-neutral-500 text-neutral-300 transition-transform',
+                    'size-3! shrink-0 dark:text-neutral-500 text-neutral-300 transition-transform',
                     isOpen && 'rotate-90'
                   )}
                 />
@@ -201,7 +201,7 @@ export function SpaceSectionContent({
                   {upload !== undefined ? (
                     <SidebarMenuAction
                       asChild
-                      className="pointer-events-none right-0 top-px my-1.5 size-4 text-neutral-400 focus-visible:outline-none focus-visible:ring-transparent group-hover/sidebar-header:pointer-events-auto"
+                      className="pointer-events-none right-0 top-px my-1.5 size-4 text-neutral-400 focus-visible:outline-hidden focus-visible:ring-transparent group-hover/sidebar-header:pointer-events-auto"
                     >
                       <span>
                         {upload ? (
@@ -226,13 +226,13 @@ export function SpaceSectionContent({
                     <SidebarMenuAction
                       asChild
                       className={cn(
-                        'right-0 top-0.5 my-1.5 size-4 text-neutral-400 hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
+                        'right-0 top-0.5 my-1.5 size-4 text-neutral-400 hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-transparent',
                         isTouch
                           ? 'pointer-events-auto opacity-100'
                           : 'pointer-events-none opacity-0 group-hover/sidebar-header:pointer-events-auto group-hover/sidebar-header:opacity-100'
                       )}
                     >
-                      <MoreHorizontal className="rounded-sm hover:bg-[#DFDFE3] focus-visible:outline-none focus-visible:ring-transparent" />
+                      <MoreHorizontal className="rounded-sm hover:bg-[#DFDFE3] focus-visible:outline-hidden focus-visible:ring-transparent" />
                     </SidebarMenuAction>
                   )}
                 </DropdownMenuTrigger>

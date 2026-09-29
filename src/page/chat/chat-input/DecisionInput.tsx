@@ -74,12 +74,12 @@ function getDecisionStyle(
 
   if (!isActive) {
     if (decision === 'approve') {
-      borderStyle = 'border-green-50 dark:!border-green-900/50';
+      borderStyle = 'border-green-50 dark:border-green-900/50!';
     } else {
-      borderStyle = 'border-red-50 dark:!border-red-900/50';
+      borderStyle = 'border-red-50 dark:border-red-900/50!';
     }
   } else {
-    borderStyle = 'dark:!border-neutral-500';
+    borderStyle = 'dark:border-neutral-500!';
   }
 
   let bgStyle: string;
@@ -508,7 +508,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 rounded-lg px-3 text-xs text-green-700 hover:!text-green-700 dark:text-green-300 dark:hover:!text-green-300"
+                  className="h-8 rounded-lg px-3 text-xs text-green-700 hover:text-green-700! dark:text-green-300 dark:hover:text-green-300!"
                   disabled={!canBulkDecide('approve')}
                   onClick={() => handleBulkDecision('approve')}
                 >
@@ -518,7 +518,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 rounded-lg px-3 text-xs text-red-700 hover:!text-red-700 dark:text-red-300 dark:hover:!text-red-300"
+                  className="h-8 rounded-lg px-3 text-xs text-red-700 hover:text-red-700! dark:text-red-300 dark:hover:text-red-300!"
                   disabled={!canBulkDecide('reject')}
                   onClick={() => handleBulkDecision('reject')}
                 >

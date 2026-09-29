@@ -266,7 +266,7 @@ export function UserMessage(props: IProps) {
             </div>
           ) : displayLines ? (
             displayLines.map((line, idx) => (
-              <span key={idx} className="break-words [overflow-wrap:anywhere]">
+              <span key={idx} className="wrap-break-word wrap-anywhere">
                 {line.map((part, partIndex) => {
                   if (part.type === 'text') return part.text;
                   if (part.type === 'tool') {
@@ -302,7 +302,7 @@ export function UserMessage(props: IProps) {
             ))
           ) : (
             lines.map((line, idx) => (
-              <span key={idx} className="break-words [overflow-wrap:anywhere]">
+              <span key={idx} className="wrap-break-word wrap-anywhere">
                 {splitUserMessageResourceTokens(line, resources).map(
                   (segment, segmentIndex) => {
                     if (segment.type === 'tool') {

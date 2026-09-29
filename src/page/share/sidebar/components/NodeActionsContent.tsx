@@ -32,13 +32,13 @@ export function NodeActionsContent({ actions }: NodeActionsContentProps) {
         <SidebarMenuAction
           asChild
           className={cn(
-            'right-2 size-4 cursor-pointer !text-neutral-400 hover:bg-transparent hover:!text-sidebar-foreground focus-visible:outline-none focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
+            'right-2 size-4 cursor-pointer text-neutral-400! hover:bg-transparent hover:text-sidebar-foreground! focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
             isTouch
               ? 'pointer-events-auto opacity-100'
               : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'
           )}
         >
-          <MoreHorizontal className="cursor-pointer focus-visible:outline-none focus-visible:ring-transparent" />
+          <MoreHorizontal className="cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent" />
         </SidebarMenuAction>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="start" sideOffset={10}>
@@ -53,7 +53,7 @@ export function NodeActionsContent({ actions }: NodeActionsContentProps) {
               key={item.key}
               className={
                 item.destructive
-                  ? 'group cursor-pointer gap-2 data-[highlighted]:text-destructive'
+                  ? 'group cursor-pointer gap-2 data-highlighted:text-destructive'
                   : menuItemClass
               }
               onClick={item.onClick}

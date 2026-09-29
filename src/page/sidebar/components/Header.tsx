@@ -72,13 +72,13 @@ export function Header(props: IProps) {
                 variant="ghost"
                 onClick={onChatHistory}
                 className={cn(
-                  'absolute right-1 top-[6px] z-10 h-5 w-5 p-0 focus-visible:outline-none focus-visible:ring-transparent [&_svg]:size-4',
+                  'absolute right-1 top-[6px] z-10 h-5 w-5 p-0 focus-visible:outline-hidden focus-visible:ring-transparent [&_svg]:size-4',
                   isTouch
                     ? 'pointer-events-auto opacity-100'
                     : 'pointer-events-none opacity-0 group-hover/chat:pointer-events-auto group-hover/chat:opacity-100'
                 )}
               >
-                <History className="focus-visible:outline-none focus-visible:ring-transparent" />
+                <History className="focus-visible:outline-hidden focus-visible:ring-transparent" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>{t('chat.conversations.history')}</TooltipContent>
@@ -118,7 +118,7 @@ export function Header(props: IProps) {
             href="https://www.omnibox.pro/community/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 !text-sidebar-foreground hover:!text-sidebar-accent-foreground"
+            className="flex items-center gap-2 text-sidebar-foreground! hover:text-sidebar-accent-foreground!"
           >
             <Users className="size-4 text-neutral-400" />
             <span>{t('notification_modal.tags.community')}</span>

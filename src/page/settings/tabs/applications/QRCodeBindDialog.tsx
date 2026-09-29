@@ -126,7 +126,7 @@ export function QRCodeBindDialog({
                 <img
                   src={logoUrl}
                   alt="OmniBox Logo"
-                  className="size-12 rounded-lg bg-white p-1 shadow-sm"
+                  className="size-12 rounded-lg bg-white p-1 shadow-xs"
                 />
               </div>
             </div>

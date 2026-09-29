@@ -134,7 +134,9 @@ export default function OAuthAuthorizePage() {
                     .toUpperCase()}
                 </div>
                 <div className="min-w-0 text-sm">
-                  <p className="break-words font-medium">{account.username}</p>
+                  <p className="wrap-break-word font-medium">
+                    {account.username}
+                  </p>
                   <p className="break-all text-muted-foreground">
                     {account.email}
                   </p>

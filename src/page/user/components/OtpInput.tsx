@@ -71,7 +71,7 @@ export function OtpInput({
       {error && (
         <p
           role="alert"
-          className={`w-full break-words text-sm text-red-500 ${errorAlign === 'left' ? 'text-left' : 'text-center'}`}
+          className={`w-full wrap-break-word text-sm text-red-500 ${errorAlign === 'left' ? 'text-left' : 'text-center'}`}
         >
           {error}
         </p>

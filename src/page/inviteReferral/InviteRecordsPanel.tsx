@@ -151,13 +151,13 @@ export function InviteRecordsPanel({
                       </p>
                     </div>
                     <div className="invite-record-details mt-4 grid grid-cols-2 gap-3 text-center text-xs">
-                      <div className="invite-record-task min-w-0 break-words">
+                      <div className="invite-record-task min-w-0 wrap-break-word">
                         <p className="leading-6 text-muted-foreground">
                           {t('inviteReferral.records.task')}
                         </p>
                         <p className="leading-6">{item.task_text}</p>
                       </div>
-                      <div className="invite-record-reward min-w-0 break-words">
+                      <div className="invite-record-reward min-w-0 wrap-break-word">
                         <p className="leading-6 text-muted-foreground">
                           {t('inviteReferral.records.rewardColumn')}
                         </p>

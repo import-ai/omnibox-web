@@ -125,13 +125,13 @@ export const EmailSuggestionInput = forwardRef<
         onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
-        className={cn('aria-[invalid=true]:border-destructive', className)}
+        className={cn('aria-invalid:border-destructive', className)}
       />
       {showSuggestions && (
         <ul
           id={listId}
           role="listbox"
-          className="absolute inset-x-0 top-full z-50 mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-md border bg-popover p-1 text-popover-foreground shadow-md [scrollbar-gutter:stable_both-edges]"
+          className="absolute inset-x-0 top-full z-50 mt-1 max-h-60 overflow-y-auto overscroll-contain rounded-md border bg-popover p-1 text-popover-foreground shadow-md scrollbar-gutter-both"
           onMouseDown={event => event.preventDefault()}
         >
           {suggestions.map((email, index) => (

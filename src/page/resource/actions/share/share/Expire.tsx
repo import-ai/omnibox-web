@@ -149,7 +149,7 @@ export function Expire(props: ExpireProps) {
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              className="rounded-md border shadow-sm w-full"
+              className="rounded-md border shadow-xs w-full"
               disabled={{ before: addDays(startOfDay(new Date()), 1) }}
             />
             <Button className="w-full" onClick={handleSaveDate}>

@@ -94,7 +94,7 @@ export default function NodeContextMenu({
                     className={
                       item.destructive
                         ? cn(
-                            'group gap-2 data-[highlighted]:text-destructive',
+                            'group gap-2 data-highlighted:text-destructive',
                             item.disabled
                               ? 'cursor-not-allowed text-muted-foreground opacity-50'
                               : 'cursor-pointer'

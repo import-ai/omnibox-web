@@ -105,7 +105,7 @@ export default function Scrollbar(props: IProps) {
       )}
       <div
         ref={rootRef}
-        className="flex min-h-0 min-w-0 w-full shrink grow justify-center overflow-y-auto p-4 [scrollbar-gutter:stable_both-edges]"
+        className="flex min-h-0 min-w-0 w-full shrink grow justify-center overflow-y-auto p-4 scrollbar-gutter-both"
       >
         <div
           ref={containerRef}

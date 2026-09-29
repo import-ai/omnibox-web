@@ -128,7 +128,7 @@ export function ResourceNodeContent({
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
-                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:!pr-[30px] group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:bg-[#E2E2E6] data-[active=true]:font-normal dark:data-[active=true]:bg-[#363637]"
+                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:pr-[30px]! group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:bg-[#E2E2E6] data-[active=true]:font-normal dark:data-[active=true]:bg-[#363637]"
                     onClick={handleActive}
                     isActive={isActive}
                   >

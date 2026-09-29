@@ -1,3 +1,5 @@
+@reference '../../../index.css';
+
 .resource-comments-panel .omnibox-comment-thread,
 .resource-comments-panel .omnibox-comment-thread[data-selected] {
   @apply border-border bg-white text-foreground dark:bg-muted;
@@ -60,7 +62,7 @@
 }
 
 .dark .omnibox-comment-surface .omnibox-comment-composer {
-  background: hsl(var(--background));
+  background: var(--background);
 }
 
 .omnibox-comment-surface .omnibox-comment-composer q {
@@ -68,10 +70,11 @@
   overflow: hidden;
   margin: 0;
   padding: 0 0.5rem;
-  border-left: 2px solid hsl(var(--muted-foreground) / 0.4);
+  border-left: 2px solid
+    color-mix(in oklab, var(--muted-foreground) 40%, transparent);
   border-radius: 0;
   background: transparent;
-  color: hsl(var(--muted-foreground));
+  color: var(--muted-foreground);
   font-size: 0.8125rem;
   font-style: normal;
   line-height: 1.375;
@@ -80,7 +83,7 @@
 }
 
 .dark .omnibox-comment-surface .omnibox-comment-composer q {
-  background: hsl(var(--muted));
+  background: var(--muted);
 }
 
 .omnibox-comment-surface .omnibox-comment-composer textarea {
@@ -130,19 +133,19 @@
 }
 
 .omnibox-comment-surface .omnibox-comment-composer button[type='button'] {
-  border: 1px solid hsl(var(--border));
+  border: 1px solid var(--border);
   background: transparent;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
 }
 
 .omnibox-comment-surface .omnibox-comment-composer button[type='button']:hover {
-  background: hsl(var(--accent));
+  background: var(--accent);
 }
 
 .omnibox-comment-surface .omnibox-comment-composer button[type='submit'] {
   border: 0;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 
 .omnibox-comment-surface .omnibox-comment-composer__input {
@@ -218,29 +221,29 @@
 
 @media (prefers-reduced-motion: reduce) {
   .tiptap.ProseMirror [data-resource-comment-thread] {
-    @apply transition-none !important;
+    @apply transition-none!;
   }
 }
 
 .tiptap.ProseMirror
   [data-resource-comment-thread]:not([data-resource-comment-resolved='true']),
 .tiptap.ProseMirror .resource-comment-draft-highlight {
-  @apply border-comment pb-0.5 !important;
+  @apply border-comment! pb-0.5!;
   border-bottom-width: 2px !important;
   border-bottom-style: solid !important;
 }
 
 .tiptap.ProseMirror [data-resource-comment-thread][data-comment-highlight] {
-  @apply bg-comment-surface dark:bg-comment-surface-dark !important;
+  @apply bg-comment-surface! dark:bg-comment-surface-dark!;
 }
 
 .tiptap.ProseMirror .resource-comment-draft-highlight {
-  @apply bg-comment-surface dark:bg-comment-surface-dark !important;
+  @apply bg-comment-surface! dark:bg-comment-surface-dark!;
 }
 
 .tiptap.ProseMirror
   [data-resource-comment-thread][data-resource-comment-resolved='true'][data-comment-highlight] {
-  @apply bg-comment-resolved dark:bg-comment-resolved-dark !important;
+  @apply bg-comment-resolved! dark:bg-comment-resolved-dark!;
 }
 
 .resource-comments-panel

@@ -796,7 +796,7 @@ export function APIKeyForm() {
 
               {key.attrs.note && (
                 <APIKeyInfoRow label={t('api_key.note')}>
-                  <span className="whitespace-pre-wrap break-words text-sm font-semibold text-foreground">
+                  <span className="whitespace-pre-wrap wrap-break-word text-sm font-semibold text-foreground">
                     {key.attrs.note}
                   </span>
                 </APIKeyInfoRow>

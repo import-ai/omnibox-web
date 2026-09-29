@@ -28,7 +28,7 @@ export default function StickyFolderRow({
   return (
     <div
       data-sticky-folder-id={node.id}
-      className="pointer-events-auto absolute inset-x-0 top-0 z-20 box-border flex items-center gap-1 border-b border-sidebar-border bg-sidebar px-3 text-sm text-sidebar-foreground shadow-sm"
+      className="pointer-events-auto absolute inset-x-0 top-0 z-20 box-border flex items-center gap-1 border-b border-sidebar-border bg-sidebar px-3 text-sm text-sidebar-foreground shadow-xs"
       style={{
         height: STICKY_FOLDER_HEIGHT,
       }}
@@ -45,7 +45,7 @@ export default function StickyFolderRow({
     >
       <button
         type="button"
-        className="pointer-events-auto flex size-5 shrink-0 items-center justify-center rounded text-neutral-400 hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+        className="pointer-events-auto flex size-5 shrink-0 items-center justify-center rounded text-neutral-400 hover:bg-sidebar-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
         aria-label={t('sidebar.collapse_folder', { name })}
         aria-expanded={true}
         onClick={() => collapse(node.id)}
@@ -55,7 +55,7 @@ export default function StickyFolderRow({
       <ResourceTypeIcon expand resource={node} />
       <button
         type="button"
-        className="pointer-events-auto min-w-0 flex-1 truncate rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+        className="pointer-events-auto min-w-0 flex-1 truncate rounded text-left focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
         aria-label={t('sidebar.locate_folder', { name })}
         title={name}
         onClick={() => locate(node.id)}

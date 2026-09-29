@@ -67,7 +67,7 @@ export default function Action(props: ActionProps) {
             className={cn(
               'justify-between',
               disabledValues.includes(item.value)
-                ? 'data-[disabled]:pointer-events-auto data-[disabled]:cursor-not-allowed data-[disabled]:!bg-transparent'
+                ? 'data-disabled:pointer-events-auto data-disabled:cursor-not-allowed data-disabled:bg-transparent!'
                 : 'cursor-pointer hover:bg-gray-100'
             )}
           >

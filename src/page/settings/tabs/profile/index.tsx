@@ -164,14 +164,14 @@ function InfoRow({
   return (
     <div className="flex h-[30px] w-full items-center justify-between lg:w-[533px]">
       <div className="flex h-[24px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-        <p className="flex-shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
+        <p className="shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
           {label}
         </p>
         <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
           {value}
         </p>
       </div>
-      <div className="ml-2 flex-shrink-0">{button}</div>
+      <div className="ml-2 shrink-0">{button}</div>
     </div>
   );
 }
@@ -201,8 +201,8 @@ function BindingRow({
       {/* Left side with icon, label, and value */}
       <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
         {/* Icon and label group - gap: 9px */}
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <span className="flex size-5 flex-shrink-0 items-center justify-center">
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="flex size-5 shrink-0 items-center justify-center">
             {icon}
           </span>
           <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
@@ -215,7 +215,7 @@ function BindingRow({
         </p>
       </div>
       {/* Button - Figma: both bound and unbound use outline style (white bg, border) */}
-      <div className="ml-2 flex-shrink-0">
+      <div className="ml-2 shrink-0">
         {isBound ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
@@ -466,8 +466,8 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       {/* Phone Row */}
       <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
         <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-          <div className="flex flex-shrink-0 items-center gap-2">
-            <span className="flex size-5 flex-shrink-0 items-center justify-center">
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="flex size-5 shrink-0 items-center justify-center">
               <SmartphoneIcon />
             </span>
             <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
@@ -480,7 +480,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
               : t('setting.not_bound')}
           </p>
         </div>
-        <div className="ml-2 flex-shrink-0">
+        <div className="ml-2 shrink-0">
           {phoneBinding?.id ? (
             <ActionButton onClick={() => setPhoneDialogOpen(true)}>
               {t('setting.change')}
@@ -496,8 +496,8 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       {/* Email Row */}
       <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
         <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-          <div className="flex flex-shrink-0 items-center gap-2">
-            <span className="flex size-5 flex-shrink-0 items-center justify-center text-blue-400">
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="flex size-5 shrink-0 items-center justify-center text-blue-400">
               <MailIcon />
             </span>
             <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
@@ -508,7 +508,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
             {user?.email || t('setting.not_bound')}
           </p>
         </div>
-        <div className="ml-2 flex-shrink-0">
+        <div className="ml-2 shrink-0">
           <ActionButton onClick={() => setEmailDialogOpen(true)}>
             {t('setting.change')}
           </ActionButton>
@@ -755,14 +755,14 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       />
       <div className="flex h-[30px] w-full items-center justify-between lg:w-[533px]">
         <div className="flex h-[24px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-          <p className="flex-shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
+          <p className="shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
             {t('setting.delete_account.section_title')}
           </p>
           <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
             {t('setting.delete_account.section_description')}
           </p>
         </div>
-        <div className="ml-2 flex-shrink-0">
+        <div className="ml-2 shrink-0">
           <DeleteAccountDialog username={user?.username || ''} />
         </div>
       </div>

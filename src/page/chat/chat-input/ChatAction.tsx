@@ -97,7 +97,7 @@ export default function ChatAction(props: IActionProps) {
                 className="rounded-full size-8"
                 onClick={onStop}
               >
-                <Square className="!size-3 fill-current" />
+                <Square className="size-3! fill-current" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>{t('chat.messages.actions.stop')}</TooltipContent>

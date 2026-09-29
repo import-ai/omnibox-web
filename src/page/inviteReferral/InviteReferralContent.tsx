@@ -120,7 +120,7 @@ export function InviteReferralContent() {
               <button
                 type="button"
                 aria-label={t('login.back')}
-                className="flex size-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex size-11 items-center justify-center rounded-md focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={closeRecords}
               >
                 <ChevronLeft className="size-5" />
@@ -140,7 +140,7 @@ export function InviteReferralContent() {
             {!showRecords && (
               <button
                 type="button"
-                className="flex min-h-11 items-end pb-1 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-h-11 items-end pb-1 text-xs font-medium focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={openRecords}
               >
                 {t('inviteReferral.records.subtitle')}

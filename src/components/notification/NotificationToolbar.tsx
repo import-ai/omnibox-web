@@ -39,7 +39,7 @@ function FilterTabs({ value, unreadCount, onChange, labels }: FilterTabsProps) {
             key={filter.key}
             onClick={() => onChange(filter.key)}
             className={cn(
-              'relative h-6 rounded px-2 py-0 text-sm leading-6 text-muted-foreground cursor-pointer transition-colors outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 hover:cursor-pointer',
+              'relative h-6 rounded px-2 py-0 text-sm leading-6 text-muted-foreground cursor-pointer transition-colors outline-hidden focus:outline-hidden focus-visible:outline-hidden focus-visible:ring-0 hover:cursor-pointer',
               isActive
                 ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/15 dark:text-blue-300'
                 : 'hover:bg-neutral-100 hover:text-foreground/75 dark:hover:bg-neutral-800'

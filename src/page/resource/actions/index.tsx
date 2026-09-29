@@ -662,7 +662,7 @@ export default function Actions(props: IActionProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          className="w-48 max-w-[calc(100vw-24px)] sm:w-56 !animate-none !fade-in-0 !fade-out-0 !zoom-in-100 !zoom-out-100 !slide-in-from-top-0 !slide-in-from-bottom-0 !slide-in-from-left-0 !slide-in-from-right-0"
+          className="w-48 max-w-[calc(100vw-24px)] sm:w-56 animate-none! fade-in-0! fade-out-0! zoom-in-100! zoom-out-100! slide-in-from-top-0! slide-in-from-bottom-0! slide-in-from-left-0! slide-in-from-right-0!"
         >
           <DropdownMenuItem
             className="cursor-pointer gap-2"
@@ -705,7 +705,7 @@ export default function Actions(props: IActionProps) {
                     className="cursor-pointer whitespace-normal"
                     onClick={() => handleAction('download')}
                   >
-                    <span className="min-w-0 break-words">
+                    <span className="min-w-0 wrap-break-word">
                       {t('actions.download')}
                     </span>
                   </DropdownMenuItem>
@@ -714,7 +714,7 @@ export default function Actions(props: IActionProps) {
                   className="cursor-pointer whitespace-normal"
                   onClick={() => handleAction('download_as_markdown')}
                 >
-                  <span className="min-w-0 break-words">
+                  <span className="min-w-0 wrap-break-word">
                     {t('actions.download_as_tooltip', { format: 'Markdown' })}
                   </span>
                 </DropdownMenuItem>
@@ -727,7 +727,7 @@ export default function Actions(props: IActionProps) {
                   }}
                 >
                   {loading === 'download_as_png' ? <Spinner /> : null}
-                  <span className="min-w-0 break-words">
+                  <span className="min-w-0 wrap-break-word">
                     {t('actions.download_as_tooltip', { format: 'PNG' })}
                   </span>
                 </DropdownMenuItem>
@@ -769,7 +769,7 @@ export default function Actions(props: IActionProps) {
           )}
           {!readOnly && (
             <DropdownMenuItem
-              className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
+              className="group cursor-pointer gap-2 data-highlighted:text-destructive"
               onClick={() => handleAction('move_to_trash')}
             >
               {loading === 'move_to_trash' ? (

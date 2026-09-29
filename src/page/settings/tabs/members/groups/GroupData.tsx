@@ -114,7 +114,7 @@ export default function GroupData(props: GroupProps) {
       <div className="flex h-[50px] items-center border-b border-border lg:h-[60px]">
         <div className="flex w-[100px] items-center whitespace-nowrap px-2 lg:w-[210px]">
           <CollapsibleTrigger asChild>
-            <ChevronRight className="mr-2 size-4 flex-shrink-0 cursor-pointer transition-transform" />
+            <ChevronRight className="mr-2 size-4 shrink-0 cursor-pointer transition-transform" />
           </CollapsibleTrigger>
           <div className="min-w-0 flex-1">
             <span className="block truncate text-sm">{title}</span>

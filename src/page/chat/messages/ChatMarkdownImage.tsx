@@ -36,7 +36,7 @@ export function ChatMarkdownImage({
       <button
         type="button"
         aria-label={t('chat.image.preview')}
-        className="max-w-full cursor-zoom-in rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+        className="max-w-full cursor-zoom-in rounded-md focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-ring"
         onClick={() => setPreviewUrl(url)}
       >
         <img

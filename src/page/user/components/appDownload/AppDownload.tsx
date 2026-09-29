@@ -43,7 +43,7 @@ export default function AppDownload() {
           <DialogPrimitive.Content
             aria-describedby={undefined}
             className={cn(
-              'fixed inset-0 z-50 flex flex-col items-center justify-center outline-none',
+              'fixed inset-0 z-50 flex flex-col items-center justify-center outline-hidden',
               'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 motion-reduce:animate-none'
             )}
             onClick={event => {

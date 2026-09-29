@@ -11,6 +11,14 @@ jest.mock('react', () => {
   return { ...actual, default: actual, __esModule: true };
 });
 
+beforeAll(() => {
+  global.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+});
+
 const mockDelete = jest.fn();
 const mockToast = jest.fn();
 const mockKeys = [

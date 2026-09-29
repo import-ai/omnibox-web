@@ -133,7 +133,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
 
         {items.length > 0 ? (
           <div
-            className="-mr-4 flex-1 overflow-y-auto [scrollbar-width:thin] [scrollbar-color:#e5e7eb_transparent] hover:[scrollbar-color:#d1d5db_transparent] dark:[scrollbar-color:#4b5563_transparent] dark:hover:[scrollbar-color:#6b7280_transparent]"
+            className="-mr-4 flex-1 overflow-y-auto scrollbar-thin [scrollbar-color:#e5e7eb_transparent] hover:[scrollbar-color:#d1d5db_transparent] dark:[scrollbar-color:#4b5563_transparent] dark:hover:[scrollbar-color:#6b7280_transparent]"
             onScroll={handleScroll}
           >
             <div className="space-y-2 pr-4">

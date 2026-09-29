@@ -196,7 +196,7 @@ export default function ChatTool(props: IProps) {
               );
               resourceDialogOpenedByPointerRef.current = false;
             }}
-            className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pb-5 pt-8 outline-none dark:bg-neutral-900"
+            className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pb-5 pt-8 outline-hidden dark:bg-neutral-900"
           >
             <DialogHeader>
               <VisuallyHidden>

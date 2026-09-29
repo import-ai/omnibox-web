@@ -57,7 +57,7 @@ export function SystemNotificationDetailDialog({
               <button
                 type="button"
                 aria-label={t('notification_modal.back')}
-                className="inline-flex size-8 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex size-8 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <ChevronLeft className="size-6" />
               </button>
@@ -97,7 +97,7 @@ export function SystemNotificationDetailDialog({
                             ? 'notification_modal.collapse_tags'
                             : 'notification_modal.expand_tags'
                         )}
-                        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-xs text-neutral-600 transition-colors hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-xs text-neutral-600 transition-colors hover:bg-neutral-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
                         onClick={() => setIsTagsExpanded(value => !value)}
                       >
                         {isTagsExpanded ? (

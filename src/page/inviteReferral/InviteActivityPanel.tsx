@@ -84,7 +84,7 @@ function NewcomerTasks({
                     completed &&
                       'border-neutral-200 bg-white text-muted-foreground hover:bg-white disabled:border-neutral-200 disabled:bg-white disabled:text-muted-foreground dark:border-white dark:bg-transparent dark:text-foreground dark:hover:bg-transparent dark:disabled:border-white dark:disabled:bg-transparent dark:disabled:text-foreground',
                     locked &&
-                      'border-neutral-200 bg-white text-muted-foreground hover:bg-white hover:text-muted-foreground dark:!border-neutral-700 dark:!bg-[#262626] dark:text-muted-foreground dark:hover:!bg-[#262626] dark:hover:text-muted-foreground'
+                      'border-neutral-200 bg-white text-muted-foreground hover:bg-white hover:text-muted-foreground dark:border-neutral-700! dark:bg-[#262626]! dark:text-muted-foreground dark:hover:bg-[#262626]! dark:hover:text-muted-foreground'
                   )}
                   disabled={completed}
                   onClick={() => {

@@ -91,7 +91,7 @@ export default function Tags(props: IProps) {
   return (
     <div className={ATTRIBUTE_STYLES.containerStart}>
       <div className={`min-h-5 ${ATTRIBUTE_STYLES.containerLabel}`}>
-        <TagsIcon className={`flex-shrink-0 ${ATTRIBUTE_STYLES.icon}`} />
+        <TagsIcon className={`shrink-0 ${ATTRIBUTE_STYLES.icon}`} />
         <span className={ATTRIBUTE_STYLES.label}>
           {t('resource.attrs.tag')}
         </span>
@@ -115,10 +115,10 @@ export default function Tags(props: IProps) {
               onCreate={handleCreate}
               onChange={handleChange}
               createText={t('resource.attrs.create_tag')}
-              badgeClassName="!text-sm !border-neutral-300 !bg-transparent !text-neutral-500 !font-normal !rounded-[8px] !px-[8px] !py-[2px] !shadow-none dark:!border-neutral-500 dark:!text-neutral-400 hover:!bg-transparent"
+              badgeClassName="text-sm! border-neutral-300! bg-transparent! text-neutral-500! font-normal! rounded-[8px]! px-[8px]! py-[2px]! shadow-none! dark:border-neutral-500! dark:text-neutral-400! hover:bg-transparent!"
               inputProps={{
                 className:
-                  'py-0 !text-sm !text-neutral-500 dark:!text-neutral-400',
+                  'py-0 text-sm! text-neutral-500! dark:text-neutral-400!',
                 maxLength: MAX_TAG_LENGTH,
                 onBlur: leaveEdit,
                 onValueChange: onChange,
