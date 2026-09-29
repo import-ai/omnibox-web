@@ -820,6 +820,8 @@
       },
       "tool_calls": {
         "function_name": {
+          "list_local_devices": "List local devices",
+          "execute_local_command": "Execute local command",
           "write_todos": "TODO",
           "ls": "List Resources",
           "list_resources": "List Resources",
@@ -1558,5 +1560,88 @@
     "failed": "Sign-in failed or expired. Please start again in the app.",
     "confirm_hint": "Use this account to sign in to OmniBox on this computer.",
     "ready": "Return to OmniBox"
+  },
+  "local_runtime": {
+    "this_device": "This device",
+    "hostname": "System computer name",
+    "hostname_unknown": "Waiting for the desktop client",
+    "device_id": "Device ID",
+    "copy_device_id": "Copy device ID",
+    "rename_offline": "Connect this device to rename it.",
+    "duplicate_name": "Another device has this name. Use a different name to distinguish them.",
+    "title": "Local devices",
+    "description": "Computers OmniBox AI can run commands on. Command permissions are set in each computer's desktop client.",
+    "no_devices": "Enable Local execution in the desktop client and the computer will appear here.",
+    "platform": {
+      "darwin": "macOS",
+      "win32": "Windows",
+      "linux": "Linux"
+    },
+    "online": "Online",
+    "offline": "Offline",
+    "paused": "Paused",
+    "last_seen": "Last seen",
+    "never_seen": "Not connected yet",
+    "device_name": "Device name",
+    "rename": "Rename",
+    "save": "Save",
+    "remove": {
+      "label": "Remove device",
+      "confirm": {
+        "title": "Remove this device?",
+        "description": "OmniBox AI will no longer be able to use this computer, and running commands will be stopped. To use it again, enable Local execution in its desktop client.",
+        "button": "Remove"
+      }
+    },
+    "removed_device": "Removed device",
+    "policy": {
+      "allow": "Run without asking",
+      "deny": "Deny",
+      "ask": "Ask"
+    },
+    "executions": "Executions",
+    "empty": "No executions yet",
+    "more": "Load more",
+    "columns": {
+      "command": "Command",
+      "device": "Device",
+      "status": "Status",
+      "time": "Time"
+    },
+    "detail": "Execution details",
+    "cwd": "Working directory",
+    "timeout": "Timeout",
+    "timeout_value": "{{count}}s",
+    "created_at": "Started",
+    "finished_at": "Finished",
+    "exit_code": "Exit code",
+    "approve": "Approve",
+    "reject": "Reject",
+    "expired": "Approval expired",
+    "cancel": "Cancel execution",
+    "output": "Output",
+    "show_output": "Show output",
+    "hide_output": "Hide output",
+    "no_output": "No output",
+    "artifacts": "Artifacts",
+    "approvals": "Approvals",
+    "decision": {
+      "approve": "Approved",
+      "reject": "Rejected"
+    },
+    "status": {
+      "queued": "Queued",
+      "accepted": "Delivered",
+      "awaiting_approval": "Awaiting approval",
+      "approved": "Approved",
+      "running": "Running",
+      "cancel_requested": "Waiting for cancellation",
+      "succeeded": "Succeeded",
+      "failed": "Failed",
+      "denied": "Denied",
+      "canceled": "Canceled",
+      "timed_out": "Timed out",
+      "unknown": "Unknown"
+    }
   }
 }

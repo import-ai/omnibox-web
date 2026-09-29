@@ -137,8 +137,9 @@ installation. Keep this contract stable:
 - `mountApp(element, props)` in `src/Bootstrap.tsx` mounts the app; `src/main.tsx`
   is the browser entry point
 - `settingsExtensions` adds settings tabs. Each extension has a stable `id`, a
-  React `label` and `icon`, and a `component` receiving `namespaceId`; tab keys
-  are prefixed with `extension:`. The list is empty in the browser
+  React `label` and `icon`, and a `component` receiving `namespaceId` and
+  `navigate(tab)` for switching tabs; tab keys are prefixed with `extension:`.
+  The list is empty in the browser
 - Hosts own their sign-in UI and native capabilities; Web contains no desktop
   implementation. Desktop sign-in confirms the account on `/oauth/authorize`
   for the `omnibox-desktop` client
@@ -154,6 +155,12 @@ installation. Keep this contract stable:
 - `useQuota()`, `useSmartFolderEntitlements()` - Usage and entitlement data
 - `useApiKeys()`, `useApplications()` - Settings integrations data
 - `useTheme()` - Theme state and app event wiring
+
+### UI Design
+
+Read [DESIGN.md](DESIGN.md) before building or changing UI, especially settings
+tabs. It defines page headers, setting rows, controls, item cards, tables,
+status and time display, destructive confirmations, and copy rules.
 
 ### Component Organization
 

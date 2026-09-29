@@ -27,6 +27,7 @@ import { ToolCallStatus } from '@/page/chat/core/types/toolCall';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings';
 import { CitationMarkdown } from '@/page/chat/messages/citations/CitationMarkdown';
 import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citationUtils';
+import { ToolCallExecution } from '@/page/localRuntime/ConversationExecutions';
 
 import {
   findToolMessageForToolCall,
@@ -254,6 +255,17 @@ export function AssistantMessage(props: IProps) {
         </AccordionItem>
       </Accordion>
     );
+    for (const toolCall of toolCalls) {
+      if (toolCall.functionName !== 'execute_local_command') continue;
+      domList.push(
+        <div key={'local_execution_' + toolCall.toolCallId} className="mb-3">
+          <ToolCallExecution
+            toolCallId={toolCall.toolCallId}
+            toolCallDone={isTerminalToolCallStatus(toolCall.status)}
+          />
+        </div>
+      );
+    }
   }
   if (
     [MessageStatus.PENDING, MessageStatus.STREAMING].includes(message.status)

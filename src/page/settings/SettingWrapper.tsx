@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 
 import useUser from '@/hooks/useUser';
 import { http } from '@/lib/request';
+import DeviceSettings from '@/page/localRuntime/DeviceSettings';
 import PeopleForm from '@/page/people';
 import TasksManagement from '@/page/settings/tabs/members/tasks';
 
@@ -53,10 +54,15 @@ export default function SettingWrapper({
   }, [initialTab]);
 
   const items = [
+    { value: 'localRuntime', children: <DeviceSettings /> },
     ...extensions.map(({ id, component: Component }) => ({
       value: `extension:${id}`,
       children: (
-        <Component key={`${id}:${namespaceId}`} namespaceId={namespaceId} />
+        <Component
+          key={`${id}:${namespaceId}`}
+          namespaceId={namespaceId}
+          navigate={onActiveKey}
+        />
       ),
     })),
     {

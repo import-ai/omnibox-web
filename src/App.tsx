@@ -9,6 +9,7 @@ import Error from '@/layout/ErrorPage';
 import { lazyRoute } from '@/lib/lazyRoute';
 import ChatPage from '@/page/chat';
 import ChatHomePage from '@/page/chat/ChatHomePage';
+import { CurrentDeviceContext } from '@/page/localRuntime/runtime';
 import NamespacePage from '@/page/namespace';
 import {
   type SettingsExtension,
@@ -188,16 +189,22 @@ const router = createBrowserRouter([
 ]);
 
 export interface AppProps {
+  getCurrentDeviceId?: () => Promise<string | null>;
   settingsExtensions?: readonly SettingsExtension[];
 }
 
-export default function Main({ settingsExtensions = [] }: AppProps = {}) {
+export default function Main({
+  settingsExtensions = [],
+  getCurrentDeviceId,
+}: AppProps = {}) {
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <AppContext.Provider value={app}>
         <AuthConfigProvider>
           <SettingsExtensionsContext.Provider value={settingsExtensions}>
-            <RouterProvider router={router} />
+            <CurrentDeviceContext.Provider value={getCurrentDeviceId}>
+              <RouterProvider router={router} />
+            </CurrentDeviceContext.Provider>
           </SettingsExtensionsContext.Provider>
         </AuthConfigProvider>
       </AppContext.Provider>
