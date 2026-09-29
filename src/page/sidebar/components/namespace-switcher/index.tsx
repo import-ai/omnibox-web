@@ -130,7 +130,7 @@ export function Switcher(props: IProps) {
             )}
             <DropdownMenuLabel className="p-0">
               <Space className="flex-col items-stretch gap-1">
-                <SettingButton />
+                <SettingButton onOpen={() => setDropdownOpen(false)} />
                 <InviteButton namespaceId={namespaceId} />
               </Space>
             </DropdownMenuLabel>

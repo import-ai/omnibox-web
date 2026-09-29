@@ -130,8 +130,8 @@ export function SettingsSidebar({
                 className={cn(
                   'flex h-[30px] w-auto items-center gap-2 rounded px-2.5 py-1 text-left lg:w-full lg:gap-3',
                   value === 'profile'
-                    ? 'bg-sidebar-accent dark:bg-accent'
-                    : 'hover:bg-sidebar-accent dark:hover:bg-accent'
+                    ? 'bg-background shadow-xs dark:bg-accent'
+                    : 'hover:bg-background/60 dark:hover:bg-accent'
                 )}
               >
                 <div className="relative flex size-[21px] shrink-0 items-center justify-center">
@@ -154,8 +154,8 @@ export function SettingsSidebar({
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
-                        ? 'bg-sidebar-accent dark:bg-accent'
-                        : 'hover:bg-sidebar-accent dark:hover:bg-accent'
+                        ? 'bg-background shadow-xs dark:bg-accent'
+                        : 'hover:bg-background/60 dark:hover:bg-accent'
                     )}
                   >
                     <span
@@ -199,8 +199,8 @@ export function SettingsSidebar({
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
-                        ? 'bg-sidebar-accent dark:bg-accent'
-                        : 'hover:bg-sidebar-accent dark:hover:bg-accent'
+                        ? 'bg-background shadow-xs dark:bg-accent'
+                        : 'hover:bg-background/60 dark:hover:bg-accent'
                     )}
                   >
                     <span
@@ -234,8 +234,8 @@ export function SettingsSidebar({
               className={cn(
                 'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                 value === aboutItem.value
-                  ? 'bg-sidebar-accent dark:bg-accent'
-                  : 'hover:bg-sidebar-accent dark:hover:bg-accent'
+                  ? 'bg-background shadow-xs dark:bg-accent'
+                  : 'hover:bg-background/60 dark:hover:bg-accent'
               )}
             >
               <span

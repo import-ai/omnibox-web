@@ -359,7 +359,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
   }, [activeCardIndex]);
 
   return (
-    <Card className="max-w-[766px] w-full mx-auto rounded-2xl border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030] shadow-none">
+    <Card className="mx-auto w-full max-w-[766px] gap-0 rounded-2xl py-0">
       <CardHeader className="p-3">
         <CardTitle className="flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">

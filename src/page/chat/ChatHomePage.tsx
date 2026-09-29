@@ -246,7 +246,7 @@ export default function ChatHomePage() {
         className={
           pendingMessage
             ? 'relative z-20 flex min-h-0 max-h-full min-w-0 shrink-0 justify-center bg-white px-4 dark:bg-background'
-            : '@container flex min-h-full w-full max-w-3xl flex-col justify-center gap-12 py-8 sm:gap-16'
+            : '@container flex min-h-full w-full max-w-3xl flex-col justify-center gap-8 py-0 sm:gap-16 sm:py-8'
         }
         data-chat-composer={pendingMessage ? '' : undefined}
       >
@@ -264,6 +264,7 @@ export default function ChatHomePage() {
             )
           ) : (
             <RecommendedQuestions
+              className="min-h-32 sm:min-h-44"
               key={namespaceId}
               enabled={config.commercial}
               namespaceId={namespaceId}

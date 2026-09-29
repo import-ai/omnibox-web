@@ -35,17 +35,20 @@ export default function ManagePeople({ canManageMembers }: ManagePeopleProps) {
 
   return (
     <Tabs value={tab} onValueChange={onTab} className="w-full">
-      <TabsList className="h-9 w-full shrink-0 justify-start rounded-none border-b border-border bg-transparent lg:h-11">
+      <TabsList
+        variant="line"
+        className="w-full shrink-0 justify-start border-b border-border group-data-horizontal/tabs:h-10"
+      >
         <TabsTrigger
           value="member"
-          className="h-9 max-w-[100px] flex-1 text-xs font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none lg:h-11 lg:max-w-[120px] lg:text-sm"
+          className="h-full max-w-30 px-4 group-data-horizontal/tabs:after:bottom-[-3px]"
         >
           {t('manage.member')} {data.member.length}
         </TabsTrigger>
         {canManageMembers && (
           <TabsTrigger
             value="group"
-            className="h-9 max-w-[100px] flex-1 text-xs font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none lg:h-11 lg:max-w-[120px] lg:text-sm"
+            className="h-full max-w-30 px-4 group-data-horizontal/tabs:after:bottom-[-3px]"
           >
             {t('manage.group')} {data.group.length}
           </TabsTrigger>
