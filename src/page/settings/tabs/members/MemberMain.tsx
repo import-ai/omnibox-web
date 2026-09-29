@@ -67,7 +67,7 @@ export default function MemberMain(props: MemberProps) {
       </div>
       <div className="max-w-[83vw] overflow-auto sm:max-w-full">
         <div className="min-w-[320px]">
-          <div className="sticky top-0 z-10 flex w-full border-b border-border bg-background">
+          <div className="sticky top-0 z-10 flex w-full border-b border-border bg-popover">
             <div className="flex h-8 w-[120px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[210px] lg:text-base">
               {t('manage.user')}
             </div>

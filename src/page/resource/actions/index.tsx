@@ -26,6 +26,7 @@ import { Button } from '@/components/Button';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -641,12 +642,22 @@ export default function Actions(props: IActionProps) {
               </Button>
             </>
           ) : (
-            <>
-              <Button variant="ghost" size="sm" onClick={handleEdit}>
-                <Pencil />
-                {t('header.actions.edit')}
-              </Button>
-            </>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleEdit}
+                  className="w-7 px-0 sm:w-auto sm:px-2.5"
+                >
+                  <Pencil />
+                  <span className="sr-only sm:not-sr-only">
+                    {t('header.actions.edit')}
+                  </span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('header.actions.edit')}</TooltipContent>
+            </Tooltip>
           )}
         </PermissionWrapper>
       )}
