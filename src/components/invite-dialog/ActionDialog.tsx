@@ -1,5 +1,5 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { X } from 'lucide-react';
+import { VisuallyHidden } from 'radix-ui';
 import { type ReactNode, useState } from 'react';
 
 import {
@@ -67,9 +67,9 @@ export default function ActionDialog(props: ActionDialogProps) {
           </div>
           <DialogHeader>
             <DialogTitle className={titleClassName}>{title}</DialogTitle>
-            <VisuallyHidden>
+            <VisuallyHidden.Root>
               <DialogDescription></DialogDescription>
-            </VisuallyHidden>
+            </VisuallyHidden.Root>
           </DialogHeader>
           {typeof children === 'function'
             ? children(() => handleOpenChange(false))

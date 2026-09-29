@@ -1,106 +1,24 @@
+import { Slot } from 'radix-ui';
 import * as React from 'react';
 
-import { Button as BaseButton, ButtonProps } from '@/components/ui/Button';
+import { Button as BaseButton } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { cn } from '@/lib/utils.ts';
 
-interface ButtonLoadingProps extends Omit<ButtonProps, 'variant'> {
+type ButtonProps = React.ComponentProps<typeof BaseButton> & {
   loading?: boolean;
-  children?: React.ReactNode;
-  variant?: ButtonProps['variant'];
-}
+};
 
-const CustomButton = React.forwardRef<
-  React.ElementRef<typeof BaseButton>,
-  ButtonLoadingProps
->(function CustomButton(props, ref) {
-  const { children, variant = 'default', className, ...rest } = props;
-  if (variant === 'destructive') {
-    return (
-      <BaseButton
-        ref={ref}
-        variant="outline"
-        className={cn(
-          'bg-transparent text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground active:bg-[#D95E52] text-xs font-medium',
-          className
-        )}
-        {...rest}
-      >
-        {children}
-      </BaseButton>
-    );
-  }
-  if (variant === 'ghost') {
-    return (
-      <BaseButton
-        ref={ref}
-        variant="ghost"
-        className={cn('hover:bg-sidebar-accent', className)}
-        {...rest}
-      >
-        {children}
-      </BaseButton>
-    );
-  }
-  if (variant === 'outline') {
-    return (
-      <BaseButton
-        ref={ref}
-        variant={variant}
-        className={cn(
-          'shadow-none bg-white border-neutral-200 hover:bg-neutral-100 active:border-neutral-300 dark:bg-transparent dark:border-neutral-700! dark:hover:bg-neutral-600 active:bg-neutral-200 dark:active:bg-neutral-700 disabled:opacity-100 disabled:bg-neutral-400 disabled:text-neutral-200 disabled:border-neutral-400 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-500 dark:disabled:border-neutral-700 dark:disabled:hover:bg-neutral-700',
-          className
-        )}
-        {...rest}
-      >
-        {children}
-      </BaseButton>
-    );
-  }
-  if (variant === 'default') {
-    return (
-      <BaseButton
-        ref={ref}
-        variant="default"
-        className={cn(
-          'shadow-none dark:bg-white dark:text-primary-foreground hover:bg-neutral-800 active:bg-neutral-700 dark:active:bg-neutral-300 dark:hover:bg-neutral-100 disabled:opacity-100 disabled:bg-neutral-400 disabled:text-neutral-200 dark:disabled:bg-neutral-700 dark:disabled:text-neutral-500 dark:disabled:hover:bg-neutral-700',
-          className
-        )}
-        {...rest}
-      >
-        {children}
-      </BaseButton>
-    );
-  }
+export function Button({ loading, disabled, children, ...props }: ButtonProps) {
   return (
-    <BaseButton
-      ref={ref}
-      variant={variant}
-      className={cn('shadow-none', className)}
-      {...rest}
-    >
-      {children}
+    <BaseButton {...props} disabled={loading || disabled}>
+      {loading ? (
+        <>
+          <Spinner />
+          <Slot.Slottable>{children}</Slot.Slottable>
+        </>
+      ) : (
+        children
+      )}
     </BaseButton>
   );
-});
-
-export const Button = React.forwardRef<
-  React.ElementRef<typeof BaseButton>,
-  ButtonLoadingProps
->(function Button(props, ref) {
-  const { loading, disabled, children, ...rest } = props;
-
-  if (loading) {
-    return (
-      <CustomButton ref={ref} {...rest} disabled>
-        <Spinner />
-        {children}
-      </CustomButton>
-    );
-  }
-  return (
-    <CustomButton ref={ref} {...rest} disabled={disabled}>
-      {children}
-    </CustomButton>
-  );
-});
+}

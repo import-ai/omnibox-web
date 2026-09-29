@@ -1,4 +1,3 @@
-import { SelectValue } from '@radix-ui/react-select';
 import { addDays, startOfDay } from 'date-fns';
 import { t } from 'i18next';
 import { useState } from 'react';
@@ -12,6 +11,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
+import { SelectValue } from '@/components/ui/Select';
 import {
   Select,
   SelectContent,

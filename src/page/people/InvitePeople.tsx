@@ -1,5 +1,5 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import copy from 'copy-to-clipboard';
+import { VisuallyHidden } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -69,9 +69,9 @@ export default function InvitePeople(props: IProps) {
         <DialogContent className="w-[90%] max-w-sm p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>{t('invite.title')}</DialogTitle>
-            <VisuallyHidden>
+            <VisuallyHidden.Root>
               <DialogDescription></DialogDescription>
-            </VisuallyHidden>
+            </VisuallyHidden.Root>
           </DialogHeader>
           <AddNamespaceInvitationForm
             namespaceId={namespaceId}

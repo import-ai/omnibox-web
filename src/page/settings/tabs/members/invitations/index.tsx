@@ -54,23 +54,25 @@ export function InvitationMain(props: InvitationProps) {
         />
       </div>
       <div className="rounded-md border dark:border-neutral-700">
-        <Table rootClassName="max-w-[83vw] sm:w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-2/5">{t('manage.group')}</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invitations.map(item => (
-              <InvitationData
-                namespaceId={namespaceId}
-                invitation={item}
-                refetch={refetch}
-              />
-            ))}
-          </TableBody>
-        </Table>
+        <div className="max-w-[83vw] sm:w-full">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-2/5">{t('manage.group')}</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invitations.map(item => (
+                <InvitationData
+                  namespaceId={namespaceId}
+                  invitation={item}
+                  refetch={refetch}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

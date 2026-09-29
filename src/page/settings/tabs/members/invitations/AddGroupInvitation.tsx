@@ -1,4 +1,4 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { VisuallyHidden } from 'radix-ui';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
@@ -36,9 +36,9 @@ export function AddGroupInvitation(props: IProps) {
       <DialogContent className="w-[90%] max-w-7xl p-4 sm:w-1/2 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('invite.title')}</DialogTitle>
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <DialogDescription></DialogDescription>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
         </DialogHeader>
         <AddGroupInvitationForm
           onFinish={onFinish}

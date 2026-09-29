@@ -1,5 +1,5 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ChevronRight } from 'lucide-react';
+import { VisuallyHidden } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -51,9 +51,9 @@ export function CitationsSheet(props: IProps) {
       <SheetContent className="p-0">
         <SheetHeader className="px-4 py-3">
           <SheetTitle>{t('chat.citations_results')}</SheetTitle>
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <SheetDescription></SheetDescription>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
         </SheetHeader>
         <Separator className="dark:bg-gray-700" />
         <div className="overflow-y-auto h-[calc(100svh-53px)]">

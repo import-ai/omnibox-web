@@ -1,5 +1,5 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Info, Plus, SquareArrowOutUpRight } from 'lucide-react';
+import { VisuallyHidden } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -86,9 +86,9 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
       <DialogContent className="w-[90%] max-w-7xl p-4 sm:w-1/2 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('namespace.add')}</DialogTitle>
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <DialogDescription></DialogDescription>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
         </DialogHeader>
         <GenerateForm />
       </DialogContent>

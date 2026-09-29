@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { CircleHelp, Eye, EyeOff } from 'lucide-react';
+import { VisuallyHidden } from 'radix-ui';
 import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -556,11 +556,11 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         <DialogContent className="w-[90%] max-w-md sm:w-1/2">
           <DialogHeader>
             <DialogTitle>{t('form.username')}</DialogTitle>
-            <VisuallyHidden>
+            <VisuallyHidden.Root>
               <DialogDescription>
                 {t('form.change_username_desc')}
               </DialogDescription>
-            </VisuallyHidden>
+            </VisuallyHidden.Root>
           </DialogHeader>
           <Form {...usernameForm}>
             <form
@@ -611,11 +611,11 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         <DialogContent className="w-[90%] max-w-md sm:w-1/2">
           <DialogHeader>
             <DialogTitle>{t('form.password')}</DialogTitle>
-            <VisuallyHidden>
+            <VisuallyHidden.Root>
               <DialogDescription>
                 {t('form.change_password_desc')}
               </DialogDescription>
-            </VisuallyHidden>
+            </VisuallyHidden.Root>
           </DialogHeader>
           <Form {...passwordForm}>
             <form
@@ -712,12 +712,12 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       {/* Email Validation Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
         <DialogContent className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]">
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <DialogHeader>
               <DialogTitle>{t('email.validate')}</DialogTitle>
               <DialogDescription>{t('email.description')}</DialogDescription>
             </DialogHeader>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
           <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
             <EmailValidate onFinish={handleEmailValidateFinish} />
           </div>
@@ -727,14 +727,14 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       {/* Phone Binding Dialog */}
       <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
         <DialogContent className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <DialogHeader>
               <DialogTitle>{t('phone.input_phone')}</DialogTitle>
               <DialogDescription>
                 {t('phone.will_send_verification')}
               </DialogDescription>
             </DialogHeader>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
           <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
             <PhoneValidate
               currentPhone={user?.phone}

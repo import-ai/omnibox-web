@@ -1,7 +1,7 @@
 import './appDownload.css';
 
-import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { Dialog as DialogPrimitive } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 

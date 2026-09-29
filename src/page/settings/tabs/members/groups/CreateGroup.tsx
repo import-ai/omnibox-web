@@ -1,4 +1,4 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { VisuallyHidden } from 'radix-ui';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
@@ -41,9 +41,9 @@ export default function CreateGroup(props: IProps) {
       <DialogContent className="w-[90%] max-w-sm p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <DialogDescription></DialogDescription>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
         </DialogHeader>
         <AddGroupForm data={data} onFinish={onFinish} />
       </DialogContent>

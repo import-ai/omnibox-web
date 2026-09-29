@@ -1,4 +1,3 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Check,
   FileSearch,
@@ -7,6 +6,7 @@ import {
   Lightbulb,
   Plus,
 } from 'lucide-react';
+import { VisuallyHidden } from 'radix-ui';
 import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -199,12 +199,12 @@ export default function ChatTool(props: IProps) {
             className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pb-5 pt-8 outline-hidden dark:bg-neutral-900"
           >
             <DialogHeader>
-              <VisuallyHidden>
+              <VisuallyHidden.Root>
                 <DialogTitle>{t('chat.tools.select_resource')}</DialogTitle>
                 <DialogDescription>
                   {t('chat.tools.select_resource')}
                 </DialogDescription>
-              </VisuallyHidden>
+              </VisuallyHidden.Root>
             </DialogHeader>
             {renderResourcePicker(resource => {
               onResourceSelect(resource);
