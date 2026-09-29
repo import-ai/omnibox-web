@@ -246,15 +246,13 @@ export default function ChatHomePage() {
         className={
           pendingMessage
             ? 'relative z-20 flex min-h-0 max-h-full min-w-0 shrink-0 justify-center bg-white px-4 dark:bg-background'
-            : 'flex flex-col h-full max-w-3xl w-full'
+            : '@container flex min-h-full w-full max-w-3xl flex-col justify-center gap-12 py-8 sm:gap-16'
         }
         data-chat-composer={pendingMessage ? '' : undefined}
       >
         <div
           className={
-            pendingMessage
-              ? 'min-w-0 w-full max-w-3xl'
-              : 'flex flex-col justify-center flex-1 mb-8'
+            pendingMessage ? 'min-w-0 w-full max-w-3xl' : 'flex flex-col'
           }
         >
           {pendingMessage ? (

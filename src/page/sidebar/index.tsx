@@ -85,7 +85,7 @@ export default function MainSidebar() {
   return (
     <React.Fragment>
       <Sidebar className="border-none">
-        <SidebarHeader className="gap-2.5 pr-0 pt-4">
+        <SidebarHeader className="gap-3 pt-4">
           <Switcher
             commercial={configLoading ? undefined : config.commercial}
             namespaceId={namespaceId}

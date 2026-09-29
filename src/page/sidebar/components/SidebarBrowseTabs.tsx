@@ -77,12 +77,12 @@ export function SidebarBrowseTabs({
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className="flex min-h-0 flex-1 flex-col"
+      className="flex min-h-0 flex-1 flex-col gap-0"
     >
       <div className="sticky top-0 z-10 shrink-0 bg-sidebar">
         <TabsList
           aria-label={`${t('search.resources')} / ${t('search.chats')}`}
-          className="relative mx-auto mb-3 mt-2 grid h-7.5 w-sidebar-tabs shrink-0 grid-cols-2 rounded-full bg-sidebar-tab p-0 text-sidebar-tab-foreground"
+          className="relative mx-auto mb-3 mt-2 grid group-data-horizontal/tabs:h-7.5 w-sidebar-tabs shrink-0 grid-cols-2 rounded-full bg-sidebar-tab p-0 text-sidebar-tab-foreground"
         >
           <div
             aria-hidden="true"
@@ -97,13 +97,13 @@ export function SidebarBrowseTabs({
           />
           <TabsTrigger
             value="resources"
-            className="relative h-7.5 rounded-full py-0 pl-sidebar-tab-label-inset pr-0 text-sm font-medium leading-none text-sidebar-tab-foreground shadow-none transition-colors data-[state=active]:bg-transparent data-[state=active]:text-sidebar-tab-active-foreground data-[state=active]:shadow-none"
+            className="relative h-7.5 rounded-full py-0 pl-sidebar-tab-label-inset pr-0 text-sm font-medium leading-none text-sidebar-tab-foreground border-0 shadow-none transition-colors data-active:bg-transparent data-active:text-sidebar-tab-active-foreground group-data-[variant=default]/tabs-list:data-active:shadow-none dark:data-active:bg-transparent dark:data-active:text-sidebar-tab-active-foreground"
           >
             {t('search.resources')}
           </TabsTrigger>
           <TabsTrigger
             value="chats"
-            className="relative h-7.5 rounded-full py-0 pl-0 pr-sidebar-tab-label-inset text-sm font-medium leading-none text-sidebar-tab-foreground shadow-none transition-colors data-[state=active]:bg-transparent data-[state=active]:text-sidebar-tab-active-foreground data-[state=active]:shadow-none"
+            className="relative h-7.5 rounded-full py-0 pl-0 pr-sidebar-tab-label-inset text-sm font-medium leading-none text-sidebar-tab-foreground border-0 shadow-none transition-colors data-active:bg-transparent data-active:text-sidebar-tab-active-foreground group-data-[variant=default]/tabs-list:data-active:shadow-none dark:data-active:bg-transparent dark:data-active:text-sidebar-tab-active-foreground"
           >
             {t('search.chats')}
           </TabsTrigger>

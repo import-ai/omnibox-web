@@ -49,12 +49,12 @@ export function Header(props: IProps) {
   };
 
   return (
-    <SidebarMenu className="mb-4">
+    <SidebarMenu className="mb-2 gap-1">
       <SidebarMenuItem className="group/chat">
         <SidebarMenuButton
           asChild
           isActive={isChatActive}
-          className="h-auto py-1.5 pr-1"
+          className="h-9 px-3 pr-8"
         >
           <div
             className="flex cursor-pointer items-center gap-2"
@@ -72,7 +72,7 @@ export function Header(props: IProps) {
                 variant="ghost"
                 onClick={onChatHistory}
                 className={cn(
-                  'absolute right-1 top-[6px] z-10 h-5 w-5 p-0 focus-visible:outline-hidden focus-visible:ring-transparent [&_svg]:size-4',
+                  'absolute right-2 top-2 z-10 h-5 w-5 p-0 focus-visible:outline-hidden focus-visible:ring-transparent [&_svg]:size-4',
                   isTouch
                     ? 'pointer-events-auto opacity-100'
                     : 'pointer-events-none opacity-0 group-hover/chat:pointer-events-auto group-hover/chat:opacity-100'
@@ -92,7 +92,7 @@ export function Header(props: IProps) {
           titleClassName="text-card-foreground pb-2 pl-2"
           title={t('notification_modal.title')}
           trigger={
-            <SidebarMenuButton asChild>
+            <SidebarMenuButton asChild className="h-9 px-3">
               <div className="flex cursor-pointer items-center gap-2">
                 {unreadCount > 0 ? (
                   <BellDot className="size-4 text-neutral-400" />
@@ -113,7 +113,7 @@ export function Header(props: IProps) {
         </ActionDialog>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild>
+        <SidebarMenuButton asChild className="h-9 px-3">
           <a
             href="https://www.omnibox.pro/community/"
             target="_blank"
@@ -126,7 +126,7 @@ export function Header(props: IProps) {
         </SidebarMenuButton>
       </SidebarMenuItem>
       <SidebarMenuItem>
-        <SidebarMenuButton asChild isActive={inviteActive}>
+        <SidebarMenuButton asChild isActive={inviteActive} className="h-9 px-3">
           <div
             className="flex cursor-pointer items-center gap-2"
             onClick={onInviteReferral}
