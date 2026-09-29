@@ -72,8 +72,8 @@ export function FooterSidebar(props: IProps) {
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                size="sm"
-                className="size-8 px-0 text-neutral-400 hover:bg-[#E8E8EE] hover:text-neutral-400 dark:hover:bg-accent [&_svg]:size-5 [&_svg]:scale-[1.3]"
+                size="icon"
+                className="size-8 px-0 text-muted-foreground hover:bg-sidebar-accent hover:text-muted-foreground dark:hover:bg-accent [&_svg]:size-5! [&_svg]:scale-[1.3]"
               >
                 {item.icon}
               </Button>
@@ -90,12 +90,12 @@ export function FooterSidebar(props: IProps) {
                 href={`${item.value}${item.value === '/docs/' && i18n.language.includes('zh') ? 'zh-cn/' : ''}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-neutral-400!"
+                className="text-muted-foreground!"
               >
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="size-8 px-0 hover:bg-[#E8E8EE] hover:text-neutral-400 dark:hover:bg-accent [&_svg]:size-5"
+                  size="icon"
+                  className="size-8 px-0 hover:bg-sidebar-accent hover:text-muted-foreground dark:hover:bg-accent [&_svg]:size-5!"
                 >
                   {item.icon}
                 </Button>

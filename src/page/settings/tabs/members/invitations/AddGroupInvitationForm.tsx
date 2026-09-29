@@ -75,7 +75,7 @@ export function AddGroupInvitationForm(props: IProps) {
                   onValueChange={field.onChange}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>

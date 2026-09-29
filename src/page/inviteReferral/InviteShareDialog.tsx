@@ -57,7 +57,7 @@ export function InviteShareDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-[510px] max-w-[calc(100vw-32px)] gap-5 rounded-xl p-6 sm:p-8"
+        className="w-[510px] max-w-[calc(100vw-32px)] sm:max-w-[calc(100vw-32px)] gap-5 rounded-xl p-6 sm:p-8"
         onOpenAutoFocus={event => event.preventDefault()}
       >
         <DialogHeader className="space-y-0 text-left">

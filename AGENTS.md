@@ -28,7 +28,7 @@ pnpm exec jest src/page/chat/core/messageOperator.test.ts
 
 ## Architecture Overview
 
-This is a React 18 + TypeScript web application built with Vite, Tailwind CSS,
+This is a React 19 + TypeScript web application built with Vite, Tailwind CSS 4,
 shadcn-ui, React Router v7, and Zustand. The app is a collaborative workspace
 with chat, resource management, sharing, notifications, and user management.
 
@@ -174,10 +174,18 @@ status and time display, destructive confirmations, and copy rules.
 - `src/i18n/` - Internationalization resources (`en`, `zh`)
 - Existing shadcn modules live under `src/components/ui/`
 - When a reusable local UI module is missing, check https://ui.shadcn.com/llms.txt for available shadcn modules before building one from scratch.
-- shadcn config is in `components.json`: style `new-york`, `tsx: true`,
+- shadcn config is in `components.json`: style `radix-nova`, `tsx: true`,
   aliases `@/components`, `@/components/ui`, `@/lib`, `@/hooks`, icon library
   `lucide`.
-- Do not manually edit files under `src/components/ui/`; they are shadcn-ui components. Adjust behavior with wrappers or call-site overrides instead.
+- Use wrappers or call-site overrides for product styling. Refresh primitives from the
+  official `radix-nova` registry during explicit shadcn upgrades, preserving the
+  documented Sidebar resizing, Tooltip arrow, Form translation, and Toaster theme
+  integrations. Keep PascalCase filenames and Lucide icons.
+- Theme tokens and product utilities live in `src/index.css` with Tailwind 4
+  `@theme inline`; there is no JavaScript Tailwind configuration. Use full CSS
+  color values (`var(--popover)`), never `hsl(var(--popover))`.
+- Import Radix primitives from `radix-ui` so compound components share contexts.
+- Embedded hosts must resolve React and React DOM to the same React 19 installation.
 
 ### File Naming
 

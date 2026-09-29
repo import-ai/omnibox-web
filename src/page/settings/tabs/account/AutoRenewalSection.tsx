@@ -141,7 +141,7 @@ function CancelDialog({
   };
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md sm:max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>
             {t('namespace.auto_renewal.confirm_title')}

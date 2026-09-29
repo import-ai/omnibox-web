@@ -553,7 +553,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
 
       {/* Username Change Dialog */}
       <Dialog open={usernameDialogOpen} onOpenChange={setUsernameDialogOpen}>
-        <DialogContent className="w-[90%] max-w-md sm:w-1/2">
+        <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
           <DialogHeader>
             <DialogTitle>{t('form.username')}</DialogTitle>
             <VisuallyHidden.Root>
@@ -608,7 +608,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
           }
         }}
       >
-        <DialogContent className="w-[90%] max-w-md sm:w-1/2">
+        <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
           <DialogHeader>
             <DialogTitle>{t('form.password')}</DialogTitle>
             <VisuallyHidden.Root>
@@ -711,7 +711,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
 
       {/* Email Validation Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]">
+        <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]">
           <VisuallyHidden.Root>
             <DialogHeader>
               <DialogTitle>{t('email.validate')}</DialogTitle>
@@ -726,7 +726,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
 
       {/* Phone Binding Dialog */}
       <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
-        <DialogContent className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
+        <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
           <VisuallyHidden.Root>
             <DialogHeader>
               <DialogTitle>{t('phone.input_phone')}</DialogTitle>

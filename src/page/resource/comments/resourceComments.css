@@ -254,7 +254,7 @@
 }
 
 .resource-comments-panel .omnibox-comment-thread[data-resolved] {
-  @apply bg-white dark:bg-muted;
+  @apply bg-card;
 }
 
 .resource-comments-panel
@@ -264,7 +264,7 @@
 }
 
 .resource-comments-panel > header {
-  @apply border-border bg-white dark:bg-background;
+  @apply border-border bg-background;
 }
 
 .resource-comments-panel [data-comments-scroll] {

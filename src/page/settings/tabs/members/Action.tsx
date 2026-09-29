@@ -246,7 +246,7 @@ export default function Action(props: ActionProps) {
       />
 
       <AlertDialog open={ownerOnly}>
-        <AlertDialogContent className="w-[85%] max-w-sm">
+        <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('manage.keep_one_owner')}</AlertDialogTitle>
           </AlertDialogHeader>
@@ -258,7 +258,7 @@ export default function Action(props: ActionProps) {
         </AlertDialogContent>
       </AlertDialog>
       <AlertDialog open={remove}>
-        <AlertDialogContent className="w-[85%] max-w-sm">
+        <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('manage.sure_to_remove')}</AlertDialogTitle>
           </AlertDialogHeader>

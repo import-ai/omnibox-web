@@ -22,7 +22,7 @@ export function H5LaunchDialog(props: H5LaunchDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-sm sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{t('login.wechat_h5_title')}</DialogTitle>
           <DialogDescription>

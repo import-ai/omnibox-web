@@ -132,7 +132,7 @@ export default function FeatureCards() {
   return (
     <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
       {/* Upload Files Card */}
-      <Card className="shadow-none dark:border-none dark:bg-[#303030]">
+      <Card className="shadow-none">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-medium">
             {t('chat.home.upload.title')}
@@ -227,7 +227,7 @@ export default function FeatureCards() {
       </Card>
 
       {/* Recent Resources Card */}
-      <Card className="border-gray-200 bg-white shadow-none dark:border-none dark:bg-[#303030]">
+      <Card className="border-border bg-card shadow-none">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-medium">
             {t('chat.home.recent.title', {

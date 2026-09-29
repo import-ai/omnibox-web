@@ -303,10 +303,10 @@ export function ResourceNodeContent({
                 'group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent',
                 'flex items-center',
                 (isActive || isEditing) &&
-                  'hover:bg-[#E2E2E6] bg-[#E2E2E6] dark:bg-[#363637]',
+                  'hover:bg-[#E2E2E6] bg-sidebar-accent',
                 selectionMode && 'pl-2',
                 isSelectionHighlighted &&
-                  'bg-[#E2E2E6] dark:bg-[#363637] hover:bg-[#E2E2E6]',
+                  'bg-sidebar-accent hover:bg-[#E2E2E6]',
                 isFileDragOver &&
                   'bg-sidebar-accent text-sidebar-accent-foreground',
                 isInsideDrop &&

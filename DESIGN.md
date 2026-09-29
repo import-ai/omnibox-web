@@ -12,17 +12,17 @@ wins; update the older code when you touch it.
 
 ## Where things are
 
-| Area                                                  | Look at                                                     |
-| ----------------------------------------------------- | ----------------------------------------------------------- |
-| Foundations: colour, type, icons, spacing, responsive | `tailwind.config.js`, `src/index.css`, `src/components/ui/` |
-| App shell, sidebar, resource tree                     | `src/page/sidebar/`, `src/components/ui/Sidebar.tsx`        |
-| Chat                                                  | `src/page/chat/`                                            |
-| Resource viewer and editor                            | `src/page/resource/`                                        |
-| Copilot panel                                         | `src/page/copilot/`                                         |
-| Dialogs, overlays, forms                              | `src/components/ui/`, `src/components/confirm-*`            |
-| Feedback: loading, empty, error, toast                | `src/components/loading/`, `src/components/ui/Empty.tsx`    |
-| Public share                                          | `src/page/share/`, `src/page/shared-*`                      |
-| Auth and account                                      | `src/page/user/`, `src/page/oauth/`                         |
+| Area                                                  | Look at                                                  |
+| ----------------------------------------------------- | -------------------------------------------------------- |
+| Foundations: colour, type, icons, spacing, responsive | `src/index.css`, `src/components/ui/`                    |
+| App shell, sidebar, resource tree                     | `src/page/sidebar/`, `src/components/ui/Sidebar.tsx`     |
+| Chat                                                  | `src/page/chat/`                                         |
+| Resource viewer and editor                            | `src/page/resource/`                                     |
+| Copilot panel                                         | `src/page/copilot/`                                      |
+| Dialogs, overlays, forms                              | `src/components/ui/`, `src/components/confirm-*`         |
+| Feedback: loading, empty, error, toast                | `src/components/loading/`, `src/components/ui/Empty.tsx` |
+| Public share                                          | `src/page/share/`, `src/page/shared-*`                   |
+| Auth and account                                      | `src/page/user/`, `src/page/oauth/`                      |
 
 ---
 
@@ -40,18 +40,19 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
 ```
 
 - The tokens are defined in `src/index.css` under `:root` and `.dark`, and
-  exposed through `tailwind.config.js` as `background/foreground`, `card`,
+  exposed through `@theme inline` in the same stylesheet as `background/foreground`, `card`,
   `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`,
   `input`, `ring`, `chart-1..5`, and the `sidebar-*` family. Use them.
 - Raw palette colours (`text-gray-400`, `bg-neutral-200`) are drift. About 555
   occurrences exist; do not add more, and replace them when you touch the file.
   The worst offenders are `bg-gray-100`, `text-neutral-400/500`, and
   `border-neutral-200/700`.
-- Three families are long-standing exceptions you may keep: the chat composer
-  surfaces (`bg-chat-composer` / `dark:bg-chat-composer-dark`, defined in
-  `tailwind.config.js`), the sidebar active row (`bg-[#E2E2E6]
-dark:bg-[#363637]`), and the sidebar hover (`hover:bg-[#E6E6EC]`). Prefer
-  `bg-sidebar-accent` for new sidebar hovers; the hex pair above predates it.
+- Chat composer surfaces use `bg-chat-composer` (mapped to `--card`). Sidebar
+  selection and hover use `bg-sidebar-accent`. Brand, resource-type, and status
+  colors remain explicit where their meaning requires it.
+- Color tokens contain complete OKLCH values. Use `var(--border)` in CSS and
+  `border-border` in classes; opacity uses `border-border/50` or `color-mix()`.
+  The canonical sidebar surface token is `--sidebar`.
 - Do not invent coloured dots or badge colours for status. Use the status
   icons in `src/assets/icons/*Status.tsx` (see [Status](#status)).
 
@@ -125,9 +126,13 @@ dark:bg-[#363637]`), and the sidebar hover (`hover:bg-[#E6E6EC]`). Prefer
 
 - Stack with `gap-*` on a flex container or `space-y-4` in forms; do not mix
   the two in one component.
-- Radius follows the `--radius` variable (`0.5rem`) through `rounded-sm/md/lg`.
-  Cards, dialogs, inputs, and buttons are `rounded-md`; chips are `rounded-lg`;
-  pills and avatars are `rounded-full`.
+- The current foundation is shadcn Radix Nova with Zinc colors, Tailwind CSS 4,
+  and React 19. `--radius` is `0.625rem`; small/medium/large radii use the
+  official multiplier scale. Keep the primitive's default radius unless the
+  product layout requires an explicit override.
+- Button and Input default to 32px; small buttons are 28px and large buttons
+  are 36px. Use `size="icon"` for icon actions and put `size-4` on the icon
+  itself; size-specific primitive selectors otherwise choose the icon size.
 - Shadows are opt-out. Most surfaces are `shadow-none`; only elevated
   overlays keep a shadow. When a component adds a shadow you did not ask for,
   pass `shadow-none` rather than editing the primitive.
@@ -168,10 +173,11 @@ Several components exist in two versions. Use these:
 - Use `@/components/Button` consistently for all buttons, including those in
   overlays. This is the team's customized Button component; use its variants
   and `loading` prop.
-- `@/components/ui/InputGroup` has no importers. `@/components/input/Password`
-  has none either — password fields hand-roll an eye toggle. Do not add new
-  uses; if you need a password field, follow
-  `src/page/settings/tabs/profile/index.tsx`.
+- The team Button delegates visuals to the current primitive and adds `loading`.
+  It preserves refs and `asChild` composition. Do not duplicate primitive colors
+  or disabled-state palettes in the wrapper.
+- `InputGroup` composes input adornments and is used by the command input.
+  The icon Input wrapper delegates to the shared Input primitive.
 
 ---
 
@@ -248,7 +254,7 @@ Main content is a rounded white pane inset from the sidebar:
   draggable. Do not add a resize handle.
 - The resources/conversations switch is `SidebarBrowseTabs` and is the only
   `TabsList` the sidebar may contain. Its geometry comes from
-  `tailwind.config.js` (`sidebar-tabs`, `sidebar-tab`, `sidebar-tab-offset`,
+  `src/index.css` (`sidebar-tabs`, `sidebar-tab`, `sidebar-tab-offset`,
   `sidebar-tab-label-inset`, `boxShadow.sidebar-tab`); the two percentages are
   complements, so change them together.
 
@@ -636,6 +642,11 @@ Use these before composing an `AlertDialog`:
 - `src/components/popconfirm/index.tsx` is legacy: hardcoded `bg-red-500` and
   untranslated English defaults. Do not use it for new work.
 
+- Nova dialogs default to `sm:max-w-sm`. A wider feature dialog must override
+  the same breakpoint (for example `sm:max-w-2xl`). Use `showCloseButton={false}`
+  when the feature renders its own close control. Dialog footers include their
+  own padding and muted surface; avoid adding a second footer background.
+
 ## Forms
 
 - Wrap every field in `FormItem` and stack fields with `space-y-4 px-px`; label
@@ -644,7 +655,7 @@ Use these before composing an `AlertDialog`:
   `<FormMessage />`. Never hand-write `<p className="text-red-...">`.
 - Zod messages are **i18n keys**, not sentences — `FormMessage` translates them
   with `t(fieldError.message)`.
-- Error text is `text-[0.8rem] font-medium text-destructive`, and `FormLabel`
+- Error text is `text-sm font-medium text-destructive`, and `FormLabel`
   turns destructive while errored. Empty error slots collapse rather than
   reserving space.
 - Do not add a required marker. There is no asterisk, no `aria-required`, and
@@ -658,21 +669,20 @@ Use these before composing an `AlertDialog`:
 - Submit buttons use `loading` from `@/components/Button`, not a hand-placed
   `Spinner`. Compose dialog actions with `AlertDialogAction asChild` and this
   Button component.
-- `aria-invalid` is wired by `FormControl` (`aria-invalid={!!error}` in
-  `src/components/ui/Form.tsx`) but has no visual effect on
-  `Input`/`Textarea`/`SelectTrigger`. Where the errored border is wanted, the
-  shipped mechanism is `InputGroup`'s
-  `has-[[data-slot][aria-invalid=true]]:border-destructive`; outside an
-  `InputGroup` pass the destructive border yourself. No bare
-  `aria-invalid:border-destructive` utility exists in this codebase.
+- `FormControl` forwards invalid state; current inputs, textareas, selects, and
+  input groups provide the destructive border and focus ring automatically.
+- `Form` remains a local React Hook Form adapter because the current registry
+  no longer ships it. Preserve its translated error messages during upgrades.
 
 ## Pickers
 
 - Pick one of a few values: `DropdownMenu` with an outline `Button` trigger, a
   `Check` on the selected item, and content matched to the trigger width. This
   is the settings pattern; see `src/page/settings/tabs/basic/Theme.tsx`.
-- `Select` is for in-form field choices, with an `h-9` trigger matching `Input`.
-- Command palette: `CommandDialog`, with a `VisuallyHidden` title.
+- `Select` is for in-form field choices, with a 32px default trigger matching `Input`. Add `w-full` for form rows;
+  the primitive defaults to content width.
+- Command palette: `CommandDialog` with a localized title and an explicit
+  `Command` child. Remote search uses `shouldFilter={false}`.
 - Async or creatable multi-select: `MultipleSelector`.
 - Resource pickers: `resourcePicker/` or `resourceSelect/`, never a hand-built
   tree. `resourceSelect` must match its trigger's width (it mirrors it with a

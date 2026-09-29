@@ -254,8 +254,7 @@ export function ResourceCommentsProvider({
         <div
           className={cn(
             'flex min-h-0 min-w-0 flex-1 flex-col',
-            isShared &&
-              'overflow-hidden rounded-2xl bg-white dark:bg-background'
+            isShared && 'overflow-hidden rounded-2xl bg-background'
           )}
         >
           {children}

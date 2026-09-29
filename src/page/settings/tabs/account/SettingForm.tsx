@@ -268,7 +268,7 @@ export default function SettingForm({
       </div>
       {/* Leave Dialog */}
       <AlertDialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="max-w-md sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {t('namespace.leave.confirm_title')}

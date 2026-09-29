@@ -513,7 +513,7 @@ export function APIKeyForm() {
               {t('create')}
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[90%] max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
+          <DialogContent className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
             <DialogHeader>
               <DialogTitle>{t('api_key.create.title')}</DialogTitle>
               <DialogDescription>
@@ -581,7 +581,7 @@ export function APIKeyForm() {
           open={updateDialogOpen}
           onOpenChange={handleUpdateDialogOpenChange}
         >
-          <DialogContent className="w-[90%] max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
+          <DialogContent className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
             <DialogHeader>
               <DialogTitle>{t('api_key.update.title')}</DialogTitle>
               <DialogDescription>
@@ -743,7 +743,7 @@ export function APIKeyForm() {
                       </TooltipTrigger>
                       <TooltipContent side="top">{t('delete')}</TooltipContent>
                     </Tooltip>
-                    <AlertDialogContent className="w-[85%] max-w-sm rounded-md">
+                    <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm rounded-md">
                       <AlertDialogHeader>
                         <AlertDialogTitle>
                           {t('api_key.delete.confirm.title')}

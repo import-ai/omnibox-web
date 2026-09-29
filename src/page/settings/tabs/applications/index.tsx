@@ -337,7 +337,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         {t('applications.unbind.button')}
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="w-[85%] max-w-sm">
+                    <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
                       <AlertDialogHeader>
                         <AlertDialogTitle>
                           {t('applications.unbind.confirm.title')}
@@ -389,7 +389,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                           {t('applications.bind.cancel_button')}
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent className="w-[85%] max-w-sm">
+                      <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
                         <AlertDialogHeader>
                           <AlertDialogTitle>
                             {t('applications.bind.cancel.confirm.title')}

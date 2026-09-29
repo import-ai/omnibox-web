@@ -30,7 +30,7 @@ export default function MoveTo(props: IProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-popover dark:bg-neutral-900 w-[480px] max-w-[90%] px-4 pt-6 pb-5 overflow-hidden">
+      <DialogContent className="bg-popover dark:bg-neutral-900 w-[480px] max-w-[90%] sm:max-w-[90%] px-4 pt-6 pb-5 overflow-hidden">
         <DialogHeader>
           <DialogTitle>{t('actions.move_to')}</DialogTitle>
         </DialogHeader>

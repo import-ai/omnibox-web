@@ -84,7 +84,7 @@ export function AddNamespaceInvitationForm(props: IProps) {
                   onValueChange={field.onChange}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -112,7 +112,7 @@ export function AddNamespaceInvitationForm(props: IProps) {
                   disabled={isAdmin}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>

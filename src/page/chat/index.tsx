@@ -35,7 +35,7 @@ export default function Chat() {
   return (
     <SidebarInset
       className={cn(
-        'min-h-0 min-h-0! max-h-full min-w-0 h-full overflow-hidden bg-white dark:bg-background md:rounded-2xl',
+        'min-h-0 min-h-0! max-h-full min-w-0 h-full overflow-hidden bg-background md:rounded-2xl',
         besideCitationPreview
           ? 'm-0 rounded-none md:h-full'
           : 'm-0 rounded-none md:m-[8px] md:h-[calc(100svh-16px)]'

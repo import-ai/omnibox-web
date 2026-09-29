@@ -215,7 +215,7 @@ export default function PermissionAction(props: IProps) {
         </AlertDialogContent>
       </AlertDialog>
       <AlertDialog open={ownerOnly}>
-        <AlertDialogContent className="w-[85%] max-w-sm">
+        <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {t('permission.owner_full_access_required')}

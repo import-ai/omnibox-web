@@ -83,7 +83,7 @@ export function BatchCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-popover dark:bg-neutral-900 w-[480px] max-w-[90%]">
+      <DialogContent className="bg-popover dark:bg-neutral-900 w-[480px] max-w-[90%] sm:max-w-[90%]">
         <DialogHeader>
           <DialogTitle>{t('batch.create_tooltip')}</DialogTitle>
         </DialogHeader>

@@ -27,7 +27,7 @@ export default function Invite() {
           {t('invite.add')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[90%] max-w-7xl p-4 sm:w-1/2 sm:p-6">
+      <DialogContent className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('invite.add')}</DialogTitle>
           <VisuallyHidden.Root>

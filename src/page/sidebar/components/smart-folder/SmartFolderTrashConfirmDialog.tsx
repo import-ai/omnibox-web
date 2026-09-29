@@ -26,7 +26,7 @@ export function SmartFolderTrashConfirmDialog(
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[520px] [&>button]:hidden">
+      <DialogContent className="max-w-[520px] sm:max-w-[520px] [&>button]:hidden">
         <DialogHeader>
           <DialogTitle className="pb-2">
             {t('smart_folder.trash.title', { count })}

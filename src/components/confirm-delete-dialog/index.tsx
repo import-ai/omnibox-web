@@ -100,7 +100,7 @@ export default function ConfirmDeleteDialog(props: IProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="w-[85%] max-w-sm">
+      <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
         <AlertDialogHeader>
           <AlertDialogTitle>
             <Trans i18nKey={titleKey || 'common.dialog.delete.title'} />

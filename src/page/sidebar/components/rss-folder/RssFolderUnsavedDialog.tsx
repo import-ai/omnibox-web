@@ -23,7 +23,7 @@ export function RssFolderUnsavedDialog(props: RssFolderUnsavedDialogProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-[560px]">
+      <AlertDialogContent className="max-w-[560px] sm:max-w-[560px]">
         <AlertDialogHeader>
           <AlertDialogTitle>
             {t('rss_folder.create.unsaved_title')}

@@ -66,7 +66,7 @@ export default function InvitePeople(props: IProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[90%] max-w-sm p-4 sm:p-6">
+        <DialogContent className="w-[90%] max-w-sm sm:max-w-sm p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>{t('invite.title')}</DialogTitle>
             <VisuallyHidden.Root>

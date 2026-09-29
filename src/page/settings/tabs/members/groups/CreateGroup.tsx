@@ -38,7 +38,7 @@ export default function CreateGroup(props: IProps) {
           {t('manage.add')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[90%] max-w-sm p-4 sm:p-6">
+      <DialogContent className="w-[90%] max-w-sm sm:max-w-sm p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <VisuallyHidden.Root>

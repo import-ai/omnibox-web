@@ -55,7 +55,7 @@ export function ConversationShareActions({
       : 'unchecked';
 
   return (
-    <section className="h-20 shrink-0 border-t bg-white dark:bg-background">
+    <section className="h-20 shrink-0 border-t bg-background">
       <div className="mx-auto flex h-full max-w-[800px] items-center justify-between gap-4 px-4">
         <div className="flex min-w-0 items-center gap-3 text-sm">
           <button

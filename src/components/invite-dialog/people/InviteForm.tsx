@@ -127,7 +127,7 @@ export default function InviteForm(props: IProps) {
                   onValueChange={field.onChange}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -155,7 +155,7 @@ export default function InviteForm(props: IProps) {
                   disabled={isAdmin}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>

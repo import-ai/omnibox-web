@@ -40,6 +40,8 @@ export function SearchDialog({
 
   return (
     <CommandDialog
+      title={placeholder}
+      description={placeholder}
       open={open}
       onOpenChange={onOpenChange}
       className={cn(

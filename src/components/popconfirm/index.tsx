@@ -36,7 +36,7 @@ export default function MainAlertDialog(props: IProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-      <AlertDialogContent className="w-[85%] max-w-sm">
+      <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {message && (

@@ -118,7 +118,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
   );
 
   return (
-    <div className="mt-2 flex h-full min-h-0 w-full flex-col bg-white dark:bg-neutral-900">
+    <div className="mt-2 flex h-full min-h-0 w-full flex-col bg-popover">
       <div className="flex h-full min-h-0 flex-col">
         <NotificationToolbar
           unreadCount={unreadCount}

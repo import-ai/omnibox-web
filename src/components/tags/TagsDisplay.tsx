@@ -20,7 +20,7 @@ export function TagsDisplay(props: IProps) {
   if (data.length <= 0) {
     if (readOnly) {
       return (
-        <span className="text-sm text-neutral-500 dark:text-neutral-400">
+        <span className="text-sm text-muted-foreground">
           {t('resource.attrs.no_tag')}
         </span>
       );
@@ -79,7 +79,7 @@ export function TagsDisplay(props: IProps) {
             setIsExpanded(false);
           }}
         >
-          <ChevronUp className="size-4 text-neutral-500 dark:text-neutral-400" />
+          <ChevronUp className="size-4 text-muted-foreground" />
         </Badge>
       )}
     </Space>

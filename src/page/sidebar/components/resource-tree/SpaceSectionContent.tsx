@@ -232,7 +232,7 @@ export function SpaceSectionContent({
                           : 'pointer-events-none opacity-0 group-hover/sidebar-header:pointer-events-auto group-hover/sidebar-header:opacity-100'
                       )}
                     >
-                      <MoreHorizontal className="rounded-sm hover:bg-[#DFDFE3] focus-visible:outline-hidden focus-visible:ring-transparent" />
+                      <MoreHorizontal className="rounded-sm hover:bg-sidebar-accent focus-visible:outline-hidden focus-visible:ring-transparent" />
                     </SidebarMenuAction>
                   )}
                 </DropdownMenuTrigger>

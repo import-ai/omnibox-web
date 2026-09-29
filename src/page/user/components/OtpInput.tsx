@@ -42,30 +42,12 @@ export function OtpInput({
         disabled={disabled}
       >
         <InputOTPGroup>
-          <InputOTPSlot
-            index={0}
-            className="border-neutral-200 dark:border-neutral-700"
-          />
-          <InputOTPSlot
-            index={1}
-            className="border-neutral-200 dark:border-neutral-700"
-          />
-          <InputOTPSlot
-            index={2}
-            className="border-neutral-200 dark:border-neutral-700"
-          />
-          <InputOTPSlot
-            index={3}
-            className="border-neutral-200 dark:border-neutral-700"
-          />
-          <InputOTPSlot
-            index={4}
-            className="border-neutral-200 dark:border-neutral-700"
-          />
-          <InputOTPSlot
-            index={5}
-            className="border-neutral-200 dark:border-neutral-700"
-          />
+          <InputOTPSlot index={0} className="border-border" />
+          <InputOTPSlot index={1} className="border-border" />
+          <InputOTPSlot index={2} className="border-border" />
+          <InputOTPSlot index={3} className="border-border" />
+          <InputOTPSlot index={4} className="border-border" />
+          <InputOTPSlot index={5} className="border-border" />
         </InputOTPGroup>
       </InputOTP>
       {error && (

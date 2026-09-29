@@ -320,11 +320,11 @@ body::before {
 @media (max-width: 767px) {
   html,
   body {
-    background: #ffffff;
+    background: var(--background);
   }
 
   body::before {
-    background: #ffffff;
+    background: var(--background);
   }
 
   .dark html,
@@ -353,12 +353,13 @@ body::before {
   color: var(--muted-foreground) !important;
 }
 
-a {
-  color: #107bfa;
-}
-
-.dark a {
-  color: #60a5fa;
+@layer base {
+  a {
+    color: var(--color-blue-600);
+  }
+  .dark a {
+    color: var(--color-blue-400);
+  }
 }
 
 .shimmer {

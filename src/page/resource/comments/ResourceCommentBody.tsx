@@ -47,7 +47,7 @@ export function ResourceCommentBody({
         }}
       >
         <DialogContent
-          className="omnibox-comment-image-preview max-w-[min(90vw,56rem)] border-0 bg-transparent p-0 shadow-none outline-hidden"
+          className="omnibox-comment-image-preview max-w-[min(90vw,56rem)] sm:max-w-[min(90vw,56rem)] border-0 bg-transparent p-0 shadow-none outline-hidden"
           onClick={event => event.stopPropagation()}
         >
           <DialogTitle className="sr-only">

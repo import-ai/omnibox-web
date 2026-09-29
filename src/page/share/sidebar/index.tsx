@@ -86,7 +86,7 @@ export default function ShareSidebar(props: IProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <SidebarTrigger className="text-neutral-400 hover:text-neutral-400 hover:bg-[#E6E6EC] dark:hover:bg-accent" />
+                    <SidebarTrigger className="text-neutral-400 hover:text-neutral-400 hover:bg-sidebar-accent dark:hover:bg-accent" />
                   </TooltipTrigger>
                   <TooltipContent>{t('sidebar.collapse')}</TooltipContent>
                 </Tooltip>

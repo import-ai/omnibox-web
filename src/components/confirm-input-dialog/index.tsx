@@ -63,7 +63,7 @@ export function ConfirmInputDialog({
   };
 
   const content = (
-    <AlertDialogContent className="max-w-md">
+    <AlertDialogContent className="max-w-md sm:max-w-md">
       <AlertDialogHeader>
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription className="space-y-4">

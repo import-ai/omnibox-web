@@ -109,7 +109,7 @@ export function BindDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-2xl">
+      <DialogContent className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t('applications.bind.title')}</DialogTitle>
           <DialogDescription>

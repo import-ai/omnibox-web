@@ -213,7 +213,7 @@ function RangeDayButton({
       data-range-end={modifiers.range_end}
       data-range-middle={modifiers.range_middle}
       className={cn(
-        'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-neutral-100 data-[range-middle=true]:text-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground dark:data-[range-middle=true]:bg-[#262626] dark:data-[range-middle=true]:text-[#f5f5f5] flex aspect-square h-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-md font-normal leading-none ring-0 outline-hidden focus:ring-0 focus:outline-hidden data-[range-end=true]:rounded-md data-[range-start=true]:rounded-md [&>span]:text-xs [&>span]:opacity-70',
+        'data-[selected-single=true]:bg-primary data-[selected-single=true]:text-primary-foreground data-[range-middle=true]:bg-accent data-[range-middle=true]:text-foreground data-[range-start=true]:bg-primary data-[range-start=true]:text-primary-foreground data-[range-end=true]:bg-primary data-[range-end=true]:text-primary-foreground flex aspect-square h-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-md font-normal leading-none ring-0 outline-hidden focus:ring-0 focus:outline-hidden data-[range-end=true]:rounded-md data-[range-start=true]:rounded-md [&>span]:text-xs [&>span]:opacity-70',
         defaultClassNames.day,
         rangeMiddleRadiusClass,
         className
@@ -265,7 +265,7 @@ export function DatePicker(props: DatePickerProps) {
             const nextDay = `${date.getDate()}`.padStart(2, '0');
             onChange(`${date.getFullYear()}-${nextMonth}-${nextDay}`);
           }}
-          className="rounded-lg bg-white dark:bg-black"
+          className="rounded-lg bg-popover"
         />
       </PopoverContent>
     </Popover>
@@ -381,7 +381,7 @@ export function DateRangePicker(props: DateRangePickerProps) {
               endDate: toStorageDate(normalizedRange.to),
             });
           }}
-          className="rounded-lg bg-white dark:bg-neutral-800"
+          className="rounded-lg bg-card"
         />
       </PopoverContent>
     </Popover>

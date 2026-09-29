@@ -32,7 +32,7 @@ export function ImagePreviewDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="fixed left-0 top-0 flex h-full w-full max-w-none translate-x-0 translate-y-0 items-center justify-center gap-0 border-0 bg-transparent p-0 shadow-none motion-reduce:animate-none [&>button:last-child]:hidden"
+        className="fixed left-0 top-0 flex h-full w-full max-w-none sm:max-w-none translate-x-0 translate-y-0 items-center justify-center gap-0 border-0 bg-transparent p-0 shadow-none motion-reduce:animate-none [&>button:last-child]:hidden"
         style={
           {
             '--tw-enter-scale': '1',

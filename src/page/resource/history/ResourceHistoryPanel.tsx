@@ -160,7 +160,7 @@ export default function ResourceHistoryPanel({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-white dark:bg-background">
+    <div className="flex h-full min-h-0 flex-col bg-background">
       <header className="flex min-h-12 shrink-0 items-center gap-2 border-b border-border/60 px-3">
         <CopilotToggleButton collapseOnly namespaceId={namespaceId} />
         <h2 className="min-w-0 flex-1 truncate text-sm font-semibold">

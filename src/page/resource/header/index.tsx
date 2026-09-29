@@ -58,7 +58,7 @@ export default function Header(props: IActionProps) {
   const historyRevision = isHistorical ? selectedRevision : null;
 
   return (
-    <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-white dark:bg-background">
+    <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-background">
       <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
         <SidebarTriggerButton collapse />
         <Breadcrumb
