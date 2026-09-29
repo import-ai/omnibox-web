@@ -31,7 +31,7 @@ function FilterTabs({ value, unreadCount, onChange, labels }: FilterTabsProps) {
   ];
 
   return (
-    <div className="flex items-center gap-3 [&>button]:cursor-pointer">
+    <div className="flex shrink-0 items-center gap-3 whitespace-nowrap [&>button]:cursor-pointer">
       {filters.map(filter => {
         const isActive = value === filter.key;
         return (
@@ -80,7 +80,7 @@ export function NotificationToolbar({
     );
 
   return (
-    <div className="mb-2 flex items-end justify-between pr-2">
+    <div className="mb-2 flex flex-wrap items-end justify-between gap-2 pr-2">
       <FilterTabs
         value={filter}
         unreadCount={unreadCount}
