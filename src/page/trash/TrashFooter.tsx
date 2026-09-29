@@ -18,7 +18,7 @@ export function TrashFooter({
   const { t } = useTranslation();
 
   return (
-    <div className="flex items-center justify-between border-t pt-3">
+    <div className="flex items-center justify-between gap-2 border-t pt-3">
       {trashRetentionDays !== null && (
         <span className="text-sm leading-4 text-muted-foreground">
           {t('trash.auto_delete_notice', {
@@ -32,10 +32,10 @@ export function TrashFooter({
             <Button
               variant="ghost"
               size="icon"
-              className="size-4 hover:text-destructive"
+              className="size-7 text-muted-foreground hover:text-destructive"
               onClick={onClearAll}
             >
-              <Trash2 className="size-8" />
+              <Trash2 className="size-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{t('trash.clear_all')}</TooltipContent>

@@ -237,11 +237,11 @@ export function TrashPanel() {
                     </SidebarMenuButton>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="flex w-80 max-h-(--radix-popover-content-available-height) flex-col overflow-hidden p-3"
+                    className="flex w-[min(20rem,calc(100vw-2rem))] max-h-(--radix-popover-content-available-height) flex-col overflow-hidden p-3"
                     side={placement.side}
                     align={placement.align}
                     sideOffset={8}
-                    collisionPadding={8}
+                    collisionPadding={16}
                     onOpenAutoFocus={e => e.preventDefault()}
                     onCloseAutoFocus={e => e.preventDefault()}
                     onWheel={e => e.stopPropagation()}
