@@ -8,17 +8,32 @@ type ButtonProps = React.ComponentProps<typeof BaseButton> & {
   loading?: boolean;
 };
 
-export function Button({ loading, disabled, children, ...props }: ButtonProps) {
+export function Button({
+  loading,
+  disabled,
+  children,
+  onClickCapture,
+  ...props
+}: ButtonProps) {
   return (
-    <BaseButton {...props} disabled={loading || disabled}>
-      {loading ? (
-        <>
-          <Spinner />
-          <Slot.Slottable>{children}</Slot.Slottable>
-        </>
-      ) : (
-        children
-      )}
+    <BaseButton
+      {...props}
+      disabled={loading || disabled}
+      onClickCapture={event => {
+        if (loading || disabled) {
+          event.preventDefault();
+          event.stopPropagation();
+          return;
+        }
+        onClickCapture?.(event);
+      }}
+    >
+      {loading
+        ? [
+            <Spinner key="spinner" />,
+            <Slot.Slottable key="content">{children}</Slot.Slottable>,
+          ]
+        : children}
     </BaseButton>
   );
 }

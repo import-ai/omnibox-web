@@ -43,6 +43,19 @@ it('blocks interaction while loading and preserves refs and asChild composition'
     );
     expect(container.querySelector('button')).toBeNull();
     expect(container.querySelector('a')?.getAttribute('href')).toBe('/home');
+    act(() =>
+      root.render(
+        <Button asChild loading>
+          <a href="/home" onClick={onClick}>
+            Home
+          </a>
+        </Button>
+      )
+    );
+    const link = container.querySelector('a')!;
+    expect(link.querySelector('svg')).not.toBeNull();
+    act(() => link.click());
+    expect(onClick).toHaveBeenCalledTimes(1);
   } finally {
     act(() => root.unmount());
     (
