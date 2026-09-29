@@ -200,7 +200,8 @@ export default function ChatConversationsPage({
                             className={cn(
                               'group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent',
                               'flex items-center',
-                              isActive && 'bg-[#E2E2E6] hover:bg-sidebar-accent'
+                              isActive &&
+                                'bg-sidebar-accent text-sidebar-accent-foreground'
                             )}
                           >
                             <SidebarMenuButton
