@@ -93,7 +93,12 @@ export function NodeActionsContent({
             </SidebarMenuAction>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" align="start" sideOffset={10}>
+        <DropdownMenuContent
+          side="right"
+          align="start"
+          sideOffset={10}
+          className="w-auto! min-w-36"
+        >
           {menu.items.map(item => {
             if (item.separator) {
               return <DropdownMenuSeparator key={item.key} />;
