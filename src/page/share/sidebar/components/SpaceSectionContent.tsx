@@ -36,7 +36,7 @@ export function SpaceSectionContent({
         <div className="relative size-full">
           <SidebarGroupLabel
             onClick={handleHeaderToggle}
-            className="mr-4 flex h-full items-center gap-1 font-normal leading-8 text-neutral-400"
+            className="mr-4 flex h-full cursor-pointer items-center gap-1 font-normal leading-8 text-neutral-400"
           >
             {t('share.share.title')}
             <ChevronRight

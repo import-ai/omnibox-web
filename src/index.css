@@ -165,7 +165,7 @@
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
   --destructive-foreground: oklch(0.985 0 0);
-  --sidebar-tab-background: var(--muted);
+  --sidebar-tab-background: transparent;
   --sidebar-tab-active: var(--background);
   --sidebar-tab-border: var(--border);
   --sidebar-tab-foreground: var(--muted-foreground);
@@ -205,7 +205,7 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.552 0.016 285.938);
   --destructive-foreground: oklch(0.985 0 0);
-  --sidebar-tab-background: var(--muted);
+  --sidebar-tab-background: transparent;
   --sidebar-tab-active: var(--background);
   --sidebar-tab-border: var(--border);
   --sidebar-tab-foreground: var(--muted-foreground);

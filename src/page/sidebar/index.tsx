@@ -84,8 +84,11 @@ export default function MainSidebar() {
 
   return (
     <React.Fragment>
-      <Sidebar className="border-none">
-        <SidebarHeader className="gap-3 pt-4">
+      <Sidebar
+        className="border-none"
+        style={{ '--sidebar-row-height': '2.25rem' } as React.CSSProperties}
+      >
+        <SidebarHeader className="gap-3 pt-4 md:pr-0">
           <Switcher
             commercial={configLoading ? undefined : config.commercial}
             namespaceId={namespaceId}

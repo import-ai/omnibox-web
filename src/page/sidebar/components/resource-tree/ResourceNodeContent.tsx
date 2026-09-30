@@ -327,7 +327,7 @@ export function ResourceNodeContent({
                   <SidebarMenuButton
                     asChild
                     className={cn(
-                      'h-auto gap-1 py-1.5 transition-none bg-transparent group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
+                      'h-(--sidebar-row-height) gap-1 py-0 transition-none bg-transparent group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
                       !selectionMode && 'group-hover/sidebar-item:pr-[30px]!',
                       isDisabledOver && 'cursor-not-allowed'
                     )}
@@ -351,8 +351,8 @@ export function ResourceNodeContent({
                         (nodeUI?.loading ? (
                           <Button
                             size="icon"
-                            variant="outline"
-                            className="size-5 border-none bg-transparent shadow-none hover:bg-transparent"
+                            variant="ghost"
+                            className="size-5 cursor-pointer border-none bg-transparent shadow-none hover:bg-transparent dark:hover:bg-transparent"
                             onClick={event => {
                               event.preventDefault();
                               event.stopPropagation();
@@ -364,8 +364,8 @@ export function ResourceNodeContent({
                         ) : (
                           <Button
                             size="icon"
-                            variant="outline"
-                            className="size-5 border-none bg-transparent text-neutral-400 shadow-none hover:bg-transparent"
+                            variant="ghost"
+                            className="size-5 cursor-pointer border-none bg-transparent text-neutral-400 shadow-none hover:bg-transparent dark:hover:bg-transparent"
                             onClick={event => {
                               event.preventDefault();
                               event.stopPropagation();

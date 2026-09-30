@@ -4,7 +4,6 @@ import { useTranslation } from 'react-i18next';
 
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { useStickyFolder } from '@/page/sidebar/hooks/useStickyFolder';
-import { STICKY_FOLDER_HEIGHT } from '@/page/sidebar/stickyFolder';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 export default function StickyFolderRow({
@@ -28,10 +27,7 @@ export default function StickyFolderRow({
   return (
     <div
       data-sticky-folder-id={node.id}
-      className="pointer-events-auto absolute inset-x-0 top-0 z-20 box-border flex items-center gap-1 border-b border-sidebar-border bg-sidebar px-3 text-sm text-sidebar-foreground shadow-xs"
-      style={{
-        height: STICKY_FOLDER_HEIGHT,
-      }}
+      className="pointer-events-auto absolute inset-x-0 top-0 z-20 box-border flex h-(--sidebar-row-height) items-center gap-1 border-b border-sidebar-border bg-sidebar px-3 text-sm text-sidebar-foreground shadow-xs"
       onWheel={event => {
         if (event.ctrlKey || !scrollRef.current) return;
         const unit =
@@ -45,7 +41,7 @@ export default function StickyFolderRow({
     >
       <button
         type="button"
-        className="pointer-events-auto flex size-5 shrink-0 items-center justify-center rounded text-neutral-400 hover:bg-sidebar-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+        className="pointer-events-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded text-neutral-400 hover:bg-sidebar-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
         aria-label={t('sidebar.collapse_folder', { name })}
         aria-expanded={true}
         onClick={() => collapse(node.id)}

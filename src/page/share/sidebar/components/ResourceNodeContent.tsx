@@ -143,16 +143,16 @@ export function ResourceNodeContent({
                         (nodeUI?.loading ? (
                           <Button
                             size="icon"
-                            variant="outline"
-                            className="size-5 border-none bg-transparent shadow-none hover:bg-transparent"
+                            variant="ghost"
+                            className="size-5 cursor-pointer border-none bg-transparent shadow-none hover:bg-transparent dark:hover:bg-transparent"
                           >
                             <Spinner />
                           </Button>
                         ) : (
                           <Button
                             size="icon"
-                            variant="outline"
-                            className="size-5 border-none bg-transparent text-neutral-400 shadow-none hover:bg-transparent"
+                            variant="ghost"
+                            className="size-5 cursor-pointer border-none bg-transparent text-neutral-400 shadow-none hover:bg-transparent dark:hover:bg-transparent"
                             onClick={event => {
                               event.preventDefault();
                               event.stopPropagation();

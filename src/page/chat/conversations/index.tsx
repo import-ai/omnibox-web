@@ -172,7 +172,7 @@ export default function ChatConversationsPage({
     return (
       <>
         {dialogs}
-        <SidebarContent className="no-scrollbar gap-0 overflow-x-hidden p-2 pr-0">
+        <SidebarContent className="no-scrollbar gap-0 overflow-x-hidden p-2 md:pr-0">
           {loading && data.data.length === 0 ? (
             <Loading />
           ) : data.data.length > 0 ? (
@@ -207,7 +207,7 @@ export default function ChatConversationsPage({
                             <SidebarMenuButton
                               asChild
                               className={cn(
-                                'h-auto gap-1 py-1.5 transition-none bg-transparent group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
+                                'h-(--sidebar-row-height) gap-1 py-0 transition-none bg-transparent group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
                                 'group-hover/sidebar-item:pr-[30px]!'
                               )}
                             >
@@ -240,7 +240,7 @@ export default function ChatConversationsPage({
                                 <SidebarMenuAction
                                   asChild
                                   className={cn(
-                                    'right-2 size-4 cursor-pointer text-neutral-400! hover:bg-transparent hover:text-sidebar-foreground! focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
+                                    'right-2 size-4 cursor-pointer text-neutral-400! hover:bg-transparent hover:text-sidebar-foreground! focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-1/2 -translate-y-1/2',
                                     isTouch
                                       ? 'pointer-events-auto opacity-100'
                                       : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'

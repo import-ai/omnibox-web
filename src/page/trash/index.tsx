@@ -223,7 +223,7 @@ export function TrashPanel() {
                 <Popover open={open} onOpenChange={handleOpenChange}>
                   <PopoverTrigger asChild>
                     <SidebarMenuButton
-                      className={cn({
+                      className={cn('h-(--sidebar-row-height)', {
                         'bg-sidebar-accent text-sidebar-accent-foreground':
                           isOver,
                       })}

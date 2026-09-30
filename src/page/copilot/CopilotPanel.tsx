@@ -54,7 +54,7 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
     return (
       <div
         ref={commentsPanel.setPanelElement}
-        className="resource-comments-panel relative flex h-full min-h-0 flex-col bg-white text-foreground dark:bg-background"
+        className="resource-comments-panel relative flex h-full min-h-0 flex-col bg-background text-foreground"
       />
     );
   }
@@ -287,7 +287,7 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
         aria-label={t('copilot.title')}
         aria-modal={modal ? true : undefined}
         className={cn(
-          'flex min-h-0 flex-col overflow-hidden bg-white ease-linear transition-transform dark:bg-background',
+          'flex min-h-0 flex-col overflow-hidden bg-background ease-linear transition-transform',
           split
             ? 'fixed z-20 rounded-2xl'
             : cn(

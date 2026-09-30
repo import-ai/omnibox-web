@@ -78,7 +78,7 @@ export function FooterSidebar(props: IProps) {
                 {item.icon}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="w-[178px] rounded-xl border-none px-[22px] pb-4 pt-[22px] shadow-xs">
+            <TooltipContent className="block w-[178px] rounded-xl border-none px-[22px] pb-4 pt-[22px] shadow-xs">
               <WechatGroupQrCode />
               <p className="mt-2 p-0 text-center">{t('footer.join')}</p>
             </TooltipContent>

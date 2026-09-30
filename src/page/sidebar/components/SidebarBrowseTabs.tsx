@@ -97,13 +97,13 @@ export function SidebarBrowseTabs({
           />
           <TabsTrigger
             value="resources"
-            className="relative h-7.5 rounded-full py-0 pl-sidebar-tab-label-inset pr-0 text-sm font-medium leading-none text-sidebar-tab-foreground border-0 shadow-none transition-colors data-active:bg-transparent data-active:text-sidebar-tab-active-foreground group-data-[variant=default]/tabs-list:data-active:shadow-none dark:data-active:bg-transparent dark:data-active:text-sidebar-tab-active-foreground"
+            className="relative h-7.5 cursor-pointer data-active:cursor-default rounded-full py-0 pl-sidebar-tab-label-inset pr-0 text-sm font-medium leading-none text-sidebar-tab-foreground border-0 shadow-none transition-colors data-active:bg-transparent data-active:text-sidebar-tab-active-foreground group-data-[variant=default]/tabs-list:data-active:shadow-none dark:data-active:bg-transparent dark:data-active:text-sidebar-tab-active-foreground"
           >
             {t('search.resources')}
           </TabsTrigger>
           <TabsTrigger
             value="chats"
-            className="relative h-7.5 rounded-full py-0 pl-0 pr-sidebar-tab-label-inset text-sm font-medium leading-none text-sidebar-tab-foreground border-0 shadow-none transition-colors data-active:bg-transparent data-active:text-sidebar-tab-active-foreground group-data-[variant=default]/tabs-list:data-active:shadow-none dark:data-active:bg-transparent dark:data-active:text-sidebar-tab-active-foreground"
+            className="relative h-7.5 cursor-pointer data-active:cursor-default rounded-full py-0 pl-0 pr-sidebar-tab-label-inset text-sm font-medium leading-none text-sidebar-tab-foreground border-0 shadow-none transition-colors data-active:bg-transparent data-active:text-sidebar-tab-active-foreground group-data-[variant=default]/tabs-list:data-active:shadow-none dark:data-active:bg-transparent dark:data-active:text-sidebar-tab-active-foreground"
           >
             {t('search.chats')}
           </TabsTrigger>

@@ -77,7 +77,7 @@ export function Switcher(props: IProps) {
       >
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="h-auto w-full gap-1.5 px-1.5">
+            <SidebarMenuButton className="h-auto w-full cursor-pointer gap-1.5 px-1.5">
               <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground dark:bg-neutral-700 dark:text-white">
                 {current.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
