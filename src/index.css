@@ -221,6 +221,27 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  :where(
+    button:not(:disabled),
+    a[href],
+    summary,
+    select:not(:disabled),
+    input[type='checkbox']:not(:disabled),
+    input[type='radio']:not(:disabled),
+    input[type='range']:not(:disabled),
+    [role='button']:not([aria-disabled='true']),
+    [role='menuitem']:not([aria-disabled='true']),
+    [role='menuitemcheckbox']:not([aria-disabled='true']),
+    [role='menuitemradio']:not([aria-disabled='true']),
+    [role='option']:not([aria-disabled='true']),
+    [role='tab']:not([aria-disabled='true']),
+    [role='checkbox']:not([aria-disabled='true']),
+    [role='radio']:not([aria-disabled='true']),
+    [role='switch']:not([aria-disabled='true'])
+  ) {
+    cursor: pointer;
+  }
 }
 
 /* Force-hide scrollbars while editor block drag is active. */
