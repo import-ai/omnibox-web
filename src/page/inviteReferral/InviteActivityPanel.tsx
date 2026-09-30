@@ -128,7 +128,7 @@ export function InviteActivityPanel({
           {overview.newcomer_tasks ? (
             <NewcomerTasks overview={overview} onTask={onTask} />
           ) : null}
-          <div className="rounded-lg bg-white px-3 py-4 dark:bg-[#262626]">
+          <div className="rounded-lg px-3 py-4">
             <h2 className="text-sm font-medium">
               {t('inviteReferral.rules.inviteTitle')}
             </h2>
