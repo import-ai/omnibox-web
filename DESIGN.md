@@ -43,6 +43,10 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
   exposed through `@theme inline` in the same stylesheet as `background/foreground`, `card`,
   `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`,
   `input`, `ring`, `chart-1..5`, and the `sidebar-*` family. Use them.
+- Preferences exposes the official shadcn color themes independently of light,
+  dark, or system appearance. Neutral is the default; palette overrides live
+  in `src/styles/colorThemes.css` and use `data-color-theme` on the root element.
+  The colored palettes extend Neutral with the official accent tokens.
 - Raw palette colours (`text-gray-400`, `bg-neutral-200`) are drift. About 555
   occurrences exist; do not add more, and replace them when you touch the file.
   The worst offenders are `bg-gray-100`, `text-neutral-400/500`, and

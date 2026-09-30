@@ -10,6 +10,7 @@ import Layout from './index';
 
 const mockNavigate = jest.fn();
 const mockHttpGet = jest.fn();
+const mockToggleTheme = jest.fn();
 const mockClearChatContext = jest.fn();
 const mockClearCopilot = jest.fn();
 const mockClearSidebar = jest.fn();
@@ -47,7 +48,7 @@ jest.mock('@/hooks/useTheme', () => ({
   __esModule: true,
   default: () => ({
     app: { getTheme: () => ({ skin: 'light' }) },
-    onToggleTheme: jest.fn(),
+    onToggleTheme: mockToggleTheme,
   }),
 }));
 jest.mock('@/lib/request', () => ({
@@ -91,6 +92,7 @@ describe('Layout authentication storage changes', () => {
     localStorage.setItem('uid', 'user-a');
     mockHttpGet.mockReset();
     mockHttpGet.mockResolvedValue([]);
+    mockToggleTheme.mockClear();
     jest.mocked(clearConversationCache).mockClear();
     mockClearChatContext.mockClear();
     mockClearCopilot.mockClear();
@@ -104,6 +106,36 @@ describe('Layout authentication storage changes', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+  });
+
+  it('restores the account color theme together with appearance', async () => {
+    mockHttpGet.mockResolvedValue([
+      { name: 'theme', value: 'dark' },
+      { name: 'color_theme', value: 'blue' },
+    ]);
+    await act(async () => root.render(<Layout />));
+    expect(mockToggleTheme).toHaveBeenLastCalledWith('dark', 'blue');
+  });
+
+  it('syncs color themes from another tab and ignores malformed storage', async () => {
+    await act(async () => root.render(<Layout />));
+    mockToggleTheme.mockClear();
+    await act(async () => {
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'theme',
+          newValue: JSON.stringify({ skin: 'light', colorTheme: 'stone' }),
+        })
+      );
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'theme',
+          newValue: '{invalid',
+        })
+      );
+    });
+    expect(mockToggleTheme).toHaveBeenCalledTimes(1);
+    expect(mockToggleTheme).toHaveBeenCalledWith('light', 'stone');
   });
 
   it('clears conversation and workspace state when another tab changes uid', async () => {

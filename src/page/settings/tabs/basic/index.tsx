@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Separator } from '@/components/ui/Separator';
 
+import ColorTheme from './ColorTheme';
 import Language from './Language';
 import Theme from './Theme';
 
@@ -20,6 +21,7 @@ export default function CommonForm() {
       <Separator className="my-6" />
       <div className="flex flex-col gap-2">
         <Theme />
+        <ColorTheme />
         <Language />
       </div>
     </div>
