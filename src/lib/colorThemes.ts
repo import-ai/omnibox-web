@@ -3,37 +3,37 @@ export const colorThemes = [
   {
     name: 'neutral',
     labelKey: 'manage.color_theme_neutral',
-    swatch: 'oklch(0.205 0 0)',
+    swatch: 'oklch(0.556 0 0)',
   },
   {
     name: 'stone',
     labelKey: 'manage.color_theme_stone',
-    swatch: 'oklch(0.216 0.006 56.043)',
+    swatch: 'oklch(0.553 0.013 58.071)',
   },
   {
     name: 'zinc',
     labelKey: 'manage.color_theme_zinc',
-    swatch: 'oklch(0.21 0.006 285.885)',
+    swatch: 'oklch(0.552 0.016 285.938)',
   },
   {
     name: 'mauve',
     labelKey: 'manage.color_theme_mauve',
-    swatch: 'oklch(0.212 0.019 322.12)',
+    swatch: 'oklch(0.542 0.034 322.5)',
   },
   {
     name: 'olive',
     labelKey: 'manage.color_theme_olive',
-    swatch: 'oklch(0.228 0.013 107.4)',
+    swatch: 'oklch(0.58 0.031 107.3)',
   },
   {
     name: 'mist',
     labelKey: 'manage.color_theme_mist',
-    swatch: 'oklch(0.218 0.008 223.9)',
+    swatch: 'oklch(0.56 0.021 213.5)',
   },
   {
     name: 'taupe',
     labelKey: 'manage.color_theme_taupe',
-    swatch: 'oklch(0.214 0.009 43.1)',
+    swatch: 'oklch(0.547 0.021 43.1)',
   },
   {
     name: 'amber',
