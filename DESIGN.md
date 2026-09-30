@@ -57,6 +57,19 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
 - Color tokens contain complete OKLCH values. Use `var(--border)` in CSS and
   `border-border` in classes; opacity uses `border-border/50` or `color-mix()`.
   The canonical sidebar surface token is `--sidebar`.
+- Keep the three main shell zones visually related: the left sidebar uses
+  `bg-sidebar`, while the main window and the collapsible right sidebar use
+  `bg-background`. A panel that is meant to blend into its surrounding surface
+  should use that surface token directly; do not add an extra card wrapper or
+  invent a near-identical background colour.
+- Light and dark artwork may use different assets when the contrast requires
+  it. Preserve meaningful dark-mode outlines and adjust the illustration's
+  body colours together with the surrounding surface.
+- The appearance selector has two independent choices: light/system/dark
+  appearance and an official shadcn colour theme. Theme names come from
+  `colorThemes` and must use their localized `labelKey`; swatches must show the
+  theme's actual accent colour. Do not couple a colour theme to light/dark
+  mode.
 - Do not invent coloured dots or badge colours for status. Use the status
   icons in `src/assets/icons/*Status.tsx` (see [Status](#status)).
 
@@ -141,6 +154,18 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
   overlays keep a shadow. When a component adds a shadow you did not ask for,
   pass `shadow-none` rather than editing the primitive.
 
+## Interaction states
+
+- Every enabled clickable control uses a hand cursor, including buttons, links,
+  tabs, menu items, options, switches, and checkboxes. Disabled controls use an
+  unavailable cursor and never appear clickable.
+- A selected or otherwise non-actionable tab uses the normal cursor. Unselected
+  tabs use the hand cursor and a transparent background; the active tab owns the
+  selected surface.
+- Prefer semantic interactive elements or the shared primitives over clickable
+  `<div>` elements. If a custom interactive wrapper is unavoidable, add the
+  same cursor and disabled-state styles explicitly.
+
 ## Responsive
 
 - Author at `lg` (1024px) for desktop and `sm` (640px) for the mobile ramp.
@@ -210,10 +235,10 @@ Every authenticated page is a `SidebarProvider` wrapping a `Sidebar` and a
 
 ## Inset and panes
 
-Main content is a rounded white pane inset from the sidebar:
+Main content is a rounded pane inset from the sidebar:
 
 ```tsx
-<SidebarInset className="m-[8px] h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]" />
+<SidebarInset className="m-[8px] h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-background md:h-[calc(100svh-16px)]" />
 ```
 
 - On phones the inset drops the gutter: `m-0 rounded-none md:m-[8px]`. The
@@ -232,7 +257,7 @@ Main content is a rounded white pane inset from the sidebar:
 ## Pane headers
 
 ```tsx
-<header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-white dark:bg-background">
+<header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-background">
   <SidebarTriggerButton collapse />
   <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">…</div>
   <div className="ml-auto flex shrink-0 items-center gap-1 pr-3">…</div>
@@ -261,6 +286,10 @@ Main content is a rounded white pane inset from the sidebar:
   `src/index.css` (`sidebar-tabs`, `sidebar-tab`, `sidebar-tab-offset`,
   `sidebar-tab-label-inset`, `boxShadow.sidebar-tab`); the two percentages are
   complements, so change them together.
+- Sidebar rows for the namespace switcher, workspace controls, resource rows,
+  and conversation rows share `--sidebar-row-height` (`2.25rem`, equivalent to
+  Tailwind `h-9`). Use `h-(--sidebar-row-height)` through the sidebar root
+  instead of giving each row its own height.
 
 ## Resource tree
 
@@ -294,6 +323,9 @@ bg-transparent text-sm caret-blue-500 outline-none" />` replaces the label,
   identical items, so add items to the hook, never to one surface. A disabled
   item stays enabled and wraps in `DisabledMenuTooltip` rather than rendering a
   disabled entry.
+- The resource overflow menu is content-sized with `w-auto!` and a `min-w-36`
+  floor so long labels stay on one line while short menus do not become too
+  narrow. The matching context menu also keeps `min-w-36`.
 - The workspace tree and the share tree are near-duplicates with divergent
   internals: different indent strategy, different element carrying the active
   state, and share has no rename and no drag. Rules in this section apply to
