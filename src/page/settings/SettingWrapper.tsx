@@ -160,7 +160,7 @@ export default function SettingWrapper({
         </button>
 
         {/* Content area */}
-        <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-popover px-5 py-4 scrollbar-gutter-stable lg:p-4 lg:pl-10 lg:pt-10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
+        <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-background px-5 py-4 scrollbar-gutter-stable lg:p-4 lg:pl-10 lg:pt-10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
           {items.find(item => item.value === activeKey)?.children}
         </div>
       </div>

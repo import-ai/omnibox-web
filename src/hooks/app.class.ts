@@ -3,7 +3,7 @@ import { Theme } from '@/interface';
 import { resolveColorTheme } from '@/lib/colorThemes';
 
 const defaultTheme: Theme = {
-  colorTheme: 'neutral',
+  colorTheme: 'omnibox',
   skin: 'system',
   content: 'light',
   code: 'github',

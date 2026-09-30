@@ -1,14 +1,14 @@
-import { Check, ChevronDown, Palette } from 'lucide-react';
+import { Palette } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/Button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/Select';
 import useTheme from '@/hooks/useTheme';
 import { type ColorThemeName, colorThemes } from '@/lib/colorThemes';
 import { http } from '@/lib/request';
@@ -40,40 +40,35 @@ export default function ColorTheme() {
       <span className="min-w-0 text-sm font-medium leading-5 text-foreground">
         {t('manage.color_theme')}
       </span>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            disabled={saving}
-            className="h-8 w-[120px] justify-between rounded-md border-border bg-transparent px-2 font-normal shadow-none lg:w-[180px] lg:px-3"
-          >
-            <span className="flex min-w-0 items-center gap-2">
-              <span
-                className="size-3 shrink-0 rounded-full ring-1 ring-foreground/20"
-                style={{ backgroundColor: selected.swatch }}
-              />
-              <span className="truncate">{t(selected.labelKey)}</span>
-            </span>
-            <ChevronDown className="size-4 shrink-0" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="max-h-72 w-[120px] lg:w-[180px]">
+      <Select
+        value={selected.name}
+        onValueChange={value => void selectTheme(value as ColorThemeName)}
+        disabled={saving}
+      >
+        <SelectTrigger className="h-8 w-[120px] rounded-md px-2 lg:w-[180px] lg:px-3">
+          <span className="flex min-w-0 items-center gap-2">
+            <span
+              className="size-3 shrink-0 rounded-full ring-1 ring-foreground/20"
+              style={{ backgroundColor: selected.swatch }}
+            />
+            <SelectValue>{t(selected.labelKey)}</SelectValue>
+          </span>
+        </SelectTrigger>
+        <SelectContent
+          position="popper"
+          className="max-h-72 w-[120px] lg:w-[180px]"
+        >
           {colorThemes.map(item => (
-            <DropdownMenuItem
-              key={item.name}
-              className="flex gap-2 focus:bg-accent"
-              onSelect={() => void selectTheme(item.name)}
-            >
+            <SelectItem key={item.name} value={item.name} className="gap-2">
               <span
                 className="size-3 shrink-0 rounded-full ring-1 ring-foreground/20"
                 style={{ backgroundColor: item.swatch }}
               />
-              <span className="flex-1">{t(item.labelKey)}</span>
-              {item.name === selected.name && <Check className="size-4" />}
-            </DropdownMenuItem>
+              <span>{t(item.labelKey)}</span>
+            </SelectItem>
           ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

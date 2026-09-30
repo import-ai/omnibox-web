@@ -113,7 +113,7 @@ export function SettingsSidebar({
       : username || 'User';
 
   return (
-    <div className="relative h-auto w-full shrink-0 overflow-y-auto rounded-t-xl bg-muted dark:bg-sidebar lg:h-full lg:w-[247px] lg:overflow-visible lg:rounded-l-xl lg:rounded-tr-none">
+    <div className="relative h-auto w-full shrink-0 overflow-y-auto rounded-t-xl bg-sidebar lg:h-full lg:w-[247px] lg:overflow-visible lg:rounded-l-xl lg:rounded-tr-none">
       <div className="flex flex-col gap-1 p-2 lg:absolute lg:inset-2 lg:w-[231px] lg:justify-between lg:gap-5 lg:p-0">
         <div className="flex flex-col gap-1 lg:gap-5">
           {/* Account Section */}

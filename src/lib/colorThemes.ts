@@ -1,6 +1,11 @@
 // Names and swatches from the official shadcn theme registry.
 export const colorThemes = [
   {
+    name: 'omnibox',
+    labelKey: 'manage.color_theme_omnibox',
+    swatch: 'hsl(234 100% 66%)',
+  },
+  {
     name: 'neutral',
     labelKey: 'manage.color_theme_neutral',
     swatch: 'oklch(0.556 0 0)',
@@ -125,5 +130,5 @@ export const colorThemes = [
 export type ColorThemeName = (typeof colorThemes)[number]['name'];
 
 export function resolveColorTheme(value: unknown): ColorThemeName {
-  return colorThemes.find(theme => theme.name === value)?.name ?? 'neutral';
+  return colorThemes.find(theme => theme.name === value)?.name ?? 'omnibox';
 }

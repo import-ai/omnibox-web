@@ -56,9 +56,9 @@ it.each([
   '{bad json',
   '{"skin":"light"}',
   '{"skin":"light","colorTheme":"unknown"}',
-])('falls back to Neutral for old or invalid saved palettes: %s', cache => {
+])('falls back to OmniBox for old or invalid saved palettes: %s', cache => {
   localStorage.setItem('theme', cache);
   const app = new App();
-  expect(app.getTheme().colorTheme).toBe('neutral');
-  expect(document.documentElement.dataset.colorTheme).toBe('neutral');
+  expect(app.getTheme().colorTheme).toBe('omnibox');
+  expect(document.documentElement.dataset.colorTheme).toBe('omnibox');
 });
