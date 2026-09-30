@@ -112,7 +112,7 @@ export function InviteReferralContent() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white dark:bg-[#262626]">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
       {isMobile ? (
         <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-[#F2F2F7] px-3 dark:border-border">
           <div className="flex min-w-0 items-center">

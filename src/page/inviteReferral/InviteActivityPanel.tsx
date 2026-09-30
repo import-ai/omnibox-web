@@ -200,7 +200,7 @@ export function InviteActivityPanel({
       </div>
       <div
         aria-hidden
-        className="pointer-events-none absolute bottom-0 left-0 right-3 z-10 h-[200px] bg-[linear-gradient(180deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.75)_12%,#fff_28%)] dark:bg-[linear-gradient(180deg,rgba(38,38,38,0.2)_0%,rgba(38,38,38,0.75)_12%,#262626_28%)]"
+        className="pointer-events-none absolute right-3 bottom-0 left-0 z-10 h-[200px] bg-[linear-gradient(180deg,color-mix(in_oklab,var(--background)_20%,transparent)_0%,color-mix(in_oklab,var(--background)_75%,transparent)_12%,var(--background)_28%)]"
       />
       <div className="absolute inset-x-0 bottom-0 z-20 px-6 pb-5 pt-3">
         <div className="px-5">
