@@ -50,7 +50,7 @@ export default function ColorTheme() {
         onValueChange={value => void selectTheme(value as ColorThemeName)}
         disabled={saving}
       >
-        <SelectTrigger className="h-8 w-[120px] px-2 lg:w-[180px] lg:px-3">
+        <SelectTrigger className="w-[120px] px-2 lg:w-[180px] lg:px-3">
           <span className="flex min-w-0 items-center gap-2">
             <span
               className="size-3 shrink-0 rounded-full ring-1 ring-foreground/20"

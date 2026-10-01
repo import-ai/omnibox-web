@@ -43,10 +43,10 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
   exposed through `@theme inline` in the same stylesheet as `background/foreground`, `card`,
   `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`,
   `input`, `ring`, `chart-1..5`, and the `sidebar-*` family. Use them.
-- Preferences exposes the official shadcn color themes independently of light,
+- Preferences exposes the official shadcn base colors independently of light,
   dark, or system appearance. OmniBox is the default; palette overrides live
   in `src/styles/colorThemes.css` and use `data-color-theme` on the root element.
-  The colored palettes extend Neutral with the official accent tokens.
+  Only the seven official base colors and the OmniBox product palette are selectable; legacy accent themes resolve to Neutral.
 - Raw palette colours (`text-gray-500`, `bg-neutral-200`) are drift.
   Do not add more, and replace them when you touch the file.
   The worst offenders are `bg-gray-100`, `text-neutral-400/500`, and
@@ -70,9 +70,9 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
   it. Preserve meaningful dark-mode outlines and adjust the illustration's
   body colours together with the surrounding surface.
 - The appearance selector has two independent choices: light/system/dark
-  appearance and an official shadcn colour theme. Theme names come from
+  appearance and a base color. Theme names come from
   `colorThemes` and must use their localized `labelKey`; swatches must show the
-  theme's actual accent colour. Do not couple a colour theme to light/dark
+  palette's representative colour. Do not couple a colour theme to light/dark
   mode.
 - Do not invent coloured dots or badge colours for status. Use the status
   icons in `src/assets/icons/*Status.tsx` (see [Status](#status)).
@@ -97,8 +97,9 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
 - Use Tailwind's default scale. `text-sm` (14px) is the body size and the
   default for almost everything; `text-xs` is for hints, counters, and
   metadata; `text-base` and up are for page and section titles.
-- There is no custom font stack and no `@font-face`. `font-mono` is used only
-  for code, commands, and paths.
+- Preferences offers System default, Inter, Geist, and Roboto through `--app-font` /
+  `--font-sans`. Web fonts are bundled locally; Chinese glyphs use system fallbacks.
+  Body text and headings use the chosen font. `font-mono` stays reserved for code, commands, and paths.
 - Sizes and weights in practice:
 
 | Element             | Class                                                                            |
@@ -147,12 +148,12 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
 
 - Stack with `gap-*` on a flex container or `space-y-4` in forms; do not mix
   the two in one component.
-- The current foundation is shadcn Radix Nova with semantic theme colors, Tailwind CSS 4,
+- The current foundation is shadcn Radix Vega with semantic theme colors, Tailwind CSS 4,
   and React 19. `--radius` is `0.625rem`; small/medium/large radii use the
   official multiplier scale. Keep the primitive's default radius unless the
   product layout requires an explicit override.
-- Button and Input default to 32px; small buttons are 28px and large buttons
-  are 36px. Use `size="icon"` for icon actions and put `size-4` on the icon
+- Button and Input default to 36px; small buttons are 32px and large buttons
+  are 40px. Use `size="icon"` for icon actions and put `size-4` on the icon
   itself; size-specific primitive selectors otherwise choose the icon size.
 - Shadows are opt-out. Most surfaces are `shadow-none`; only elevated
   overlays keep a shadow. When a component adds a shadow you did not ask for,
@@ -685,7 +686,7 @@ Use these before composing an `AlertDialog`:
 - `src/components/popconfirm/index.tsx` is legacy: hardcoded `bg-red-500` and
   untranslated English defaults. Do not use it for new work.
 
-- Nova dialogs default to `sm:max-w-sm`. A wider feature dialog must override
+- Vega dialogs default to `sm:max-w-md`. A wider feature dialog must override
   the same breakpoint (for example `sm:max-w-2xl`). Use `showCloseButton={false}`
   when the feature renders its own close control. Dialog footers include their
   own padding and muted surface; avoid adding a second footer background.
@@ -722,7 +723,7 @@ Use these before composing an `AlertDialog`:
 - Pick one of a few values: `DropdownMenu` with an outline `Button` trigger, a
   `Check` on the selected item, and content matched to the trigger width. This
   is the settings pattern; see `src/page/settings/tabs/basic/Theme.tsx`.
-- `Select` is for in-form field choices, with a 32px default trigger matching `Input`. Add `w-full` for form rows;
+- `Select` is for in-form field choices, with a 36px default trigger matching `Input`. Add `w-full` for form rows;
   the primitive defaults to content width.
 - Command palette: `CommandDialog` with a localized title and an explicit
   `Command` child. Remote search uses `shouldFilter={false}`.
@@ -1016,11 +1017,11 @@ the title. Apply this structure to switches, selectors, and action buttons alike
 | Confirm a risky action   | `AlertDialog`                                                       | `window.confirm`   |
 | Page-level problem       | `Alert variant="destructive"`                                       | Bare red text      |
 
-- Single-value settings use `Select` with its default 32px height, `rounded-lg`,
+- Single-value settings use `Select` with its default 36px height, `rounded-md`,
   and visible `border-input`. Open options below the trigger with
   `position="popper"`; use `DropdownMenu` for actions, not value selection.
-- Settings actions use the default Button size (32px, 14px, weight 500,
-  `rounded-lg`). Binding uses `default`, changing an existing value uses
+- Settings actions use the default Button size (36px, 14px, weight 500,
+  `rounded-md`). Binding uses `default`, changing an existing value uses
   `outline`, and destructive actions use `destructive`. Do not override
   height, font size, radius, or state colors per action.
 - Icon-only actions use `Button` with a `Tooltip` and a

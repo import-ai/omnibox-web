@@ -584,7 +584,7 @@
       "back_to_login": "Back to Login"
     },
     "select_placeholder": "Please select",
-    "basic_description": "Choose the appearance, color theme, and display language.",
+    "basic_description": "Choose the appearance, base color, font, and language.",
     "content_description": "Manage how your content is processed and organized.",
     "about_description": "Learn about OmniBox and its open-source project."
   },
@@ -668,7 +668,7 @@
   },
   "manage": {
     "theme_description": "Choose light, dark, or follow your system appearance",
-    "color_theme_description": "Choose colors for the interface and controls",
+    "color_theme_description": "Choose the base palette for surfaces and controls",
     "language_description": "Choose the language for menus and messages",
     "search": "Enter and search",
     "disable": "Disable",
@@ -708,7 +708,7 @@
     "invitation": "Invitation",
     "invite_link": "Invite Link",
     "language_setting": "Language",
-    "color_theme": "Color theme",
+    "color_theme": "Base color",
     "color_theme_omnibox": "OmniBox",
     "color_theme_neutral": "Neutral",
     "color_theme_stone": "Stone",
@@ -747,7 +747,10 @@
     "nickname_placeholder": "What to call you in this namespace",
     "note_placeholder": "A note about this person",
     "nickname_length_error": "Nickname cannot exceed {{max}} characters",
-    "note_length_error": "Note cannot exceed {{max}} characters"
+    "note_length_error": "Note cannot exceed {{max}} characters",
+    "font": "Font",
+    "font_description": "Choose the interface font; Chinese uses system fallback fonts",
+    "font_system": "System default"
   },
   "unauth_page": {
     "title": "Access Denied",

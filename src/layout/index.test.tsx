@@ -111,10 +111,11 @@ describe('Layout authentication storage changes', () => {
   it('restores the account color theme together with appearance', async () => {
     mockHttpGet.mockResolvedValue([
       { name: 'theme', value: 'dark' },
-      { name: 'color_theme', value: 'blue' },
+      { name: 'color_theme', value: 'zinc' },
+      { name: 'font', value: 'geist' },
     ]);
     await act(async () => root.render(<Layout />));
-    expect(mockToggleTheme).toHaveBeenLastCalledWith('dark', 'blue');
+    expect(mockToggleTheme).toHaveBeenLastCalledWith('dark', 'zinc', 'geist');
   });
 
   it('syncs color themes from another tab and ignores malformed storage', async () => {
@@ -124,7 +125,11 @@ describe('Layout authentication storage changes', () => {
       window.dispatchEvent(
         new StorageEvent('storage', {
           key: 'theme',
-          newValue: JSON.stringify({ skin: 'light', colorTheme: 'stone' }),
+          newValue: JSON.stringify({
+            skin: 'light',
+            colorTheme: 'stone',
+            font: 'roboto',
+          }),
         })
       );
       window.dispatchEvent(
@@ -135,7 +140,7 @@ describe('Layout authentication storage changes', () => {
       );
     });
     expect(mockToggleTheme).toHaveBeenCalledTimes(1);
-    expect(mockToggleTheme).toHaveBeenCalledWith('light', 'stone');
+    expect(mockToggleTheme).toHaveBeenCalledWith('light', 'stone', 'roboto');
   });
 
   it('clears conversation and workspace state when another tab changes uid', async () => {

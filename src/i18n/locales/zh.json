@@ -585,7 +585,7 @@
       "back_to_login": "返回登录"
     },
     "select_placeholder": "请选择",
-    "basic_description": "选择界面外观、配色主题和显示语言。",
+    "basic_description": "选择界面外观、基础色、字体和显示语言。",
     "content_description": "管理内容处理和整理功能。",
     "about_description": "了解小黑和开源项目信息。"
   },
@@ -669,7 +669,7 @@
   },
   "manage": {
     "theme_description": "选择浅色、深色或跟随系统外观",
-    "color_theme_description": "调整界面和控件使用的配色",
+    "color_theme_description": "选择界面背景和控件使用的基础配色",
     "language_description": "选择菜单和提示使用的语言",
     "search": "输入并搜索",
     "disable": "禁用",
@@ -709,7 +709,7 @@
     "invitation": "邀请",
     "invite_link": "邀请链接",
     "language_setting": "语言",
-    "color_theme": "配色主题",
+    "color_theme": "基础色",
     "color_theme_omnibox": "小黑",
     "color_theme_neutral": "中性灰",
     "color_theme_stone": "暖灰色",
@@ -748,7 +748,10 @@
     "nickname_placeholder": "这个空间里怎么叫你",
     "note_placeholder": "关于这个人的说明",
     "nickname_length_error": "昵称不能超过 {{max}} 个字符",
-    "note_length_error": "备注不能超过 {{max}} 个字符"
+    "note_length_error": "备注不能超过 {{max}} 个字符",
+    "font": "字体",
+    "font_description": "选择界面字体，中文使用系统备用字体",
+    "font_system": "系统默认"
   },
   "unauth_page": {
     "title": "访问被拒绝",

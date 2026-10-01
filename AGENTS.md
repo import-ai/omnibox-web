@@ -176,11 +176,11 @@ status and time display, destructive confirmations, and copy rules.
 - `src/i18n/` - Internationalization resources (`en`, `zh`)
 - Existing shadcn modules live under `src/components/ui/`
 - When a reusable local UI module is missing, check https://ui.shadcn.com/llms.txt for available shadcn modules before building one from scratch.
-- shadcn config is in `components.json`: style `radix-nova`, `tsx: true`,
+- shadcn config is in `components.json`: style `radix-vega`, `tsx: true`,
   aliases `@/components`, `@/components/ui`, `@/lib`, `@/hooks`, icon library
   `lucide`.
 - Use wrappers or call-site overrides for product styling. Refresh primitives from the
-  official `radix-nova` registry during explicit shadcn upgrades, preserving the
+  official `radix-vega` registry during explicit shadcn upgrades, preserving the
   documented Sidebar resizing, Tooltip arrow, Form translation, and Toaster theme
   integrations. Keep PascalCase filenames and Lucide icons.
 - Theme tokens and product utilities live in `src/index.css` with Tailwind 4

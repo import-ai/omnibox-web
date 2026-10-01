@@ -1,6 +1,7 @@
 import { t } from 'i18next';
 
 import type { ColorThemeName } from '@/lib/colorThemes';
+import type { FontName } from '@/lib/fonts';
 
 export interface IBase {
   created_at?: string;
@@ -10,6 +11,7 @@ export interface IBase {
 
 export interface Theme {
   colorTheme?: ColorThemeName;
+  font?: FontName;
   skin: 'system' | 'dark' | 'light';
   content: 'light' | 'dark';
   code: 'github' | 'github-dark';

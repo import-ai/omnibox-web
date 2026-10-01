@@ -3,12 +3,16 @@
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @import './styles/colorThemes.css';
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/geist/wght.css';
+@import '@fontsource-variable/roboto/wght.css';
 
 @plugin '@tailwindcss/typography';
 @custom-variant dark (&:is(.dark *));
 @custom-variant standalone (@media (display-mode: standalone));
 
 @theme inline {
+  --font-sans: var(--app-font, ui-sans-serif, system-ui, sans-serif);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

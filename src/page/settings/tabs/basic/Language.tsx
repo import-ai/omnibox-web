@@ -42,7 +42,7 @@ export default function Language() {
       </span>
 
       <Select value={i18n.language} onValueChange={toggleLanguage}>
-        <SelectTrigger className="h-8 w-[120px] px-2 lg:w-[180px] lg:px-3">
+        <SelectTrigger className="w-[120px] px-2 lg:w-[180px] lg:px-3">
           <SelectValue placeholder={selectedLabel} />
         </SelectTrigger>
         <SelectContent position="popper" className="w-[120px] lg:w-[180px]">

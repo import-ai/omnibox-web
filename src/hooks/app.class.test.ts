@@ -24,18 +24,18 @@ beforeEach(() => {
 
 it('restores the palette and keeps it when appearance changes', () => {
   const app = new App();
-  app.toggleTheme('dark', 'blue');
+  app.toggleTheme('dark', 'zinc');
   const restored = new App();
   expect(restored.getTheme()).toMatchObject({
     skin: 'dark',
-    colorTheme: 'blue',
+    colorTheme: 'zinc',
   });
   restored.toggleTheme('light');
-  expect(document.documentElement.dataset.colorTheme).toBe('blue');
+  expect(document.documentElement.dataset.colorTheme).toBe('zinc');
   expect(document.documentElement.classList.contains('light')).toBe(true);
   expect(JSON.parse(localStorage.getItem('theme')!)).toMatchObject({
     skin: 'light',
-    colorTheme: 'blue',
+    colorTheme: 'zinc',
   });
 });
 
@@ -61,4 +61,33 @@ it.each([
   const app = new App();
   expect(app.getTheme().colorTheme).toBe('omnibox');
   expect(document.documentElement.dataset.colorTheme).toBe('omnibox');
+});
+
+it('restores fonts and keeps them when appearance or base color changes', () => {
+  const app = new App();
+  app.toggleTheme('dark', 'stone', 'inter');
+  const restored = new App();
+  restored.toggleTheme('light', 'zinc');
+  expect(restored.getTheme().font).toBe('inter');
+  expect(
+    document.documentElement.style.getPropertyValue('--app-font')
+  ).toContain('Inter Variable');
+  expect(document.documentElement.dataset.font).toBe('inter');
+  expect(JSON.parse(localStorage.getItem('theme')!).font).toBe('inter');
+});
+
+it('migrates removed accent themes to Neutral and rejects unknown fonts', () => {
+  localStorage.setItem(
+    'theme',
+    JSON.stringify({ skin: 'light', colorTheme: 'blue', font: 'unknown' })
+  );
+  const app = new App();
+  expect(app.getTheme()).toMatchObject({
+    colorTheme: 'neutral',
+    font: 'system',
+  });
+  expect(document.documentElement.dataset.colorTheme).toBe('neutral');
+  expect(document.documentElement.style.getPropertyValue('--app-font')).toBe(
+    'ui-sans-serif, system-ui, sans-serif'
+  );
 });

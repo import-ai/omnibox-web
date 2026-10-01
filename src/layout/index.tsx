@@ -11,6 +11,7 @@ import { Toaster } from '@/components/ui/Toaster';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme';
 import { resolveColorTheme } from '@/lib/colorThemes';
+import { resolveFont } from '@/lib/fonts';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';
 import { useChatStore } from '@/page/chat/chatStore';
@@ -62,7 +63,8 @@ export default function Layout() {
           const themeInStorage = JSON.parse(event.newValue || '{}');
           onToggleTheme(
             themeInStorage?.skin ?? 'system',
-            resolveColorTheme(themeInStorage?.colorTheme)
+            resolveColorTheme(themeInStorage?.colorTheme),
+            resolveFont(themeInStorage?.font)
           );
         } catch {
           // Ignore malformed preferences from other tabs.
@@ -213,13 +215,16 @@ export default function Layout() {
         const colorThemeValue = response.find(
           item => item.name === 'color_theme'
         );
+        const fontValue = response.find(item => item.name === 'font');
+        const font = resolveFont(fontValue?.value);
         const skin = themeValue?.value || app.getTheme().skin;
         const colorTheme = resolveColorTheme(colorThemeValue?.value);
         if (
           skin !== app.getTheme().skin ||
-          colorTheme !== app.getTheme().colorTheme
+          colorTheme !== app.getTheme().colorTheme ||
+          font !== app.getTheme().font
         ) {
-          onToggleTheme(skin, colorTheme);
+          onToggleTheme(skin, colorTheme, font);
         }
       });
 
