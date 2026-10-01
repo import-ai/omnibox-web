@@ -17,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/DropdownMenu';
-import { InputGroup, InputGroupInput } from '../ui/InputGroup';
+import { InputGroup, InputGroupInput } from '../ui/input-group';
 import { ScrollArea } from '../ui/ScrollArea';
 import { countries, type CountryData } from './consts';
 

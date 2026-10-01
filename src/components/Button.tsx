@@ -3,6 +3,7 @@ import * as React from 'react';
 
 import { Button as BaseButton } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { cn } from '@/lib/utils';
 
 type ButtonProps = React.ComponentProps<typeof BaseButton> & {
   loading?: boolean;
@@ -18,6 +19,7 @@ export function Button({
   return (
     <BaseButton
       {...props}
+      className={cn('cursor-pointer', props.className)}
       disabled={loading || disabled}
       onClickCapture={event => {
         if (loading || disabled) {

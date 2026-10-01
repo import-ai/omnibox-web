@@ -137,6 +137,13 @@ const fileNamingPlugin = {
 
 export default [
   {
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'src/components/ui/input-group.tsx',
+    ],
+  },
+  {
     files: ['**/*.{js,jsx,ts,tsx}'],
     ignores: ['dist/**', 'node_modules/**'],
     languageOptions: {
