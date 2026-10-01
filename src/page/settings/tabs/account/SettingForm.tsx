@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/AlertDialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/Dialog';
 import {
   Form,
   FormControl,
@@ -73,6 +80,7 @@ export default function SettingForm({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [submiting, onSubmiting] = useState(false);
+  const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -97,6 +105,10 @@ export default function SettingForm({
       .then(() => {
         app.fire('namespaces_refetch');
         toast(t('namespace.success'));
+        setNameDialogOpen(false);
+      })
+      .catch(() => {
+        // Keep the dialog open so the user can correct or retry the name.
       })
       .finally(() => {
         onSubmiting(false);
@@ -150,14 +162,7 @@ export default function SettingForm({
     }
   };
 
-  useEffect(() => {
-    if (!data.id) {
-      return;
-    }
-    form.setValue('name', data.name);
-  }, [data]);
-
-  if (loading) {
+  if (loading && !data.id) {
     return <Loading />;
   }
 
@@ -168,48 +173,84 @@ export default function SettingForm({
         <div>
           <h3 className="text-base font-semibold">{t('namespace.title')}</h3>
           <Separator className="my-2 border-t" />
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleSubmit)}
-              className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2 py-2"
+          <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p className="text-sm font-medium leading-5 text-foreground">
+                  {t('namespace.name')}
+                </p>
+                <p className="min-w-0 break-words text-sm font-normal leading-5 text-muted-foreground">
+                  {data.name}
+                </p>
+              </div>
+              <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
+                {t('namespace.name_description')}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                form.reset({ name: data.name });
+                setNameDialogOpen(true);
+              }}
             >
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-2 space-y-0">
-                    <div className="min-w-0">
-                      <FormLabel className="text-sm font-medium leading-5 text-foreground">
-                        {t('namespace.name')}
-                      </FormLabel>
-                      <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
-                        {t('namespace.name_description')}
-                      </p>
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <FormControl>
-                        <Input
-                          {...field}
-                          disabled={submiting}
-                          className="mt-0 w-full rounded-md border-border bg-transparent dark:bg-transparent"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                disabled={submiting}
-                loading={submiting}
-                variant="default"
-                className="shrink-0"
-              >
-                {t('namespace.submit')}
-              </Button>
-            </form>
-          </Form>
+              {t('setting.change')}
+            </Button>
+          </div>
+          <Dialog
+            open={nameDialogOpen}
+            onOpenChange={open => {
+              if (!submiting) setNameDialogOpen(open);
+            }}
+          >
+            <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
+              <DialogHeader>
+                <DialogTitle>{t('namespace.name')}</DialogTitle>
+                <DialogDescription>
+                  {t('namespace.name_description')}
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="sr-only">
+                          {t('namespace.name')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled={submiting} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={submiting}
+                      onClick={() => setNameDialogOpen(false)}
+                    >
+                      {t('cancel')}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={submiting}
+                      loading={submiting}
+                    >
+                      {t('namespace.submit')}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
       {config.commercial && (
