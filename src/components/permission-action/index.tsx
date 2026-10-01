@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -207,7 +207,11 @@ export default function PermissionAction(props: IProps) {
             <AlertDialogCancel onClick={handleRemoveCancel}>
               {t('permission.cancel')}
             </AlertDialogCancel>
-            <AlertDialogAction disabled={removeing} onClick={handleRemoveOk}>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={removeing}
+              onClick={handleRemoveOk}
+            >
               {removeing && <Spinner />}
               {t('permission.ok')}
             </AlertDialogAction>

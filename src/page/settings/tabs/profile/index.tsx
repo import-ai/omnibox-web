@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
@@ -240,8 +240,8 @@ function BindingRow({
                   {t('cancel')}
                 </AlertDialogCancel>
                 <AlertDialogAction
+                  variant="destructive"
                   disabled={unbinding}
-                  className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
                   onClick={onUnbind}
                 >
                   {unbinding && <Spinner className="mr-2" />}

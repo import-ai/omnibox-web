@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import {
   Collapsible,
   CollapsibleContent,
@@ -188,9 +188,9 @@ export default function GroupData(props: GroupProps) {
                   {t('cancel')}
                 </AlertDialogCancel>
                 <AlertDialogAction
+                  variant="destructive"
                   disabled={deleting}
                   onClick={handleDelete}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 >
                   {t('ok')}
                 </AlertDialogAction>

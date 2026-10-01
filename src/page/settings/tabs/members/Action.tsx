@@ -12,7 +12,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -269,7 +269,7 @@ export default function Action(props: ActionProps) {
             >
               {t('cancel')}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleRemoveOk}>
+            <AlertDialogAction variant="destructive" onClick={handleRemoveOk}>
               {t('ok')}
             </AlertDialogAction>
           </AlertDialogFooter>

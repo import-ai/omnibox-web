@@ -15,7 +15,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import useApplications from '@/hooks/useApplications';
@@ -350,8 +350,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                           <Button variant="outline">{t('cancel')}</Button>
                         </AlertDialogCancel>
                         <AlertDialogAction
+                          variant="destructive"
                           disabled={unbindingLoading}
-                          className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
                           onClick={() => handleUnbind(application)}
                         >
                           {unbindingLoading && <Spinner className="mr-2" />}
@@ -397,8 +397,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                             <Button variant="outline">{t('cancel')}</Button>
                           </AlertDialogCancel>
                           <AlertDialogAction
+                            variant="destructive"
                             disabled={cancelingLoading}
-                            className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
                             onClick={() => handleCancelBind(application)}
                           >
                             {cancelingLoading && <Spinner className="mr-2" />}

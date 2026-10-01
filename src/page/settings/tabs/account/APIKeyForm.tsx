@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/Checkbox';
 import {
   Dialog,
@@ -34,6 +34,7 @@ import {
 } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
+import { Spinner } from '@/components/ui/Spinner';
 import useAPIKeys from '@/hooks/useApiKeys';
 import useUser from '@/hooks/useUser';
 import {
@@ -759,18 +760,15 @@ export function APIKeyForm() {
                           </Button>
                         </AlertDialogCancel>
                         <AlertDialogAction
-                          asChild
+                          variant="destructive"
+                          disabled={deleting}
                           onClick={event => {
                             event.preventDefault();
                             void handleDeleteAPIKey(key);
                           }}
                         >
-                          <Button
-                            loading={deleting}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90 dark:bg-destructive dark:text-destructive-foreground dark:hover:bg-destructive/90"
-                          >
-                            {t('delete')}
-                          </Button>
+                          {deleting && <Spinner className="mr-2" />}
+                          {t('delete')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>

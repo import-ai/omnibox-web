@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 
 interface IProps {
   title: string;
@@ -45,7 +45,7 @@ export default function MainAlertDialog(props: IProps) {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onCancel}>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction className="bg-red-500 text-white" onClick={onOk}>
+          <AlertDialogAction variant="destructive" onClick={onOk}>
             {okText}
           </AlertDialogAction>
         </AlertDialogFooter>

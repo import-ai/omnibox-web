@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 
@@ -120,9 +120,9 @@ export default function ConfirmDeleteDialog(props: IProps) {
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
+            variant="destructive"
             disabled={loading}
             onClick={handleConfirm}
-            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
           >
             {loading && <Spinner className="mr-2" />}
             {t('delete')}

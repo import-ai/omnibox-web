@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
@@ -96,8 +96,8 @@ export function ConfirmInputDialog({
           {cancelButtonText}
         </AlertDialogCancel>
         <AlertDialogAction
+          variant="destructive"
           disabled={isConfirmDisabled}
-          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           onClick={handleConfirm}
         >
           {loading && <Spinner className="mr-2" />}

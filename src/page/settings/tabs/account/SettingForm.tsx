@@ -19,7 +19,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
@@ -331,8 +331,8 @@ export default function SettingForm({
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               disabled={leaving}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80"
               onClick={e => {
                 e.preventDefault();
                 handleLeave();

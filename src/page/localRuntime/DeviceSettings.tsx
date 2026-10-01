@@ -20,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
@@ -110,9 +110,9 @@ function DeviceCard({
                 <Button variant="outline">{t('cancel')}</Button>
               </AlertDialogCancel>
               <AlertDialogAction
+                variant="destructive"
                 disabled={removing}
                 onClick={() => void remove()}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {removing && <Spinner className="mr-2" />}
                 {t('local_runtime.remove.confirm.button')}

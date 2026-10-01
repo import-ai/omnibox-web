@@ -12,7 +12,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/Spinner';
 
 import {
@@ -159,8 +159,8 @@ function CancelDialog({
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
+            variant="destructive"
             disabled={canceling}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={event => {
               event.preventDefault();
               handleCancel();
