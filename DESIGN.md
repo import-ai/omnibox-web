@@ -298,6 +298,12 @@ Main content is a rounded pane inset from the sidebar:
   and conversation rows share `--sidebar-row-height` (`2.25rem`, equivalent to
   Tailwind `h-9`). Use `h-(--sidebar-row-height)` through the sidebar root
   instead of giving each row its own height.
+- The namespace switcher is part of the sidebar visual review surface. Check
+  its trigger, anchored menu edge, header, upgrade/settings/invite actions,
+  namespace rows, tier badges, separators, create-space action, and logout
+  action in both light and dark mode. The menu is `w-64` with a semantic
+  `border-border`; keep its content's left and right insets aligned across all
+  sections.
 
 ## Resource tree
 

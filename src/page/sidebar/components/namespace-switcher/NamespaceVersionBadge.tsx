@@ -3,15 +3,15 @@ import { useTranslation } from 'react-i18next';
 import { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';
 
-interface NamespaceTierBadgeProps {
+interface NamespaceVersionBadgeProps {
   namespace: Pick<Namespace, 'expired' | 'tier'>;
   className?: string;
 }
 
-export function NamespaceTierBadge({
+export function NamespaceVersionBadge({
   namespace,
   className,
-}: NamespaceTierBadgeProps) {
+}: NamespaceVersionBadgeProps) {
   const { t } = useTranslation();
   const { expired, tier } = namespace;
 
@@ -31,7 +31,7 @@ export function NamespaceTierBadge({
           ? 'bg-slate-500 text-white'
           : tier === 'premium'
             ? 'bg-blue-500 text-white'
-            : 'bg-muted text-muted-foreground',
+            : 'bg-gray-100 text-zinc-500',
         className
       )}
     >

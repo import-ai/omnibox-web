@@ -1,8 +1,7 @@
-import { DropdownMenuItem } from '@/components/ui/DropdownMenu';
+import { Button } from '@/components/Button';
 import { Namespace } from '@/interface';
-import { cn } from '@/lib/utils';
 
-import { NamespaceTierBadge } from './NamespaceTierBadge';
+import { NamespaceVersionBadge } from './NamespaceVersionBadge';
 
 interface NamespaceListProps {
   namespaces: Namespace[];
@@ -18,12 +17,12 @@ export function NamespaceList({
   return (
     <>
       {namespaces.map(item => (
-        <DropdownMenuItem
+        <Button
           key={item.id}
+          size="default"
+          variant="ghost"
           disabled={item.id === currentId}
-          className={cn('gap-2 rounded-lg px-2 py-2 active:bg-accent', {
-            'cursor-pointer': item.id !== currentId,
-          })}
+          className="h-10 w-full justify-start gap-2 rounded-lg px-2 py-2 active:bg-neutral-200 disabled:cursor-default dark:active:bg-neutral-600"
           onClick={() => onSelect(item)}
         >
           <div className="flex size-6 items-center justify-center rounded-md border text-[11px] font-normal">
@@ -32,12 +31,12 @@ export function NamespaceList({
           {item.tier ? (
             <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
               <span className="truncate">{item.name}</span>
-              <NamespaceTierBadge namespace={item} />
+              <NamespaceVersionBadge namespace={item} />
             </div>
           ) : (
             <span className="truncate">{item.name}</span>
           )}
-        </DropdownMenuItem>
+        </Button>
       ))}
     </>
   );
