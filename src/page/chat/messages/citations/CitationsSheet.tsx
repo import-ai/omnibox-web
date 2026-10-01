@@ -39,11 +39,7 @@ export function CitationsSheet(props: IProps) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-[#eaecf3] dark:border-[#4d4e4f] dark:bg-transparent hover:border-[#f7f8fa] dark:hover:border-[#626264] dark:hover:bg-[#404040]"
-        >
+        <Button variant="outline" size="sm">
           {citations.length} {t('chat.citations')}
           {plural} <ChevronRight />
         </Button>
@@ -55,7 +51,7 @@ export function CitationsSheet(props: IProps) {
             <SheetDescription></SheetDescription>
           </VisuallyHidden.Root>
         </SheetHeader>
-        <Separator className="dark:bg-gray-700" />
+        <Separator />
         <div className="overflow-y-auto h-[calc(100svh-53px)]">
           {citations.map((citation, i) => (
             <CitationCard

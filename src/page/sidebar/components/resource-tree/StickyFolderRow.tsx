@@ -41,7 +41,7 @@ export default function StickyFolderRow({
     >
       <button
         type="button"
-        className="pointer-events-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded text-neutral-400 hover:bg-sidebar-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+        className="pointer-events-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded text-muted-foreground hover:bg-sidebar-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
         aria-label={t('sidebar.collapse_folder', { name })}
         aria-expanded={true}
         onClick={() => collapse(node.id)}

@@ -115,10 +115,9 @@ export default function Tags(props: IProps) {
               onCreate={handleCreate}
               onChange={handleChange}
               createText={t('resource.attrs.create_tag')}
-              badgeClassName="text-sm! border-neutral-300! bg-transparent! text-neutral-500! font-normal! rounded-[8px]! px-[8px]! py-[2px]! shadow-none! dark:border-neutral-500! dark:text-neutral-400! hover:bg-transparent!"
+              badgeClassName="text-sm! border-border! bg-transparent! text-muted-foreground! font-normal! rounded-lg! px-2! py-0.5! shadow-none! hover:bg-transparent!"
               inputProps={{
-                className:
-                  'py-0 text-sm! text-neutral-500! dark:text-neutral-400!',
+                className: 'py-0 text-sm! text-muted-foreground!',
                 maxLength: MAX_TAG_LENGTH,
                 onBlur: leaveEdit,
                 onValueChange: onChange,

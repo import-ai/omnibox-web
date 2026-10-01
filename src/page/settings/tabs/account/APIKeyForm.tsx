@@ -506,12 +506,7 @@ export function APIKeyForm() {
           onOpenChange={handleCreateDialogOpenChange}
         >
           <DialogTrigger asChild>
-            <Button
-              variant="default"
-              className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-            >
-              {t('create')}
-            </Button>
+            <Button variant="default">{t('create')}</Button>
           </DialogTrigger>
           <DialogContent className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
             <DialogHeader>

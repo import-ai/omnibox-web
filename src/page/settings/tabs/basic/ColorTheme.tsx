@@ -37,15 +37,20 @@ export default function ColorTheme() {
   return (
     <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
       <Palette className="size-4 text-muted-foreground" />
-      <span className="min-w-0 text-sm font-medium leading-5 text-foreground">
-        {t('manage.color_theme')}
+      <span className="min-w-0">
+        <span className="block text-sm font-medium leading-5 text-foreground">
+          {t('manage.color_theme')}
+        </span>
+        <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
+          {t('manage.color_theme_description')}
+        </span>
       </span>
       <Select
         value={selected.name}
         onValueChange={value => void selectTheme(value as ColorThemeName)}
         disabled={saving}
       >
-        <SelectTrigger className="h-8 w-[120px] rounded-md px-2 lg:w-[180px] lg:px-3">
+        <SelectTrigger className="h-8 w-[120px] px-2 lg:w-[180px] lg:px-3">
           <span className="flex min-w-0 items-center gap-2">
             <span
               className="size-3 shrink-0 rounded-full ring-1 ring-foreground/20"

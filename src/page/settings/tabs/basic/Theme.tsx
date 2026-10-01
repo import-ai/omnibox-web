@@ -80,12 +80,17 @@ export default function Theme() {
   };
 
   return (
-    <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+    <div className="grid w-full grid-cols-[24px_minmax(0,1fr)] sm:grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
       <SunMoon className="size-4 text-muted-foreground" />
-      <span className="min-w-0 text-sm font-medium leading-5 text-foreground">
-        {t('manage.theme_setting')}
+      <span className="min-w-0">
+        <span className="block text-sm font-medium leading-5 text-foreground">
+          {t('manage.theme_setting')}
+        </span>
+        <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
+          {t('manage.theme_description')}
+        </span>
       </span>
-      <div className="flex w-[216px] gap-2 lg:w-[240px]">
+      <div className="col-start-2 flex w-[216px] max-w-full gap-2 sm:col-start-auto lg:w-[240px]">
         {data.map(item => {
           const selected = item.value === theme.skin;
           return (

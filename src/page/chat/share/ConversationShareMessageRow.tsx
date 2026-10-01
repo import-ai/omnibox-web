@@ -29,7 +29,7 @@ export function ConversationShareMessageRow({
       aria-label={t('chat.share.toggleGroup')}
       className={cn(
         '-mx-2 grid cursor-pointer grid-cols-[32px_minmax(0,1fr)] rounded-md py-2 pr-2 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-ring',
-        selected && 'bg-slate-50 dark:bg-neutral-800/70'
+        selected && 'bg-accent'
       )}
       onClick={toggle}
       onKeyDown={event => {

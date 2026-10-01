@@ -53,7 +53,7 @@ export function InvitationMain(props: InvitationProps) {
           onFinish={handleFinish}
         />
       </div>
-      <div className="rounded-md border dark:border-neutral-700">
+      <div className="rounded-md border border-border">
         <div className="max-w-[83vw] sm:w-full">
           <Table>
             <TableHeader>

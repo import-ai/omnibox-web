@@ -180,7 +180,7 @@ export default function Action(props: ActionProps) {
             isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
           )}
         >
-          <div className="flex items-center text-gray-600 dark:text-white">
+          <div className="flex items-center text-foreground">
             <span>{allRoles.find(item => item.value === value)?.label}</span>
             {!isDisabled && <ChevronDown className="ml-1 size-5" />}
           </div>
@@ -195,14 +195,14 @@ export default function Action(props: ActionProps) {
             <DropdownMenuItem
               key={item.value}
               onClick={() => handleChange(item.value)}
-              className="cursor-pointer justify-between hover:bg-gray-100"
+              className="cursor-pointer justify-between hover:bg-accent"
             >
               <div>
                 {item.description ? (
                   <div>
                     <div>{item.label}</div>
                     {item.description && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {item.description}
                       </div>
                     )}
@@ -219,7 +219,7 @@ export default function Action(props: ActionProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleRemove}
-            className="cursor-pointer justify-between hover:bg-gray-100 hover:text-red-500 focus:text-red-500 data-highlighted:text-red-500"
+            className="cursor-pointer justify-between hover:bg-accent hover:text-red-500 focus:text-red-500 data-highlighted:text-red-500"
           >
             {t('manage.remove')}
           </DropdownMenuItem>

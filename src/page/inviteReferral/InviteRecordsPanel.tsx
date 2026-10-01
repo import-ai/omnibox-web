@@ -98,13 +98,13 @@ export function InviteRecordsPanel({
       ) : (
         <>
           <div className="shrink-0 px-[25px]">
-            <div className="flex h-[84px] items-center overflow-hidden rounded-lg border border-[#f2f2f7] bg-white dark:border-border dark:bg-[#262626]">
+            <div className="flex h-[84px] items-center overflow-hidden rounded-lg border border-border bg-background">
               <div className="flex flex-1 items-center justify-center">
                 <span className="text-base font-medium leading-[30px]">
                   {t('inviteReferral.summary.invited')}
                 </span>
               </div>
-              <div className="h-11 w-px shrink-0 bg-[#f2f2f7] dark:bg-border" />
+              <div className="h-11 w-px shrink-0 bg-border" />
               <div className="flex flex-1 items-center justify-center">
                 <span className="text-base font-medium leading-[30px]">
                   {t('inviteReferral.summary.people', { count: invitedCount })}
@@ -125,7 +125,7 @@ export function InviteRecordsPanel({
                 return (
                   <div
                     key={item.id}
-                    className="invite-record-card min-w-0 rounded-[10px] border border-[#f2f2f7] bg-white p-4 dark:border-border dark:bg-[#262626]"
+                    className="invite-record-card min-w-0 rounded-[10px] border border-border bg-background p-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
                       <div className="invite-record-user flex min-w-0 max-w-full items-center gap-2">

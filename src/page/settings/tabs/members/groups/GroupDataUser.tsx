@@ -46,7 +46,7 @@ export default function GroupDataUser(props: GroupProps) {
                 nickname={profile?.nickname}
                 note={profile?.note}
               />
-              <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
+              <span className="ml-2 rounded bg-muted px-2 py-0.5 text-xs">
                 {t(`manage.${item.role}`)}
               </span>
             </div>

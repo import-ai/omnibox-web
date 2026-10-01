@@ -63,7 +63,7 @@ export function CitationHoverIcon(props: CitationIconProps) {
         >
           <Badge
             variant="secondary"
-            className="rounded-full px-1 hover:text-primary-foreground hover:bg-primary dark:hover:bg-primary dark:bg-[#303030]"
+            className="rounded-full px-1 hover:text-primary-foreground hover:bg-primary"
           >
             {index + 1}
           </Badge>

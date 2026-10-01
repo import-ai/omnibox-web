@@ -226,7 +226,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
           </h3>
           {showViewFilter && (
             <Select value={viewFilter} onValueChange={handleViewFilterChange}>
-              <SelectTrigger className="h-7 w-[100px] text-xs lg:h-[30px] lg:w-[120px] lg:text-sm">
+              <SelectTrigger className="w-[100px] lg:w-[120px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -236,11 +236,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
             </Select>
           )}
         </div>
-        <Button
-          variant="default"
-          onClick={handleRefresh}
-          className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-        >
+        <Button variant="default" onClick={handleRefresh}>
           {t('common.refresh')}
         </Button>
       </div>

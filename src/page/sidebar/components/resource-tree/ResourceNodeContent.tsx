@@ -322,7 +322,7 @@ export function ResourceNodeContent({
                   checked={isFullySelected}
                 />
               )}
-              <Tooltip delayDuration={0}>
+              <Tooltip delayDuration={0} disableHoverableContent>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
@@ -365,7 +365,7 @@ export function ResourceNodeContent({
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="size-5 cursor-pointer border-none bg-transparent text-neutral-400 shadow-none hover:bg-transparent dark:hover:bg-transparent"
+                            className="size-5 cursor-pointer border-none bg-transparent text-muted-foreground shadow-none hover:bg-transparent dark:hover:bg-transparent"
                             onClick={event => {
                               event.preventDefault();
                               event.stopPropagation();

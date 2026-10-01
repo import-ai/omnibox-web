@@ -37,7 +37,7 @@ function NewcomerTasks({
   );
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#f2f2f7] bg-white dark:border-border dark:bg-[#262626]">
+    <div className="overflow-hidden rounded-lg border border-border bg-background">
       <div className="flex items-center justify-between px-4 pt-[23px]">
         <h2 className="text-sm font-medium">
           {t('inviteReferral.tasks.title')}
@@ -53,9 +53,7 @@ function NewcomerTasks({
             !completed && task.task_code !== 'phone_bound' && !phoneBound;
           return (
             <div key={task.task_code}>
-              {index > 0 ? (
-                <div className="mx-4 h-px bg-[#f2f2f7] dark:bg-border" />
-              ) : null}
+              {index > 0 ? <div className="mx-4 h-px bg-border" /> : null}
               <div className="flex min-h-16 items-center px-4 py-3">
                 <div className="flex size-[22px] shrink-0 items-center justify-center rounded-full bg-blue-100">
                   {completed ? (
@@ -82,9 +80,9 @@ function NewcomerTasks({
                   className={cn(
                     'h-[25px] min-w-[67px] px-3 text-xs shadow-none',
                     completed &&
-                      'border-neutral-200 bg-white text-muted-foreground hover:bg-white disabled:border-neutral-200 disabled:bg-white disabled:text-muted-foreground dark:border-white dark:bg-transparent dark:text-foreground dark:hover:bg-transparent dark:disabled:border-white dark:disabled:bg-transparent dark:disabled:text-foreground',
+                      'border-border bg-background text-muted-foreground hover:bg-accent disabled:bg-background',
                     locked &&
-                      'border-neutral-200 bg-white text-muted-foreground hover:bg-white hover:text-muted-foreground dark:border-neutral-700! dark:bg-[#262626]! dark:text-muted-foreground dark:hover:bg-[#262626]! dark:hover:text-muted-foreground'
+                      'border-border bg-background text-muted-foreground hover:bg-background hover:text-muted-foreground'
                   )}
                   disabled={completed}
                   onClick={() => {
@@ -158,9 +156,9 @@ export function InviteActivityPanel({
                 <h2 className="text-sm font-medium">
                   {t('inviteReferral.rewards.title')}
                 </h2>
-                <div className="mt-4 overflow-hidden rounded-lg border border-[#f2f2f7] dark:border-border">
+                <div className="mt-4 overflow-hidden rounded-lg border border-border">
                   <div className="grid grid-cols-2">
-                    <div className="border-r border-[#f2f2f7] px-3 py-3 text-center text-sm font-medium dark:border-border">
+                    <div className="border-r border-border px-3 py-3 text-center text-sm font-medium dark:border-border">
                       {t('inviteReferral.rewards.task')}
                     </div>
                     <div className="px-3 py-3 text-center text-sm font-medium">
@@ -170,9 +168,9 @@ export function InviteActivityPanel({
                   {rewardRules.map(rule => (
                     <div
                       key={rule.task_code}
-                      className="grid grid-cols-2 border-t border-[#f2f2f7] dark:border-border"
+                      className="grid grid-cols-2 border-t border-border"
                     >
-                      <div className="flex items-center justify-center border-r border-[#f2f2f7] px-3 py-3 text-center text-xs dark:border-border">
+                      <div className="flex items-center justify-center border-r border-border px-3 py-3 text-center text-xs dark:border-border">
                         {rule.task_text}
                       </div>
                       <div className="flex items-center justify-center px-3 py-3 text-center text-xs font-normal text-blue-500">

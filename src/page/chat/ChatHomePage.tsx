@@ -245,7 +245,7 @@ export default function ChatHomePage() {
       <div
         className={
           pendingMessage
-            ? 'relative z-20 flex min-h-0 max-h-full min-w-0 shrink-0 justify-center bg-white px-4 dark:bg-background'
+            ? 'relative z-20 flex min-h-0 max-h-full min-w-0 shrink-0 justify-center bg-background px-4'
             : '@container flex min-h-full w-full max-w-3xl flex-col justify-start gap-8 py-0 sm:justify-center sm:gap-16 sm:py-8'
         }
         data-chat-composer={pendingMessage ? '' : undefined}

@@ -134,7 +134,7 @@ export default function ShareActions({
           className="cursor-pointer gap-2"
           onClick={() => handleAction('copy_link')}
         >
-          <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <Link className="size-4 text-muted-foreground" />
           <span>{t('actions.copy_link')}</span>
         </DropdownMenuItem>
         {resource.content && !isFolderResource && (
@@ -142,14 +142,14 @@ export default function ShareActions({
             className="cursor-pointer gap-2"
             onClick={() => handleAction('copy_content')}
           >
-            <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <Files className="size-4 text-muted-foreground" />
             <span>{t('actions.copy_content')}</span>
           </DropdownMenuItem>
         )}
         {!isFolderResource && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer gap-2">
-              <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <Download className="size-4 text-muted-foreground" />
               <span>{t('actions.download_as')}</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="w-48">
@@ -172,7 +172,7 @@ export default function ShareActions({
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
-                  <MoveHorizontal className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                  <MoveHorizontal className="size-4 text-muted-foreground" />
                   <span>{t('actions.wide')}</span>
                 </div>
                 <Switch checked={wide} />

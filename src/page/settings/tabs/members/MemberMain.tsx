@@ -56,25 +56,20 @@ export default function MemberMain(props: MemberProps) {
         />
         {canManageMembers && (
           <Invite onFinish={refetch}>
-            <Button
-              variant="default"
-              className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-            >
-              {t('manage.add')}
-            </Button>
+            <Button variant="default">{t('manage.add')}</Button>
           </Invite>
         )}
       </div>
       <div className="max-w-[83vw] overflow-auto sm:max-w-full">
         <div className="min-w-[320px]">
           <div className="sticky top-0 z-10 flex w-full border-b border-border bg-popover">
-            <div className="flex h-8 w-[120px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[210px] lg:text-base">
+            <div className="flex h-8 w-[120px] items-center whitespace-nowrap px-2 text-xs font-medium text-muted-foreground lg:text-sm lg:h-10 lg:w-[210px]">
               {t('manage.user')}
             </div>
-            <div className="flex h-8 w-[90px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[124px] lg:text-base">
+            <div className="flex h-8 w-[90px] items-center whitespace-nowrap px-2 text-xs font-medium text-muted-foreground lg:text-sm lg:h-10 lg:w-[124px]">
               {t('manage.permission')}
             </div>
-            <div className="flex h-8 w-[90px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[127px] lg:text-base">
+            <div className="flex h-8 w-[90px] items-center whitespace-nowrap px-2 text-xs font-medium text-muted-foreground lg:text-sm lg:h-10 lg:w-[127px]">
               {t('manage.role')}
             </div>
           </div>

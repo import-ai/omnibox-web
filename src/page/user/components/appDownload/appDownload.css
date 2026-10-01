@@ -86,11 +86,7 @@
   display: none;
 }
 .app-download-overlay {
-  background: #f2f2f7;
-}
-
-.dark .app-download-overlay {
-  background: #262626;
+  background: var(--background);
 }
 
 .dark .app-download-dialog-panel {

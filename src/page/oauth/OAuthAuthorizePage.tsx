@@ -124,7 +124,7 @@ export default function OAuthAuthorizePage() {
         ) : (
           account && (
             <div className="grid w-full gap-3">
-              <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-transparent p-4 text-left">
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-4 text-left">
                 <div
                   className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background"
                   aria-hidden

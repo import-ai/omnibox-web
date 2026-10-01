@@ -17,11 +17,7 @@ function ActionButton({
   onClick: () => void;
 }) {
   return (
-    <Button
-      variant="default"
-      onClick={onClick}
-      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-    >
+    <Button variant="default" onClick={onClick}>
       {children}
     </Button>
   );

@@ -80,9 +80,7 @@ export function ResourceConditionEditor({
       >
         {conditions.map((condition, index) => (
           <Fragment key={index}>
-            {index > 0 && (
-              <div className="my-5 h-px bg-slate-100 dark:bg-neutral-800" />
-            )}
+            {index > 0 && <div className="my-5 h-px bg-border" />}
             <ResourceConditionRow
               index={index}
               condition={condition}

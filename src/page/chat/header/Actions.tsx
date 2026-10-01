@@ -151,7 +151,7 @@ export default function Actions(props: IProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="size-[28px] text-[#585D65] dark:text-white"
+              className="size-[28px] text-muted-foreground"
               onClick={onChatHistory}
             >
               <History />
@@ -181,21 +181,21 @@ export default function Actions(props: IProps) {
               className="cursor-pointer gap-2"
               onClick={onChatCreate}
             >
-              <Plus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <Plus className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.new_chat')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={onChatHistory}
             >
-              <History className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <History className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.history')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={() => handleAction('rename')}
             >
-              <SquarePen className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <SquarePen className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.rename.option')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -203,7 +203,7 @@ export default function Actions(props: IProps) {
               className="group cursor-pointer gap-2 hover:text-red-500 focus:text-red-500 data-highlighted:text-red-500"
               onClick={() => handleAction('delete')}
             >
-              <Trash2 className="size-4 text-neutral-500 group-hover:text-red-500 group-focus:text-red-500 group-data-highlighted:text-red-500 dark:text-[#a1a1a1]" />
+              <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive group-focus:text-destructive group-data-highlighted:text-destructive" />
               <span>{t('chat.conversations.delete.option')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

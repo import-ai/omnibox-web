@@ -78,7 +78,7 @@ export function Switcher(props: IProps) {
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton className="h-auto w-full cursor-pointer gap-1.5 px-1.5">
-              <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground dark:bg-neutral-700 dark:text-white">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground dark:bg-accent dark:text-accent-foreground">
                 {current.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <span className="truncate">{current.name}</span>
@@ -93,7 +93,7 @@ export function Switcher(props: IProps) {
           >
             <DropdownMenuLabel>
               <div className="flex items-center gap-1 pt-1 text-left text-sm">
-                <Avatar className="flex size-8 items-center justify-center rounded-lg bg-primary font-normal text-primary-foreground dark:bg-neutral-700 dark:text-white">
+                <Avatar className="flex size-8 items-center justify-center rounded-lg bg-primary font-normal text-primary-foreground dark:bg-accent dark:text-accent-foreground">
                   {current.name?.charAt(0)?.toUpperCase() || '?'}
                 </Avatar>
                 <div className="grid min-w-0 flex-1 text-left text-sm leading-tight gap-0.5">

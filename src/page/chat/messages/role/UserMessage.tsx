@@ -229,7 +229,7 @@ export function UserMessage(props: IProps) {
         <div
           className={cn(
             'relative flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
-            'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
+            'ml-auto bg-secondary text-secondary-foreground dark:bg-card dark:text-card-foreground'
           )}
         >
           {[MessageStatus.PENDING, MessageStatus.STREAMING].includes(

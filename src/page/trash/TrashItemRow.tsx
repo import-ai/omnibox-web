@@ -30,7 +30,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-6 text-neutral-400 hover:bg-transparent hover:text-foreground"
+              className="size-6 text-muted-foreground hover:bg-transparent hover:text-foreground"
               onClick={() => onRestore(item.id)}
             >
               <Undo2 className="size-4" />
@@ -43,7 +43,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="size-6 text-neutral-400 hover:bg-transparent hover:text-destructive"
+              className="size-6 text-muted-foreground hover:bg-transparent hover:text-destructive"
               onClick={() => onDelete(item.id)}
             >
               <Delete className="size-4" />

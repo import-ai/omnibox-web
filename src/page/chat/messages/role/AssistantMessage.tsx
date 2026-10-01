@@ -118,7 +118,7 @@ export function AssistantMessage(props: IProps) {
       >
         <AccordionItem value={'reasoning_' + message.id}>
           <AccordionTrigger>{t('chat.tools.reasoning')}</AccordionTrigger>
-          <AccordionContent className="text-gray-500 dark:text-gray-400">
+          <AccordionContent className="text-muted-foreground">
             {replaceReasoningCiteMarkers(
               openAIMessage.reasoning_content?.trim() || ''
             )}
@@ -238,7 +238,7 @@ export function AssistantMessage(props: IProps) {
               {t('chat.tools.tool_calls')}
             </span>
           </AccordionTrigger>
-          <AccordionContent className="text-gray-500 dark:text-gray-400">
+          <AccordionContent className="text-muted-foreground">
             <ul>
               {toolCalls.map((toolCall, index) => (
                 <li

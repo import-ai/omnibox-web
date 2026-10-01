@@ -124,11 +124,11 @@ export function ResourceNodeContent({
             onAddToContext={onAddToContext}
           >
             <div className="group/sidebar-item my-px rounded-md hover:bg-sidebar-accent">
-              <Tooltip delayDuration={0}>
+              <Tooltip delayDuration={0} disableHoverableContent>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
-                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:pr-[30px]! group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:bg-[#E2E2E6] data-[active=true]:font-normal dark:data-[active=true]:bg-[#363637]"
+                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:pr-[30px]! group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:bg-sidebar-accent data-[active=true]:font-normal"
                     onClick={handleActive}
                     isActive={isActive}
                   >
@@ -152,7 +152,7 @@ export function ResourceNodeContent({
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="size-5 cursor-pointer border-none bg-transparent text-neutral-400 shadow-none hover:bg-transparent dark:hover:bg-transparent"
+                            className="size-5 cursor-pointer border-none bg-transparent text-muted-foreground shadow-none hover:bg-transparent dark:hover:bg-transparent"
                             onClick={event => {
                               event.preventDefault();
                               event.stopPropagation();

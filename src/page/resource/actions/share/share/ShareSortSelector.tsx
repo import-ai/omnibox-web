@@ -88,7 +88,7 @@ export function ShareSortSelector({
             <Button
               variant="outline"
               disabled={disabled}
-              className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-[#303030]"
+              className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-input/30"
             >
               <span className="truncate">
                 {selectedAutomaticOption

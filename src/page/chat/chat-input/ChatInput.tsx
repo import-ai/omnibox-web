@@ -108,7 +108,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
             className={cn(
               'relative z-10 block min-h-[60px] max-h-[200px] w-full resize-none overflow-y-hidden border-0 bg-transparent text-transparent outline-hidden',
               composerTextLayoutClassName,
-              'caret-foreground placeholder:text-[#9CA3AF] selection:bg-[#117bfa]/20 selection:text-transparent dark:placeholder:text-gray-400'
+              'caret-foreground placeholder:text-muted-foreground selection:bg-[#117bfa]/20 selection:text-transparent'
             )}
             onBlur={composer.rememberSelection}
             onChange={composer.handleTextChange}

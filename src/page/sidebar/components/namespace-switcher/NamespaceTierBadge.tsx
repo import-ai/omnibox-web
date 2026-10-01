@@ -31,7 +31,7 @@ export function NamespaceTierBadge({
           ? 'bg-slate-500 text-white'
           : tier === 'premium'
             ? 'bg-blue-500 text-white'
-            : 'bg-gray-100 text-zinc-500',
+            : 'bg-muted text-muted-foreground',
         className
       )}
     >

@@ -206,12 +206,12 @@ export function TrashPanel() {
       <SidebarGroup>
         <SidebarGroupLabel
           onClick={handleSystemToggle}
-          className="h-8 cursor-pointer select-none gap-1 pl-4 font-normal leading-8 text-neutral-400"
+          className="h-8 cursor-pointer select-none gap-1 pl-4 font-normal leading-8 text-muted-foreground"
         >
           {t('trash.system')}
           <ChevronRight
             className={cn(
-              'size-3! shrink-0 text-neutral-300 transition-transform dark:text-neutral-500',
+              'size-3! shrink-0 text-muted-foreground transition-transform',
               systemOpen && 'rotate-90'
             )}
           />
@@ -229,9 +229,9 @@ export function TrashPanel() {
                       })}
                     >
                       {total > 0 ? (
-                        <Trash2 className="size-4 text-neutral-400" />
+                        <Trash2 className="size-4 text-muted-foreground" />
                       ) : (
-                        <Trash className="size-4 text-neutral-400" />
+                        <Trash className="size-4 text-muted-foreground" />
                       )}
                       <span>{t('trash.title')}</span>
                     </SidebarMenuButton>

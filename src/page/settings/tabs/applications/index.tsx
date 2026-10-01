@@ -21,7 +21,6 @@ import { Spinner } from '@/components/ui/Spinner';
 import useApplications from '@/hooks/useApplications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/getDocsLink.ts';
-import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
@@ -76,8 +75,6 @@ interface ApplicationsFormProps {
     appId: string;
   };
 }
-
-const BUTTON_CLASS: string = 'text-xs font-medium w-[71px] h-[30px] shrink-0';
 
 export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const { showToast } = useSettingsToast();
@@ -236,14 +233,14 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   if (loading) {
     return (
       <div className="flex size-full items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     );
   }
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-2">
         <div className="flex flex-col gap-2.5">
           <h3 className="text-base font-semibold text-foreground">
             {t('applications.title')}
@@ -280,60 +277,60 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
             return (
               <div
                 key={application.app_id}
-                className="flex w-full items-center justify-between gap-2"
+                className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2 py-2"
               >
-                <div className="flex min-w-0 flex-1 items-center gap-1">
-                  <span className="truncate text-base font-semibold text-foreground">
-                    {appDisplayName}
-                  </span>
-                  {!hasError && application.app_id !== 'telegram_bot' && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => handleDocsClick(application.app_id)}
-                          className="transition-opacity hover:opacity-70"
-                        >
-                          <CircleHelp className="size-4 text-muted-foreground" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        {t('footer.docs')}
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="text-sm font-medium leading-5 text-foreground">
+                      {appDisplayName}
+                    </span>
+                    {!hasError && application.app_id !== 'telegram_bot' && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => handleDocsClick(application.app_id)}
+                            className="transition-opacity hover:opacity-70"
+                          >
+                            <CircleHelp className="size-4 text-muted-foreground" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          {t('footer.docs')}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                    {!hasError && (
+                      <span className="min-w-0 break-words text-sm font-normal leading-5 text-muted-foreground">
+                        {t(`applications.status.${state}`)}
+                      </span>
+                    )}
+                    {hasError && (
+                      <span className="min-w-0 break-words text-sm font-normal leading-5 text-muted-foreground">
+                        {t('applications.unsupported_app', {
+                          app_id: application.app_id,
+                        })}
+                      </span>
+                    )}
+                  </div>
                   {!hasError && (
-                    <span className="ml-2 shrink-0 whitespace-nowrap text-sm text-muted-foreground lg:text-base">
-                      {t(
-                        `applications.status.${isBound ? 'bound' : 'unbound'}`
-                      )}
-                    </span>
-                  )}
-                  {hasError && (
-                    <span className="ml-2 min-w-0 truncate text-sm text-muted-foreground lg:text-base">
-                      {t('applications.unsupported_app', {
-                        app_id: application.app_id,
+                    <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
+                      {t('applications.connection_description', {
+                        platform: t(
+                          `applications.scan_via.${application.app_id}`
+                        ),
                       })}
-                    </span>
+                    </p>
                   )}
                 </div>
 
                 {hasError ? (
-                  <Button
-                    disabled
-                    variant="outline"
-                    size="sm"
-                    className={BUTTON_CLASS}
-                  >
+                  <Button disabled variant="outline">
                     {t('applications.unbind.button')}
                   </Button>
                 ) : isBound ? (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn(BUTTON_CLASS, 'border-line')}
-                      >
+                      <Button variant="outline">
                         {t('applications.unbind.button')}
                       </Button>
                     </AlertDialogTrigger>
@@ -371,7 +368,6 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         bindingLoading && currentAppId === application.app_id
                       }
                       variant="default"
-                      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
                     >
                       {bindingLoading &&
                         currentAppId === application.app_id && (
@@ -381,11 +377,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={cn(BUTTON_CLASS, 'border-line')}
-                        >
+                        <Button variant="outline">
                           {t('applications.bind.cancel_button')}
                         </Button>
                       </AlertDialogTrigger>
@@ -423,7 +415,6 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                       bindingLoading && currentAppId === application.app_id
                     }
                     variant="default"
-                    className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
                   >
                     {bindingLoading && currentAppId === application.app_id && (
                       <Spinner className="mr-2" />

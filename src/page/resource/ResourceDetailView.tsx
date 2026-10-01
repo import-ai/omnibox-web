@@ -272,7 +272,7 @@ function ResourceDetailContent({
           restoring={restoring}
           wide={wide}
         />
-        <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
+        <Separator className="bg-border" />
         <div
           className={cn(
             'no-scrollbar flex min-w-0 flex-1 justify-center overflow-x-hidden overflow-y-auto p-4',

@@ -679,7 +679,7 @@ export default function Actions(props: IActionProps) {
             className="cursor-pointer gap-2"
             onClick={() => handleAction('copy_link')}
           >
-            <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <Link className="size-4 text-muted-foreground" />
             <span>{t('actions.copy_link')}</span>
           </DropdownMenuItem>
           {canUseFileLikeActions && (
@@ -687,7 +687,7 @@ export default function Actions(props: IActionProps) {
               className="cursor-pointer gap-2"
               onClick={() => handleAction('copy_content')}
             >
-              <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <Files className="size-4 text-muted-foreground" />
               <span>{t('actions.copy_content')}</span>
             </DropdownMenuItem>
           )}
@@ -699,7 +699,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'duplicate' ? (
                 <Spinner />
               ) : (
-                <Copy className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <Copy className="size-4 text-muted-foreground" />
               )}
               <span>{t('actions.duplicate')}</span>
             </DropdownMenuItem>
@@ -707,7 +707,7 @@ export default function Actions(props: IActionProps) {
           {!editPage && canUseFileLikeActions && (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="cursor-pointer gap-2">
-                <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <Download className="size-4 text-muted-foreground" />
                 <span>{t('actions.download_as')}</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-40 max-w-[calc(100vw-24px)] sm:w-48">
@@ -757,7 +757,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'retry' || tasksRetrying ? (
                 <Spinner />
               ) : (
-                <RefreshCw className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <RefreshCw className="size-4 text-muted-foreground" />
               )}
               <span>{t('actions.retry')}</span>
             </DropdownMenuItem>
@@ -770,7 +770,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'move_to' ? (
                 <Spinner />
               ) : (
-                <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <Move className="size-4 text-muted-foreground" />
               )}
               <span>{t('actions.move_to')}</span>
             </DropdownMenuItem>
@@ -786,7 +786,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'move_to_trash' ? (
                 <Spinner />
               ) : (
-                <Trash2 className="size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]" />
+                <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
               )}
               <span>{t('actions.move_to_trash')}</span>
             </DropdownMenuItem>
@@ -803,7 +803,7 @@ export default function Actions(props: IActionProps) {
                     {loading === 'wide' ? (
                       <Spinner />
                     ) : (
-                      <MoveHorizontal className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                      <MoveHorizontal className="size-4 text-muted-foreground" />
                     )}
                     <span>{t('actions.wide')}</span>
                   </div>
@@ -823,7 +823,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'upload_to_folder' ? (
                 <Spinner />
               ) : (
-                <ArrowUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <ArrowUp className="size-4 text-muted-foreground" />
               )}
               <span>
                 {loading === 'upload_to_folder'

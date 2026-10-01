@@ -79,7 +79,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
         title={dialogTitle}
         open={open}
         onOpenChange={handleDialogOpenChange}
-        contentClassName="max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl bg-white pt-5 dark:bg-neutral-900 sm:max-w-[650px] sm:px-7 sm:pb-7 sm:pt-5"
+        contentClassName="max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl bg-popover pt-5 sm:max-w-[650px] sm:px-7 sm:pb-7 sm:pt-5"
         titleClassName="text-lg font-semibold leading-7 text-foreground"
         closeClassName="size-6"
         closeWrapperClassName="right-5 top-5"
@@ -111,7 +111,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                             value={option.value}
                             id={`smart-folder-owner-${option.value}`}
                             disabled={option.disabled}
-                            className="h-4 w-4 border-border dark:disabled:bg-neutral-300 disabled:bg-neutral-400 text-blue-500 dark:border-none dark:bg-white"
+                            className="size-4"
                           />
                           <Label
                             htmlFor={`smart-folder-owner-${option.value}`}

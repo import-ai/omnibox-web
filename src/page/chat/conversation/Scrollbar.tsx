@@ -119,7 +119,7 @@ export default function Scrollbar(props: IProps) {
         aria-hidden={!showScrollToBottom}
         aria-label={scrollToBottomLabel}
         className={cn(
-          'absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-border bg-white text-foreground opacity-0 shadow-none transition-opacity duration-200 hover:bg-accent hover:text-accent-foreground dark:bg-background dark:hover:bg-accent',
+          'absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full border border-border bg-background text-foreground opacity-0 shadow-none transition-opacity duration-200 hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent',
           showScrollToBottom
             ? 'pointer-events-auto opacity-100'
             : 'pointer-events-none'

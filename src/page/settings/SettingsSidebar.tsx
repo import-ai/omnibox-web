@@ -130,13 +130,13 @@ export function SettingsSidebar({
                 className={cn(
                   'flex h-[30px] w-auto items-center gap-2 rounded px-2.5 py-1 text-left lg:w-full lg:gap-3',
                   value === 'profile'
-                    ? 'bg-background shadow-xs dark:bg-accent'
-                    : 'hover:bg-background/60 dark:hover:bg-accent'
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'hover:bg-sidebar-accent/60'
                 )}
               >
                 <div className="relative flex size-[21px] shrink-0 items-center justify-center">
-                  <div className="absolute inset-0 rounded bg-primary shadow-[0_1px_2px_0_#00000040] dark:bg-neutral-950" />
-                  <span className="relative text-xs font-normal text-primary-foreground dark:text-white">
+                  <div className="absolute inset-0 rounded bg-primary shadow-[0_1px_2px_0_#00000040] dark:bg-sidebar" />
+                  <span className="relative text-xs font-normal text-primary-foreground dark:text-sidebar-foreground">
                     {initial}
                   </span>
                 </div>
@@ -154,8 +154,8 @@ export function SettingsSidebar({
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
-                        ? 'bg-background shadow-xs dark:bg-accent'
-                        : 'hover:bg-background/60 dark:hover:bg-accent'
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                        : 'hover:bg-sidebar-accent/60'
                     )}
                   >
                     <span
@@ -199,8 +199,8 @@ export function SettingsSidebar({
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
-                        ? 'bg-background shadow-xs dark:bg-accent'
-                        : 'hover:bg-background/60 dark:hover:bg-accent'
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                        : 'hover:bg-sidebar-accent/60'
                     )}
                   >
                     <span
@@ -234,8 +234,8 @@ export function SettingsSidebar({
               className={cn(
                 'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                 value === aboutItem.value
-                  ? 'bg-background shadow-xs dark:bg-accent'
-                  : 'hover:bg-background/60 dark:hover:bg-accent'
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                  : 'hover:bg-sidebar-accent/60'
               )}
             >
               <span

@@ -15,8 +15,8 @@ export function ConversationShareSelectionControl({
       className={cn(
         'flex size-3.5 shrink-0 items-center justify-center rounded-[3px] border',
         state === 'unchecked'
-          ? 'border-neutral-300 bg-white dark:border-neutral-600 dark:bg-transparent'
-          : 'border-[#3D86F9] bg-[#3D86F9] text-white'
+          ? 'border-input bg-background'
+          : 'border-primary bg-primary text-primary-foreground'
       )}
     >
       {state === 'checked' && <Check className="size-2.5" strokeWidth={3} />}
@@ -71,26 +71,24 @@ export function ConversationShareActions({
             <span>{t('chat.share.selectAll')}</span>
           </button>
           <div aria-hidden="true" className="h-4 w-px shrink-0 bg-border" />
-          <span className="truncate text-[#292B33] dark:text-foreground">
+          <span className="truncate text-foreground">
             {t('chat.share.selectionSummary', { count: selectedCount })}
           </span>
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Button
-            className="h-[26px] w-auto gap-2.5 rounded-lg border-[#D6DBE3] bg-white px-3 py-[5px] text-[13px] leading-4 shadow-none hover:bg-neutral-50 dark:border-neutral-600 dark:bg-transparent dark:hover:bg-accent"
+            className="shadow-none"
             disabled={isSharing}
             onClick={onClose}
-            size="sm"
             type="button"
             variant="outline"
           >
             {t('cancel')}
           </Button>
           <Button
-            className="h-[26px] w-auto gap-2.5 rounded-lg bg-[#121316] px-3 py-[5px] text-[13px] leading-4 text-white shadow-none hover:bg-[#292B33] dark:bg-white dark:text-[#121316] dark:hover:bg-neutral-200"
+            className="shadow-none"
             disabled={disabled}
             onClick={() => onShare('copy_link')}
-            size="sm"
             type="button"
           >
             {sharingChannel === 'copy_link' && (

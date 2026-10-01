@@ -51,7 +51,7 @@ export function SystemNotificationDetailDialog({
           '[&>button]:right-6 [&>button]:top-5 [&>button]:inline-flex [&>button]:size-8 [&>button]:items-center [&>button]:justify-center'
         )}
       >
-        <DialogHeader className="border-b border-neutral-200 pb-4 pr-8 text-left dark:border-neutral-800">
+        <DialogHeader className="border-b border-border pb-4 pr-8 text-left">
           <div className="flex min-w-0 items-center gap-3">
             <DialogClose asChild>
               <button
@@ -62,7 +62,7 @@ export function SystemNotificationDetailDialog({
                 <ChevronLeft className="size-6" />
               </button>
             </DialogClose>
-            <DialogTitle className="truncate text-left text-2xl font-semibold leading-8 text-neutral-950 dark:text-neutral-50">
+            <DialogTitle className="truncate text-left text-2xl font-semibold leading-8 text-foreground">
               {detail?.title}
             </DialogTitle>
           </div>
@@ -80,7 +80,7 @@ export function SystemNotificationDetailDialog({
                     {visibleTags.map(tag => (
                       <span
                         key={tag}
-                        className="inline-flex max-w-40 items-center gap-1 truncate rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600 dark:border-neutral-700 dark:text-neutral-300"
+                        className="inline-flex max-w-40 items-center gap-1 truncate rounded-md border border-border px-2 py-1 text-xs text-muted-foreground"
                       >
                         <NotificationTagIcon item={detail} tag={tag} />
                         <span className="truncate">
@@ -97,7 +97,7 @@ export function SystemNotificationDetailDialog({
                             ? 'notification_modal.collapse_tags'
                             : 'notification_modal.expand_tags'
                         )}
-                        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-xs text-neutral-600 transition-colors hover:bg-neutral-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800"
+                        className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-background text-xs text-muted-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                         onClick={() => setIsTagsExpanded(value => !value)}
                       >
                         {isTagsExpanded ? (

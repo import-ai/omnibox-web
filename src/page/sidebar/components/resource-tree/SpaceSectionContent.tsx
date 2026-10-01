@@ -186,12 +186,12 @@ export function SpaceSectionContent({
             <div className="relative size-full">
               <SidebarGroupLabel
                 onClick={handleHeaderToggle}
-                className="mr-4 flex h-full cursor-pointer items-center gap-1 font-normal leading-none text-neutral-400"
+                className="mr-4 flex h-full cursor-pointer items-center gap-1 font-normal leading-none text-muted-foreground"
               >
                 {spaceType ? t(spaceType) : ''}
                 <ChevronRight
                   className={cn(
-                    'size-3! shrink-0 dark:text-neutral-500 text-neutral-300 transition-transform',
+                    'size-3! shrink-0 text-muted-foreground transition-transform',
                     isOpen && 'rotate-90'
                   )}
                 />
@@ -201,7 +201,7 @@ export function SpaceSectionContent({
                   {upload !== undefined ? (
                     <SidebarMenuAction
                       asChild
-                      className="pointer-events-none right-0 top-1/2 -translate-y-1/2 size-4 text-neutral-400 focus-visible:outline-hidden focus-visible:ring-transparent group-hover/sidebar-header:pointer-events-auto"
+                      className="pointer-events-none right-0 top-1/2 -translate-y-1/2 size-4 text-muted-foreground focus-visible:outline-hidden focus-visible:ring-transparent group-hover/sidebar-header:pointer-events-auto"
                     >
                       <span>
                         {upload ? (
@@ -226,7 +226,7 @@ export function SpaceSectionContent({
                     <SidebarMenuAction
                       asChild
                       className={cn(
-                        'right-0 top-1/2 -translate-y-1/2 size-4 text-neutral-400 hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-transparent',
+                        'right-0 top-1/2 -translate-y-1/2 size-4 text-muted-foreground hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-transparent',
                         isTouch
                           ? 'pointer-events-auto opacity-100'
                           : 'pointer-events-none opacity-0 group-hover/sidebar-header:pointer-events-auto group-hover/sidebar-header:opacity-100'

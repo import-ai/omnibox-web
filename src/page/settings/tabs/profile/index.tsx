@@ -96,16 +96,8 @@ const ActionButton = React.forwardRef<
   { children, onClick, disabled, variant = 'outline' },
   ref
 ) {
-  const className =
-    'w-[71px] h-[30px] rounded-[5px] dark:border-neutral-700  border-neutral-200 active:border-neutral-300 text-xs font-medium';
   return (
-    <Button
-      ref={ref}
-      onClick={onClick}
-      disabled={disabled}
-      variant={variant}
-      className={className}
-    >
+    <Button ref={ref} onClick={onClick} disabled={disabled} variant={variant}>
       {children}
     </Button>
   );
@@ -123,7 +115,7 @@ function SectionHeader({
   return (
     <div
       className={cn(
-        'w-full whitespace-nowrap border-b pb-2 font-semibold text-foreground lg:text-xl',
+        'w-full border-b pb-2 text-base font-semibold text-foreground',
         tooltip && 'flex items-center gap-1',
         className
       )}
@@ -153,30 +145,52 @@ function SectionHeader({
 }
 
 function InfoRow({
+  icon,
   label,
   value,
+  description,
   button,
 }: {
+  icon?: React.ReactNode;
   label: string;
-  value: string;
+  value?: string;
+  description: string;
   button: React.ReactNode;
 }) {
   return (
-    <div className="flex h-[30px] w-full items-center justify-between lg:w-[533px]">
-      <div className="flex h-[24px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-        <p className="shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-          {label}
-        </p>
-        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-          {value}
+    <div
+      className={cn(
+        'grid w-full items-center gap-2 px-2 py-2',
+        icon
+          ? 'grid-cols-[24px_minmax(0,1fr)_auto]'
+          : 'grid-cols-[minmax(0,1fr)_auto]'
+      )}
+    >
+      {icon && (
+        <span className="flex size-4 items-center justify-center text-muted-foreground [&>svg]:size-4">
+          {icon}
+        </span>
+      )}
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <p className="text-sm font-medium leading-5 text-foreground">
+            {label}
+          </p>
+          {value != null && (
+            <p className="min-w-0 break-words text-sm font-normal leading-5 text-muted-foreground">
+              {value}
+            </p>
+          )}
+        </div>
+        <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
+          {description}
         </p>
       </div>
-      <div className="ml-2 shrink-0">{button}</div>
+      <div className="shrink-0">{button}</div>
     </div>
   );
 }
 
-// Binding info row with icon - Figma: w-[532px], h-[30px] to align with button, icon 20x20, gap 9px
 function BindingRow({
   icon,
   label,
@@ -197,26 +211,15 @@ function BindingRow({
   const { t } = useTranslation();
 
   return (
-    <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
-      {/* Left side with icon, label, and value */}
-      <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-        {/* Icon and label group - gap: 9px */}
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="flex size-5 shrink-0 items-center justify-center">
-            {icon}
-          </span>
-          <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-            {label}
-          </p>
-        </div>
-        {/* Value */}
-        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-          {value}
-        </p>
-      </div>
-      {/* Button - Figma: both bound and unbound use outline style (white bg, border) */}
-      <div className="ml-2 shrink-0">
-        {isBound ? (
+    <InfoRow
+      icon={icon}
+      label={label}
+      value={value}
+      description={t('setting.option_descriptions.third_party', {
+        provider: label,
+      })}
+      button={
+        isBound ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <ActionButton>{t('setting.unbind_btn')}</ActionButton>
@@ -248,10 +251,14 @@ function BindingRow({
             </AlertDialogContent>
           </AlertDialog>
         ) : (
-          onBind || <ActionButton>{t('setting.bind_btn')}</ActionButton>
-        )}
-      </div>
-    </div>
+          onBind || (
+            <ActionButton variant="default">
+              {t('setting.bind_btn')}
+            </ActionButton>
+          )
+        )
+      }
+    />
   );
 }
 
@@ -422,7 +429,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   if (loading) {
     return (
       <div className="flex h-[200px] items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     );
   }
@@ -430,7 +437,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   const maskedPassword = '********';
 
   return (
-    <div className="flex w-full flex-col items-start gap-4 lg:w-[533px] lg:gap-5">
+    <div className="flex w-full flex-col items-start gap-2">
       {/* Account Section Header */}
       <SectionHeader title={t('setting.account')} />
 
@@ -438,6 +445,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       <InfoRow
         label={t('form.username')}
         value={user?.username || ''}
+        description={t('setting.option_descriptions.username')}
         button={
           <ActionButton onClick={() => setUsernameDialogOpen(true)}>
             {t('setting.change')}
@@ -449,6 +457,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       <InfoRow
         label={t('form.password')}
         value={maskedPassword}
+        description={t('setting.option_descriptions.password')}
         button={
           <ActionButton onClick={() => setPasswordDialogOpen(true)}>
             {t('setting.change')}
@@ -463,57 +472,31 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         tooltip={t('setting.binding_tooltip')}
       />
 
-      {/* Phone Row */}
-      <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
-        <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="flex size-5 shrink-0 items-center justify-center">
-              <SmartphoneIcon />
-            </span>
-            <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-              {t('setting.phone')}
-            </p>
-          </div>
-          <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-            {phoneBinding?.login_id
-              ? phoneBinding.login_id
-              : t('setting.not_bound')}
-          </p>
-        </div>
-        <div className="ml-2 shrink-0">
-          {phoneBinding?.id ? (
-            <ActionButton onClick={() => setPhoneDialogOpen(true)}>
-              {t('setting.change')}
-            </ActionButton>
-          ) : (
-            <ActionButton onClick={() => setPhoneDialogOpen(true)}>
-              {t('setting.bind_btn')}
-            </ActionButton>
-          )}
-        </div>
-      </div>
-
-      {/* Email Row */}
-      <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
-        <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-          <div className="flex shrink-0 items-center gap-2">
-            <span className="flex size-5 shrink-0 items-center justify-center text-blue-400">
-              <MailIcon />
-            </span>
-            <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-              {t('setting.email_binding')}
-            </p>
-          </div>
-          <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-            {user?.email || t('setting.not_bound')}
-          </p>
-        </div>
-        <div className="ml-2 shrink-0">
+      <InfoRow
+        icon={<SmartphoneIcon />}
+        label={t('setting.phone')}
+        value={phoneBinding?.login_id || t('setting.not_bound')}
+        description={t('setting.option_descriptions.phone')}
+        button={
+          <ActionButton
+            variant={phoneBinding?.id ? 'outline' : 'default'}
+            onClick={() => setPhoneDialogOpen(true)}
+          >
+            {t(phoneBinding?.id ? 'setting.change' : 'setting.bind_btn')}
+          </ActionButton>
+        }
+      />
+      <InfoRow
+        icon={<MailIcon className="text-blue-400" />}
+        label={t('setting.email_binding')}
+        value={user?.email || t('setting.not_bound')}
+        description={t('setting.option_descriptions.email')}
+        button={
           <ActionButton onClick={() => setEmailDialogOpen(true)}>
             {t('setting.change')}
           </ActionButton>
-        </div>
-      </div>
+        }
+      />
 
       {/* WeChat, Google & Apple Bindings */}
       {bindingData
@@ -753,19 +736,11 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         title={t('setting.danger_zone')}
         className="mt-4 text-destructive"
       />
-      <div className="flex h-[30px] w-full items-center justify-between lg:w-[533px]">
-        <div className="flex h-[24px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-          <p className="shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-            {t('setting.delete_account.section_title')}
-          </p>
-          <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-            {t('setting.delete_account.section_description')}
-          </p>
-        </div>
-        <div className="ml-2 shrink-0">
-          <DeleteAccountDialog username={user?.username || ''} />
-        </div>
-      </div>
+      <InfoRow
+        label={t('setting.delete_account.section_title')}
+        description={t('setting.delete_account.section_description')}
+        button={<DeleteAccountDialog username={user?.username || ''} />}
+      />
     </div>
   );
 }

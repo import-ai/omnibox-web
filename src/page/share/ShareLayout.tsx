@@ -93,11 +93,11 @@ export function ShareLayout(props: IProps) {
             showSidebarTrigger={showSidebar}
             showComments={showComments}
           />
-          <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
+          <Separator className="bg-border" />
         </>
       )}
       {isChatActive && showSidebar && (
-        <header className="sticky top-0 z-30 flex min-h-12 min-w-0 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
+        <header className="sticky top-0 z-30 flex min-h-12 min-w-0 shrink-0 items-center rounded-t-[16px] bg-background px-3">
           <SidebarTriggerButton collapse />
         </header>
       )}

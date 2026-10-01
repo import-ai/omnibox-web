@@ -32,7 +32,7 @@ export default function ChatContext(props: IProps) {
           slot={
             <Button
               size="icon"
-              className="size-4 rounded-full bg-black text-white dark:bg-white dark:text-black"
+              className="size-4 rounded-full bg-primary text-primary-foreground"
               onClick={() => {
                 onChange(
                   value.filter(
@@ -52,7 +52,6 @@ export default function ChatContext(props: IProps) {
           <Button
             size="sm"
             variant="outline"
-            className="dark:border-[#6e7276] dark:bg-transparent"
             onClick={() => {
               navigateToResource(
                 navigate,

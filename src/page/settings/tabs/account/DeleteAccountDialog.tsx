@@ -39,12 +39,7 @@ export function DeleteAccountDialog({
   };
 
   const defaultTrigger = (
-    <Button
-      variant="destructive"
-      className="h-[30px] w-[71px] rounded-[5px] px-[21px] py-[5px] text-xs font-medium"
-    >
-      {t('setting.delete_account.button')}
-    </Button>
+    <Button variant="destructive">{t('setting.delete_account.button')}</Button>
   );
 
   return (

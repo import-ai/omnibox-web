@@ -158,6 +158,8 @@ installation. Keep this contract stable:
 
 ### UI Design
 
+Follow the workspace [Chinese copywriting guidelines](../../docs/chinese-copywriting-guidelines.md) for Chinese UI copy, including i18n strings and rendered interpolation boundaries. For standalone checkouts, use the [upstream reference](https://github.com/sparanoid/chinese-copywriting-guidelines/blob/master/README.zh-Hans.md). Optional conventions remain optional; preserve code, identifiers, and user-authored content.
+
 Read [DESIGN.md](DESIGN.md) before building or changing UI, especially settings
 tabs. It defines page headers, setting rows, controls, item cards, tables,
 status and time display, destructive confirmations, and copy rules.

@@ -102,10 +102,8 @@ export function Toolbar({
           />
           <span
             className={cn(
-              'text-sm text-neutral-500',
-              selectedCount <= 0
-                ? 'text-neutral-500 dark:text-neutral-700'
-                : 'text-muted-foreground dark:text-neutral-50'
+              'text-sm',
+              selectedCount <= 0 ? 'text-muted-foreground' : 'text-foreground'
             )}
           >
             {t('batch.selected_count', { count: selectedCount })}
@@ -139,10 +137,7 @@ export function Toolbar({
               label={t('batch.delete_tooltip')}
               disabledLabel={disabledLabel || unsupportedLabel('delete')}
             />
-            <Separator
-              orientation="vertical"
-              className="h-4 bg-[#8F959E] dark:bg-neutral-400"
-            />
+            <Separator orientation="vertical" className="h-4 bg-border" />
             <ToolbarButton
               icon={X}
               onClick={onDeselectAll}

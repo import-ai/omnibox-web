@@ -32,12 +32,17 @@ export default function Language() {
   return (
     <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
       <Languages className="size-4 text-muted-foreground" />
-      <span className="min-w-0 text-sm font-medium leading-5 text-foreground">
-        {t('manage.language_setting')}
+      <span className="min-w-0">
+        <span className="block text-sm font-medium leading-5 text-foreground">
+          {t('manage.language_setting')}
+        </span>
+        <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
+          {t('manage.language_description')}
+        </span>
       </span>
 
       <Select value={i18n.language} onValueChange={toggleLanguage}>
-        <SelectTrigger className="h-8 w-[120px] rounded-md px-2 lg:w-[180px] lg:px-3">
+        <SelectTrigger className="h-8 w-[120px] px-2 lg:w-[180px] lg:px-3">
           <SelectValue placeholder={selectedLabel} />
         </SelectTrigger>
         <SelectContent position="popper" className="w-[120px] lg:w-[180px]">

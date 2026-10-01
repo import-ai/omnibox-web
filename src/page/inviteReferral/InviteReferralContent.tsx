@@ -114,7 +114,7 @@ export function InviteReferralContent() {
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
       {isMobile ? (
-        <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-[#F2F2F7] px-3 dark:border-border">
+        <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-border px-3 dark:border-border">
           <div className="flex min-w-0 items-center">
             {showRecords ? (
               <button
@@ -149,7 +149,7 @@ export function InviteReferralContent() {
           </div>
         </header>
       ) : (
-        <header className="flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-[#F2F2F7] dark:border-border">
+        <header className="flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-border dark:border-border">
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <SidebarTriggerButton collapse />
             <div className={sidebarOpen ? 'min-w-0 ml-2' : 'min-w-0'}>
@@ -190,9 +190,7 @@ export function InviteReferralContent() {
               onTask={runTask}
             />
           </div>
-          {!isMobile && (
-            <div className="mt-[11px] w-px shrink-0 bg-[#F2F2F7] dark:bg-border" />
-          )}
+          {!isMobile && <div className="mt-[11px] w-px shrink-0 bg-border" />}
           {!isMobile || showRecords ? (
             <InviteRecordsPanel
               standalone={isMobile}

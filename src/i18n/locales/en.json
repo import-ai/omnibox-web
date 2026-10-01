@@ -308,6 +308,7 @@
     "not_found": "Invitation not found"
   },
   "namespace": {
+    "name_description": "Choose the space name shown to members",
     "add": "Add Namespace",
     "title": "Namespace Name",
     "name": "Namespace Name",
@@ -509,6 +510,13 @@
     "bind_failed": "Failed to bind phone"
   },
   "setting": {
+    "option_descriptions": {
+      "username": "Choose the name shown to other space members",
+      "password": "Set or update the password used to sign in",
+      "phone": "Link a phone number to sign in to this account",
+      "email": "Use email to sign in, receive codes, and reset your password",
+      "third_party": "Sign in to OmniBox with your {{provider}} account"
+    },
     "basic": "General",
     "title": "Settings",
     "profile": "Profile",
@@ -581,6 +589,7 @@
     "about_description": "Learn about OmniBox and its open-source project."
   },
   "applications": {
+    "connection_description": "Connect the assistant in {{platform}} to this space",
     "title": "Application Management",
     "description": "Manage your application integrations and bindings",
     "empty": "No applications found",
@@ -654,9 +663,13 @@
     "editor_v2": {
       "title": "Editor 2.0",
       "description": "A modern editor with a brand-new experience"
-    }
+    },
+    "description": "Try upcoming features and choose which ones to enable."
   },
   "manage": {
+    "theme_description": "Choose light, dark, or follow your system appearance",
+    "color_theme_description": "Choose colors for the interface and controls",
+    "language_description": "Choose the language for menus and messages",
     "search": "Enter and search",
     "disable": "Disable",
     "remove": "Remove from Namespace",

@@ -23,7 +23,7 @@ export function SidebarNav(props: SidebarNavProps) {
           className={cn(
             'justify-start px-3 sm:px-4',
             item.value === value
-              ? 'bg-muted hover:bg-muted dark:bg-[#666666] dark:hover:bg-[#666666]'
+              ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent'
               : 'hover:bg-transparent hover:underline'
           )}
         >

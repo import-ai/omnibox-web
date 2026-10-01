@@ -44,19 +44,23 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
   `popover`, `primary`, `secondary`, `muted`, `accent`, `destructive`, `border`,
   `input`, `ring`, `chart-1..5`, and the `sidebar-*` family. Use them.
 - Preferences exposes the official shadcn color themes independently of light,
-  dark, or system appearance. Neutral is the default; palette overrides live
+  dark, or system appearance. OmniBox is the default; palette overrides live
   in `src/styles/colorThemes.css` and use `data-color-theme` on the root element.
   The colored palettes extend Neutral with the official accent tokens.
-- Raw palette colours (`text-gray-400`, `bg-neutral-200`) are drift. About 555
-  occurrences exist; do not add more, and replace them when you touch the file.
+- Raw palette colours (`text-gray-500`, `bg-neutral-200`) are drift.
+  Do not add more, and replace them when you touch the file.
   The worst offenders are `bg-gray-100`, `text-neutral-400/500`, and
   `border-neutral-200/700`.
 - Chat composer surfaces use `bg-chat-composer` (mapped to `--card`). Sidebar
   selection and hover use `bg-sidebar-accent`. Brand, resource-type, and status
   colors remain explicit where their meaning requires it.
-- Color tokens contain complete OKLCH values. Use `var(--border)` in CSS and
+- Color tokens contain complete CSS color values (OKLCH or HSL). Use `var(--border)` in CSS and
   `border-border` in classes; opacity uses `border-border/50` or `color-mix()`.
   The canonical sidebar surface token is `--sidebar`.
+- OmniBox light mode uses a white `--background`; dark mode uses its dark
+  background token. Never patch a page with `bg-white` to reproduce the light
+  surface. The settings sidebar uses `--sidebar` and its content uses
+  `--background`, exactly like the main shell.
 - Keep the three main shell zones visually related: the left sidebar uses
   `bg-sidebar`, while the main window and the collapsible right sidebar use
   `bg-background`. A panel that is meant to blend into its surrounding surface
@@ -143,7 +147,7 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
 
 - Stack with `gap-*` on a flex container or `space-y-4` in forms; do not mix
   the two in one component.
-- The current foundation is shadcn Radix Nova with Zinc colors, Tailwind CSS 4,
+- The current foundation is shadcn Radix Nova with semantic theme colors, Tailwind CSS 4,
   and React 19. `--radius` is `0.625rem`; small/medium/large radii use the
   official multiplier scale. Keep the primitive's default radius unless the
   product layout requires an explicit override.
@@ -167,6 +171,9 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
   same cursor and disabled-state styles explicitly.
 
 ## Responsive
+
+- In narrow settings dialogs, place appearance previews below their title and
+  description. Never squeeze explanatory text into a one-character column.
 
 - Author at `lg` (1024px) for desktop and `sm` (640px) for the mobile ramp.
   `xl:` is effectively unused; never use `2xl:`.
@@ -726,11 +733,13 @@ Use these before composing an `AlertDialog`:
 
 ## Tooltip
 
-- Import from `@/components/tooltip`; the `ui/` variant lacks the arrow and the
-  `overflow-hidden` removal that the design depends on.
+- Import from `@/components/tooltip`, the product entry point for the shared
+  tooltip primitive. Its content includes an arrow by default.
 - There is no root `TooltipProvider`. Wrap the region: once around a whole list,
   individually for a standalone icon button.
 - Use `delayDuration={0}` for dense toolbars and in-flow affordances.
+- Resource-name tooltips are noninteractive. Use `disableHoverableContent` so
+  moving to the adjacent action menu dismisses the name tooltip.
 - Tooltips are required on icon-only buttons.
 
 ---
@@ -745,7 +754,7 @@ Use these before composing an `AlertDialog`:
 - `Skeleton` only when the pending layout's shape is known and stable. It has
   two product uses (`InviteReferralContent.tsx`, `CopilotView.tsx`) and is the
   newest primitive; do not reach for it by default.
-- A bounded slot uses a bare `Spinner` (`size-6 text-gray-400` for panels,
+- A bounded slot uses a bare `Spinner` (`size-6 text-muted-foreground` for panels,
   `size-4` inline).
 - A single tree row uses inline text plus a `size-4` spinner:
   `flex items-center gap-2 py-1.5 text-sm text-muted-foreground`.
@@ -861,7 +870,11 @@ Use these before composing an `AlertDialog`:
   (`src/page/user/WrapperPage.tsx`). Do not hand-roll a centered container; the
   shell owns vertical centering, keyboard-inset handling, the logo, and the
   language and theme toggles.
-- The content column is `max-w-sm` with `gap-6`.
+- The content column is `max-w-sm` with `gap-6`. Follow shadcn `login-03`: use
+  `bg-muted` for the auth shell, the default `Card` surface, and `bg-card`
+  behind separator labels. Do not hard-code light or dark surface colors.
+- Compose phone fields with `InputGroup` and `InputGroupInput` so the country
+  prefix and input share one background, border, and outer radius.
 - `useCard` defaults to true. A page that is a spinner or a message passes
   `useCard={false}`; a page with fields keeps the card.
 - Language and theme toggles belong to the shell, top-right, never repeated in
@@ -869,7 +882,9 @@ Use these before composing an `AlertDialog`:
 - The logo links to the localized marketing home and sits in a primary tile.
 - The legal footer is passed as `extra={<MetaPage />}`, and the app-download QR
   is opt-in per page.
-- Headings are `text-2xl font-bold` with a `text-balance text-sm
+- Login and registration headings use `text-xl font-medium` with no extra
+  top padding inside the card. Other auth headings use `text-2xl font-bold`.
+  Pair headings with a `text-balance text-sm
 text-muted-foreground` description. A verification or status screen inside a
   card uses the top-aligned variant (`flex flex-col items-center gap-6 pt-10`)
   instead of the vertically centered one.
@@ -899,6 +914,8 @@ rules.
 
 Reference implementations:
 
+- `src/page/settings/tabs/content/AutoTag.tsx` - canonical setting option row
+  (AI smart tag extraction): optional icon, title, description, and right-side control
 - `src/page/localRuntime/DeviceSettings.tsx` - page header, item cards, rename
   popover, destructive confirmation, list table, detail dialog
 - `omnibox-desktop/renderer/RuntimeSettings.tsx` - setting rows with switches
@@ -932,18 +949,29 @@ separator:
 
 ### Setting rows
 
-A setting is one row: icon, label with an optional hint, and the control on the
-right.
+Every setting option across all settings tabs follows the AI smart tag
+extraction row in `src/page/settings/tabs/content/AutoTag.tsx`: an optional
+icon, a title with a description below it, and the corresponding control or
+action on the right. The title and description are required. The icon is
+optional, and options with a current value or status may display it next to
+the title. Apply this structure to switches, selectors, and action buttons alike.
 
 ```tsx
 <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
   <Icon className="size-4 text-muted-foreground" />
   <span className="min-w-0">
-    <span className="block text-sm font-medium leading-5 text-foreground">
-      {label}
+    <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+      <span className="text-sm font-medium leading-5 text-foreground">
+        {title}
+      </span>
+      {currentValue != null && (
+        <span className="min-w-0 break-words text-sm font-normal leading-5 text-muted-foreground">
+          {currentValue}
+        </span>
+      )}
     </span>
     <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
-      {hint}
+      {description}
     </span>
   </span>
   <Switch className="shrink-0" />
@@ -951,33 +979,50 @@ right.
 ```
 
 - Stack rows with `flex flex-col gap-2`.
-- The control is always on the right. Do not put a switch before its label.
-- The hint explains the consequence of the current value, not the label again.
-  When the value changes, update the hint. For example, a policy dropdown
-  shows the selected policy's effect.
+- With an icon, use the three-column grid above. Without an icon, omit the
+  icon element and use `grid-cols-[minmax(0,1fr)_auto]`; do not leave an empty
+  icon column.
+- Keep the title and description together in the middle text block. Use
+  `text-sm font-medium leading-5 text-foreground` for the title and
+  `text-xs leading-4 text-muted-foreground` for the description.
+- The control is always on the right and vertically centered against the text
+  block. Keep it `shrink-0`; do not put a switch before its title.
+- Use the optional value/status position for values such as a username or bound
+  email address, or states such as "Not bound". Keep it next to the title with
+  spacing, without punctuation separators or a mandatory badge. Use
+  `text-sm font-normal leading-5 text-muted-foreground` so the title remains
+  prominent. Let long values wrap on narrow screens without squeezing the action.
+- The description explains the setting's purpose or effect, rather than
+  repeating its title or current value. Keep the value/status separate from
+  the description and update it when the setting changes.
+- Do not duplicate a value already clearly shown by the control, such as the
+  selected option in a Select or the on/off state of a Switch.
+- Let descriptions wrap and rows grow with their content; do not truncate the
+  description or force a fixed row height. Keep the row on the settings content
+  background without adding a separate card or border around each option.
 - When a row depends on another setting that is off, add `opacity-50` to the
   row and disable its control. Keep the row visible so users can see what they
   would enable.
-- Read-only values use the row layout with the value as the hint and a chip on
-  the right, not a sentence.
+- Read-only options use the same value/status position and omit the right-side
+  action when none is available.
 
 ### Controls
 
-| Need                     | Use                                                                                | Do not use         |
-| ------------------------ | ---------------------------------------------------------------------------------- | ------------------ |
-| On/off                   | `Switch` from `@/components/ui/Switch`                                             | Native checkbox    |
-| Pick one of a few values | `DropdownMenu` with an outline `Button` trigger and a `Check` on the selected item | Native `<select>`  |
-| Text entry               | `Input` and `Label`                                                                | Unstyled `<input>` |
-| Confirm a risky action   | `AlertDialog`                                                                      | `window.confirm`   |
-| Page-level problem       | `Alert variant="destructive"`                                                      | Bare red text      |
+| Need                     | Use                                                                 | Do not use         |
+| ------------------------ | ------------------------------------------------------------------- | ------------------ |
+| On/off                   | `Switch` from `@/components/ui/Switch`                              | Native checkbox    |
+| Pick one of a few values | `Select` with `SelectTrigger` and `SelectContent position="popper"` | Native `<select>`  |
+| Text entry               | `Input` and `Label`                                                 | Unstyled `<input>` |
+| Confirm a risky action   | `AlertDialog`                                                       | `window.confirm`   |
+| Page-level problem       | `Alert variant="destructive"`                                       | Bare red text      |
 
-- Dropdown trigger:
-  `<Button variant="outline" className="h-8 w-[180px] justify-between rounded-md border-border bg-transparent px-3 font-normal shadow-none">`
-  with a trailing `ChevronDown className="size-4"`. The content uses the same
-  width; items use `flex justify-between` with `Check className="size-4"` on
-  the selected one. See `src/page/settings/tabs/basic/Theme.tsx`.
-- Small action buttons in a section header:
-  `className="h-[30px] w-[71px] shrink-0 text-xs font-medium"`.
+- Single-value settings use `Select` with its default 32px height, `rounded-lg`,
+  and visible `border-input`. Open options below the trigger with
+  `position="popper"`; use `DropdownMenu` for actions, not value selection.
+- Settings actions use the default Button size (32px, 14px, weight 500,
+  `rounded-lg`). Binding uses `default`, changing an existing value uses
+  `outline`, and destructive actions use `destructive`. Do not override
+  height, font size, radius, or state colors per action.
 - Icon-only actions use `Button` with a `Tooltip` and a
   `size-4 text-muted-foreground` icon. Use `hover:opacity-70`. Delete icons
   add `group-hover:text-destructive`.
@@ -1037,7 +1082,7 @@ Use a table for history or other lists with several comparable columns:
   `text-sm text-muted-foreground`. Say how to get the first item, not just
   that the list is empty.
 - Loading:
-  `<div className="flex size-full items-center justify-center"><Spinner className="size-6 text-gray-400" /></div>`.
+  `<div className="flex size-full items-center justify-center"><Spinner className="size-6 text-muted-foreground" /></div>`.
 
 ## Do not join values with separators
 
@@ -1104,9 +1149,7 @@ separators (for example "macOS · Online · Allow"). Show each value on its own:
   two sentences.
 - Error and connection messages say what happened and what the user can do.
   Do not show raw error text such as `HTTP 401` when a known cause exists.
-- Chinese copy uses full-width punctuation, including `：` after labels. The
-  one established exception is the ASCII `...` used for ellipsis in loading and
-  progress strings.
+- Chinese copy uses full-width punctuation, including `：` after labels. Use the Chinese ellipsis `……` in loading and progress strings.
 - Put strings in `src/i18n/locales/{en,zh}.json` under the feature's namespace
   with snake_case keys. Confirmations use
   `<namespace>.<action>.confirm.{title,description,button}` and statuses use

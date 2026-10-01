@@ -98,9 +98,9 @@ export function Header(props: IProps) {
             >
               <div className="flex cursor-pointer items-center gap-2">
                 {unreadCount > 0 ? (
-                  <BellDot className="size-4 text-neutral-400" />
+                  <BellDot className="size-4 text-muted-foreground" />
                 ) : (
-                  <Bell className="size-4 text-neutral-400" />
+                  <Bell className="size-4 text-muted-foreground" />
                 )}
                 <span>{t('notification')}</span>
                 {unreadCount > 0 ? (
@@ -123,7 +123,7 @@ export function Header(props: IProps) {
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sidebar-foreground! hover:text-sidebar-accent-foreground!"
           >
-            <Users className="size-4 text-neutral-400" />
+            <Users className="size-4 text-muted-foreground" />
             <span>{t('notification_modal.tags.community')}</span>
           </a>
         </SidebarMenuButton>

@@ -28,7 +28,7 @@ export default function ManagePeople({ canManageMembers }: ManagePeopleProps) {
   if (loading) {
     return (
       <div className="flex size-full items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     );
   }

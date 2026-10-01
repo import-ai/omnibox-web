@@ -32,7 +32,7 @@ export function NodeActionsContent({ actions }: NodeActionsContentProps) {
         <SidebarMenuAction
           asChild
           className={cn(
-            'right-2 size-4 cursor-pointer text-neutral-400! hover:bg-transparent hover:text-sidebar-foreground! focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
+            'right-2 size-4 cursor-pointer text-muted-foreground! hover:bg-transparent hover:text-sidebar-foreground! focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
             isTouch
               ? 'pointer-events-auto opacity-100'
               : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'
@@ -63,7 +63,7 @@ export function NodeActionsContent({ actions }: NodeActionsContentProps) {
                 <Icon
                   className={
                     item.destructive
-                      ? 'size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]'
+                      ? 'size-4 text-muted-foreground group-hover:text-destructive'
                       : menuIconClass
                   }
                 />

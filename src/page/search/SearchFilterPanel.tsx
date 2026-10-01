@@ -365,9 +365,7 @@ export function SearchFilterPanel({
       >
         {conditions.map((condition, index) => (
           <Fragment key={index}>
-            {index > 0 && (
-              <div className="h-px bg-slate-100 dark:bg-neutral-800" />
-            )}
+            {index > 0 && <div className="h-px bg-border" />}
             <SearchFilterConditionRow
               condition={condition}
               hideRemove={conditions.length <= 1}

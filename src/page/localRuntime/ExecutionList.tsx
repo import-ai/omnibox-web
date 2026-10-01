@@ -76,10 +76,7 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
         <h3 className="text-sm font-semibold text-foreground lg:text-base">
           {t('local_runtime.executions')}
         </h3>
-        <Button
-          onClick={refresh}
-          className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-        >
+        <Button onClick={refresh} className="shrink-0">
           {t('common.refresh')}
         </Button>
       </div>

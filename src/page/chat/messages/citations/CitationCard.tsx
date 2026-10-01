@@ -29,8 +29,7 @@ export function CitationCard(props: CitationCardProps) {
     : namespaceId
       ? `/${namespaceId}`
       : '..';
-  const className =
-    'block p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-600';
+  const className = 'block p-2 rounded-lg transition-colors hover:bg-accent';
   const content = (
     <>
       <h2 className="font-semibold text-foreground leading-tight">
@@ -45,7 +44,7 @@ export function CitationCard(props: CitationCardProps) {
         </span>
         <Badge
           variant="secondary"
-          className="rounded-full p-0 min-w-[20px] text-gray-400 justify-center items-center dark:bg-gray-600 dark:text-gray-100"
+          className="rounded-full p-0 min-w-[20px] text-secondary-foreground justify-center items-center"
         >
           {index + 1}
         </Badge>

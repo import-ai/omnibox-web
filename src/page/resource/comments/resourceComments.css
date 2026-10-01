@@ -2,7 +2,7 @@
 
 .resource-comments-panel .omnibox-comment-thread,
 .resource-comments-panel .omnibox-comment-thread[data-selected] {
-  @apply border-border bg-white text-foreground dark:bg-muted;
+  @apply border-border bg-card text-foreground;
 }
 
 .resource-comments-panel .omnibox-comment-composer,
@@ -11,7 +11,7 @@
 }
 
 .omnibox-comment-surface {
-  @apply border-border bg-white text-foreground shadow-lg dark:bg-background;
+  @apply border-border bg-popover text-foreground shadow-lg;
 }
 
 .resource-comments-draft-surface {
@@ -58,7 +58,7 @@
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem 0.5rem 0.5rem;
-  background: #fff;
+  background: var(--background);
 }
 
 .dark .omnibox-comment-surface .omnibox-comment-composer {
@@ -89,7 +89,7 @@
 .omnibox-comment-surface .omnibox-comment-composer textarea {
   margin: 0;
   resize: none;
-  background: #fff;
+  background: var(--background);
   box-shadow: none;
   @apply border-line px-3 py-2 text-sm text-foreground shadow-none outline-none ring-0 focus:border-line focus:shadow-none focus:outline-none focus:ring-0 focus-visible:shadow-none focus-visible:outline-none focus-visible:ring-0;
 }
@@ -200,7 +200,7 @@
 }
 
 .resource-comments-panel .omnibox-comment-thread {
-  @apply relative mx-3 mt-3 max-w-md rounded-md border border-border bg-white p-2 text-foreground shadow-none dark:bg-muted;
+  @apply relative mx-3 mt-3 max-w-md rounded-md border border-border bg-card p-2 text-foreground shadow-none;
   transform: translateY(var(--resource-comment-draft-offset, 0px));
   transition: box-shadow 180ms ease;
 }
@@ -212,7 +212,7 @@
 }
 
 .resource-comments-panel .omnibox-comment-thread[data-selected] {
-  @apply border-border bg-white shadow-lg dark:bg-muted;
+  @apply border-border bg-popover shadow-lg;
 }
 
 .tiptap.ProseMirror [data-resource-comment-thread] {
@@ -304,7 +304,7 @@
 }
 
 .resource-comments-panel .omnibox-comment-thread__toolbar button {
-  @apply flex h-5 w-5 items-center justify-center border-l border-border/60 text-muted-foreground/80 transition-colors first:border-l-0 enabled:hover:bg-black/[0.04] enabled:hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30 dark:enabled:hover:bg-white/10;
+  @apply flex h-5 w-5 items-center justify-center border-l border-border/60 text-muted-foreground/80 transition-colors first:border-l-0 enabled:hover:bg-accent enabled:hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30;
 }
 
 .resource-comments-panel .omnibox-comment-thread__toolbar svg {

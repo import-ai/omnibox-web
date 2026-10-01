@@ -25,7 +25,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   if (loading) {
     return (
       <div className="my-5 flex h-40 items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     );
   }

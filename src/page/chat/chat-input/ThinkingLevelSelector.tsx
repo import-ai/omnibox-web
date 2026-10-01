@@ -200,7 +200,7 @@ export default function ThinkingLevelSelector({
             </div>
             <div
               title={defaultSliderHint}
-              className="thinking-slider relative mx-1 h-6 rounded-full bg-black/10 dark:bg-white/10"
+              className="thinking-slider relative mx-1 h-6 rounded-full bg-accent"
             >
               <div
                 aria-hidden="true"

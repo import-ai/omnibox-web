@@ -31,12 +31,7 @@ export default function CreateGroup(props: IProps) {
   return (
     <Dialog open={data.open} onOpenChange={onToggle}>
       <DialogTrigger asChild>
-        <Button
-          variant="default"
-          className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-        >
-          {t('manage.add')}
-        </Button>
+        <Button variant="default">{t('manage.add')}</Button>
       </DialogTrigger>
       <DialogContent className="w-[90%] max-w-sm sm:max-w-sm p-4 sm:p-6">
         <DialogHeader>

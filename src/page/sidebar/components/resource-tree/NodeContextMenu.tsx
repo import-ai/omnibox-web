@@ -113,7 +113,7 @@ export default function NodeContextMenu({
                     <Icon
                       className={
                         item.destructive
-                          ? 'size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]'
+                          ? 'size-4 text-muted-foreground group-hover:text-destructive'
                           : menuIconClass
                       }
                     />

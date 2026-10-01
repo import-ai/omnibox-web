@@ -79,7 +79,7 @@ function getDecisionStyle(
       borderStyle = 'border-red-50 dark:border-red-900/50!';
     }
   } else {
-    borderStyle = 'dark:border-neutral-500!';
+    borderStyle = 'dark:border-border!';
   }
 
   let bgStyle: string;

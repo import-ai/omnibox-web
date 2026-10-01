@@ -65,18 +65,18 @@ export default function WrapperPage(props: WrapperPageProps) {
   return (
     <div
       ref={scrollerRef}
-      className="absolute inset-0 overflow-y-auto dark:bg-[#262626]"
+      className="absolute inset-0 overflow-y-auto bg-muted"
     >
-      <div className="flex min-h-full flex-col gap-4 p-4">
+      <div className="flex min-h-full flex-col gap-6 p-6 md:p-10">
         <div className="flex justify-end gap-2">
           <LanguageToggle />
           <ThemeToggle />
         </div>
-        <div className="flex flex-1 flex-col items-center justify-center gap-4">
+        <div className="flex flex-1 flex-col items-center justify-center gap-6">
           <div className="flex gap-2">
             <a
               href={i18n.language.includes('zh') ? '/zh-cn' : '/'}
-              className="flex items-center gap-2 font-medium text-black dark:text-white"
+              className="flex items-center gap-2 font-medium text-foreground"
             >
               <div className="flex items-center justify-center rounded-md bg-primary text-primary-foreground">
                 <img src={logoSvg} alt="OmniBox Logo" className="size-6" />
@@ -86,7 +86,7 @@ export default function WrapperPage(props: WrapperPageProps) {
           </div>
           {useCard ? (
             <div className={contentClassName}>
-              <Card className="dark:border-[#303030] dark:bg-[#171717]">
+              <Card>
                 <CardHeader className="hidden">
                   <CardTitle></CardTitle>
                   <CardDescription></CardDescription>

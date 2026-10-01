@@ -3,7 +3,7 @@
 /* Color themes override the Neutral base; appearance stays controlled by .dark. */
 
 :root[data-color-theme='omnibox'] {
-  --background: hsl(270 10% 96%);
+  --background: hsl(0 0% 100%);
   --foreground: hsl(0 0% 9%);
   --card: hsl(0 0% 100%);
   --card-foreground: hsl(240 10% 3.9%);
@@ -31,7 +31,7 @@
   --sidebar-foreground: hsl(0 0% 9%);
   --sidebar-primary: hsl(240 5.9% 10%);
   --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 8% 93%);
+  --sidebar-accent: hsl(0 0% 90%);
   --sidebar-accent-foreground: hsl(0 0% 9%);
   --sidebar-border: hsl(220 13% 91%);
   --sidebar-ring: hsl(217.2 91.2% 59.8%);
@@ -80,14 +80,6 @@
   --sidebar-tab-border: hsl(0 0% 17.25%);
   --sidebar-tab-foreground: hsl(0 0% 89.8%);
   --sidebar-tab-active-foreground: hsl(0 0% 98%);
-}
-
-:root.dark[data-color-theme='omnibox'] [data-slot='card'] {
-  box-shadow: none;
-}
-
-:root[data-color-theme='omnibox']:not(.dark) [data-slot='sidebar-inset'] {
-  background-color: hsl(0 0% 100%);
 }
 
 :root[data-color-theme='stone'] {

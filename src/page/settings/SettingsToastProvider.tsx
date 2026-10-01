@@ -52,7 +52,7 @@ export function SettingsToastProvider({
       {children}
       {toast.visible && (
         <div className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center">
-          <div className="pointer-events-auto flex items-center gap-2 rounded-lg border border-[#E5E5E5] bg-white px-4 py-3 shadow-lg dark:border-border dark:bg-neutral-900">
+          <div className="pointer-events-auto flex items-center gap-2 rounded-lg border border-border bg-popover px-4 py-3 text-popover-foreground shadow-lg">
             {toast.type === 'success' ? <CompletedStatus /> : <ErrorStatus />}
             <span className="text-sm font-medium text-foreground">
               {toast.message}

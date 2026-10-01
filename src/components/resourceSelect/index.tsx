@@ -143,7 +143,7 @@ export function ResourceSelect(props: IProps) {
       <DropdownMenuTrigger
         ref={triggerRef}
         className={cn(
-          'flex h-9 min-w-0 flex-1 items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-0 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[#303030]',
+          'flex h-9 min-w-0 flex-1 items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-0 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30',
           className
         )}
       >
