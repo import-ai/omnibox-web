@@ -28,8 +28,8 @@ export function ConversationShareMessageRow({
       aria-checked={selected}
       aria-label={t('chat.share.toggleGroup')}
       className={cn(
-        '-mx-2 grid cursor-pointer grid-cols-[32px_minmax(0,1fr)] rounded-md py-2 pr-2 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-ring',
-        selected && 'bg-accent'
+        '-mx-2 grid cursor-pointer grid-cols-[32px_minmax(0,1fr)] rounded-md py-2 pr-2 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-ring [&_[data-slot=accordion-item]]:border-b',
+        selected && 'bg-slate-50 dark:bg-neutral-800/70'
       )}
       onClick={toggle}
       onKeyDown={event => {

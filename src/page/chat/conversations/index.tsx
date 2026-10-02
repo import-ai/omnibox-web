@@ -363,7 +363,11 @@ export default function ChatConversationsPage({
                             </h3>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button size="icon" variant="ghost">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="hover:bg-accent dark:hover:bg-accent aria-expanded:bg-accent"
+                                >
                                   <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>

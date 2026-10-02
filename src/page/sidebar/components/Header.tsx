@@ -72,7 +72,7 @@ export function Header(props: IProps) {
                 variant="ghost"
                 onClick={onChatHistory}
                 className={cn(
-                  'absolute right-2 top-1/2 -translate-y-1/2 z-10 h-5 w-5 p-0 focus-visible:outline-hidden focus-visible:ring-transparent [&_svg]:size-4',
+                  'absolute right-2 top-2 z-10 h-5 w-5 p-0 text-muted-foreground hover:text-foreground focus-visible:outline-hidden focus-visible:ring-transparent [&_svg]:size-4',
                   isTouch
                     ? 'pointer-events-auto opacity-100'
                     : 'pointer-events-none opacity-0 group-hover/chat:pointer-events-auto group-hover/chat:opacity-100'

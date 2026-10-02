@@ -16,7 +16,7 @@ export function ConversationShareSelectionControl({
         'flex size-3.5 shrink-0 items-center justify-center rounded-[3px] border',
         state === 'unchecked'
           ? 'border-input bg-background'
-          : 'border-primary bg-primary text-primary-foreground'
+          : 'border-[#3D86F9] bg-[#3D86F9] text-white'
       )}
     >
       {state === 'checked' && <Check className="size-2.5" strokeWidth={3} />}
@@ -77,7 +77,7 @@ export function ConversationShareActions({
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Button
-            className="shadow-none"
+            className="h-[26px] gap-2.5 rounded-lg px-3 py-[5px] text-[13px] leading-4 shadow-none dark:bg-transparent"
             disabled={isSharing}
             onClick={onClose}
             type="button"
@@ -86,7 +86,7 @@ export function ConversationShareActions({
             {t('cancel')}
           </Button>
           <Button
-            className="shadow-none"
+            className="h-[26px] gap-2.5 rounded-lg px-3 py-[5px] text-[13px] leading-4 shadow-none"
             disabled={disabled}
             onClick={() => onShare('copy_link')}
             type="button"

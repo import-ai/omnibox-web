@@ -175,6 +175,10 @@ status and time display, destructive confirmations, and copy rules.
 - `src/styles/` - Global third-party style patches
 - `src/i18n/` - Internationalization resources (`en`, `zh`)
 - Existing shadcn modules live under `src/components/ui/`
+- Do not edit files under `src/components/ui/**` for product changes. Only an
+  explicitly requested shadcn CLI upgrade may replace those primitives; put
+  product-specific visual overrides in `src/components/omnibox/**` wrappers or
+  at the call site.
 - When a reusable local UI module is missing, check https://ui.shadcn.com/llms.txt for available shadcn modules before building one from scratch.
 - shadcn config is in `components.json`: style `radix-vega`, `tsx: true`,
   aliases `@/components`, `@/components/ui`, `@/lib`, `@/hooks`, icon library

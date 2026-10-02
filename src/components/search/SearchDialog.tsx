@@ -2,8 +2,9 @@ import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 import { Button } from '@/components/Button';
+import { CommandInput } from '@/components/omnibox/Command';
 import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
-import { Command, CommandDialog, CommandInput } from '@/components/ui/Command';
+import { Command, CommandDialog } from '@/components/ui/Command';
 import { cn } from '@/lib/utils';
 
 interface SearchDialogProps {
@@ -52,12 +53,12 @@ export function SearchDialog({
       <Command
         shouldFilter={false}
         className={cn(
-          'h-[min(640px,calc(100vh-32px))] rounded-2xl bg-popover px-5 py-4 text-foreground',
+          'h-[min(640px,calc(100vh-32px))] rounded-2xl bg-popover px-5 pt-0 pb-4 text-foreground',
           className
         )}
       >
         <div className="relative flex h-full flex-col gap-2">
-          <div className="flex shrink-0 items-center gap-3 border-b border-border pb-3">
+          <div className="flex h-11 shrink-0 items-center gap-3 border-b border-border">
             <div className="min-w-0 flex-1">
               <CommandInput
                 placeholder={placeholder}
