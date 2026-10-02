@@ -862,6 +862,8 @@
           "load_docs": "Read Docs",
           "get_agent_asset_resource_id": "Get Agent Asset",
           "create_agent_asset": "Create Agent Asset",
+          "search_history": "Search Conversation History",
+          "read_history": "Read History Message",
           "get_current_info": "Get Current Info",
           "wait": "Wait",
           "frontend_operations": "Frontend Operating",
