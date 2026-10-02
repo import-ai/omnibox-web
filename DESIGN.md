@@ -877,9 +877,12 @@ Use these before composing an `AlertDialog`:
   (`src/page/user/WrapperPage.tsx`). Do not hand-roll a centered container; the
   shell owns vertical centering, keyboard-inset handling, the logo, and the
   language and theme toggles.
-- The content column is `max-w-sm` with `gap-6`. Follow shadcn `login-03`: use
-  `bg-muted` for the auth shell, the default `Card` surface, and `bg-card`
-  behind separator labels. Do not hard-code light or dark surface colors.
+- Login and registration follow shadcn `login-02`: on large screens they use a
+  two-column shell with the form in a `max-w-xs` left column and a visual panel
+  on the right; the visual panel is hidden on narrow screens. Other auth pages
+  keep the centered card layout. Use `bg-background` for the form surface and
+  separator labels, and `bg-muted` for the auth visual panel. Do not hard-code
+  light or dark surface colors.
 - Compose phone fields with `InputGroup` and `InputGroupInput` so the country
   prefix and input share one background, border, and outer radius.
 - `useCard` defaults to true. A page that is a spinner or a message passes

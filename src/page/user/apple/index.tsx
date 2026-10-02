@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { AppleIcon } from '@/assets/icons/AppleIcon';
 import { Button } from '@/components/Button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
@@ -37,10 +38,11 @@ interface AppleAuthResponse {
 
 interface IProps {
   mode?: 'login' | 'register';
+  iconOnly?: boolean;
 }
 
 export default function Apple(props: IProps) {
-  const { mode = 'login' } = props;
+  const { mode = 'login', iconOnly = false } = props;
   const { t, i18n } = useTranslation();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect');
@@ -143,6 +145,12 @@ export default function Apple(props: IProps) {
     };
   }, [t, i18n.language, redirect]);
 
+  const label = t(
+    mode === 'register'
+      ? 'register.register_use_apple'
+      : 'login.login_use_apple'
+  );
+
   const loginWithApple = async () => {
     if (!sdkLoaded) {
       toast.error(t('login.apple_sdk_not_loaded'), {
@@ -185,19 +193,27 @@ export default function Apple(props: IProps) {
     }
   };
 
-  return (
+  const button = (
     <Button
       variant="outline"
       onClick={loginWithApple}
       disabled={!sdkLoaded || loading}
-      className="w-full [&_svg]:size-5"
+      aria-label={iconOnly ? label : undefined}
+      className={
+        iconOnly ? 'h-9 w-full px-0 [&_svg]:size-5' : 'w-full [&_svg]:size-5'
+      }
     >
       <AppleIcon />
-      {t(
-        mode === 'register'
-          ? 'register.register_use_apple'
-          : 'login.login_use_apple'
-      )}
+      <span className={iconOnly ? 'sr-only' : undefined}>{label}</span>
     </Button>
+  );
+
+  if (!iconOnly) return button;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   );
 }

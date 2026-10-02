@@ -16,6 +16,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/Form';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
@@ -395,13 +396,11 @@ export function LoginForm({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-xl font-medium">{t('login.title')}</h1>
+        <h1 className="text-2xl font-bold">{t('login.title')}</h1>
         <p className="text-balance text-sm text-muted-foreground">
           {t('login.description', { contactMethod: loginMethod })}
         </p>
       </div>
-
-      {children}
 
       {contactMethod === 'email' && authMethod === 'otp' && (
         <Form {...emailForm} key="email-form">
@@ -415,6 +414,7 @@ export function LoginForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.email')}</FormLabel>
                   <FormControl>
                     <EmailSuggestionInput
                       disabled={isLoading}
@@ -463,6 +463,7 @@ export function LoginForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.email_or_username')}</FormLabel>
                   <FormControl>
                     <EmailSuggestionInput
                       disabled={isLoading}
@@ -490,6 +491,7 @@ export function LoginForm({
               name="password"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.password')}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
@@ -531,6 +533,7 @@ export function LoginForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.phone')}</FormLabel>
                   <FormControl>
                     <PhoneNumberInput
                       value={field.value as any}
@@ -570,6 +573,7 @@ export function LoginForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.phone')}</FormLabel>
                   <FormControl>
                     <PhoneNumberInput
                       value={field.value as any}
@@ -588,6 +592,7 @@ export function LoginForm({
               name="password"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.password')}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
@@ -616,6 +621,8 @@ export function LoginForm({
           </form>
         </Form>
       )}
+
+      {children}
     </div>
   );
 }

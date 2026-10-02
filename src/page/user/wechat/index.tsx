@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { WeChatIcon } from '@/assets/icons/Wechat';
 import { Button } from '@/components/Button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { http } from '@/lib/request';
 
 import { prepareH5WechatOAuthState } from './h5WechatAuthSync';
@@ -16,10 +17,11 @@ import {
 interface IProps {
   onScan: (value: boolean) => void;
   mode?: 'login' | 'register';
+  iconOnly?: boolean;
 }
 
 export default function WeChat(props: IProps) {
-  const { onScan, mode = 'login' } = props;
+  const { onScan, mode = 'login', iconOnly = false } = props;
   const { t } = useTranslation();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
@@ -83,28 +85,29 @@ export default function WeChat(props: IProps) {
       : 'login.login_use_wechat'
   );
 
-  if (useMiniProgramLaunch) {
-    return (
-      <Button
-        variant="outline"
-        onClick={handleMiniProgramLaunch}
-        disabled={launching}
-        className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
-      >
-        <WeChatIcon />
-        {label}
-      </Button>
-    );
-  }
-
-  return (
+  const button = (
     <Button
       variant="outline"
-      onClick={loginWithWeChat}
-      className="w-full [&_svg]:size-5 dark:[&_svg]:fill-white"
+      onClick={useMiniProgramLaunch ? handleMiniProgramLaunch : loginWithWeChat}
+      disabled={useMiniProgramLaunch && launching}
+      aria-label={iconOnly ? label : undefined}
+      className={
+        iconOnly
+          ? 'h-9 w-full px-0 [&_svg]:size-5 dark:[&_svg]:fill-white'
+          : 'w-full [&_svg]:size-5 dark:[&_svg]:fill-white'
+      }
     >
       <WeChatIcon />
-      {label}
+      <span className={iconOnly ? 'sr-only' : undefined}>{label}</span>
     </Button>
+  );
+
+  if (!iconOnly) return button;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   );
 }
