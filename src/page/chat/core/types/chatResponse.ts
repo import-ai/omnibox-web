@@ -31,9 +31,11 @@ export enum OpenAIMessageRole {
 }
 
 export interface Citation {
+  index?: number;
+  source_message_id?: string;
   id: string;
   title: string;
-  snippet: string;
+  snippet?: string;
   link: string;
 }
 

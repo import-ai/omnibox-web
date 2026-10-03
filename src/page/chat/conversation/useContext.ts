@@ -48,6 +48,7 @@ import {
 import useConversationBootstrap, {
   CHAT_CREATE_PAYLOAD_KEY,
 } from './useConversationBootstrap';
+import useConversationHistory from './useConversationHistory';
 import useScopedConversationState from './useScopedConversationState';
 
 export default function useContext() {
@@ -86,6 +87,8 @@ export default function useContext() {
     cacheScope,
     conversationId
   );
+  const conversationRef = useRef(conversation);
+  conversationRef.current = conversation;
   const channel = AgentRequestChannel.WEB;
   const messages = useMemo((): MessageDetail[] => {
     if (conversation.id !== conversationId) return [];
@@ -101,9 +104,20 @@ export default function useContext() {
     }
     return result;
   }, [conversation, conversationId]);
+  const history = useConversationHistory(
+    namespaceId,
+    userId,
+    conversation,
+    setConversation
+  );
   const messageOperator = useMemo((): MessageOperator => {
-    return createMessageOperator(conversation, setConversation);
-  }, [conversation, setConversation]);
+    return {
+      ...createMessageOperator(conversation, setConversation),
+      activate: (id: string) => {
+        void history.activateBranch(id);
+      },
+    };
+  }, [conversation, setConversation, history.activateBranch]);
 
   const sendMessage = async (
     params: SendMessageParams,
@@ -188,11 +202,13 @@ export default function useContext() {
         askAbortRef.current = null;
         setWaitingForAssistantDelta(false);
         setLoading(false);
+        void history.refreshHistory().catch(() => undefined);
       }
     }
   };
 
   useConversationBootstrap({
+    getConversation: () => conversationRef.current,
     app,
     askAbortRef,
     cacheScope,
@@ -208,7 +224,9 @@ export default function useContext() {
   });
 
   const mergedLoading =
-    loading || !isTerminalMessageStatus(messages.at(-1)?.status);
+    loading ||
+    (conversation.total === undefined && !conversation.current_node) ||
+    !isTerminalMessageStatus(messages.at(-1)?.status);
 
   useEffect(() => {
     if (
@@ -280,6 +298,7 @@ export default function useContext() {
       regeneratingRef.current = false;
       setRegeneratingParentId(null);
       setLoading(false);
+      void history.refreshHistory().catch(() => undefined);
     }
   };
 
@@ -337,6 +356,7 @@ export default function useContext() {
     } finally {
       askAbortRef.current = null;
       setLoading(false);
+      void history.refreshHistory().catch(() => undefined);
     }
   };
 
@@ -381,6 +401,7 @@ export default function useContext() {
   ]);
 
   return {
+    ...history,
     loading: mergedLoading,
     accessDenied,
     waitingForAssistantDelta,

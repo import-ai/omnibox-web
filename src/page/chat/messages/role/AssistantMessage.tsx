@@ -16,6 +16,7 @@ import { ToolCallArgs } from '@/page/chat/components/ToolCallArgs';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
   type Citation,
+  isTerminalMessageStatus,
   MessageStatus,
 } from '@/page/chat/core/types/chatResponse';
 import {
@@ -29,6 +30,10 @@ import { CitationMarkdown } from '@/page/chat/messages/citations/CitationMarkdow
 import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citationUtils';
 import { ToolCallExecution } from '@/page/localRuntime/ConversationExecutions';
 
+import {
+  DetailLoadState,
+  useMessageDetails,
+} from '../../conversation/MessageDetailsContext';
 import {
   findToolMessageForToolCall,
   isTerminalToolCallStatus,
@@ -101,24 +106,44 @@ export function AssistantMessage(props: IProps) {
   } = props;
   const { t } = useTranslation();
   const app = useApp();
+  const details = useMessageDetails();
+  const loadDetails = () => {
+    void details.load([
+      message.id,
+      ...messages
+        .filter(item =>
+          message.tool_call_summaries?.some(
+            tool => tool.id === item.message.tool_call_id
+          )
+        )
+        .map(item => item.id),
+    ]);
+  };
+  const lazy =
+    message.details_loaded !== undefined &&
+    isTerminalMessageStatus(message.status);
   const openAIMessage = message.message;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
     useMessageSiblings(message.id, messageOperator);
 
   const domList: React.ReactNode[] = [];
-  if (openAIMessage.reasoning_content?.trim()) {
+  if (openAIMessage.reasoning_content?.trim() || message.has_reasoning) {
     domList.push(
       <Accordion
         type="single"
         collapsible
         key={'reasoning_' + message.id}
-        defaultValue={'reasoning_' + message.id}
+        defaultValue={lazy ? undefined : 'reasoning_' + message.id}
+        onValueChange={value => {
+          if (value) loadDetails();
+        }}
         className="mb-3"
       >
         <AccordionItem value={'reasoning_' + message.id}>
           <AccordionTrigger>{t('chat.tools.reasoning')}</AccordionTrigger>
           <AccordionContent className="text-gray-500 dark:text-gray-400">
+            <DetailLoadState {...details} retry={loadDetails} />
             {replaceReasoningCiteMarkers(
               openAIMessage.reasoning_content?.trim() || ''
             )}
@@ -181,6 +206,23 @@ export function AssistantMessage(props: IProps) {
       });
     }
   }
+  if (!openAIMessage.tool_calls?.length) {
+    for (const summary of message.tool_call_summaries ?? []) {
+      toolCalls.push({
+        toolCallId: summary.id,
+        functionName: summary.name,
+        name: t(
+          `chat.messages.tool_calls.function_name.${summary.name}`,
+          t('chat.messages.tool_calls.function_name.unknown')
+        ),
+        args: [],
+        joinedArgs: '',
+        status: resolveToolCallStatus(
+          findToolMessageForToolCall(messages, summary.id)
+        ),
+      });
+    }
+  }
   if (message.attrs?.tool_call?.interrupts) {
     for (const interrupt of message.attrs.tool_call.interrupts) {
       const args: ProcessedArg[] = processArgs(interrupt.args, t);
@@ -223,7 +265,10 @@ export function AssistantMessage(props: IProps) {
         type="single"
         collapsible
         key={'tool_calls' + message.id}
-        defaultValue={'tool_calls_' + message.id}
+        defaultValue={lazy ? undefined : 'tool_calls_' + message.id}
+        onValueChange={value => {
+          if (value) loadDetails();
+        }}
         className="mb-3"
       >
         <AccordionItem value={'tool_calls_' + message.id}>
@@ -239,6 +284,7 @@ export function AssistantMessage(props: IProps) {
             </span>
           </AccordionTrigger>
           <AccordionContent className="text-gray-500 dark:text-gray-400">
+            <DetailLoadState {...details} retry={loadDetails} />
             <ul>
               {toolCalls.map((toolCall, index) => (
                 <li

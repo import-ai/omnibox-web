@@ -1,3 +1,4 @@
+import { hasToolCalls } from '../conversation/conversationHistory';
 /** Groups chat messages for final-answer collapse and message index rendering. */
 import { MessageStatus, OpenAIMessageRole } from '../core/types/chatResponse';
 import type { MessageDetail } from '../core/types/conversation';
@@ -37,7 +38,7 @@ function isFinalAnswer(message: MessageDetail) {
     (message.status === MessageStatus.SUCCESS ||
       message.status === MessageStatus.STOPPED) &&
     Boolean(message.message.content?.trim()) &&
-    !message.message.tool_calls?.length
+    !hasToolCalls(message)
   );
 }
 
