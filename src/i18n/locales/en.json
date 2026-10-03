@@ -994,6 +994,13 @@
         "auto_approve": "Automatically approve requests",
         "auto_reject": "Automatically reject requests"
       }
+    },
+    "history": {
+      "load_more": "Load older messages",
+      "loading": "Loading history…",
+      "retry": "Retry loading history",
+      "loading_details": "Loading details…",
+      "retry_details": "Retry loading details"
     }
   },
   "date": {
