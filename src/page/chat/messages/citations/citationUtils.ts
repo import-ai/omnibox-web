@@ -56,7 +56,7 @@ export function copyPreprocess(content: string, citations: Citation[]): string {
     const link = citation.link.startsWith('http')
       ? citation.link
       : `${origin}/${namespace}/${citation.link}`;
-    citationsFooter += `[${i + 1}]: ${link} "${title}"\n`;
+    citationsFooter += `[${(citation.index ?? i) + 1}]: ${link} "${title}"\n`;
   }
 
   if (citationsFooter) {
@@ -66,7 +66,9 @@ export function copyPreprocess(content: string, citations: Citation[]): string {
   return content.replace(citePattern, (_, index, citationId) => {
     const citationIndex =
       findCitationById(citations, citationId)?.index ?? Number(index) - 1;
-    if (citationIndex >= 0 && citationIndex < citations.length) {
+    if (
+      citations.some((citation, i) => (citation.index ?? i) === citationIndex)
+    ) {
       const footnoteIndex = citationIndex + 1;
       return `[^${footnoteIndex}][${footnoteIndex}]`;
     }
@@ -117,7 +119,7 @@ export function findCitationById(
   if (index < 0) {
     return undefined;
   }
-  return { citation: citations[index], index };
+  return { citation: citations[index], index: citations[index].index ?? index };
 }
 
 export function getResourceIdFromHash(href: string | undefined) {

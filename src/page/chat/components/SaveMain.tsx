@@ -29,22 +29,19 @@ export default function SaveMain(props: IProps) {
   const handleCreate = () => {
     if (loading || !namespaceId) return;
     onLoading(true);
-    // Ensure the title is correct
     http
-      .get(`/namespaces/${namespaceId}/conversations/${conversation.id}`)
-      .then(conversationDetail =>
-        http.get(`/namespaces/${namespaceId}/private`).then(privateRoot =>
-          http
-            .post(`/namespaces/${namespaceId}/resources`, {
-              content,
-              resourceType: 'doc',
-              parentId: privateRoot.id,
-              name: getTitleFromConversationDetail(conversationDetail),
-            })
-            .then(response => {
-              app.fire('generate_resource', privateRoot.id, response);
-            })
-        )
+      .get(`/namespaces/${namespaceId}/private`)
+      .then(privateRoot =>
+        http
+          .post(`/namespaces/${namespaceId}/resources`, {
+            content,
+            resourceType: 'doc',
+            parentId: privateRoot.id,
+            name: getTitleFromConversationDetail(conversation),
+          })
+          .then(response => {
+            app.fire('generate_resource', privateRoot.id, response);
+          })
       )
       .finally(() => {
         onLoading(false);

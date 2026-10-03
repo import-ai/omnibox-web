@@ -997,6 +997,13 @@
         "auto_approve": "自动通过审批请求",
         "auto_reject": "自动拒绝审批请求"
       }
+    },
+    "history": {
+      "load_more": "加载更早的消息",
+      "loading": "正在加载历史消息…",
+      "retry": "重新加载历史消息",
+      "loading_details": "正在加载详情…",
+      "retry_details": "重新加载详情"
     }
   },
   "date": {
