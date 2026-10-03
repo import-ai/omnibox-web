@@ -1,4 +1,5 @@
 import { createClientKey } from '@/page/chat/core/clientKey';
+import { isTerminalMessageStatus } from '@/page/chat/core/types/chatResponse';
 import type {
   ConversationDetail,
   MessageDetail,
@@ -31,11 +32,18 @@ export function mergeHistoryPage(
     }
     mapping[id] =
       existing &&
-      existing.updated_at === message.updated_at &&
-      existing.details_loaded
+      existing.details_loaded &&
+      (existing.updated_at === message.updated_at ||
+        // Completed SSE snapshots get their first server timestamp on refresh.
+        (revisions &&
+          existing.localRevision &&
+          !existing.updated_at &&
+          isTerminalMessageStatus(existing.status) &&
+          existing.status === message.status))
         ? {
             ...message,
             ...existing,
+            updated_at: message.updated_at,
             sibling_ids: message.sibling_ids,
             children: message.children,
           }
