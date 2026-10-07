@@ -20,6 +20,8 @@ const AGENT_TOOLS = [
   'create_agent_asset',
   'search_history',
   'read_history',
+  'search_conversation_messages',
+  'read_conversation_message',
 ];
 
 describe('tool call labels', () => {
