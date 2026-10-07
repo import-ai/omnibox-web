@@ -668,6 +668,8 @@
     "description": "体验新功能，并选择是否启用。"
   },
   "manage": {
+    "description": "查看空间成员和群组，管理邀请、角色与权限。",
+    "no_results": "暂无匹配结果",
     "theme_description": "选择浅色、深色或跟随系统外观",
     "color_theme_description": "选择界面背景和控件使用的基础配色",
     "language_description": "选择菜单和提示使用的语言",
@@ -1015,11 +1017,11 @@
       }
     },
     "agent_credits": {
-      "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1，扩容后可恢复",
+      "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1，购买积分后可恢复",
       "compact_text": "当前已切换至 Agent 1.1",
       "compact_tooltip": "积分不足",
-      "not_owner": "请联系空间所有者进行扩容",
-      "expand_button": "扩容",
+      "not_owner": "请联系空间所有者购买积分",
+      "expand_button": "购买",
       "tooltip": {
         "base": "购买或升级后可继续使用 Agent 2.1"
       }
@@ -1133,6 +1135,7 @@
     "hide": "隐藏"
   },
   "tasks": {
+    "description": "查看后台任务的处理状态，并管理任务执行。",
     "title": "后台任务管理",
     "related_tasks": "相关任务",
     "loading": "加载任务中……",
@@ -1318,6 +1321,7 @@
     "clear_success": "回收站已清空"
   },
   "quota": {
+    "description": "查看空间的资源用量、积分余额和有效期。",
     "storage_usage": "存储",
     "upload": "上传",
     "file": "文件",
@@ -1331,7 +1335,7 @@
     "pdf": "PDF",
     "image": "图片",
     "other": "其他",
-    "expand_button": "扩容",
+    "expand_button": "购买",
     "basic_period": "空间有效期：",
     "premium_period": "高级版有效期：",
     "days_remaining": "剩余 {{days}} 天（{{date}} 到期）",

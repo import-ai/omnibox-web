@@ -37,14 +37,10 @@ import {
 } from '@/components/ui/Form';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
-import useConfig from '@/hooks/useConfig';
 import useNamespace from '@/hooks/useNamespace';
 import useNamespaces from '@/hooks/useNamespaces';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
-
-import { RemainQuota } from '../quota';
-import { AutoRenewalSection } from './AutoRenewalSection';
 
 const createFormSchema = (t: (key: string) => string) =>
   z.object({
@@ -87,7 +83,6 @@ export default function SettingForm({
   const [deleting, setDeleting] = useState(false);
   const { app, data, onChange, loading } = useNamespace();
   const { data: namespaces } = useNamespaces();
-  const { config } = useConfig();
   const formSchema = useMemo(
     () => createFormSchema(t),
     [t, i18n.resolvedLanguage]
@@ -251,19 +246,6 @@ export default function SettingForm({
               </Form>
             </DialogContent>
           </Dialog>
-        </div>
-      )}
-      {config.commercial && (
-        <div>
-          <h3 className="text-base font-semibold">{t('namespace.usage')}</h3>
-          <Separator className="my-2 border-t" />
-          <RemainQuota namespaceId={namespaceId} />
-          {userIsOwnerOrAdmin && (
-            <>
-              <AutoRenewalSection namespaceId={namespaceId} tier="basic" />
-              <AutoRenewalSection namespaceId={namespaceId} tier="premium" />
-            </>
-          )}
         </div>
       )}
       {/* Danger Zone */}

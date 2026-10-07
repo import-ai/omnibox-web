@@ -179,23 +179,12 @@ export function AutoRenewalSection({
   namespaceId,
   tier,
 }: AutoRenewalSectionProps) {
-  const { t } = useTranslation();
   const { cancel, canceling, loading, polling, renewal } = useAutoRenewal(
     namespaceId,
     tier
   );
 
-  if (loading) {
-    return (
-      <Alert
-        className="mt-4 p-3"
-        aria-label={t('namespace.auto_renewal.loading')}
-      >
-        <div className="h-12 animate-pulse rounded bg-muted" />
-      </Alert>
-    );
-  }
-  if (!renewal) return null;
+  if (loading || !renewal) return null;
 
   return (
     <AutoRenewalCard

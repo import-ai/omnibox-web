@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
 import { DatePicker, DateRangePicker } from '@/components/date-picker';
-import { Input } from '@/components/ui/Input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/Select';
+} from '@/components/omnibox/Select';
+import { Input } from '@/components/ui/Input';
 import { cn } from '@/lib/utils';
 
 import {

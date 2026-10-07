@@ -667,6 +667,8 @@
     "description": "Try upcoming features and choose which ones to enable."
   },
   "manage": {
+    "description": "View space members and groups, and manage invitations, roles, and permissions.",
+    "no_results": "No results.",
     "theme_description": "Choose light, dark, or follow your system appearance",
     "color_theme_description": "Choose the base palette for surfaces and controls",
     "language_description": "Choose the language for menus and messages",
@@ -1014,11 +1016,11 @@
       }
     },
     "agent_credits": {
-      "text": "Agent 2.1 credits used up. Switched to Agent 1.1. Expand to restore.",
+      "text": "Agent 2.1 credits used up. Switched to Agent 1.1. Purchase credits to restore.",
       "compact_text": "Switched to Agent 1.1",
       "compact_tooltip": "Agent 2.1 credits used up",
-      "not_owner": "Please contact namespace owner to expand",
-      "expand_button": "Expand",
+      "not_owner": "Please contact the namespace owner to purchase credits",
+      "expand_button": "Purchase",
       "tooltip": {
         "base": "Buy or upgrade to keep using Agent 2.1"
       }
@@ -1132,6 +1134,7 @@
     "hide": "Hide"
   },
   "tasks": {
+    "description": "View background task status and manage task execution.",
     "title": "Task Management",
     "related_tasks": "Related Tasks",
     "loading": "Loading tasks...",
@@ -1317,6 +1320,7 @@
     "clear_success": "Trash emptied"
   },
   "quota": {
+    "description": "View resource usage, credit balances, and expiration dates for this space.",
     "storage_usage": "Storage",
     "upload": "Upload",
     "file": "File",
@@ -1330,7 +1334,7 @@
     "pdf": "PDF",
     "image": "Image",
     "other": "Other",
-    "expand_button": "Expand",
+    "expand_button": "Purchase",
     "basic_period": "Namespace validity period: ",
     "premium_period": "Pro validity period: ",
     "days_remaining": "{{days}} days remaining (expires {{date}})",

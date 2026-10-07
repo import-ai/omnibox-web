@@ -1,15 +1,15 @@
 import ActionDialog from '@/components/invite-dialog/ActionDialog';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/Select';
+} from '@/components/omnibox/Select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import { cn } from '@/lib/utils';
 import { ResourceConditionEditor } from '@/page/resource/conditions/ResourceConditionEditor';

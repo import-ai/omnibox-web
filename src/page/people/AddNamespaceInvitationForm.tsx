@@ -6,6 +6,13 @@ import { z } from 'zod';
 
 import { Button } from '@/components/Button';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/omnibox/Select';
+import {
   Form,
   FormControl,
   FormField,
@@ -13,13 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/Form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/Select';
 import { http } from '@/lib/request';
 
 interface IProps {

@@ -1,9 +1,11 @@
 import {
   BrainCircuit,
   FlaskConical,
+  Gauge,
+  HouseCog,
   KeyRound,
   List,
-  MonitorCog,
+  MonitorSmartphone,
   UserCog,
   Users,
 } from 'lucide-react';
@@ -42,14 +44,14 @@ export function SettingsSidebar({
   // Account section items - icons match Figma design
   const accountItems: MenuItem[] = [
     {
-      label: t('local_runtime.title'),
-      value: 'localRuntime',
-      icon: <MonitorCog className="size-4" />,
-    },
-    {
       label: t('setting.preferences'),
       value: 'basic',
       icon: <UserCog className="size-4" />,
+    },
+    {
+      label: t('local_runtime.title'),
+      value: 'localRuntime',
+      icon: <MonitorSmartphone className="size-4" />,
     },
     {
       label: t('setting.feature_management'),
@@ -73,8 +75,17 @@ export function SettingsSidebar({
     {
       label: t('setting.general'),
       value: 'namespace',
-      icon: <MonitorCog className="size-4" />,
+      icon: <HouseCog className="size-4" />,
     },
+    ...(config.commercial
+      ? [
+          {
+            label: t('namespace.usage'),
+            value: 'usage',
+            icon: <Gauge className="size-4" />,
+          },
+        ]
+      : []),
     {
       label: t('setting.members'),
       value: 'people',

@@ -20,11 +20,10 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/Collapsible';
-import { Separator } from '@/components/ui/Separator';
 import { Switch } from '@/components/ui/Switch';
+import { TableCell, TableRow } from '@/components/ui/Table';
 import { Group, Member } from '@/interface';
 import { http } from '@/lib/request';
-import { cn } from '@/lib/utils';
 
 import { useSettingsToast } from '../../../SettingsToastProvider';
 import DataGroupUser from './GroupDataUser';
@@ -104,112 +103,121 @@ export default function GroupData(props: GroupProps) {
   };
 
   return (
-    <Collapsible
-      open={fold}
-      onOpenChange={onFold}
-      className={cn({
-        '[&[data-state=open]>div>div>svg:first-child]:rotate-90': fold,
-      })}
-    >
-      <div className="flex h-[50px] items-center border-b border-border lg:h-[60px]">
-        <div className="flex w-[100px] items-center whitespace-nowrap px-2 lg:w-[210px]">
-          <CollapsibleTrigger asChild>
-            <ChevronRight className="mr-2 size-4 shrink-0 cursor-pointer transition-transform" />
-          </CollapsibleTrigger>
-          <div className="min-w-0 flex-1">
-            <span className="block truncate text-sm">{title}</span>
-          </div>
-        </div>
-        <div className="w-[80px] whitespace-nowrap px-2 lg:w-[115px]">
-          <span className="text-sm text-muted-foreground">
-            {t('manage.member_count', { size: groupUserData.length })}
-          </span>
-        </div>
-        <div className="flex w-[60px] items-center justify-center whitespace-nowrap lg:w-[127px]">
-          <Switch
-            checked={Boolean(invitation_id)}
-            onCheckedChange={handleCheckedChange}
-          />
-        </div>
-        <div className="flex flex-1 items-center justify-end gap-2 px-2 lg:gap-4">
-          {/* Copy link - always reserve space, only show icon when invitation is enabled */}
-          <div className="w-4">
-            {invitation_id && (
+    <Collapsible open={fold} onOpenChange={onFold} asChild>
+      <tbody>
+        <TableRow>
+          <TableCell>
+            <div className="flex items-center">
+              <CollapsibleTrigger asChild>
+                <button type="button" className="mr-2" aria-label={title}>
+                  <ChevronRight
+                    className={`size-4 transition-transform ${fold ? 'rotate-90' : ''}`}
+                  />
+                </button>
+              </CollapsibleTrigger>
+              <div className="min-w-0 flex-1">
+                <span className="block truncate text-sm">{title}</span>
+              </div>
+            </div>
+          </TableCell>
+          <TableCell>
+            <span className="text-sm text-muted-foreground">
+              {t('manage.member_count', { size: groupUserData.length })}
+            </span>
+          </TableCell>
+          <TableCell className="text-center">
+            <Switch
+              checked={Boolean(invitation_id)}
+              onCheckedChange={handleCheckedChange}
+            />
+          </TableCell>
+          <TableCell>
+            <div className="flex items-center justify-end gap-2">
+              {/* Copy link - always reserve space, only show icon when invitation is enabled */}
+              <div className="w-4">
+                {invitation_id && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={handleCopyLink}
+                        className="flex items-center justify-center transition-opacity hover:opacity-70"
+                      >
+                        <Copy className="size-4 text-muted-foreground" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      {t('actions.copy_link')}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+
+              {/* Edit */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={handleCopyLink}
+                    onClick={() => onEdit(id, title)}
                     className="flex items-center justify-center transition-opacity hover:opacity-70"
                   >
-                    <Copy className="size-4 text-muted-foreground" />
+                    <Pencil className="size-4 text-muted-foreground" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="top">
-                  {t('actions.copy_link')}
-                </TooltipContent>
+                <TooltipContent side="top">{t('edit')}</TooltipContent>
               </Tooltip>
-            )}
-          </div>
 
-          {/* Edit */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => onEdit(id, title)}
-                className="flex items-center justify-center transition-opacity hover:opacity-70"
-              >
-                <Pencil className="size-4 text-muted-foreground" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top">{t('edit')}</TooltipContent>
-          </Tooltip>
-
-          {/* Delete */}
-          <AlertDialog>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <AlertDialogTrigger asChild>
-                  <button className="flex items-center justify-center transition-opacity hover:opacity-70">
-                    <Trash2 className="size-4 text-muted-foreground" />
-                  </button>
-                </AlertDialogTrigger>
-              </TooltipTrigger>
-              <TooltipContent side="top">{t('delete')}</TooltipContent>
-            </Tooltip>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t('manage.remove_title')}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t('manage.remove_desc')}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="cancel-btn-outline">
-                  {t('cancel')}
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  variant="destructive"
-                  disabled={deleting}
-                  onClick={handleDelete}
-                >
-                  {t('ok')}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-      </div>
-      <CollapsibleContent>
-        <Separator />
-        <DataGroupUser
-          group_id={id}
-          member={member}
-          onRemove={onRemove}
-          groupUserData={groupUserData}
-          groupUserRefetch={groupUserRefetch}
-          namespace_id={namespace_id}
-        />
-      </CollapsibleContent>
+              {/* Delete */}
+              <AlertDialog>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AlertDialogTrigger asChild>
+                      <button className="flex items-center justify-center transition-opacity hover:opacity-70">
+                        <Trash2 className="size-4 text-muted-foreground" />
+                      </button>
+                    </AlertDialogTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">{t('delete')}</TooltipContent>
+                </Tooltip>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {t('manage.remove_title')}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t('manage.remove_desc')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="cancel-btn-outline">
+                      {t('cancel')}
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      variant="destructive"
+                      disabled={deleting}
+                      onClick={handleDelete}
+                    >
+                      {t('ok')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </TableCell>
+        </TableRow>
+        <CollapsibleContent asChild>
+          <TableRow>
+            <TableCell colSpan={4}>
+              <DataGroupUser
+                group_id={id}
+                member={member}
+                onRemove={onRemove}
+                groupUserData={groupUserData}
+                groupUserRefetch={groupUserRefetch}
+                namespace_id={namespace_id}
+              />
+            </TableCell>
+          </TableRow>
+        </CollapsibleContent>
+      </tbody>
     </Collapsible>
   );
 }

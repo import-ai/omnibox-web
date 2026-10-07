@@ -35,21 +35,12 @@ export default function ManagePeople({ canManageMembers }: ManagePeopleProps) {
 
   return (
     <Tabs value={tab} onValueChange={onTab} className="w-full">
-      <TabsList
-        variant="line"
-        className="w-full shrink-0 justify-start border-b border-border group-data-horizontal/tabs:h-10"
-      >
-        <TabsTrigger
-          value="member"
-          className="h-full max-w-30 px-4 group-data-horizontal/tabs:after:bottom-[-3px]"
-        >
+      <TabsList>
+        <TabsTrigger value="member">
           {t('manage.member')} {data.member.length}
         </TabsTrigger>
         {canManageMembers && (
-          <TabsTrigger
-            value="group"
-            className="h-full max-w-30 px-4 group-data-horizontal/tabs:after:bottom-[-3px]"
-          >
+          <TabsTrigger value="group">
             {t('manage.group')} {data.group.length}
           </TabsTrigger>
         )}

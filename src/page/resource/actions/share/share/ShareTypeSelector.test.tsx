@@ -6,7 +6,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { ShareTypeSelector } from './ShareTypeSelector';
 
 jest.mock('i18next', () => ({ t: (key: string) => key }));
-jest.mock('@/components/ui/Select', () => ({
+jest.mock('@/components/omnibox/Select', () => ({
   Select: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   SelectContent: ({ children }: { children: ReactNode }) => (
     <div>{children}</div>

@@ -4,15 +4,15 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
 import { DatePicker, DateRangePicker } from '@/components/date-picker';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Input } from '@/components/ui/Input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/Select';
+} from '@/components/omnibox/Select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { Input } from '@/components/ui/Input';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import type { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';

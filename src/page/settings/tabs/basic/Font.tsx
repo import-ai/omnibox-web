@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/Select';
+} from '@/components/omnibox/Select';
 import useTheme from '@/hooks/useTheme';
 import { fonts, resolveFont } from '@/lib/fonts';
 import { http } from '@/lib/request';

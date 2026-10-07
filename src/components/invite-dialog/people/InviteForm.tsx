@@ -7,6 +7,13 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/Button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/omnibox/Select';
 import { SupportedEmailLink } from '@/components/SupportedEmailLink';
 import {
   Form,
@@ -18,13 +25,6 @@ import {
   FormMessage,
 } from '@/components/ui/Form';
 import { Input } from '@/components/ui/Input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/Select';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 
