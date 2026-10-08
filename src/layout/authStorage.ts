@@ -4,6 +4,7 @@ const PUBLIC_AUTH_PATH_PREFIXES = [
   '/user/login',
   '/user/sign-up',
   '/user/verify-otp',
+  '/captcha',
   '/user/accept-invite',
   '/user/account/delete/confirm',
   '/user/auth/confirm',
