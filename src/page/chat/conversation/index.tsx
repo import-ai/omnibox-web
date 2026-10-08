@@ -4,6 +4,7 @@ import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import useContext from '@/page/chat/conversation/useContext';
 import { useConversationShare } from '@/page/chat/share/useConversationShare';
 import { useConversationShareEvents } from '@/page/chat/share/useConversationShareEvents';
+import { ConversationExecutionsProvider } from '@/page/localRuntime/ConversationExecutions';
 
 import {
   ConversationFooter,
@@ -28,11 +29,13 @@ export default function ChatConversationPage() {
 
   return (
     <div className="flex min-h-0 max-h-full min-w-0 flex-1 flex-col overflow-hidden">
-      <ConversationMessageList
-        compact={compact}
-        context={context}
-        share={conversationShare}
-      />
+      <ConversationExecutionsProvider conversationId={context.conversation.id}>
+        <ConversationMessageList
+          compact={compact}
+          context={context}
+          share={conversationShare}
+        />
+      </ConversationExecutionsProvider>
       <ConversationFooter
         compact={compact}
         commercial={config.commercial}

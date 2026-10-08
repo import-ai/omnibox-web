@@ -142,6 +142,25 @@ describe('useContext conversation cache failures', () => {
     clearConversationCache();
   });
 
+  it('blocks composer while history is unresolved and enables a hydrated empty conversation', async () => {
+    const load = deferred<ConversationDetail>();
+    mockGet.mockReturnValue(load.promise);
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    expect(context.loading).toBe(true);
+    await act(async () => {
+      load.resolve({ id: 'conversation-a', mapping: {}, total: 0 });
+      await load.promise;
+    });
+    expect(context.loading).toBe(false);
+  });
+
   it('retains attached images and original strength when editing the user query', async () => {
     const conversation = cachedConversation();
     conversation.mapping['message-a'].attrs = {

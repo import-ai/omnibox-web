@@ -765,6 +765,7 @@
     "image": {
       "unsupported_format": "仅支持 PNG、JPEG、WebP 和 GIF 图片",
       "upload_failed": "图片上传失败，请重试。",
+      "load_failed": "图片暂时无法查看",
       "add": "添加图片",
       "remove": "移除图片",
       "preview": "预览图片",
@@ -825,6 +826,8 @@
       },
       "tool_calls": {
         "function_name": {
+          "list_local_devices": "列出本地设备",
+          "execute_local_command": "执行本地命令",
           "write_todos": "待办",
           "ls": "浏览资源",
           "list_resources": "浏览资源",
@@ -997,6 +1000,13 @@
         "auto_approve": "自动通过审批请求",
         "auto_reject": "自动拒绝审批请求"
       }
+    },
+    "history": {
+      "load_more": "加载更早的消息",
+      "loading": "正在加载历史消息…",
+      "retry": "重新加载历史消息",
+      "loading_details": "正在加载详情…",
+      "retry_details": "重新加载详情"
     }
   },
   "date": {
@@ -1115,7 +1125,7 @@
     "status_label_pending": "等待中",
     "status_label_running": "进行中",
     "status_label_finished": "已完成",
-    "status_label_failed": "解析失败",
+    "status_label_failed": "失败",
     "status_label_canceled": "已取消",
     "confirm_cancel_title": "确认取消",
     "confirm_cancel_description": "取消后将立即停止执行，操作不可撤销",
@@ -1552,6 +1562,99 @@
       "emptyTitle": "空空如也",
       "task": "任务记录",
       "rewardColumn": "已获得奖励"
+    }
+  },
+  "desktop_auth": {
+    "title": "继续登录小黑桌面端",
+    "confirm": "以此账号继续",
+    "switch": "使用其他账号",
+    "return": "打开小黑",
+    "return_hint": "正在打开小黑；浏览器提示时，选择“打开小黑”。若未自动打开，请点击下方按钮。请在一分钟内完成，过期后从客户端重新登录。",
+    "failed": "登录失败或已过期，请在客户端重新发起登录。",
+    "confirm_hint": "确认使用此账号登录本机的小黑客户端。",
+    "ready": "可以回到小黑了"
+  },
+  "local_runtime": {
+    "this_device": "本机",
+    "hostname": "系统电脑名",
+    "hostname_unknown": "等待客户端上报",
+    "device_id": "设备 ID",
+    "copy_device_id": "复制设备 ID",
+    "rename_offline": "连接后可修改设备名称。",
+    "duplicate_name": "已有同名设备，建议使用不同名称以便区分。",
+    "title": "本地设备",
+    "description": "管理可以被小黑 AI 调用的电脑。命令权限在各设备的桌面客户端中设置。",
+    "no_devices": "在桌面客户端的「本地执行」中启用后，这台电脑会出现在这里。",
+    "platform": {
+      "darwin": "macOS",
+      "win32": "Windows",
+      "linux": "Linux"
+    },
+    "online": "在线",
+    "offline": "离线",
+    "paused": "已暂停",
+    "last_seen": "最近在线",
+    "never_seen": "尚未连接",
+    "device_name": "设备名称",
+    "rename": "重命名",
+    "save": "保存",
+    "remove": {
+      "label": "移除设备",
+      "confirm": {
+        "title": "移除这台设备？",
+        "description": "移除后小黑 AI 将无法再调用这台电脑，正在执行的命令会被停止。如需再次使用，请在这台电脑的桌面客户端中重新启用本地执行。",
+        "button": "移除"
+      }
+    },
+    "removed_device": "已移除的设备",
+    "policy": {
+      "allow": "直接执行",
+      "deny": "拒绝执行",
+      "ask": "询问"
+    },
+    "executions": "执行记录",
+    "empty": "暂无执行记录",
+    "more": "加载更多",
+    "columns": {
+      "command": "命令",
+      "device": "设备",
+      "status": "状态",
+      "time": "时间"
+    },
+    "detail": "执行详情",
+    "cwd": "工作目录",
+    "timeout": "超时",
+    "timeout_value": "{{count}} 秒",
+    "created_at": "发起时间",
+    "finished_at": "结束时间",
+    "exit_code": "退出码",
+    "approve": "批准",
+    "reject": "拒绝",
+    "expired": "审批已过期",
+    "cancel": "取消执行",
+    "output": "输出",
+    "show_output": "查看输出",
+    "hide_output": "收起输出",
+    "no_output": "没有输出",
+    "artifacts": "产物",
+    "approvals": "审批记录",
+    "decision": {
+      "approve": "已批准",
+      "reject": "已拒绝"
+    },
+    "status": {
+      "queued": "排队中",
+      "accepted": "设备已领取",
+      "awaiting_approval": "等待审批",
+      "approved": "已批准",
+      "running": "执行中",
+      "cancel_requested": "等待设备确认取消",
+      "succeeded": "成功",
+      "failed": "失败",
+      "denied": "已拒绝",
+      "canceled": "已取消",
+      "timed_out": "已超时",
+      "unknown": "状态未知"
     }
   }
 }

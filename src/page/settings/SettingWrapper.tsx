@@ -1,13 +1,15 @@
 import axios from 'axios';
 import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import useUser from '@/hooks/useUser';
 import { http } from '@/lib/request';
+import DeviceSettings from '@/page/localRuntime/DeviceSettings';
 import PeopleForm from '@/page/people';
 import TasksManagement from '@/page/settings/tabs/members/tasks';
 
+import { SettingsExtensionsContext } from './settingsExtensionsContext';
 import { SettingsSidebar } from './SettingsSidebar';
 import { SettingsToastProvider } from './SettingsToastProvider';
 import About from './tabs/about';
@@ -43,6 +45,7 @@ export default function SettingWrapper({
   const [userIsOwner, setUserIsOwner] = useState(false);
   const [activeKey, onActiveKey] = useState(initialTab || 'profile');
   const { user } = useUser();
+  const extensions = useContext(SettingsExtensionsContext);
 
   useEffect(() => {
     if (initialTab) {
@@ -51,6 +54,17 @@ export default function SettingWrapper({
   }, [initialTab]);
 
   const items = [
+    { value: 'localRuntime', children: <DeviceSettings /> },
+    ...extensions.map(({ id, component: Component }) => ({
+      value: `extension:${id}`,
+      children: (
+        <Component
+          key={`${id}:${namespaceId}`}
+          namespaceId={namespaceId}
+          navigate={onActiveKey}
+        />
+      ),
+    })),
     {
       value: 'profile',
       children: <ProfileForm autoAction={autoAction} />,

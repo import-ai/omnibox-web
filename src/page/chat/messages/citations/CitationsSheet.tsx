@@ -17,13 +17,43 @@ import { type Citation } from '@/page/chat/core/types/chatResponse';
 import { CitationCard } from '@/page/chat/messages/citations/CitationCard';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
+import {
+  DetailLoadState,
+  useMessageDetails,
+} from '../../conversation/MessageDetailsContext';
+
 interface IProps {
   index: number;
   citations: Citation[];
 }
 
 export function CitationsSheet(props: IProps) {
-  const { index, citations } = props;
+  const { index } = props;
+  const [loaded, setLoaded] = useState<Citation[]>([]);
+  const citations = props.citations.map(citation => ({
+    ...citation,
+    ...loaded.find(
+      item =>
+        item.id === citation.id &&
+        item.source_message_id === citation.source_message_id
+    ),
+  }));
+  const details = useMessageDetails();
+  const load = async () => {
+    const ids = props.citations.flatMap(citation =>
+      citation.source_message_id ? [citation.source_message_id] : []
+    );
+    const result = await details.load(ids);
+    if (result)
+      setLoaded(
+        props.citations.map(citation => ({
+          ...citation,
+          ...result[citation.source_message_id ?? '']?.attrs?.citations?.find(
+            item => item.id === citation.id
+          ),
+        }))
+      );
+  };
   const { t, i18n } = useTranslation();
   const chatOnly = useShareChatOnly();
   const [open, setOpen] = useState(false);
@@ -37,7 +67,13 @@ export function CitationsSheet(props: IProps) {
   }
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet
+      open={open}
+      onOpenChange={value => {
+        setOpen(value);
+        if (value) void load();
+      }}
+    >
       <SheetTrigger asChild>
         <Button
           variant="outline"
@@ -57,10 +93,16 @@ export function CitationsSheet(props: IProps) {
         </SheetHeader>
         <Separator className="dark:bg-gray-700" />
         <div className="overflow-y-auto h-[calc(100svh-53px)]">
+          <DetailLoadState
+            {...details}
+            retry={() => {
+              void load();
+            }}
+          />
           {citations.map((citation, i) => (
             <CitationCard
               key={index + i}
-              index={index + i}
+              index={citation.index ?? index + i}
               citation={citation}
               onOpenResource={() => setOpen(false)}
             />

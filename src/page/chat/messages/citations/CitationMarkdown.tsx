@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Markdown, { ExtraProps } from 'react-markdown';
-import { useParams } from 'react-router-dom';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import {
   a11yDark,
@@ -22,26 +21,37 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme.ts';
-import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
-import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 import Save from '@/page/chat/components/SaveMain';
 import { Citation, MessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
-import { CitationHoverIcon } from '@/page/chat/messages/citations/CitationHoverIcon';
+import { withoutMarkdownImages } from '@/page/chat/messages/chatImageMarkdown';
+import { ChatMarkdownImage } from '@/page/chat/messages/ChatMarkdownImage';
 import {
   citationUrlTransform,
   copyPreprocess,
-  findCitationById,
-  getResourceIdFromHash,
-  isCitationId,
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
-import { resolveCitationTarget } from '@/page/copilot/citationTarget';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
-const citeLinkRegex = /^#cite-(\d+)$/;
-const resourceLinkRegex = /^#resource-([\w-]+)$/;
+import { CitationContext, MarkdownAnchor } from './CitationMarkdownAnchor';
+
+function MarkdownTable({
+  children,
+  ...props
+}: React.ComponentProps<'table'> & ExtraProps) {
+  const isMobile = useIsMobile();
+  return (
+    <div
+      className="overflow-x-auto"
+      style={isMobile ? { width: 'calc(100vw - 2rem)' } : { width: '100%' }}
+    >
+      <table {...props} style={{ maxWidth: 'max-content' }}>
+        {children}
+      </table>
+    </div>
+  );
+}
 
 interface IProps {
   content: string;
@@ -86,107 +96,33 @@ export function CitationMarkdown(props: IProps) {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   const { t } = useTranslation();
-  const params = useParams();
-  const { namespaceId: routeNamespaceId } = useChatRouteParams();
   const chatOnly = useShareChatOnly();
-  const namespaceId = routeNamespaceId || params.namespace_id || '';
-  const resourceLinkPrefix = params.share_id
-    ? `/s/${params.share_id}`
-    : namespaceId
-      ? `/${namespaceId}`
-      : '';
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
   const cleanedContent = trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(
     cleanedContent,
     removeGeneratedCite,
-    citations.length
+    Math.max(
+      0,
+      ...citations.map((citation, index) => (citation.index ?? index) + 1)
+    )
   );
   // Copying and saving must match what the page shows: a chat-only share
   // renders no citation, so the markdown carries neither the footnote markers
   // nor the "[n]: url" footer that would name the hidden resources.
-  const copyContent = copyPreprocess(content, chatOnly ? [] : citations);
+  const copyContent = copyPreprocess(
+    chatOnly ? withoutMarkdownImages(content) : content,
+    chatOnly ? [] : citations
+  );
   const createdAtLabel = createdAt
     ? format(new Date(createdAt), 'yyyy-MM-dd HH:mm:ss')
     : null;
 
   const components = {
-    a({ href, children, ...props }: React.ComponentProps<'a'> & ExtraProps) {
-      const { node } = props;
-      const resourceMatch = href?.match(resourceLinkRegex);
-      let resolvedResource =
-        resourceMatch?.[1] ?? getResourceIdFromHash(href) ?? undefined;
-      if (!resolvedResource && href && namespaceId) {
-        const target = resolveCitationTarget(href, namespaceId);
-        if (target.kind === 'resource') {
-          resolvedResource = target.resourceId;
-        }
-      }
-      // A chat-only share serves no resource page, so its sources stay text.
-      if (resolvedResource && chatOnly) {
-        return <>{children}</>;
-      }
-      // Citation markers are pure references: the badge only opens a card
-      // naming the resource the share is meant to keep out of sight.
-      if (
-        chatOnly &&
-        (href?.match(citeLinkRegex) ||
-          findCitationById(citations, href) ||
-          isCitationId(href))
-      ) {
-        return null;
-      }
-      if (resolvedResource && resourceLinkPrefix) {
-        const resourceHref = `${resourceLinkPrefix}/${resolvedResource}`;
-        return (
-          <ChatResourceLink href={resourceHref} resourceId={resolvedResource}>
-            {children}
-          </ChatResourceLink>
-        );
-      }
-      const citeMatch = href?.match(citeLinkRegex);
-      if (citeMatch) {
-        const id = Number(citeMatch[1]) - 1;
-        return <CitationHoverIcon citation={citations[id]} index={id} />;
-      }
-      const citationIdMatch = findCitationById(citations, href);
-      if (citationIdMatch) {
-        return (
-          <CitationHoverIcon
-            citation={citationIdMatch.citation}
-            index={citationIdMatch.index}
-          />
-        );
-      }
-      if (isCitationId(href)) {
-        return null;
-      }
-      if (
-        node &&
-        node.properties &&
-        (!node.properties.target || node.properties.target !== 'blank')
-      ) {
-        return (
-          <a href={href} target="_blank" rel="noopener noreferrer">
-            {children}
-          </a>
-        );
-      }
-      return <a href={href}>{children}</a>;
-    },
-    table({ children, ...props }: React.ComponentProps<'table'> & ExtraProps) {
-      return (
-        <div
-          className="overflow-x-auto"
-          style={isMobile ? { width: 'calc(100vw - 2rem)' } : { width: '100%' }}
-        >
-          <table {...props} style={{ maxWidth: 'max-content' }}>
-            {children}
-          </table>
-        </div>
-      );
-    },
+    img: ChatMarkdownImage,
+    a: MarkdownAnchor,
+    table: MarkdownTable,
     code({
       children,
       className,
@@ -223,14 +159,16 @@ export function CitationMarkdown(props: IProps) {
       className="group markdown-body reset-list"
       style={{ background: 'transparent' }}
     >
-      <Markdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
-        components={components}
-        urlTransform={citationUrlTransform}
-      >
-        {replacedContent}
-      </Markdown>
+      <CitationContext.Provider value={citations}>
+        <Markdown
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+          components={components}
+          urlTransform={citationUrlTransform}
+        >
+          {replacedContent}
+        </Markdown>
+      </CitationContext.Provider>
       {!hideActions &&
         ![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
           <div

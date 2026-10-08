@@ -4,6 +4,8 @@ import {
 } from '@/page/chat/core/types/chatResponse';
 import type { MessageDetail } from '@/page/chat/core/types/conversation';
 
+import { hasToolCalls } from '../conversation/conversationHistory';
+
 export interface ConversationShareGroup {
   id: string;
   question: MessageDetail;
@@ -32,7 +34,7 @@ function isFinalAnswer(message: MessageDetail) {
   return (
     message.message.role === OpenAIMessageRole.ASSISTANT &&
     [MessageStatus.SUCCESS, MessageStatus.STOPPED].includes(message.status) &&
-    !message.message.tool_calls?.length &&
+    !hasToolCalls(message) &&
     Boolean(message.message.content?.trim())
   );
 }

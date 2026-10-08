@@ -22,6 +22,7 @@ import {
 } from '@/page/inviteReferral/registration';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { removeGlobalCredential } from '@/page/user/util';
 
 import {
   getAuthChangeRedirectPath,
@@ -99,7 +100,7 @@ export default function Layout() {
     void retryPendingInviteRegistration(uid).then(result => {
       if (!result) return;
       markInviteReferralLanding(result.requires_phone_binding);
-      location.href = '/';
+      if (location.pathname !== '/oauth/authorize') location.href = '/';
     });
 
     // Handle extension login - signal extension to close the tab
@@ -118,9 +119,7 @@ export default function Layout() {
       searchParams.get('from') === 'extension_login' &&
       uid
     ) {
-      clearConversationCache();
-      localStorage.removeItem('uid');
-      localStorage.removeItem('token');
+      removeGlobalCredential();
       return;
     }
 

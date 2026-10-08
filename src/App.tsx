@@ -9,7 +9,12 @@ import Error from '@/layout/ErrorPage';
 import { lazyRoute } from '@/lib/lazyRoute';
 import ChatPage from '@/page/chat';
 import ChatHomePage from '@/page/chat/ChatHomePage';
+import { CurrentDeviceContext } from '@/page/localRuntime/runtime';
 import NamespacePage from '@/page/namespace';
+import {
+  type SettingsExtension,
+  SettingsExtensionsContext,
+} from '@/page/settings/settingsExtensionsContext';
 
 const LoginPage = lazy(() => import('@/page/user/login'));
 const InvitePage = lazy(() => import('@/page/user/InvitePage'));
@@ -189,12 +194,24 @@ const router = createBrowserRouter([
   },
 ]);
 
-export default function Main() {
+export interface AppProps {
+  getCurrentDeviceId?: () => Promise<string | null>;
+  settingsExtensions?: readonly SettingsExtension[];
+}
+
+export default function Main({
+  settingsExtensions = [],
+  getCurrentDeviceId,
+}: AppProps = {}) {
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <AppContext.Provider value={app}>
         <AuthConfigProvider>
-          <RouterProvider router={router} />
+          <SettingsExtensionsContext.Provider value={settingsExtensions}>
+            <CurrentDeviceContext.Provider value={getCurrentDeviceId}>
+              <RouterProvider router={router} />
+            </CurrentDeviceContext.Provider>
+          </SettingsExtensionsContext.Provider>
         </AuthConfigProvider>
       </AppContext.Provider>
     </div>

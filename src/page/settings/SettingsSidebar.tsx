@@ -7,6 +7,7 @@ import {
   UserCog,
   Users,
 } from 'lucide-react';
+import { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AppManagerIcon } from '@/assets/icons/AppManagerIcon';
@@ -15,6 +16,8 @@ import useConfig from '@/hooks/useConfig';
 import { cn } from '@/lib/utils';
 import { UpgradeButton } from '@/page/sidebar/components/namespace-switcher/UpgradeButton';
 
+import { SettingsExtensionsContext } from './settingsExtensionsContext';
+
 interface SettingsSidebarProps {
   value: string;
   onChange: (value: string) => void;
@@ -22,7 +25,7 @@ interface SettingsSidebarProps {
 }
 
 interface MenuItem {
-  label: string;
+  label: React.ReactNode;
   value: string;
   icon: React.ReactNode;
 }
@@ -34,9 +37,15 @@ export function SettingsSidebar({
 }: SettingsSidebarProps) {
   const { t } = useTranslation();
   const { config } = useConfig();
+  const extensions = useContext(SettingsExtensionsContext);
 
   // Account section items - icons match Figma design
   const accountItems: MenuItem[] = [
+    {
+      label: t('local_runtime.title'),
+      value: 'localRuntime',
+      icon: <MonitorCog className="size-4" />,
+    },
     {
       label: t('setting.preferences'),
       value: 'basic',
@@ -52,6 +61,11 @@ export function SettingsSidebar({
       value: 'featurePreviews',
       icon: <FlaskConical className="size-4" />,
     },
+    ...extensions.map(extension => ({
+      value: `extension:${extension.id}`,
+      label: extension.label,
+      icon: extension.icon,
+    })),
   ];
 
   // Space section items
