@@ -12,6 +12,7 @@ import bindPhoneCatDark from '@/assets/inviteReferral/bindPhoneCatDark.svg';
 import bindPhoneCatLight from '@/assets/inviteReferral/bindPhoneCatLight.svg';
 import logoSvg from '@/assets/logo.svg';
 import { Button } from '@/components/button';
+import { CaptchaMount } from '@/components/captcha/CaptchaMount';
 import { PhoneNumberInput } from '@/components/phone-input';
 import { formatPhone } from '@/components/phone-input/utils';
 import { LanguageToggle } from '@/components/toggle/LanguageToggle';
@@ -29,9 +30,11 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
+import { useCaptcha } from '@/hooks/useCaptcha';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
 import useTheme from '@/hooks/useTheme';
 import { getOtpErrorMessage } from '@/hooks/useVerificationCode';
+import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validationSchemas';
@@ -67,6 +70,9 @@ export function InvitePhoneBindingDialog({
   const [canResend, setCanResend] = useState(false);
   const resendPending = useRef(false);
   const [isResending, setIsResending] = useState(false);
+  // `/user/phone/send-code` is captcha-protected; the web client never gets the
+  // mobile "please update" grace path, so a send without a param is a hard 400.
+  const captcha = useCaptcha({ scene: 'web', mode: 'popup' });
 
   const form = useForm<PhoneFormValues>({
     resolver: zodResolver(PhoneSchema),
@@ -109,33 +115,49 @@ export function InvitePhoneBindingDialog({
   const skip = () => onOpenChange(false);
 
   const handleSendCode = async (phoneNumber: string) => {
-    setSubmitting(true);
-    try {
-      await http.post('/user/phone/send-code', { phone: phoneNumber });
-      setPhone(phoneNumber);
-      setStep('code');
-      setCode('');
-      setError('');
-      startCountdown();
-      toast.success(t('phone.code_sent'), { position: 'bottom-right' });
-    } catch {
-      // Error toast is handled automatically by http client
-    } finally {
-      setSubmitting(false);
-    }
+    await captcha.run(async captchaVerifyParam => {
+      setSubmitting(true);
+      try {
+        await http.post(
+          '/user/phone/send-code',
+          withCaptchaParam({ phone: phoneNumber }, captchaVerifyParam)
+        );
+        setPhone(phoneNumber);
+        setStep('code');
+        setCode('');
+        setError('');
+        startCountdown();
+        toast.success(t('phone.code_sent'), { position: 'bottom-right' });
+        return { captchaResult: true, bizResult: true };
+      } catch (err) {
+        // Error toast is handled automatically by http client
+        return captchaResultFromError(err);
+      } finally {
+        setSubmitting(false);
+      }
+    });
   };
 
   const handleResendCode = async () => {
-    if (!canResend || resendPending.current) return;
+    if (!canResend || resendPending.current || captcha.running) return;
     resendPending.current = true;
     setIsResending(true);
     try {
-      await http.post('/user/phone/send-code', { phone });
-      setError('');
-      startCountdown();
-      toast.success(t('phone.code_sent'), { position: 'bottom-right' });
-    } catch {
-      // Error toast is handled automatically by http client
+      await captcha.run(async captchaVerifyParam => {
+        try {
+          await http.post(
+            '/user/phone/send-code',
+            withCaptchaParam({ phone }, captchaVerifyParam)
+          );
+          setError('');
+          startCountdown();
+          toast.success(t('phone.code_sent'), { position: 'bottom-right' });
+          return { captchaResult: true, bizResult: true };
+        } catch (err) {
+          // Error toast is handled automatically by http client
+          return captchaResultFromError(err);
+        }
+      });
     } finally {
       resendPending.current = false;
       setIsResending(false);
@@ -157,6 +179,7 @@ export function InvitePhoneBindingDialog({
     }
   };
 
+  const sending = submitting || captcha.running;
   const canBind = code.length === 6 && !submitting;
 
   return (
@@ -268,7 +291,7 @@ export function InvitePhoneBindingDialog({
                                 <PhoneNumberInput
                                   value={field.value as never}
                                   onChange={field.onChange}
-                                  disabled={submitting}
+                                  disabled={sending}
                                   placeholder={t('phone.enter_phone')}
                                   allowedCountries={allowedCountries}
                                   variant="bind"
@@ -282,7 +305,8 @@ export function InvitePhoneBindingDialog({
                         <Button
                           type="submit"
                           className="mt-5 h-[49px] w-full rounded-lg bg-[#0A0A0A] text-[14px] font-medium"
-                          loading={submitting}
+                          loading={sending}
+                          disabled={sending}
                         >
                           {t('phone.send_verification_code')}
                         </Button>
@@ -332,7 +356,7 @@ export function InvitePhoneBindingDialog({
                             type="button"
                             className="font-medium text-foreground hover:underline"
                             onClick={() => void handleResendCode()}
-                            disabled={isResending}
+                            disabled={isResending || captcha.running}
                           >
                             {t('phone.resend')}
                           </button>
@@ -350,6 +374,12 @@ export function InvitePhoneBindingDialog({
               </div>
             </div>
           </div>
+          {/* The SDK renders its challenge on <body>; this only has to exist.
+              The dialog already prevents every outside-interaction dismissal
+              (onPointerDownOutside / onInteractOutside above), so clicks on the
+              slider cannot tear this dialog down, and the `body > aliyunCaptcha`
+              rule in src/index.css restores pointer events on the popup. */}
+          <CaptchaMount captcha={captcha} />
         </DialogPrimitive.Content>
       </DialogPortal>
     </Dialog>
