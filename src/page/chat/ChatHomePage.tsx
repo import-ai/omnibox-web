@@ -154,9 +154,6 @@ export default function ChatHomePage() {
       }
       // Uploading images delays navigation; dismiss the keyboard before awaiting it.
       (document.activeElement as HTMLElement | null)?.blur();
-      const conversation = await http.post<ConversationEntity>(
-        `/namespaces/${namespaceId}/conversations`
-      );
       setPendingMessage({
         query,
         edition,
@@ -169,6 +166,9 @@ export default function ChatHomePage() {
         recommendedQuestionId,
         images,
       });
+      const conversation = await http.post<ConversationEntity>(
+        `/namespaces/${namespaceId}/conversations`
+      );
       setPendingChatPayload(conversation.id, {
         query,
         edition,
@@ -292,6 +292,7 @@ export default function ChatHomePage() {
             selectedResources={selectedResources}
             setSelectedResources={setSelectedResources}
             loading={!!pendingMessage && !sendFailed}
+            waitingForAssistantDelta={!!pendingMessage && !sendFailed}
             imageUploadDisabled={imageUploadDisabled}
             proUnsupported={imageUploadDisabled}
             initialQuery={pendingMessage ? undefined : defaultHomeInput}
