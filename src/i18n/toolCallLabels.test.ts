@@ -18,8 +18,6 @@ const AGENT_TOOLS = [
   'view_attachment',
   'get_agent_asset_resource_id',
   'create_agent_asset',
-  'search_history',
-  'read_history',
   'search_conversation_messages',
   'read_conversation_message',
 ];
