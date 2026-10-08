@@ -859,6 +859,7 @@
           "tag_filter": "Tag Filter",
           "collect_url": "Collect URL",
           "list_resource_tasks": "List Resource Tasks",
+          "list_resource_comments": "List Resource Comments",
           "load_docs": "Read Docs",
           "get_agent_asset_resource_id": "Get Agent Asset",
           "create_agent_asset": "Create Agent Asset",
