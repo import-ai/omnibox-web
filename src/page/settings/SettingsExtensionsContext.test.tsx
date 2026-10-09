@@ -27,6 +27,7 @@ it('only renders registered settings and namespaces extension IDs', async () => 
   );
   await act(async () => root.render(sidebar));
   expect(container.textContent).not.toContain('Local sync');
+  expect(container.textContent).not.toContain('setting.feature_previews');
   await act(async () =>
     root.render(
       <SettingsExtensionsContext.Provider
