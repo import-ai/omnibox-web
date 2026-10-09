@@ -60,6 +60,9 @@ export function SettingsSidebar({
     {
       label: t('setting.feature_previews'),
       value: 'featurePreviews',
+      // Hidden until a new preview is available; keep the tab for future use.
+      // TODO: Restore useFeaturePreviews() in namespace-switcher and SharePage
+      // when reopening this entry so previews apply before settings are opened.
       hidden: true,
       icon: <FlaskConical className="size-4" />,
     },
