@@ -191,8 +191,16 @@ describe('resource comments across view and edit modes', () => {
       offset: 0,
       limit: 20,
     });
-    await render(false, { ...resource, comment_threads: [commentedThread] });
+    const commentedResource = {
+      ...resource,
+      comment_threads: [commentedThread],
+    };
+    await render(false, commentedResource);
+    const initialThreads = readonlyComments().threads;
+    await render(false, commentedResource);
+    expect(readonlyComments().threads).toBe(initialThreads);
     await act(async () => readonlyComments().selectThread(thread.id));
+    expect(readonlyComments().threads).toBe(initialThreads);
     const card = panel.querySelector('[data-thread-id="thread"]');
     const requestCount = jest.mocked(listResourceCommentThreads).mock.calls
       .length;
@@ -214,6 +222,15 @@ describe('resource comments across view and edit modes', () => {
     expect(panel.querySelector('[data-thread-id="thread"]')).toBe(card);
     expect(listResourceCommentThreads).toHaveBeenCalledTimes(requestCount);
 
+    const renamedThreads = readonlyComments().threads;
+    const renamedActiveThread = readonlyComments().activeThread;
+    await render(false, commentedResource);
+    expect(readonlyComments().threads).toBe(renamedThreads);
+    expect(readonlyComments().activeThread).toBe(renamedActiveThread);
+    await act(async () => readonlyComments().setActiveThreadId(null));
+    expect(readonlyComments().threads).toBe(renamedThreads);
+    await act(async () => readonlyComments().selectThread(thread.id));
+    expect(readonlyComments().threads).toBe(renamedThreads);
     await render(false, {
       ...resource,
       comment_threads: [{ ...commentedThread }],
@@ -265,13 +282,16 @@ describe('resource comments across view and edit modes', () => {
   it('shares the unsaved content state with the persistent comments controller', async () => {
     await render(false);
     await render(true);
+    const visibleThreads = editorProps().comments.threads;
     await act(async () => editorProps().onContentDirtyChange(true));
+    expect(editorProps().comments.threads).toBe(visibleThreads);
     expect(editorProps().comments.commentsConfig.enabled).toBe(false);
     expect(panel.textContent).toContain(
       'resource_comments.save_before_commenting'
     );
 
     await act(async () => editorProps().onContentDirtyChange(false));
+    expect(editorProps().comments.threads).toBe(visibleThreads);
     expect(editorProps().comments.commentsConfig.enabled).toBe(true);
     expect(panel.textContent).not.toContain(
       'resource_comments.save_before_commenting'

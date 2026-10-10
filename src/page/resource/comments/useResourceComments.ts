@@ -102,21 +102,26 @@ export function useResourceComments({
   const isCommentAuthor = (authorId: string | null) =>
     !!currentUserId && authorId === currentUserId;
 
-  const withUpdatedAuthor = (thread: ResourceCommentThread) => {
-    if (!updatedAuthor || updatedAuthor.id !== currentUserId) {
-      return thread;
-    }
-    return {
-      ...thread,
-      creator:
-        thread.creator.id === updatedAuthor.id ? updatedAuthor : thread.creator,
-      comments: thread.comments.map(comment =>
-        comment.author.id === updatedAuthor.id
-          ? { ...comment, author: updatedAuthor }
-          : comment
-      ),
-    };
-  };
+  const withUpdatedAuthor = useCallback(
+    (thread: ResourceCommentThread) => {
+      if (!updatedAuthor || updatedAuthor.id !== currentUserId) {
+        return thread;
+      }
+      return {
+        ...thread,
+        creator:
+          thread.creator.id === updatedAuthor.id
+            ? updatedAuthor
+            : thread.creator,
+        comments: thread.comments.map(comment =>
+          comment.author.id === updatedAuthor.id
+            ? { ...comment, author: updatedAuthor }
+            : comment
+        ),
+      };
+    },
+    [currentUserId, updatedAuthor]
+  );
 
   useEffect(() => {
     const handleUserUpdate = (event: Event) => {
@@ -404,9 +409,26 @@ export function useResourceComments({
   const activeAnchorThread = activeThreadId
     ? (anchorThreads.find(thread => thread.id === activeThreadId) ?? null)
     : null;
-  const activeThread = activeAnchorThread
-    ? withUpdatedAuthor(activeAnchorThread)
-    : null;
+  const activeThread = useMemo(
+    () => (activeAnchorThread ? withUpdatedAuthor(activeAnchorThread) : null),
+    [activeAnchorThread, withUpdatedAuthor]
+  );
+  const authorThreads = useMemo(
+    () =>
+      updatedAuthor?.id === currentUserId
+        ? threads.map(withUpdatedAuthor)
+        : threads,
+    [currentUserId, threads, updatedAuthor, withUpdatedAuthor]
+  );
+  const visibleThreads = useMemo(
+    () =>
+      activeThread &&
+      (resolved === undefined || activeThread.resolved === resolved) &&
+      !authorThreads.some(thread => thread.id === activeThread.id)
+        ? [...authorThreads, activeThread]
+        : authorThreads,
+    [activeThread, authorThreads, resolved]
+  );
 
   useCommentHighlight({
     root: panel?.rootElement,
@@ -455,12 +477,7 @@ export function useResourceComments({
     setResolved,
     setThreadResolved,
     submitting,
-    threads:
-      activeThread &&
-      (resolved === undefined || activeThread.resolved === resolved) &&
-      !threads.some(thread => thread.id === activeThread.id)
-        ? [...threads.map(withUpdatedAuthor), activeThread]
-        : threads.map(withUpdatedAuthor),
+    threads: visibleThreads,
     total,
   };
 }
