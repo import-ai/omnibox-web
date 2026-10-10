@@ -19,7 +19,6 @@ import {
   supportsResourceHistory,
   useResourceHistoryStore,
 } from '../history/resourceHistoryStore';
-import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import Breadcrumb from './BreadcrumbMain';
 
 export default function Header(props: IActionProps) {
@@ -43,7 +42,6 @@ export default function Header(props: IActionProps) {
   );
   const commentsPanel = useResourceCommentsPanel();
   const { open } = useSidebar();
-  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const isFolder =
     resource?.resource_type === 'folder' ||
     resource?.resource_type === 'smart_folder' ||
@@ -112,11 +110,7 @@ export default function Header(props: IActionProps) {
           </div>
         ) : null}
         <Actions {...props} />
-        {resource &&
-        !isHistorical &&
-        useOmniboxEditor &&
-        !isFolder &&
-        !commentsActive ? (
+        {resource && !isHistorical && !isFolder && !commentsActive ? (
           <ResourceCommentsToggleButton />
         ) : null}
         {resource &&

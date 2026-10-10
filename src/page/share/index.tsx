@@ -13,7 +13,7 @@ import {
   EmptyMedia,
 } from '@/components/ui/Empty';
 import { SidebarProvider } from '@/components/ui/Sidebar';
-import useFeaturePreviews from '@/hooks/useFeaturePreviews';
+// import useFeaturePreviews from '@/hooks/useFeaturePreviews';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { http } from '@/lib/request';
 import { normalizeResourceMeta } from '@/lib/resourceMeta';
@@ -60,7 +60,8 @@ export default function SharePage() {
   const params = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  useFeaturePreviews();
+  // TODO: Re-enable feature preview loading when a new preview is available.
+  // useFeaturePreviews();
   const [notFound, setNotFound] = useState(false);
   const cancelTokenSource = useRef<CancelTokenSource>(null);
   const [shareInfo, setShareInfo] = useState<PublicShareInfo | null>(null);
