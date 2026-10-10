@@ -4,6 +4,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
 import { TooltipProvider } from '@/components/tooltip';
+import { USER_UPDATED_EVENT } from '@/hooks/useUser';
 import type { Resource, ResourceCommentThread } from '@/interface';
 import Editor from '@/page/resource/editor';
 import Page from '@/page/resource/Page';
@@ -25,6 +26,7 @@ jest.mock('./ResourceCommentsContext', () => ({
 jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
 }));
+jest.mock('@/lib/request', () => ({ http: { get: jest.fn() } }));
 jest.mock('@/components/attributes', () => ({
   __esModule: true,
   default: () => null,
@@ -167,6 +169,82 @@ describe('resource comments across view and edit modes', () => {
     container.remove();
     jest.clearAllMocks();
     jest.useRealTimers();
+    localStorage.clear();
+  });
+
+  it('refreshes the current author in the open sidebar without losing selection or refetching', async () => {
+    localStorage.setItem('uid', 'author');
+    const commentedThread: ResourceCommentThread = {
+      ...thread,
+      comments: ['author', 'other', 'author'].map((id, index) => ({
+        id: `comment-${index}`,
+        content: `Comment ${index}`,
+        author: { id, username: id === 'author' ? 'Old name' : 'Other name' },
+        created_at: thread.created_at,
+        updated_at: thread.updated_at,
+      })),
+    };
+    jest.mocked(listResourceCommentThreads).mockResolvedValue({
+      items: [commentedThread],
+      total: 1,
+      has_more: false,
+      offset: 0,
+      limit: 20,
+    });
+    const commentedResource = {
+      ...resource,
+      comment_threads: [commentedThread],
+    };
+    await render(false, commentedResource);
+    const initialThreads = readonlyComments().threads;
+    await render(false, commentedResource);
+    expect(readonlyComments().threads).toBe(initialThreads);
+    await act(async () => readonlyComments().selectThread(thread.id));
+    expect(readonlyComments().threads).toBe(initialThreads);
+    const card = panel.querySelector('[data-thread-id="thread"]');
+    const requestCount = jest.mocked(listResourceCommentThreads).mock.calls
+      .length;
+    expect(panel.textContent).toContain('Old name');
+
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent(USER_UPDATED_EVENT, {
+          detail: { username: 'New name' },
+        })
+      );
+    });
+
+    expect(panel.textContent).not.toContain('Old name');
+    expect(panel.textContent).toContain('New name');
+    expect(panel.textContent).toContain('Other name');
+    expect(readonlyComments().activeThread?.creator.username).toBe('New name');
+    expect(readonlyComments().activeThreadId).toBe(thread.id);
+    expect(panel.querySelector('[data-thread-id="thread"]')).toBe(card);
+    expect(listResourceCommentThreads).toHaveBeenCalledTimes(requestCount);
+
+    const renamedThreads = readonlyComments().threads;
+    const renamedActiveThread = readonlyComments().activeThread;
+    await render(false, commentedResource);
+    expect(readonlyComments().threads).toBe(renamedThreads);
+    expect(readonlyComments().activeThread).toBe(renamedActiveThread);
+    await act(async () => readonlyComments().setActiveThreadId(null));
+    expect(readonlyComments().threads).toBe(renamedThreads);
+    await act(async () => readonlyComments().selectThread(thread.id));
+    expect(readonlyComments().threads).toBe(renamedThreads);
+    await render(false, {
+      ...resource,
+      comment_threads: [{ ...commentedThread }],
+    });
+    expect(panel.textContent).not.toContain('Old name');
+    expect(panel.textContent).toContain('New name');
+    expect(commentedThread.comments[0].author.username).toBe('Old name');
+
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent(USER_UPDATED_EVENT, { detail: { username: null } })
+      );
+    });
+    expect(panel.textContent).toContain('New name');
   });
 
   it('preserves the sidebar, selection, filter and scroll position without refetching', async () => {
@@ -204,13 +282,16 @@ describe('resource comments across view and edit modes', () => {
   it('shares the unsaved content state with the persistent comments controller', async () => {
     await render(false);
     await render(true);
+    const visibleThreads = editorProps().comments.threads;
     await act(async () => editorProps().onContentDirtyChange(true));
+    expect(editorProps().comments.threads).toBe(visibleThreads);
     expect(editorProps().comments.commentsConfig.enabled).toBe(false);
     expect(panel.textContent).toContain(
       'resource_comments.save_before_commenting'
     );
 
     await act(async () => editorProps().onContentDirtyChange(false));
+    expect(editorProps().comments.threads).toBe(visibleThreads);
     expect(editorProps().comments.commentsConfig.enabled).toBe(true);
     expect(panel.textContent).not.toContain(
       'resource_comments.save_before_commenting'
