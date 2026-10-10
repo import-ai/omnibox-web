@@ -5,9 +5,11 @@ import {
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { USER_UPDATED_EVENT } from '@/hooks/useUser';
 import type {
   Permission,
   ResourceComment,
+  ResourceCommentAuthor,
   ResourceCommentThread,
 } from '@/interface';
 import { listResourceCommentThreads } from '@/service/resourceComments';
@@ -84,6 +86,8 @@ export function useResourceComments({
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [createConflict, setCreateConflict] = useState(false);
+  const [updatedAuthor, setUpdatedAuthor] =
+    useState<ResourceCommentAuthor | null>(null);
 
   anchorThreadsRef.current = anchorThreads;
   useCommentDraftHighlight(pendingSelection);
@@ -97,6 +101,43 @@ export function useResourceComments({
     enabled && !isShared && hasPermission(permission, 'can_edit');
   const isCommentAuthor = (authorId: string | null) =>
     !!currentUserId && authorId === currentUserId;
+
+  const withUpdatedAuthor = (thread: ResourceCommentThread) => {
+    if (!updatedAuthor || updatedAuthor.id !== currentUserId) {
+      return thread;
+    }
+    return {
+      ...thread,
+      creator:
+        thread.creator.id === updatedAuthor.id ? updatedAuthor : thread.creator,
+      comments: thread.comments.map(comment =>
+        comment.author.id === updatedAuthor.id
+          ? { ...comment, author: updatedAuthor }
+          : comment
+      ),
+    };
+  };
+
+  useEffect(() => {
+    const handleUserUpdate = (event: Event) => {
+      if (!(event instanceof CustomEvent) || !currentUserId) {
+        return;
+      }
+      const detail: unknown = event.detail;
+      if (
+        typeof detail === 'object' &&
+        detail !== null &&
+        'username' in detail &&
+        typeof detail.username === 'string'
+      ) {
+        setUpdatedAuthor({ id: currentUserId, username: detail.username });
+      }
+    };
+    window.addEventListener(USER_UPDATED_EVENT, handleUserUpdate);
+    return () => {
+      window.removeEventListener(USER_UPDATED_EVENT, handleUserUpdate);
+    };
+  }, [currentUserId]);
 
   const mergeAnchorThreads = useCallback(
     (incoming: ResourceCommentThread[]) => {
@@ -360,8 +401,11 @@ export function useResourceComments({
     return collectResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
 
-  const activeThread = activeThreadId
+  const activeAnchorThread = activeThreadId
     ? (anchorThreads.find(thread => thread.id === activeThreadId) ?? null)
+    : null;
+  const activeThread = activeAnchorThread
+    ? withUpdatedAuthor(activeAnchorThread)
     : null;
 
   useCommentHighlight({
@@ -415,8 +459,8 @@ export function useResourceComments({
       activeThread &&
       (resolved === undefined || activeThread.resolved === resolved) &&
       !threads.some(thread => thread.id === activeThread.id)
-        ? [...threads, activeThread]
-        : threads,
+        ? [...threads.map(withUpdatedAuthor), activeThread]
+        : threads.map(withUpdatedAuthor),
     total,
   };
 }
