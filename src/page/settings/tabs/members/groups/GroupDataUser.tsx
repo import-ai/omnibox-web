@@ -34,19 +34,22 @@ export default function GroupDataUser(props: GroupProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="py-2 pl-6 pr-3">
+    <div className="pb-2 pl-6 pr-3">
       {groupUserData.map(item => {
         const profile = findMemberByUserId(member, item.id);
         return (
-          <div key={item.id} className="flex items-center justify-between">
-            <div className="flex items-center">
+          <div
+            key={item.id}
+            className="flex h-[50px] items-center justify-between gap-2 border-b border-border lg:h-[60px]"
+          >
+            <div className="flex min-w-0 items-center">
               <UserCard
                 email={item.email || profile?.email || ''}
                 username={item.username}
                 nickname={profile?.nickname}
                 note={profile?.note}
               />
-              <span className="ml-2 rounded bg-gray-100 px-2 py-0.5 text-xs dark:bg-gray-800">
+              <span className="ml-2 shrink-0 whitespace-nowrap rounded bg-gray-100 px-2 py-0.5 dark:bg-gray-800">
                 {t(`manage.${item.role}`)}
               </span>
             </div>
@@ -56,7 +59,11 @@ export default function GroupDataUser(props: GroupProps) {
               okText={t('ok')}
               cancelText={t('cancel')}
             >
-              <Button size="sm" variant="ghost" className="hover:text-red-500">
+              <Button
+                size="sm"
+                variant="ghost"
+                className="shrink-0 hover:text-red-500"
+              >
                 {t('manage.remove_from_group')}
               </Button>
             </PopConfirm>
