@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 
+import useApp from '@/hooks/useApp';
 import { cn } from '@/lib/utils';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
 import {
@@ -83,6 +84,7 @@ export function ResourceCommentsProvider({
   children: ReactNode;
   namespaceId: string;
 }) {
+  const app = useApp();
   const [panelOpen, setOpen] = useState(() => readStoredPanelOpen(namespaceId));
   const [panelElement, setPanelElement] = useState<HTMLDivElement | null>(null);
   const [rootElement, setRootElementState] = useState<HTMLDivElement | null>(
@@ -147,6 +149,13 @@ export function ResourceCommentsProvider({
     },
     [applyShift, namespaceId]
   );
+
+  useEffect(() => {
+    if (isShared) return;
+    return app.on('close_resource_comments', (targetNamespaceId: string) => {
+      if (targetNamespaceId === namespaceId) setPanelOpen(false);
+    });
+  }, [app, isShared, namespaceId, setPanelOpen]);
 
   useEffect(() => {
     const storedOpen = readStoredPanelOpen(namespaceId);
