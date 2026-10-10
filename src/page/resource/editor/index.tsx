@@ -1,6 +1,4 @@
 import '@import-ai/omnibox-editor/style.css';
-import 'vditor/dist/index.css';
-import '@/styles/vditor-patch.css';
 import '../resourceEditor.css';
 
 import {
@@ -19,16 +17,9 @@ import React, {
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import Vditor from 'vditor';
 
-import { Input } from '@/components/input';
-import { markdownPreviewConfig } from '@/components/markdown';
-import { normalizeListIndentForLute } from '@/components/markdown/normalizeListIndent';
-import { VDITOR_CDN } from '@/const';
 import useTheme from '@/hooks/useTheme';
 import type { Resource } from '@/interface';
-import { addReferrerPolicyForElement } from '@/lib/addReferrerPolicy';
-import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import {
   clearCache,
@@ -39,7 +30,6 @@ import {
 import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
   OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
-  toolbar,
 } from '@/page/resource/editor/const';
 import {
   type EditorUpdatePayload,
@@ -49,7 +39,6 @@ import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import type { ResourceCommentsController } from '../comments/useResourceComments';
-import { selectUseOmniboxEditor, useResourceStore } from '../resourceStore';
 import {
   type AutosizeTextAreaRef,
   normalizeTitleInput,
@@ -104,24 +93,7 @@ function saveResourceEditorCache(
   updateCacheContent(resourceId, content);
 }
 
-function format(_files: File[], responseText: string): string {
-  const response: UploadResponse = JSON.parse(responseText);
-  const uploadedMap: Record<string, string> = {};
-  response.uploaded.forEach(file => {
-    uploadedMap[file.name] = `attachments/${file.link}`;
-  });
-  const processedResponse = {
-    msg: 'success',
-    code: 0,
-    data: {
-      errFiles: response.failed,
-      succMap: uploadedMap,
-    },
-  };
-  return JSON.stringify(processedResponse);
-}
-
-function OmniboxResourceEditor(props: IEditorProps) {
+export default function Editor(props: IEditorProps) {
   const {
     resource,
     onResource,
@@ -392,177 +364,5 @@ function OmniboxResourceEditor(props: IEditorProps) {
         ) : null}
       </div>
     </div>
-  );
-}
-
-function VditorResourceEditor(props: IEditorProps) {
-  const { resource, onResource, namespaceId, wide } = props;
-  const { i18n } = useTranslation();
-  const root = useRef<any>(null);
-  const navigate = useNavigate();
-  const loc = useLocation();
-  const { app, theme } = useTheme();
-  const [vd, setVd] = useState<Vditor>();
-  const [title, onTitle] = useState('');
-  const contentRef = useRef('');
-  const initialCache = useMemo(() => getCache(resource.id), [resource.id]);
-  const dirtyRef = useRef(
-    Boolean(initialCache?.title || initialCache?.content)
-  );
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value;
-    dirtyRef.current = true;
-    onTitle(newTitle);
-    updateCacheTitle(resource.id, newTitle);
-  };
-
-  useEffect(() => {
-    return app.on('save', (onSuccess?: () => void) => {
-      const name = title.trim();
-      const content: string | undefined = vd?.getValue();
-      if (!content && !name) {
-        navigate(`/${namespaceId}/${resource.id}`, {
-          state: loc.state,
-        });
-        return;
-      }
-      http
-        .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
-          name,
-          content,
-          namespaceId: namespaceId,
-        })
-        .then((delta: Resource) => {
-          app.fire('update_resource', delta);
-          onResource(delta);
-          dirtyRef.current = false;
-          clearCache(resource.id);
-          navigate(`/${namespaceId}/${resource.id}`, {
-            state: loc.state,
-          });
-          onSuccess && onSuccess();
-        });
-    });
-  }, [title, vd, loc.state]);
-
-  useEffect(() => {
-    const keydownFN = (e: KeyboardEvent) => {
-      if (!vd) {
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        saveResourceEditorCache(resource.id, title, vd.getValue());
-      }
-    };
-    document.addEventListener('keydown', keydownFN);
-    return () => {
-      document.removeEventListener('keydown', keydownFN);
-    };
-  }, [resource.id, title, vd]);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token') || '';
-    const cachedTitle = initialCache?.title ?? resource.name ?? '';
-    const cachedContent = initialCache?.content ?? resource.content ?? '';
-
-    onTitle(cachedTitle);
-
-    if (!resource || !root.current || resource.resource_type === 'folder') {
-      return;
-    }
-
-    const vditor = new Vditor(root.current, {
-      ...(VDITOR_CDN ? { cdn: VDITOR_CDN } : {}),
-      tab: '\t',
-      preview: markdownPreviewConfig(theme),
-      toolbar,
-      toolbarConfig: {
-        pin: true,
-      },
-      cache: {
-        enable: false,
-      },
-      mode: 'wysiwyg',
-      lang: getLangOnly(i18n) === 'zh' ? 'zh_CN' : 'en_US',
-      upload: {
-        url: `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
-        accept: 'image/*,.wav',
-        max: 1024 * 1024 * 5,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        format,
-      },
-      input: (value: string) => {
-        if (value !== contentRef.current) {
-          dirtyRef.current = true;
-        }
-        contentRef.current = value;
-        updateCacheContent(resource.id, value);
-      },
-      after: () => {
-        // Expand TipTap-style 2-space nests so Lute/WYSIWYG keeps hierarchy.
-        const editorValue = normalizeListIndentForLute(cachedContent);
-        contentRef.current = editorValue;
-        vditor.setValue(editorValue);
-        vditor.setTheme(
-          theme.content === 'dark' ? 'dark' : 'classic',
-          theme.content,
-          theme.code
-        );
-        if (resource.content) {
-          if (vditor.vditor.ir && vditor.vditor.ir.element) {
-            addReferrerPolicyForElement(vditor.vditor.ir.element);
-          }
-          if (vditor.vditor.wysiwyg && vditor.vditor.wysiwyg.element) {
-            addReferrerPolicyForElement(vditor.vditor.wysiwyg.element);
-          }
-        }
-        setVd(vditor);
-      },
-    });
-    return () => {
-      vd?.destroy();
-      setVd(undefined);
-    };
-  }, [initialCache, resource]);
-
-  useEffect(() => {
-    if (!vd) {
-      return;
-    }
-    vd.setTheme(
-      theme.content === 'dark' ? 'dark' : 'classic',
-      theme.content,
-      theme.code
-    );
-  }, [vd, theme]);
-
-  return (
-    <div
-      className={`mx-auto w-full pb-[30vh] ${
-        wide ? 'max-w-full' : 'max-w-[680px]'
-      }`}
-    >
-      <Input
-        type="text"
-        value={title}
-        onChange={handleChange}
-        placeholder="Enter title"
-        className="mb-4 p-2 border rounded"
-      />
-      <div ref={root} className="vditor reset-list" />
-    </div>
-  );
-}
-
-export default function Editor(props: IEditorProps) {
-  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
-  return useOmniboxEditor ? (
-    <OmniboxResourceEditor {...props} />
-  ) : (
-    <VditorResourceEditor {...props} />
   );
 }
