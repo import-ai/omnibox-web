@@ -13,7 +13,6 @@ import {
 import type { IActionProps } from './actions';
 import { useResourceHistoryStore } from './history/resourceHistoryStore';
 import ResourceDetailView from './ResourceDetailView';
-import { useResourceStore } from './resourceStore';
 
 let resizeCallback: ResizeObserverCallback;
 
@@ -51,6 +50,10 @@ jest.mock('@/components/ui/Sidebar', () => ({
 jest.mock('@/hooks/useWide', () => ({
   __esModule: true,
   default: () => ({ wide: false, onWide: jest.fn() }),
+}));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ on: () => () => {} }),
 }));
 jest.mock('@/page/resource/useResourceBodyDragAutoScroll', () => ({
   useResourceBodyDragAutoScroll: jest.fn(),
@@ -142,9 +145,6 @@ describe('ResourceDetailView', () => {
   beforeEach(() => {
     sessionStorage.clear();
     localStorage.setItem('uid', 'viewer');
-    useResourceStore
-      .getState()
-      .setFeaturePreviews('viewer', { editor_v2: false });
     useCopilotStore.getState().reset('namespace-a');
     useResourceHistoryStore
       .getState()
@@ -329,117 +329,68 @@ describe('ResourceDetailView', () => {
     expect(resourceView?.classList).toContain('resource-detail-view--compact');
   });
 
-  it('hides the comment action and closes the open sidebar when switching to the legacy editor', async () => {
-    useResourceStore.getState().setFeaturePreview('viewer', 'editor_v2', true);
+  it('shows comments and uses the full document pane without editor preferences', async () => {
+    localStorage.removeItem('uid');
     await renderResource();
     const commentButton = container.querySelector<HTMLButtonElement>(
       'button[aria-label="resource_comments.title"]'
     );
     expect(commentButton).not.toBeNull();
+    const column = container.querySelector<HTMLDivElement>(
+      '[data-resource-scroll] > div'
+    );
+    expect(column?.style.maxWidth).toBe('100%');
     await act(async () => commentButton?.click());
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
     ).toBe(true);
-
-    await act(async () => {
-      useResourceStore
-        .getState()
-        .setFeaturePreview('viewer', 'editor_v2', false);
-    });
-    expect(
-      container.querySelector('button[aria-label="resource_comments.title"]')
-    ).toBeNull();
-    expect(
-      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
-    ).toBe(false);
-    expect(
-      JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
-    ).not.toHaveProperty('namespace-a');
-
-    await act(async () => {
-      useResourceStore
-        .getState()
-        .setFeaturePreview('viewer', 'editor_v2', true);
-    });
-    expect(
-      container.querySelector('button[aria-label="resource_comments.title"]')
-    ).not.toBeNull();
-    expect(
-      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
-    ).toBe(false);
   });
 
-  it('keeps a normal Copilot conversation open when switching editors', async () => {
-    useResourceStore.getState().setFeaturePreview('viewer', 'editor_v2', true);
+  it.each(['folder', 'smart_folder', 'rss_folder'] as const)(
+    'hides comments and closes the comment sidebar when navigating to a %s',
+    async resourceType => {
+      await renderResource();
+      await act(async () =>
+        container
+          .querySelector<HTMLButtonElement>(
+            'button[aria-label="resource_comments.title"]'
+          )
+          ?.click()
+      );
+      await renderResource({ ...resource, resource_type: resourceType });
+      expect(
+        container.querySelector('button[aria-label="resource_comments.title"]')
+      ).toBeNull();
+      expect(
+        getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
+      ).toBe(false);
+      expect(
+        JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
+      ).not.toHaveProperty('namespace-a');
+    }
+  );
+
+  it('keeps a normal Copilot conversation open when navigating to a folder', async () => {
     useCopilotStore.getState().open('namespace-a');
-    await renderResource();
-    await act(async () => {
-      useResourceStore
-        .getState()
-        .setFeaturePreview('viewer', 'editor_v2', false);
-    });
+    await renderResource({ ...resource, resource_type: 'folder' });
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
     ).toBe(true);
-    expect(
-      container.querySelector('button[aria-label="resource_comments.title"]')
-    ).toBeNull();
   });
 
-  it('clears a restored comment sidebar when loading with the legacy editor', async () => {
-    sessionStorage.setItem(
-      'resource-comments-panel',
-      JSON.stringify({ 'namespace-a': true })
-    );
-    await renderResource();
-    expect(
-      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
-    ).toBe(false);
-    expect(
-      container.querySelector('button[aria-label="resource_comments.title"]')
-    ).toBeNull();
-    expect(
-      JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
-    ).not.toHaveProperty('namespace-a');
-  });
-
-  it('preserves the restored comment sidebar while editor preferences load after a refresh', async () => {
-    useResourceStore.getState().resetFeaturePreviews();
+  it('preserves the restored comment sidebar after a refresh', async () => {
     sessionStorage.setItem(
       'resource-comments-panel',
       JSON.stringify({ 'namespace-a': true })
     );
     useCopilotStore.getState().open('namespace-a');
-
     await renderResource();
-
     expect(
       JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
     ).toHaveProperty('namespace-a', true);
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
     ).toBe(true);
-
-    await act(async () => {
-      useResourceStore
-        .getState()
-        .setFeaturePreviews('viewer', { editor_v2: true });
-    });
-
-    expect(
-      JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
-    ).toHaveProperty('namespace-a', true);
-    expect(
-      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
-    ).toBe(true);
-    expect(
-      container.querySelector('button[aria-label="resource_comments.title"]')
-    ).toBeNull();
-  });
-
-  it('hides comments when the editor feature flag is absent', async () => {
-    useResourceStore.getState().setFeaturePreviews('viewer', {});
-    await renderResource();
     expect(
       container.querySelector('button[aria-label="resource_comments.title"]')
     ).toBeNull();

@@ -1,5 +1,4 @@
 import 'vditor/dist/index.css';
-import '@/styles/vditor-patch.css';
 import '@/components/markdown/index.css';
 
 import { useEffect, useRef } from 'react';
@@ -18,10 +17,9 @@ interface IProps {
   linkBase?: string;
   openLinksInNewWindow?: boolean;
   style?: React.CSSProperties;
-  onRendered?: () => void;
 }
 
-export function markdownPreviewConfig(theme: Theme) {
+function markdownPreviewConfig(theme: Theme) {
   return {
     hljs: {
       defaultLang: 'plain',
@@ -38,13 +36,7 @@ export function markdownPreviewConfig(theme: Theme) {
 }
 
 export function Markdown(props: IProps) {
-  const {
-    style,
-    content,
-    linkBase,
-    openLinksInNewWindow = false,
-    onRendered,
-  } = props;
+  const { style, content, linkBase, openLinksInNewWindow = false } = props;
   const { theme } = useTheme();
   const navigate = useNavigate();
   const element = useRef<HTMLDivElement>(null);
@@ -98,13 +90,10 @@ export function Markdown(props: IProps) {
               link.rel = 'noopener noreferrer';
             });
           }
-          if (onRendered) {
-            onRendered();
-          }
         },
       });
     }
-  }, [content, theme, onRendered, openLinksInNewWindow]);
+  }, [content, theme, openLinksInNewWindow]);
 
   return <div style={style} className="reset-list" ref={element} />;
 }

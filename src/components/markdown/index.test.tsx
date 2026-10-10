@@ -10,7 +10,6 @@ import { Markdown } from './index';
 const navigate = jest.fn();
 
 jest.mock('vditor/dist/index.css', () => ({}));
-jest.mock('@/styles/vditor-patch.css', () => ({}));
 jest.mock('@/components/markdown/index.css', () => ({}));
 jest.mock('@/const', () => ({
   LAZY_LOAD_IMAGE: false,

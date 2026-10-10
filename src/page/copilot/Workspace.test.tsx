@@ -21,6 +21,11 @@ jest.mock('@/hooks/useMobile', () => ({
   useIsMobile: () => mockIsMobile,
 }));
 
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ on: () => () => {} }),
+}));
+
 jest.mock('./CitationResourcePreview', () => ({
   __esModule: true,
   default: () => mockCitationResourcePreview(),

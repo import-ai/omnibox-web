@@ -44,10 +44,6 @@ jest.mock('@/page/resource/folder', () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock('@/page/resource/resourceStore', () => ({
-  useResourceStore: () => true,
-  selectUseOmniboxEditor: jest.fn(),
-}));
 jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'resource', hash: '' }),
   useSearchParams: () => [new URLSearchParams()],

@@ -39,10 +39,3 @@ export const useResourceStore = create<ResourceStore>()(set => ({
     })),
   resetFeaturePreviews: () => set(initialState),
 }));
-
-export function selectUseOmniboxEditor(state: ResourceState): boolean {
-  return (
-    state.featurePreviewsUserId === localStorage.getItem('uid') &&
-    state.featurePreviews.editor_v2
-  );
-}

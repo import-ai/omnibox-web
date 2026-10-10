@@ -41,6 +41,10 @@ describe('resetChatForNamespaceSwitch', () => {
       configurable: true,
       value: storage,
     });
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: memoryStorage(),
+    });
     useChatStore.setState({
       inputResetNonce: 0,
       selectedResources: [
@@ -76,7 +80,11 @@ describe('resetChatForNamespaceSwitch', () => {
 });
 
 describe('openCopilotForChatContext', () => {
+  const app = { hasHook: jest.fn(), fire: jest.fn() };
+
   beforeEach(() => {
+    app.hasHook.mockReset().mockReturnValue(false);
+    app.fire.mockReset();
     useCopilotStore.setState({ workspaces: {} });
   });
 
@@ -86,7 +94,7 @@ describe('openCopilotForChatContext', () => {
       .showConversation('namespace-a', 'conversation-a');
     useCopilotStore.getState().close('namespace-a');
 
-    openCopilotForChatContext('namespace-a');
+    openCopilotForChatContext('namespace-a', app);
 
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
@@ -98,7 +106,7 @@ describe('openCopilotForChatContext', () => {
   });
 
   it('opens Copilot home when there is no active conversation', () => {
-    openCopilotForChatContext('namespace-a');
+    openCopilotForChatContext('namespace-a', app);
 
     expect(
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
@@ -107,5 +115,28 @@ describe('openCopilotForChatContext', () => {
       view: 'home',
       conversationId: null,
     });
+  });
+
+  it('opens Copilot after the comments listener closes the shared panel', () => {
+    app.hasHook.mockReturnValue(true);
+    app.fire.mockImplementation((_event: string, namespaceId: string) => {
+      useCopilotStore.getState().close(namespaceId);
+    });
+
+    openCopilotForChatContext('namespace-a', app);
+
+    expect(app.fire).toHaveBeenCalledWith(
+      'close_resource_comments',
+      'namespace-a'
+    );
+    expect(
+      getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a').open
+    ).toBe(true);
+  });
+
+  it('does not buffer a comments close when no provider is mounted', () => {
+    openCopilotForChatContext('namespace-a', app);
+
+    expect(app.fire).not.toHaveBeenCalled();
   });
 });

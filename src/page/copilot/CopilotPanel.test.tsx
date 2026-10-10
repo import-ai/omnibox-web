@@ -4,11 +4,26 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import AppContext from '@/hooks/appContext';
+import Hook from '@/hooks/hook.class';
+import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
+import { useChatStore } from '@/page/chat/chatStore';
+import {
+  ResourceCommentsProvider,
+  useResourceCommentsPanel,
+} from '@/page/resource/comments/ResourceCommentsContext';
+
 import CopilotPanel from './CopilotPanel';
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 
 let copilotViewMounts = 0;
 let resizeCallback: ResizeObserverCallback;
+
+jest.mock('lodash-es', () => ({
+  isFunction: (value: unknown) => typeof value === 'function',
+  isString: (value: unknown) => typeof value === 'string',
+  isUndefined: (value: unknown) => value === undefined,
+}));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -98,6 +113,21 @@ function setViewportWidth(width: number) {
   window.dispatchEvent(new Event('resize'));
 }
 
+function CommentsControls() {
+  const panel = useResourceCommentsPanel();
+  return (
+    <button
+      data-testid="open-comments"
+      onClick={() => {
+        panel?.setPanelOpen(true);
+        panel?.setCommentFocusOffset(80);
+      }}
+    >
+      Open comments
+    </button>
+  );
+}
+
 describe('CopilotPanel', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -124,6 +154,7 @@ describe('CopilotPanel', () => {
     global.ResizeObserver = ResizeObserverMock;
     sessionStorage.clear();
     useCopilotStore.setState({ workspaces: {} });
+    useChatStore.setState({ selectedResources: [] });
     copilotViewMounts = 0;
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -136,6 +167,103 @@ describe('CopilotPanel', () => {
     document.body.style.overflow = '';
     global.ResizeObserver = originalResizeObserver as typeof ResizeObserver;
   });
+
+  const renderCommentsWorkspace = (app: Hook, namespaceId = 'namespace-a') =>
+    act(async () =>
+      root.render(
+        <AppContext.Provider value={app}>
+          <ResourceCommentsProvider namespaceId={namespaceId}>
+            <CommentsControls />
+            <CopilotPanel namespaceId={namespaceId} />
+          </ResourceCommentsProvider>
+        </AppContext.Provider>
+      )
+    );
+
+  it.each(['home', 'conversation', 'history', 'resource_history'] as const)(
+    'switches comments to Copilot when adding context from %s',
+    async view => {
+      const app = new Hook();
+      const store = useCopilotStore.getState();
+      if (view === 'conversation')
+        store.showConversation('namespace-a', 'chat-a');
+      if (view === 'history') store.showHistory('namespace-a');
+      if (view === 'resource_history')
+        store.showResourceHistory('namespace-a', 'resource-a');
+      addToChatContext({ id: 'existing-resource' }, 'resource');
+      await renderCommentsWorkspace(app);
+      act(() =>
+        container
+          .querySelector<HTMLButtonElement>('[data-testid="open-comments"]')
+          ?.click()
+      );
+      expect(
+        container.querySelector('.resource-comments-panel')
+      ).not.toBeNull();
+      expect(
+        container.querySelector('[data-testid="copilot-view"]')
+      ).toBeNull();
+
+      act(() => {
+        openCopilotForChatContext('namespace-a', app);
+        addToChatContext({ id: 'added-resource' }, 'resource');
+      });
+
+      expect(container.querySelector('.resource-comments-panel')).toBeNull();
+      expect(
+        container.querySelector('[data-testid="copilot-view"]')
+      ).not.toBeNull();
+      expect(
+        getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+      ).toMatchObject({
+        open: true,
+        view: view === 'conversation' ? 'conversation' : 'home',
+        conversationId: view === 'conversation' ? 'chat-a' : null,
+      });
+      expect(
+        useChatStore.getState().selectedResources.map(item => item.resource.id)
+      ).toEqual(['existing-resource', 'added-resource']);
+      expect(
+        JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
+      ).toEqual({});
+      expect(
+        container
+          .querySelector<HTMLElement>('[data-resource-comments-root]')
+          ?.style.getPropertyValue('--resource-comment-shift')
+      ).toBe('0px');
+
+      await renderCommentsWorkspace(app);
+      expect(container.querySelector('.resource-comments-panel')).toBeNull();
+      await act(async () => root.render(null));
+      expect(app.hasHook('close_resource_comments')).toBe(false);
+      await renderCommentsWorkspace(app);
+      expect(container.querySelector('.resource-comments-panel')).toBeNull();
+    }
+  );
+
+  it.each(['namespace-b', 'share:share-a'])(
+    'leaves comments in %s open when another namespace adds context',
+    async namespaceId => {
+      const app = new Hook();
+      await renderCommentsWorkspace(app, namespaceId);
+      act(() =>
+        container
+          .querySelector<HTMLButtonElement>('[data-testid="open-comments"]')
+          ?.click()
+      );
+
+      act(() => openCopilotForChatContext('namespace-a', app));
+
+      expect(
+        container.querySelector('.resource-comments-panel')
+      ).not.toBeNull();
+      expect(
+        JSON.parse(sessionStorage.getItem('resource-comments-panel') ?? '{}')
+      ).toEqual({ [namespaceId]: true });
+      if (namespaceId.startsWith('share:'))
+        expect(app.hasHook('close_resource_comments')).toBe(false);
+    }
+  );
 
   it('keeps one conversation subtree mounted while closing and changing layouts', async () => {
     act(() => {

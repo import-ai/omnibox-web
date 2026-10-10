@@ -20,7 +20,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/Collapsible';
-import { Separator } from '@/components/ui/Separator';
 import { Switch } from '@/components/ui/Switch';
 import { Group, Member } from '@/interface';
 import { http } from '@/lib/request';
@@ -200,7 +199,6 @@ export default function GroupData(props: GroupProps) {
         </div>
       </div>
       <CollapsibleContent>
-        <Separator />
         <DataGroupUser
           group_id={id}
           member={member}
