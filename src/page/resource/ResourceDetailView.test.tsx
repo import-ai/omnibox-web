@@ -51,6 +51,10 @@ jest.mock('@/hooks/useWide', () => ({
   __esModule: true,
   default: () => ({ wide: false, onWide: jest.fn() }),
 }));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ on: () => () => {} }),
+}));
 jest.mock('@/page/resource/useResourceBodyDragAutoScroll', () => ({
   useResourceBodyDragAutoScroll: jest.fn(),
 }));

@@ -217,7 +217,7 @@ export function useNodeActions(
       doAdd();
     } else {
       // Stay on the resource page and surface Copilot with the new context.
-      openCopilotForChatContext(namespaceId);
+      openCopilotForChatContext(namespaceId, app);
       doAdd();
     }
     if (isMobile) setOpenMobile(false);
