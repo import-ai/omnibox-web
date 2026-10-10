@@ -865,6 +865,7 @@
           "tag_filter": "筛选标签",
           "collect_url": "收藏网页",
           "list_resource_tasks": "查询资源任务",
+          "list_resource_comments": "读取文档评论",
           "load_docs": "查看文档",
           "get_agent_asset_resource_id": "加载资源",
           "create_agent_asset": "创建资源",
