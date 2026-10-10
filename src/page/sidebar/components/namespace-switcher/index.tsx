@@ -22,7 +22,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/Sidebar';
-import useFeaturePreviews from '@/hooks/useFeaturePreviews';
+// import useFeaturePreviews from '@/hooks/useFeaturePreviews';
 import { Namespace } from '@/interface';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { getUpgradeLink } from '@/lib/upgradeLink';
@@ -50,7 +50,8 @@ export function Switcher(props: IProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  useFeaturePreviews();
+  // TODO: Re-enable feature preview loading when a new preview is available.
+  // useFeaturePreviews();
 
   const current = useMemo(() => {
     const found = namespaces.find(item => item.id === namespaceId);
