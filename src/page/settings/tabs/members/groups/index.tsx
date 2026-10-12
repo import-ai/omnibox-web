@@ -73,7 +73,7 @@ export default function GroupMain(props: GroupProps) {
             </div>
             <div className="flex h-8 flex-1 items-center px-2 lg:h-10"></div>
           </div>
-          <div className="w-full">
+          <div className="w-full text-sm">
             {data.map(item => (
               <GroupData
                 key={item.id}

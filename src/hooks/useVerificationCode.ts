@@ -8,6 +8,7 @@ export function useVerificationCode(error: string, onClearError: () => void) {
   const [code, setCode] = useState('');
   const [countdown, setCountdown] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  const [resending, setResending] = useState(false);
 
   // Clear code when error occurs
   useEffect(() => {
@@ -33,11 +34,22 @@ export function useVerificationCode(error: string, onClearError: () => void) {
     setCode(value);
   };
 
-  const handleResend = (onResend: () => void) => {
-    if (canResend) {
-      setCountdown(60);
-      setCanResend(false);
-      onResend();
+  /**
+   * `onResend` reports whether a code was actually sent: sending now goes
+   * through a captcha popup, and dismissing it must not burn the 60s window.
+   */
+  const handleResend = async (onResend: () => Promise<boolean> | boolean) => {
+    if (!canResend || resending) {
+      return;
+    }
+    setResending(true);
+    try {
+      if (await onResend()) {
+        setCountdown(60);
+        setCanResend(false);
+      }
+    } finally {
+      setResending(false);
     }
   };
 
@@ -45,6 +57,7 @@ export function useVerificationCode(error: string, onClearError: () => void) {
     code,
     countdown,
     canResend,
+    resending,
     handleCodeChange,
     handleResend,
   };
