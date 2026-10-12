@@ -142,6 +142,8 @@ describe('useChatTitle', () => {
   });
 
   it('posts title generation for untitled conversations', async () => {
+    const onRefresh = jest.fn();
+    mockApp.on('chat:conversations:refresh', onRefresh);
     await renderHook('conversation-a');
     await act(async () => {
       mockApp.fire('chat:title', {
@@ -156,6 +158,11 @@ describe('useChatTitle', () => {
     );
     await act(async () => undefined);
     expect(latestTitle).toBe('Generated title');
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(onRefresh).toHaveBeenCalledWith({
+      namespaceId: 'namespace-a',
+      conversationId: 'conversation-a',
+    });
   });
 
   it('ignores title generation for another conversation', async () => {
@@ -187,6 +194,8 @@ describe('useChatTitle', () => {
   });
 
   it('does not apply a generated title after switching conversations', async () => {
+    const onRefresh = jest.fn();
+    mockApp.on('chat:conversations:refresh', onRefresh);
     let resolveTitle!: (value: { title: string }) => void;
     mockPost.mockReturnValueOnce(
       new Promise(resolve => {
@@ -208,6 +217,10 @@ describe('useChatTitle', () => {
     });
 
     expect(latestTitle).toBe('');
+    expect(onRefresh).toHaveBeenCalledWith({
+      namespaceId: 'namespace-a',
+      conversationId: 'conversation-a',
+    });
   });
 
   it('clears the active title when conversation authorization fails', async () => {

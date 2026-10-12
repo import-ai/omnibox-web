@@ -186,6 +186,10 @@ export function useChatTitle(namespaceId: string, conversationId: string) {
           .then(res => {
             if (getCurrentUserId() !== target.userId) return;
             rememberTitle(target, target.conversationId, res.title);
+            app.fire('chat:conversations:refresh', {
+              namespaceId: target.namespaceId,
+              conversationId: target.conversationId,
+            });
             const activeTarget = activeTargetRef.current;
             if (
               activeTarget.userId === target.userId &&

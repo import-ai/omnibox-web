@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
+import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
 import { isConversationAccessDenied } from '@/page/chat/conversation/conversationLoadPolicy';
 import type { ConversationSummary } from '@/page/chat/core/types/conversation';
@@ -16,6 +17,7 @@ export default function useContext(
   compact = false
 ) {
   const params = useParams();
+  const app = useApp();
   const namespaceId = namespaceIdOverride || params.namespace_id || '';
   const [loading, onLoading] = useState(false);
   const requestRef = useRef<ReturnType<typeof axios.CancelToken.source> | null>(
@@ -48,67 +50,70 @@ export default function useContext(
     title: '',
     open: false,
   });
-  const fetchPage = (append = false) => {
-    if (append && requestRef.current) {
-      return;
-    }
-    requestRef.current?.cancel();
-    const source = axios.CancelToken.source();
-    requestRef.current = source;
-    onLoading(true);
-    setHasLoadError(false);
-    const offset = compact
-      ? append
-        ? data.data.length
-        : 0
-      : (current - 1) * pageSize;
-    const limit =
-      compact && !append ? Math.max(pageSize, data.data.length) : pageSize;
-    http
-      .get(`/namespaces/${namespaceId}/me`, { cancelToken: source.token })
-      .then(() => {
-        source.token.throwIfRequested();
-        return http.get(
-          `/namespaces/${namespaceId}/conversations?offset=${offset}&limit=${limit}&order=desc`,
-          { cancelToken: source.token }
-        );
-      })
-      .then((response: ConversationPage) => {
-        if (requestRef.current !== source) {
-          return;
-        }
-        nextOffsetRef.current = response.data.length
-          ? offset + response.data.length
-          : response.total;
-        setAccessDenied(false);
-        onData(previous => {
-          if (!append) {
-            return response;
-          }
-          const conversations = new Map(
-            previous.data.map(item => [item.id, item])
+  const fetchPage = useCallback(
+    (append = false) => {
+      if (append && requestRef.current) {
+        return;
+      }
+      requestRef.current?.cancel();
+      const source = axios.CancelToken.source();
+      requestRef.current = source;
+      onLoading(true);
+      setHasLoadError(false);
+      const offset = compact
+        ? append
+          ? data.data.length
+          : 0
+        : (current - 1) * pageSize;
+      const limit =
+        compact && !append ? Math.max(pageSize, data.data.length) : pageSize;
+      http
+        .get(`/namespaces/${namespaceId}/me`, { cancelToken: source.token })
+        .then(() => {
+          source.token.throwIfRequested();
+          return http.get(
+            `/namespaces/${namespaceId}/conversations?offset=${offset}&limit=${limit}&order=desc`,
+            { cancelToken: source.token }
           );
-          response.data.forEach(item => conversations.set(item.id, item));
-          return { total: response.total, data: [...conversations.values()] };
+        })
+        .then((response: ConversationPage) => {
+          if (requestRef.current !== source) {
+            return;
+          }
+          nextOffsetRef.current = response.data.length
+            ? offset + response.data.length
+            : response.total;
+          setAccessDenied(false);
+          onData(previous => {
+            if (!append) {
+              return response;
+            }
+            const conversations = new Map(
+              previous.data.map(item => [item.id, item])
+            );
+            response.data.forEach(item => conversations.set(item.id, item));
+            return { total: response.total, data: [...conversations.values()] };
+          });
+        })
+        .catch((error: unknown) => {
+          if (axios.isCancel(error) || requestRef.current !== source) {
+            return;
+          }
+          setHasLoadError(true);
+          if (isConversationAccessDenied(error)) {
+            onData({ total: 0, data: [] });
+            setAccessDenied(true);
+          }
+        })
+        .finally(() => {
+          if (requestRef.current === source) {
+            requestRef.current = null;
+            onLoading(false);
+          }
         });
-      })
-      .catch((error: unknown) => {
-        if (axios.isCancel(error) || requestRef.current !== source) {
-          return;
-        }
-        setHasLoadError(true);
-        if (isConversationAccessDenied(error)) {
-          onData({ total: 0, data: [] });
-          setAccessDenied(true);
-        }
-      })
-      .finally(() => {
-        if (requestRef.current === source) {
-          requestRef.current = null;
-          onLoading(false);
-        }
-      });
-  };
+    },
+    [compact, current, data.data.length, namespaceId, pageSize]
+  );
   const refetch = () => fetchPage();
   const onPagerChange = (page: number) => {
     if (compact) {
@@ -133,6 +138,17 @@ export default function useContext(
   const onRemoveChange = (open: boolean) => {
     onRemove({ ...remove, open });
   };
+
+  useEffect(() => {
+    return app.on(
+      'chat:conversations:refresh',
+      (payload: { namespaceId: string; conversationId: string }) => {
+        if (payload.namespaceId === namespaceId) {
+          fetchPage();
+        }
+      }
+    );
+  }, [app, fetchPage, namespaceId]);
 
   useEffect(() => {
     setAccessDenied(false);

@@ -7,6 +7,22 @@ import { http } from '@/lib/request';
 
 import useContext from './useContext';
 
+const mockListeners = new Map<string, (payload: unknown) => void>();
+const mockApp = {
+  on: (event: string, listener: (payload: unknown) => void) => {
+    mockListeners.set(event, listener);
+    return () => mockListeners.delete(event);
+  },
+  fire: (event: string, payload: unknown) => {
+    mockListeners.get(event)?.(payload);
+  },
+};
+
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => mockApp,
+}));
+
 jest.mock('react', () => {
   const react = jest.requireActual<typeof import('react')>('react');
   return { ...react, default: react };
@@ -114,4 +130,40 @@ it('keeps ordinary pagination on the standalone history page', async () => {
   expect(context().list.current).toBe(2);
   expect(context().list.data.data).toHaveLength(10);
   expect(context().list.data.data[0].id).toBe('chat-10');
+});
+
+it('shows a newly titled conversation and preserves the loaded range on refresh', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(10, 10));
+  await act(async () => context().list.onPagerChange(2));
+
+  const refreshedPage = page(0, 19, 26);
+  refreshedPage.data.unshift({ id: 'new-chat', title: 'Generated title' });
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(refreshedPage);
+  await act(async () => {
+    mockApp.fire('chat:conversations:refresh', {
+      namespaceId: 'space',
+      conversationId: 'new-chat',
+    });
+  });
+
+  expect(get.mock.calls[5][0]).toContain('offset=0&limit=20');
+  expect(context().list.data.data).toEqual(refreshedPage.data);
+  expect(context().list.data.total).toBe(26);
+  expect(context().list.hasMore).toBe(true);
+});
+
+it('ignores refresh notifications for another namespace and unsubscribes on unmount', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+  await act(async () => {
+    mockApp.fire('chat:conversations:refresh', {
+      namespaceId: 'other-space',
+      conversationId: 'new-chat',
+    });
+  });
+  expect(get).toHaveBeenCalledTimes(2);
+  await act(async () => root.render(null));
+  expect(mockListeners.has('chat:conversations:refresh')).toBe(false);
 });
