@@ -10,15 +10,8 @@ export function isFolderLikeResourceType(resourceType?: string | null) {
   );
 }
 
-export function shouldUseFullWidthResourcePane(
-  useOmniboxEditor: boolean,
-  resourceType?: string | null
-) {
-  return (
-    useOmniboxEditor &&
-    !!resourceType &&
-    !isFolderLikeResourceType(resourceType)
-  );
+export function shouldUseFullWidthResourcePane(resourceType?: string | null) {
+  return !!resourceType && !isFolderLikeResourceType(resourceType);
 }
 
 export function resourcePaneColumnClassName(options: {

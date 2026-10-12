@@ -1,3 +1,4 @@
+import type App from '@/hooks/app.class';
 import { normalizeResourceMeta, ResourceMetaLike } from '@/lib/resourceMeta';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import type { PrivateSearchResourceType } from '@/page/chat/chat-input/types';
@@ -26,7 +27,14 @@ export function resetChatForNamespaceSwitch(namespaceId: string) {
  * Opens Copilot beside the current resource page so added context is visible.
  * Keeps an active conversation; otherwise lands on Copilot home.
  */
-export function openCopilotForChatContext(namespaceId: string) {
+export function openCopilotForChatContext(
+  namespaceId: string,
+  app: Pick<App, 'hasHook' | 'fire'>
+) {
+  // The event bus buffers unhandled events; do not queue a stale panel close.
+  if (app.hasHook('close_resource_comments')) {
+    app.fire('close_resource_comments', namespaceId);
+  }
   const store = useCopilotStore.getState();
   const workspace = getCopilotWorkspace(store, namespaceId);
   if (workspace.view === 'conversation' && workspace.conversationId) {

@@ -52,10 +52,6 @@ jest.mock('@/hooks/useApp', () => ({
   __esModule: true,
   default: () => ({ fire: jest.fn(), on: () => () => {} }),
 }));
-jest.mock('@/page/resource/resourceStore', () => ({
-  selectUseOmniboxEditor: () => true,
-  useResourceStore: () => true,
-}));
 jest.mock('./header', () => ({
   __esModule: true,
   default: ({ showComments }: { showComments?: boolean }) => (

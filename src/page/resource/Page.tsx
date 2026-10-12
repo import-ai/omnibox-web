@@ -8,10 +8,6 @@ import { cn } from '@/lib/utils';
 import Editor from '@/page/resource/editor';
 import Folder from '@/page/resource/folder';
 import Render from '@/page/resource/Render';
-import {
-  selectUseOmniboxEditor,
-  useResourceStore,
-} from '@/page/resource/resourceStore';
 import { splitSearchText } from '@/page/resource/searchHighlight';
 import { isFolderLikeResourceType } from '@/page/resource/useResourcePaneLayout';
 import { RSS_ITEM_SORT } from '@/service/resourceSort';
@@ -60,9 +56,8 @@ function PageContent(props: PageContentProps) {
     rssFeedNames,
   } = props;
   const { t } = useTranslation();
-  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const folderLike = isFolderLikeResourceType(resource.resource_type);
-  const constrainHeader = useOmniboxEditor && !folderLike;
+  const constrainHeader = !folderLike;
   const constrainFolderContent = folderLike;
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query') ?? '';
@@ -171,10 +166,8 @@ function PageContent(props: PageContentProps) {
 export default function Page(props: IProps) {
   const { editPage, namespaceId, resource } = props;
   const commentsNamespaceId = props.commentsNamespaceId ?? namespaceId;
-  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
   const [contentDirty, setContentDirty] = useState(false);
   const commentsEnabled =
-    useOmniboxEditor &&
     !props.isHistorical &&
     !!commentsNamespaceId &&
     !isFolderLikeResourceType(resource.resource_type);

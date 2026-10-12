@@ -20,10 +20,6 @@ import {
   useCopilotStore,
 } from '@/page/copilot/copilotStore';
 import { COPILOT_PANEL_TRANSITION_MS } from '@/page/copilot/useCopilotPanelLayout';
-import {
-  selectUseOmniboxEditor,
-  useResourceStore,
-} from '@/page/resource/resourceStore';
 import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDragAutoScroll';
 import {
   isFolderLikeResourceType,
@@ -147,12 +143,6 @@ function ResourceDetailContent({
   const copilotOpen = copilotWorkspace.open;
   const [copilotLayoutOpen, setCopilotLayoutOpen] = useState(copilotOpen);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
-  const areFeaturePreviewsLoaded = useResourceStore(
-    state =>
-      state.featurePreviewsUserId !== null &&
-      state.featurePreviewsUserId === localStorage.getItem('uid')
-  );
   const commentsPanel = useResourceCommentsPanel();
   const commentsPanelOpen = commentsPanel?.panelOpen ?? false;
   const closeCommentsPanel = commentsPanel?.setPanelOpen;
@@ -160,7 +150,6 @@ function ResourceDetailContent({
     currentResource?.resource_type
   );
   const useFullWidth = shouldUseFullWidthResourcePane(
-    useOmniboxEditor,
     currentResource?.resource_type
   );
   const onNearBottom = useCallback(() => {
@@ -206,20 +195,10 @@ function ResourceDetailContent({
   ]);
 
   useEffect(() => {
-    if (
-      (isFolderResource || (areFeaturePreviewsLoaded && !useOmniboxEditor)) &&
-      commentsPanelOpen &&
-      closeCommentsPanel
-    ) {
+    if (isFolderResource && commentsPanelOpen && closeCommentsPanel) {
       closeCommentsPanel(false);
     }
-  }, [
-    areFeaturePreviewsLoaded,
-    closeCommentsPanel,
-    commentsPanelOpen,
-    isFolderResource,
-    useOmniboxEditor,
-  ]);
+  }, [closeCommentsPanel, commentsPanelOpen, isFolderResource]);
 
   useEffect(() => {
     if (copilotOpen) {

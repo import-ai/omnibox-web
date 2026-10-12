@@ -1,3 +1,8 @@
+.resource-readonly-editor,
+.resource-editable-editor {
+  --tt-table-scrollbar-thumb-color: hsl(var(--border));
+}
+
 .resource-readonly-page-header {
   width: 100%;
   max-width: 680px;
