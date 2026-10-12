@@ -43,7 +43,9 @@ export function openCopilotForChatContext(
   const store = useCopilotStore.getState();
   const workspace = getCopilotWorkspace(store, namespaceId);
   const conversationId =
-    workspace.view === 'conversation' ? workspace.conversationId : null;
+    workspace.view === 'conversation' || workspace.view === 'resource_history'
+      ? workspace.conversationId
+      : null;
   const draftScope = conversationId ?? getChatHomeDraftScope(namespaceId);
   const draft = getChatInputDraft(draftScope);
   if (draft) {
@@ -66,7 +68,7 @@ export function openCopilotForChatContext(
     app.fire('close_resource_comments', namespaceId);
   }
   if (conversationId) {
-    store.open(namespaceId);
+    store.showConversation(namespaceId, conversationId);
     return;
   }
   store.showHome(namespaceId);

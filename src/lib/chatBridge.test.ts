@@ -149,44 +149,61 @@ describe('openCopilotForChatContext', () => {
     expect(app.fire).not.toHaveBeenCalled();
   });
 
-  it('updates only the target conversation draft when adding context', () => {
-    const draft = createChatInputDraft(createComposerState('Saved question'));
-    const homeScope = getChatHomeDraftScope('namespace-a');
-    const otherScope = getChatHomeDraftScope('namespace-b');
-    saveChatInputDraft(homeScope, draft);
-    saveChatInputDraft(otherScope, draft);
-    const existing = {
-      id: 'existing-resource',
-      name: 'Existing file',
-      parent_id: null,
-      resource_type: 'file' as const,
-    };
-    const withResource = insertComposerResource(
-      draft.composerState,
-      existing,
-      {
-        start: draft.composerState.displayText.length,
-        end: draft.composerState.displayText.length,
-      },
-      'Untitled'
-    ).state;
-    saveChatInputDraft('conversation-a', createChatInputDraft(withResource));
-    useCopilotStore
-      .getState()
-      .showConversation('namespace-a', 'conversation-a');
-    addToChatContext({ id: 'added-resource', name: 'Added file' }, 'resource');
+  it.each(['conversation', 'resource_history'] as const)(
+    'updates only the target conversation draft when adding context from %s',
+    view => {
+      const draft = createChatInputDraft(createComposerState('Saved question'));
+      const homeScope = getChatHomeDraftScope('namespace-a');
+      const otherScope = getChatHomeDraftScope('namespace-b');
+      saveChatInputDraft(homeScope, draft);
+      saveChatInputDraft(otherScope, draft);
+      const existing = {
+        id: 'existing-resource',
+        name: 'Existing file',
+        parent_id: null,
+        resource_type: 'file' as const,
+      };
+      const withResource = insertComposerResource(
+        draft.composerState,
+        existing,
+        {
+          start: draft.composerState.displayText.length,
+          end: draft.composerState.displayText.length,
+        },
+        'Untitled'
+      ).state;
+      saveChatInputDraft('conversation-a', createChatInputDraft(withResource));
+      useCopilotStore
+        .getState()
+        .showConversation('namespace-a', 'conversation-a');
+      if (view === 'resource_history')
+        useCopilotStore
+          .getState()
+          .showResourceHistory('namespace-a', existing.id);
+      addToChatContext(
+        { id: 'added-resource', name: 'Added file' },
+        'resource'
+      );
 
-    openCopilotForChatContext('namespace-a', app);
+      openCopilotForChatContext('namespace-a', app);
 
-    expect(getChatInputDraft(homeScope)).toEqual(draft);
-    expect(getChatInputDraft(otherScope)).toEqual(draft);
-    expect(
-      useChatStore.getState().selectedResources.map(item => item.resource.id)
-    ).toEqual([existing.id, 'added-resource']);
-    expect(
-      getChatInputDraft('conversation-a')?.selectedResources.map(
-        item => item.resource.id
-      )
-    ).toEqual([existing.id, 'added-resource']);
-  });
+      expect(getChatInputDraft(homeScope)).toEqual(draft);
+      expect(getChatInputDraft(otherScope)).toEqual(draft);
+      expect(
+        getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
+      ).toMatchObject({
+        open: true,
+        view: 'conversation',
+        conversationId: 'conversation-a',
+      });
+      expect(
+        useChatStore.getState().selectedResources.map(item => item.resource.id)
+      ).toEqual([existing.id, 'added-resource']);
+      expect(
+        getChatInputDraft('conversation-a')?.selectedResources.map(
+          item => item.resource.id
+        )
+      ).toEqual([existing.id, 'added-resource']);
+    }
+  );
 });

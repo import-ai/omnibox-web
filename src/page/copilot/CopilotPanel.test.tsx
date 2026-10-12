@@ -245,6 +245,8 @@ describe('CopilotPanel', () => {
     ['comments', 'home', 'resource'],
     ['comments', 'conversation', 'folder'],
     ['resource_history', 'home', 'folder'],
+    ['resource_history', 'conversation', 'resource'],
+    ['resource_history', 'conversation', 'folder'],
   ] as const)(
     'keeps the saved %s draft and added context in the real %s composer (%s)',
     async (panel, view, type) => {
@@ -294,6 +296,17 @@ describe('CopilotPanel', () => {
       });
 
       const expectedIds = [existing.id, added.id];
+      expect(
+        getCopilotWorkspace(useCopilotStore.getState(), namespaceId)
+      ).toMatchObject({
+        open: true,
+        view,
+        conversationId: view === 'conversation' ? scope : null,
+      });
+      if (view === 'conversation')
+        expect(
+          getChatInputDraft(getChatHomeDraftScope(namespaceId))
+        ).toBeUndefined();
       expect(
         useChatStore.getState().selectedResources.map(item => item.resource.id)
       ).toEqual(expectedIds);
