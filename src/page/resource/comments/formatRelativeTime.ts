@@ -17,8 +17,12 @@ export function formatRelativeTime(
   ) ?? ['minute', 60];
   const amount = Math.round(elapsedSeconds / seconds);
   if (unit === 'minute' && amount === 0) return justNow;
-  return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(
-    amount,
-    unit
-  );
+  const formatted = new Intl.RelativeTimeFormat(locale, {
+    numeric: 'auto',
+  }).format(amount, unit);
+  return locale.startsWith('zh')
+    ? formatted
+        .replace(/(\p{Script=Han})(\d)/gu, '$1 $2')
+        .replace(/(\d)(\p{Script=Han})/gu, '$1 $2')
+    : formatted;
 }
