@@ -4,8 +4,12 @@ import { useParams } from 'react-router-dom';
 
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
+import { getCurrentUserId } from '@/page/chat/conversation/conversationCache';
 import { isConversationAccessDenied } from '@/page/chat/conversation/conversationLoadPolicy';
-import type { ConversationSummary } from '@/page/chat/core/types/conversation';
+import type {
+  ConversationSummary,
+  ConversationTitleGeneratedPayload,
+} from '@/page/chat/core/types/conversation';
 
 interface ConversationPage {
   total: number;
@@ -24,6 +28,9 @@ export default function useContext(
     null
   );
   const nextOffsetRef = useRef(0);
+  const loadedCountRef = useRef(0);
+  // Keep acknowledged titles visible until the list API confirms them.
+  const pendingTitlesRef = useRef(new Map<string, ConversationSummary>());
   const [hasLoadError, setHasLoadError] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
   const [current, onCurrent] = useState(1);
@@ -50,6 +57,7 @@ export default function useContext(
     title: '',
     open: false,
   });
+  loadedCountRef.current = data.data.length;
   const fetchPage = useCallback(
     (append = false) => {
       if (append && requestRef.current) {
@@ -62,11 +70,13 @@ export default function useContext(
       setHasLoadError(false);
       const offset = compact
         ? append
-          ? data.data.length
+          ? nextOffsetRef.current
           : 0
         : (current - 1) * pageSize;
       const limit =
-        compact && !append ? Math.max(pageSize, data.data.length) : pageSize;
+        compact && !append
+          ? Math.max(pageSize, loadedCountRef.current)
+          : pageSize;
       http
         .get(`/namespaces/${namespaceId}/me`, { cancelToken: source.token })
         .then(() => {
@@ -84,15 +94,35 @@ export default function useContext(
             ? offset + response.data.length
             : response.total;
           setAccessDenied(false);
+          response.data.forEach(item => {
+            if (pendingTitlesRef.current.get(item.id)?.title === item.title) {
+              pendingTitlesRef.current.delete(item.id);
+            }
+          });
+          const pendingTitles = [...pendingTitlesRef.current.values()];
           onData(previous => {
-            if (!append) {
+            if (!append && pendingTitles.length === 0) {
               return response;
             }
             const conversations = new Map(
-              previous.data.map(item => [item.id, item])
+              (append ? previous.data : []).map(item => [item.id, item])
             );
             response.data.forEach(item => conversations.set(item.id, item));
-            return { total: response.total, data: [...conversations.values()] };
+            const missingTitles = pendingTitles.filter(
+              item => !conversations.has(item.id)
+            );
+            pendingTitles.forEach(item => {
+              const existing = conversations.get(item.id);
+              if (existing) {
+                conversations.set(item.id, { ...existing, title: item.title });
+              }
+            });
+            return {
+              total: pendingTitles.length
+                ? Math.max(response.total, previous.total)
+                : response.total,
+              data: [...missingTitles, ...conversations.values()],
+            };
           });
         })
         .catch((error: unknown) => {
@@ -101,6 +131,7 @@ export default function useContext(
           }
           setHasLoadError(true);
           if (isConversationAccessDenied(error)) {
+            pendingTitlesRef.current.clear();
             onData({ total: 0, data: [] });
             setAccessDenied(true);
           }
@@ -112,7 +143,7 @@ export default function useContext(
           }
         });
     },
-    [compact, current, data.data.length, namespaceId, pageSize]
+    [compact, current, namespaceId, pageSize]
   );
   const refetch = () => fetchPage();
   const onPagerChange = (page: number) => {
@@ -125,10 +156,12 @@ export default function useContext(
     onCurrent(page);
   };
   const onEditDone = () => {
+    pendingTitlesRef.current.delete(edit.id);
     onEdit({ id: '', title: '', open: false });
     refetch();
   };
   const onRemoveDone = () => {
+    pendingTitlesRef.current.delete(remove.id);
     onRemove({ id: '', title: '', open: false });
     refetch();
   };
@@ -140,24 +173,48 @@ export default function useContext(
   };
 
   useEffect(() => {
-    return app.on(
-      'chat:conversations:refresh',
-      (payload: { namespaceId: string; conversationId: string }) => {
-        if (payload.namespaceId === namespaceId) {
-          fetchPage();
-        }
-      }
-    );
-  }, [app, fetchPage, namespaceId]);
-
-  useEffect(() => {
+    pendingTitlesRef.current.clear();
     setAccessDenied(false);
     fetchPage();
     return () => {
       requestRef.current?.cancel();
       requestRef.current = null;
     };
-  }, [namespaceId, current, pageSize]);
+  }, [fetchPage]);
+
+  useEffect(() => {
+    return app.on(
+      'chat:conversation:title-generated',
+      (payload: ConversationTitleGeneratedPayload) => {
+        if (
+          payload.namespaceId !== namespaceId ||
+          payload.userId !== getCurrentUserId()
+        ) {
+          return;
+        }
+        if (compact && payload.conversation.created_at) {
+          const conversation = payload.conversation;
+          pendingTitlesRef.current.set(conversation.id, conversation);
+          onData(previous => {
+            const exists = previous.data.some(
+              item => item.id === conversation.id
+            );
+            return {
+              total: previous.total + (exists ? 0 : 1),
+              data: exists
+                ? previous.data.map(item =>
+                    item.id === conversation.id
+                      ? { ...item, title: conversation.title }
+                      : item
+                  )
+                : [conversation, ...previous.data],
+            };
+          });
+        }
+        fetchPage();
+      }
+    );
+  }, [app, compact, fetchPage, namespaceId]);
 
   return {
     list: {

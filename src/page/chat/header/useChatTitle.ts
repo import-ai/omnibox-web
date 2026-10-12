@@ -11,6 +11,7 @@ import {
   getCurrentUserId,
   setCachedConversation,
 } from '@/page/chat/conversation/conversationCache';
+import type { ConversationTitleGeneratedPayload } from '@/page/chat/core/types/conversation';
 
 export type ChatTitleUpdatePayload = {
   conversationId: string;
@@ -186,10 +187,24 @@ export function useChatTitle(namespaceId: string, conversationId: string) {
           .then(res => {
             if (getCurrentUserId() !== target.userId) return;
             rememberTitle(target, target.conversationId, res.title);
-            app.fire('chat:conversations:refresh', {
+            const cached = getCachedConversation(target, target.conversationId);
+            const messageCreatedAt = cached
+              ? Object.values(cached.mapping)
+                  .map(message => message.created_at)
+                  .filter((timestamp): timestamp is string => !!timestamp)
+                  .sort()[0]
+              : undefined;
+            const payload: ConversationTitleGeneratedPayload = {
+              userId: target.userId,
               namespaceId: target.namespaceId,
-              conversationId: target.conversationId,
-            });
+              conversation: {
+                id: target.conversationId,
+                title: res.title,
+                created_at: cached?.created_at ?? messageCreatedAt,
+                updated_at: cached?.updated_at,
+              },
+            };
+            app.fire('chat:conversation:title-generated', payload);
             const activeTarget = activeTargetRef.current;
             if (
               activeTarget.userId === target.userId &&
