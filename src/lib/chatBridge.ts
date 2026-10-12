@@ -1,6 +1,15 @@
+import { t } from 'i18next';
+
 import type App from '@/hooks/app.class';
 import { normalizeResourceMeta, ResourceMetaLike } from '@/lib/resourceMeta';
-import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
+import {
+  clearChatInputDraft,
+  createChatInputDraft,
+  getChatInputDraft,
+  saveChatInputDraft,
+} from '@/page/chat/chat-input/chatInputDraft';
+import { syncComposerResources } from '@/page/chat/chat-input/composerExternalSync';
+import { normalizeResourceContexts } from '@/page/chat/chat-input/resourceContexts';
 import type { PrivateSearchResourceType } from '@/page/chat/chat-input/types';
 import { useChatStore } from '@/page/chat/chatStore';
 import {
@@ -31,13 +40,32 @@ export function openCopilotForChatContext(
   namespaceId: string,
   app: Pick<App, 'hasHook' | 'fire'>
 ) {
+  const store = useCopilotStore.getState();
+  const workspace = getCopilotWorkspace(store, namespaceId);
+  const conversationId =
+    workspace.view === 'conversation' ? workspace.conversationId : null;
+  const draftScope = conversationId ?? getChatHomeDraftScope(namespaceId);
+  const draft = getChatInputDraft(draftScope);
+  if (draft) {
+    // Sync before the panel remounts, otherwise draft restore drops new context.
+    const chatStore = useChatStore.getState();
+    const resources = normalizeResourceContexts([
+      ...draft.selectedResources,
+      ...chatStore.selectedResources,
+    ]);
+    const composerState = syncComposerResources(
+      draft.composerState,
+      resources,
+      t('untitled')
+    );
+    saveChatInputDraft(draftScope, createChatInputDraft(composerState));
+    chatStore.setContext(resources);
+  }
   // The event bus buffers unhandled events; do not queue a stale panel close.
   if (app.hasHook('close_resource_comments')) {
     app.fire('close_resource_comments', namespaceId);
   }
-  const store = useCopilotStore.getState();
-  const workspace = getCopilotWorkspace(store, namespaceId);
-  if (workspace.view === 'conversation' && workspace.conversationId) {
+  if (conversationId) {
     store.open(namespaceId);
     return;
   }
