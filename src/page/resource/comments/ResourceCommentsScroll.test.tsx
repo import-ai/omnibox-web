@@ -19,6 +19,10 @@ jest.mock('@/page/copilot/useCopilotPanelLayout', () => ({
     setPanelElement: jest.fn(),
   }),
 }));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ on: () => () => {} }),
+}));
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 function Fixture() {
