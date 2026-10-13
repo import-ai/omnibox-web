@@ -6,7 +6,7 @@ import {
   KeyRound,
   List,
   MonitorSmartphone,
-  UserCog,
+  Sun,
   Users,
 } from 'lucide-react';
 import { useContext } from 'react';
@@ -47,7 +47,7 @@ export function SettingsSidebar({
     {
       label: t('setting.preferences'),
       value: 'basic',
-      icon: <UserCog className="size-4" />,
+      icon: <Sun className="size-4" />,
     },
     {
       label: t('local_runtime.title'),
