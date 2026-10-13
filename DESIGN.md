@@ -193,10 +193,10 @@ Several components exist in two versions. Use these:
 
 | Need                                 | Use                                               | Not                       |
 | ------------------------------------ | ------------------------------------------------- | ------------------------- |
-| Button in general                    | `@/components/Button`                             | `@/components/ui/Button`  |
+| Button in general                    | `@/components/Button`                             | `@/components/ui/button`  |
 | Button that submits an async action  | `@/components/Button` with `loading`              | manual `Spinner`          |
 | Tooltip                              | `@/components/tooltip`                            | `@/components/ui/Tooltip` |
-| Input in a form                      | `@/components/ui/Input`                           | `@/components/input`      |
+| Input in a form                      | `@/components/ui/input`                           | `@/components/input`      |
 | Input needing leading/trailing icons | `@/components/input`                              | —                         |
 | Confirm a risky action               | `AlertDialog`, or a shared confirm below          | `window.confirm`          |
 | Modal                                | `Dialog`                                          | `Sheet`                   |
