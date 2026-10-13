@@ -154,6 +154,8 @@
     }
   },
   "resource_comments": {
+    "expand_content": "Expand",
+    "collapse_content": "Collapse",
     "collapse": "Collapse comments",
     "panel_title": "Comments ({{count}})",
     "no_threads": "No comments yet",
