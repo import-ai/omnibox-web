@@ -49,7 +49,7 @@ describe('createStreamTransport', () => {
     localStorage.setItem('token', 'test-token');
   });
 
-  it('delivers default-type data events in order', async () => {
+  it('delivers data lines in order', async () => {
     const delivered = await deliveredFrom([
       'data: {"response_type":"bos"}\n\n',
       'data: {"response_type":"delta","delta":"hi"}\n\ndata: {"response_type":"eos"}\n\n',
@@ -61,14 +61,15 @@ describe('createStreamTransport', () => {
     ]);
   });
 
-  it('drops the ping heartbeat but keeps the default-type event after it', async () => {
+  it('delivers the ping heartbeat like any other data line', async () => {
     const delivered = await deliveredFrom([
       'data: {"response_type":"bos"}\n\n',
-      'id: 3\nevent: ping\ndata: {"response_type":"ping"}\n\n',
+      'id: 3\ndata: {"response_type":"ping"}\n\n',
       'data: {"response_type":"done"}\n\n',
     ]);
     expect(delivered).toEqual([
       '{"response_type":"bos"}',
+      '{"response_type":"ping"}',
       '{"response_type":"done"}',
     ]);
   });

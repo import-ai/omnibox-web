@@ -37,11 +37,6 @@ export function createStreamTransport(
       }
       const decoder = new TextDecoder();
       let buffer: string = '';
-      // SSE event type of the block being read; '' is the default `message`
-      // type. The backend heartbeat arrives as `event: ping` plus
-      // `data: {"response_type":"ping"}` and must not reach the message
-      // processor, so only default-type data lines are delivered.
-      let eventName = '';
 
       try {
         while (!isAborted) {
@@ -57,11 +52,7 @@ export function createStreamTransport(
             const line = buffer.slice(0, lineEnd).trim();
             buffer = buffer.slice(lineEnd + 1);
 
-            if (line === '') {
-              eventName = '';
-            } else if (line.startsWith('event:')) {
-              eventName = line.slice(6).trim();
-            } else if (line.startsWith('data:') && eventName === '') {
+            if (line.startsWith('data:')) {
               const data = line.slice(5).trim();
               await callback(data);
             }
