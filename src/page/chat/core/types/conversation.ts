@@ -21,6 +21,12 @@ export interface ConversationSummary extends IBase {
   };
 }
 
+export interface ConversationTitleGeneratedPayload {
+  userId: string;
+  namespaceId: string;
+  conversation: ConversationSummary;
+}
+
 export interface ToolCallFrontendOperation {
   name: string;
   args?: {
