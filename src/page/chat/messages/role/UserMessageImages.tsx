@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ImagePreviewDialog } from '@/page/chat/ImagePreviewDialog';
+import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 
 import type { UserMessageImagePart } from './userMessageTokens';
 

@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import useTheme from '@/hooks/useTheme';
 import { Resource, SharedResource } from '@/interface';
 import { cn } from '@/lib/utils';
@@ -27,6 +28,7 @@ import {
   useResourceComments,
 } from './comments/useResourceComments';
 import { parseScrollToLine } from './scrollToLine';
+import { useResourceImagePreview } from './useResourceImagePreview';
 import { embedImage, getReadonlyResourceEditorKey } from './utils';
 
 interface IProps {
@@ -87,6 +89,17 @@ function OmniboxRender(props: OmniboxRenderProps) {
   const search = searchParams.get('query');
   const [isScrollLineVisible, setIsScrollLineVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { registerImagePreview, imagePreviewProps } = useResourceImagePreview(
+    `read:${namespaceId ?? ''}:${getReadonlyResourceEditorKey(resource)}`,
+    containerRef
+  );
+  const handleEditorReady = useCallback(
+    (editor: Parameters<typeof registerImagePreview>[0]) => {
+      registerImagePreview(editor);
+      if (!props.commentsDisabled) comments.registerEditor(editor);
+    },
+    [registerImagePreview, props.commentsDisabled, comments.registerEditor]
+  );
   const content = useMemo(
     () => getResourceEditorContent(resource, linkBase, namesById),
     [linkBase, namesById, resource]
@@ -148,7 +161,13 @@ function OmniboxRender(props: OmniboxRenderProps) {
   }
 
   return (
-    <div ref={containerRef} style={style} className={editorClassName}>
+    <div
+      ref={containerRef}
+      tabIndex={-1}
+      style={style}
+      className={editorClassName}
+    >
+      <ImagePreviewDialog {...imagePreviewProps} />
       <ResourceOmniboxEditor
         key={getReadonlyResourceEditorKey(resource)}
         editable={false}
@@ -168,7 +187,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
         searchTerm={search ?? undefined}
         scrollToLine={scrollToLine}
         comments={props.commentsDisabled ? undefined : comments.commentsConfig}
-        onReady={props.commentsDisabled ? undefined : comments.registerEditor}
+        onReady={handleEditorReady}
         onCodeBlockCopy={handleCodeBlockCopy}
         scrollToLineContent={embedImage(resource)}
       />

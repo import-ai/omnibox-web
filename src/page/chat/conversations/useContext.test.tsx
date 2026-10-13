@@ -7,6 +7,22 @@ import { http } from '@/lib/request';
 
 import useContext from './useContext';
 
+const mockListeners = new Map<string, (payload: unknown) => void>();
+const mockApp = {
+  on: (event: string, listener: (payload: unknown) => void) => {
+    mockListeners.set(event, listener);
+    return () => mockListeners.delete(event);
+  },
+  fire: (event: string, payload: unknown) => {
+    mockListeners.get(event)?.(payload);
+  },
+};
+
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => mockApp,
+}));
+
 jest.mock('react', () => {
   const react = jest.requireActual<typeof import('react')>('react');
   return { ...react, default: react };
@@ -44,6 +60,7 @@ function page(start: number, count: number, total = 25) {
 
 beforeEach(() => {
   get.mockReset();
+  localStorage.setItem('uid', 'user-a');
   currentContext = undefined;
   container = document.createElement('div');
   document.body.appendChild(container);
@@ -114,4 +131,129 @@ it('keeps ordinary pagination on the standalone history page', async () => {
   expect(context().list.current).toBe(2);
   expect(context().list.data.data).toHaveLength(10);
   expect(context().list.data.data[0].id).toBe('chat-10');
+});
+
+it('shows a newly titled conversation and preserves the loaded range on refresh', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(10, 10));
+  await act(async () => context().list.onPagerChange(2));
+
+  const refreshedPage = page(0, 19, 26);
+  refreshedPage.data.unshift({ id: 'new-chat', title: 'Generated title' });
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(refreshedPage);
+  await act(async () => {
+    mockApp.fire('chat:conversation:title-generated', {
+      namespaceId: 'space',
+      userId: 'user-a',
+      conversation: {
+        id: 'new-chat',
+        title: 'Generated title',
+        created_at: '2026-10-12T01:00:00Z',
+      },
+    });
+  });
+
+  expect(get.mock.calls[5][0]).toContain('offset=0&limit=20');
+  expect(context().list.data.data).toEqual(refreshedPage.data);
+  expect(context().list.data.total).toBe(26);
+  expect(context().list.hasMore).toBe(true);
+});
+
+it('ignores refresh notifications for another namespace and unsubscribes on unmount', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+  await act(async () => {
+    mockApp.fire('chat:conversation:title-generated', {
+      namespaceId: 'other-space',
+      userId: 'user-a',
+      conversation: {
+        id: 'new-chat',
+        title: 'Generated title',
+        created_at: '2026-10-12T01:00:00Z',
+      },
+    });
+  });
+  expect(get).toHaveBeenCalledTimes(2);
+  await act(async () => root.render(null));
+  expect(mockListeners.has('chat:conversation:title-generated')).toBe(false);
+});
+
+it('shows the generated title before refresh completes and retains it through a stale response', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+
+  let resolvePage: (value: ReturnType<typeof page>) => void = () => {
+    throw new Error('Refresh request has not started');
+  };
+  const pendingPage = new Promise<ReturnType<typeof page>>(resolve => {
+    resolvePage = resolve;
+  });
+  get.mockResolvedValueOnce({}).mockReturnValueOnce(pendingPage);
+  const conversation = {
+    id: 'new-chat',
+    title: 'Generated title',
+    created_at: '2026-10-12T01:00:00Z',
+  };
+  await act(async () => {
+    mockApp.fire('chat:conversation:title-generated', {
+      namespaceId: 'space',
+      userId: 'user-a',
+      conversation,
+    });
+  });
+
+  expect(context().list.loading).toBe(true);
+  expect(context().list.data.data[0]).toEqual(conversation);
+  expect(context().list.data.total).toBe(26);
+
+  await act(async () => resolvePage(page(0, 10)));
+  expect(context().list.data.data[0]).toEqual(conversation);
+  expect(context().list.data.total).toBe(26);
+
+  const confirmedPage = page(0, 10, 26);
+  confirmedPage.data.unshift(conversation);
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(confirmedPage);
+  await act(async () => context().list.refetch());
+  expect(context().list.data.data).toEqual(confirmedPage.data);
+  expect(context().list.data.total).toBe(26);
+});
+
+it('updates an existing conversation without duplication or changing its total', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+  const stalePage = page(0, 10);
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(stalePage);
+  await act(async () => {
+    mockApp.fire('chat:conversation:title-generated', {
+      namespaceId: 'space',
+      userId: 'user-a',
+      conversation: {
+        id: 'chat-0',
+        title: 'Generated title',
+        created_at: '2026-10-12T01:00:00Z',
+      },
+    });
+  });
+  expect(context().list.data.data[0].title).toBe('Generated title');
+  expect(context().list.data.data).toHaveLength(10);
+  expect(context().list.data.total).toBe(25);
+});
+
+it('ignores generated titles belonging to another user', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+  await act(async () => {
+    mockApp.fire('chat:conversation:title-generated', {
+      namespaceId: 'space',
+      userId: 'other-user',
+      conversation: {
+        id: 'new-chat',
+        title: 'Other user title',
+        created_at: '2026-10-12T01:00:00Z',
+      },
+    });
+  });
+  expect(get).toHaveBeenCalledTimes(2);
+  expect(context().list.data.data).toHaveLength(10);
 });

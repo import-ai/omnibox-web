@@ -6,7 +6,22 @@ import { createRoot } from 'react-dom/client';
 
 import AppContext from '@/hooks/appContext';
 import Hook from '@/hooks/hook.class';
-import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
+import {
+  addToChatContext,
+  getChatHomeDraftScope,
+  openCopilotForChatContext,
+} from '@/lib/chatBridge';
+import {
+  createChatInputDraft,
+  getChatInputDraft,
+  saveChatInputDraft,
+} from '@/page/chat/chat-input/chatInputDraft';
+import { syncComposerResources } from '@/page/chat/chat-input/composerExternalSync';
+import { toggleComposerTool } from '@/page/chat/chat-input/composerOperations';
+import { createComposerState } from '@/page/chat/chat-input/composerState';
+import { ToolType } from '@/page/chat/chat-input/types';
+import { useChatAreaDraftLifecycle } from '@/page/chat/chat-input/useChatAreaDraftLifecycle';
+import { useChatInputComposer } from '@/page/chat/chat-input/useChatInputComposer';
 import { useChatStore } from '@/page/chat/chatStore';
 import {
   ResourceCommentsProvider,
@@ -28,6 +43,8 @@ jest.mock('lodash-es', () => ({
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
+
+jest.mock('i18next', () => ({ t: (key: string) => key }));
 
 jest.mock('@/page/chat/header/Actions', () => ({
   __esModule: true,
@@ -69,12 +86,56 @@ jest.mock('./CopilotToggleButton', () => ({
 
 jest.mock('./CopilotView', () => ({
   __esModule: true,
-  default: () => {
+  default: ({ namespaceId }: { namespaceId: string }) => {
     const React = jest.requireActual<typeof import('react')>('react');
     React.useEffect(() => {
       copilotViewMounts += 1;
     }, []);
-    return <div data-testid="copilot-view" />;
+    const workspace = useCopilotStore(state =>
+      getCopilotWorkspace(state, namespaceId)
+    );
+    const selectedResources = useChatStore(state => state.selectedResources);
+    const setSelectedResources = useChatStore(state => state.setContext);
+    const draft = useChatAreaDraftLifecycle({
+      messages: [],
+      navigatePrefix: `/${namespaceId}`,
+      approvalModeResetKey:
+        workspace.view === 'conversation'
+          ? workspace.conversationId!
+          : getChatHomeDraftScope(namespaceId),
+      selectedResources,
+      setSelectedResources,
+    });
+    const composer = useChatInputComposer({
+      value: draft.query,
+      initialComposerState: draft.composerInitialState,
+      selectedResources: draft.composerSelectedResources,
+      tools: draft.composerTools,
+      onChange: draft.handleQueryChange,
+      onComposerStateChange: draft.handleComposerStateChange,
+      onSelectedResourcesChange: setSelectedResources,
+      onToolsChange: draft.handleToolsChange,
+      getToolLabel: tool => tool,
+      untitledLabel: 'Untitled',
+      disabled: false,
+      onSend: () => {},
+    });
+    React.useImperativeHandle(draft.inputRef, () => composer.handle);
+    return (
+      <div data-testid="copilot-view">
+        <textarea
+          ref={composer.textareaRef}
+          value={composer.displayText}
+          readOnly
+        />
+        <button
+          data-testid="clear-composer"
+          onClick={draft.clearComposerAfterSend}
+        >
+          Clear
+        </button>
+      </div>
+    );
   },
 }));
 
@@ -180,6 +241,103 @@ describe('CopilotPanel', () => {
       )
     );
 
+  it.each([
+    ['comments', 'home', 'resource'],
+    ['comments', 'conversation', 'folder'],
+    ['resource_history', 'home', 'folder'],
+    ['resource_history', 'conversation', 'resource'],
+    ['resource_history', 'conversation', 'folder'],
+  ] as const)(
+    'keeps the saved %s draft and added context in the real %s composer (%s)',
+    async (panel, view, type) => {
+      const app = new Hook();
+      const namespaceId = 'namespace-a';
+      const scope =
+        view === 'conversation' ? 'chat-a' : getChatHomeDraftScope(namespaceId);
+      const existing = { id: 'existing-resource', name: 'Existing file' };
+      const added = { id: 'added-resource', name: 'Added file' };
+      addToChatContext(existing, 'resource');
+      const resources = useChatStore.getState().selectedResources;
+      const state = syncComposerResources(
+        createComposerState('Keep this question '),
+        resources,
+        'Untitled'
+      );
+      const withTool = toggleComposerTool(
+        state,
+        ToolType.WEB_SEARCH,
+        ToolType.WEB_SEARCH,
+        {
+          start: state.displayText.length,
+          end: state.displayText.length,
+        }
+      )!.state;
+      saveChatInputDraft(scope, createChatInputDraft(withTool));
+      if (view === 'conversation')
+        useCopilotStore.getState().showConversation(namespaceId, scope);
+      await renderCommentsWorkspace(app);
+
+      act(() => {
+        if (panel === 'comments') {
+          container
+            .querySelector<HTMLButtonElement>('[data-testid="open-comments"]')!
+            .click();
+        } else {
+          useCopilotStore
+            .getState()
+            .showResourceHistory(namespaceId, existing.id);
+        }
+      });
+      expect(container.querySelector('textarea')).toBeNull();
+      act(() => {
+        addToChatContext(added, type);
+        addToChatContext(added, type);
+        openCopilotForChatContext(namespaceId, app);
+      });
+
+      const expectedIds = [existing.id, added.id];
+      expect(
+        getCopilotWorkspace(useCopilotStore.getState(), namespaceId)
+      ).toMatchObject({
+        open: true,
+        view,
+        conversationId: view === 'conversation' ? scope : null,
+      });
+      if (view === 'conversation')
+        expect(
+          getChatInputDraft(getChatHomeDraftScope(namespaceId))
+        ).toBeUndefined();
+      expect(
+        useChatStore.getState().selectedResources.map(item => item.resource.id)
+      ).toEqual(expectedIds);
+      expect(container.querySelector('textarea')!.value).toContain(
+        'Keep this question'
+      );
+      expect(container.querySelector('textarea')!.value).toContain(added.name);
+      const restored = getChatInputDraft(scope)!;
+      expect(restored.selectedResources.map(item => item.resource.id)).toEqual(
+        expectedIds
+      );
+      expect(restored.tools).toEqual([ToolType.WEB_SEARCH]);
+      expect(restored.composerState.mentions[1].type).toBe(type);
+      expect(restored.composerState.toolRanges).toEqual(withTool.toolRanges);
+
+      await act(async () => root.render(null));
+      await renderCommentsWorkspace(app);
+      expect(
+        useChatStore.getState().selectedResources.map(item => item.resource.id)
+      ).toEqual(expectedIds);
+      act(() =>
+        container
+          .querySelector<HTMLButtonElement>('[data-testid="clear-composer"]')!
+          .click()
+      );
+      expect(getChatInputDraft(scope)).toBeUndefined();
+      expect(useChatStore.getState().selectedResources).toEqual([]);
+      expect(container.querySelector('textarea')!.value).toBe('');
+    }
+  );
+
   it.each(['home', 'conversation', 'history', 'resource_history'] as const)(
     'switches comments to Copilot when adding context from %s',
     async view => {
@@ -205,8 +363,8 @@ describe('CopilotPanel', () => {
       ).toBeNull();
 
       act(() => {
-        openCopilotForChatContext('namespace-a', app);
         addToChatContext({ id: 'added-resource' }, 'resource');
+        openCopilotForChatContext('namespace-a', app);
       });
 
       expect(container.querySelector('.resource-comments-panel')).toBeNull();

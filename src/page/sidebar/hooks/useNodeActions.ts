@@ -211,14 +211,10 @@ export function useNodeActions(
             parentId: sourceParentId || node.parentId,
           }
         : node;
-    const doAdd = () =>
-      addToChatContext(contextResource!, type as 'resource' | 'folder');
-    if (loc.pathname.includes('/chat')) {
-      doAdd();
-    } else {
+    addToChatContext(contextResource!, type);
+    if (!loc.pathname.includes('/chat')) {
       // Stay on the resource page and surface Copilot with the new context.
       openCopilotForChatContext(namespaceId, app);
-      doAdd();
     }
     if (isMobile) setOpenMobile(false);
   };
