@@ -37,7 +37,7 @@ jest.mock('@/components/omnibox/Dialog', () => ({
   DialogTitle: ({ children }: { children: ReactNode }) => children,
 }));
 
-jest.mock('@/components/ui/Input', () => ({
+jest.mock('@/components/ui/input', () => ({
   Input: (props: InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
 }));
 

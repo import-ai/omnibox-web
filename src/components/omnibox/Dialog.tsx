@@ -1,6 +1,6 @@
 import type React from 'react';
 
-import { DialogContent as BaseDialogContent } from '@/components/ui/Dialog';
+import { DialogContent as BaseDialogContent } from '@/components/ui/dialog';
 import { isInsideAliyunCaptcha } from '@/lib/captcha';
 
 export {
@@ -13,7 +13,7 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/Dialog';
+} from '@/components/ui/dialog';
 
 export function DialogContent({
   onPointerDownOutside,

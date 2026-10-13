@@ -53,13 +53,13 @@ jest.mock('@/components/ui/Label', () => ({
   ),
 }));
 
-jest.mock('@/components/ui/Input', () => ({
+jest.mock('@/components/ui/input', () => ({
   Input: (props: React.InputHTMLAttributes<HTMLInputElement>) => (
     <input {...props} />
   ),
 }));
 
-jest.mock('@/components/ui/Textarea', () => ({
+jest.mock('@/components/ui/textarea', () => ({
   Textarea: (props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) => (
     <textarea {...props} />
   ),

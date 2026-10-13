@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/omnibox/Select';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 import {

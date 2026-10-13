@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 import { useAutosizeTextArea } from '@/components/autosize-textarea';
 import { Button } from '@/components/Button';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 import type { ResourceCommentAttachment } from '@/interface';
 
 import { pasteCommentImage } from './pasteCommentImage';

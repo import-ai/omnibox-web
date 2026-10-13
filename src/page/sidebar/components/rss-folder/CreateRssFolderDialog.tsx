@@ -3,7 +3,7 @@ import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/Button';
 import ActionDialog from '@/components/invite-dialog/ActionDialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import { cn } from '@/lib/utils';

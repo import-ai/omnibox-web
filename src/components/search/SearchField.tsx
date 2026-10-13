@@ -9,7 +9,7 @@ import {
 } from 'react';
 
 import { Button } from '@/components/Button';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 

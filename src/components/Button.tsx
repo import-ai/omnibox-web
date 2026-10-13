@@ -1,7 +1,7 @@
 import { Slot } from 'radix-ui';
 import * as React from 'react';
 
-import { Button as BaseButton } from '@/components/ui/Button';
+import { Button as BaseButton } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 

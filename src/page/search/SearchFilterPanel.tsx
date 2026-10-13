@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/omnibox/Select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import type { Namespace } from '@/interface';
 import { cn } from '@/lib/utils';

@@ -24,7 +24,7 @@ jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default', hash: '' }),
 }));
 jest.mock('@/components/Button', () =>
-  jest.requireActual('@/components/ui/Button')
+  jest.requireActual('@/components/ui/button')
 );
 jest.mock('@/service/resourceComments', () => ({
   createResourceComment: jest.fn(),

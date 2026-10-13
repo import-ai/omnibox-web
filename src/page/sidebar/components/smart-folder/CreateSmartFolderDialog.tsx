@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from '@/components/omnibox/Select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';

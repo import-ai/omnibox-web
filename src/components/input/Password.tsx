@@ -2,7 +2,7 @@ import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import React from 'react';
 
 import { Button } from '@/components/Button';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}

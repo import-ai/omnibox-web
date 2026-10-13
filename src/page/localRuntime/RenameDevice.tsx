@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import {
   Popover,

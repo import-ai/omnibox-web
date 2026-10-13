@@ -17,7 +17,7 @@ import {
   SelectTrigger,
 } from '@/components/omnibox/Select';
 import { Calendar } from '@/components/ui/Calendar';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 
 export interface ExpireProps {
   disabled?: boolean;

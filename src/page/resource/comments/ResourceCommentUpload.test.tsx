@@ -31,7 +31,7 @@ jest.mock('react-router-dom', () => ({
 jest.mock('@/service/resourceComments', () => ({}));
 jest.mock('./commentAnchors', () => ({}));
 jest.mock('@/components/Button', () =>
-  jest.requireActual('@/components/ui/Button')
+  jest.requireActual('@/components/ui/button')
 );
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),

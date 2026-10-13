@@ -9,7 +9,7 @@ import { Button } from '@/components/Button';
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Spinner } from '@/components/ui/Spinner';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';

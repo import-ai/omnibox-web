@@ -11,7 +11,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 
 export interface PasswordProps {
   passwordFailed?: boolean;

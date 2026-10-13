@@ -9,14 +9,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/Popover';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 import { Member } from '@/interface';
 import { http } from '@/lib/request';
 

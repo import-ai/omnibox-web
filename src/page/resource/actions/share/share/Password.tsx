@@ -17,7 +17,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/Switch';
 import { passwordSchema } from '@/lib/validationSchemas';
 

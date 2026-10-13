@@ -32,7 +32,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/Checkbox';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
 import useAPIKeys from '@/hooks/useApiKeys';
