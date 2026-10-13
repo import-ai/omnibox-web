@@ -369,3 +369,10 @@
 .resource-editable-editor span[data-type='mention'] {
   cursor: pointer;
 }
+
+/* The preview is limited to loaded table images; resize controls keep their own cursor. */
+:is(.resource-readonly-editor, .resource-editable-editor)
+  :is(td, th)
+  .tiptap-image-img:not([class~='tw:invisible']) {
+  cursor: zoom-in !important;
+}

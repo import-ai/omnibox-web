@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { ImagePreviewDialog } from '@/page/chat/ImagePreviewDialog';
+import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import { resolveChatImageUrl } from './chatImageUrl';

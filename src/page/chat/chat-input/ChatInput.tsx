@@ -2,8 +2,8 @@ import { X } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import { cn } from '@/lib/utils';
-import { ImagePreviewDialog } from '@/page/chat/ImagePreviewDialog';
 
 import { composerTextLayoutClassName } from './composerLayout';
 import ComposerOverlay from './ComposerOverlay';
