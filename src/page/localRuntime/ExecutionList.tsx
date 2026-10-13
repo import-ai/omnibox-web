@@ -4,17 +4,17 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/omnibox/Dialog';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/Dialog';
 import { getRelatedTime } from '@/lib/time';
 
 import ExecutionCard from './ExecutionCard';

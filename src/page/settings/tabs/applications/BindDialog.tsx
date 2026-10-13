@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { BIND_CHECK_INTERVAL } from '@/const';
 
 import { getQrCodeUrl } from './getQrCodeUrl';

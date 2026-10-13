@@ -6,7 +6,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { cn } from '@/lib/utils';
 
 interface IProps {
   you?: boolean;
@@ -45,12 +44,7 @@ export default function UserCard(props: IProps) {
     <div className="max-w-[180px]">
       {primaryName && (
         <div className="flex min-w-0 items-center">
-          <span
-            className={cn('truncate', {
-              'font-medium': !!subtitle,
-              'text-sm': !subtitle,
-            })}
-          >
+          <span className="truncate font-medium text-sm">
             {showUsernameInParens ? (
               <>
                 {trimmedNickname}

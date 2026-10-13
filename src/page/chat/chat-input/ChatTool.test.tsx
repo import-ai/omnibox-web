@@ -82,7 +82,7 @@ jest.mock('@/components/ui/DropdownMenu', () => {
   };
 });
 
-jest.mock('@/components/ui/Dialog', () => ({
+jest.mock('@/components/omnibox/Dialog', () => ({
   Dialog: ({ children }: { children: React.ReactNode }) => children,
   DialogContent: ({ children }: { children: React.ReactNode }) => children,
   DialogDescription: ({ children }: { children: React.ReactNode }) => children,

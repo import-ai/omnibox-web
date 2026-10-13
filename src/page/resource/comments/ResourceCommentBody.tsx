@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/components/omnibox/Dialog';
 import type { ResourceCommentAttachment } from '@/interface';
 
 export function ResourceCommentBody({

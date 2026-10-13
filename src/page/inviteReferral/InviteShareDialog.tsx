@@ -10,7 +10,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 import { buildLocalizedInviteUrl } from './inviteUrl';
 

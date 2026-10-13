@@ -12,7 +12,7 @@ import {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { cn } from '@/lib/utils';
 
 import { getAppDownloadUrl, isMobileDownloadClient } from './downloadQr';

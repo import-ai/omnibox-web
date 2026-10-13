@@ -27,6 +27,7 @@ interface SettingsSidebarProps {
 }
 
 interface MenuItem {
+  hidden?: boolean;
   label: React.ReactNode;
   value: string;
   icon: React.ReactNode;
@@ -61,6 +62,10 @@ export function SettingsSidebar({
     {
       label: t('setting.feature_previews'),
       value: 'featurePreviews',
+      // Hidden until a new preview is available; keep the tab for future use.
+      // TODO: Restore useFeaturePreviews() in namespace-switcher and SharePage
+      // when reopening this entry so previews apply before settings are opened.
+      hidden: true,
       icon: <FlaskConical className="size-4" />,
     },
     ...extensions.map(extension => ({
@@ -157,6 +162,7 @@ export function SettingsSidebar({
               </button>
 
               {accountItems.map(item => {
+                if (item.hidden) return null;
                 const isSelected = value === item.value;
                 return (
                   <button

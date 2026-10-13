@@ -8,7 +8,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 export function ImagePreviewDialog({
   alt,

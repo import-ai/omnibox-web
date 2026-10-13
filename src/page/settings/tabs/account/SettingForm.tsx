@@ -11,6 +11,13 @@ import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
 import { Input } from '@/components/input';
 import Loading from '@/components/loading';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/omnibox/Dialog';
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -20,13 +27,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/Dialog';
 import {
   Form,
   FormControl,

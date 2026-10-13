@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 

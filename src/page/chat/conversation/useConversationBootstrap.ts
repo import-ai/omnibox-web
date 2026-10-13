@@ -10,7 +10,6 @@ import type {
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
 import { getStreamEventId, resumeStream } from '@/page/chat/conversation/utils';
-import { createClientKey } from '@/page/chat/core/clientKey';
 import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
@@ -21,8 +20,8 @@ import {
   type ConversationCacheScope,
   getCachedConversationRevision,
   getCurrentUserId,
-  setCachedConversation,
 } from './conversationCache';
+import { mergeHistoryPage } from './conversationHistory';
 import {
   type ConversationLoadPhase,
   isConversationAccessDenied,
@@ -35,6 +34,7 @@ const bootstrappedConversationIds = new Set<string>();
 
 interface ConversationBootstrapOptions {
   app: App;
+  getConversation: () => ConversationDetail;
   askAbortRef: MutableRefObject<(() => Promise<void>) | null>;
   cacheScope: ConversationCacheScope;
   conversationId: string;
@@ -116,22 +116,30 @@ async function loadConversation(
     cacheScope,
     conversationId
   );
+  const before = options.getConversation();
+  const revisions = Object.fromEntries(
+    Object.entries(before.mapping).map(([id, message]) => [
+      id,
+      message.localRevision ?? 0,
+    ])
+  );
   try {
     const response: ConversationDetail = await http.get(
-      `/namespaces/${namespaceId}/conversations/${conversationId}`
+      `/namespaces/${namespaceId}/conversations/${conversationId}/messages`,
+      {
+        params: {
+          branch_leaf_id:
+            phase === 'refresh' ? before.current_node : before.branch_leaf_id,
+        },
+      }
     );
     if (!isActiveRequest(options, runtime)) return undefined;
-    setCachedConversation(cacheScope, response);
+
     const title = getTitleFromConversationDetail(response);
     if (title) app.fire('chat:title:update', { conversationId, title });
-    setConversation({
-      ...response,
-      mapping: Object.fromEntries(
-        Object.entries(response.mapping).map(([id, message]) => [
-          id,
-          { ...message, clientKey: message.clientKey ?? createClientKey() },
-        ])
-      ),
+    setConversation(previous => {
+      if (previous.branch_leaf_id !== before.branch_leaf_id) return previous;
+      return mergeHistoryPage(previous, response, false, revisions);
     });
     return response;
   } catch (error) {

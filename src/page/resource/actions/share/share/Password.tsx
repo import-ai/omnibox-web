@@ -5,7 +5,11 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 
 import { Button } from '@/components/Button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/components/omnibox/Dialog';
 import {
   Form,
   FormControl,

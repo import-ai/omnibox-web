@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import useConfig from '@/hooks/useConfig';
 import GenerateForm from '@/page/settings/tabs/account/GenerateForm';
 

@@ -4,14 +4,14 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
-import { ResourceSelect } from '@/components/resourceSelect';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
+import { ResourceSelect } from '@/components/resourceSelect';
 import { Label } from '@/components/ui/Label';
 import { useSidebarStore } from '@/page/sidebar/store';
 import {

@@ -28,7 +28,7 @@ jest.mock('@/components/Button', () => ({
   ),
 }));
 
-jest.mock('@/components/ui/Dialog', () => ({
+jest.mock('@/components/omnibox/Dialog', () => ({
   Dialog: ({ open, children }: { open: boolean; children: ReactNode }) =>
     open ? children : null,
   DialogContent: ({ children }: { children: ReactNode }) => children,

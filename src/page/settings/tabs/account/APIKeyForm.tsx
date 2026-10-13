@@ -8,6 +8,15 @@ import { Button } from '@/components/Button';
 import CopyMain from '@/components/copy';
 import { HelpTooltip } from '@/components/help-tooltip';
 import Loading from '@/components/loading';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/omnibox/Dialog';
 import { ResourceSelect } from '@/components/resourceSelect';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
@@ -23,15 +32,6 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/Checkbox';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';

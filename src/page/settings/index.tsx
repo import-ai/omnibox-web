@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import useApp from '@/hooks/useApp';
 
 import SettingWrapper from './SettingWrapper';

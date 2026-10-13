@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 export default function Invite() {
   const { t } = useTranslation();

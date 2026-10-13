@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
 
+import { hasToolCalls } from '../conversation/conversationHistory';
 import { createClientKey } from './clientKey';
 import {
   ChatBOSResponse,
@@ -36,7 +37,7 @@ function getChildren(
     if (currentNode) {
       if (
         currentNode.message.role === OpenAIMessageRole.ASSISTANT &&
-        !currentNode.message.tool_calls
+        !hasToolCalls(currentNode)
       ) {
         return [id];
       }
@@ -103,6 +104,7 @@ export function createMessageOperator(
           );
         }
 
+        message.localRevision = (message.localRevision ?? 0) + 1;
         message.message.reasoning_content = add(
           message.message.reasoning_content,
           delta.message.reasoning_content
@@ -145,6 +147,8 @@ export function createMessageOperator(
         const existing = pending || prev.mapping[chatResponse.id];
         const message: MessageDetail = {
           id: chatResponse.id,
+          localRevision: (existing?.localRevision ?? 0) + 1,
+          details_loaded: true,
           clientKey: existing?.clientKey ?? createClientKey(),
           created_at:
             chatResponse.created_at ||
@@ -192,6 +196,7 @@ export function createMessageOperator(
         if (!message) {
           return prev;
         }
+        message.localRevision = (message.localRevision ?? 0) + 1;
         message.status = MessageStatus.SUCCESS;
         if (message.message.role === OpenAIMessageRole.TOOL) {
           message.attrs = {
@@ -216,6 +221,7 @@ export function createMessageOperator(
         if (!message) {
           return prev;
         }
+        message.localRevision = (message.localRevision ?? 0) + 1;
         message.status = MessageStatus.STOPPED;
         return {
           ...prev,
@@ -230,6 +236,7 @@ export function createMessageOperator(
         if (!message) {
           return prev;
         }
+        message.localRevision = (message.localRevision ?? 0) + 1;
         message.status = MessageStatus.FAILED;
         message.attrs = {
           ...(message.attrs || {}),
@@ -248,7 +255,8 @@ export function createMessageOperator(
      */
     getSiblings: (id: string): string[] => {
       const currentNode = conversation.mapping[id];
-      if (currentNode?.message.tool_calls) {
+      if (currentNode?.sibling_ids) return currentNode.sibling_ids;
+      if (currentNode && hasToolCalls(currentNode)) {
         return [id];
       }
       if (currentNode) {

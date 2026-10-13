@@ -9,7 +9,9 @@ interface IProps {
 
 export function ToolMessage(props: IProps) {
   const { citations, message } = props;
-  const data: Citation[] = message.attrs?.citations || [];
+  const data: Citation[] = (message.attrs?.citations || []).map(
+    item => citations.find(citation => citation.id === item.id) ?? item
+  );
   if (data.length <= 0) {
     return null;
   }

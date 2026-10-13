@@ -17,13 +17,20 @@ import { formatCitation } from '@/page/chat/messages/citations/utils';
 import { useChatResourceNavigation } from '@/page/chat/useChatResourceNavigation';
 import { resolveCitationTarget } from '@/page/copilot/citationTarget';
 
+import {
+  DetailLoadState,
+  useCitationDetails,
+} from '../../conversation/MessageDetailsContext';
+
 export interface CitationIconProps {
   index: number;
   citation: Citation;
 }
 
 export function CitationHoverIcon(props: CitationIconProps) {
-  const { citation, index } = props;
+  const { index } = props;
+  const details = useCitationDetails(props.citation);
+  const { citation } = details;
   const { name, link } = formatCitation(citation);
   const lineNumber = getCitationLineNumber(citation.id);
   const { namespaceId } = useChatRouteParams();
@@ -48,7 +55,13 @@ export function CitationHoverIcon(props: CitationIconProps) {
     }
   };
   return (
-    <HoverCard open={hoverCardOpen} onOpenChange={setHoverCardOpen}>
+    <HoverCard
+      open={hoverCardOpen}
+      onOpenChange={open => {
+        setHoverCardOpen(open);
+        if (open) void details.load();
+      }}
+    >
       <HoverCardTrigger asChild>
         <Button
           variant="link"
@@ -71,6 +84,12 @@ export function CitationHoverIcon(props: CitationIconProps) {
       </HoverCardTrigger>
       <HoverCardContent className="w-80">
         <div>
+          <DetailLoadState
+            {...details}
+            retry={() => {
+              void details.load();
+            }}
+          />
           <p className="font-semibold line-clamp-2">{citation.title}</p>
           <div className="text-sm line-clamp-4">{citation.snippet}</div>
           <div className="text-muted-foreground text-xs mt-1">{name}</div>

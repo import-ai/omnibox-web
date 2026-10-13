@@ -299,7 +299,7 @@ export function useBatchOperations({ namespaceId }: UseBatchOperationsOptions) {
     });
     if (!location.pathname.includes('/chat')) {
       // Stay on the resource page and surface Copilot with the new context.
-      openCopilotForChatContext(namespaceId);
+      openCopilotForChatContext(namespaceId, app);
     }
   };
 

@@ -12,14 +12,14 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,

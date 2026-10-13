@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { Switch } from '@/components/ui/Switch';
 import { http } from '@/lib/request';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';

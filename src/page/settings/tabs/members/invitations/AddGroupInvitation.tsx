@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { Group } from '@/interface';
 
 import { AddGroupInvitationForm } from './AddGroupInvitationForm';

@@ -82,6 +82,11 @@ export interface MessageAttrs {
 
 export interface MessageDetail extends IBase {
   id: string;
+  localRevision?: number;
+  details_loaded?: boolean;
+  has_reasoning?: boolean;
+  tool_call_summaries?: { id: string; name: string }[];
+  sibling_ids?: string[];
   clientKey: number;
   message: OpenAIMessage;
   status: MessageStatus;
@@ -95,4 +100,12 @@ export interface ConversationDetail extends IBase {
   title?: string;
   mapping: Record<string, MessageDetail>;
   current_node?: string;
+  branch_leaf_id?: string;
+  offset?: number;
+  limit?: number;
+  total?: number;
+  has_more?: boolean;
+  shareable_total?: number;
+  citations?: Citation[];
+  citation_total?: number;
 }

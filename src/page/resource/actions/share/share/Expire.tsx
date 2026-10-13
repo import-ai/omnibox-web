@@ -3,6 +3,12 @@ import { t } from 'i18next';
 import { useState } from 'react';
 
 import { Button } from '@/components/Button';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/omnibox/Dialog';
 import { SelectValue } from '@/components/omnibox/Select';
 import {
   Select,
@@ -11,12 +17,6 @@ import {
   SelectTrigger,
 } from '@/components/omnibox/Select';
 import { Calendar } from '@/components/ui/Calendar';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 
 export interface ExpireProps {

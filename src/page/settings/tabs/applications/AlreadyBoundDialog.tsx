@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 import { getQrCodeUrl } from './getQrCodeUrl';
 import { useQrCode } from './useQrCode';

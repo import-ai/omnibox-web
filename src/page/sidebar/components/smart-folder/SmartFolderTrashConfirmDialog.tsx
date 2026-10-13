@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 interface SmartFolderTrashConfirmDialogProps {
   open: boolean;

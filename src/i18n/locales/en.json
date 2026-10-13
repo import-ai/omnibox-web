@@ -182,6 +182,7 @@
     "comment_actions": "Comment actions",
     "edit": "Edit",
     "edited": "(edited)",
+    "just_now": "Just now",
     "delete": "Delete",
     "save": "Save",
     "reply_placeholder": "Reply",
@@ -449,6 +450,11 @@
     "back_to_login": "Back to login",
     "verifying": "Verifying...",
     "verifying_description": "Please wait..."
+  },
+  "captcha": {
+    "failed": "Verification failed, please try again later.",
+    "loading": "Loading verification...",
+    "unavailable": "Verification is temporarily unavailable. Please try again later."
   },
   "accept_invite": {
     "accepting": "Accepting invitation...",
@@ -909,6 +915,7 @@
           "tag_filter": "Tag Filter",
           "collect_url": "Collect URL",
           "list_resource_tasks": "List Resource Tasks",
+          "list_resource_comments": "List Resource Comments",
           "load_docs": "Read Docs",
           "get_agent_asset_resource_id": "Get Agent Asset",
           "create_agent_asset": "Create Agent Asset",
@@ -1045,7 +1052,14 @@
         "auto_reject": "Automatically reject requests"
       }
     },
-    "send": "Send message"
+    "send": "Send message",
+    "history": {
+      "load_more": "Load older messages",
+      "loading": "Loading history…",
+      "retry": "Retry loading history",
+      "loading_details": "Loading details…",
+      "retry_details": "Retry loading details"
+    }
   },
   "date": {
     "today": "Today",

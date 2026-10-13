@@ -1,6 +1,6 @@
 import copy from 'copy-to-clipboard';
 import type { TFunction } from 'i18next';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -73,6 +73,16 @@ export function useConversationShare({
     () => buildConversationShareGroups(messages),
     [messages]
   );
+  const [allBranch, setAllBranch] = useState<{ leaf: string; total: number }>();
+  const [excluded, setExcluded] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+  useEffect(() => {
+    setIsSelecting(false);
+    setAllBranch(undefined);
+    setExcluded(new Set());
+    setSelectedGroupIds(new Set());
+  }, [conversation.id, conversation.branch_leaf_id]);
   const [isSelecting, setIsSelecting] = useState(false);
   const [sharingChannel, setSharingChannel] =
     useState<ConversationShareChannel | null>(null);
@@ -84,6 +94,8 @@ export function useConversationShare({
   const close = useCallback(() => {
     if (isSharing) return;
     setIsSelecting(false);
+    setAllBranch(undefined);
+    setExcluded(new Set());
     setSelectedGroupIds(new Set());
   }, [isSharing]);
 
@@ -108,6 +120,17 @@ export function useConversationShare({
         return;
       }
 
+      setAllBranch(
+        initialSelection === 'all' &&
+          !targetMessageId &&
+          conversation.branch_leaf_id
+          ? {
+              leaf: conversation.branch_leaf_id,
+              total: conversation.shareable_total ?? groups.length,
+            }
+          : undefined
+      );
+      setExcluded(new Set());
       setSelectedGroupIds(
         createConversationShareSelection(
           groups,
@@ -117,26 +140,71 @@ export function useConversationShare({
       );
       setIsSelecting(true);
     },
-    [groups, isGenerating, t]
+    [
+      groups,
+      isGenerating,
+      t,
+      conversation.branch_leaf_id,
+      conversation.shareable_total,
+    ]
   );
 
   const toggleGroup = useCallback(
     (groupId: string) => {
+      if (allBranch) {
+        const answerId = groups.find(group => group.id === groupId)?.answer.id;
+        if (answerId)
+          setExcluded(previous => {
+            const next = new Set(previous);
+            if (next.has(answerId)) next.delete(answerId);
+            else next.add(answerId);
+            return next;
+          });
+        return;
+      }
       setSelectedGroupIds(current =>
         toggleConversationShareGroup(current, groupId, groups)
       );
     },
-    [groups]
+    [groups, allBranch]
   );
 
   const toggleAll = useCallback(() => {
+    if (conversation.branch_leaf_id) {
+      if (allBranch && excluded.size === 0) {
+        setAllBranch(undefined);
+        setSelectedGroupIds(new Set());
+      } else
+        setAllBranch({
+          leaf: conversation.branch_leaf_id,
+          total: conversation.shareable_total ?? groups.length,
+        });
+      setExcluded(new Set());
+      return;
+    }
     setSelectedGroupIds(current =>
       areAllConversationShareGroupsSelected(groups, current)
         ? new Set()
         : selectAllConversationShareGroups(groups)
     );
-  }, [groups]);
+  }, [
+    groups,
+    allBranch,
+    excluded.size,
+    conversation.branch_leaf_id,
+    conversation.shareable_total,
+  ]);
 
+  const effectiveSelection = allBranch
+    ? new Set(
+        groups
+          .filter(group => !excluded.has(group.answer.id))
+          .map(group => group.id)
+      )
+    : selectedGroupIds;
+  const selectionCount = allBranch
+    ? allBranch.total - excluded.size
+    : selectedGroupIds.size;
   const selectedGroups = useMemo(
     () => groups.filter(group => selectedGroupIds.has(group.id)),
     [groups, selectedGroupIds]
@@ -144,14 +212,20 @@ export function useConversationShare({
 
   const share = useCallback(
     async (channel: ConversationShareChannel) => {
-      if (!conversation.id || selectedGroups.length === 0 || isSharing) return;
+      if (!conversation.id || selectionCount === 0 || isSharing) return;
 
       setSharingChannel(channel);
       try {
         const snapshot = await createConversationShare(namespaceId, {
           channel,
           conversation_id: conversation.id,
-          answer_ids: getConversationShareAnswerIds(selectedGroups),
+          ...(allBranch
+            ? {
+                select_all: true as const,
+                branch_leaf_id: allBranch.leaf,
+                excluded_answer_ids: [...excluded],
+              }
+            : { answer_ids: getConversationShareAnswerIds(selectedGroups) }),
         });
         const result = await deliverSnapshot(snapshot, channel, t);
         toast.success(
@@ -179,7 +253,16 @@ export function useConversationShare({
         setSharingChannel(null);
       }
     },
-    [conversation.id, isSharing, namespaceId, selectedGroups, t]
+    [
+      conversation.id,
+      isSharing,
+      namespaceId,
+      selectedGroups,
+      t,
+      allBranch,
+      excluded,
+      selectionCount,
+    ]
   );
 
   const messageGroupIds = useMemo(() => {
@@ -191,18 +274,18 @@ export function useConversationShare({
   }, [groups]);
 
   return {
-    allSelected: areAllConversationShareGroupsSelected(
-      groups,
-      selectedGroupIds
-    ),
+    allSelected: allBranch
+      ? excluded.size === 0
+      : !conversation.has_more &&
+        areAllConversationShareGroupsSelected(groups, selectedGroupIds),
     close,
-    hasSelection: selectedGroups.length > 0,
+    hasSelection: selectionCount > 0,
     isSelecting,
     isSharing,
     messageGroupIds,
     open,
-    selectedCount: selectedGroups.length,
-    selectedGroupIds,
+    selectedCount: selectionCount,
+    selectedGroupIds: effectiveSelection,
     share,
     sharingChannel,
     toggleAll,

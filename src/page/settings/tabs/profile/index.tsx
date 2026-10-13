@@ -14,6 +14,13 @@ import { WeChatIcon } from '@/assets/icons/Wechat';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/omnibox/Dialog';
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -30,13 +37,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/Dialog';
 import {
   Form,
   FormControl,

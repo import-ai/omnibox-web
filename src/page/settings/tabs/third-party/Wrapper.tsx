@@ -6,7 +6,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import Scan from '@/page/user/wechat/Scan';
 
 import { AppleLogin } from './AppleLogin';

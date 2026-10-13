@@ -182,6 +182,7 @@
     "comment_actions": "评论操作",
     "edit": "编辑",
     "edited": "（已编辑）",
+    "just_now": "刚刚",
     "delete": "删除",
     "save": "保存",
     "reply_placeholder": "回复",
@@ -450,6 +451,11 @@
     "back_to_login": "返回登录",
     "verifying": "验证中……",
     "verifying_description": "请稍候……"
+  },
+  "captcha": {
+    "failed": "验证未通过，请稍后重试。",
+    "loading": "正在加载验证...",
+    "unavailable": "验证服务暂时不可用，请稍后重试。"
   },
   "accept_invite": {
     "accepting": "接受邀请中……",
@@ -910,6 +916,7 @@
           "tag_filter": "筛选标签",
           "collect_url": "收藏网页",
           "list_resource_tasks": "查询资源任务",
+          "list_resource_comments": "读取文档评论",
           "load_docs": "查看文档",
           "get_agent_asset_resource_id": "加载资源",
           "create_agent_asset": "创建资源",
@@ -1046,7 +1053,14 @@
         "auto_reject": "自动拒绝审批请求"
       }
     },
-    "send": "发送消息"
+    "send": "发送消息",
+    "history": {
+      "load_more": "加载更早的消息",
+      "loading": "正在加载历史消息…",
+      "retry": "重新加载历史消息",
+      "loading_details": "正在加载详情…",
+      "retry_details": "重新加载详情"
+    }
   },
   "date": {
     "today": "今天",
@@ -1165,7 +1179,7 @@
     "status_label_pending": "等待中",
     "status_label_running": "进行中",
     "status_label_finished": "已完成",
-    "status_label_failed": "解析失败",
+    "status_label_failed": "失败",
     "status_label_canceled": "已取消",
     "confirm_cancel_title": "确认取消",
     "confirm_cancel_description": "取消后将立即停止执行，操作不可撤销",

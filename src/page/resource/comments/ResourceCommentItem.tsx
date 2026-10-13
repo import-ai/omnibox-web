@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Textarea } from '@/components/ui/Textarea';
 import type { ResourceComment } from '@/interface';
 
+import { formatRelativeTime } from './formatRelativeTime';
 import { pasteCommentImage } from './pasteCommentImage';
 import { ResourceCommentAvatar } from './ResourceCommentAvatar';
 import { ResourceCommentBody } from './ResourceCommentBody';
@@ -156,7 +157,11 @@ export function ResourceCommentItem({
             <strong>{author}</strong>
             <span>
               <time dateTime={comment.updated_at}>
-                {formatRelativeTime(comment.updated_at, i18n.language)}
+                {formatRelativeTime(
+                  comment.updated_at,
+                  i18n.language,
+                  t('resource_comments.just_now')
+                )}
               </time>
               {new Date(comment.updated_at).getTime() -
                 new Date(comment.created_at).getTime() >
@@ -329,24 +334,5 @@ export function ResourceCommentItem({
         )}
       </div>
     </div>
-  );
-}
-
-function formatRelativeTime(value: string, locale: string) {
-  const elapsedSeconds = (new Date(value).getTime() - Date.now()) / 1000;
-  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
-    ['year', 31_536_000],
-    ['month', 2_592_000],
-    ['week', 604_800],
-    ['day', 86_400],
-    ['hour', 3_600],
-    ['minute', 60],
-  ];
-  const [unit, seconds] = units.find(
-    ([, unitSeconds]) => Math.abs(elapsedSeconds) >= unitSeconds
-  ) ?? ['minute', 60];
-  return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(
-    Math.round(elapsedSeconds / seconds),
-    unit
   );
 }
