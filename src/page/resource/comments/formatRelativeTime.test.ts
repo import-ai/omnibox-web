@@ -26,17 +26,17 @@ describe('formatRelativeTime', () => {
     );
   });
 
-  it('keeps older relative times unchanged', () => {
+  it('spaces Chinese relative times and preserves English output', () => {
     expect(
       formatRelativeTime(new Date(now - 60_000).toISOString(), 'zh-CN', '刚刚')
-    ).toBe('1分钟前');
+    ).toBe('1 分钟前');
     expect(
       formatRelativeTime(
         new Date(now - 5 * 60_000).toISOString(),
         'zh-CN',
         '刚刚'
       )
-    ).toBe('5分钟前');
+    ).toBe('5 分钟前');
     expect(
       formatRelativeTime(new Date(now - 60_000).toISOString(), 'en', 'Just now')
     ).toBe('1 minute ago');

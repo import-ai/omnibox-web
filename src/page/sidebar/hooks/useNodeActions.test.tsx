@@ -148,6 +148,11 @@ describe('useNodeActions', () => {
         fire,
       });
       expect(addToChatContext).toHaveBeenCalledWith(node, type);
+      expect(
+        jest.mocked(addToChatContext).mock.invocationCallOrder[0]
+      ).toBeLessThan(
+        jest.mocked(openCopilotForChatContext).mock.invocationCallOrder[0]
+      );
       expect(navigate).not.toHaveBeenCalled();
     }
   );

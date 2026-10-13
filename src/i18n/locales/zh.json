@@ -1016,7 +1016,7 @@
   "date": {
     "today": "今天",
     "yesterday": "昨天",
-    "last_week": "过去7天"
+    "last_week": "过去 7 天"
   },
   "pagination": {
     "prev": "前页",
