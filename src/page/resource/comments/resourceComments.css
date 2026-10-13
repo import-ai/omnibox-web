@@ -810,20 +810,3 @@
 .resource-comments-panel button:disabled {
   @apply cursor-not-allowed opacity-50;
 }
-
-.omnibox-comment-image-preview,
-.omnibox-comment-image-preview > button {
-  border: 0 !important;
-  outline: none !important;
-  box-shadow: none;
-  --tw-ring-offset-width: 0px;
-  --tw-ring-width: 0px;
-  --tw-ring-shadow: 0 0 #0000;
-  --tw-ring-offset-shadow: 0 0 #0000;
-}
-
-.omnibox-comment-image-preview > button {
-  background: transparent !important;
-  color: #fff !important;
-  opacity: 1;
-}
