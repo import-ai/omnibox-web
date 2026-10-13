@@ -1,5 +1,10 @@
 import { X } from 'lucide-react';
-import { type CSSProperties, useLayoutEffect, useState } from 'react';
+import {
+  type CSSProperties,
+  type ImgHTMLAttributes,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -15,17 +20,21 @@ export function ImagePreviewDialog({
   open,
   src,
   onOpenChange,
+  referrerPolicy,
+  onCloseAutoFocus,
 }: {
+  referrerPolicy?: ImgHTMLAttributes<HTMLImageElement>['referrerPolicy'];
+  onCloseAutoFocus?: (event: Event) => void;
   alt?: string;
   open: boolean;
   src?: string | null;
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
-  const [retained, setRetained] = useState({ src, alt });
+  const [retained, setRetained] = useState({ src, alt, referrerPolicy });
   useLayoutEffect(() => {
-    if (open) setRetained({ src, alt });
-  }, [open, src, alt]);
+    if (open) setRetained({ src, alt, referrerPolicy });
+  }, [open, src, alt, referrerPolicy]);
   const imageSrc = open ? src : retained.src;
   const title = (open ? alt : retained.alt) || t('chat.image.preview');
 
@@ -43,6 +52,7 @@ export function ImagePreviewDialog({
             '--tw-exit-translate-y': '0px',
           } as CSSProperties
         }
+        onCloseAutoFocus={onCloseAutoFocus}
         onOpenAutoFocus={event => event.preventDefault()}
         onClick={event => {
           if (event.target === event.currentTarget) onOpenChange(false);
@@ -56,6 +66,7 @@ export function ImagePreviewDialog({
           <div className="relative max-h-[90vh] max-w-[min(90vw,960px)]">
             <img
               src={imageSrc}
+              referrerPolicy={open ? referrerPolicy : retained.referrerPolicy}
               alt={title}
               className="max-h-[85vh] w-full rounded-md object-contain"
             />
