@@ -22,20 +22,15 @@ export function messageChannelLabel(
 export function MessageChannelTime({
   channel,
   time,
-  side,
   className,
 }: {
   channel?: string;
   time?: string | null;
-  side: 'user' | 'assistant';
   className?: string;
 }) {
   const { t } = useTranslation();
   const label = messageChannelLabel(channel, t);
   if (!label && !time) return null;
-
-  const channelNode = label ? <span>{label}</span> : null;
-  const timeNode = time ? <span>{time}</span> : null;
 
   return (
     <span
@@ -44,17 +39,8 @@ export function MessageChannelTime({
         className
       )}
     >
-      {side === 'user' ? (
-        <>
-          {channelNode}
-          {timeNode}
-        </>
-      ) : (
-        <>
-          {timeNode}
-          {channelNode}
-        </>
-      )}
+      {time && <span>{time}</span>}
+      {label && <span>{label}</span>}
     </span>
   );
 }

@@ -246,7 +246,6 @@ export function CitationMarkdown(props: IProps) {
             <MessageChannelTime
               channel={channel}
               className="opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100"
-              side="assistant"
               time={createdAtLabel}
             />
           </div>

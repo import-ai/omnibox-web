@@ -374,7 +374,7 @@ export function UserMessage(props: IProps) {
       )}
       {!hideActions && !message.attrs?.pending_query && (
         <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
-          <MessageChannelTime channel={channel} side="user" time={createdAt} />
+          <MessageChannelTime channel={channel} time={createdAt} />
           {!isEditing && !isSavedResource && (
             <Tooltip>
               <TooltipTrigger asChild>

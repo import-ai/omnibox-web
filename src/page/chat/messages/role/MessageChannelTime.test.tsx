@@ -68,32 +68,17 @@ describe('MessageChannelTime', () => {
     container.remove();
   });
 
-  async function render(side: 'user' | 'assistant') {
+  it('places the channel to the right of the date', async () => {
     await act(async () => {
       root.render(
-        <MessageChannelTime
-          channel="telegram"
-          side={side}
-          time="2026-10-14 10:00:00"
-        />
+        <MessageChannelTime channel="telegram" time="2026-10-14 10:00:00" />
       );
     });
-    return Array.from(container.querySelectorAll('span span')).map(
-      node => node.textContent
-    );
-  }
 
-  it('places the user channel to the left of the date', async () => {
-    await expect(render('user')).resolves.toEqual([
-      '来自 Telegram',
-      '2026-10-14 10:00:00',
-    ]);
-  });
-
-  it('places the assistant channel to the right of the date', async () => {
-    await expect(render('assistant')).resolves.toEqual([
-      '2026-10-14 10:00:00',
-      '来自 Telegram',
-    ]);
+    expect(
+      Array.from(container.querySelectorAll('span span')).map(
+        node => node.textContent
+      )
+    ).toEqual(['2026-10-14 10:00:00', '来自 Telegram']);
   });
 });
