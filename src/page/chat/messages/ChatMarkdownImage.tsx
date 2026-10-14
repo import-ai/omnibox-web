@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { ImagePreviewDialog } from '@/page/chat/ImagePreviewDialog';
+import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import { resolveChatImageUrl } from './chatImageUrl';
@@ -20,6 +20,7 @@ export function ChatMarkdownImage({
   const url = resolveChatImageUrl(src, shareId);
   const [failedUrl, setFailedUrl] = useState<string>();
   const [previewUrl, setPreviewUrl] = useState<string>();
+  const invokerRef = useRef<HTMLButtonElement | null>(null);
 
   if (chatOnly) return null;
   if (!url || failedUrl === url) {
@@ -37,7 +38,10 @@ export function ChatMarkdownImage({
         type="button"
         aria-label={t('chat.image.preview')}
         className="max-w-full cursor-zoom-in rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
-        onClick={() => setPreviewUrl(url)}
+        onClick={event => {
+          invokerRef.current = event.currentTarget;
+          setPreviewUrl(url);
+        }}
       >
         <img
           src={url}
@@ -51,6 +55,8 @@ export function ChatMarkdownImage({
       <ImagePreviewDialog
         alt={alt}
         src={url}
+        referrerPolicy="no-referrer"
+        invokerRef={invokerRef}
         open={previewUrl === url}
         onOpenChange={open => setPreviewUrl(open ? url : undefined)}
       />

@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import useTheme from '@/hooks/useTheme';
 import type { Resource } from '@/interface';
 import { http } from '@/lib/request';
@@ -39,6 +40,7 @@ import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import type { ResourceCommentsController } from '../comments/useResourceComments';
+import { useResourceImagePreview } from '../useResourceImagePreview';
 import {
   type AutosizeTextAreaRef,
   normalizeTitleInput,
@@ -105,6 +107,9 @@ export default function Editor(props: IEditorProps) {
   } = props;
   const { i18n, t } = useTranslation();
   const markdownRef = useRef('');
+  const { registerImagePreview, imagePreviewProps } = useResourceImagePreview(
+    `edit:${namespaceId}:${resource.id}`
+  );
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
   const titleRef = useRef<AutosizeTextAreaRef | null>(null);
   const navigate = useNavigate();
@@ -164,8 +169,9 @@ export default function Editor(props: IEditorProps) {
     (editor: BodyEditorFocus) => {
       bodyEditorRef.current = editor;
       registerEditor(editor);
+      registerImagePreview(editor);
     },
-    [registerEditor]
+    [registerEditor, registerImagePreview]
   );
 
   const handleTitleEnter = useCallback(() => {
@@ -324,6 +330,7 @@ export default function Editor(props: IEditorProps) {
         } as React.CSSProperties
       }
     >
+      <ImagePreviewDialog {...imagePreviewProps} />
       <div className="resource-editable-title">
         <ResourceTitleTextarea
           ref={titleRef}

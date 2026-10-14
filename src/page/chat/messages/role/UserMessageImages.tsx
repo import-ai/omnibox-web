@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ImagePreviewDialog } from '@/page/chat/ImagePreviewDialog';
+import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 
 import type { UserMessageImagePart } from './userMessageTokens';
 
@@ -12,6 +12,7 @@ export function UserMessageImages({
 }) {
   const { t } = useTranslation();
   const [preview, setPreview] = useState<UserMessageImagePart | null>(null);
+  const invokerRef = useRef<HTMLButtonElement | null>(null);
 
   if (images.length === 0) return null;
 
@@ -24,7 +25,10 @@ export function UserMessageImages({
             type="button"
             aria-label={t('chat.image.preview')}
             className="relative"
-            onClick={() => setPreview(image)}
+            onClick={event => {
+              invokerRef.current = event.currentTarget;
+              setPreview(image);
+            }}
           >
             <img
               src={image.preview_url}
@@ -38,6 +42,7 @@ export function UserMessageImages({
         alt={preview?.name}
         open={preview !== null}
         src={preview?.preview_url}
+        invokerRef={invokerRef}
         onOpenChange={open => {
           if (!open) setPreview(null);
         }}

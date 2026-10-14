@@ -11,7 +11,7 @@ jest.mock('react-router-dom', () => ({ useParams: () => ({}) }));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
-jest.mock('@/page/chat/ImagePreviewDialog', () => ({
+jest.mock('@/components/ImagePreviewDialog', () => ({
   ImagePreviewDialog: ({ open, src }: { open: boolean; src: string }) =>
     open ? <span role="dialog">{src}</span> : null,
 }));

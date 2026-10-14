@@ -154,6 +154,8 @@
     }
   },
   "resource_comments": {
+    "expand_content": "展开",
+    "collapse_content": "收起",
     "collapse": "收起评论",
     "panel_title": "评论（{{count}}）",
     "no_threads": "暂无评论",
@@ -182,6 +184,7 @@
     "comment_actions": "评论操作",
     "edit": "编辑",
     "edited": "（已编辑）",
+    "just_now": "刚刚",
     "delete": "删除",
     "save": "保存",
     "reply_placeholder": "回复",
@@ -1013,7 +1016,7 @@
   "date": {
     "today": "今天",
     "yesterday": "昨天",
-    "last_week": "过去7天"
+    "last_week": "过去 7 天"
   },
   "pagination": {
     "prev": "前页",

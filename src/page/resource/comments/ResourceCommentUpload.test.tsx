@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import { Editor, Node } from '@tiptap/core';
-import { act } from 'react';
+import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { toast } from 'sonner';
 
@@ -29,6 +29,10 @@ jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default', hash: '' }),
 }));
 jest.mock('@/service/resourceComments', () => ({}));
+jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
+jest.mock('@/hooks/useUser', () => ({
+  USER_UPDATED_EVENT: 'user-data-updated',
+}));
 jest.mock('./commentAnchors', () => ({}));
 jest.mock('@/components/button', () =>
   jest.requireActual('@/components/ui/Button')
@@ -83,7 +87,14 @@ let pendingSelection: {
 };
 type Mode = 'create' | 'edit' | 'reply';
 
-function Fixture({ mode }: { mode: Mode }) {
+function Fixture({
+  mode,
+  initialComment = comment,
+}: {
+  mode: Mode;
+  initialComment?: ResourceComment;
+}) {
+  const [replyContent, setReplyContent] = useState('Text');
   const controller = useResourceComments({
     namespaceId: 'namespace',
     resource: { id: 'resource' },
@@ -105,16 +116,16 @@ function Fixture({ mode }: { mode: Mode }) {
         <ResourceCommentComposer controller={props} />
       ) : mode === 'edit' ? (
         <ResourceCommentItem
-          comment={comment}
+          comment={initialComment}
           threadId="thread"
           threadResolved={false}
           controller={props}
         />
       ) : (
         <ResourceCommentReplyComposer
-          reply="Text"
+          reply={replyContent}
           submitting={false}
-          onChange={jest.fn()}
+          onChange={setReplyContent}
           onCancel={jest.fn()}
           onSubmit={reply}
           onUploadImage={upload}
@@ -175,8 +186,14 @@ describe('comment upload races', () => {
     await act(async () => textarea.dispatchEvent(event));
     return event;
   };
-  const render = async (mode: Mode, content: string | null = 'Text') => {
-    await act(async () => root.render(<Fixture mode={mode} />));
+  const render = async (
+    mode: Mode,
+    content: string | null = 'Text',
+    initialComment?: ResourceComment
+  ) => {
+    await act(async () =>
+      root.render(<Fixture mode={mode} initialComment={initialComment} />)
+    );
     if (mode === 'edit') {
       await act(async () =>
         container
@@ -288,6 +305,166 @@ describe('comment upload races', () => {
         );
       });
       expect(setPendingSelection).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('draft image previews', () => {
+    const settleDialog = async () => {
+      await act(async () => {
+        await new Promise(resolve => window.setTimeout(resolve, 0));
+      });
+    };
+    const thumbnail = () => {
+      const button = container.querySelector<HTMLButtonElement>(
+        '.omnibox-comment-draft-image'
+      );
+      if (!button) throw new Error('Missing draft image preview button');
+      return button;
+    };
+    const preview = () => {
+      const dialog = document.querySelector<HTMLElement>(
+        '[data-image-preview]'
+      );
+      if (!dialog) throw new Error('Missing draft image preview dialog');
+      return dialog;
+    };
+    const openPreview = async () => {
+      const button = thumbnail();
+      await act(async () => button.click());
+      await settleDialog();
+      return button;
+    };
+    const expectNoPublication = () => {
+      expect(create).not.toHaveBeenCalled();
+      expect(edit).not.toHaveBeenCalled();
+      expect(reply).not.toHaveBeenCalled();
+    };
+
+    it.each<Mode>(['create', 'edit', 'reply'])(
+      'previews a pending %s image and preserves the draft after upload and Escape',
+      async mode => {
+        const pending = deferredUpload();
+        upload.mockReturnValueOnce(pending.promise);
+        await render(mode, 'Unsent draft text');
+        await attach();
+        const button = await openPreview();
+        expect(preview().querySelector('img')?.getAttribute('src')).toBe(
+          'blob:image-1'
+        );
+        expect(button.getAttribute('aria-label')).toBe('chat.image.preview');
+        expect(document.activeElement).toBe(
+          preview().querySelector('button[aria-label="close"]')
+        );
+        expectNoPublication();
+
+        await act(async () => pending.resolve(attachment));
+        expect(preview().querySelector('img')?.getAttribute('src')).toBe(
+          'blob:image-1'
+        );
+        expect(thumbnail()).toBe(button);
+        expect(submit().disabled).toBe(false);
+
+        await act(async () => {
+          document.activeElement?.dispatchEvent(
+            new KeyboardEvent('keydown', {
+              key: 'Escape',
+              bubbles: true,
+              cancelable: true,
+            })
+          );
+        });
+        await settleDialog();
+        expect(document.querySelector('[data-image-preview]')).toBeNull();
+        expect(document.activeElement).toBe(button);
+        expect(container.querySelector('textarea')?.value).toBe(
+          'Unsent draft text'
+        );
+        expect(button.querySelector('img')?.getAttribute('src')).toBe(
+          'blob:image-1'
+        );
+        expect(
+          container
+            .querySelector('.resource-comments-draft-surface')
+            ?.hasAttribute('data-closing') ?? false
+        ).toBe(false);
+        expect(setPendingSelection).not.toHaveBeenCalled();
+        expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+        expectNoPublication();
+      }
+    );
+
+    it.each<Mode>(['create', 'edit', 'reply'])(
+      'removes a %s image without opening or submitting it',
+      async mode => {
+        upload.mockResolvedValueOnce(attachment);
+        await render(mode);
+        await attach();
+        const remove = container.querySelector<HTMLButtonElement>(
+          '.omnibox-comment-image-remove'
+        );
+        if (!remove) throw new Error('Missing image remove button');
+        await act(async () => remove.click());
+        expect(container.querySelector('img')).toBeNull();
+        expect(document.querySelector('[data-image-preview]')).toBeNull();
+        expect(container.querySelector('textarea')?.value).toBe('Text');
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:image-1');
+        expectNoPublication();
+      }
+    );
+
+    it.each<Mode>(['create', 'edit', 'reply'])(
+      'closes the %s preview when its pending upload fails',
+      async mode => {
+        const pending = deferredUpload();
+        upload.mockReturnValueOnce(pending.promise);
+        await render(mode);
+        await attach();
+        await openPreview();
+        expect(preview()).not.toBeNull();
+        await act(async () => pending.reject(new Error('Upload failed')));
+        await settleDialog();
+        expect(document.querySelector('[data-image-preview]')).toBeNull();
+        expect(container.querySelector('img')).toBeNull();
+        expect(container.querySelector('textarea')?.value).toBe('Text');
+        expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:image-1');
+        expectNoPublication();
+      }
+    );
+
+    it('previews an existing edit image and lets native Portal events reach the document', async () => {
+      await render('edit', 'Edited text', {
+        ...comment,
+        attachments: [attachment],
+      });
+      const button = await openPreview();
+      expect(preview().querySelector('img')?.getAttribute('src')).toBe(
+        '/image.png'
+      );
+      const nativePointerDown = jest.fn();
+      document.addEventListener('pointerdown', nativePointerDown);
+      try {
+        await act(async () => {
+          preview().dispatchEvent(
+            new MouseEvent('pointerdown', {
+              bubbles: true,
+              cancelable: true,
+            })
+          );
+        });
+        expect(nativePointerDown).toHaveBeenCalledTimes(1);
+        await act(async () => preview().click());
+        await settleDialog();
+        expect(document.querySelector('[data-image-preview]')).toBeNull();
+        expect(document.activeElement).toBe(button);
+        expect(container.querySelector('textarea')?.value).toBe('Edited text');
+        expect(button.querySelector('img')?.getAttribute('src')).toBe(
+          '/image.png'
+        );
+        expect(URL.revokeObjectURL).not.toHaveBeenCalled();
+        expectNoPublication();
+      } finally {
+        document.removeEventListener('pointerdown', nativePointerDown);
+      }
     });
   });
 
