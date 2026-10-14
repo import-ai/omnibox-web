@@ -129,13 +129,6 @@ export function AssistantMessage(props: IProps) {
     useMessageSiblings(message.id, messageOperator);
 
   const domList: React.ReactNode[] = [];
-  if (channel) {
-    domList.push(
-      <div key="channel" className="text-xs text-muted-foreground">
-        {channel}
-      </div>
-    );
-  }
   if (openAIMessage.reasoning_content?.trim() || message.has_reasoning) {
     domList.push(
       <Accordion
@@ -176,6 +169,7 @@ export function AssistantMessage(props: IProps) {
         currentIndex={currentIndex}
         siblingsLength={siblings.length}
         createdAt={message.created_at}
+        channel={channel}
         onPrevious={handlePrevious}
         onNext={handleNext}
         isLastMessage={isLastMessage}

@@ -23,6 +23,7 @@ import { fetchResourcesByIds } from '@/service/resource';
 import { fetchShareResource } from '@/service/share';
 
 import { getCachedMessageDisplayParts } from '../messageDisplayPartsCache';
+import { MessageChannelTime } from './MessageChannelTime';
 import { UserMessageImages } from './UserMessageImages';
 import {
   buildResourceNameById,
@@ -349,9 +350,6 @@ export function UserMessage(props: IProps) {
           )}
         </div>
       )}
-      {channel && (
-        <span className="text-xs text-muted-foreground">{channel}</span>
-      )}
       {showSelectedResourcesTip && selectedResources && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -376,9 +374,7 @@ export function UserMessage(props: IProps) {
       )}
       {!hideActions && !message.attrs?.pending_query && (
         <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
-          {createdAt && (
-            <span className="text-xs text-muted-foreground">{createdAt}</span>
-          )}
+          <MessageChannelTime channel={channel} side="user" time={createdAt} />
           {!isEditing && !isSavedResource && (
             <Tooltip>
               <TooltipTrigger asChild>
