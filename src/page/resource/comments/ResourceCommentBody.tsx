@@ -86,7 +86,7 @@ export function ResourceCommentBody({
         <button
           key={image.id}
           type="button"
-          aria-label={t('resource_comments.preview_image')}
+          aria-label={t('chat.image.preview')}
           className="omnibox-comment-message__image-button"
           onClick={event => {
             event.stopPropagation();

@@ -13,6 +13,7 @@ import { formatRelativeTime } from './formatRelativeTime';
 import { pasteCommentImage } from './pasteCommentImage';
 import { ResourceCommentAvatar } from './ResourceCommentAvatar';
 import { ResourceCommentBody } from './ResourceCommentBody';
+import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
 import type { ResourceCommentsController } from './useResourceComments';
 
 export function ResourceCommentItem({
@@ -223,7 +224,15 @@ export function ResourceCommentItem({
           <div
             className="omnibox-comment-composer--edit"
             onClick={event => event.stopPropagation()}
-            onPointerDown={event => event.stopPropagation()}
+            onPointerDown={event => {
+              if (
+                event.target instanceof Element &&
+                event.target.closest('[data-image-preview]')
+              ) {
+                return;
+              }
+              event.stopPropagation();
+            }}
           >
             <div
               className="omnibox-comment-composer--edit__input"
@@ -255,10 +264,11 @@ export function ResourceCommentItem({
               {editImages.length ? (
                 <div className="omnibox-comment-composer--edit__preview">
                   {editImages.map(image => (
-                    <div key={image.id || image.url}>
-                      <img src={image.url} alt="" />
+                    <div key={image.url}>
+                      <ResourceCommentDraftImage src={image.url} />
                       <button
                         type="button"
+                        className="omnibox-comment-image-remove"
                         aria-label={t('resource_comments.remove_image')}
                         title={t('resource_comments.remove_image')}
                         onClick={() => {

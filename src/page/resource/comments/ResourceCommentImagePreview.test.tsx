@@ -114,6 +114,7 @@ describe('resource comment image preview', () => {
     const trigger = query<HTMLButtonElement>(
       '.omnibox-comment-message__image-button'
     );
+    expect(trigger.getAttribute('aria-label')).toBe('chat.image.preview');
     await act(async () => trigger.click());
     await settle();
     return trigger;
