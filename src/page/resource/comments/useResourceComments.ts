@@ -327,9 +327,14 @@ export function useResourceComments({
           attachmentIds,
         });
         mergeAnchorThreads([response.thread]);
-        setResolved(undefined);
-        setThreads(current => mergeThreads(current, [response.thread]));
-        setTotal(current => current + (response.thread_created ? 1 : 0));
+        const switchingFilter = resolved !== false;
+        setResolved(false);
+        if (switchingFilter) {
+          setThreads([response.thread]);
+        } else {
+          setThreads(current => mergeThreads(current, [response.thread]));
+          setTotal(current => current + (response.thread_created ? 1 : 0));
+        }
         setPendingSelection(null);
         requestAnimationFrame(() => {
           focusThread(response.thread.id, { openReply: false });
@@ -353,6 +358,7 @@ export function useResourceComments({
       mergeAnchorThreads,
       namespaceId,
       pendingSelection,
+      resolved,
       resource.id,
     ]
   );
