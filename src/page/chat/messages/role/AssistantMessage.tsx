@@ -123,11 +123,19 @@ export function AssistantMessage(props: IProps) {
     message.details_loaded !== undefined &&
     isTerminalMessageStatus(message.status);
   const openAIMessage = message.message;
+  const channel = message.attrs?.user_context?.channel;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
     useMessageSiblings(message.id, messageOperator);
 
   const domList: React.ReactNode[] = [];
+  if (channel) {
+    domList.push(
+      <div key="channel" className="text-xs text-muted-foreground">
+        {channel}
+      </div>
+    );
+  }
   if (openAIMessage.reasoning_content?.trim() || message.has_reasoning) {
     domList.push(
       <Accordion

@@ -105,6 +105,8 @@ export function UserMessage(props: IProps) {
   };
 
   const selectedResources = message.attrs?.user_context?.selected_resources;
+  const channel = message.attrs?.user_context?.channel;
+  const isSavedResource = Boolean(message.attrs?.user_context?.saved_resource);
   const createdAt = message.created_at
     ? format(new Date(message.created_at), 'yyyy-MM-dd HH:mm:ss')
     : null;
@@ -347,6 +349,9 @@ export function UserMessage(props: IProps) {
           )}
         </div>
       )}
+      {channel && (
+        <span className="text-xs text-muted-foreground">{channel}</span>
+      )}
       {showSelectedResourcesTip && selectedResources && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -374,7 +379,7 @@ export function UserMessage(props: IProps) {
           {createdAt && (
             <span className="text-xs text-muted-foreground">{createdAt}</span>
           )}
-          {!isEditing && (
+          {!isEditing && !isSavedResource && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
