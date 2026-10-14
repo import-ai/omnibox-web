@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { Button } from '@/components/Button';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   AlertDialog,
@@ -324,15 +325,15 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                 </div>
 
                 {hasError ? (
-                  <Button disabled variant="outline">
+                  <SettingPageButton disabled variant="outline">
                     {t('applications.unbind.button')}
-                  </Button>
+                  </SettingPageButton>
                 ) : isBound ? (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline">
+                      <SettingPageButton variant="outline">
                         {t('applications.unbind.button')}
-                      </Button>
+                      </SettingPageButton>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
                       <AlertDialogHeader>
@@ -362,24 +363,23 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                   </AlertDialog>
                 ) : state === 'binding_in_progress' ? (
                   <div className="flex gap-2">
-                    <Button
+                    <SettingPageButton
                       onClick={() => handleBind(application)}
                       disabled={
                         bindingLoading && currentAppId === application.app_id
                       }
-                      variant="default"
                     >
                       {bindingLoading &&
                         currentAppId === application.app_id && (
                           <Spinner className="mr-2" />
                         )}
                       {t('applications.bind.button')}
-                    </Button>
+                    </SettingPageButton>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="outline">
+                        <SettingPageButton variant="outline">
                           {t('applications.bind.cancel_button')}
-                        </Button>
+                        </SettingPageButton>
                       </AlertDialogTrigger>
                       <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
                         <AlertDialogHeader>
@@ -409,18 +409,17 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     </AlertDialog>
                   </div>
                 ) : (
-                  <Button
+                  <SettingPageButton
                     onClick={() => handleBind(application)}
                     disabled={
                       bindingLoading && currentAppId === application.app_id
                     }
-                    variant="default"
                   >
                     {bindingLoading && currentAppId === application.app_id && (
                       <Spinner className="mr-2" />
                     )}
                     {t('applications.bind.button')}
-                  </Button>
+                  </SettingPageButton>
                 )}
               </div>
             );

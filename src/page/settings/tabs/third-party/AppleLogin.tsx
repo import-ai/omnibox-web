@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/Button';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 
@@ -186,12 +186,11 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
   };
 
   return (
-    <Button
-      variant="default"
+    <SettingPageButton
       onClick={loginWithApple}
       disabled={!sdkLoaded || loading}
     >
       {t('setting.bind_btn')}
-    </Button>
+    </SettingPageButton>
   );
 }

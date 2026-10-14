@@ -17,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -182,7 +183,7 @@ export default function SettingForm({
                 {t('namespace.name_description')}
               </p>
             </div>
-            <Button
+            <SettingPageButton
               variant="outline"
               onClick={() => {
                 form.reset({ name: data.name });
@@ -190,7 +191,7 @@ export default function SettingForm({
               }}
             >
               {t('setting.change')}
-            </Button>
+            </SettingPageButton>
           </div>
           <Dialog
             open={nameDialogOpen}
@@ -265,12 +266,12 @@ export default function SettingForm({
                 {t('namespace.leave.description')}
               </p>
             </div>
-            <Button
+            <SettingPageButton
               variant="destructive"
               onClick={() => setLeaveDialogOpen(true)}
             >
               {t('namespace.leave.button')}
-            </Button>
+            </SettingPageButton>
           </div>
 
           {/* Delete Space - Only for owners */}
@@ -284,12 +285,12 @@ export default function SettingForm({
                   {t('namespace.delete.description')}
                 </p>
               </div>
-              <Button
+              <SettingPageButton
                 variant="destructive"
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 {t('namespace.delete.button')}
-              </Button>
+              </SettingPageButton>
             </div>
           )}
         </div>

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/Button';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import useProNamespaces from '@/hooks/useProNamespaces';
 
 interface ExpandButtonProps {
@@ -24,13 +24,7 @@ export function ExpandButton({ namespaceId }: ExpandButtonProps) {
         target="_blank"
         rel="noopener noreferrer"
       >
-        <Button
-          size="sm"
-          variant="default"
-          className="h-8 w-20 shrink-0 text-xs font-medium"
-        >
-          {t('quota.expand_button')}
-        </Button>
+        <SettingPageButton>{t('quota.expand_button')}</SettingPageButton>
       </a>
     </div>
   );

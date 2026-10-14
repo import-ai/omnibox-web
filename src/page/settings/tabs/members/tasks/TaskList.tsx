@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/omnibox/Select';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import {
   Tooltip,
   TooltipContent,
@@ -230,9 +231,9 @@ export function TaskList({ namespaceId }: TaskListProps) {
             </Select>
           )}
         </div>
-        <Button variant="default" onClick={handleRefresh} disabled={loading}>
+        <SettingPageButton onClick={handleRefresh} disabled={loading}>
           {t('common.refresh')}
-        </Button>
+        </SettingPageButton>
       </div>
 
       <div

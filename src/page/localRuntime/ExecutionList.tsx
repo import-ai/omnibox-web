@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import {
   Tooltip,
   TooltipContent,
@@ -76,9 +77,9 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
         <h3 className="text-sm font-semibold text-foreground lg:text-base">
           {t('local_runtime.executions')}
         </h3>
-        <Button onClick={refresh} className="shrink-0">
+        <SettingPageButton onClick={refresh}>
           {t('common.refresh')}
-        </Button>
+        </SettingPageButton>
       </div>
       {error && (
         <p role="alert" className="mb-2 text-sm text-destructive">

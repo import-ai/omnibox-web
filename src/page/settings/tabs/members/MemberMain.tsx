@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/Button';
 import Invite from '@/components/invite-dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import PermissionAction from '@/components/permission-action';
 import { SearchField } from '@/components/search/SearchField';
 import {
@@ -63,7 +63,7 @@ export default function MemberMain(props: MemberProps) {
         />
         {canManageMembers && (
           <Invite onFinish={refetch}>
-            <Button variant="default">{t('manage.add')}</Button>
+            <SettingPageButton>{t('manage.add')}</SettingPageButton>
           </Invite>
         )}
       </div>

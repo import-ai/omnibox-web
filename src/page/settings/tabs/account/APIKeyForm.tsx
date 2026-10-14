@@ -17,6 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/omnibox/Dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { ResourceSelect } from '@/components/resourceSelect';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
@@ -507,7 +508,7 @@ export function APIKeyForm() {
           onOpenChange={handleCreateDialogOpenChange}
         >
           <DialogTrigger asChild>
-            <Button variant="default">{t('create')}</Button>
+            <SettingPageButton>{t('create')}</SettingPageButton>
           </DialogTrigger>
           <DialogContent className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
             <DialogHeader>

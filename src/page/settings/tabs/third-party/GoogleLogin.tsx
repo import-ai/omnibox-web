@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/Button';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { http } from '@/lib/request';
 
 export function GoogleLogin() {
@@ -18,8 +18,8 @@ export function GoogleLogin() {
   };
 
   return (
-    <Button variant="default" onClick={loginWithGoogle}>
+    <SettingPageButton onClick={loginWithGoogle}>
       {t('setting.bind_btn')}
-    </Button>
+    </SettingPageButton>
   );
 }

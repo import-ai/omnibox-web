@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/Button';
 import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { http } from '@/lib/request';
 
 interface DeleteAccountDialogProps {
@@ -39,7 +39,9 @@ export function DeleteAccountDialog({
   };
 
   const defaultTrigger = (
-    <Button variant="destructive">{t('setting.delete_account.button')}</Button>
+    <SettingPageButton variant="destructive">
+      {t('setting.delete_account.button')}
+    </SettingPageButton>
   );
 
   return (

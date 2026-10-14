@@ -11,7 +11,6 @@ import { GoogleIcon } from '@/assets/icons/GoogleIcon';
 import { MailIcon } from '@/assets/icons/MailIcon';
 import { SmartphoneIcon } from '@/assets/icons/SmartphoneIcon';
 import { WeChatIcon } from '@/assets/icons/Wechat';
-import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import {
   Dialog,
@@ -20,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import {
   Tooltip,
   TooltipContent,
@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -83,25 +84,6 @@ const passwordChangeSchema = z.object({
 
 type UsernameFormValues = { username: string };
 type PasswordFormValues = { password: string; password_repeat: string };
-
-const ActionButton = React.forwardRef<
-  React.ElementRef<typeof Button>,
-  {
-    children: React.ReactNode;
-    onClick?: () => void;
-    disabled?: boolean;
-    variant?: 'default' | 'outline' | 'destructive';
-  }
->(function ActionButton(
-  { children, onClick, disabled, variant = 'outline' },
-  ref
-) {
-  return (
-    <Button ref={ref} onClick={onClick} disabled={disabled} variant={variant}>
-      {children}
-    </Button>
-  );
-});
 
 function SectionHeader({
   title,
@@ -186,7 +168,7 @@ function InfoRow({
           {description}
         </p>
       </div>
-      <div className="shrink-0">{button}</div>
+      {button}
     </div>
   );
 }
@@ -222,7 +204,9 @@ function BindingRow({
         isBound ? (
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <ActionButton>{t('setting.unbind_btn')}</ActionButton>
+              <SettingPageButton variant="outline">
+                {t('setting.unbind_btn')}
+              </SettingPageButton>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
@@ -252,9 +236,7 @@ function BindingRow({
           </AlertDialog>
         ) : (
           onBind || (
-            <ActionButton variant="default">
-              {t('setting.bind_btn')}
-            </ActionButton>
+            <SettingPageButton>{t('setting.bind_btn')}</SettingPageButton>
           )
         )
       }
@@ -447,9 +429,12 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         value={user?.username || ''}
         description={t('setting.option_descriptions.username')}
         button={
-          <ActionButton onClick={() => setUsernameDialogOpen(true)}>
+          <SettingPageButton
+            variant="outline"
+            onClick={() => setUsernameDialogOpen(true)}
+          >
             {t('setting.change')}
-          </ActionButton>
+          </SettingPageButton>
         }
       />
 
@@ -459,9 +444,12 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         value={maskedPassword}
         description={t('setting.option_descriptions.password')}
         button={
-          <ActionButton onClick={() => setPasswordDialogOpen(true)}>
+          <SettingPageButton
+            variant="outline"
+            onClick={() => setPasswordDialogOpen(true)}
+          >
             {t('setting.change')}
-          </ActionButton>
+          </SettingPageButton>
         }
       />
 
@@ -478,12 +466,12 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         value={phoneBinding?.login_id || t('setting.not_bound')}
         description={t('setting.option_descriptions.phone')}
         button={
-          <ActionButton
+          <SettingPageButton
             variant={phoneBinding?.id ? 'outline' : 'default'}
             onClick={() => setPhoneDialogOpen(true)}
           >
             {t(phoneBinding?.id ? 'setting.change' : 'setting.bind_btn')}
-          </ActionButton>
+          </SettingPageButton>
         }
       />
       <InfoRow
@@ -492,9 +480,12 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         value={user?.email || t('setting.not_bound')}
         description={t('setting.option_descriptions.email')}
         button={
-          <ActionButton onClick={() => setEmailDialogOpen(true)}>
+          <SettingPageButton
+            variant="outline"
+            onClick={() => setEmailDialogOpen(true)}
+          >
             {t('setting.change')}
-          </ActionButton>
+          </SettingPageButton>
         }
       />
 
@@ -566,11 +557,12 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => setUsernameDialogOpen(false)}
                 >
                   {t('cancel')}
                 </Button>
-                <Button type="submit" disabled={submitting}>
+                <Button type="submit" disabled={submitting} size="sm">
                   {submitting ? <Spinner /> : t('ok')}
                 </Button>
               </div>
@@ -674,6 +666,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => {
                     setPasswordDialogOpen(false);
                     passwordForm.reset();
@@ -683,7 +676,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                 >
                   {t('cancel')}
                 </Button>
-                <Button type="submit" disabled={submitting}>
+                <Button type="submit" disabled={submitting} size="sm">
                   {submitting ? <Spinner /> : t('ok')}
                 </Button>
               </div>
@@ -739,7 +732,16 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       <InfoRow
         label={t('setting.delete_account.section_title')}
         description={t('setting.delete_account.section_description')}
-        button={<DeleteAccountDialog username={user?.username || ''} />}
+        button={
+          <DeleteAccountDialog
+            username={user?.username || ''}
+            trigger={
+              <SettingPageButton variant="destructive">
+                {t('setting.delete_account.button')}
+              </SettingPageButton>
+            }
+          />
+        }
       />
     </div>
   );

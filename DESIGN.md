@@ -1029,10 +1029,13 @@ the title. Apply this structure to switches, selectors, and action buttons alike
 - Single-value settings use `Select` with its default 36px height, `rounded-md`,
   and visible `border-input`. Open options below the trigger with
   `position="popper"`; use `DropdownMenu` for actions, not value selection.
-- Settings actions use the default Button size (36px, 14px, weight 500,
-  `rounded-md`). Binding uses `default`, changing an existing value uses
-  `outline`, and destructive actions use `destructive`. Do not override
-  height, font size, radius, or state colors per action.
+- Settings row actions use `SettingPageButton` from
+  `@/components/omnibox/SettingPageButton`. It inherits `@/components/ui/button`
+  at 30px height with 12px text and weight 500, and shares one
+  width, sized by the delete-account label. Binding uses `default`, changing
+  an existing value uses `outline`, and destructive actions use `destructive`.
+  Do not override height, font size, radius, or state colors per action.
+  Dialog submit and cancel buttons stay on `@/components/Button`.
 - Icon-only actions use `Button` with a `Tooltip` and a
   `size-4 text-muted-foreground` icon. Use `hover:opacity-70`. Delete icons
   add `group-hover:text-destructive`.
