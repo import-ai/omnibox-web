@@ -11,6 +11,7 @@ import type { ResourceComment } from '@/interface';
 
 import { formatRelativeTime } from './formatRelativeTime';
 import { pasteCommentImage } from './pasteCommentImage';
+import { placeCommentCaretAtEnd } from './placeCommentCaretAtEnd';
 import { ResourceCommentAvatar } from './ResourceCommentAvatar';
 import { ResourceCommentBody } from './ResourceCommentBody';
 import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
@@ -113,7 +114,11 @@ export function ResourceCommentItem({
 
   useLayoutEffect(() => {
     if (editing && canEdit) {
-      editInputRef.current?.focus({ preventScroll: true });
+      const input = editInputRef.current;
+      if (input) {
+        input.focus({ preventScroll: true });
+        placeCommentCaretAtEnd(input);
+      }
     }
   }, [canEdit, editing]);
 
