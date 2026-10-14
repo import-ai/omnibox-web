@@ -10,6 +10,7 @@ import type { ResourceCommentAttachment } from '@/interface';
 
 import { pasteCommentImage } from './pasteCommentImage';
 import { ResourceCommentAvatar } from './ResourceCommentAvatar';
+import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
 
 export function ResourceCommentReplyComposer({
   author,
@@ -132,9 +133,10 @@ export function ResourceCommentReplyComposer({
         />
         {imagePreview ? (
           <div className="omnibox-comment-reply__preview">
-            <img src={imagePreview} alt="" />
+            <ResourceCommentDraftImage key={imagePreview} src={imagePreview} />
             <button
               type="button"
+              className="omnibox-comment-image-remove"
               aria-label={t('resource_comments.remove_image')}
               title={t('resource_comments.remove_image')}
               onClick={clearImage}
