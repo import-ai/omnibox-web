@@ -40,7 +40,7 @@ export default function GroupMain(props: GroupProps) {
     refetch();
   };
   const handleToggle = (open: boolean) => {
-    onEdit({ open });
+    onEdit(current => (open ? { ...current, open } : { open }));
   };
   const handleEdit = (id: string, title: string) => {
     onEdit({

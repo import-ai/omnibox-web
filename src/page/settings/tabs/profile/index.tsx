@@ -35,7 +35,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -191,56 +190,60 @@ function BindingRow({
   unbinding?: boolean;
 }) {
   const { t } = useTranslation();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
-    <InfoRow
-      icon={icon}
-      label={label}
-      value={value}
-      description={t('setting.option_descriptions.third_party', {
-        provider: label,
-      })}
-      button={
-        isBound ? (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <SettingPageButton variant="outline">
-                {t('setting.unbind_btn')}
-              </SettingPageButton>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {t('setting.third_party_account.confirm_unbind')}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t('setting.third_party_account.confirm_unbind_description', {
-                    type: label,
-                  })}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="cancel-btn-outline">
-                  {t('cancel')}
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  variant="destructive"
-                  disabled={unbinding}
-                  onClick={onUnbind}
-                >
-                  {unbinding && <Spinner className="mr-2" />}
-                  {t('setting.third_party_account.confirm_unbind')}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        ) : (
-          onBind || (
-            <SettingPageButton>{t('setting.bind_btn')}</SettingPageButton>
+    <>
+      <InfoRow
+        icon={icon}
+        label={label}
+        value={value}
+        description={t('setting.option_descriptions.third_party', {
+          provider: label,
+        })}
+        button={
+          isBound ? (
+            <SettingPageButton
+              variant="outline"
+              onClick={() => setConfirmOpen(true)}
+            >
+              {t('setting.unbind_btn')}
+            </SettingPageButton>
+          ) : (
+            onBind || (
+              <SettingPageButton>{t('setting.bind_btn')}</SettingPageButton>
+            )
           )
-        )
-      }
-    />
+        }
+      />
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('setting.third_party_account.confirm_unbind')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('setting.third_party_account.confirm_unbind_description', {
+                type: label,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="cancel-btn-outline">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={unbinding}
+              onClick={onUnbind}
+            >
+              {unbinding && <Spinner className="mr-2" />}
+              {t('setting.third_party_account.confirm_unbind')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -270,6 +273,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const autoActionProcessedRef = useRef(false);
 
@@ -733,15 +737,18 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         label={t('setting.delete_account.section_title')}
         description={t('setting.delete_account.section_description')}
         button={
-          <DeleteAccountDialog
-            username={user?.username || ''}
-            trigger={
-              <SettingPageButton variant="destructive">
-                {t('setting.delete_account.button')}
-              </SettingPageButton>
-            }
-          />
+          <SettingPageButton
+            variant="destructive"
+            onClick={() => setDeleteAccountOpen(true)}
+          >
+            {t('setting.delete_account.button')}
+          </SettingPageButton>
         }
+      />
+      <DeleteAccountDialog
+        username={user?.username || ''}
+        open={deleteAccountOpen}
+        onOpenChange={setDeleteAccountOpen}
       />
     </div>
   );

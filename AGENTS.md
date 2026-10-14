@@ -192,6 +192,12 @@ status and time display, destructive confirmations, and copy rules.
   `@theme inline`; there is no JavaScript Tailwind configuration. Use full CSS
   color values (`var(--popover)`), never `hsl(var(--popover))`.
 - Import Radix primitives from `radix-ui` so compound components share contexts.
+- Do not make a visible button a Radix `asChild` trigger for a dialog, alert
+  dialog, or popover. Those triggers set `aria-haspopup`, and the shared button
+  press style `active:not-aria-[haspopup]:translate-y-px` then skips the 1px
+  press movement. Open the overlay from the button `onClick` with controlled
+  `open` state instead. Tooltip triggers are exempt because the press movement
+  is not expected there.
 - Embedded hosts must resolve React and React DOM to the same React 19 installation.
 
 ### File Naming

@@ -5,11 +5,8 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
 import MultipleSelector, { Option } from '@/components/multiple-selector';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/Popover';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
+import { Popover, PopoverContent } from '@/components/ui/Popover';
 import { Member } from '@/interface';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
@@ -96,12 +93,10 @@ export default function AddMember(props: AddMemberProps) {
 
   return (
     <Popover open={open} onOpenChange={onOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="default" className="mt-2 shrink-0">
-          <Plus />
-          {t('manage.add_member')}
-        </Button>
-      </PopoverTrigger>
+      <SettingPageButton className="mt-2" onClick={() => onOpen(true)}>
+        <Plus />
+        {t('manage.add_member')}
+      </SettingPageButton>
       <PopoverContent
         side="bottom"
         align="start"

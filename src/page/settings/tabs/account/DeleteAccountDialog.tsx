@@ -3,20 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
-import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { http } from '@/lib/request';
 
 interface DeleteAccountDialogProps {
   username: string;
-  trigger?: React.ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function DeleteAccountDialog({
   username,
-  trigger,
+  open,
+  onOpenChange,
 }: DeleteAccountDialogProps) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const handleInitiateDeletion = async () => {
@@ -32,22 +32,16 @@ export function DeleteAccountDialog({
         duration: 6000,
       });
 
-      setOpen(false);
+      onOpenChange(false);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const defaultTrigger = (
-    <SettingPageButton variant="destructive">
-      {t('setting.delete_account.button')}
-    </SettingPageButton>
-  );
-
   return (
     <ConfirmInputDialog
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={onOpenChange}
       title={t('setting.delete_account.title')}
       warningTitle={t('setting.delete_account.warning_title')}
       warningBody={t('setting.delete_account.warning_body')}
@@ -57,7 +51,6 @@ export function DeleteAccountDialog({
       cancelButtonText={t('cancel')}
       loading={submitting}
       onConfirm={handleInitiateDeletion}
-      trigger={trigger || defaultTrigger}
     />
   );
 }

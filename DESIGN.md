@@ -1036,6 +1036,9 @@ the title. Apply this structure to switches, selectors, and action buttons alike
   an existing value uses `outline`, and destructive actions use `destructive`.
   Do not override height, font size, radius, or state colors per action.
   Dialog submit and cancel buttons stay on `@/components/Button`.
+  Do not wrap a settings action in `DialogTrigger`, `AlertDialogTrigger`, or
+  `PopoverTrigger`: open the overlay from `onClick` so the button keeps its
+  press movement. Tooltip triggers may still wrap icon actions.
 - Icon-only actions use `Button` with a `Tooltip` and a
   `size-4 text-muted-foreground` icon. Use `hover:opacity-70`. Delete icons
   add `group-hover:text-destructive`.

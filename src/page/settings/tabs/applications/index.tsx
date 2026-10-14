@@ -15,7 +15,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
@@ -46,6 +45,18 @@ function validateAppId(appId: string): void {
     appId !== 'wechat_clawbot'
   ) {
     throw new Error(`Unsupported application type: ${appId}`);
+  }
+}
+
+function getConfirmAppName(
+  application: Application,
+  t: (key: string, options?: Record<string, string>) => string
+) {
+  try {
+    validateAppId(application.app_id);
+    return getLocalizedAppName(application.app_id, t);
+  } catch {
+    return application.app_id;
   }
 }
 
@@ -103,6 +114,11 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const [currentAppId, setCurrentAppId] = useState<string>('');
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
+  const [confirmApplication, setConfirmApplication] =
+    useState<Application | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    'unbind' | 'cancel' | null
+  >(null);
 
   // Track if autoAction has been processed to prevent re-triggering
   const autoActionProcessedRef = useRef(false);
@@ -169,6 +185,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     try {
       setUnbindingLoading(true);
       await unbindApplication(application.id);
+      setConfirmApplication(null);
+      setConfirmAction(null);
       showToast(t('applications.unbind.success'), 'success');
     } catch {
       showToast(t('applications.unbind.error'), 'error');
@@ -192,6 +210,8 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     try {
       setCancelingLoading(true);
       await unbindApplication(application.id);
+      setConfirmApplication(null);
+      setConfirmAction(null);
       showToast(t('applications.bind.cancel.success'), 'success');
     } catch {
       showToast(t('applications.unbind.error'), 'error');
@@ -329,38 +349,15 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     {t('applications.unbind.button')}
                   </SettingPageButton>
                 ) : isBound ? (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <SettingPageButton variant="outline">
-                        {t('applications.unbind.button')}
-                      </SettingPageButton>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          {t('applications.unbind.confirm.title')}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {t('applications.unbind.confirm.description', {
-                            name: appDisplayName,
-                          })}
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel asChild>
-                          <Button variant="outline">{t('cancel')}</Button>
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          variant="destructive"
-                          disabled={unbindingLoading}
-                          onClick={() => handleUnbind(application)}
-                        >
-                          {unbindingLoading && <Spinner className="mr-2" />}
-                          {t('applications.unbind.confirm.button')}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <SettingPageButton
+                    variant="outline"
+                    onClick={() => {
+                      setConfirmApplication(application);
+                      setConfirmAction('unbind');
+                    }}
+                  >
+                    {t('applications.unbind.button')}
+                  </SettingPageButton>
                 ) : state === 'binding_in_progress' ? (
                   <div className="flex gap-2">
                     <SettingPageButton
@@ -375,38 +372,15 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         )}
                       {t('applications.bind.button')}
                     </SettingPageButton>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <SettingPageButton variant="outline">
-                          {t('applications.bind.cancel_button')}
-                        </SettingPageButton>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {t('applications.bind.cancel.confirm.title')}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t('applications.bind.cancel.confirm.description', {
-                              name: appDisplayName,
-                            })}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel asChild>
-                            <Button variant="outline">{t('cancel')}</Button>
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            variant="destructive"
-                            disabled={cancelingLoading}
-                            onClick={() => handleCancelBind(application)}
-                          >
-                            {cancelingLoading && <Spinner className="mr-2" />}
-                            {t('applications.bind.cancel.confirm.button')}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <SettingPageButton
+                      variant="outline"
+                      onClick={() => {
+                        setConfirmApplication(application);
+                        setConfirmAction('cancel');
+                      }}
+                    >
+                      {t('applications.bind.cancel_button')}
+                    </SettingPageButton>
                   </div>
                 ) : (
                   <SettingPageButton
@@ -453,6 +427,71 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         onOpenChange={setAlreadyBoundDialogOpen}
         appId={currentAppId}
       />
+      <AlertDialog
+        open={confirmApplication !== null}
+        onOpenChange={open => {
+          if (!open && !unbindingLoading && !cancelingLoading) {
+            setConfirmApplication(null);
+            setConfirmAction(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t(
+                confirmAction === 'cancel'
+                  ? 'applications.bind.cancel.confirm.title'
+                  : 'applications.unbind.confirm.title'
+              )}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                confirmAction === 'cancel'
+                  ? 'applications.bind.cancel.confirm.description'
+                  : 'applications.unbind.confirm.description',
+                {
+                  name: confirmApplication
+                    ? getConfirmAppName(confirmApplication, t)
+                    : '',
+                }
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button
+                variant="outline"
+                disabled={unbindingLoading || cancelingLoading}
+              >
+                {t('cancel')}
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={unbindingLoading || cancelingLoading}
+              onClick={event => {
+                event.preventDefault();
+                if (!confirmApplication) return;
+                if (confirmAction === 'cancel') {
+                  void handleCancelBind(confirmApplication);
+                  return;
+                }
+                void handleUnbind(confirmApplication);
+              }}
+            >
+              {(unbindingLoading || cancelingLoading) && (
+                <Spinner className="mr-2" />
+              )}
+              {t(
+                confirmAction === 'cancel'
+                  ? 'applications.bind.cancel.confirm.button'
+                  : 'applications.unbind.confirm.button'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

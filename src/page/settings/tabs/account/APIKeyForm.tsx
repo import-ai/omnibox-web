@@ -15,7 +15,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/omnibox/Dialog';
 import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { ResourceSelect } from '@/components/resourceSelect';
@@ -30,7 +29,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Input } from '@/components/ui/input';
@@ -503,13 +501,13 @@ export function APIKeyForm() {
           </p>
         </div>
 
+        <SettingPageButton onClick={() => handleCreateDialogOpenChange(true)}>
+          {t('create')}
+        </SettingPageButton>
         <Dialog
           open={createDialogOpen}
           onOpenChange={handleCreateDialogOpenChange}
         >
-          <DialogTrigger asChild>
-            <SettingPageButton>{t('create')}</SettingPageButton>
-          </DialogTrigger>
           <DialogContent className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
             <DialogHeader>
               <DialogTitle>{t('api_key.create.title')}</DialogTitle>
@@ -728,15 +726,17 @@ export function APIKeyForm() {
                   >
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="group flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
-                          >
-                            <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
-                          </Button>
-                        </AlertDialogTrigger>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setErrorMessage('');
+                            setDeleteDialogKey(key.id);
+                          }}
+                          className="group flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
+                        >
+                          <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
+                        </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">{t('delete')}</TooltipContent>
                     </Tooltip>
