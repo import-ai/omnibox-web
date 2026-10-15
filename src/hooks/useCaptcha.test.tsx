@@ -382,6 +382,11 @@ describe('useCaptcha run()', () => {
     await act(async () => {
       await jest.advanceTimersByTimeAsync(100);
     });
+    // The user is solving the slider, not a seamless pass.
+    const popup = appendCaptchaNode(true);
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(300);
+    });
 
     // The first two rejections refresh the challenge and keep the run alive.
     for (const attempt of [1, 2]) {
@@ -394,6 +399,7 @@ describe('useCaptcha run()', () => {
       expect(sdkResult).toEqual({ captchaResult: false, bizResult: false });
       expect(result).toBeNull();
       expect(current.running).toBe(true);
+      expect(toast.error).not.toHaveBeenCalled();
     }
 
     // The third tells the SDK to close instead of looping forever, settles the
@@ -410,8 +416,104 @@ describe('useCaptcha run()', () => {
       message: 'Captcha verification failed, please try again',
     });
     expect(current.running).toBe(false);
+    expect(toast.error).toHaveBeenCalledTimes(1);
     expect(toast.error).toHaveBeenCalledWith(
       'Captcha verification failed, please try again',
+      expect.anything()
+    );
+    popup.node.remove();
+  });
+
+  it('does not count a rejected seamless pass as a failed attempt', async () => {
+    await mountReady();
+
+    const onVerify = jest.fn().mockResolvedValue({
+      captchaResult: false,
+      bizResult: false,
+      message: 'Captcha verification failed, please try again',
+    });
+    let result: Awaited<ReturnType<CaptchaController['run']>> | null = null;
+    await act(async () => {
+      void current.run(onVerify).then(value => {
+        result = value;
+      });
+    });
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(100);
+    });
+
+    // The SDK verifies the click silently, before any challenge is shown, and
+    // escalates to the slider once the server rejects it.
+    let sdkResult: unknown = null;
+    await act(async () => {
+      sdkResult = await initOptions!.captchaVerifyCallback('seamless');
+    });
+    expect(sdkResult).toEqual({ captchaResult: false, bizResult: false });
+    expect(toast.error).not.toHaveBeenCalled();
+
+    const popup = appendCaptchaNode(true);
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(300);
+    });
+
+    // Three rejected slides are still needed before the run gives up.
+    for (const attempt of [1, 2]) {
+      await act(async () => {
+        sdkResult = await initOptions!.captchaVerifyCallback(
+          `param-${attempt}`
+        );
+      });
+      expect(sdkResult).toEqual({ captchaResult: false, bizResult: false });
+      expect(result).toBeNull();
+      expect(toast.error).not.toHaveBeenCalled();
+    }
+    await act(async () => {
+      sdkResult = await initOptions!.captchaVerifyCallback('param-3');
+    });
+    expect(sdkResult).toEqual({ captchaResult: true, bizResult: false });
+    expect(onVerify).toHaveBeenCalledTimes(4);
+    expect(result).toEqual({
+      captchaResult: false,
+      bizResult: false,
+      message: 'Captcha verification failed, please try again',
+    });
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    popup.node.remove();
+  });
+
+  it('exempts only one rejection per run when no challenge is ever shown', async () => {
+    await mountReady();
+
+    const onVerify = jest
+      .fn()
+      .mockResolvedValue({ captchaResult: false, bizResult: false });
+    let result: Awaited<ReturnType<CaptchaController['run']>> | null = null;
+    await act(async () => {
+      void current.run(onVerify).then(value => {
+        result = value;
+      });
+    });
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(100);
+    });
+
+    // An SDK that keeps calling back without a challenge still hits the bound.
+    for (const attempt of [1, 2, 3]) {
+      await act(async () => {
+        await initOptions!.captchaVerifyCallback(`param-${attempt}`);
+      });
+      expect(result).toBeNull();
+    }
+    let sdkResult: unknown = null;
+    await act(async () => {
+      sdkResult = await initOptions!.captchaVerifyCallback('param-4');
+    });
+    expect(sdkResult).toEqual({ captchaResult: true, bizResult: false });
+    expect(result).toEqual({ captchaResult: false, bizResult: false });
+    expect(current.running).toBe(false);
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith(
+      'captcha.failed',
       expect.anything()
     );
   });

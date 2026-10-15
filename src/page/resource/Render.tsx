@@ -22,6 +22,7 @@ import {
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
+import { ImageCommentButton } from './comments/ImageCommentButton';
 import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
 import {
   type ResourceCommentsController,
@@ -168,6 +169,9 @@ function OmniboxRender(props: OmniboxRenderProps) {
       className={editorClassName}
     >
       <ImagePreviewDialog {...imagePreviewProps} />
+      {props.commentsDisabled ? null : (
+        <ImageCommentButton controller={comments} />
+      )}
       <ResourceOmniboxEditor
         key={getReadonlyResourceEditorKey(resource)}
         editable={false}

@@ -19,7 +19,11 @@ import {
 } from '@/components/ui/Form';
 import { useCaptcha } from '@/hooks/useCaptcha';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
-import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
+import {
+  CAPTCHA_REQUEST_CONFIG,
+  captchaResultFromError,
+  withCaptchaParam,
+} from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validationSchemas';
@@ -95,7 +99,8 @@ export function RegisterForm({ children, contactMethod }: IProps) {
               url: `${window.location.origin}${buildUrl('/user/verify-otp', withInviteCode({ redirect }))}`,
             },
             captchaVerifyParam
-          )
+          ),
+          CAPTCHA_REQUEST_CONFIG
         );
 
         if (response.exists) {
@@ -135,7 +140,8 @@ export function RegisterForm({ children, contactMethod }: IProps) {
       try {
         const response = await http.post(
           'auth/send-signup-phone-otp',
-          withCaptchaParam({ phone: data.phone }, captchaVerifyParam)
+          withCaptchaParam({ phone: data.phone }, captchaVerifyParam),
+          CAPTCHA_REQUEST_CONFIG
         );
 
         if (response.exists) {

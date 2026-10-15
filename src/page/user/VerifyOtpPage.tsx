@@ -180,9 +180,14 @@ export default function VerifyOtpPage() {
         setCountdown(60);
         return { captchaResult: true, bizResult: true };
       } catch (err: any) {
-        // The request is muted, so surface the server message inline.
-        setError(err.response?.data?.message || t('verify_otp.error_resend'));
-        return captchaResultFromError(err);
+        const result = captchaResultFromError(err);
+        // The request is muted, so surface a business failure inline. A
+        // captcha rejection refreshes the challenge instead, and useCaptcha
+        // reports it once it stops retrying.
+        if (result.captchaResult) {
+          setError(result.message || t('verify_otp.error_resend'));
+        }
+        return result;
       } finally {
         setIsResending(false);
       }

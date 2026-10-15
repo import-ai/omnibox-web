@@ -34,7 +34,11 @@ import { useCaptcha } from '@/hooks/useCaptcha';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
 import useTheme from '@/hooks/useTheme';
 import { getOtpErrorMessage } from '@/hooks/useVerificationCode';
-import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
+import {
+  CAPTCHA_REQUEST_CONFIG,
+  captchaResultFromError,
+  withCaptchaParam,
+} from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validationSchemas';
@@ -120,7 +124,8 @@ export function InvitePhoneBindingDialog({
       try {
         await http.post(
           '/user/phone/send-code',
-          withCaptchaParam({ phone: phoneNumber }, captchaVerifyParam)
+          withCaptchaParam({ phone: phoneNumber }, captchaVerifyParam),
+          CAPTCHA_REQUEST_CONFIG
         );
         setPhone(phoneNumber);
         setStep('code');
@@ -147,7 +152,8 @@ export function InvitePhoneBindingDialog({
         try {
           await http.post(
             '/user/phone/send-code',
-            withCaptchaParam({ phone }, captchaVerifyParam)
+            withCaptchaParam({ phone }, captchaVerifyParam),
+            CAPTCHA_REQUEST_CONFIG
           );
           setError('');
           startCountdown();

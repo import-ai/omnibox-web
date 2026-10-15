@@ -22,7 +22,11 @@ import {
   getOtpErrorMessage,
   useVerificationCode,
 } from '@/hooks/useVerificationCode';
-import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
+import {
+  CAPTCHA_REQUEST_CONFIG,
+  captchaResultFromError,
+  withCaptchaParam,
+} from '@/lib/captcha';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 import { OtpInput } from '@/page/user/components/OtpInput';
@@ -215,7 +219,8 @@ export default function EmailValidate(props: IProps) {
       try {
         await http.post(
           '/user/email/validate',
-          withCaptchaParam({ email }, captchaVerifyParam)
+          withCaptchaParam({ email }, captchaVerifyParam),
+          CAPTCHA_REQUEST_CONFIG
         );
         setNewEmail(email);
         setStep('code');
@@ -236,7 +241,8 @@ export default function EmailValidate(props: IProps) {
       try {
         await http.post(
           '/user/email/validate',
-          withCaptchaParam({ email: newEmail }, captchaVerifyParam)
+          withCaptchaParam({ email: newEmail }, captchaVerifyParam),
+          CAPTCHA_REQUEST_CONFIG
         );
         setError('');
         toast.success(t('email.code_sent'), { position: 'bottom-right' });
