@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 
 import type { ResourceCommentThread } from '@/interface';
 
+import { elementHasCommentThread } from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
 export interface CommentFocusOptions {
@@ -91,7 +92,7 @@ export function useCommentLinkNavigation({
       );
       const markers = Array.from(
         root.querySelectorAll<HTMLElement>('[data-resource-comment-thread]')
-      ).filter(element => element.dataset.resourceCommentThread === targetId);
+      ).filter(element => elementHasCommentThread(element, targetId));
       const marker = markers[0];
       if (card && scroll && card.parentElement?.style.visibility !== 'hidden') {
         const rect = card.getBoundingClientRect();

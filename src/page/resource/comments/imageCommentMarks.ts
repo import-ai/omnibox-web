@@ -1,4 +1,4 @@
-import { Plugin, PluginKey } from '@tiptap/pm/state';
+import { NodeSelection, Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 
 import type { ResourceCommentEditor } from './commentAnchors';
@@ -20,6 +20,33 @@ const imageCommentMarkKey = new PluginKey<{
 }>('omniboxWebImageComments');
 
 const PAINTED_COMMENT = 'data-omnibox-image-comment';
+const DRAFT_COMMENT = 'data-omnibox-image-draft';
+const THREADS_ATTR = 'data-resource-comment-threads';
+
+let imageCommentOpener: (threadId: string) => void = () => undefined;
+let activeImageThreadId: string | null = null;
+let draftImageRange: { from: number; to: number } | null = null;
+
+export function setImageCommentOpener(opener: (threadId: string) => void) {
+  imageCommentOpener = opener;
+}
+
+export function setActiveImageThreadId(threadId: string | null) {
+  activeImageThreadId = threadId;
+}
+
+export function commentThreadIds(element: HTMLElement) {
+  const listed = element.getAttribute(THREADS_ATTR);
+  const single = element.getAttribute('data-resource-comment-thread');
+  return (listed ?? single ?? '').split(/\s+/).filter(Boolean);
+}
+
+export function elementHasCommentThread(
+  element: HTMLElement,
+  threadId: string
+) {
+  return commentThreadIds(element).includes(threadId);
+}
 
 interface EditorViewLike {
   dom: HTMLElement;
@@ -61,6 +88,7 @@ function commentHost(dom: HTMLElement) {
 
 function clearPaintedComment(element: HTMLElement) {
   element.removeAttribute('data-resource-comment-thread');
+  element.removeAttribute(THREADS_ATTR);
   element.removeAttribute('data-resource-comment-resolved');
   element.removeAttribute(PAINTED_COMMENT);
   element.classList.remove(
@@ -77,23 +105,35 @@ function paintImageCommentDom(view: EditorViewLike) {
   const images =
     imageCommentMarkKey.getState(view.state)?.images ??
     new Map<string, ImageCommentMark>();
-  const active = new Set<HTMLElement>();
+  const grouped = new Map<HTMLElement, ImageCommentMark[]>();
   for (const image of images.values()) {
     const nodeDom = view.nodeDOM(image.from);
     if (!(nodeDom instanceof HTMLElement)) {
       continue;
     }
     const host = commentHost(nodeDom);
-    host.setAttribute('data-resource-comment-thread', image.threadId);
+    const marks = grouped.get(host) ?? [];
+    marks.push(image);
+    grouped.set(host, marks);
+  }
+  const active = new Set<HTMLElement>();
+  for (const [host, marks] of grouped) {
+    const open = marks.filter(mark => !mark.resolved);
+    const primary =
+      marks.find(mark => mark.threadId === activeImageThreadId) ??
+      open[0] ??
+      marks[0];
+    host.setAttribute('data-resource-comment-thread', primary.threadId);
+    host.setAttribute(THREADS_ATTR, marks.map(mark => mark.threadId).join(' '));
     host.setAttribute(PAINTED_COMMENT, '');
-    if (image.resolved) {
+    if (open.length === 0) {
       host.setAttribute('data-resource-comment-resolved', 'true');
     } else {
       host.removeAttribute('data-resource-comment-resolved');
     }
     host.classList.add('tiptap-thread', 'tiptap-thread--block');
-    host.classList.toggle('tiptap-thread--resolved', image.resolved);
-    host.classList.toggle('tiptap-thread--unresolved', !image.resolved);
+    host.classList.toggle('tiptap-thread--resolved', open.length === 0);
+    host.classList.toggle('tiptap-thread--unresolved', open.length > 0);
     active.add(host);
   }
   view.dom
@@ -103,6 +143,49 @@ function paintImageCommentDom(view: EditorViewLike) {
         clearPaintedComment(element);
       }
     });
+  paintDraftImage(view);
+}
+
+function paintDraftImage(view: EditorViewLike) {
+  view.dom
+    .querySelectorAll<HTMLElement>(`[${DRAFT_COMMENT}]`)
+    .forEach(element => {
+      element.removeAttribute(DRAFT_COMMENT);
+      element.classList.remove('resource-comment-draft-highlight');
+    });
+  if (
+    !draftImageRange ||
+    !isImageRange(view.state.doc, draftImageRange.from, draftImageRange.to)
+  ) {
+    return;
+  }
+  const nodeDom = view.nodeDOM(draftImageRange.from);
+  if (!(nodeDom instanceof HTMLElement)) {
+    return;
+  }
+  const host = commentHost(nodeDom);
+  host.classList.add('resource-comment-draft-highlight');
+  host.setAttribute(DRAFT_COMMENT, '');
+}
+
+export function syncImageDraftHighlight(
+  editor: ResourceCommentEditor,
+  selection: { from: number; to: number } | null
+) {
+  const node = selection ? editor.state.doc.nodeAt(selection.from) : null;
+  draftImageRange =
+    selection &&
+    node?.type.name === 'image' &&
+    selection.to === selection.from + node.nodeSize
+      ? { from: selection.from, to: selection.to }
+      : null;
+  if (!editor.isDestroyed) {
+    paintDraftImage(editor.view);
+  }
+}
+
+export function installImageCommentPlugin(editor: ResourceCommentEditor) {
+  return ensureImageCommentPlugin(editor);
 }
 
 function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
@@ -148,6 +231,47 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
         },
       },
       props: {
+        handleClick(view, _position, event) {
+          const target = event.target;
+          if (!(target instanceof Element) || event.button !== 0) {
+            return false;
+          }
+          const host = target.closest<HTMLElement>(`[${THREADS_ATTR}]`);
+          if (!host || !view.dom.contains(host)) {
+            return false;
+          }
+          const ids = commentThreadIds(host);
+          if (ids.length < 2) {
+            return false;
+          }
+          const start = ids.indexOf(activeImageThreadId ?? '');
+          const next = ids[(start + 1) % ids.length];
+          activeImageThreadId = next;
+          host.setAttribute('data-resource-comment-thread', next);
+          imageCommentOpener(next);
+          return true;
+        },
+        handleClickOn(view, _position, node, nodePosition, event) {
+          if (node.type.name !== 'image' || event.button !== 0) {
+            return false;
+          }
+          const nodeDom = view.nodeDOM(nodePosition);
+          const commented =
+            nodeDom instanceof HTMLElement &&
+            commentHost(nodeDom).hasAttribute('data-resource-comment-thread');
+          const { selection } = view.state;
+          const alreadySelected =
+            selection instanceof NodeSelection &&
+            selection.from === nodePosition;
+          if (!alreadySelected) {
+            view.dispatch(
+              view.state.tr.setSelection(
+                NodeSelection.create(view.state.doc, nodePosition)
+              )
+            );
+          }
+          return !commented && !alreadySelected;
+        },
         decorations: state => {
           const images = imageCommentMarkKey.getState(state)?.images;
           if (!images?.size) {

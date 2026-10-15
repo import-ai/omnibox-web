@@ -21,7 +21,12 @@ import {
   restoreResourceCommentAnchors,
 } from './commentAnchors';
 import { createAnchoredCommentThread } from './createAnchoredCommentThread';
-import { removeImageCommentMark } from './imageCommentMarks';
+import {
+  installImageCommentPlugin,
+  removeImageCommentMark,
+  setActiveImageThreadId,
+  setImageCommentOpener,
+} from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentDraftHighlight } from './useCommentDraftHighlight';
 import { useCommentHighlight } from './useCommentHighlight';
@@ -241,6 +246,7 @@ export function useResourceComments({
   }, [anchorThreads]);
 
   const registerEditor = useCallback((editor: ResourceCommentEditor) => {
+    installImageCommentPlugin(editor);
     setRegisteredEditor(editor);
     restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
@@ -293,6 +299,21 @@ export function useResourceComments({
     }),
     [canComment, contentDirty, focusThread, setPanelOpen]
   );
+
+  useEffect(() => {
+    setImageCommentOpener(focusThread);
+    return () => setImageCommentOpener(() => undefined);
+  }, [focusThread]);
+
+  useEffect(() => {
+    setActiveImageThreadId(activeThreadId);
+  }, [activeThreadId]);
+
+  useEffect(() => {
+    if (contentDirty) {
+      setPendingSelection(null);
+    }
+  }, [contentDirty]);
 
   useCommentLinkNavigation({
     enabled,
@@ -461,6 +482,7 @@ export function useResourceComments({
       canComment && (canEditResource || isCommentAuthor(thread.creator.id)),
     commentsConfig,
     contentDirty,
+    editor: registeredEditor,
     createConflict,
     createThread,
     currentUserId,

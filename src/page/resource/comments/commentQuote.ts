@@ -85,8 +85,9 @@ function commentMarkerContainsImage(threadId: string | null) {
   if (!threadId || typeof document === 'undefined') {
     return false;
   }
+  const escaped = escapeCssAttribute(threadId);
   const marker = document.querySelector(
-    `[data-resource-comment-thread="${escapeCssAttribute(threadId)}"]`
+    `[data-resource-comment-thread="${escaped}"], [data-resource-comment-threads~="${escaped}"]`
   );
   return Boolean(marker?.querySelector('img'));
 }

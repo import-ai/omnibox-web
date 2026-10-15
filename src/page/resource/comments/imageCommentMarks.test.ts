@@ -10,6 +10,9 @@ import {
   addImageCommentMark,
   getImageCommentRange,
   removeImageCommentMark,
+  setActiveImageThreadId,
+  setImageCommentOpener,
+  syncImageDraftHighlight,
 } from './imageCommentMarks';
 
 function ReactImageView() {
@@ -227,6 +230,67 @@ describe('image comment marks', () => {
         editor.view.dom
           .querySelector('.tiptap-image')
           ?.hasAttribute('data-resource-comment-thread')
+      ).toBe(false);
+    } finally {
+      editor.destroy();
+    }
+  });
+
+  it('keeps every thread painted on the same image', () => {
+    const editor = imageEditor();
+    const opened: string[] = [];
+    setImageCommentOpener(threadId => {
+      opened.push(threadId);
+    });
+    setActiveImageThreadId(null);
+    try {
+      const range = imageRange(editor);
+      addImageCommentMark(editor, {
+        threadId: 'thread-1',
+        ...range,
+        resolved: false,
+      });
+      addImageCommentMark(editor, {
+        threadId: 'thread-2',
+        ...range,
+        resolved: false,
+      });
+      const figure = editor.view.dom.querySelector('figure');
+      expect(figure?.getAttribute('data-resource-comment-threads')).toBe(
+        'thread-1 thread-2'
+      );
+      expect(getImageCommentRange(editor, 'thread-2')).toMatchObject(range);
+      const plugin = editor.state.plugins.find(item =>
+        item.key.startsWith('omniboxWebImageComments')
+      );
+      const click = new MouseEvent('click');
+      Object.defineProperty(click, 'target', { value: figure });
+      plugin?.props.handleClick?.(editor.view, range.from, click);
+      setActiveImageThreadId('thread-1');
+      plugin?.props.handleClick?.(editor.view, range.from, click);
+      expect(opened).toEqual(['thread-1', 'thread-2']);
+    } finally {
+      setImageCommentOpener(() => undefined);
+      setActiveImageThreadId(null);
+      editor.destroy();
+    }
+  });
+
+  it('paints a draft underline on the image instead of a node decoration', () => {
+    const editor = imageEditor();
+    try {
+      const range = imageRange(editor);
+      syncImageDraftHighlight(editor, range);
+      expect(
+        editor.view.dom
+          .querySelector('figure')
+          ?.classList.contains('resource-comment-draft-highlight')
+      ).toBe(true);
+      syncImageDraftHighlight(editor, null);
+      expect(
+        editor.view.dom
+          .querySelector('figure')
+          ?.classList.contains('resource-comment-draft-highlight')
       ).toBe(false);
     } finally {
       editor.destroy();

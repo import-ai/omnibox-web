@@ -4,6 +4,7 @@ import { Decoration, DecorationSet } from '@tiptap/pm/view';
 import { useEffect } from 'react';
 
 import type { ResourceCommentEditor } from './commentAnchors';
+import { syncImageDraftHighlight } from './imageCommentMarks';
 
 const commentDraftHighlightKey = new PluginKey<DecorationSet>(
   'resourceCommentDraftHighlight'
@@ -15,11 +16,12 @@ function createDraftHighlight(
   to: number
 ) {
   const node = doc.nodeAt(from);
-  const attrs = { class: 'resource-comment-draft-highlight' };
   if (node?.type.name === 'image' && to === from + node.nodeSize) {
-    return Decoration.node(from, to, attrs);
+    return null;
   }
-  return Decoration.inline(from, to, attrs);
+  return Decoration.inline(from, to, {
+    class: 'resource-comment-draft-highlight',
+  });
 }
 
 function hasDraftPlugin(editor: ResourceCommentEditor) {
@@ -40,9 +42,8 @@ function draftDecorations(
   ) {
     return DecorationSet.empty;
   }
-  return DecorationSet.create(doc, [
-    createDraftHighlight(doc, selection.from, selection.to),
-  ]);
+  const decoration = createDraftHighlight(doc, selection.from, selection.to);
+  return DecorationSet.create(doc, decoration ? [decoration] : []);
 }
 
 // registerPlugin/unregisterPlugin rebuild the editor state and reset every
@@ -91,5 +92,11 @@ export function useCommentDraftHighlight(
         draftDecorations(editor.state.doc, selection)
       )
     );
+    syncImageDraftHighlight(editor, selection);
+    return () => {
+      if (!editor.isDestroyed) {
+        syncImageDraftHighlight(editor, null);
+      }
+    };
   }, [editor, onPluginCreated, selection]);
 }

@@ -98,7 +98,7 @@ function waitForCommentAnchor(editor: ResourceCommentEditor, threadId: string) {
   return new Promise<boolean>(resolve => {
     const hasAnchor = () =>
       !!editor.view.dom.querySelector(
-        `[data-resource-comment-thread="${threadId}"]`
+        `[data-resource-comment-thread="${threadId}"], [data-resource-comment-threads~="${threadId}"]`
       );
     if (hasAnchor()) {
       resolve(true);
