@@ -18,6 +18,8 @@ jest.mock('react', () => {
   const react = jest.requireActual<typeof import('react')>('react');
   return { ...react, default: react };
 });
+jest.mock('@/lib/captcha', () => ({}));
+jest.mock('@/hooks/useUser', () => ({ USER_UPDATED_EVENT: 'user_updated' }));
 
 jest.mock('@import-ai/omnibox-editor', () => ({}));
 jest.mock('react-router-dom', () => ({
@@ -350,6 +352,21 @@ describe('comment permissions', () => {
       expect(container.querySelector('textarea')).not.toBeNull();
     }
   );
+
+  it('places the caret at the end when editing an existing comment', async () => {
+    await render('can_comment');
+    await act(async () => button('edit')?.click());
+
+    const input = container.querySelector<HTMLTextAreaElement>(
+      '.omnibox-comment-composer--edit textarea'
+    );
+    if (!input) {
+      throw new Error('Missing comment edit textarea');
+    }
+
+    expect(input.selectionStart).toBe(input.value.length);
+    expect(input.selectionEnd).toBe(input.value.length);
+  });
 
   it('exits an active edit when comment permission is revoked', async () => {
     await render('can_comment');

@@ -1526,6 +1526,7 @@
     },
     "tasks": {
       "title": "Newcomer tasks",
+      "giftTitle": "Newcomer gifts",
       "expires": "Expires in {{count}} days",
       "completed": "Completed",
       "action": "Start",

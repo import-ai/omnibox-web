@@ -1527,6 +1527,7 @@
     },
     "tasks": {
       "title": "新人任务",
+      "giftTitle": "新人有礼",
       "expires": "{{count}} 天后过期",
       "completed": "已完成",
       "action": "去完成",

@@ -10,6 +10,7 @@ interface IProps {
   disabledLabel?: string;
   iconClassName?: string;
   loading?: boolean;
+  disabled?: boolean;
 }
 
 export function ToolbarButton({
@@ -19,15 +20,16 @@ export function ToolbarButton({
   disabledLabel,
   iconClassName,
   loading,
+  disabled = false,
 }: IProps) {
-  const disabled = !!disabledLabel || loading;
+  const unavailable = !!disabledLabel || loading || disabled;
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <span
           className={cn('inline-flex', {
-            'cursor-not-allowed': disabled,
+            'cursor-not-allowed': unavailable,
           })}
         >
           <Button
@@ -35,7 +37,7 @@ export function ToolbarButton({
             variant="ghost"
             onClick={onClick}
             aria-label={label}
-            disabled={disabled}
+            disabled={unavailable}
             className={cn(
               'size-[18px] rounded-sm text-[#8F959E]',
               'hover:text-[#8F959E] hover:bg-[rgba(23,23,23,0.1)] active:text-[#8F959E] active:bg-[rgba(23,23,23,0.15)]',
