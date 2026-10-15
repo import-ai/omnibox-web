@@ -370,9 +370,8 @@
   cursor: pointer;
 }
 
-/* The preview is limited to loaded table images; resize controls keep their own cursor. */
+/* Loaded resource images use a pointer. Resize handles and captions keep their own cursors. */
 :is(.resource-readonly-editor, .resource-editable-editor)
-  :is(td, th)
   .tiptap-image-img:not([class~='tw:invisible']) {
-  cursor: zoom-in !important;
+  cursor: pointer !important;
 }

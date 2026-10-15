@@ -31,11 +31,9 @@ export function createResourceImagePreviewPlugin(
           return false;
         const ownsImage = () => {
           const nodeDOM = view.nodeDOM(nodePos);
-          const cell = image.closest('td, th');
           return (
             image.isConnected &&
-            !!cell &&
-            view.dom.contains(cell) &&
+            view.dom.contains(image) &&
             !!nodeDOM?.contains(image)
           );
         };
