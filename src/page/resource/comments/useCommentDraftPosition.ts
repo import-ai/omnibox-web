@@ -4,7 +4,10 @@ import {
 } from '@import-ai/omnibox-editor';
 import { type RefObject, useLayoutEffect, useState } from 'react';
 
-import { getCommentDraftPosition } from './commentDraftPosition';
+import {
+  getCommentDraftPosition,
+  getVisibleCommentAnchorTop,
+} from './commentDraftPosition';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
 interface UseCommentDraftPositionOptions {
@@ -34,7 +37,22 @@ export function useCommentDraftPosition({
         return;
       }
       const panelTop = panelElement.getBoundingClientRect().top;
-      const selectionTop = selection.editor.view.coordsAtPos(selection.to).top;
+      const resourceScroll = selection.editor.view.dom.closest<HTMLElement>(
+        '[data-resource-scroll]'
+      );
+      const viewport = resourceScroll?.getBoundingClientRect();
+      const selectionTop = getVisibleCommentAnchorTop({
+        isImage: isImageCommentRange(
+          selection.editor,
+          selection.from,
+          selection.to
+        ),
+        startTop: selection.editor.view.coordsAtPos(selection.from).top,
+        endTop: selection.editor.view.coordsAtPos(selection.to).top,
+        viewportTop: viewport?.top ?? 0,
+        viewportBottom: viewport?.bottom ?? window.innerHeight,
+        surfaceHeight: surface.getBoundingClientRect().height,
+      });
       const elements = Array.from(
         panelElement.querySelectorAll<HTMLElement>('[data-thread-id]')
       );
@@ -49,7 +67,11 @@ export function useCommentDraftPosition({
         return {
           range,
           anchorTop: range
-            ? selection.editor.view.coordsAtPos(range.to).top
+            ? selection.editor.view.coordsAtPos(
+                isImageCommentRange(selection.editor, range.from, range.to)
+                  ? range.from
+                  : range.to
+              ).top
             : undefined,
           top: bounds.top - offset,
           bottom: bounds.bottom - offset,
@@ -110,4 +132,15 @@ export function useCommentDraftPosition({
   }, [panelElement, selection, surfaceRef]);
 
   return top;
+}
+
+function isImageCommentRange(
+  editor: OmniboxEditorCommentSelection['editor'],
+  from: number,
+  to: number
+) {
+  const node = editor.state.doc.nodeAt(from);
+  return Boolean(
+    node && node.type.name === 'image' && to === from + node.nodeSize
+  );
 }

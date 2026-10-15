@@ -7,6 +7,19 @@ const commentDraftHighlightKey = new PluginKey<DecorationSet>(
   'resourceCommentDraftHighlight'
 );
 
+function createDraftHighlight(
+  doc: OmniboxEditorCommentSelection['editor']['state']['doc'],
+  from: number,
+  to: number
+) {
+  const node = doc.nodeAt(from);
+  const attrs = { class: 'resource-comment-draft-highlight' };
+  if (node?.type.name === 'image' && to === from + node.nodeSize) {
+    return Decoration.node(from, to, attrs);
+  }
+  return Decoration.inline(from, to, attrs);
+}
+
 export function useCommentDraftHighlight(
   selection: OmniboxEditorCommentSelection | null
 ) {
@@ -20,9 +33,7 @@ export function useCommentDraftHighlight(
       state: {
         init: (_, state) =>
           DecorationSet.create(state.doc, [
-            Decoration.inline(from, to, {
-              class: 'resource-comment-draft-highlight',
-            }),
+            createDraftHighlight(state.doc, from, to),
           ]),
         apply: (transaction, decorations) =>
           decorations.map(transaction.mapping, transaction.doc),

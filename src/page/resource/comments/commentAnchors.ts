@@ -6,6 +6,12 @@ import {
 import type { ResourceCommentThread } from '@/interface';
 import type { ResourceCommentAnchorPayload } from '@/service/resourceComments';
 
+import {
+  commentQuoteForStorage,
+  isImageCommentQuote,
+  parseImageCommentQuote,
+} from './commentQuote';
+
 export type ResourceCommentEditor = OmniboxEditorCommentSelection['editor'];
 
 const CONTEXT_LENGTH = 250;
@@ -115,9 +121,10 @@ export function collectResourceCommentAnchors(
       orphanedThreadIds.push(thread.id);
       continue;
     }
-    const quotedText = editor.state.doc
-      .textBetween(range.from, range.to, '\n')
-      .trim();
+    const image = imageAtRange(editor, range.from, range.to);
+    const quotedText = image
+      ? commentQuoteForStorage(thread.quoted_text, true)
+      : editor.state.doc.textBetween(range.from, range.to, '\n').trim();
     if (!quotedText) {
       orphanedThreadIds.push(thread.id);
       continue;
@@ -149,6 +156,12 @@ export function resolveCommentRange(
     suffix?: string;
   }
 ) {
+  if (imageAtRange(editor, selection.from, selection.to)) {
+    return { from: selection.from, to: selection.to };
+  }
+  if (isImageCommentQuote(selection.quotedText)) {
+    return findImageCommentRange(editor, selection);
+  }
   if (rangeMatchesQuote(editor, selection, selection.quotedText)) {
     return { from: selection.from, to: selection.to };
   }
@@ -162,6 +175,54 @@ export function resolveCommentRange(
     return exactRange;
   }
   return findNearbyQuoteRange(editor, selection);
+}
+
+function imageAtRange(editor: ResourceCommentEditor, from: number, to: number) {
+  const node = editor.state.doc.nodeAt?.(from);
+  if (!node || node.type?.name !== 'image' || to !== from + node.nodeSize) {
+    return null;
+  }
+  return node;
+}
+
+function findImageCommentRange(
+  editor: ResourceCommentEditor,
+  selection: {
+    quotedText: string;
+    prefix?: string;
+    suffix?: string;
+  }
+) {
+  const parsed = parseImageCommentQuote(selection.quotedText);
+  if (!isImageCommentQuote(selection.quotedText)) {
+    return null;
+  }
+  const prefix = selection.prefix ?? '';
+  const suffix = selection.suffix ?? '';
+  const matches: Array<{ from: number; to: number; src: string }> = [];
+  editor.state.doc.descendants((node, position) => {
+    if (node.type?.name !== 'image') {
+      return true;
+    }
+    const from = position;
+    const to = position + node.nodeSize;
+    const context = getSelectionContext(editor, from, to);
+    if (context.prefix === prefix && context.suffix === suffix) {
+      matches.push({
+        from,
+        to,
+        src: String(node.attrs?.src ?? ''),
+      });
+    }
+    return true;
+  });
+  const scoped = parsed?.src
+    ? matches.filter(match => match.src === parsed.src)
+    : matches;
+  if (scoped.length !== 1) {
+    return null;
+  }
+  return { from: scoped[0].from, to: scoped[0].to };
 }
 
 function rangeMatchesQuote(

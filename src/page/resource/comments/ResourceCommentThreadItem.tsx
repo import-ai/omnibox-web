@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import type { ResourceCommentThread } from '@/interface';
 
+import { imageCommentLabel } from './commentQuote';
 import { ResourceCommentItem } from './ResourceCommentItem';
 import { ResourceCommentReplyComposer } from './ResourceCommentReplyComposer';
 import type { ResourceCommentsController } from './useResourceComments';
@@ -159,7 +160,13 @@ export function ResourceCommentThreadItem({
             onClick={handleQuoteClick}
           >
             <span>{t('resource_comments.quote_label')}</span>
-            <q>{thread.quoted_text}</q>
+            <q>
+              {imageCommentLabel(
+                thread.id,
+                thread.quoted_text,
+                t('resource_comments.image_quote')
+              )}
+            </q>
           </button>
           <div
             className="omnibox-comment-thread__toolbar"

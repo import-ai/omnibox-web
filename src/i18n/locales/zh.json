@@ -169,6 +169,7 @@
     "copy_thread_link": "复制评论链接",
     "close": "关闭评论",
     "quote_label": "引用内容",
+    "image_quote": "[图片]",
     "thread_count": "{{count}} 个讨论",
     "cancel": "取消",
     "write_comment": "输入评论",

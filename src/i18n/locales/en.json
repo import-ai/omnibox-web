@@ -169,6 +169,7 @@
     "copy_thread_link": "Copy comment link",
     "close": "Close comments",
     "quote_label": "Quoted text",
+    "image_quote": "[Image]",
     "thread_count": "{{count}} discussions",
     "cancel": "Cancel",
     "write_comment": "Write a comment",
