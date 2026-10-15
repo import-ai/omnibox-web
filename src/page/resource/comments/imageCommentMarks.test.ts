@@ -1,12 +1,26 @@
 /** @jest-environment jsdom */
 
 import { Editor, Node } from '@tiptap/core';
+import { NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
+import { createElement } from 'react';
 
 import {
   addImageCommentMark,
   getImageCommentRange,
   removeImageCommentMark,
 } from './imageCommentMarks';
+
+function ReactImageView() {
+  return createElement(
+    NodeViewWrapper,
+    { className: 'tiptap-image' },
+    createElement(
+      'div',
+      { className: 'tiptap-image-content' },
+      createElement('img', { className: 'tiptap-image-img', alt: '' })
+    )
+  );
+}
 
 function imageEditor() {
   return new Editor({
@@ -51,6 +65,61 @@ function imageRange(editor: Editor) {
     throw new Error('Missing image');
   }
   return range;
+}
+
+function reactImageEditor() {
+  const editor = new Editor({
+    element: document.createElement('div'),
+    extensions: [
+      Node.create({ name: 'doc', topNode: true, content: 'block+' }),
+      Node.create({
+        name: 'paragraph',
+        group: 'block',
+        content: 'inline*',
+        renderHTML: () => ['p', 0],
+      }),
+      Node.create({ name: 'text', group: 'inline' }),
+      Node.create({
+        name: 'image',
+        group: 'block',
+        inline: false,
+        content: 'inline*',
+        renderHTML: () => ['figure', 0],
+        addNodeView() {
+          return ReactNodeViewRenderer(ReactImageView, {
+            trackNodeViewPosition: true,
+          });
+        },
+      }),
+    ],
+    content: {
+      type: 'doc',
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'Before' }] },
+        { type: 'image' },
+      ],
+    },
+  });
+  const reactEditor = editor as Editor & {
+    contentComponent: {
+      setRenderer: (id: string, renderer: unknown) => void;
+      removeRenderer: (id: string) => void;
+    } | null;
+    isEditorContentInitialized: boolean;
+    createNodeViews: () => void;
+  };
+  const renderers = new Map<string, unknown>();
+  reactEditor.contentComponent = {
+    setRenderer: (id, renderer) => {
+      renderers.set(id, renderer);
+    },
+    removeRenderer: id => {
+      renderers.delete(id);
+    },
+  };
+  reactEditor.isEditorContentInitialized = true;
+  reactEditor.createNodeViews();
+  return editor;
 }
 
 describe('image comment marks', () => {
@@ -105,6 +174,33 @@ describe('image comment marks', () => {
           .querySelector('figure')
           ?.hasAttribute('data-resource-comment-thread')
       ).toBe(false);
+    } finally {
+      editor.destroy();
+    }
+  });
+
+  it('writes the comment attribute onto a React image node view', () => {
+    const editor = reactImageEditor();
+    try {
+      const range = imageRange(editor);
+      addImageCommentMark(editor, {
+        threadId: 'thread-1',
+        from: range.from,
+        to: range.to,
+        resolved: false,
+      });
+      const marked = editor.view.dom.querySelector(
+        '[data-resource-comment-thread="thread-1"]'
+      );
+
+      expect(marked?.classList.contains('node-image')).toBe(true);
+      marked?.removeAttribute('data-resource-comment-thread');
+      editor.view.dispatch(editor.state.tr);
+      expect(
+        editor.view.dom
+          .querySelector('.node-image')
+          ?.getAttribute('data-resource-comment-thread')
+      ).toBe('thread-1');
     } finally {
       editor.destroy();
     }

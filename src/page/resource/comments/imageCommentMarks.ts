@@ -19,6 +19,14 @@ const imageCommentMarkKey = new PluginKey<{
   images: Map<string, ImageCommentMark>;
 }>('omniboxWebImageComments');
 
+const PAINTED_COMMENT = 'data-omnibox-image-comment';
+
+interface EditorViewLike {
+  dom: HTMLElement;
+  nodeDOM: (position: number) => Node | null;
+  state: ResourceCommentEditor['state'];
+}
+
 function isImageRange(
   doc: ResourceCommentEditor['state']['doc'],
   from: number,
@@ -41,6 +49,62 @@ function canDecorate(editor: ResourceCommentEditor) {
     typeof candidate.view?.dispatch === 'function' &&
     Array.isArray(candidate.state.plugins)
   );
+}
+
+function commentHost(dom: HTMLElement) {
+  if (
+    dom.classList.contains('node-image') ||
+    dom.querySelector('.tiptap-image-content')
+  ) {
+    return dom;
+  }
+  return dom.closest<HTMLElement>('.node-image') ?? dom;
+}
+
+function clearPaintedComment(element: HTMLElement) {
+  element.removeAttribute('data-resource-comment-thread');
+  element.removeAttribute('data-resource-comment-resolved');
+  element.removeAttribute(PAINTED_COMMENT);
+  element.classList.remove(
+    'tiptap-thread',
+    'tiptap-thread--block',
+    'tiptap-thread--resolved',
+    'tiptap-thread--unresolved'
+  );
+}
+
+// TipTap's React node view returns true when only decorations change, and does
+// not copy those attributes onto div.node-image. Write them after the view updates.
+function paintImageCommentDom(view: EditorViewLike) {
+  const images =
+    imageCommentMarkKey.getState(view.state)?.images ??
+    new Map<string, ImageCommentMark>();
+  const active = new Set<HTMLElement>();
+  for (const image of images.values()) {
+    const nodeDom = view.nodeDOM(image.from);
+    if (!(nodeDom instanceof HTMLElement)) {
+      continue;
+    }
+    const host = commentHost(nodeDom);
+    host.setAttribute('data-resource-comment-thread', image.threadId);
+    host.setAttribute(PAINTED_COMMENT, '');
+    if (image.resolved) {
+      host.setAttribute('data-resource-comment-resolved', 'true');
+    } else {
+      host.removeAttribute('data-resource-comment-resolved');
+    }
+    host.classList.add('tiptap-thread', 'tiptap-thread--block');
+    host.classList.toggle('tiptap-thread--resolved', image.resolved);
+    host.classList.toggle('tiptap-thread--unresolved', !image.resolved);
+    active.add(host);
+  }
+  view.dom
+    .querySelectorAll<HTMLElement>(`[${PAINTED_COMMENT}]`)
+    .forEach(element => {
+      if (!active.has(element)) {
+        clearPaintedComment(element);
+      }
+    });
 }
 
 function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
@@ -111,6 +175,12 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
             })
           );
         },
+      },
+      view: editorView => {
+        paintImageCommentDom(editorView);
+        return {
+          update: paintImageCommentDom,
+        };
       },
     })
   );
