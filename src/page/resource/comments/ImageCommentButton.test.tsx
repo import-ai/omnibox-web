@@ -1,7 +1,6 @@
 /** @jest-environment jsdom */
 
 import { Editor, Node } from '@tiptap/core';
-import { NodeSelection } from '@tiptap/pm/state';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
@@ -52,38 +51,80 @@ describe('ImageCommentButton', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     act(() => root.unmount());
     mount.remove();
     editor.destroy();
   });
 
-  it('selects the image on hover so the text comment button can open', async () => {
+  it('opens an image comment from the web button without editor text', async () => {
+    const requests: Array<{ from: number; to: number; quotedText: string }> =
+      [];
     const controller = {
       editor,
       canComment: true,
       contentDirty: false,
       pendingSelection: null,
-      commentsConfig: { onCreateRequest: () => undefined },
+      commentsConfig: {
+        onCreateRequest: (selection: {
+          from: number;
+          to: number;
+          quotedText: string;
+        }) => {
+          requests.push(selection);
+        },
+      },
     } as unknown as ResourceCommentsController;
-
+    let imageFrom = 0;
+    editor.state.doc.descendants((node, position) => {
+      if (node.type.name === 'image') {
+        imageFrom = position;
+      }
+      return true;
+    });
     await act(async () => {
       root.render(<ImageCommentButton controller={controller} />);
     });
+    jest
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(
+        () =>
+          ({
+            top: 20,
+            left: 10,
+            right: 110,
+            bottom: 80,
+            width: 100,
+            height: 60,
+            x: 10,
+            y: 20,
+          }) as DOMRect
+      );
     const image = editor.view.dom.querySelector('.tiptap-image-content');
-    if (!(image instanceof HTMLElement)) {
-      throw new Error('Missing image');
-    }
+    const selectionBefore = {
+      from: editor.state.selection.from,
+      to: editor.state.selection.to,
+    };
     await act(async () => {
-      image.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+      image?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
     });
-    expect(editor.state.selection).toBeInstanceOf(NodeSelection);
-    expect(
-      editor.state.doc.nodeAt((editor.state.selection as NodeSelection).from)
-        ?.type.name
-    ).toBe('image');
-    expect(
-      document.body.querySelector('.resource-image-comment-button')
-    ).toBeNull();
+    const button = document.body.querySelector(
+      '.resource-image-comment-button-anchor .tiptap-button'
+    );
+    expect(button?.getAttribute('aria-label')).toBe(
+      'resource_comments.add_comment'
+    );
+    await act(async () => {
+      button?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+    expect(requests).toHaveLength(1);
+    expect(requests[0]?.from).toBe(imageFrom);
+    expect(requests[0]?.to).toBe(
+      imageFrom + editor.state.doc.nodeAt(imageFrom)!.nodeSize
+    );
+    expect(requests[0]?.quotedText).toBe('[图片]');
+    expect(editor.state.selection.from).toBe(selectionBefore.from);
+    expect(editor.state.selection.to).toBe(selectionBefore.to);
   });
 
   it('does not offer a new comment while the document is being edited', async () => {
@@ -102,7 +143,9 @@ describe('ImageCommentButton', () => {
       image?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
     });
     expect(
-      document.body.querySelector('.resource-image-comment-button')
+      document.body.querySelector(
+        '.resource-image-comment-button-anchor .tiptap-button'
+      )
     ).toBeNull();
   });
 });

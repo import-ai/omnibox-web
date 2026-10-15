@@ -338,6 +338,13 @@
   cursor: pointer !important;
 }
 
+.resource-image-comment-button-anchor {
+  position: fixed;
+  z-index: 40;
+  transform: translate(-100%, -100%);
+  pointer-events: auto;
+}
+
 .resource-comments-panel .omnibox-comment-thread[data-resolved] {
   @apply bg-white dark:bg-muted;
 }
