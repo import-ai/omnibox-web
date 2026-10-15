@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -25,6 +25,11 @@ import {
   isTerminalMessageStatus,
   stopStream,
 } from '@/page/chat/conversation/utils.ts';
+import {
+  clearProvisionalConversation,
+  provisionalTitleForSend,
+  rememberProvisionalConversation,
+} from '@/page/chat/conversations/provisionalConversation';
 import {
   createMessageOperator,
   MessageOperator,
@@ -55,6 +60,11 @@ export default function useContext() {
   const app = useApp();
   const { i18n } = useTranslation();
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
+  const detachStreamRef = useRef<(() => void) | null>(null);
+  const detachActiveStream = useCallback(() => {
+    detachStreamRef.current?.();
+    detachStreamRef.current = null;
+  }, []);
   const regeneratingRef = useRef(false);
   const uploadRetries = useRef(new Map<string, () => Promise<void>>());
   const { conversationId, namespaceId } = useChatRouteParams();
@@ -138,6 +148,32 @@ export default function useContext() {
     } = params;
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
+      const provisionalTitle = v
+        ? provisionalTitleForSend({
+            query: v,
+            conversationTitle: conversation.title,
+            hasEarlierUserMessage: messages.some(
+              message =>
+                message.id !== retryId &&
+                message.message.role === OpenAIMessageRole.USER &&
+                Boolean(message.message.content?.trim())
+            ),
+          })
+        : null;
+      if (provisionalTitle) {
+        const scope = { userId: getCurrentUserId(), namespaceId };
+        const provisional = {
+          id: conversationId,
+          title: provisionalTitle,
+          created_at: conversation.created_at || new Date().toISOString(),
+        };
+        rememberProvisionalConversation(scope, provisional);
+        app.fire('chat:conversation:provisional', {
+          userId: scope.userId,
+          namespaceId,
+          conversation: provisional,
+        });
+      }
       const parentMessageId = retryId ? retryParentId : messages.at(-1)?.id;
       const pendingId = beginPendingQuery(
         messageOperator,
@@ -152,6 +188,7 @@ export default function useContext() {
       uploadRetries.current.set(pendingId, () =>
         sendMessage(params, pendingId, parentMessageId)
       );
+      let askFN: ReturnType<typeof ask> | undefined;
       try {
         if (v) {
           setWaitingForAssistantDelta(true);
@@ -165,7 +202,7 @@ export default function useContext() {
         uploadRetries.current.delete(pendingId);
         params.onImagesUploaded?.();
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
-        const askFN = ask(
+        askFN = ask(
           conversationId,
           v,
           tools,
@@ -189,8 +226,18 @@ export default function useContext() {
           level
         );
         askAbortRef.current = askFN.cancel;
+        detachStreamRef.current = askFN.destroy;
         await askFN.start();
       } catch (error) {
+        if (provisionalTitle) {
+          const scope = { userId: getCurrentUserId(), namespaceId };
+          clearProvisionalConversation(scope, conversationId);
+          app.fire('chat:conversation:provisional', {
+            userId: scope.userId,
+            namespaceId,
+            clearId: conversationId,
+          });
+        }
         messageOperator.error(
           {
             response_type: 'error',
@@ -199,10 +246,17 @@ export default function useContext() {
           pendingId
         );
       } finally {
+        const stayedOnConversation =
+          !askFN || detachStreamRef.current === askFN.destroy;
         askAbortRef.current = null;
+        if (askFN && detachStreamRef.current === askFN.destroy) {
+          detachStreamRef.current = null;
+        }
         setWaitingForAssistantDelta(false);
         setLoading(false);
-        void history.refreshHistory().catch(() => undefined);
+        if (stayedOnConversation) {
+          void history.refreshHistory().catch(() => undefined);
+        }
       }
     }
   };
@@ -216,6 +270,7 @@ export default function useContext() {
     messageOperator,
     namespaceId,
     sendMessage,
+    detachActiveStream,
     setAccessDenied,
     setConversation,
     setInitialApprovalMode,

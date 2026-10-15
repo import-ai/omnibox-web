@@ -175,6 +175,44 @@ describe('useChatTitle', () => {
     });
   });
 
+  it('still generates a title after the header shows the first message', async () => {
+    await renderHook('conversation-a');
+    await act(async () => {
+      mockApp.fire('chat:title:update', {
+        conversationId: 'conversation-a',
+        title: '你好',
+      });
+    });
+    expect(latestTitle).toBe('你好');
+    await act(async () => {
+      mockApp.fire('chat:title', {
+        conversationId: 'conversation-a',
+        text: '你好',
+      });
+    });
+    expect(mockPost).toHaveBeenCalledWith(
+      '/namespaces/namespace-a/conversations/conversation-a/title',
+      { text: '你好', lang: 'zh' }
+    );
+  });
+
+  it('does not replace a title the user already set', async () => {
+    await renderHook('conversation-a');
+    await act(async () => {
+      mockApp.fire('chat:title:update', {
+        conversationId: 'conversation-a',
+        title: '手改标题',
+      });
+    });
+    await act(async () => {
+      mockApp.fire('chat:title', {
+        conversationId: 'conversation-a',
+        text: '你好',
+      });
+    });
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+
   it('ignores title generation for another conversation', async () => {
     await renderHook('conversation-a');
     await act(async () => {
