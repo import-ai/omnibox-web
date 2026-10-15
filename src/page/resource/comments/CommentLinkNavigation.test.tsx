@@ -24,6 +24,9 @@ jest.mock('./commentAnchors', () => ({}));
 jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
 }));
+jest.mock('@/hooks/useUser', () => ({
+  USER_UPDATED_EVENT: 'user-updated',
+}));
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 const threads: ResourceCommentThread[] = ['first', 'target'].map(id => ({
@@ -122,6 +125,21 @@ function PaginatedFixture() {
       <button onClick={() => controller.setResolved(false)}>Open</button>
     </>
   );
+}
+
+function FilterFixture({
+  resourceId,
+  commentThreads,
+}: {
+  resourceId: string;
+  commentThreads: ResourceCommentThread[];
+}) {
+  useResourceComments({
+    namespaceId: 'namespace',
+    resource: { id: resourceId, comment_threads: commentThreads },
+    enabled: true,
+  });
+  return null;
 }
 
 describe('comment link navigation', () => {
@@ -365,9 +383,39 @@ describe('comment link navigation', () => {
     expect(listResourceCommentThreads).toHaveBeenLastCalledWith(
       'namespace',
       'resource',
-      { offset: 1, limit: 20, resolved: undefined }
+      { offset: 1, limit: 20, resolved: false }
     );
     await act(async () => container.querySelectorAll('button')[1].click());
     expect(container.querySelector('output')?.textContent).toContain('target');
+  });
+
+  it('opens a resource with no comments on all comments', async () => {
+    await act(async () =>
+      root.render(<FilterFixture resourceId="empty" commentThreads={[]} />)
+    );
+    expect(listResourceCommentThreads).toHaveBeenCalledWith(
+      'namespace',
+      'empty',
+      { offset: 0, limit: 20, resolved: undefined }
+    );
+  });
+
+  it('keeps unresolved selected when every existing comment is resolved', async () => {
+    await act(async () =>
+      root.render(
+        <FilterFixture
+          resourceId="resolved-only"
+          commentThreads={threads.map(thread => ({
+            ...thread,
+            resolved: true,
+          }))}
+        />
+      )
+    );
+    expect(listResourceCommentThreads).toHaveBeenCalledWith(
+      'namespace',
+      'resolved-only',
+      { offset: 0, limit: 20, resolved: false }
+    );
   });
 });
