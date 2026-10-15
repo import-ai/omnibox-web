@@ -21,6 +21,7 @@ import {
   restoreResourceCommentAnchors,
 } from './commentAnchors';
 import { createAnchoredCommentThread } from './createAnchoredCommentThread';
+import { removeImageCommentMark } from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentDraftHighlight } from './useCommentDraftHighlight';
 import { useCommentHighlight } from './useCommentHighlight';
@@ -381,6 +382,7 @@ export function useResourceComments({
       const editor = editorRef.current;
       if (editor && !editor.isDestroyed) {
         editor.commands.removeResourceComment(threadId);
+        removeImageCommentMark(editor, threadId);
       }
     },
     [removeAnchorThread]

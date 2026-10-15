@@ -13,6 +13,7 @@ import {
   restoreResourceCommentAnchors,
 } from './commentAnchors';
 import { commentQuoteForStorage } from './commentQuote';
+import { addImageCommentMark } from './imageCommentMarks';
 
 interface CreateAnchoredCommentThreadOptions {
   namespaceId: string;
@@ -52,6 +53,14 @@ export async function createAnchoredCommentThread({
   });
   const range = resolveCommentRange(selection.editor, selection);
   if (range) {
+    if (isImageSelection(selection.editor, range.from, range.to)) {
+      addImageCommentMark(selection.editor, {
+        threadId: response.thread.id,
+        from: range.from,
+        to: range.to,
+        resolved: response.thread.resolved,
+      });
+    }
     selection.editor.commands.addResourceComment({
       threadId: response.thread.id,
       from: range.from,

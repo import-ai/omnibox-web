@@ -11,6 +11,7 @@ import {
   isImageCommentQuote,
   parseImageCommentQuote,
 } from './commentQuote';
+import { addImageCommentMark, getImageCommentRange } from './imageCommentMarks';
 
 export type ResourceCommentEditor = OmniboxEditorCommentSelection['editor'];
 
@@ -82,6 +83,15 @@ export function restoreResourceCommentAnchors(
           });
 
     if (range) {
+      if (imageAtRange(editor, range.from, range.to)) {
+        // omnibox-editor 0.0.60 only marks text. Paint the image node directly.
+        addImageCommentMark(editor, {
+          threadId: thread.id,
+          from: range.from,
+          to: range.to,
+          resolved: thread.resolved,
+        });
+      }
       editor.commands.addResourceComment({
         threadId: thread.id,
         label: getCommentAuthorLabel(thread),
@@ -128,11 +138,12 @@ export function collectResourceCommentAnchors(
     if (thread.anchor.status !== 'active') {
       continue;
     }
-    let range = findResourceCommentRange(editor, thread.id);
+    let range =
+      getImageCommentRange(editor, thread.id) ??
+      findResourceCommentRange(editor, thread.id);
     if (!range && isImageCommentQuote(thread.quoted_text)) {
-      // The editor keeps image comments in plugin memory. Rebuilding plugins
-      // clears that memory, so recover the image from the saved anchor before
-      // treating the thread as orphaned.
+      // The published editor cannot mark an image node, so a missing text
+      // range is not proof that the image comment is gone.
       range = resolveCommentRange(editor, {
         from: thread.anchor.from,
         to: thread.anchor.to,
@@ -140,6 +151,14 @@ export function collectResourceCommentAnchors(
         prefix: thread.anchor.prefix,
         suffix: thread.anchor.suffix,
       });
+      if (range && imageAtRange(editor, range.from, range.to)) {
+        addImageCommentMark(editor, {
+          threadId: thread.id,
+          from: range.from,
+          to: range.to,
+          resolved: thread.resolved,
+        });
+      }
       if (range) {
         editor.commands.addResourceComment({
           threadId: thread.id,

@@ -8,6 +8,7 @@ import {
   getCommentDraftPosition,
   getVisibleCommentAnchorTop,
 } from './commentDraftPosition';
+import { getImageCommentRange } from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
 interface UseCommentDraftPositionOptions {
@@ -62,7 +63,8 @@ export function useCommentDraftPosition({
         const threadId = card.dataset.threadId;
         const offset = appliedOffsets.get(card) ?? 0;
         const range = threadId
-          ? findResourceCommentRange(selection.editor, threadId)
+          ? (getImageCommentRange(selection.editor, threadId) ??
+            findResourceCommentRange(selection.editor, threadId))
           : null;
         return {
           range,
