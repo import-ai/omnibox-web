@@ -1,5 +1,5 @@
 import copy from 'copy-to-clipboard';
-import { ChevronRight, Copy, Pencil, Trash2 } from 'lucide-react';
+import { ChevronRight, Copy, Pencil, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -171,7 +171,7 @@ export default function GroupData(props: GroupProps) {
                   <TooltipTrigger asChild>
                     <AlertDialogTrigger asChild>
                       <button className="flex items-center justify-center transition-opacity hover:opacity-70">
-                        <Trash2 className="size-4 text-muted-foreground" />
+                        <Trash className="size-4 text-muted-foreground" />
                       </button>
                     </AlertDialogTrigger>
                   </TooltipTrigger>

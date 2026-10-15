@@ -19,7 +19,11 @@ export function Button({
   return (
     <BaseButton
       {...props}
-      className={cn('cursor-pointer', props.className)}
+      className={cn(
+        'cursor-pointer',
+        props.size === 'sm' && 'h-7 text-[0.8rem]',
+        props.className
+      )}
       disabled={loading || disabled}
       onClickCapture={event => {
         if (loading || disabled) {

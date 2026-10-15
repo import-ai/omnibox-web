@@ -6,7 +6,7 @@ import {
   Move,
   RotateCw,
   Search,
-  Trash2,
+  Trash,
   X,
 } from 'lucide-react';
 import React from 'react';
@@ -132,7 +132,7 @@ export function Toolbar({
               disabledLabel={disabledLabel}
             />
             <ToolbarButton
-              icon={Trash2}
+              icon={Trash}
               onClick={onBatchDelete}
               label={t('batch.delete_tooltip')}
               disabledLabel={disabledLabel || unsupportedLabel('delete')}

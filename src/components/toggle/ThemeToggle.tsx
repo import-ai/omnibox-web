@@ -1,13 +1,7 @@
 import { Moon, Sun, SunMoon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/Button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/tooltip';
+import { IconButton } from '@/components/omnibox/IconButton';
 import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
 
@@ -26,22 +20,15 @@ export function ThemeToggle() {
   };
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-7 w-7"
-            onClick={handleToggleTheme}
-          >
-            {theme.skin === 'system' && <SunMoon />}
-            {theme.skin === 'light' && <Sun />}
-            {theme.skin === 'dark' && <Moon />}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>{t('toggle_theme')}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <IconButton
+      size="sm"
+      tone="accent"
+      label={t('toggle_theme')}
+      onClick={handleToggleTheme}
+    >
+      {theme.skin === 'system' && <SunMoon className="size-4" />}
+      {theme.skin === 'light' && <Sun className="size-4" />}
+      {theme.skin === 'dark' && <Moon className="size-4" />}
+    </IconButton>
   );
 }

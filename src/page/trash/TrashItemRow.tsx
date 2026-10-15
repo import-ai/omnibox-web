@@ -1,9 +1,8 @@
 import { Delete, Undo2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/Button';
+import { IconButton } from '@/components/omnibox/IconButton';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 
 import { TrashItem as TrashItemType } from './types';
 
@@ -25,32 +24,25 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
         {item.name || t('untitled')}
       </span>
       <div className="pointer-events-none absolute right-2 flex items-center gap-0.5 opacity-0 group-hover/trash-item:pointer-events-auto group-hover/trash-item:opacity-100">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-6 text-muted-foreground hover:bg-transparent hover:text-foreground"
-              onClick={() => onRestore(item.id)}
-            >
-              <Undo2 className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('trash.restore')}</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-6 text-muted-foreground hover:bg-transparent hover:text-destructive"
-              onClick={() => onDelete(item.id)}
-            >
-              <Delete className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('trash.delete_permanently')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          size="xs"
+          tone="sidebar"
+          label={t('trash.restore')}
+          className="hover:bg-transparent hover:text-foreground"
+          onClick={() => onRestore(item.id)}
+        >
+          <Undo2 className="size-4" />
+        </IconButton>
+        <IconButton
+          size="xs"
+          tone="sidebar"
+          destructive
+          label={t('trash.delete_permanently')}
+          className="hover:bg-transparent"
+          onClick={() => onDelete(item.id)}
+        >
+          <Delete className="size-4" />
+        </IconButton>
       </div>
     </div>
   );

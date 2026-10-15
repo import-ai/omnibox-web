@@ -13,7 +13,7 @@ import {
   PencilOff,
   RefreshCw,
   Save,
-  Trash2,
+  Trash,
 } from 'lucide-react';
 // import { Resource } from '@/interface';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -666,7 +666,7 @@ export default function Actions(props: IActionProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-7 data-[state=open]:bg-accent"
+            className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
           >
             <MoreHorizontal className="size-4" />
           </Button>
@@ -780,13 +780,14 @@ export default function Actions(props: IActionProps) {
           )}
           {!readOnly && (
             <DropdownMenuItem
-              className="group cursor-pointer gap-2 data-highlighted:text-destructive"
+              variant="destructive"
+              className="cursor-pointer gap-2"
               onClick={() => handleAction('move_to_trash')}
             >
               {loading === 'move_to_trash' ? (
                 <Spinner />
               ) : (
-                <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
+                <Trash className="size-4 text-muted-foreground" />
               )}
               <span>{t('actions.move_to_trash')}</span>
             </DropdownMenuItem>

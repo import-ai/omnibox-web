@@ -2,8 +2,8 @@ import { Eye, FileClock, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import { IconButton } from '@/components/omnibox/IconButton';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
 import {
@@ -118,24 +118,19 @@ export default function Header(props: IActionProps) {
         (!resource?.read_only || isHistorical) &&
         !props.editPage &&
         !historyActive ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                aria-label={t('resource.history.open')}
-                className="h-7 w-7 shrink-0"
-                onClick={() => {
-                  commentsPanel?.setPanelOpen(false);
-                  showResourceHistory(namespaceId, resource.id);
-                }}
-                size="icon"
-                type="button"
-                variant="ghost"
-              >
-                <FileClock />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('resource.history.tooltip')}</TooltipContent>
-          </Tooltip>
+          <IconButton
+            label={t('resource.history.tooltip')}
+            size="sm"
+            tone="accent"
+            className="shrink-0"
+            aria-label={t('resource.history.open')}
+            onClick={() => {
+              commentsPanel?.setPanelOpen(false);
+              showResourceHistory(namespaceId, resource.id);
+            }}
+          >
+            <FileClock className="size-4" />
+          </IconButton>
         ) : null}
         {resource && !isHistorical && !copilotActive ? (
           <CopilotToggleButton namespaceId={namespaceId} />

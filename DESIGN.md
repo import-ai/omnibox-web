@@ -153,8 +153,10 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
   official multiplier scale. Keep the primitive's default radius unless the
   product layout requires an explicit override.
 - Button and Input default to 36px; small buttons are 32px and large buttons
-  are 40px. Use `size="icon"` for icon actions and put `size-4` on the icon
-  itself; size-specific primitive selectors otherwise choose the icon size.
+  are 40px. Icon actions use `IconButton` from
+  `@/components/omnibox/IconButton`: `xs` is 20px for sidebar tools, `sm` is
+  28px for pane headers, and `md` is 36px for card and dialog actions. Put
+  `size-4` on the icon and leave its color to the button.
 - Shadows are opt-out. Most surfaces are `shadow-none`; only elevated
   overlays keep a shadow. When a component adds a shadow you did not ask for,
   pass `shadow-none` rather than editing the primitive.
@@ -275,8 +277,7 @@ Main content is a rounded pane inset from the sidebar:
 - Start with `SidebarTriggerButton collapse` (`src/components/SidebarTriggerButton.tsx`).
   It hides itself when the sidebar is already in the requested state. Do not
   hand-copy its classes or use raw `SidebarTrigger`.
-- Icon-only header toggles are `Button variant="ghost" size="icon"` with
-  `className="h-7 w-7 shrink-0"`, wrapped in a tooltip.
+- Icon-only header toggles use `IconButton` with `size="sm"`.
 - Separate a header from its body with
   `<Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />`.
 
@@ -1030,8 +1031,8 @@ the title. Apply this structure to switches, selectors, and action buttons alike
   and visible `border-input`. Open options below the trigger with
   `position="popper"`; use `DropdownMenu` for actions, not value selection.
 - Settings row actions use `SettingPageButton` from
-  `@/components/omnibox/SettingPageButton`. It inherits `@/components/ui/button`
-  at 30px height with 12px text and weight 500, and shares one
+  `@/components/omnibox/SettingPageButton`. It uses `@/components/Button`
+  at `size="sm"` (28px, `0.8rem`) and shares one
   width, sized by the delete-account label. Binding uses `default`, changing
   an existing value uses `outline`, and destructive actions use `destructive`.
   Do not override height, font size, radius, or state colors per action.
@@ -1039,9 +1040,9 @@ the title. Apply this structure to switches, selectors, and action buttons alike
   Do not wrap a settings action in `DialogTrigger`, `AlertDialogTrigger`, or
   `PopoverTrigger`: open the overlay from `onClick` so the button keeps its
   press movement. Tooltip triggers may still wrap icon actions.
-- Icon-only actions use `Button` with a `Tooltip` and a
-  `size-4 text-muted-foreground` icon. Use `hover:opacity-70`. Delete icons
-  add `group-hover:text-destructive`.
+- Icon-only actions use `IconButton` with `size="md"`, a `size-4` icon, and
+  its built-in tooltip. Pass `destructive` for a delete action instead of
+  adding `hover:opacity-70` or a separate hover color.
 - Settings save immediately. Do not add a separate save button for a switch or
   dropdown.
 

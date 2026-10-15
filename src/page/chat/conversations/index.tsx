@@ -1,4 +1,4 @@
-import { MessageCircle, MoreHorizontal, SquarePen, Trash2 } from 'lucide-react';
+import { MessageCircle, MoreHorizontal, SquarePen, Trash } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -279,7 +279,7 @@ export default function ChatConversationsPage({
                                     });
                                   }}
                                 >
-                                  <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
+                                  <Trash className="size-4 text-muted-foreground group-hover:text-destructive" />
                                   {t('chat.conversations.delete.option')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>

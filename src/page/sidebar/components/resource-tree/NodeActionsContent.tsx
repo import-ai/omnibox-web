@@ -108,27 +108,18 @@ export function NodeActionsContent({
             const menuItem = (
               <DropdownMenuItem
                 key={item.key}
-                className={
-                  item.destructive
-                    ? 'group cursor-pointer gap-2 data-highlighted:text-destructive'
-                    : cn(
-                        menuItemClass,
-                        item.disabled &&
-                          'cursor-not-allowed text-muted-foreground opacity-50'
-                      )
-                }
+                variant={item.destructive ? 'destructive' : 'default'}
+                className={cn(
+                  menuItemClass,
+                  item.disabled &&
+                    'cursor-not-allowed text-muted-foreground opacity-50'
+                )}
                 onClick={item.disabled ? undefined : item.onClick}
                 onSelect={item.onSelect}
                 disabled={item.disabled && !item.disabledTip}
                 aria-disabled={item.disabled}
               >
-                <Icon
-                  className={
-                    item.destructive
-                      ? 'size-4 text-muted-foreground group-hover:text-destructive'
-                      : menuIconClass
-                  }
-                />
+                <Icon className={menuIconClass} />
                 {item.label}
               </DropdownMenuItem>
             );

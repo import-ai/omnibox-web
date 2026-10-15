@@ -1,7 +1,5 @@
-import { Button } from '@/components/Button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { IconButton } from '@/components/omnibox/IconButton';
 import { Spinner } from '@/components/ui/Spinner';
-import { cn } from '@/lib/utils';
 
 interface IProps {
   label: string;
@@ -23,30 +21,14 @@ export function ToolbarButton({
   const disabled = !!disabledLabel || loading;
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          className={cn('inline-flex', {
-            'cursor-not-allowed': disabled,
-          })}
-        >
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={onClick}
-            aria-label={label}
-            disabled={disabled}
-            className="size-5 rounded-sm text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground disabled:bg-transparent"
-          >
-            {loading ? (
-              <Spinner />
-            ) : (
-              <Icon className={cn('size-4', iconClassName)} />
-            )}
-          </Button>
-        </span>
-      </TooltipTrigger>
-      <TooltipContent>{disabledLabel || label}</TooltipContent>
-    </Tooltip>
+    <IconButton
+      size="xs"
+      tone="sidebar"
+      label={disabledLabel || label}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {loading ? <Spinner /> : <Icon className={iconClassName ?? 'size-4'} />}
+    </IconButton>
   );
 }

@@ -1,4 +1,4 @@
-import { Image, Pencil, Trash2, X } from 'lucide-react';
+import { Image, Pencil, Trash, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -208,7 +208,7 @@ export function ResourceCommentItem({
                           .catch(() => undefined);
                       }}
                     >
-                      <Trash2 aria-hidden="true" />
+                      <Trash aria-hidden="true" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>

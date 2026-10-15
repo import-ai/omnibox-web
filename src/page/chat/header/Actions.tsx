@@ -5,7 +5,7 @@ import {
   Plus,
   Search,
   SquarePen,
-  Trash2,
+  Trash,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { ShareIcon } from '@/assets/icons/ShareIcon';
 import { Button } from '@/components/Button';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
+import { IconButton } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
@@ -94,71 +95,49 @@ export default function Actions(props: IProps) {
   return (
     <div className="flex items-center gap-1 text-sm">
       {conversationsPage && onChatSearch && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="size-[28px]"
-              onClick={onChatSearch}
-            >
-              <Search />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('chat.conversations.search')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          label={t('chat.conversations.search')}
+          size="sm"
+          tone="accent"
+          onClick={onChatSearch}
+        >
+          <Search className="size-4" />
+        </IconButton>
       )}
       {conversationId && !compact && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              aria-label={t('chat.share.action')}
-              className="size-7"
-              onClick={() =>
-                app.fire(CONVERSATION_SHARE_OPEN_EVENT, {
-                  conversationId,
-                  initialSelection: 'all',
-                })
-              }
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <ShareIcon className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('chat.share.action')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          label={t('chat.share.action')}
+          size="sm"
+          tone="accent"
+          onClick={() =>
+            app.fire(CONVERSATION_SHARE_OPEN_EVENT, {
+              conversationId,
+              initialSelection: 'all',
+            })
+          }
+        >
+          <ShareIcon className="size-4" />
+        </IconButton>
       )}
       {!homePage && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="size-[28px]"
-              onClick={onChatCreate}
-            >
-              <MessageCirclePlus />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('chat.conversations.new_chat')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          label={t('chat.conversations.new_chat')}
+          size="sm"
+          tone="accent"
+          onClick={onChatCreate}
+        >
+          <MessageCirclePlus className="size-4" />
+        </IconButton>
       )}
       {!conversationsPage && (compact || !conversationId) && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="size-[28px] text-muted-foreground"
-              onClick={onChatHistory}
-            >
-              <History />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('chat.conversations.history')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          label={t('chat.conversations.history')}
+          size="sm"
+          tone="accent"
+          onClick={onChatHistory}
+        >
+          <History className="size-4" />
+        </IconButton>
       )}
       {conversationId && !compact && (
         <DropdownMenu>
@@ -168,7 +147,7 @@ export default function Actions(props: IProps) {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-7 data-[state=open]:bg-accent"
+                  className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
                 >
                   <MoreHorizontal className="size-4" />
                 </Button>
@@ -203,7 +182,7 @@ export default function Actions(props: IProps) {
               className="group cursor-pointer gap-2 hover:text-red-500 focus:text-red-500 data-highlighted:text-red-500"
               onClick={() => handleAction('delete')}
             >
-              <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive group-focus:text-destructive group-data-highlighted:text-destructive" />
+              <Trash className="size-4 text-muted-foreground group-hover:text-destructive group-focus:text-destructive group-data-highlighted:text-destructive" />
               <span>{t('chat.conversations.delete.option')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

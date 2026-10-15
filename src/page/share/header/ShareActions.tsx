@@ -121,7 +121,7 @@ export default function ShareActions({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 data-[state=open]:bg-accent"
+              className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
             >
               <MoreHorizontal className="size-4" />
             </Button>

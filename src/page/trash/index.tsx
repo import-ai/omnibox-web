@@ -1,9 +1,10 @@
-import { ChevronRight, Trash, Trash2 } from 'lucide-react';
+import { ChevronRight, Trash } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { TrashEmptyIcon } from '@/assets/icons/TrashEmptyIcon';
 import { SearchField } from '@/components/search/SearchField';
 import {
   Popover,
@@ -229,9 +230,9 @@ export function TrashPanel() {
                       })}
                     >
                       {total > 0 ? (
-                        <Trash2 className="size-4 text-muted-foreground" />
-                      ) : (
                         <Trash className="size-4 text-muted-foreground" />
+                      ) : (
+                        <TrashEmptyIcon className="size-4 text-muted-foreground" />
                       )}
                       <span>{t('trash.title')}</span>
                     </SidebarMenuButton>

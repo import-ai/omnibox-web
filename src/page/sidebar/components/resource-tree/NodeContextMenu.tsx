@@ -91,32 +91,18 @@ export default function NodeContextMenu({
                 const menuItem = (
                   <ContextMenuItem
                     key={item.key}
-                    className={
-                      item.destructive
-                        ? cn(
-                            'group gap-2 data-highlighted:text-destructive',
-                            item.disabled
-                              ? 'cursor-not-allowed text-muted-foreground opacity-50'
-                              : 'cursor-pointer'
-                          )
-                        : cn(
-                            menuItemClass,
-                            item.disabled &&
-                              'cursor-not-allowed text-muted-foreground opacity-50'
-                          )
-                    }
+                    variant={item.destructive ? 'destructive' : 'default'}
+                    className={cn(
+                      menuItemClass,
+                      item.disabled &&
+                        'cursor-not-allowed text-muted-foreground opacity-50'
+                    )}
                     onClick={item.disabled ? undefined : item.onClick}
                     onSelect={item.onSelect}
                     disabled={item.disabled && !item.disabledTip}
                     aria-disabled={item.disabled}
                   >
-                    <Icon
-                      className={
-                        item.destructive
-                          ? 'size-4 text-muted-foreground group-hover:text-destructive'
-                          : menuIconClass
-                      }
-                    />
+                    <Icon className={menuIconClass} />
                     {item.label}
                   </ContextMenuItem>
                 );

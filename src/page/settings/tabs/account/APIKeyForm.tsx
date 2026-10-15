@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Eye, EyeOff, Pencil, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Pencil, Trash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { IconButton } from '@/components/omnibox/IconButton';
 import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { ResourceSelect } from '@/components/resourceSelect';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
@@ -677,43 +678,29 @@ export function APIKeyForm() {
                 </div>
 
                 <div className="flex items-center gap-1 lg:gap-4">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => toggleKeyVisibility(key.id)}
-                        className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
-                      >
-                        {visibleKeys.has(key.id) ? (
-                          <EyeOff className="size-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="size-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      {visibleKeys.has(key.id)
+                  <IconButton
+                    size="sm"
+                    tone="sidebar"
+                    label={
+                      visibleKeys.has(key.id)
                         ? t('api_key.hide')
-                        : t('api_key.show')}
-                    </TooltipContent>
-                  </Tooltip>
+                        : t('api_key.show')
+                    }
+                    onClick={() => toggleKeyVisibility(key.id)}
+                  >
+                    {visibleKeys.has(key.id) ? <EyeOff /> : <Eye />}
+                  </IconButton>
 
                   <CopyMain content={key.value} />
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditClick(key)}
-                        className="flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
-                      >
-                        <Pencil className="size-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">{t('edit')}</TooltipContent>
-                  </Tooltip>
+                  <IconButton
+                    size="sm"
+                    tone="sidebar"
+                    label={t('edit')}
+                    onClick={() => handleEditClick(key)}
+                  >
+                    <Pencil />
+                  </IconButton>
 
                   <AlertDialog
                     open={deleteDialogKey === key.id}
@@ -724,22 +711,18 @@ export function APIKeyForm() {
                       }
                     }}
                   >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setErrorMessage('');
-                            setDeleteDialogKey(key.id);
-                          }}
-                          className="group flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
-                        >
-                          <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">{t('delete')}</TooltipContent>
-                    </Tooltip>
+                    <IconButton
+                      size="sm"
+                      tone="sidebar"
+                      label={t('delete')}
+                      destructive
+                      onClick={() => {
+                        setErrorMessage('');
+                        setDeleteDialogKey(key.id);
+                      }}
+                    >
+                      <Trash />
+                    </IconButton>
                     <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm rounded-md">
                       <AlertDialogHeader>
                         <AlertDialogTitle>
