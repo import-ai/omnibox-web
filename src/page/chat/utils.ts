@@ -1,7 +1,7 @@
 import type { i18n as I18nType } from 'i18next';
 
 import { getLangOnly } from '@/lib/lang';
-import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
+import { messagePreviewTitle } from '@/page/chat/conversations/provisionalConversation';
 import {
   ConversationDetail,
   ConversationSummary,
@@ -117,15 +117,12 @@ export function getTitleFromConversationDetail(
   const mappingValues = Object.values(conversation.mapping || {});
 
   for (const messageItem of mappingValues) {
-    if (
-      messageItem?.message?.role === 'user' &&
-      messageItem?.message?.content &&
-      messageItem.message.content.trim() !== ''
-    ) {
-      return messageItem.message.content
-        .replaceAll(WEB_SEARCH_QUERY_TOKEN, '')
-        .trim();
+    const content = messageItem?.message?.content;
+    if (messageItem?.message?.role !== 'user' || !content?.trim()) {
+      continue;
     }
+    const preview = messagePreviewTitle(content);
+    if (preview) return preview;
   }
 
   return;
