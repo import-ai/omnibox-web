@@ -32,6 +32,7 @@ function NewcomerTasks({
   const { t } = useTranslation();
   const tasks = overview.newcomer_tasks;
   if (!tasks) return null;
+  const activation = tasks.audience === 'activation';
   const phoneBound = tasks.items.some(
     task => task.task_code === 'phone_bound' && task.status === 'completed'
   );
@@ -40,7 +41,11 @@ function NewcomerTasks({
     <div className="overflow-hidden rounded-lg border border-[#f2f2f7] bg-white dark:border-border dark:bg-[#262626]">
       <div className="flex items-center justify-between px-4 pt-[23px]">
         <h2 className="text-sm font-medium">
-          {t('inviteReferral.tasks.title')}
+          {t(
+            activation
+              ? 'inviteReferral.tasks.giftTitle'
+              : 'inviteReferral.tasks.title'
+          )}
         </h2>
         <span className="text-xs text-muted-foreground">
           {t('inviteReferral.tasks.expires', { count: tasks.remaining_days })}
