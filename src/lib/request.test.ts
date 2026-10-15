@@ -1,7 +1,9 @@
 /** @jest-environment jsdom */
+import { toast } from 'sonner';
+
 import { removeGlobalCredential } from '@/page/user/util';
 
-import request from './request';
+import request, { type RequestConfig } from './request';
 
 jest.mock('lodash-es', () => ({
   isUndefined: (value: unknown) => value === undefined,
@@ -37,12 +39,18 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-async function rejectRequest(url: string, status: number, code?: string) {
+async function rejectRequest(
+  url: string,
+  status: number,
+  code?: string,
+  config: RequestConfig = {}
+) {
   await expect(
     request.post(
       url,
       {},
       {
+        ...config,
         adapter: async config =>
           Promise.reject({
             status,
@@ -88,4 +96,39 @@ it('preserves existing ordinary-page invalid-token navigation', async () => {
   await rejectRequest('/namespaces', 401, 'INVALID_TOKEN');
   jest.runAllTimers();
   expect(window.location.href).toBe('/user/login');
+});
+
+describe('muteWhen', () => {
+  beforeEach(() => {
+    Object.assign(window.location, {
+      pathname: '/user/login',
+      href: 'https://test.omnibox.pro/user/login',
+    });
+  });
+
+  it('skips the toast when the predicate matches the error', async () => {
+    const muteWhen = jest.fn().mockReturnValue(true);
+    await rejectRequest('/auth/send-otp', 403, undefined, { muteWhen });
+    expect(muteWhen).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 403 })
+    );
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it('still toasts when the predicate does not match', async () => {
+    await rejectRequest('/auth/send-otp', 429, 'too_many_requests', {
+      muteWhen: () => false,
+    });
+    expect(toast.error).toHaveBeenCalledWith('Rejected', expect.anything());
+  });
+
+  it('keeps handling expired tokens when the toast is muted', async () => {
+    await rejectRequest('/auth/send-otp', 401, 'TOKEN_EXPIRED', {
+      muteWhen: () => true,
+    });
+    jest.runAllTimers();
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(removeGlobalCredential).toHaveBeenCalled();
+    expect(window.location.href).toContain('/user/login?redirect=');
+  });
 });

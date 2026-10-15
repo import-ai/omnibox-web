@@ -1,5 +1,7 @@
 import type { i18n as I18nType } from 'i18next';
 
+import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
+import { messagePreviewTitle } from '@/page/chat/conversations/provisionalConversation';
 import { ConversationSummary } from '@/page/chat/core/types/conversation';
 
 import { MessageStatus, OpenAIMessageRole } from './core/types/chatResponse';
@@ -124,4 +126,22 @@ it('omits the web search protocol from the fallback conversation title', () => {
       },
     })
   ).toBe('Latest news');
+});
+
+it('uses the sidebar preview when the stored title is empty', () => {
+  const content = `  ${WEB_SEARCH_QUERY_TOKEN}\n你好  `;
+  expect(
+    getTitleFromConversationDetail({
+      id: 'c1',
+      mapping: {
+        m1: {
+          id: 'm1',
+          parent_id: '',
+          children: [],
+          status: MessageStatus.SUCCESS,
+          message: { role: OpenAIMessageRole.USER, content },
+        },
+      },
+    })
+  ).toBe(messagePreviewTitle(content));
 });
