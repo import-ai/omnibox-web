@@ -81,7 +81,11 @@ export function imageCommentAnchorRect(
   if (!(host instanceof HTMLElement)) {
     return null;
   }
-  const rect = host.getBoundingClientRect();
+  const visual =
+    host.querySelector('.tiptap-image-img') ??
+    host.querySelector('img') ??
+    host;
+  const rect = visual.getBoundingClientRect();
   if (rect.width === 0 && rect.height === 0) {
     return null;
   }
