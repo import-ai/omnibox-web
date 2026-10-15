@@ -431,4 +431,52 @@ describe('image resource comment anchors', () => {
       orphaned_comment_thread_ids: [],
     });
   });
+
+  it('keeps an image comment when the editor memory of it was cleared', () => {
+    const { editor, imageCommentRanges } = makeImageEditor(
+      [image],
+      [{ from: 1, text: 'Before ' }]
+    );
+
+    expect(
+      collectResourceCommentAnchors(editor, [
+        makeThread({
+          quoted_text: '[图片]',
+          anchor: {
+            ...makeThread().anchor,
+            from: 8,
+            to: 10,
+            prefix: 'Before ',
+          },
+        }),
+      ]).orphaned_comment_thread_ids
+    ).toEqual([]);
+    expect(imageCommentRanges.get('thread-1')).toEqual({ from: 8, to: 10 });
+  });
+
+  it('restores an orphaned image comment from its surrounding text', () => {
+    const { editor, imageCommentRanges } = makeImageEditor(
+      [image],
+      [
+        { from: 1, text: 'Before ' },
+        { from: 10, text: ' After' },
+      ]
+    );
+
+    restoreResourceCommentAnchors(editor, [
+      makeThread({
+        quoted_text: '[图片]',
+        anchor: {
+          ...makeThread().anchor,
+          status: 'orphaned',
+          from: 30,
+          to: 32,
+          prefix: 'Before ',
+          suffix: ' After',
+        },
+      }),
+    ]);
+
+    expect(imageCommentRanges.get('thread-1')).toEqual({ from: 8, to: 10 });
+  });
 });

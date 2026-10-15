@@ -49,7 +49,12 @@ export function restoreResourceCommentAnchors(
   threads: ResourceCommentThread[]
 ) {
   for (const thread of threads) {
-    if (thread.anchor.status !== 'active') {
+    // Image comments can be marked orphaned after their in-memory anchor is
+    // cleared. Put them back when the image is still in the document.
+    if (
+      thread.anchor.status !== 'active' &&
+      !isImageCommentQuote(thread.quoted_text)
+    ) {
       continue;
     }
 
@@ -61,13 +66,20 @@ export function restoreResourceCommentAnchors(
       editor.commands.setResourceCommentResolved?.(thread.id, thread.resolved);
       continue;
     }
-    const range = resolveCommentRange(editor, {
-      from: storedRange.from,
-      to: storedRange.to,
-      quotedText: thread.quoted_text,
-      prefix: thread.anchor.prefix,
-      suffix: thread.anchor.suffix,
-    });
+    const range =
+      thread.anchor.status === 'active'
+        ? resolveCommentRange(editor, {
+            from: storedRange.from,
+            to: storedRange.to,
+            quotedText: thread.quoted_text,
+            prefix: thread.anchor.prefix,
+            suffix: thread.anchor.suffix,
+          })
+        : findImageCommentRange(editor, {
+            quotedText: thread.quoted_text,
+            prefix: thread.anchor.prefix,
+            suffix: thread.anchor.suffix,
+          });
 
     if (range) {
       editor.commands.addResourceComment({
@@ -116,7 +128,31 @@ export function collectResourceCommentAnchors(
     if (thread.anchor.status !== 'active') {
       continue;
     }
-    const range = findResourceCommentRange(editor, thread.id);
+    let range = findResourceCommentRange(editor, thread.id);
+    if (!range && isImageCommentQuote(thread.quoted_text)) {
+      // The editor keeps image comments in plugin memory. Rebuilding plugins
+      // clears that memory, so recover the image from the saved anchor before
+      // treating the thread as orphaned.
+      range = resolveCommentRange(editor, {
+        from: thread.anchor.from,
+        to: thread.anchor.to,
+        quotedText: thread.quoted_text,
+        prefix: thread.anchor.prefix,
+        suffix: thread.anchor.suffix,
+      });
+      if (range) {
+        editor.commands.addResourceComment({
+          threadId: thread.id,
+          from: range.from,
+          to: range.to,
+          label: getCommentAuthorLabel(thread),
+          commentCount: Math.max(1, thread.comments.length),
+          secondaryLabel: getCommentSecondaryLabel(thread),
+          labels: getCommentLabels(thread),
+          resolved: thread.resolved,
+        });
+      }
+    }
     if (!range) {
       orphanedThreadIds.push(thread.id);
       continue;

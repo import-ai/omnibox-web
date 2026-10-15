@@ -90,7 +90,18 @@ export function useResourceComments({
     useState<ResourceCommentAuthor | null>(null);
 
   anchorThreadsRef.current = anchorThreads;
-  useCommentDraftHighlight(pendingSelection);
+  const restoreEditorComments = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor || editor.isDestroyed) {
+      return;
+    }
+    restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
+  }, []);
+  useCommentDraftHighlight(
+    registeredEditor,
+    pendingSelection,
+    restoreEditorComments
+  );
 
   const isShared = namespaceId.startsWith('share:');
   const permission = resource.current_permission ?? 'can_view';
