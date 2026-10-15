@@ -6,6 +6,13 @@ import {
 import type { ResourceCommentThread } from '@/interface';
 import type { ResourceCommentAnchorPayload } from '@/service/resourceComments';
 
+import {
+  commentQuoteForStorage,
+  isImageCommentQuote,
+  parseImageCommentQuote,
+} from './commentQuote';
+import { addImageCommentMark, getImageCommentRange } from './imageCommentMarks';
+
 export type ResourceCommentEditor = OmniboxEditorCommentSelection['editor'];
 
 const CONTEXT_LENGTH = 250;
@@ -43,7 +50,12 @@ export function restoreResourceCommentAnchors(
   threads: ResourceCommentThread[]
 ) {
   for (const thread of threads) {
-    if (thread.anchor.status !== 'active') {
+    // Image comments can be marked orphaned after their in-memory anchor is
+    // cleared. Put them back when the image is still in the document.
+    if (
+      thread.anchor.status !== 'active' &&
+      !isImageCommentQuote(thread.quoted_text)
+    ) {
       continue;
     }
 
@@ -55,15 +67,31 @@ export function restoreResourceCommentAnchors(
       editor.commands.setResourceCommentResolved?.(thread.id, thread.resolved);
       continue;
     }
-    const range = resolveCommentRange(editor, {
-      from: storedRange.from,
-      to: storedRange.to,
-      quotedText: thread.quoted_text,
-      prefix: thread.anchor.prefix,
-      suffix: thread.anchor.suffix,
-    });
+    const range =
+      thread.anchor.status === 'active'
+        ? resolveCommentRange(editor, {
+            from: storedRange.from,
+            to: storedRange.to,
+            quotedText: thread.quoted_text,
+            prefix: thread.anchor.prefix,
+            suffix: thread.anchor.suffix,
+          })
+        : findImageCommentRange(editor, {
+            quotedText: thread.quoted_text,
+            prefix: thread.anchor.prefix,
+            suffix: thread.anchor.suffix,
+          });
 
     if (range) {
+      if (imageAtRange(editor, range.from, range.to)) {
+        // omnibox-editor 0.0.60 only marks text. Paint the image node directly.
+        addImageCommentMark(editor, {
+          threadId: thread.id,
+          from: range.from,
+          to: range.to,
+          resolved: thread.resolved,
+        });
+      }
       editor.commands.addResourceComment({
         threadId: thread.id,
         label: getCommentAuthorLabel(thread),
@@ -110,14 +138,48 @@ export function collectResourceCommentAnchors(
     if (thread.anchor.status !== 'active') {
       continue;
     }
-    const range = findResourceCommentRange(editor, thread.id);
+    let range =
+      getImageCommentRange(editor, thread.id) ??
+      findResourceCommentRange(editor, thread.id);
+    if (!range && isImageCommentQuote(thread.quoted_text)) {
+      // The published editor cannot mark an image node, so a missing text
+      // range is not proof that the image comment is gone.
+      range = resolveCommentRange(editor, {
+        from: thread.anchor.from,
+        to: thread.anchor.to,
+        quotedText: thread.quoted_text,
+        prefix: thread.anchor.prefix,
+        suffix: thread.anchor.suffix,
+      });
+      if (range && imageAtRange(editor, range.from, range.to)) {
+        addImageCommentMark(editor, {
+          threadId: thread.id,
+          from: range.from,
+          to: range.to,
+          resolved: thread.resolved,
+        });
+      }
+      if (range) {
+        editor.commands.addResourceComment({
+          threadId: thread.id,
+          from: range.from,
+          to: range.to,
+          label: getCommentAuthorLabel(thread),
+          commentCount: Math.max(1, thread.comments.length),
+          secondaryLabel: getCommentSecondaryLabel(thread),
+          labels: getCommentLabels(thread),
+          resolved: thread.resolved,
+        });
+      }
+    }
     if (!range) {
       orphanedThreadIds.push(thread.id);
       continue;
     }
-    const quotedText = editor.state.doc
-      .textBetween(range.from, range.to, '\n')
-      .trim();
+    const image = imageAtRange(editor, range.from, range.to);
+    const quotedText = image
+      ? commentQuoteForStorage(thread.quoted_text, true)
+      : editor.state.doc.textBetween(range.from, range.to, '\n').trim();
     if (!quotedText) {
       orphanedThreadIds.push(thread.id);
       continue;
@@ -149,6 +211,12 @@ export function resolveCommentRange(
     suffix?: string;
   }
 ) {
+  if (imageAtRange(editor, selection.from, selection.to)) {
+    return { from: selection.from, to: selection.to };
+  }
+  if (isImageCommentQuote(selection.quotedText)) {
+    return findImageCommentRange(editor, selection);
+  }
   if (rangeMatchesQuote(editor, selection, selection.quotedText)) {
     return { from: selection.from, to: selection.to };
   }
@@ -162,6 +230,54 @@ export function resolveCommentRange(
     return exactRange;
   }
   return findNearbyQuoteRange(editor, selection);
+}
+
+function imageAtRange(editor: ResourceCommentEditor, from: number, to: number) {
+  const node = editor.state.doc.nodeAt?.(from);
+  if (!node || node.type?.name !== 'image' || to !== from + node.nodeSize) {
+    return null;
+  }
+  return node;
+}
+
+function findImageCommentRange(
+  editor: ResourceCommentEditor,
+  selection: {
+    quotedText: string;
+    prefix?: string;
+    suffix?: string;
+  }
+) {
+  const parsed = parseImageCommentQuote(selection.quotedText);
+  if (!isImageCommentQuote(selection.quotedText)) {
+    return null;
+  }
+  const prefix = selection.prefix ?? '';
+  const suffix = selection.suffix ?? '';
+  const matches: Array<{ from: number; to: number; src: string }> = [];
+  editor.state.doc.descendants((node, position) => {
+    if (node.type?.name !== 'image') {
+      return true;
+    }
+    const from = position;
+    const to = position + node.nodeSize;
+    const context = getSelectionContext(editor, from, to);
+    if (context.prefix === prefix && context.suffix === suffix) {
+      matches.push({
+        from,
+        to,
+        src: String(node.attrs?.src ?? ''),
+      });
+    }
+    return true;
+  });
+  const scoped = parsed?.src
+    ? matches.filter(match => match.src === parsed.src)
+    : matches;
+  if (scoped.length !== 1) {
+    return null;
+  }
+  return { from: scoped[0].from, to: scoped[0].to };
 }
 
 function rangeMatchesQuote(

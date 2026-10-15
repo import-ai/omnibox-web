@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 
 import { Editor, Node } from '@tiptap/core';
+import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
@@ -10,6 +11,7 @@ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 function Fixture({ editor, open }: { editor: Editor; open: boolean }) {
   useCommentDraftHighlight(
+    editor,
     open ? { editor, from: 1, to: 9, quotedText: 'Selected' } : null
   );
   return null;
@@ -63,6 +65,34 @@ describe('comment draft highlight', () => {
     await act(async () =>
       root.render(<Fixture editor={editor} open={false} />)
     );
+    expect(
+      editor.view.dom.querySelector('.resource-comment-draft-highlight')
+    ).toBeNull();
+  });
+
+  it('does not rebuild editor plugins when the draft closes', async () => {
+    let initializations = 0;
+    editor.registerPlugin(
+      new Plugin({
+        key: new PluginKey('keep'),
+        state: {
+          init: () => {
+            initializations += 1;
+            return 1;
+          },
+          apply: (_transaction, value: number) => value,
+        },
+      })
+    );
+    expect(initializations).toBe(1);
+
+    await act(async () => root.render(<Fixture editor={editor} open />));
+    expect(initializations).toBe(1);
+
+    await act(async () =>
+      root.render(<Fixture editor={editor} open={false} />)
+    );
+    expect(initializations).toBe(1);
     expect(
       editor.view.dom.querySelector('.resource-comment-draft-highlight')
     ).toBeNull();

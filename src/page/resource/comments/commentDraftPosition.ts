@@ -16,6 +16,36 @@ interface CommentDraftPosition {
 }
 
 const COMMENT_GAP = 8;
+const VIEWPORT_MARGIN = 12;
+
+export function getVisibleCommentAnchorTop({
+  isImage,
+  startTop,
+  endTop,
+  viewportTop,
+  viewportBottom,
+  surfaceHeight,
+}: {
+  isImage: boolean;
+  startTop: number;
+  endTop: number;
+  viewportTop: number;
+  viewportBottom: number;
+  surfaceHeight: number;
+}) {
+  if (!isImage) {
+    return endTop;
+  }
+  const minTop = viewportTop + VIEWPORT_MARGIN;
+  const maxTop = Math.max(
+    minTop,
+    viewportBottom - surfaceHeight - VIEWPORT_MARGIN
+  );
+  if (startTop >= minTop && startTop <= maxTop) {
+    return startTop;
+  }
+  return Math.min(Math.max(startTop, minTop), maxTop);
+}
 
 export function getCommentDraftPosition(
   selection: CommentRange,

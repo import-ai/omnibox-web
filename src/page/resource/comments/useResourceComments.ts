@@ -21,6 +21,12 @@ import {
   restoreResourceCommentAnchors,
 } from './commentAnchors';
 import { createAnchoredCommentThread } from './createAnchoredCommentThread';
+import {
+  installImageCommentPlugin,
+  removeImageCommentMark,
+  setActiveImageThreadId,
+  setImageCommentOpener,
+} from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentDraftHighlight } from './useCommentDraftHighlight';
 import { useCommentHighlight } from './useCommentHighlight';
@@ -99,7 +105,18 @@ export function useResourceComments({
     useState<ResourceCommentAuthor | null>(null);
 
   anchorThreadsRef.current = anchorThreads;
-  useCommentDraftHighlight(pendingSelection);
+  const restoreEditorComments = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor || editor.isDestroyed) {
+      return;
+    }
+    restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
+  }, []);
+  useCommentDraftHighlight(
+    registeredEditor,
+    pendingSelection,
+    restoreEditorComments
+  );
 
   const isShared = namespaceId.startsWith('share:');
   const permission = resource.current_permission ?? 'can_view';
@@ -238,6 +255,7 @@ export function useResourceComments({
   }, [anchorThreads]);
 
   const registerEditor = useCallback((editor: ResourceCommentEditor) => {
+    installImageCommentPlugin(editor);
     setRegisteredEditor(editor);
     restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
@@ -290,6 +308,21 @@ export function useResourceComments({
     }),
     [canComment, contentDirty, focusThread, setPanelOpen]
   );
+
+  useEffect(() => {
+    setImageCommentOpener(focusThread);
+    return () => setImageCommentOpener(() => undefined);
+  }, [focusThread]);
+
+  useEffect(() => {
+    setActiveImageThreadId(activeThreadId);
+  }, [activeThreadId]);
+
+  useEffect(() => {
+    if (contentDirty) {
+      setPendingSelection(null);
+    }
+  }, [contentDirty]);
 
   useCommentLinkNavigation({
     enabled,
@@ -385,6 +418,7 @@ export function useResourceComments({
       const editor = editorRef.current;
       if (editor && !editor.isDestroyed) {
         editor.commands.removeResourceComment(threadId);
+        removeImageCommentMark(editor, threadId);
       }
     },
     [removeAnchorThread]
@@ -463,6 +497,7 @@ export function useResourceComments({
       canComment && (canEditResource || isCommentAuthor(thread.creator.id)),
     commentsConfig,
     contentDirty,
+    editor: registeredEditor,
     createConflict,
     createThread,
     currentUserId,

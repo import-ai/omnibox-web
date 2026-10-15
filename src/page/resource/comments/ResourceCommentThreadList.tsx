@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
 
+import { commentThreadIds } from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { ResourceCommentThreadItem } from './ResourceCommentThreadItem';
 import type { ResourceCommentsController } from './useResourceComments';
@@ -57,9 +58,10 @@ export function ResourceCommentThreadList({
       root
         .querySelectorAll<HTMLElement>('[data-resource-comment-thread]')
         .forEach(marker => {
-          const threadId = marker.dataset.resourceCommentThread;
-          if (threadId && !markers.has(threadId)) {
-            markers.set(threadId, marker);
+          for (const threadId of commentThreadIds(marker)) {
+            if (!markers.has(threadId)) {
+              markers.set(threadId, marker);
+            }
           }
         });
 
