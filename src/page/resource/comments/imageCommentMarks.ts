@@ -65,6 +65,29 @@ function isImageRange(
   );
 }
 
+export function imageCommentAnchorRect(
+  editor: ResourceCommentEditor,
+  from: number,
+  to: number
+) {
+  if (!isImageRange(editor.state.doc, from, to) || editor.isDestroyed) {
+    return null;
+  }
+  const nodeDom = editor.view.nodeDOM(from);
+  const host =
+    nodeDom instanceof HTMLElement
+      ? (nodeDom.querySelector('.tiptap-image-content') ?? nodeDom)
+      : null;
+  if (!(host instanceof HTMLElement)) {
+    return null;
+  }
+  const rect = host.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) {
+    return null;
+  }
+  return rect;
+}
+
 function canDecorate(editor: ResourceCommentEditor) {
   const candidate = editor as ResourceCommentEditor & {
     registerPlugin?: (plugin: Plugin) => void;

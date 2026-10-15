@@ -8,7 +8,10 @@ import {
   getCommentDraftPosition,
   getVisibleCommentAnchorTop,
 } from './commentDraftPosition';
-import { getImageCommentRange } from './imageCommentMarks';
+import {
+  getImageCommentRange,
+  imageCommentAnchorRect,
+} from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
 interface UseCommentDraftPositionOptions {
@@ -42,14 +45,19 @@ export function useCommentDraftPosition({
         '[data-resource-scroll]'
       );
       const viewport = resourceScroll?.getBoundingClientRect();
+      const imageRect = imageCommentAnchorRect(
+        selection.editor,
+        selection.from,
+        selection.to
+      );
       const selectionTop = getVisibleCommentAnchorTop({
-        isImage: isImageCommentRange(
-          selection.editor,
-          selection.from,
-          selection.to
-        ),
-        startTop: selection.editor.view.coordsAtPos(selection.from).top,
-        endTop: selection.editor.view.coordsAtPos(selection.to).top,
+        isImage: !!imageRect,
+        startTop:
+          imageRect?.top ??
+          selection.editor.view.coordsAtPos(selection.from).top,
+        endTop:
+          imageRect?.bottom ??
+          selection.editor.view.coordsAtPos(selection.to).top,
         viewportTop: viewport?.top ?? 0,
         viewportBottom: viewport?.bottom ?? window.innerHeight,
         surfaceHeight: surface.getBoundingClientRect().height,
@@ -66,14 +74,18 @@ export function useCommentDraftPosition({
           ? (getImageCommentRange(selection.editor, threadId) ??
             findResourceCommentRange(selection.editor, threadId))
           : null;
+        const rangeImage = range
+          ? imageCommentAnchorRect(selection.editor, range.from, range.to)
+          : null;
         return {
           range,
           anchorTop: range
-            ? selection.editor.view.coordsAtPos(
+            ? (rangeImage?.top ??
+              selection.editor.view.coordsAtPos(
                 isImageCommentRange(selection.editor, range.from, range.to)
                   ? range.from
                   : range.to
-              ).top
+              ).top)
             : undefined,
           top: bounds.top - offset,
           bottom: bounds.bottom - offset,

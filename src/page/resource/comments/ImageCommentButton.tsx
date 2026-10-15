@@ -1,10 +1,12 @@
 import { NodeSelection } from '@tiptap/pm/state';
+import { MessageSquareText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import type { ResourceCommentEditor } from './commentAnchors';
 import { IMAGE_COMMENT_STORED_QUOTE } from './commentQuote';
+import { imageCommentAnchorRect } from './imageCommentMarks';
 import type { ResourceCommentsController } from './useResourceComments';
 
 function selectedImageRange(editor: ResourceCommentEditor) {
@@ -47,24 +49,14 @@ export function ImageCommentButton({
         return;
       }
       const range = selectedImageRange(editor);
-      const nodeDom = range ? editor.view.nodeDOM(range.from) : null;
-      const host =
-        nodeDom instanceof HTMLElement
-          ? (nodeDom.querySelector('.tiptap-image-content') ?? nodeDom)
-          : null;
-      if (!(host instanceof HTMLElement)) {
+      const rect = range
+        ? imageCommentAnchorRect(editor, range.from, range.to)
+        : null;
+      if (!rect) {
         setPosition(null);
         return;
       }
-      const rect = host.getBoundingClientRect();
-      if (rect.width === 0 && rect.height === 0) {
-        setPosition(null);
-        return;
-      }
-      setPosition({
-        top: Math.max(8, rect.top - 40),
-        left: rect.left + rect.width / 2,
-      });
+      setPosition({ top: rect.top, left: rect.right });
     };
     update();
     editor.on('selectionUpdate', update);
@@ -89,29 +81,39 @@ export function ImageCommentButton({
   }
 
   return createPortal(
-    <button
-      type="button"
-      className="fixed z-40 flex h-8 -translate-x-1/2 items-center rounded-md bg-neutral-900 px-2.5 text-xs text-white shadow-md"
-      style={{ top: position.top, left: position.left }}
-      onMouseDown={event => event.preventDefault()}
-      onClick={() => {
-        const range = selectedImageRange(editor);
-        if (!range) {
-          return;
-        }
-        controller.setCreateConflict(false);
-        controller.setActiveThreadId(null);
-        controller.setPendingSelection({
-          editor,
-          from: range.from,
-          to: range.to,
-          quotedText: IMAGE_COMMENT_STORED_QUOTE,
-        });
-        controller.setPanelOpen(true);
+    <div
+      className="tiptap-toolbar omnibox-floating-toolbar fixed z-40"
+      data-variant="floating"
+      style={{
+        top: position.top - 4,
+        left: position.left,
+        transform: 'translate(-100%, -100%)',
       }}
     >
-      {t('resource_comments.add_comment')}
-    </button>,
+      <div className="tiptap-toolbar-group">
+        <button
+          type="button"
+          className="tiptap-button"
+          aria-label={t('resource_comments.add_comment')}
+          title={t('resource_comments.add_comment')}
+          onMouseDown={event => event.preventDefault()}
+          onClick={() => {
+            const range = selectedImageRange(editor);
+            if (!range) {
+              return;
+            }
+            controller.commentsConfig.onCreateRequest?.({
+              editor,
+              from: range.from,
+              to: range.to,
+              quotedText: IMAGE_COMMENT_STORED_QUOTE,
+            });
+          }}
+        >
+          <MessageSquareText className="tiptap-button-icon" />
+        </button>
+      </div>
+    </div>,
     document.body
   );
 }
