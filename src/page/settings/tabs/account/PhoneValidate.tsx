@@ -21,7 +21,11 @@ import {
   getOtpErrorMessage,
   useVerificationCode,
 } from '@/hooks/useVerificationCode';
-import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
+import {
+  CAPTCHA_REQUEST_CONFIG,
+  captchaResultFromError,
+  withCaptchaParam,
+} from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { phoneSchema } from '@/lib/validationSchemas';
 import { OtpInput } from '@/page/user/components/OtpInput';
@@ -201,7 +205,8 @@ export default function PhoneValidate(props: IProps) {
       try {
         await http.post(
           '/user/phone/send-code',
-          withCaptchaParam({ phone: phoneNumber }, captchaVerifyParam)
+          withCaptchaParam({ phone: phoneNumber }, captchaVerifyParam),
+          CAPTCHA_REQUEST_CONFIG
         );
         setPhone(phoneNumber);
         setStep('code');
@@ -222,7 +227,8 @@ export default function PhoneValidate(props: IProps) {
       try {
         await http.post(
           '/user/phone/send-code',
-          withCaptchaParam({ phone }, captchaVerifyParam)
+          withCaptchaParam({ phone }, captchaVerifyParam),
+          CAPTCHA_REQUEST_CONFIG
         );
         setError('');
         toast.success(t('phone.code_sent'), { position: 'bottom-right' });

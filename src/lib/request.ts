@@ -19,6 +19,9 @@ export interface RequestConfig extends AxiosRequestConfig {
   // Suppress the global error toast only for these response error codes,
   // letting all other errors fall through to the global handler.
   muteCodes?: string[];
+  // Suppress the global error toast when this returns true, for errors the
+  // caller reports itself and that carry no distinguishing code.
+  muteWhen?: (error: AxiosError) => boolean;
 }
 
 const request: AxiosInstance = axios.create({
@@ -88,7 +91,12 @@ request.interceptors.response.use(
     const mutedByCode = (config.muteCodes || []).some(
       code => code.toLowerCase() === errorCode
     );
-    if ((isUndefined(config.mute) || !config.mute) && !mutedByCode) {
+    const mutedByPredicate = config.muteWhen?.(err) ?? false;
+    if (
+      (isUndefined(config.mute) || !config.mute) &&
+      !mutedByCode &&
+      !mutedByPredicate
+    ) {
       let errorMessage = i18next.t('request.failed');
       if (errorCode === 'user_not_owner_or_admin') {
         errorMessage = i18next.t('permission.invite_owner_or_admin_required');

@@ -70,6 +70,9 @@ interface PendingRun {
   resolve: (result: CaptchaRunResult) => void;
   // Consecutive `captchaResult: false` rounds this run has refreshed on.
   failures: number;
+  // A rejection already arrived before any challenge was shown (see
+  // `captchaVerifyCallback`); only the first such one goes uncounted.
+  seamlessRejected: boolean;
 }
 
 /**
@@ -80,6 +83,7 @@ interface PendingRun {
 interface LateRun {
   onVerify: CaptchaVerifyHandler;
   failures: number;
+  seamlessRejected: boolean;
   expiresAt: number;
 }
 
@@ -469,6 +473,8 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
       captchaVerifyParam: string
     ): Promise<CaptchaVerifyResult> => {
       verifyCountRef.current += 1;
+      // Read before `stopObserver`/`startObserver` touch the popup state.
+      const challengeShown = popupSeenRef.current || hasCaptchaPopup();
       const pending = pendingRef.current;
       pendingRef.current = null;
       stopObserver();
@@ -492,7 +498,17 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
         bizResult: value.bizResult,
       });
       if (!result.captchaResult) {
-        const failures = (owner?.failures ?? 0) + 1;
+        // Aliyun first tries a seamless pass on the trigger click and only
+        // escalates to the slider when the server rejects it, so that
+        // rejection is not a failed attempt by the user. Only one per run is
+        // exempt, which keeps the bound below intact even if the SDK kept
+        // calling back without ever showing a challenge.
+        const seamless =
+          !challengeShown && owner !== null && !owner.seamlessRejected;
+        if (owner && seamless) {
+          owner.seamlessRejected = true;
+        }
+        const failures = (owner?.failures ?? 0) + (seamless ? 0 : 1);
         if (owner) {
           owner.failures = failures;
         }
@@ -638,6 +654,7 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
             onVerify,
             resolve: settle,
             failures: 0,
+            seamlessRejected: false,
           };
           const clickTrigger = () => {
             // A re-init between the wait and the click replaces the node, so
@@ -655,6 +672,7 @@ export function useCaptcha(options: UseCaptchaOptions): CaptchaController {
             lateRunRef.current = {
               onVerify: pending.onVerify,
               failures: pending.failures,
+              seamlessRejected: pending.seamlessRejected,
               expiresAt: Date.now() + LATE_VERIFY_WINDOW_MS,
             };
             notifyUnavailable();
