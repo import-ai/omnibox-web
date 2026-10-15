@@ -2,7 +2,9 @@
 
 import { Editor, Node } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
-import { createElement } from 'react';
+import { createElement, type ReactElement } from 'react';
+import { flushSync } from 'react-dom';
+import { createRoot, type Root } from 'react-dom/client';
 
 import {
   addImageCommentMark,
@@ -16,8 +18,12 @@ function ReactImageView() {
     { className: 'tiptap-image' },
     createElement(
       'div',
-      { className: 'tiptap-image-content' },
-      createElement('img', { className: 'tiptap-image-img', alt: '' })
+      { className: 'tiptap-image-container' },
+      createElement(
+        'div',
+        { className: 'tiptap-image-content' },
+        createElement('img', { className: 'tiptap-image-img', alt: '' })
+      )
     )
   );
 }
@@ -108,13 +114,25 @@ function reactImageEditor() {
     isEditorContentInitialized: boolean;
     createNodeViews: () => void;
   };
-  const renderers = new Map<string, unknown>();
+  const roots = new Map<string, Root>();
   reactEditor.contentComponent = {
     setRenderer: (id, renderer) => {
-      renderers.set(id, renderer);
+      const target = renderer as {
+        element: HTMLElement;
+        reactElement: ReactElement;
+      };
+      let root = roots.get(id);
+      if (!root) {
+        root = createRoot(target.element);
+        roots.set(id, root);
+      }
+      flushSync(() => {
+        root.render(target.reactElement);
+      });
     },
     removeRenderer: id => {
-      renderers.delete(id);
+      roots.get(id)?.unmount();
+      roots.delete(id);
     },
   };
   reactEditor.isEditorContentInitialized = true;
@@ -189,18 +207,27 @@ describe('image comment marks', () => {
         to: range.to,
         resolved: false,
       });
-      const marked = editor.view.dom.querySelector(
-        '[data-resource-comment-thread="thread-1"]'
+      const host = editor.view.dom.querySelector('.node-image');
+      expect(host?.getAttribute('data-resource-comment-thread')).toBe(
+        'thread-1'
       );
-
-      expect(marked?.classList.contains('node-image')).toBe(true);
-      marked?.removeAttribute('data-resource-comment-thread');
+      expect(
+        host
+          ?.querySelector('.tiptap-image')
+          ?.hasAttribute('data-resource-comment-thread')
+      ).toBe(false);
+      host?.removeAttribute('data-resource-comment-thread');
       editor.view.dispatch(editor.state.tr);
       expect(
         editor.view.dom
           .querySelector('.node-image')
           ?.getAttribute('data-resource-comment-thread')
       ).toBe('thread-1');
+      expect(
+        editor.view.dom
+          .querySelector('.tiptap-image')
+          ?.hasAttribute('data-resource-comment-thread')
+      ).toBe(false);
     } finally {
       editor.destroy();
     }

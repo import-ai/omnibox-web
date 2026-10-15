@@ -52,13 +52,11 @@ function canDecorate(editor: ResourceCommentEditor) {
 }
 
 function commentHost(dom: HTMLElement) {
-  if (
-    dom.classList.contains('node-image') ||
-    dom.querySelector('.tiptap-image-content')
-  ) {
-    return dom;
-  }
-  return dom.closest<HTMLElement>('.node-image') ?? dom;
+  return (
+    dom.closest<HTMLElement>('.node-image') ??
+    (dom.querySelector('.tiptap-image-content') ? dom : null) ??
+    dom
+  );
 }
 
 function clearPaintedComment(element: HTMLElement) {
