@@ -111,10 +111,9 @@ afterEach(() => {
 });
 
 test.each([
-  [true, true],
   [false, true],
-  [true, false],
   [false, false],
+  [true, true],
 ])(
   'opens a loaded image after native selection without changing content (editable=%s table=%s)',
   (editable, table) => {
@@ -133,6 +132,20 @@ test.each([
     }
   }
 );
+
+test('does not preview ordinary images while editing', () => {
+  const s = setup(true, false);
+  try {
+    const before = s.view.state.doc.toJSON();
+    s.click();
+    jest.runAllTimers();
+    expect(s.view.state.selection).toBeInstanceOf(NodeSelection);
+    expect(s.preview).not.toHaveBeenCalled();
+    expect(s.view.state.doc.toJSON()).toEqual(before);
+  } finally {
+    s.destroy();
+  }
+});
 
 test.each([
   { shiftKey: true },
