@@ -1018,7 +1018,9 @@
   "date": {
     "today": "今天",
     "yesterday": "昨天",
-    "last_week": "过去 7 天"
+    "last_week": "过去 7 天",
+    "earlier": "更早",
+    "calendar_day": "{{year}} 年 {{month}} 月 {{day}} 日"
   },
   "pagination": {
     "prev": "前页",
