@@ -1,4 +1,7 @@
-import { getCommentDraftPosition } from './commentDraftPosition';
+import {
+  getCommentDraftPosition,
+  getVisibleCommentAnchorTop,
+} from './commentDraftPosition';
 
 describe('comment draft alignment', () => {
   const selection = { from: 5, to: 12 };
@@ -122,5 +125,46 @@ describe('comment draft alignment', () => {
       top: 470,
       cardOffsets: [],
     });
+  });
+});
+
+describe('visible comment anchor', () => {
+  const viewport = {
+    viewportTop: 80,
+    viewportBottom: 800,
+    surfaceHeight: 140,
+  };
+
+  it('keeps text comments at the end of the selection', () => {
+    expect(
+      getVisibleCommentAnchorTop({
+        ...viewport,
+        isImage: false,
+        startTop: 120,
+        endTop: 2400,
+      })
+    ).toBe(2400);
+  });
+
+  it('anchors a visible image comment to the top of the image', () => {
+    expect(
+      getVisibleCommentAnchorTop({
+        ...viewport,
+        isImage: true,
+        startTop: 160,
+        endTop: 2400,
+      })
+    ).toBe(160);
+  });
+
+  it('keeps a tall image comment inside the viewport when its top is off screen', () => {
+    expect(
+      getVisibleCommentAnchorTop({
+        ...viewport,
+        isImage: true,
+        startTop: -900,
+        endTop: 2400,
+      })
+    ).toBe(92);
   });
 });

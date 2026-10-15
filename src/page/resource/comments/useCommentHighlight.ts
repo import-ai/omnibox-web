@@ -1,5 +1,7 @@
 import { useLayoutEffect } from 'react';
 
+import { elementHasCommentThread } from './imageCommentMarks';
+
 interface UseCommentHighlightOptions {
   root: HTMLElement | null | undefined;
   activeThreadId: string | null;
@@ -31,7 +33,7 @@ export function useCommentHighlight({
       highlighted.forEach(quote => {
         if (
           !root.contains(quote) ||
-          quote.dataset.resourceCommentThread !== activeThreadId
+          !elementHasCommentThread(quote, activeThreadId)
         ) {
           delete quote.dataset.commentHighlight;
           highlighted.delete(quote);
@@ -40,7 +42,7 @@ export function useCommentHighlight({
       root
         .querySelectorAll<HTMLElement>('[data-resource-comment-thread]')
         .forEach(quote => {
-          if (quote.dataset.resourceCommentThread === activeThreadId) {
+          if (elementHasCommentThread(quote, activeThreadId)) {
             quote.dataset.commentHighlight = resolved ? 'resolved' : 'open';
             highlighted.add(quote);
           }
@@ -57,7 +59,10 @@ export function useCommentHighlight({
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['data-resource-comment-thread'],
+      attributeFilter: [
+        'data-resource-comment-thread',
+        'data-resource-comment-threads',
+      ],
     });
     return () => {
       observer.disconnect();

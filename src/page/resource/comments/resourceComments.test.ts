@@ -88,6 +88,25 @@ describe('compiled resource comment styles', () => {
       expect(getComputedStyle(actions).display).toBe('flex');
       expect(getComputedStyle(draftHighlight).borderBottomWidth).toBe('2px');
       expect(getComputedStyle(draftHighlight).borderBottomStyle).toBe('solid');
+
+      const editor = fixture.querySelector('.tiptap.ProseMirror');
+      const imageThread = document.createElement('div');
+      imageThread.className = 'node-image tiptap-thread';
+      imageThread.setAttribute('data-resource-comment-thread', 'image-thread');
+      imageThread.innerHTML = `<div class="tiptap-image" data-resource-comment-thread="image-thread"><div class="tiptap-image-container"><div class="tiptap-image-content"><img class="tiptap-image-img" alt="" /></div></div></div>`;
+      editor?.append(imageThread);
+      const imageContent = imageThread.querySelector('.tiptap-image-content');
+      if (!imageContent) {
+        throw new Error('Missing commented image');
+      }
+      const underline = style.textContent ?? '';
+      expect(getComputedStyle(imageThread).borderBottomWidth).toBe('0px');
+      expect(getComputedStyle(imageThread).paddingBottom).toBe('0px');
+      expect(imageContent).toBeTruthy();
+      expect(underline).toContain('.tiptap-image-content::before');
+      expect(underline).toContain('top: calc(100% + 1px)');
+      expect(underline).toContain('height: 2px');
+      expect(underline).toContain('#faedc2');
     } finally {
       fixture.remove();
       style.remove();

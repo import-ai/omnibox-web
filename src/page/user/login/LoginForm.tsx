@@ -21,7 +21,11 @@ import {
 } from '@/components/ui/Form';
 import { useCaptcha } from '@/hooks/useCaptcha';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
-import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
+import {
+  CAPTCHA_REQUEST_CONFIG,
+  captchaResultFromError,
+  withCaptchaParam,
+} from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { buildUrl, cn } from '@/lib/utils';
 import { passwordSchema, phoneSchema } from '@/lib/validationSchemas';
@@ -140,7 +144,8 @@ export function LoginForm({
               url: `${window.location.origin}${buildUrl('/user/verify-otp', withInviteCode({ redirect }))}`,
             },
             captchaVerifyParam
-          )
+          ),
+          CAPTCHA_REQUEST_CONFIG
         );
 
         if (!response.exists) {
@@ -213,7 +218,8 @@ export function LoginForm({
       try {
         const response = await http.post(
           'auth/send-phone-otp',
-          withCaptchaParam({ phone: data.phone }, captchaVerifyParam)
+          withCaptchaParam({ phone: data.phone }, captchaVerifyParam),
+          CAPTCHA_REQUEST_CONFIG
         );
 
         if (!response.exists) {
