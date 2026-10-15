@@ -324,6 +324,16 @@
   @apply pointer-events-none absolute -inset-x-px -top-px h-2 rounded-t-md bg-comment;
 }
 
+.omnibox-editor-root
+  .tiptap.ProseMirror.resource-image-comment-ready
+  .tiptap-image-content,
+.omnibox-editor-root
+  .tiptap.ProseMirror.resource-image-comment-ready
+  .tiptap-image-content
+  * {
+  cursor: pointer !important;
+}
+
 .resource-comments-panel .omnibox-comment-thread[data-resolved] {
   @apply bg-white dark:bg-muted;
 }

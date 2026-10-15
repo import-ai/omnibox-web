@@ -1,23 +1,59 @@
-import { NodeSelection } from '@tiptap/pm/state';
-import { MessageSquareText } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { useTranslation } from 'react-i18next';
+import { NodeSelection, TextSelection } from '@tiptap/pm/state';
+import { useEffect, useRef } from 'react';
 
 import type { ResourceCommentEditor } from './commentAnchors';
-import { IMAGE_COMMENT_STORED_QUOTE } from './commentQuote';
-import { imageCommentAnchorRect } from './imageCommentMarks';
 import type { ResourceCommentsController } from './useResourceComments';
 
-function selectedImageRange(editor: ResourceCommentEditor) {
-  const { selection } = editor.state;
-  if (
-    selection instanceof NodeSelection &&
-    selection.node.type.name === 'image'
-  ) {
-    return { from: selection.from, to: selection.to };
+function imageHoverElement(target: EventTarget | null) {
+  if (!(target instanceof Element)) {
+    return null;
   }
-  return null;
+  const content = target.closest('.tiptap-image-content');
+  return content instanceof HTMLElement ? content : null;
+}
+
+export function imageRangeForHoverTarget(
+  editor: ResourceCommentEditor,
+  target: HTMLElement
+) {
+  let match: { from: number; to: number } | null = null;
+  editor.state.doc.descendants((node, position) => {
+    if (match || node.type.name !== 'image') {
+      return !match;
+    }
+    const dom = editor.view.nodeDOM(position);
+    if (
+      dom instanceof HTMLElement &&
+      (dom === target || dom.contains(target) || target.contains(dom))
+    ) {
+      match = { from: position, to: position + node.nodeSize };
+    }
+    return true;
+  });
+  return match;
+}
+
+function staysWithImageComment(
+  next: EventTarget | null,
+  host: HTMLElement | null
+) {
+  return (
+    next instanceof Element &&
+    (!!next.closest('.omnibox-floating-toolbar') ||
+      (host?.contains(next) ?? false))
+  );
+}
+
+function clearHoverSelection(
+  editor: ResourceCommentEditor,
+  range: { from: number; to: number }
+) {
+  const { selection } = editor.state;
+  if (!(selection instanceof NodeSelection) || selection.from !== range.from) {
+    return;
+  }
+  const near = TextSelection.near(editor.state.doc.resolve(range.from), -1);
+  editor.view.dispatch(editor.state.tr.setSelection(near));
 }
 
 export function ImageCommentButton({
@@ -25,95 +61,66 @@ export function ImageCommentButton({
 }: {
   controller: ResourceCommentsController;
 }) {
-  const { t } = useTranslation();
   const editor = controller.editor;
-  const [position, setPosition] = useState<{
-    top: number;
-    left: number;
-  } | null>(null);
+  const hostRef = useRef<HTMLElement | null>(null);
+  const rangeRef = useRef<{ from: number; to: number } | null>(null);
+  const available =
+    !!editor &&
+    !editor.isDestroyed &&
+    controller.canComment &&
+    !controller.contentDirty &&
+    !controller.pendingSelection;
 
   useEffect(() => {
-    if (
-      !editor ||
-      editor.isDestroyed ||
-      !controller.canComment ||
-      controller.contentDirty ||
-      controller.pendingSelection
-    ) {
-      setPosition(null);
+    if (!available || !editor) {
       return;
     }
-    const update = () => {
-      if (editor.isDestroyed) {
-        setPosition(null);
+    const root = editor.view.dom;
+    root.classList.add('resource-image-comment-ready');
+    const selectImage = (element: HTMLElement) => {
+      const range = imageRangeForHoverTarget(editor, element);
+      if (!range) {
         return;
       }
-      const range = selectedImageRange(editor);
-      const rect = range
-        ? imageCommentAnchorRect(editor, range.from, range.to)
-        : null;
-      if (!rect) {
-        setPosition(null);
+      hostRef.current = element;
+      rangeRef.current = range;
+      const { selection } = editor.state;
+      if (selection instanceof NodeSelection && selection.from === range.from) {
         return;
       }
-      setPosition({ top: rect.top, left: rect.right });
+      editor.view.dispatch(
+        editor.state.tr.setSelection(
+          NodeSelection.create(editor.state.doc, range.from)
+        )
+      );
     };
-    update();
-    editor.on('selectionUpdate', update);
-    editor.on('transaction', update);
-    window.addEventListener('scroll', update, true);
-    window.addEventListener('resize', update);
+    const onOver = (event: Event) => {
+      const next = imageHoverElement(event.target);
+      if (next) {
+        selectImage(next);
+      }
+    };
+    const onOut = (event: MouseEvent) => {
+      if (staysWithImageComment(event.relatedTarget, hostRef.current)) {
+        return;
+      }
+      const range = rangeRef.current;
+      hostRef.current = null;
+      rangeRef.current = null;
+      if (range) {
+        clearHoverSelection(editor, range);
+      }
+    };
+    root.addEventListener('mouseover', onOver);
+    root.addEventListener('mouseout', onOut);
+    document.addEventListener('mouseout', onOut);
     return () => {
-      editor.off('selectionUpdate', update);
-      editor.off('transaction', update);
-      window.removeEventListener('scroll', update, true);
-      window.removeEventListener('resize', update);
+      root.classList.remove('resource-image-comment-ready');
+      root.removeEventListener('mouseover', onOver);
+      root.removeEventListener('mouseout', onOut);
+      document.removeEventListener('mouseout', onOut);
     };
-  }, [
-    controller.canComment,
-    controller.contentDirty,
-    controller.pendingSelection,
-    editor,
-  ]);
+  }, [available, editor]);
 
-  if (!position || !editor) {
-    return null;
-  }
-
-  return createPortal(
-    <div
-      className="tiptap-toolbar omnibox-floating-toolbar fixed z-40"
-      data-variant="floating"
-      style={{
-        top: position.top - 4,
-        left: position.left,
-        transform: 'translate(-100%, -100%)',
-      }}
-    >
-      <div className="tiptap-toolbar-group">
-        <button
-          type="button"
-          className="tiptap-button"
-          aria-label={t('resource_comments.add_comment')}
-          title={t('resource_comments.add_comment')}
-          onMouseDown={event => event.preventDefault()}
-          onClick={() => {
-            const range = selectedImageRange(editor);
-            if (!range) {
-              return;
-            }
-            controller.commentsConfig.onCreateRequest?.({
-              editor,
-              from: range.from,
-              to: range.to,
-              quotedText: IMAGE_COMMENT_STORED_QUOTE,
-            });
-          }}
-        >
-          <MessageSquareText className="tiptap-button-icon" />
-        </button>
-      </div>
-    </div>,
-    document.body
-  );
+  return <span hidden />;
 }
