@@ -6,6 +6,13 @@ import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
 import { getCurrentUserId } from '@/page/chat/conversation/conversationCache';
 import { isConversationAccessDenied } from '@/page/chat/conversation/conversationLoadPolicy';
+import {
+  applyProvisionalConversations,
+  clearProvisionalConversation,
+  type ProvisionalConversation,
+  readProvisionalConversations,
+  rememberProvisionalConversation,
+} from '@/page/chat/conversations/provisionalConversation';
 import type {
   ConversationSummary,
   ConversationTitleGeneratedPayload,
@@ -14,6 +21,13 @@ import type {
 interface ConversationPage {
   total: number;
   data: ConversationSummary[];
+}
+
+interface ProvisionalConversationPayload {
+  userId: string;
+  namespaceId: string;
+  conversation?: ProvisionalConversation;
+  clearId?: string;
 }
 
 export default function useContext(
@@ -37,10 +51,27 @@ export default function useContext(
   const [accessDenied, setAccessDenied] = useState(false);
   const [current, onCurrent] = useState(1);
   const [pageSize] = useState(10);
-  const [data, onData] = useState<ConversationPage>({
-    total: 0,
-    data: [],
-  });
+  const serverPageRef = useRef<ConversationPage>({ total: 0, data: [] });
+  const withProvisional = useCallback(
+    (page: ConversationPage) => {
+      if (!compact) {
+        return page;
+      }
+      const scope = { userId: getCurrentUserId(), namespaceId };
+      const applied = applyProvisionalConversations(
+        page,
+        readProvisionalConversations(scope)
+      );
+      applied.confirmedIds.forEach(id =>
+        clearProvisionalConversation(scope, id)
+      );
+      return { total: applied.total, data: applied.data };
+    },
+    [compact, namespaceId]
+  );
+  const [data, onData] = useState<ConversationPage>(() =>
+    withProvisional({ total: 0, data: [] })
+  );
   const [edit, onEdit] = useState<{
     id: string;
     title: string;
@@ -105,28 +136,35 @@ export default function useContext(
           });
           const pendingTitles = [...pendingTitlesRef.current.values()];
           onData(previous => {
+            let base: ConversationPage;
             if (!append && pendingTitles.length === 0) {
-              return response;
+              base = response;
+            } else {
+              const conversations = new Map(
+                (append ? previous.data : []).map(item => [item.id, item])
+              );
+              response.data.forEach(item => conversations.set(item.id, item));
+              const missingTitles = pendingTitles.filter(
+                item => !conversations.has(item.id)
+              );
+              pendingTitles.forEach(item => {
+                const existing = conversations.get(item.id);
+                if (existing) {
+                  conversations.set(item.id, {
+                    ...existing,
+                    title: item.title,
+                  });
+                }
+              });
+              base = {
+                total: pendingTitles.length
+                  ? Math.max(response.total, previous.total)
+                  : response.total,
+                data: [...missingTitles, ...conversations.values()],
+              };
             }
-            const conversations = new Map(
-              (append ? previous.data : []).map(item => [item.id, item])
-            );
-            response.data.forEach(item => conversations.set(item.id, item));
-            const missingTitles = pendingTitles.filter(
-              item => !conversations.has(item.id)
-            );
-            pendingTitles.forEach(item => {
-              const existing = conversations.get(item.id);
-              if (existing) {
-                conversations.set(item.id, { ...existing, title: item.title });
-              }
-            });
-            return {
-              total: pendingTitles.length
-                ? Math.max(response.total, previous.total)
-                : response.total,
-              data: [...missingTitles, ...conversations.values()],
-            };
+            serverPageRef.current = base;
+            return withProvisional(base);
           });
         })
         .catch((error: unknown) => {
@@ -136,6 +174,7 @@ export default function useContext(
           setHasLoadError(true);
           if (isConversationAccessDenied(error)) {
             pendingTitlesRef.current.clear();
+            serverPageRef.current = { total: 0, data: [] };
             onData({ total: 0, data: [] });
             setAccessDenied(true);
           }
@@ -149,7 +188,7 @@ export default function useContext(
         })
         .then(() => undefined);
     },
-    [compact, current, namespaceId, pageSize]
+    [compact, current, namespaceId, pageSize, withProvisional]
   );
   const refetch = useCallback(() => fetchPage(), [fetchPage]);
   const retry = useCallback(
@@ -204,6 +243,10 @@ export default function useContext(
         }
         if (compact && payload.conversation.created_at) {
           const conversation = payload.conversation;
+          clearProvisionalConversation(
+            { userId: payload.userId, namespaceId },
+            conversation.id
+          );
           pendingTitlesRef.current.set(conversation.id, conversation);
           onData(previous => {
             const exists = previous.data.some(
@@ -225,6 +268,28 @@ export default function useContext(
       }
     );
   }, [app, compact, fetchPage, namespaceId]);
+
+  useEffect(() => {
+    return app.on(
+      'chat:conversation:provisional',
+      (payload: ProvisionalConversationPayload) => {
+        if (
+          !compact ||
+          payload.namespaceId !== namespaceId ||
+          payload.userId !== getCurrentUserId()
+        ) {
+          return;
+        }
+        const scope = { userId: payload.userId, namespaceId };
+        if (payload.clearId) {
+          clearProvisionalConversation(scope, payload.clearId);
+        } else if (payload.conversation) {
+          rememberProvisionalConversation(scope, payload.conversation);
+        }
+        onData(withProvisional(serverPageRef.current));
+      }
+    );
+  }, [app, compact, namespaceId, withProvisional]);
 
   return {
     list: {
