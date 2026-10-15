@@ -24,7 +24,11 @@ import { InviteActivityPanel } from './InviteActivityPanel';
 import { InvitePhoneBindingDialog } from './InvitePhoneBindingDialog';
 import { InviteRecordsPanel } from './InviteRecordsPanel';
 import { InviteShareDialog } from './InviteShareDialog';
-import { clearInvitePhoneBinding, hasInvitePhoneBinding } from './registration';
+import {
+  clearInvitePhoneBinding,
+  hasInvitePhoneBinding,
+  isActivationEntry,
+} from './registration';
 import { useInviteSinglePage } from './useInviteSinglePage';
 
 export function InviteReferralContent() {
@@ -92,6 +96,11 @@ export function InviteReferralContent() {
   };
 
   const showRecords = isMobile && searchParams.get('view') === 'records';
+  const activationEntry = isActivationEntry(searchParams.get('entry'));
+
+  const goHome = () => {
+    navigate(namespaceId ? `/${namespaceId}/chat` : '/', { replace: true });
+  };
 
   const openRecords = () => {
     const nextParams = new URLSearchParams(searchParams);
@@ -125,6 +134,15 @@ export function InviteReferralContent() {
               >
                 <ChevronLeft className="size-5" />
               </button>
+            ) : activationEntry ? (
+              <button
+                type="button"
+                aria-label={t('login.back')}
+                className="flex size-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={goHome}
+              >
+                <ChevronLeft className="size-5" />
+              </button>
             ) : (
               <SidebarTriggerButton collapse />
             )}
@@ -152,6 +170,16 @@ export function InviteReferralContent() {
         <header className="flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-border dark:border-border">
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <SidebarTriggerButton collapse />
+            {activationEntry ? (
+              <button
+                type="button"
+                aria-label={t('login.back')}
+                className="flex size-8 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={goHome}
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+            ) : null}
             <div className={sidebarOpen ? 'min-w-0 ml-2' : 'min-w-0'}>
               <h1 className="pl-2 text-sm font-medium">
                 {t('inviteReferral.title')}

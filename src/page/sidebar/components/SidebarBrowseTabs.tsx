@@ -1,6 +1,13 @@
-import { MessageCirclePlus, Search } from 'lucide-react';
+import { MessageCirclePlus, RotateCw, Search } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 import Loading from '@/components/loading';
@@ -47,6 +54,26 @@ export function SidebarBrowseTabs({
   });
   const [hasOpenedChats, setHasOpenedChats] = useState(activeTab === 'chats');
   const deselectAll = useSidebarStore(state => state.deselectAll);
+  const refreshConversationsRef = useRef<(() => Promise<void>) | null>(null);
+  const [canRefreshConversations, setCanRefreshConversations] = useState(false);
+  const [refreshingConversations, setRefreshingConversations] = useState(false);
+  const bindRefreshConversations = useCallback(
+    (refresh: (() => Promise<void>) | null) => {
+      refreshConversationsRef.current = refresh;
+      setCanRefreshConversations(refresh !== null);
+    },
+    []
+  );
+  const handleRefreshConversations = () => {
+    const refresh = refreshConversationsRef.current;
+    if (!refresh || refreshingConversations) {
+      return;
+    }
+    setRefreshingConversations(true);
+    void refresh().finally(() => {
+      setRefreshingConversations(false);
+    });
+  };
 
   const handleTabChange = (value: string) => {
     if ((value !== 'resources' && value !== 'chats') || value === activeTab) {
@@ -117,6 +144,13 @@ export function SidebarBrowseTabs({
                 label={t('search.search_chats')}
               />
               <ToolbarButton
+                icon={RotateCw}
+                onClick={handleRefreshConversations}
+                label={t('actions.refresh')}
+                loading={refreshingConversations}
+                disabled={!canRefreshConversations}
+              />
+              <ToolbarButton
                 icon={MessageCirclePlus}
                 onClick={onNewConversation}
                 label={t('chat.conversations.new_chat')}
@@ -145,6 +179,7 @@ export function SidebarBrowseTabs({
               activeConversationId={activeConversationId}
               isSidebarVisible={activeTab === 'chats'}
               onConversationSelect={onConversationSelect}
+              onBindRefresh={bindRefreshConversations}
             />
           </Suspense>
         )}

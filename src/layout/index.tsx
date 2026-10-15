@@ -159,12 +159,13 @@ export default function Layout() {
       http.get('namespaces').then(data => {
         if (Array.isArray(data) && data.length > 0) {
           const inviteLanding = consumeInviteReferralLanding();
-          navigate(
-            inviteLanding
-              ? `/${data[0].id}/invite-referral`
-              : `/${data[0].id}/chat`,
-            { replace: true }
-          );
+          const destination =
+            inviteLanding === 'activation'
+              ? `/${data[0].id}/invite-referral?entry=activation`
+              : inviteLanding
+                ? `/${data[0].id}/invite-referral`
+                : `/${data[0].id}/chat`;
+          navigate(destination, { replace: true });
         } else {
           navigate('/welcome', { replace: true });
         }

@@ -8,6 +8,7 @@ interface IProps {
   disabledLabel?: string;
   iconClassName?: string;
   loading?: boolean;
+  disabled?: boolean;
 }
 
 export function ToolbarButton({
@@ -17,8 +18,9 @@ export function ToolbarButton({
   disabledLabel,
   iconClassName,
   loading,
+  disabled = false,
 }: IProps) {
-  const disabled = !!disabledLabel || loading;
+  const unavailable = !!disabledLabel || loading || disabled;
 
   return (
     <IconButton
@@ -26,7 +28,7 @@ export function ToolbarButton({
       tone="sidebar"
       label={disabledLabel || label}
       onClick={onClick}
-      disabled={disabled}
+      disabled={unavailable}
     >
       {loading ? <Spinner /> : <Icon className={iconClassName ?? 'size-4'} />}
     </IconButton>
