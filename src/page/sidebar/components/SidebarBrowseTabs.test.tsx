@@ -1,10 +1,12 @@
 /** @jest-environment jsdom */
-import { act, useState } from 'react';
+import { act, useLayoutEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { SidebarBrowseTabs } from './SidebarBrowseTabs';
 
 const mockDeselectAll = jest.fn();
+const refreshConversations = jest.fn(() => Promise.resolve());
+let bindConversationRefresh = true;
 
 jest.mock('../store', () => ({
   useSidebarStore: (
@@ -34,13 +36,15 @@ jest.mock('@/components/ui/Button', () => ({
   Button: ({
     children,
     onClick,
+    disabled,
     'aria-label': ariaLabel,
   }: {
     children: React.ReactNode;
     onClick?: () => void;
+    disabled?: boolean;
     'aria-label'?: string;
   }) => (
-    <button aria-label={ariaLabel} onClick={onClick}>
+    <button aria-label={ariaLabel} disabled={disabled} onClick={onClick}>
       {children}
     </button>
   ),
@@ -50,14 +54,25 @@ jest.mock('@/page/chat/conversations', () => ({
   default: ({
     namespaceId,
     onConversationSelect,
+    onBindRefresh,
   }: {
     namespaceId: string;
     onConversationSelect: (id: string) => void;
-  }) => (
-    <button onClick={() => onConversationSelect('conversation-1')}>
-      {namespaceId}
-    </button>
-  ),
+    onBindRefresh?: (refresh: (() => Promise<void>) | null) => void;
+  }) => {
+    useLayoutEffect(() => {
+      if (!bindConversationRefresh || !onBindRefresh) {
+        return;
+      }
+      onBindRefresh(() => refreshConversations());
+      return () => onBindRefresh(null);
+    }, [onBindRefresh]);
+    return (
+      <button onClick={() => onConversationSelect('conversation-1')}>
+        {namespaceId}
+      </button>
+    );
+  },
 }));
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
@@ -65,6 +80,9 @@ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 beforeEach(() => {
   localStorage.clear();
   mockDeselectAll.mockClear();
+  refreshConversations.mockReset();
+  refreshConversations.mockImplementation(() => Promise.resolve());
+  bindConversationRefresh = true;
 });
 
 function ResourceProbe() {
@@ -370,6 +388,113 @@ it('follows resource and conversation URL changes while allowing manual tab brow
     expect(selectedTab()).toBe('search.resources');
     await renderRoute(undefined, 'conversation-2');
     expect(selectedTab()).toBe('search.chats');
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+function chatToolbarLabels(container: HTMLElement) {
+  return Array.from(container.querySelectorAll('button[aria-label]')).map(
+    button => button.getAttribute('aria-label')
+  );
+}
+
+async function openChatTab(container: HTMLElement) {
+  const chatTab = Array.from(container.querySelectorAll('[role="tab"]')).find(
+    tab => tab.textContent === 'search.chats'
+  );
+  if (!chatTab) {
+    throw new Error('Chat tab is missing');
+  }
+  await act(async () =>
+    chatTab.dispatchEvent(
+      new MouseEvent('mousedown', { bubbles: true, button: 0 })
+    )
+  );
+}
+
+it('places refresh between search and new chat and reloads conversations', async () => {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  let resolveRefresh: (() => void) | undefined;
+  refreshConversations.mockImplementation(
+    () =>
+      new Promise<void>(resolve => {
+        resolveRefresh = resolve;
+      })
+  );
+  try {
+    await act(async () =>
+      root.render(
+        <SidebarBrowseTabs
+          namespaceId="space"
+          onConversationSelect={jest.fn()}
+          onSearchConversations={jest.fn()}
+          onNewConversation={jest.fn()}
+        >
+          <ResourceProbe />
+        </SidebarBrowseTabs>
+      )
+    );
+    expect(chatToolbarLabels(container)).toEqual([]);
+    await openChatTab(container);
+    const labels = chatToolbarLabels(container);
+    expect(labels).toEqual([
+      'search.search_chats',
+      'actions.refresh',
+      'chat.conversations.new_chat',
+    ]);
+    const refreshButton = container.querySelector(
+      'button[aria-label="actions.refresh"]'
+    );
+    if (!(refreshButton instanceof HTMLButtonElement)) {
+      throw new Error('Refresh button is missing');
+    }
+    expect(refreshButton.disabled).toBe(false);
+    await act(async () => refreshButton.click());
+    expect(refreshConversations).toHaveBeenCalledTimes(1);
+    expect(refreshButton.disabled).toBe(true);
+    expect(refreshButton.getAttribute('aria-label')).toBe('actions.refresh');
+    await act(async () => refreshButton.click());
+    expect(refreshConversations).toHaveBeenCalledTimes(1);
+    await act(async () => resolveRefresh?.());
+    expect(refreshButton.disabled).toBe(false);
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('keeps conversation refresh unavailable until the list is mounted', async () => {
+  bindConversationRefresh = false;
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <SidebarBrowseTabs
+          namespaceId="space"
+          onConversationSelect={jest.fn()}
+          onSearchConversations={jest.fn()}
+          onNewConversation={jest.fn()}
+        >
+          <ResourceProbe />
+        </SidebarBrowseTabs>
+      )
+    );
+    await openChatTab(container);
+    const refreshButton = container.querySelector(
+      'button[aria-label="actions.refresh"]'
+    );
+    if (!(refreshButton instanceof HTMLButtonElement)) {
+      throw new Error('Refresh button is missing');
+    }
+    expect(refreshButton.disabled).toBe(true);
+    await act(async () => refreshButton.click());
+    expect(refreshConversations).not.toHaveBeenCalled();
   } finally {
     await act(async () => root.unmount());
     container.remove();
