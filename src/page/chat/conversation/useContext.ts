@@ -27,6 +27,7 @@ import {
 } from '@/page/chat/conversation/utils.ts';
 import {
   clearProvisionalConversation,
+  messagePreviewTitle,
   provisionalTitleForSend,
   rememberProvisionalConversation,
 } from '@/page/chat/conversations/provisionalConversation';
@@ -442,10 +443,9 @@ export default function useContext() {
     ) {
       return;
     }
-    app.fire('chat:title', {
-      conversationId,
-      text: firstUserMessage.message.content,
-    });
+    const text = messagePreviewTitle(firstUserMessage.message.content);
+    if (!text) return;
+    app.fire('chat:title', { conversationId, text });
   }, [
     app,
     conversation.title,
