@@ -17,6 +17,8 @@ let mockLocation: {
 let mockConversationId = 'conversation-1';
 let observeIntersection:
   ((entries: { isIntersecting: boolean }[]) => void) | undefined;
+let mockLoading = false;
+let mockLoadingMore = false;
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -99,12 +101,14 @@ jest.mock('@/page/chat/conversations/useContext', () => ({
       },
       current: 1,
       pageSize: 10,
-      loading: false,
+      loading: mockLoading,
+      loadingMore: mockLoadingMore,
       hasMore: true,
       hasLoadError: false,
       accessDenied: false,
       onPagerChange,
       refetch: jest.fn(),
+      retry: jest.fn(),
     },
     edit: { id: '', title: '', open: false },
     onEdit,
@@ -139,6 +143,8 @@ beforeEach(() => {
   mockLocation = { pathname: '/space/chat/conversation-1', state: null };
   Object.assign(globalThis, { CSS: { escape: (value: string) => value } });
   mockConversationId = 'conversation-1';
+  mockLoading = false;
+  mockLoadingMore = false;
   HTMLElement.prototype.scrollIntoView = scrollIntoView;
   Object.assign(globalThis, {
     IntersectionObserver: jest.fn(
@@ -350,5 +356,33 @@ it('loads enough rows below the target to center it after reopening the page', a
     expect(onPagerChange).toHaveBeenCalledTimes(1);
   } finally {
     await act(async () => root.unmount());
+  }
+});
+
+it('shows the footer spinner only while loading another page', async () => {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  const renderList = async (loading: boolean, loadingMore: boolean) => {
+    mockLoading = loading;
+    mockLoadingMore = loadingMore;
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+  };
+  try {
+    await renderList(true, false);
+    expect(container.querySelector('[role="status"]')).toBeNull();
+    await renderList(true, true);
+    expect(container.querySelector('[role="status"]')).not.toBeNull();
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
   }
 });

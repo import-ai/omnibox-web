@@ -51,8 +51,10 @@ export function setStoredInviteRegistration(value: InviteRegistrationContext) {
   sessionStorage.removeItem(INVITE_SOURCE_KEY);
 }
 
+export type InviteLanding = 'invite' | 'activation';
+
 export function markInviteReferralLanding(requiresPhoneBinding: boolean) {
-  sessionStorage.setItem(INVITE_LANDING_KEY, '1');
+  sessionStorage.setItem(INVITE_LANDING_KEY, 'invite');
   if (requiresPhoneBinding) {
     sessionStorage.setItem(INVITE_PHONE_BINDING_KEY, '1');
   } else {
@@ -60,10 +62,21 @@ export function markInviteReferralLanding(requiresPhoneBinding: boolean) {
   }
 }
 
-export function consumeInviteReferralLanding() {
-  const pending = sessionStorage.getItem(INVITE_LANDING_KEY) === '1';
+export function markOrganicActivationLanding() {
+  sessionStorage.setItem(INVITE_LANDING_KEY, 'activation');
+  sessionStorage.removeItem(INVITE_PHONE_BINDING_KEY);
+}
+
+export function isActivationEntry(entry: string | null) {
+  return entry === 'activation';
+}
+
+export function consumeInviteReferralLanding(): InviteLanding | null {
+  const value = sessionStorage.getItem(INVITE_LANDING_KEY);
   sessionStorage.removeItem(INVITE_LANDING_KEY);
-  return pending;
+  if (value === 'activation') return 'activation';
+  if (value === '1' || value === 'invite') return 'invite';
+  return null;
 }
 
 export function hasInvitePhoneBinding() {
@@ -117,13 +130,14 @@ export async function registerInviteAfterLogin(
 ): Promise<{
   error?: unknown;
   result: InviteRegistrationResult | null;
+  activation?: boolean;
 }> {
   const { code, source } = getStoredInviteRegistration();
   if (!shouldRegisterInvite(isNewUser, code)) {
     // Do not let an existing user's invite attribution leak into a later
     // registration in the same browser session.
     setStoredInviteRegistration({ code: '', source: 'manual' });
-    return { result: null };
+    return { result: null, activation: isNewUser };
   }
   try {
     setStoredInviteRegistration({ code: '', source: 'manual' });

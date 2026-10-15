@@ -120,7 +120,7 @@
   transform: translateY(0);
 }
 
-.omnibox-comment-surface .omnibox-comment-composer button {
+.omnibox-comment-surface .omnibox-comment-composer__actions button {
   min-height: 2rem;
   min-width: 3.5rem;
   padding: 0 0.75rem;
@@ -129,13 +129,17 @@
   font-weight: 500;
 }
 
-.omnibox-comment-surface .omnibox-comment-composer button[type='button'] {
+.omnibox-comment-surface
+  .omnibox-comment-composer__actions
+  button[type='button'] {
   border: 1px solid hsl(var(--border));
   background: transparent;
   color: hsl(var(--foreground));
 }
 
-.omnibox-comment-surface .omnibox-comment-composer button[type='button']:hover {
+.omnibox-comment-surface
+  .omnibox-comment-composer__actions
+  button[type='button']:hover {
   background: hsl(var(--accent));
 }
 
@@ -593,7 +597,7 @@
 .resource-comments-panel
   .omnibox-comment-thread[data-selected]
   .omnibox-comment-reply__preview
-  button {
+  .omnibox-comment-image-remove {
   position: absolute !important;
   right: -0.375rem !important;
   top: -0.375rem !important;
@@ -736,7 +740,9 @@
   @apply size-16 rounded object-cover;
 }
 
-.resource-comments-panel .omnibox-comment-composer__preview button {
+.resource-comments-panel
+  .omnibox-comment-composer__preview
+  .omnibox-comment-image-remove {
   @apply absolute -right-2 -top-2 flex size-4 items-center justify-center rounded-full bg-black/70 p-0 text-xs leading-none text-white;
 }
 
@@ -805,8 +811,12 @@
   @apply size-16 rounded object-cover;
 }
 
-.omnibox-comment-surface .omnibox-comment-composer__preview button,
-.resource-comments-panel .omnibox-comment-composer--edit__preview button {
+.omnibox-comment-surface
+  .omnibox-comment-composer__preview
+  .omnibox-comment-image-remove,
+.resource-comments-panel
+  .omnibox-comment-composer--edit__preview
+  .omnibox-comment-image-remove {
   position: absolute !important;
   right: -0.375rem !important;
   top: -0.375rem !important;
@@ -895,19 +905,7 @@
   @apply cursor-not-allowed opacity-50;
 }
 
-.omnibox-comment-image-preview,
-.omnibox-comment-image-preview > button {
-  border: 0 !important;
-  outline: none !important;
-  box-shadow: none;
-  --tw-ring-offset-width: 0px;
-  --tw-ring-width: 0px;
-  --tw-ring-shadow: 0 0 #0000;
-  --tw-ring-offset-shadow: 0 0 #0000;
-}
-
-.omnibox-comment-image-preview > button {
-  background: transparent !important;
-  color: #fff !important;
-  opacity: 1;
+.omnibox-comment-surface .omnibox-comment-draft-image,
+.resource-comments-panel .omnibox-comment-draft-image {
+  @apply block min-h-0 min-w-0 cursor-zoom-in rounded border-0 bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring;
 }

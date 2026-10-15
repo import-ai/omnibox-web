@@ -68,6 +68,7 @@ export function ResourceCommentThreadItem({
       if (!(target instanceof Element)) {
         return;
       }
+      if (target.closest('[data-image-preview]')) return;
       const threadElement = target.closest<HTMLElement>(
         '.omnibox-comment-thread'
       );

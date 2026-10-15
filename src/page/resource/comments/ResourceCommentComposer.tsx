@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 
 import { imageCommentLabel } from './commentQuote';
 import { pasteCommentImage } from './pasteCommentImage';
+import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
 import { useCommentDraftPosition } from './useCommentDraftPosition';
 import type { ResourceCommentsController } from './useResourceComments';
 
@@ -228,9 +229,13 @@ export function ResourceCommentComposer({
           />
           {imagePreview ? (
             <div className="omnibox-comment-composer__preview">
-              <img src={imagePreview} alt="" />
+              <ResourceCommentDraftImage
+                key={imagePreview}
+                src={imagePreview}
+              />
               <button
                 type="button"
+                className="omnibox-comment-image-remove"
                 aria-label={t('resource_comments.remove_image')}
                 title={t('resource_comments.remove_image')}
                 onClick={clearImage}
