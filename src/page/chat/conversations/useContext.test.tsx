@@ -263,6 +263,57 @@ it('ignores generated titles belonging to another user', async () => {
   expect(context().list.data.data).toHaveLength(10);
 });
 
+it('refreshes without marking the list as loading another page', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+  expect(context().list.loadingMore).toBe(false);
+
+  let resolvePage: (value: ReturnType<typeof page>) => void = () => {
+    throw new Error('Refresh request has not started');
+  };
+  const pendingPage = new Promise<ReturnType<typeof page>>(resolve => {
+    resolvePage = resolve;
+  });
+  get.mockResolvedValueOnce({}).mockReturnValueOnce(pendingPage);
+  let refresh: Promise<void> | undefined;
+  await act(async () => {
+    refresh = context().list.refetch();
+  });
+  expect(context().list.loading).toBe(true);
+  expect(context().list.loadingMore).toBe(false);
+  expect(get.mock.calls.at(-1)?.[0]).toContain('offset=0&limit=10');
+
+  await act(async () => {
+    resolvePage(page(0, 10));
+    await refresh;
+  });
+  expect(context().list.loading).toBe(false);
+  expect(context().list.loadingMore).toBe(false);
+});
+
+it('retries a failed refresh in place and a failed page at the same offset', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+  get
+    .mockResolvedValueOnce({})
+    .mockRejectedValueOnce(new Error('refresh failed'));
+  await act(async () => context().list.refetch());
+  expect(context().list.hasLoadError).toBe(true);
+  expect(context().list.loadingMore).toBe(false);
+
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => context().list.retry());
+  expect(get.mock.calls.at(-1)?.[0]).toContain('offset=0&limit=10');
+  expect(context().list.hasLoadError).toBe(false);
+
+  get.mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('page failed'));
+  await act(async () => context().list.onPagerChange(2));
+  expect(context().list.loadingMore).toBe(false);
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(10, 10));
+  await act(async () => context().list.retry());
+  expect(get.mock.calls.at(-1)?.[0]).toContain('offset=10&limit=10');
+});
+
 it('shows the first message on an empty sidebar conversation without duplicating it', async () => {
   get.mockResolvedValueOnce({}).mockResolvedValueOnce({
     total: 1,

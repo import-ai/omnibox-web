@@ -38,6 +38,8 @@ export default function useContext(
   const app = useApp();
   const namespaceId = namespaceIdOverride || params.namespace_id || '';
   const [loading, onLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const lastAppendRef = useRef(false);
   const requestRef = useRef<ReturnType<typeof axios.CancelToken.source> | null>(
     null
   );
@@ -90,14 +92,16 @@ export default function useContext(
   });
   loadedCountRef.current = data.data.length;
   const fetchPage = useCallback(
-    (append = false) => {
+    (append = false): Promise<void> => {
       if (append && requestRef.current) {
-        return;
+        return Promise.resolve();
       }
       requestRef.current?.cancel();
       const source = axios.CancelToken.source();
       requestRef.current = source;
+      lastAppendRef.current = append;
       onLoading(true);
+      setLoadingMore(append);
       setHasLoadError(false);
       const offset = compact
         ? append
@@ -108,7 +112,7 @@ export default function useContext(
         compact && !append
           ? Math.max(pageSize, loadedCountRef.current)
           : pageSize;
-      http
+      return http
         .get(`/namespaces/${namespaceId}/me`, { cancelToken: source.token })
         .then(() => {
           source.token.throwIfRequested();
@@ -179,12 +183,18 @@ export default function useContext(
           if (requestRef.current === source) {
             requestRef.current = null;
             onLoading(false);
+            setLoadingMore(false);
           }
-        });
+        })
+        .then(() => undefined);
     },
     [compact, current, namespaceId, pageSize, withProvisional]
   );
-  const refetch = () => fetchPage();
+  const refetch = useCallback(() => fetchPage(), [fetchPage]);
+  const retry = useCallback(
+    () => fetchPage(lastAppendRef.current),
+    [fetchPage]
+  );
   const onPagerChange = (page: number) => {
     if (compact) {
       if (nextOffsetRef.current < data.total) {
@@ -286,11 +296,13 @@ export default function useContext(
       data,
       current,
       loading,
+      loadingMore,
       accessDenied,
       hasLoadError,
       hasMore: nextOffsetRef.current < data.total,
       pageSize,
       refetch,
+      retry,
       onPagerChange,
     },
     edit,
