@@ -171,8 +171,16 @@ export function useChatTitle(namespaceId: string, conversationId: string) {
         ) {
           return;
         }
-        // Only generate while still showing the placeholder / empty title.
-        if (chatTitleRef.current && chatTitleRef.current !== i18nTitle) return;
+        // A stored or renamed title blocks generation. The request text is
+        // already the sidebar preview, so it matches the header fallback.
+        const visibleTitle = chatTitleRef.current;
+        if (
+          visibleTitle &&
+          visibleTitle !== i18nTitle &&
+          visibleTitle !== resolved.text
+        ) {
+          return;
+        }
 
         const target = { userId, namespaceId, conversationId };
 
