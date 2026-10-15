@@ -4,6 +4,7 @@ import { act, type ReactNode } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
 import {
   clearConversationCache,
   setCachedConversation,
@@ -196,6 +197,27 @@ describe('useChatTitle', () => {
     );
   });
 
+  it('generates a title when history shows the message without the search token', async () => {
+    const raw = `${WEB_SEARCH_QUERY_TOKEN}你好`;
+    await renderHook('conversation-a');
+    await act(async () => {
+      mockApp.fire('chat:title:update', {
+        conversationId: 'conversation-a',
+        title: '你好',
+      });
+    });
+    await act(async () => {
+      mockApp.fire('chat:title', {
+        conversationId: 'conversation-a',
+        text: raw,
+      });
+    });
+    expect(mockPost).toHaveBeenCalledWith(
+      '/namespaces/namespace-a/conversations/conversation-a/title',
+      { text: raw, lang: 'zh' }
+    );
+  });
+
   it('does not replace a title the user already set', async () => {
     await renderHook('conversation-a');
     await act(async () => {
@@ -207,7 +229,7 @@ describe('useChatTitle', () => {
     await act(async () => {
       mockApp.fire('chat:title', {
         conversationId: 'conversation-a',
-        text: '你好',
+        text: `${WEB_SEARCH_QUERY_TOKEN}你好`,
       });
     });
     expect(mockPost).not.toHaveBeenCalled();

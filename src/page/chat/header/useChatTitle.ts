@@ -12,6 +12,7 @@ import {
   setCachedConversation,
 } from '@/page/chat/conversation/conversationCache';
 import type { ConversationTitleGeneratedPayload } from '@/page/chat/core/types/conversation';
+import { fallbackTitleFromMessage } from '@/page/chat/utils';
 
 export type ChatTitleUpdatePayload = {
   conversationId: string;
@@ -171,13 +172,15 @@ export function useChatTitle(namespaceId: string, conversationId: string) {
         ) {
           return;
         }
-        // A stored or renamed title blocks generation. The first-message
-        // fallback is not a stored title, so it can still be replaced.
+        // A stored or renamed title blocks generation. History shows the
+        // first message with the web-search token removed, so compare that
+        // fallback instead of the raw message.
         const visibleTitle = chatTitleRef.current;
+        const messageFallback = fallbackTitleFromMessage(resolved.text);
         if (
           visibleTitle &&
           visibleTitle !== i18nTitle &&
-          visibleTitle !== resolved.text
+          visibleTitle !== messageFallback
         ) {
           return;
         }

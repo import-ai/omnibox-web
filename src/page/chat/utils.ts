@@ -107,6 +107,10 @@ export function getGreeting() {
   return 'evening';
 }
 
+export function fallbackTitleFromMessage(text: string) {
+  return text.replaceAll(WEB_SEARCH_QUERY_TOKEN, '').trim();
+}
+
 export function getTitleFromConversationDetail(
   conversation: ConversationDetail
 ) {
@@ -122,9 +126,7 @@ export function getTitleFromConversationDetail(
       messageItem?.message?.content &&
       messageItem.message.content.trim() !== ''
     ) {
-      return messageItem.message.content
-        .replaceAll(WEB_SEARCH_QUERY_TOKEN, '')
-        .trim();
+      return fallbackTitleFromMessage(messageItem.message.content);
     }
   }
 
