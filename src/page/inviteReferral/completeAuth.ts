@@ -3,6 +3,7 @@ import { setGlobalCredential } from '@/page/user/util';
 
 import {
   markInviteReferralLanding,
+  markOrganicActivationLanding,
   registerInviteAfterLogin,
 } from './registration';
 
@@ -22,6 +23,11 @@ export async function completeAuthRedirect(
   const target = await getAuthSuccessRedirect(redirect ?? null);
   if (invite.result) {
     markInviteReferralLanding(invite.result.requires_phone_binding);
+    location.href = target.startsWith('/oauth/authorize?') ? target : '/';
+    return;
+  }
+  if (invite.activation) {
+    markOrganicActivationLanding();
     location.href = target.startsWith('/oauth/authorize?') ? target : '/';
     return;
   }

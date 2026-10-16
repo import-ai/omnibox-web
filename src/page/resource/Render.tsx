@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { Markdown } from '@/components/markdown';
+import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import useTheme from '@/hooks/useTheme';
 import { Resource, SharedResource } from '@/interface';
 import { cn } from '@/lib/utils';
@@ -20,22 +20,16 @@ import {
   OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
-import {
-  selectUseOmniboxEditor,
-  useResourceStore,
-} from '@/page/resource/resourceStore';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
+import { ImageCommentButton } from './comments/ImageCommentButton';
 import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
 import {
   type ResourceCommentsController,
   useResourceComments,
 } from './comments/useResourceComments';
-import { parseScrollToLine, scrollRenderedContentToLine } from './scrollToLine';
-import {
-  findFirstSearchMatchElement,
-  highlightSearchText,
-} from './searchHighlight';
+import { parseScrollToLine } from './scrollToLine';
+import { useResourceImagePreview } from './useResourceImagePreview';
 import { embedImage, getReadonlyResourceEditorKey } from './utils';
 
 interface IProps {
@@ -43,7 +37,6 @@ interface IProps {
   commentsDisabled?: boolean;
   resource: Resource | SharedResource;
   namespaceId?: string;
-  forceOmniboxEditor?: boolean;
   showToc?: boolean;
   scrollToLine?: number;
   wide?: boolean;
@@ -74,119 +67,6 @@ function getResourceEditorContent(
   );
 }
 
-function useSearchHighlight(
-  containerRef: React.RefObject<HTMLDivElement | null>,
-  search: string | null,
-  /** When this identity changes, allow re-highlight (e.g. document content). */
-  contentKey: unknown
-) {
-  const appliedKeyRef = useRef<string | null>(null);
-
-  const applySearchHighlight = useCallback(() => {
-    const container = containerRef.current;
-    if (!search || !container) {
-      return false;
-    }
-
-    const key = `${search}::${String(contentKey ?? '')}`;
-    // Re-run is allowed until the first successful highlight for this key,
-    // so late editor mounts still get marks without nesting on re-entry.
-    if (appliedKeyRef.current === key) {
-      const existing = findFirstSearchMatchElement(container, search);
-      if (existing) {
-        existing.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        return true;
-      }
-    }
-
-    const matchCount = highlightSearchText(container, search);
-    if (matchCount === 0) {
-      return false;
-    }
-
-    appliedKeyRef.current = key;
-    const first = findFirstSearchMatchElement(container, search);
-    first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return true;
-  }, [containerRef, contentKey, search]);
-
-  useEffect(() => {
-    appliedKeyRef.current = null;
-    const container = containerRef.current;
-    if (container) {
-      unwrapSearchMarks(container);
-    }
-  }, [contentKey, search]);
-
-  function unwrapSearchMarks(container: HTMLElement) {
-    const marks = container.querySelectorAll('mark.search-query-mark');
-    marks.forEach(mark => {
-      const text = mark.textContent;
-      if (text) {
-        const textNode = document.createTextNode(text);
-        mark.replaceWith(textNode);
-      }
-    });
-  }
-
-  return applySearchHighlight;
-}
-
-function MarkdownRender(props: IProps) {
-  const {
-    resource,
-    namespaceId,
-    linkBase,
-    scrollToLine: requestedLine,
-    style,
-  } = props;
-  const { namesById, ready } = useMentionUsers(namespaceId);
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const search = searchParams.get('query');
-  const scrollToLine = requestedLine ?? parseScrollToLine(location.hash);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const rawContent = embedImage(resource);
-  const contentKey = useMemo(
-    () => (ready ? resolveMentionLabels(rawContent, namesById) : rawContent),
-    [namesById, rawContent, ready]
-  );
-  const applySearchHighlight = useSearchHighlight(
-    containerRef,
-    search,
-    contentKey
-  );
-
-  const onRendered = useCallback(() => {
-    // Markdown may paint after onRendered; one frame is enough.
-    window.requestAnimationFrame(() => {
-      applySearchHighlight();
-      if (containerRef.current && scrollToLine) {
-        scrollRenderedContentToLine(
-          containerRef.current,
-          rawContent,
-          scrollToLine
-        );
-      }
-    });
-  }, [applySearchHighlight, contentKey, rawContent, scrollToLine]);
-
-  if (!ready) {
-    return <div ref={containerRef} className="pb-[30vh]" />;
-  }
-
-  return (
-    <div ref={containerRef} className="pb-[30vh]">
-      <Markdown
-        style={style}
-        content={contentKey}
-        linkBase={linkBase}
-        onRendered={onRendered}
-      />
-    </div>
-  );
-}
-
 interface OmniboxRenderProps extends IProps {
   comments: ResourceCommentsController;
 }
@@ -210,6 +90,17 @@ function OmniboxRender(props: OmniboxRenderProps) {
   const search = searchParams.get('query');
   const [isScrollLineVisible, setIsScrollLineVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { registerImagePreview, imagePreviewProps } = useResourceImagePreview(
+    `read:${namespaceId ?? ''}:${getReadonlyResourceEditorKey(resource)}`,
+    containerRef
+  );
+  const handleEditorReady = useCallback(
+    (editor: Parameters<typeof registerImagePreview>[0]) => {
+      registerImagePreview(editor);
+      if (!props.commentsDisabled) comments.registerEditor(editor);
+    },
+    [registerImagePreview, props.commentsDisabled, comments.registerEditor]
+  );
   const content = useMemo(
     () => getResourceEditorContent(resource, linkBase, namesById),
     [linkBase, namesById, resource]
@@ -271,7 +162,16 @@ function OmniboxRender(props: OmniboxRenderProps) {
   }
 
   return (
-    <div ref={containerRef} style={style} className={editorClassName}>
+    <div
+      ref={containerRef}
+      tabIndex={-1}
+      style={style}
+      className={editorClassName}
+    >
+      <ImagePreviewDialog {...imagePreviewProps} />
+      {props.commentsDisabled ? null : (
+        <ImageCommentButton controller={comments} />
+      )}
       <ResourceOmniboxEditor
         key={getReadonlyResourceEditorKey(resource)}
         editable={false}
@@ -291,7 +191,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
         searchTerm={search ?? undefined}
         scrollToLine={scrollToLine}
         comments={props.commentsDisabled ? undefined : comments.commentsConfig}
-        onReady={props.commentsDisabled ? undefined : comments.registerEditor}
+        onReady={handleEditorReady}
         onCodeBlockCopy={handleCodeBlockCopy}
         scrollToLineContent={embedImage(resource)}
       />
@@ -317,15 +217,9 @@ function StandaloneOmniboxRender(props: IProps) {
 }
 
 export default function Render(props: IProps) {
-  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
-
-  return useOmniboxEditor || props.forceOmniboxEditor ? (
-    props.comments ? (
-      <OmniboxRender {...props} comments={props.comments} />
-    ) : (
-      <StandaloneOmniboxRender {...props} />
-    )
+  return props.comments ? (
+    <OmniboxRender {...props} comments={props.comments} />
   ) : (
-    <MarkdownRender {...props} />
+    <StandaloneOmniboxRender {...props} />
   );
 }

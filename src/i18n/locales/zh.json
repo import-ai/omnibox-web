@@ -154,6 +154,8 @@
     }
   },
   "resource_comments": {
+    "expand_content": "展开",
+    "collapse_content": "收起",
     "collapse": "收起评论",
     "panel_title": "评论（{{count}}）",
     "no_threads": "暂无评论",
@@ -167,6 +169,8 @@
     "copy_thread_link": "复制评论链接",
     "close": "关闭评论",
     "quote_label": "引用内容",
+    "image_quote": "[图片]",
+    "add_comment": "添加评论",
     "thread_count": "{{count}} 个讨论",
     "cancel": "取消",
     "write_comment": "输入评论",
@@ -182,6 +186,7 @@
     "comment_actions": "评论操作",
     "edit": "编辑",
     "edited": "（已编辑）",
+    "just_now": "刚刚",
     "delete": "删除",
     "save": "保存",
     "reply_placeholder": "回复",
@@ -865,6 +870,7 @@
           "tag_filter": "筛选标签",
           "collect_url": "收藏网页",
           "list_resource_tasks": "查询资源任务",
+          "list_resource_comments": "读取文档评论",
           "load_docs": "查看文档",
           "get_agent_asset_resource_id": "加载资源",
           "create_agent_asset": "创建资源",
@@ -1014,7 +1020,9 @@
   "date": {
     "today": "今天",
     "yesterday": "昨天",
-    "last_week": "过去7天"
+    "last_week": "过去 7 天",
+    "earlier": "更早",
+    "calendar_day": "{{year}} 年 {{month}} 月 {{day}} 日"
   },
   "pagination": {
     "prev": "前页",
@@ -1525,6 +1533,7 @@
     },
     "tasks": {
       "title": "新人任务",
+      "giftTitle": "新人有礼",
       "expires": "{{count}} 天后过期",
       "completed": "已完成",
       "action": "去完成",

@@ -11,6 +11,7 @@ import {
   getCurrentUserId,
   setCachedConversation,
 } from '@/page/chat/conversation/conversationCache';
+import type { ConversationTitleGeneratedPayload } from '@/page/chat/core/types/conversation';
 
 export type ChatTitleUpdatePayload = {
   conversationId: string;
@@ -170,8 +171,16 @@ export function useChatTitle(namespaceId: string, conversationId: string) {
         ) {
           return;
         }
-        // Only generate while still showing the placeholder / empty title.
-        if (chatTitleRef.current && chatTitleRef.current !== i18nTitle) return;
+        // A stored or renamed title blocks generation. The request text is
+        // already the sidebar preview, so it matches the header fallback.
+        const visibleTitle = chatTitleRef.current;
+        if (
+          visibleTitle &&
+          visibleTitle !== i18nTitle &&
+          visibleTitle !== resolved.text
+        ) {
+          return;
+        }
 
         const target = { userId, namespaceId, conversationId };
 
@@ -186,6 +195,24 @@ export function useChatTitle(namespaceId: string, conversationId: string) {
           .then(res => {
             if (getCurrentUserId() !== target.userId) return;
             rememberTitle(target, target.conversationId, res.title);
+            const cached = getCachedConversation(target, target.conversationId);
+            const messageCreatedAt = cached
+              ? Object.values(cached.mapping)
+                  .map(message => message.created_at)
+                  .filter((timestamp): timestamp is string => !!timestamp)
+                  .sort()[0]
+              : undefined;
+            const payload: ConversationTitleGeneratedPayload = {
+              userId: target.userId,
+              namespaceId: target.namespaceId,
+              conversation: {
+                id: target.conversationId,
+                title: res.title,
+                created_at: cached?.created_at ?? messageCreatedAt,
+                updated_at: cached?.updated_at,
+              },
+            };
+            app.fire('chat:conversation:title-generated', payload);
             const activeTarget = activeTargetRef.current;
             if (
               activeTarget.userId === target.userId &&

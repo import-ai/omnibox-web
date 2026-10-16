@@ -5,9 +5,11 @@ import {
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { USER_UPDATED_EVENT } from '@/hooks/useUser';
 import type {
   Permission,
   ResourceComment,
+  ResourceCommentAuthor,
   ResourceCommentThread,
 } from '@/interface';
 import { listResourceCommentThreads } from '@/service/resourceComments';
@@ -19,6 +21,12 @@ import {
   restoreResourceCommentAnchors,
 } from './commentAnchors';
 import { createAnchoredCommentThread } from './createAnchoredCommentThread';
+import {
+  installImageCommentPlugin,
+  removeImageCommentMark,
+  setActiveImageThreadId,
+  setImageCommentOpener,
+} from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentDraftHighlight } from './useCommentDraftHighlight';
 import { useCommentHighlight } from './useCommentHighlight';
@@ -27,6 +35,13 @@ import { useCommentMutations } from './useCommentMutations';
 import { useCommentNavigation } from './useCommentNavigation';
 
 const PAGE_SIZE = 20;
+
+function defaultResolved(
+  threads: ResourceCommentThread[] | undefined
+): boolean | undefined {
+  return threads?.length ? false : undefined;
+}
+
 const PERMISSIONS: Permission[] = [
   'no_access',
   'can_view',
@@ -77,16 +92,31 @@ export function useResourceComments({
   const [fallbackPanelOpen, setFallbackPanelOpen] = useState(false);
   const panelOpen = panel?.panelOpen ?? fallbackPanelOpen;
   const setPanelOpen = panel?.setPanelOpen ?? setFallbackPanelOpen;
-  const [resolved, setResolved] = useState<boolean | undefined>(undefined);
+  const [resolved, setResolved] = useState<boolean | undefined>(() =>
+    defaultResolved(resource.comment_threads)
+  );
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [total, setTotal] = useState(0);
   const [createConflict, setCreateConflict] = useState(false);
+  const [updatedAuthor, setUpdatedAuthor] =
+    useState<ResourceCommentAuthor | null>(null);
 
   anchorThreadsRef.current = anchorThreads;
-  useCommentDraftHighlight(pendingSelection);
+  const restoreEditorComments = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor || editor.isDestroyed) {
+      return;
+    }
+    restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
+  }, []);
+  useCommentDraftHighlight(
+    registeredEditor,
+    pendingSelection,
+    restoreEditorComments
+  );
 
   const isShared = namespaceId.startsWith('share:');
   const permission = resource.current_permission ?? 'can_view';
@@ -97,6 +127,48 @@ export function useResourceComments({
     enabled && !isShared && hasPermission(permission, 'can_edit');
   const isCommentAuthor = (authorId: string | null) =>
     !!currentUserId && authorId === currentUserId;
+
+  const withUpdatedAuthor = useCallback(
+    (thread: ResourceCommentThread) => {
+      if (!updatedAuthor || updatedAuthor.id !== currentUserId) {
+        return thread;
+      }
+      return {
+        ...thread,
+        creator:
+          thread.creator.id === updatedAuthor.id
+            ? updatedAuthor
+            : thread.creator,
+        comments: thread.comments.map(comment =>
+          comment.author.id === updatedAuthor.id
+            ? { ...comment, author: updatedAuthor }
+            : comment
+        ),
+      };
+    },
+    [currentUserId, updatedAuthor]
+  );
+
+  useEffect(() => {
+    const handleUserUpdate = (event: Event) => {
+      if (!(event instanceof CustomEvent) || !currentUserId) {
+        return;
+      }
+      const detail: unknown = event.detail;
+      if (
+        typeof detail === 'object' &&
+        detail !== null &&
+        'username' in detail &&
+        typeof detail.username === 'string'
+      ) {
+        setUpdatedAuthor({ id: currentUserId, username: detail.username });
+      }
+    };
+    window.addEventListener(USER_UPDATED_EVENT, handleUserUpdate);
+    return () => {
+      window.removeEventListener(USER_UPDATED_EVENT, handleUserUpdate);
+    };
+  }, [currentUserId]);
 
   const mergeAnchorThreads = useCallback(
     (incoming: ResourceCommentThread[]) => {
@@ -148,7 +220,7 @@ export function useResourceComments({
     setThreads([]);
     setPendingSelection(null);
     setActiveThreadId(null);
-    setResolved(undefined);
+    setResolved(defaultResolved(resourceRef.current.comment_threads));
     setTotal(0);
     setHasMore(false);
     setCreateConflict(false);
@@ -183,6 +255,7 @@ export function useResourceComments({
   }, [anchorThreads]);
 
   const registerEditor = useCallback((editor: ResourceCommentEditor) => {
+    installImageCommentPlugin(editor);
     setRegisteredEditor(editor);
     restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
@@ -236,6 +309,21 @@ export function useResourceComments({
     [canComment, contentDirty, focusThread, setPanelOpen]
   );
 
+  useEffect(() => {
+    setImageCommentOpener(focusThread);
+    return () => setImageCommentOpener(() => undefined);
+  }, [focusThread]);
+
+  useEffect(() => {
+    setActiveImageThreadId(activeThreadId);
+  }, [activeThreadId]);
+
+  useEffect(() => {
+    if (contentDirty) {
+      setPendingSelection(null);
+    }
+  }, [contentDirty]);
+
   useCommentLinkNavigation({
     enabled,
     loading,
@@ -272,9 +360,14 @@ export function useResourceComments({
           attachmentIds,
         });
         mergeAnchorThreads([response.thread]);
-        setResolved(undefined);
-        setThreads(current => mergeThreads(current, [response.thread]));
-        setTotal(current => current + (response.thread_created ? 1 : 0));
+        const switchingFilter = resolved !== false;
+        setResolved(false);
+        if (switchingFilter) {
+          setThreads([response.thread]);
+        } else {
+          setThreads(current => mergeThreads(current, [response.thread]));
+          setTotal(current => current + (response.thread_created ? 1 : 0));
+        }
         setPendingSelection(null);
         requestAnimationFrame(() => {
           focusThread(response.thread.id, { openReply: false });
@@ -298,6 +391,7 @@ export function useResourceComments({
       mergeAnchorThreads,
       namespaceId,
       pendingSelection,
+      resolved,
       resource.id,
     ]
   );
@@ -324,6 +418,7 @@ export function useResourceComments({
       const editor = editorRef.current;
       if (editor && !editor.isDestroyed) {
         editor.commands.removeResourceComment(threadId);
+        removeImageCommentMark(editor, threadId);
       }
     },
     [removeAnchorThread]
@@ -360,9 +455,29 @@ export function useResourceComments({
     return collectResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
 
-  const activeThread = activeThreadId
+  const activeAnchorThread = activeThreadId
     ? (anchorThreads.find(thread => thread.id === activeThreadId) ?? null)
     : null;
+  const activeThread = useMemo(
+    () => (activeAnchorThread ? withUpdatedAuthor(activeAnchorThread) : null),
+    [activeAnchorThread, withUpdatedAuthor]
+  );
+  const authorThreads = useMemo(
+    () =>
+      updatedAuthor?.id === currentUserId
+        ? threads.map(withUpdatedAuthor)
+        : threads,
+    [currentUserId, threads, updatedAuthor, withUpdatedAuthor]
+  );
+  const visibleThreads = useMemo(
+    () =>
+      activeThread &&
+      (resolved === undefined || activeThread.resolved === resolved) &&
+      !authorThreads.some(thread => thread.id === activeThread.id)
+        ? [...authorThreads, activeThread]
+        : authorThreads,
+    [activeThread, authorThreads, resolved]
+  );
 
   useCommentHighlight({
     root: panel?.rootElement,
@@ -382,6 +497,7 @@ export function useResourceComments({
       canComment && (canEditResource || isCommentAuthor(thread.creator.id)),
     commentsConfig,
     contentDirty,
+    editor: registeredEditor,
     createConflict,
     createThread,
     currentUserId,
@@ -411,12 +527,7 @@ export function useResourceComments({
     setResolved,
     setThreadResolved,
     submitting,
-    threads:
-      activeThread &&
-      (resolved === undefined || activeThread.resolved === resolved) &&
-      !threads.some(thread => thread.id === activeThread.id)
-        ? [...threads, activeThread]
-        : threads,
+    threads: visibleThreads,
     total,
   };
 }

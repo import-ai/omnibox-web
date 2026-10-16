@@ -3,6 +3,8 @@ import { useImperativeHandle } from 'react';
 
 import { cn } from '@/lib/utils';
 
+import { withAncestorScrollPreserved } from './preserveAncestorScroll';
+
 interface UseAutosizeTextAreaProps {
   textAreaRef: React.MutableRefObject<HTMLTextAreaElement | null>;
   minHeight?: number;
@@ -18,7 +20,7 @@ export const useAutosizeTextArea = ({
 }: UseAutosizeTextAreaProps) => {
   const initRef = React.useRef(true);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const textAreaElement = textAreaRef.current;
     if (!textAreaElement) {
       return;
@@ -35,12 +37,15 @@ export const useAutosizeTextArea = ({
         initRef.current = false;
       }
       // Reset height so scrollHeight reflects the current width/wrapping.
-      textAreaElement.style.height = `${minHeight + offsetBorder}px`;
-      const scrollHeight = textAreaElement.scrollHeight;
-      textAreaElement.style.height =
-        scrollHeight > maxHeight
-          ? `${maxHeight}px`
-          : `${scrollHeight + offsetBorder}px`;
+      // Shrinking clamps ancestor scroll positions, so preserve them.
+      withAncestorScrollPreserved(textAreaElement, () => {
+        textAreaElement.style.height = `${minHeight + offsetBorder}px`;
+        const scrollHeight = textAreaElement.scrollHeight;
+        textAreaElement.style.height =
+          scrollHeight > maxHeight
+            ? `${maxHeight}px`
+            : `${scrollHeight + offsetBorder}px`;
+      });
     };
 
     syncHeight();
