@@ -1,4 +1,4 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { VisuallyHidden } from 'radix-ui';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -7,7 +7,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 import EditForm from './EditForm';
 
@@ -28,14 +28,14 @@ export default function editHistory(props: IProps) {
 
   return (
     <Dialog open={data.open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl p-4 sm:p-6">
+      <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl sm:max-w-7xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>
             {t('chat.conversations.rename.dialog.title')}
           </DialogTitle>
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <DialogDescription></DialogDescription>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
         </DialogHeader>
         <EditForm data={data} namespaceId={namespaceId} onFinish={onFinish} />
       </DialogContent>

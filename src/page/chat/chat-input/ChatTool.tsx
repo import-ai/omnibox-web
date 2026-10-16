@@ -1,4 +1,3 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Check,
   FileSearch,
@@ -7,19 +6,20 @@ import {
   Lightbulb,
   Plus,
 } from 'lucide-react';
+import { VisuallyHidden } from 'radix-ui';
 import type { ReactNode } from 'react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -196,15 +196,15 @@ export default function ChatTool(props: IProps) {
               );
               resourceDialogOpenedByPointerRef.current = false;
             }}
-            className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pb-5 pt-8 outline-none dark:bg-neutral-900"
+            className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pb-5 pt-8 outline-hidden"
           >
             <DialogHeader>
-              <VisuallyHidden>
+              <VisuallyHidden.Root>
                 <DialogTitle>{t('chat.tools.select_resource')}</DialogTitle>
                 <DialogDescription>
                   {t('chat.tools.select_resource')}
                 </DialogDescription>
-              </VisuallyHidden>
+              </VisuallyHidden.Root>
             </DialogHeader>
             {renderResourcePicker(resource => {
               onResourceSelect(resource);

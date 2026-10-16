@@ -4,8 +4,9 @@ import { Check, ListFilter, MessageSquareText, PanelRight } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
+import { IconButton } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,21 +57,16 @@ export function ResourceCommentsSheet({
   const content = (
     <>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/60 px-3">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7 shrink-0"
-              aria-label={t('resource_comments.collapse')}
-              onClick={close}
-            >
-              <PanelRight className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('resource_comments.collapse')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          type="button"
+          size="sm"
+          tone="accent"
+          className="shrink-0"
+          label={t('resource_comments.collapse')}
+          onClick={close}
+        >
+          <PanelRight className="size-4" />
+        </IconButton>
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium">
           {t('resource_comments.panel_title', { count: controller.total })}
         </h2>
@@ -82,7 +78,7 @@ export function ResourceCommentsSheet({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-7"
+                  className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground"
                   aria-label={filterLabel}
                 >
                   <ListFilter className="size-4" />

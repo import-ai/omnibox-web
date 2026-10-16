@@ -73,18 +73,11 @@ describe('ConversationShareActions', () => {
     expect(actionLayout?.className).toContain('px-4');
     expect(actionLayout?.className).toContain('max-w-[800px]');
     expect(actionLayout?.className).not.toContain('md:px-0');
-    expect(summary?.className).toContain('text-[#292B33]');
-    expect(cancel?.className).toContain('rounded-lg');
-    expect(cancel?.className).toContain('border-[#D6DBE3]');
-    expect(copy?.className).toContain('bg-[#121316]');
+    expect(summary?.className).toContain('text-foreground');
+    expect(cancel?.dataset.variant).toBe('outline');
+    expect(copy?.dataset.variant).toBe('default');
     for (const action of [cancel, copy]) {
-      expect(action?.className).toContain('h-[26px]');
-      expect(action?.className).toContain('w-auto');
-      expect(action?.className).toContain('px-3');
-      expect(action?.className).toContain('py-[5px]');
-      expect(action?.className).toContain('text-[13px]');
-      expect(action?.className).toContain('leading-4');
-      expect(action?.className).not.toMatch(/min-w-/);
+      expect(action?.dataset.size).toBe('default');
     }
 
     act(() => selectAll?.click());

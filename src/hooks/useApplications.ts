@@ -27,7 +27,9 @@ export default function useApplications(namespaceId: string) {
 
   const bindApplication = async (appId: string): Promise<Application> => {
     const response: Application = await http.post(
-      `/namespaces/${namespaceId}/applications/${appId}`
+      `/namespaces/${namespaceId}/applications/${appId}`,
+      undefined,
+      { mute: true }
     );
     await fetchApplications(); // Refresh the list
     return response;
@@ -35,7 +37,8 @@ export default function useApplications(namespaceId: string) {
 
   const unbindApplication = async (applicationId: string): Promise<void> => {
     await http.delete(
-      `/namespaces/${namespaceId}/applications/${applicationId}`
+      `/namespaces/${namespaceId}/applications/${applicationId}`,
+      { mute: true }
     );
     await fetchApplications(); // Refresh the list
   };

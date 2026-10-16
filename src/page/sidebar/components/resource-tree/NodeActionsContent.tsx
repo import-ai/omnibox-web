@@ -66,7 +66,7 @@ export function NodeActionsContent({
                 <TooltipProvider>
                   <Tooltip delayDuration={0}>
                     <TooltipTrigger asChild>
-                      <SidebarMenuAction className="pointer-events-none right-2 size-4 focus-visible:outline-none focus-visible:ring-transparent group-hover/sidebar-item:pointer-events-auto peer-data-[size=default]/menu-button:top-2">
+                      <SidebarMenuAction className="pointer-events-none right-2 size-4 focus-visible:outline-hidden focus-visible:ring-transparent group-hover/sidebar-item:pointer-events-auto peer-data-[size=default]/menu-button:top-1/2 -translate-y-1/2">
                         <Spinner />
                       </SidebarMenuAction>
                     </TooltipTrigger>
@@ -74,7 +74,7 @@ export function NodeActionsContent({
                   </Tooltip>
                 </TooltipProvider>
               ) : (
-                <SidebarMenuAction className="pointer-events-none right-2 size-4 focus-visible:outline-none focus-visible:ring-transparent group-hover/sidebar-item:pointer-events-auto peer-data-[size=default]/menu-button:top-2">
+                <SidebarMenuAction className="pointer-events-none right-2 size-4 focus-visible:outline-hidden focus-visible:ring-transparent group-hover/sidebar-item:pointer-events-auto peer-data-[size=default]/menu-button:top-1/2 -translate-y-1/2">
                   <Spinner />
                 </SidebarMenuAction>
               )}
@@ -83,17 +83,22 @@ export function NodeActionsContent({
             <SidebarMenuAction
               asChild
               className={cn(
-                'right-2 size-4 cursor-pointer !text-neutral-400 hover:bg-transparent hover:!text-sidebar-foreground focus-visible:outline-none focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
+                'right-2 size-4 cursor-pointer text-muted-foreground! hover:bg-transparent hover:text-sidebar-foreground! focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-1/2 -translate-y-1/2',
                 isTouch
                   ? 'pointer-events-auto opacity-100'
                   : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'
               )}
             >
-              <MoreHorizontal className="cursor-pointer focus-visible:outline-none focus-visible:ring-transparent" />
+              <MoreHorizontal className="cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent" />
             </SidebarMenuAction>
           )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="right" align="start" sideOffset={10}>
+        <DropdownMenuContent
+          side="right"
+          align="start"
+          sideOffset={10}
+          className="w-auto! min-w-36"
+        >
           {menu.items.map(item => {
             if (item.separator) {
               return <DropdownMenuSeparator key={item.key} />;
@@ -103,27 +108,18 @@ export function NodeActionsContent({
             const menuItem = (
               <DropdownMenuItem
                 key={item.key}
-                className={
-                  item.destructive
-                    ? 'group cursor-pointer gap-2 data-[highlighted]:text-destructive'
-                    : cn(
-                        menuItemClass,
-                        item.disabled &&
-                          'cursor-not-allowed text-muted-foreground opacity-50'
-                      )
-                }
+                variant={item.destructive ? 'destructive' : 'default'}
+                className={cn(
+                  menuItemClass,
+                  item.disabled &&
+                    'cursor-not-allowed text-muted-foreground opacity-50'
+                )}
                 onClick={item.disabled ? undefined : item.onClick}
                 onSelect={item.onSelect}
                 disabled={item.disabled && !item.disabledTip}
                 aria-disabled={item.disabled}
               >
-                <Icon
-                  className={
-                    item.destructive
-                      ? 'size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]'
-                      : menuIconClass
-                  }
-                />
+                <Icon className={menuIconClass} />
                 {item.label}
               </DropdownMenuItem>
             );

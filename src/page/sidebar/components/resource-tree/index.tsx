@@ -43,7 +43,7 @@ function ManualDropLine() {
   return createPortal(
     <span
       aria-hidden="true"
-      className="pointer-events-none fixed z-[9998] h-0.5"
+      className="pointer-events-none fixed z-9998 h-0.5"
       style={{
         left: line.left,
         top: line.top,
@@ -58,7 +58,7 @@ function ManualDropLine() {
         return (
           <span
             key={index}
-            className="absolute top-0 h-0.5 bg-blue-200 before:absolute before:-top-[3px] before:left-0 before:h-2 before:w-0.5 before:bg-blue-200"
+            className="absolute top-0 h-0.5 bg-blue-200 before:absolute before:top-[-3px] before:left-0 before:h-2 before:w-0.5 before:bg-blue-200"
             style={{
               left: guideOffset,
               width: Math.max(0, arrowOffset - guideOffset - 4),
@@ -67,7 +67,7 @@ function ManualDropLine() {
         );
       })}
       <span
-        className="absolute -top-[3px] size-0 border-y-4 border-l-[6px] border-y-transparent border-l-blue-500"
+        className="absolute top-[-3px] size-0 border-y-4 border-l-[6px] border-y-transparent border-l-blue-500"
         style={{ left: arrowOffset }}
       />
       <span
@@ -103,7 +103,7 @@ export default function ResourceTree({
       <div className="relative flex min-h-0 flex-1 flex-col bg-sidebar md:-mr-2">
         <SidebarContent
           ref={sidebarRef}
-          className="gap-0 overflow-x-hidden [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] md:pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
+          className="gap-0 overflow-x-hidden scrollbar-gutter-stable scrollbar-thin [scrollbar-color:var(--border)_transparent] md:pr-2 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
         >
           {(['private', 'teamspace'] as SpaceType[]).map(spaceType => (
             <SpaceSection

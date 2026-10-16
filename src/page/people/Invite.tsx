@@ -1,9 +1,9 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { VisuallyHidden } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import InviteForm from '@/components/invite-dialog/people/InviteForm';
-import { Button } from '@/components/ui/Button';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 export default function Invite() {
   const { t } = useTranslation();
@@ -27,12 +27,12 @@ export default function Invite() {
           {t('invite.add')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[90%] max-w-7xl p-4 sm:w-1/2 sm:p-6">
+      <DialogContent className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('invite.add')}</DialogTitle>
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <DialogDescription></DialogDescription>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
         </DialogHeader>
         <InviteForm onFinish={onCancel} />
       </DialogContent>

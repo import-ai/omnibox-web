@@ -1,13 +1,13 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -88,7 +88,7 @@ export function ShareSortSelector({
             <Button
               variant="outline"
               disabled={disabled}
-              className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-[#303030]"
+              className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-input/30"
             >
               <span className="truncate">
                 {selectedAutomaticOption

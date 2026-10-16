@@ -29,7 +29,7 @@
     "refresh": "刷新",
     "mark_all_read": "一键已读",
     "empty": "空空如也",
-    "loading_more": "正在加载...",
+    "loading_more": "正在加载……",
     "no_more": "已展示近 30 天的全部消息",
     "back": "返回",
     "expand_tags": "展开全部通知类型",
@@ -54,7 +54,7 @@
     "created": "{{related_time}}创建"
   },
   "sidebar": {
-    "collapse_folder": "收起{{name}}",
+    "collapse_folder": "收起 {{name}}",
     "locate_folder": "回到 {{name}}",
     "expand": "展开侧边栏",
     "collapse": "收起侧边栏",
@@ -94,8 +94,8 @@
     "collapse": "收起右侧边栏"
   },
   "resource_picker": {
-    "expand_resource": "展开{{name}}",
-    "collapse_resource": "收起{{name}}",
+    "expand_resource": "展开 {{name}}",
+    "collapse_resource": "收起 {{name}}",
     "empty": "暂无可用资源",
     "load_failed": "无法加载资源",
     "no_results": "没有匹配的资源",
@@ -213,7 +213,10 @@
     }
   },
   "error": {
-    "title": "404 页面未找到"
+    "title": "404 页面未找到",
+    "unexpected_title": "页面暂时无法加载",
+    "not_found_description": "页面不存在或已被移除，请返回首页继续。",
+    "unexpected_description": "请刷新页面重试，或返回首页继续。"
   },
   "request": {
     "bad_request": "请求错误",
@@ -234,7 +237,7 @@
     "duplicate": "创建副本",
     "download": "源文件",
     "move_to": "移动到",
-    "move_page_to": "将页面移至...",
+    "move_page_to": "将页面移至……",
     "move_to_trash": "移动到回收站",
     "upload_to_folder": "上传到该文件夹",
     "create_file": "创建文件",
@@ -272,19 +275,19 @@
     "username_no_emoji": "用户名不允许使用特殊符号",
     "password": "密码",
     "confirm_password": "确认密码",
-    "password_min": "密码至少8个字符",
-    "password_reg": "密码至少8位，必须包含大写字母、小写字母和数字",
+    "password_min": "密码至少 8 个字符",
+    "password_reg": "密码至少 8 位，必须包含大写字母、小写字母和数字",
     "password_not_match": "密码不匹配",
     "email": "邮箱",
     "email_required": "请输入邮箱地址",
     "email_invalid": "请输入有效的邮箱地址",
     "supported_email_providers": "支持的邮箱类型",
-    "email_or_username": "邮箱 或 用户名",
+    "email_or_username": "邮箱或用户名",
     "email_or_username_invalid": "请输入有效的邮箱地址或用户名",
     "phone": "手机号",
     "phone_required": "请输入手机号",
     "phone_invalid": "请输入有效的手机号",
-    "phone_or_username": "手机号 或 用户名",
+    "phone_or_username": "手机号或用户名",
     "role": "角色",
     "username_not_emptyStr": "无效的用户名",
     "change_username_desc": "修改您的用户名",
@@ -299,8 +302,8 @@
     "owner": "所有者",
     "admin": "管理员",
     "member": "成员",
-    "min": "至少2个字符",
-    "max": "最多64个字符",
+    "min": "至少 2 个字符",
+    "max": "最多 64 个字符",
     "submit": "保存",
     "button": "发送邀请",
     "success": "邀请已发送",
@@ -311,6 +314,7 @@
     "not_found": "邀请未找到"
   },
   "namespace": {
+    "name_description": "设置成员看到的空间名称",
     "add": "创建空间",
     "title": "空间名称",
     "name": "空间名称",
@@ -375,7 +379,7 @@
       "confirm_description": "所有数据将被永久删除且无法恢复。",
       "warning_title": "⚠️ 此操作需要确认",
       "warning_body": "此空间的所有数据将被永久删除且无法恢复。",
-      "confirm_label": "输入 \"{{name}}\" 以确认",
+      "confirm_label": "输入“{{name}}”以确认",
       "success": "空间已删除"
     }
   },
@@ -394,7 +398,7 @@
     "phone_not_exists": "该手机号不存在，请注册以继续。",
     "title": "登录您的账户",
     "description": "请输入您的{{contactMethod}}以登录账户",
-    "authorizing": "授权中，请稍候...",
+    "authorizing": "授权中，请稍候……",
     "back": "返回",
     "login_use_email": "使用邮箱登录",
     "login_use_phone": "使用手机号登录",
@@ -437,20 +441,20 @@
     "description_phone": "我们已向以下手机号发送 6 位验证码：",
     "didnt_receive": "没有收到验证码？",
     "resend": "重新发送",
-    "resending": "发送中...",
+    "resending": "发送中……",
     "resend_countdown": "{{seconds}} 秒后可重新发送",
     "resend_success": "验证码发送成功",
     "error_resend": "重新发送失败",
     "error_invalid_code": "验证码无效",
     "error_invalid_code_with_attempts": "验证码无效。还剩 {{remaining}} 次尝试机会。",
     "error_expired_code": "验证码已过期",
-    "error_too_many_attempts": "尝试次数过多,请重新获取验证码。",
+    "error_too_many_attempts": "尝试次数过多，请重新获取验证码。",
     "error_too_many_otp_requests": "验证码请求过多，请在 {{minutes}} 分钟后重试。",
     "error_magic_link": "链接无效或已过期",
     "open_email": "打开邮件应用",
     "back_to_login": "返回登录",
-    "verifying": "验证中...",
-    "verifying_description": "请稍候..."
+    "verifying": "验证中……",
+    "verifying_description": "请稍候……"
   },
   "captcha": {
     "failed": "验证未通过，请稍后重试。",
@@ -458,7 +462,7 @@
     "unavailable": "验证服务暂时不可用，请稍后重试。"
   },
   "accept_invite": {
-    "accepting": "接受邀请中...",
+    "accepting": "接受邀请中……",
     "accepting_description": "正在创建您的账户并加入空间",
     "error_accept": "接受邀请失败。链接可能已过期或无效。",
     "error_title": "邀请错误",
@@ -517,12 +521,19 @@
     "bind_failed": "手机绑定失败"
   },
   "setting": {
+    "option_descriptions": {
+      "username": "设置在空间中显示的名称",
+      "password": "设置或更新用于登录账户的密码",
+      "phone": "绑定手机号，用于登录当前账户",
+      "email": "使用邮箱登录、接收验证码和找回密码",
+      "third_party": "使用{{provider}}账号登录小黑"
+    },
     "title": "设置",
     "basic": "通用",
     "profile": "个人资料",
     "members": "成员",
     "tasks": "后台任务管理",
-    "preferences": "偏好",
+    "preferences": "外观",
     "namespace": "空间设置",
     "api_key": "API 密钥",
     "applications": "应用管理",
@@ -554,7 +565,7 @@
       "unbinding": "待绑定",
       "unbind": "解绑",
       "unbind_confirm": "确定要解除绑定此账号吗？",
-      "confirm_unbind_description": "你确定要解绑{{ type }}账号吗？解绑后将无法使用该账号登录。",
+      "confirm_unbind_description": "你确定要解绑 {{ type }} 账号吗？解绑后将无法使用该账号登录。",
       "unbind_success": "已成功解绑",
       "confirm_unbind": "确认解绑",
       "bind": "绑定"
@@ -567,7 +578,7 @@
       "title": "删除账户",
       "warning_title": "⚠️ 此操作需要确认",
       "warning_body": "您的账户将被删除。所有数据将被永久删除且无法恢复。您将收到一封确认邮件。",
-      "confirm_label": "输入 \"{{username}}\" 以确认",
+      "confirm_label": "输入“{{username}}”以确认",
       "confirm_button": "发送确认邮件",
       "username_mismatch": "用户名不匹配",
       "email_sent": "确认邮件已发送。请查收您的邮箱。",
@@ -575,23 +586,27 @@
       "invalid_token": "无效的确认链接",
       "token_expired": "确认链接已过期。请重试。",
       "deletion_failed": "删除账户失败。请重试。",
-      "processing": "正在删除您的账户...",
+      "processing": "正在删除您的账户……",
       "processing_description": "请稍候，我们正在处理您的请求。",
       "success_title": "账户已删除",
       "success_description": "您的账户及所有相关数据已被永久删除且无法恢复。您将被重定向到登录页面。",
-      "redirecting": "3秒后跳转...",
+      "redirecting": "3 秒后跳转……",
       "error_title": "删除失败",
       "back_to_login": "返回登录"
     },
-    "select_placeholder": "请选择"
+    "select_placeholder": "请选择",
+    "basic_description": "选择界面主题、配色、字体和显示语言。",
+    "content_description": "管理内容处理和整理功能。",
+    "about_description": "了解小黑和开源项目信息。"
   },
   "applications": {
+    "connection_description": "将 {{platform}} 中的助手连接到当前空间",
     "title": "应用管理",
     "description": "管理你的应用集成和绑定",
     "empty": "暂无应用",
     "app_names": {
       "wechat_bot": "微信助手",
-      "qq_bot": " QQ 助手",
+      "qq_bot": "QQ 助手",
       "telegram_bot": "Telegram 助手",
       "wechat_clawbot": "微信 ClawBot"
     },
@@ -609,21 +624,21 @@
     },
     "already_bound": {
       "title": "已绑定",
-      "description": "您已成功绑定{{ platform_name }}，您可以扫描下方二维码添加助手。"
+      "description": "您已成功绑定 {{ platform_name }}，您可以扫描下方二维码添加助手。"
     },
     "bind": {
       "button": "绑定",
       "continue_button": "继续绑定",
       "title": "绑定应用",
       "description": "按照以下步骤连接你的应用",
-      "step1": "第 1 步：添加{{ platform_name }}",
-      "step2": "第 2 步：发送代码给{{ platform_name }}",
+      "step1": "第 1 步：添加 {{ platform_name }}",
+      "step2": "第 2 步：发送代码给 {{ platform_name }}",
       "telegram_step1": "第 1 步：打开 Telegram 或扫描二维码",
       "telegram_step2": "第 2 步：确认绑定",
       "open_telegram": "打开 Telegram",
       "code_label": "绑定代码：",
       "copy_code": "复制绑定代码",
-      "code_instruction": "将此代码发送给{{ platform_name }}以完成绑定",
+      "code_instruction": "将此代码发送给 {{ platform_name }} 以完成绑定",
       "telegram_code_instruction": "如果无法自动打开，请在 Telegram 中向 @omnibox_tg_bot 发送 /start {{ code }}。",
       "initiated": "绑定流程已启动",
       "continue": "继续绑定流程",
@@ -640,9 +655,9 @@
       }
     },
     "qr_bind": {
-      "description": "使用{{ platform_name }}扫描二维码完成绑定",
-      "step1": "使用{{ platform_name }}扫描二维码",
-      "instruction": "打开{{ platform_name }}并扫描上方二维码以绑定您的账户"
+      "description": "使用 {{ platform_name }} 扫描二维码完成绑定",
+      "step1": "使用 {{ platform_name }} 扫描二维码",
+      "instruction": "打开 {{ platform_name }} 并扫描上方二维码以绑定您的账户"
     },
     "unbind": {
       "button": "解绑",
@@ -659,9 +674,15 @@
     "editor_v2": {
       "title": "编辑器 2.0",
       "description": "全新版本的现代编辑器"
-    }
+    },
+    "description": "体验新功能，并选择是否启用。"
   },
   "manage": {
+    "description": "查看空间成员和群组，管理邀请、角色与权限。",
+    "no_results": "暂无匹配结果",
+    "theme_description": "选择浅色、深色或跟随系统外观",
+    "color_theme_description": "选择界面背景和控件使用的基础配色",
+    "language_description": "选择菜单和提示使用的语言",
     "search": "输入并搜索",
     "disable": "禁用",
     "remove": "从空间移除",
@@ -694,13 +715,39 @@
     "transfer_ownership_title": "转让所有权",
     "transfer_ownership_warning_title": "此操作需要确认",
     "transfer_ownership_desc": "确定要将所有权转让给 {{username}} 吗？您将成为管理员并失去所有者权限。",
-    "transfer_ownership_confirm_label": "输入 \"{{name}}\" 以确认",
+    "transfer_ownership_confirm_label": "输入“{{name}}”以确认",
     "transfer_confirm": "确认转让",
     "transfer_success": "所有权转让成功",
     "invitation": "邀请",
     "invite_link": "邀请链接",
     "language_setting": "语言",
-    "theme_setting": "外观",
+    "color_theme": "配色",
+    "color_theme_omnibox": "小黑",
+    "color_theme_neutral": "中性灰",
+    "color_theme_stone": "暖灰色",
+    "color_theme_zinc": "锌灰色",
+    "color_theme_mauve": "灰紫色",
+    "color_theme_olive": "橄榄绿",
+    "color_theme_mist": "雾蓝色",
+    "color_theme_taupe": "灰棕色",
+    "color_theme_amber": "琥珀色",
+    "color_theme_blue": "蓝色",
+    "color_theme_cyan": "青色",
+    "color_theme_emerald": "翠绿色",
+    "color_theme_fuchsia": "品红色",
+    "color_theme_green": "绿色",
+    "color_theme_indigo": "靛蓝色",
+    "color_theme_lime": "青柠色",
+    "color_theme_orange": "橙色",
+    "color_theme_pink": "粉色",
+    "color_theme_purple": "紫色",
+    "color_theme_red": "红色",
+    "color_theme_rose": "玫瑰色",
+    "color_theme_sky": "天蓝色",
+    "color_theme_teal": "蓝绿色",
+    "color_theme_violet": "紫罗兰色",
+    "color_theme_yellow": "黄色",
+    "theme_setting": "主题",
     "theme_light": "浅色",
     "theme_dark": "深色",
     "theme_system": "系统",
@@ -713,7 +760,10 @@
     "nickname_placeholder": "这个空间里怎么叫你",
     "note_placeholder": "关于这个人的说明",
     "nickname_length_error": "昵称不能超过 {{max}} 个字符",
-    "note_length_error": "备注不能超过 {{max}} 个字符"
+    "note_length_error": "备注不能超过 {{max}} 个字符",
+    "font": "字体",
+    "font_description": "选择界面字体，中文使用系统备用字体",
+    "font_system": "系统默认"
   },
   "unauth_page": {
     "title": "访问被拒绝",
@@ -781,7 +831,7 @@
     "page_title": "小黑",
     "citations": "段落",
     "citations_results": "搜索结果",
-    "searching": "搜索中...",
+    "searching": "搜索中……",
     "disclaimer": "内容由小黑 AI 生成，仅供参考",
     "share": {
       "action": "分享",
@@ -799,7 +849,7 @@
       "wechatCardTitle": "来自小黑 OmniBox 的对话"
     },
     "messages": {
-      "context_compacting": "正在压缩上下文...",
+      "context_compacting": "正在压缩上下文……",
       "context_compacted": "上下文已自动压缩",
       "actions": {
         "regenerate": "重新生成",
@@ -930,7 +980,7 @@
         "local": "本地上传",
         "local_tooltip": "试着将本地的文件拖拽到侧边栏试试吧",
         "wechat": "微信助手",
-        "wechat_tooltip": "在微信中和\"小黑\"聊天",
+        "wechat_tooltip": "在微信中和“小黑”聊天",
         "browser": "安装插件",
         "browser_tooltip": "网页正文一键剪藏"
       },
@@ -978,11 +1028,11 @@
       }
     },
     "agent_credits": {
-      "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1，扩容后可恢复",
+      "text": "Agent 2.1 积分已用尽，已切换至 Agent 1.1，购买积分后可恢复",
       "compact_text": "当前已切换至 Agent 1.1",
       "compact_tooltip": "积分不足",
-      "not_owner": "请联系空间所有者进行扩容",
-      "expand_button": "扩容",
+      "not_owner": "请联系空间所有者购买积分",
+      "expand_button": "购买",
       "tooltip": {
         "base": "购买或升级后可继续使用 Agent 2.1"
       }
@@ -1007,6 +1057,7 @@
         "auto_reject": "自动拒绝审批请求"
       }
     },
+    "send": "发送消息",
     "history": {
       "load_more": "加载更早的消息",
       "loading": "正在加载历史消息…",
@@ -1045,10 +1096,10 @@
   },
   "api_key": {
     "description": "API 密钥允许您通过编程方式访问您的资源。",
-    "empty": "未找到API密钥。创建您的第一个API密钥以开始使用。",
+    "empty": "未找到 API 密钥。创建您的第一个 API 密钥以开始使用。",
     "create": {
       "title": "创建 API 密钥",
-      "description": "创建一个新的API密钥以编程方式访问您的资源。",
+      "description": "创建一个新的 API 密钥以编程方式访问您的资源。",
       "success": "API 密钥创建成功",
       "error": "创建 API 密钥失败",
       "validation_error": "请填写所有必填字段"
@@ -1058,7 +1109,7 @@
       "error": "删除 API 密钥失败",
       "confirm": {
         "title": "删除 API 密钥",
-        "description": "此操作无法撤消。这将永久删除API密钥并撤销访问权限。"
+        "description": "此操作无法撤消。这将永久删除 API 密钥并撤销访问权限。"
       }
     },
     "copy": {
@@ -1066,12 +1117,12 @@
     },
     "update": {
       "title": "更新 API 密钥",
-      "description": "更新此API密钥的权限范围。",
+      "description": "更新此 API 密钥的权限范围。",
       "success": "API 密钥更新成功",
       "error": "更新 API 密钥失败"
     },
     "permission_scope": "权限范围",
-    "permission_scope_tooltip": "此API密钥的根文档，将限制此密钥只能访问该文档及其子文档。",
+    "permission_scope_tooltip": "此 API 密钥的根文档，将限制此密钥只能访问该文档及其子文档。",
     "personal": "个人",
     "resource_not_found": "资源不存在",
     "root_resource_id_placeholder": "请选择权限范围",
@@ -1104,9 +1155,10 @@
     "hide": "隐藏"
   },
   "tasks": {
+    "description": "查看后台任务的处理状态，并管理任务执行。",
     "title": "后台任务管理",
     "related_tasks": "相关任务",
-    "loading": "加载任务中...",
+    "loading": "加载任务中……",
     "function": "任务",
     "status": "状态",
     "time": "时间",
@@ -1173,7 +1225,8 @@
       "generate_audio_note": "音频解析",
       "collect_url": "访问网页",
       "web_analysis": "网页分析"
-    }
+    },
+    "empty_description": "上传文件或导入链接后，可在这里查看内容处理任务。"
   },
   "common": {
     "actions": "操作",
@@ -1186,13 +1239,14 @@
         "title": "确认删除？",
         "description": "您将要删除 <strong>{{title}}</strong>"
       }
-    }
+    },
+    "more_actions": "更多操作"
   },
-  "loading": "加载中...",
+  "loading": "加载中……",
   "load_more": "加载更多",
-  "creating": "创建中...",
+  "creating": "创建中……",
   "create": "创建",
-  "updating": "更新中...",
+  "updating": "更新中……",
   "update": "更新",
   "share": {
     "permissions": {
@@ -1287,6 +1341,7 @@
     "clear_success": "回收站已清空"
   },
   "quota": {
+    "description": "查看空间的资源用量、积分余额和有效期。",
     "storage_usage": "存储",
     "upload": "上传",
     "file": "文件",
@@ -1300,7 +1355,7 @@
     "pdf": "PDF",
     "image": "图片",
     "other": "其他",
-    "expand_button": "扩容",
+    "expand_button": "购买",
     "basic_period": "空间有效期：",
     "premium_period": "高级版有效期：",
     "days_remaining": "剩余 {{days}} 天（{{date}} 到期）",
@@ -1355,7 +1410,7 @@
       "month": "月",
       "year": "年"
     },
-    "date_format": "yyyy年MM月dd日"
+    "date_format": "yyyy 年 MM 月 dd 日"
   },
   "batch": {
     "multi_select": "多选",
@@ -1435,7 +1490,7 @@
     "validation": {
       "name_required": "请输入智能文件夹名称",
       "name_exists": "资源名称在该目录下已存在。",
-      "name_too_long": "名称不能超过128个字符。",
+      "name_too_long": "名称不能超过 128 个字符。",
       "condition_incomplete": "请完善该行条件信息"
     },
     "empty": "暂无匹配的资源，可修改筛选条件。",
@@ -1452,7 +1507,7 @@
   },
   "rss_folder": {
     "empty": "空空如也",
-    "loading": "正在加载…",
+    "loading": "正在加载……",
     "load_failed": "加载失败，请稍后重试",
     "published_at": "发布时间",
     "create": {
@@ -1482,7 +1537,7 @@
     },
     "validation": {
       "name_required": "请输入订阅文件夹名称",
-      "name_too_long": "名称不能超过128个字符。",
+      "name_too_long": "名称不能超过 128 个字符。",
       "name_exists": "资源名称在该目录下已存在。",
       "url_required": "请输入订阅链接",
       "invalid_url": "请输入有效的链接",

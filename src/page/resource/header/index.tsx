@@ -1,9 +1,9 @@
 import { Eye, FileClock, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
+import { IconButton } from '@/components/omnibox/IconButton';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
 import {
@@ -56,7 +56,7 @@ export default function Header(props: IActionProps) {
   const historyRevision = isHistorical ? selectedRevision : null;
 
   return (
-    <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-white dark:bg-background">
+    <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-background">
       <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
         <SidebarTriggerButton collapse />
         <Breadcrumb
@@ -118,24 +118,19 @@ export default function Header(props: IActionProps) {
         (!resource?.read_only || isHistorical) &&
         !props.editPage &&
         !historyActive ? (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                aria-label={t('resource.history.open')}
-                className="h-7 w-7 shrink-0"
-                onClick={() => {
-                  commentsPanel?.setPanelOpen(false);
-                  showResourceHistory(namespaceId, resource.id);
-                }}
-                size="icon"
-                type="button"
-                variant="ghost"
-              >
-                <FileClock />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('resource.history.tooltip')}</TooltipContent>
-          </Tooltip>
+          <IconButton
+            label={t('resource.history.tooltip')}
+            size="sm"
+            tone="accent"
+            className="shrink-0"
+            aria-label={t('resource.history.open')}
+            onClick={() => {
+              commentsPanel?.setPanelOpen(false);
+              showResourceHistory(namespaceId, resource.id);
+            }}
+          >
+            <FileClock className="size-4" />
+          </IconButton>
         ) : null}
         {resource && !isHistorical && !copilotActive ? (
           <CopilotToggleButton namespaceId={namespaceId} />

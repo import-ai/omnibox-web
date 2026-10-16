@@ -1,5 +1,3 @@
-export const STICKY_FOLDER_HEIGHT = 34;
-
 export interface StickyFolderBounds {
   id: string;
   top: number;
@@ -11,7 +9,7 @@ export interface StickyFolderBounds {
 export function findStickyFolder(
   folders: StickyFolderBounds[],
   scrollTop: number,
-  height = STICKY_FOLDER_HEIGHT
+  height: number
 ): string | null {
   let nearest: StickyFolderBounds | undefined;
   for (const folder of folders) {

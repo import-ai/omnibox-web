@@ -10,7 +10,8 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -114,21 +115,26 @@ export default function ShareActions({
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 data-[state=open]:bg-accent"
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>{t('common.more_actions')}</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem
           className="cursor-pointer gap-2"
           onClick={() => handleAction('copy_link')}
         >
-          <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <Link className="size-4 text-muted-foreground" />
           <span>{t('actions.copy_link')}</span>
         </DropdownMenuItem>
         {resource.content && !isFolderResource && (
@@ -136,14 +142,14 @@ export default function ShareActions({
             className="cursor-pointer gap-2"
             onClick={() => handleAction('copy_content')}
           >
-            <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <Files className="size-4 text-muted-foreground" />
             <span>{t('actions.copy_content')}</span>
           </DropdownMenuItem>
         )}
         {!isFolderResource && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer gap-2">
-              <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <Download className="size-4 text-muted-foreground" />
               <span>{t('actions.download_as')}</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="w-48">
@@ -166,7 +172,7 @@ export default function ShareActions({
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
-                  <MoveHorizontal className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                  <MoveHorizontal className="size-4 text-muted-foreground" />
                   <span>{t('actions.wide')}</span>
                 </div>
                 <Switch checked={wide} />

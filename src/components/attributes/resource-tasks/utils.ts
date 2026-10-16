@@ -17,7 +17,7 @@ export const formatFunction = (
 };
 
 export const getTaskBadgeConfig = (status: TaskStatus) => {
-  return statusConfig[status];
+  return statusConfig[status] ?? statusConfig.error;
 };
 
 export const hasActiveContentModifyingTasks = (taskList: Task[]): boolean => {

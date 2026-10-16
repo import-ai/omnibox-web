@@ -1,10 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { CircleHelp, Eye, EyeOff } from 'lucide-react';
+import { VisuallyHidden } from 'radix-ui';
 import React, { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { AppleIcon } from '@/assets/icons/AppleIcon';
@@ -12,8 +11,15 @@ import { GoogleIcon } from '@/assets/icons/GoogleIcon';
 import { MailIcon } from '@/assets/icons/MailIcon';
 import { SmartphoneIcon } from '@/assets/icons/SmartphoneIcon';
 import { WeChatIcon } from '@/assets/icons/Wechat';
-import { Button } from '@/components/button';
 import { Input } from '@/components/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/omnibox/Dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import {
   Tooltip,
   TooltipContent,
@@ -29,15 +35,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -53,6 +52,7 @@ import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils.ts';
 import { optionalPasswordSchema } from '@/lib/validationSchemas';
+import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { DeleteAccountDialog } from '../account/DeleteAccountDialog';
 import EmailValidate from '../account/EmailValidate';
@@ -84,33 +84,6 @@ const passwordChangeSchema = z.object({
 type UsernameFormValues = { username: string };
 type PasswordFormValues = { password: string; password_repeat: string };
 
-const ActionButton = React.forwardRef<
-  React.ElementRef<typeof Button>,
-  {
-    children: React.ReactNode;
-    onClick?: () => void;
-    disabled?: boolean;
-    variant?: 'default' | 'outline' | 'destructive';
-  }
->(function ActionButton(
-  { children, onClick, disabled, variant = 'outline' },
-  ref
-) {
-  const className =
-    'w-[71px] h-[30px] rounded-[5px] dark:border-neutral-700  border-neutral-200 active:border-neutral-300 text-xs font-medium';
-  return (
-    <Button
-      ref={ref}
-      onClick={onClick}
-      disabled={disabled}
-      variant={variant}
-      className={className}
-    >
-      {children}
-    </Button>
-  );
-});
-
 function SectionHeader({
   title,
   className,
@@ -123,7 +96,7 @@ function SectionHeader({
   return (
     <div
       className={cn(
-        'w-full whitespace-nowrap border-b pb-2 font-semibold text-foreground lg:text-xl',
+        'w-full border-b pb-2 text-base font-semibold text-foreground',
         tooltip && 'flex items-center gap-1',
         className
       )}
@@ -153,30 +126,52 @@ function SectionHeader({
 }
 
 function InfoRow({
+  icon,
   label,
   value,
+  description,
   button,
 }: {
+  icon?: React.ReactNode;
   label: string;
-  value: string;
+  value?: string;
+  description: string;
   button: React.ReactNode;
 }) {
   return (
-    <div className="flex h-[30px] w-full items-center justify-between lg:w-[533px]">
-      <div className="flex h-[24px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-        <p className="flex-shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-          {label}
-        </p>
-        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-          {value}
+    <div
+      className={cn(
+        'grid w-full items-center gap-2 px-2 py-2',
+        icon
+          ? 'grid-cols-[24px_minmax(0,1fr)_auto]'
+          : 'grid-cols-[minmax(0,1fr)_auto]'
+      )}
+    >
+      {icon && (
+        <span className="flex size-4 items-center justify-center text-muted-foreground [&>svg]:size-4">
+          {icon}
+        </span>
+      )}
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <p className="text-sm font-medium leading-5 text-foreground">
+            {label}
+          </p>
+          {value != null && (
+            <p className="min-w-0 break-words text-sm font-normal leading-5 text-muted-foreground">
+              {value}
+            </p>
+          )}
+        </div>
+        <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
+          {description}
         </p>
       </div>
-      <div className="ml-2 flex-shrink-0">{button}</div>
+      {button}
     </div>
   );
 }
 
-// Binding info row with icon - Figma: w-[532px], h-[30px] to align with button, icon 20x20, gap 9px
 function BindingRow({
   icon,
   label,
@@ -195,63 +190,60 @@ function BindingRow({
   unbinding?: boolean;
 }) {
   const { t } = useTranslation();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
-    <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
-      {/* Left side with icon, label, and value */}
-      <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-        {/* Icon and label group - gap: 9px */}
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <span className="flex size-5 flex-shrink-0 items-center justify-center">
-            {icon}
-          </span>
-          <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-            {label}
-          </p>
-        </div>
-        {/* Value */}
-        <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-          {value}
-        </p>
-      </div>
-      {/* Button - Figma: both bound and unbound use outline style (white bg, border) */}
-      <div className="ml-2 flex-shrink-0">
-        {isBound ? (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <ActionButton>{t('setting.unbind_btn')}</ActionButton>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  {t('setting.third_party_account.confirm_unbind')}
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t('setting.third_party_account.confirm_unbind_description', {
-                    type: label,
-                  })}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="cancel-btn-outline">
-                  {t('cancel')}
-                </AlertDialogCancel>
-                <AlertDialogAction
-                  disabled={unbinding}
-                  className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                  onClick={onUnbind}
-                >
-                  {unbinding && <Spinner className="mr-2" />}
-                  {t('setting.third_party_account.confirm_unbind')}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        ) : (
-          onBind || <ActionButton>{t('setting.bind_btn')}</ActionButton>
-        )}
-      </div>
-    </div>
+    <>
+      <InfoRow
+        icon={icon}
+        label={label}
+        value={value}
+        description={t('setting.option_descriptions.third_party', {
+          provider: label,
+        })}
+        button={
+          isBound ? (
+            <SettingPageButton
+              variant="outline"
+              onClick={() => setConfirmOpen(true)}
+            >
+              {t('setting.unbind_btn')}
+            </SettingPageButton>
+          ) : (
+            onBind || (
+              <SettingPageButton>{t('setting.bind_btn')}</SettingPageButton>
+            )
+          )
+        }
+      />
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('setting.third_party_account.confirm_unbind')}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('setting.third_party_account.confirm_unbind_description', {
+                type: label,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="cancel-btn-outline">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={unbinding}
+              onClick={onUnbind}
+            >
+              {unbinding && <Spinner className="mr-2" />}
+              {t('setting.third_party_account.confirm_unbind')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -272,6 +264,7 @@ interface ProfileFormProps {
 }
 
 export default function ProfileForm({ autoAction }: ProfileFormProps) {
+  const { showToast } = useSettingsToast();
   const { t } = useTranslation();
   const { user, onChange, loading, refetch } = useUser();
 
@@ -280,6 +273,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const [emailDialogOpen, setEmailDialogOpen] = useState(false);
   const [phoneDialogOpen, setPhoneDialogOpen] = useState(false);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const autoActionProcessedRef = useRef(false);
 
@@ -348,15 +342,13 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   // Handle username change
   const handleUsernameSubmit = async (data: UsernameFormValues) => {
     if (!data.username.trim().length) {
-      toast.error(t('form.username_not_emptyStr'), {
-        position: 'bottom-right',
-      });
+      showToast(t('form.username_not_emptyStr'), 'error');
       return;
     }
     setSubmitting(true);
     try {
       await onChange({ username: data.username }, () => {
-        toast.success(t('profile.success'), { position: 'bottom-right' });
+        showToast(t('profile.success'), 'success');
       });
       setUsernameDialogOpen(false);
     } finally {
@@ -367,13 +359,13 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   // Handle password change
   const handlePasswordSubmit = async (data: PasswordFormValues) => {
     if (data.password !== data.password_repeat) {
-      toast.error(t('form.password_not_match'), { position: 'bottom-right' });
+      showToast(t('form.password_not_match'), 'error');
       return;
     }
     setSubmitting(true);
     try {
       await onChange({ password: data.password }, () => {
-        toast.success(t('profile.success'), { position: 'bottom-right' });
+        showToast(t('profile.success'), 'success');
       });
       setPasswordDialogOpen(false);
       passwordForm.reset();
@@ -397,7 +389,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         password_repeat: '',
       })
       .then(() => {
-        toast.success(t('profile.success'), { position: 'bottom-right' });
+        showToast(t('profile.success'), 'success');
         setEmailDialogOpen(false);
         refetch();
       });
@@ -413,9 +405,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       .post(unbindUrl)
       .then(() => {
         refetchBindings();
-        toast(t('setting.third_party_account.unbind_success'), {
-          position: 'bottom-right',
-        });
+        showToast(t('setting.third_party_account.unbind_success'), 'success');
       })
       .finally(() => {
         setUnbinding(false);
@@ -425,7 +415,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   if (loading) {
     return (
       <div className="flex h-[200px] items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     );
   }
@@ -433,7 +423,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   const maskedPassword = '********';
 
   return (
-    <div className="flex w-full flex-col items-start gap-4 lg:w-[533px] lg:gap-5">
+    <div className="flex w-full flex-col items-start gap-2">
       {/* Account Section Header */}
       <SectionHeader title={t('setting.account')} />
 
@@ -441,10 +431,14 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       <InfoRow
         label={t('form.username')}
         value={user?.username || ''}
+        description={t('setting.option_descriptions.username')}
         button={
-          <ActionButton onClick={() => setUsernameDialogOpen(true)}>
+          <SettingPageButton
+            variant="outline"
+            onClick={() => setUsernameDialogOpen(true)}
+          >
             {t('setting.change')}
-          </ActionButton>
+          </SettingPageButton>
         }
       />
 
@@ -452,10 +446,14 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
       <InfoRow
         label={t('form.password')}
         value={maskedPassword}
+        description={t('setting.option_descriptions.password')}
         button={
-          <ActionButton onClick={() => setPasswordDialogOpen(true)}>
+          <SettingPageButton
+            variant="outline"
+            onClick={() => setPasswordDialogOpen(true)}
+          >
             {t('setting.change')}
-          </ActionButton>
+          </SettingPageButton>
         }
       />
 
@@ -466,57 +464,34 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         tooltip={t('setting.binding_tooltip')}
       />
 
-      {/* Phone Row */}
-      <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
-        <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-          <div className="flex flex-shrink-0 items-center gap-2">
-            <span className="flex size-5 flex-shrink-0 items-center justify-center">
-              <SmartphoneIcon />
-            </span>
-            <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-              {t('setting.phone')}
-            </p>
-          </div>
-          <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-            {phoneBinding?.login_id
-              ? phoneBinding.login_id
-              : t('setting.not_bound')}
-          </p>
-        </div>
-        <div className="ml-2 flex-shrink-0">
-          {phoneBinding?.id ? (
-            <ActionButton onClick={() => setPhoneDialogOpen(true)}>
-              {t('setting.change')}
-            </ActionButton>
-          ) : (
-            <ActionButton onClick={() => setPhoneDialogOpen(true)}>
-              {t('setting.bind_btn')}
-            </ActionButton>
-          )}
-        </div>
-      </div>
-
-      {/* Email Row */}
-      <div className="flex h-[30px] w-full items-center justify-between lg:w-[532px]">
-        <div className="flex h-[22px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-          <div className="flex flex-shrink-0 items-center gap-2">
-            <span className="flex size-5 flex-shrink-0 items-center justify-center text-blue-400">
-              <MailIcon />
-            </span>
-            <p className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-              {t('setting.email_binding')}
-            </p>
-          </div>
-          <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-            {user?.email || t('setting.not_bound')}
-          </p>
-        </div>
-        <div className="ml-2 flex-shrink-0">
-          <ActionButton onClick={() => setEmailDialogOpen(true)}>
+      <InfoRow
+        icon={<SmartphoneIcon />}
+        label={t('setting.phone')}
+        value={phoneBinding?.login_id || t('setting.not_bound')}
+        description={t('setting.option_descriptions.phone')}
+        button={
+          <SettingPageButton
+            variant={phoneBinding?.id ? 'outline' : 'default'}
+            onClick={() => setPhoneDialogOpen(true)}
+          >
+            {t(phoneBinding?.id ? 'setting.change' : 'setting.bind_btn')}
+          </SettingPageButton>
+        }
+      />
+      <InfoRow
+        icon={<MailIcon className="text-blue-400" />}
+        label={t('setting.email_binding')}
+        value={user?.email || t('setting.not_bound')}
+        description={t('setting.option_descriptions.email')}
+        button={
+          <SettingPageButton
+            variant="outline"
+            onClick={() => setEmailDialogOpen(true)}
+          >
             {t('setting.change')}
-          </ActionButton>
-        </div>
-      </div>
+          </SettingPageButton>
+        }
+      />
 
       {/* WeChat, Google & Apple Bindings */}
       {bindingData
@@ -556,14 +531,14 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
 
       {/* Username Change Dialog */}
       <Dialog open={usernameDialogOpen} onOpenChange={setUsernameDialogOpen}>
-        <DialogContent className="w-[90%] max-w-md sm:w-1/2">
+        <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
           <DialogHeader>
             <DialogTitle>{t('form.username')}</DialogTitle>
-            <VisuallyHidden>
+            <VisuallyHidden.Root>
               <DialogDescription>
                 {t('form.change_username_desc')}
               </DialogDescription>
-            </VisuallyHidden>
+            </VisuallyHidden.Root>
           </DialogHeader>
           <Form {...usernameForm}>
             <form
@@ -586,11 +561,12 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => setUsernameDialogOpen(false)}
                 >
                   {t('cancel')}
                 </Button>
-                <Button type="submit" disabled={submitting}>
+                <Button type="submit" disabled={submitting} size="sm">
                   {submitting ? <Spinner /> : t('ok')}
                 </Button>
               </div>
@@ -611,14 +587,14 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
           }
         }}
       >
-        <DialogContent className="w-[90%] max-w-md sm:w-1/2">
+        <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
           <DialogHeader>
             <DialogTitle>{t('form.password')}</DialogTitle>
-            <VisuallyHidden>
+            <VisuallyHidden.Root>
               <DialogDescription>
                 {t('form.change_password_desc')}
               </DialogDescription>
-            </VisuallyHidden>
+            </VisuallyHidden.Root>
           </DialogHeader>
           <Form {...passwordForm}>
             <form
@@ -694,6 +670,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                 <Button
                   type="button"
                   variant="outline"
+                  size="sm"
                   onClick={() => {
                     setPasswordDialogOpen(false);
                     passwordForm.reset();
@@ -703,7 +680,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                 >
                   {t('cancel')}
                 </Button>
-                <Button type="submit" disabled={submitting}>
+                <Button type="submit" disabled={submitting} size="sm">
                   {submitting ? <Spinner /> : t('ok')}
                 </Button>
               </div>
@@ -714,13 +691,13 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
 
       {/* Email Validation Dialog */}
       <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]">
-          <VisuallyHidden>
+        <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]">
+          <VisuallyHidden.Root>
             <DialogHeader>
               <DialogTitle>{t('email.validate')}</DialogTitle>
               <DialogDescription>{t('email.description')}</DialogDescription>
             </DialogHeader>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
           <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
             <EmailValidate onFinish={handleEmailValidateFinish} />
           </div>
@@ -729,15 +706,15 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
 
       {/* Phone Binding Dialog */}
       <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
-        <DialogContent className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
-          <VisuallyHidden>
+        <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
+          <VisuallyHidden.Root>
             <DialogHeader>
               <DialogTitle>{t('phone.input_phone')}</DialogTitle>
               <DialogDescription>
                 {t('phone.will_send_verification')}
               </DialogDescription>
             </DialogHeader>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
           <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
             <PhoneValidate
               currentPhone={user?.phone}
@@ -756,19 +733,23 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
         title={t('setting.danger_zone')}
         className="mt-4 text-destructive"
       />
-      <div className="flex h-[30px] w-full items-center justify-between lg:w-[533px]">
-        <div className="flex h-[24px] min-w-0 flex-1 items-center gap-2 lg:gap-3">
-          <p className="flex-shrink-0 whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
-            {t('setting.delete_account.section_title')}
-          </p>
-          <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground lg:text-base">
-            {t('setting.delete_account.section_description')}
-          </p>
-        </div>
-        <div className="ml-2 flex-shrink-0">
-          <DeleteAccountDialog username={user?.username || ''} />
-        </div>
-      </div>
+      <InfoRow
+        label={t('setting.delete_account.section_title')}
+        description={t('setting.delete_account.section_description')}
+        button={
+          <SettingPageButton
+            variant="destructive"
+            onClick={() => setDeleteAccountOpen(true)}
+          >
+            {t('setting.delete_account.button')}
+          </SettingPageButton>
+        }
+      />
+      <DeleteAccountDialog
+        username={user?.username || ''}
+        open={deleteAccountOpen}
+        onOpenChange={setDeleteAccountOpen}
+      />
     </div>
   );
 }

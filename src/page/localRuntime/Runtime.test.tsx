@@ -2,7 +2,6 @@
 
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { Simulate } from 'react-dom/test-utils';
 
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
@@ -242,11 +241,13 @@ it('ignores IME confirmation and saves only a subsequent ordinary Enter', async 
     root.render(<RenameDevice device={device} refresh={() => {}} />)
   );
   const input = container.querySelector('input')!;
-  await act(async () =>
-    Simulate.change(input, {
-      target: { value: 'zhong' },
-    } as unknown as React.ChangeEvent<HTMLInputElement>)
-  );
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value'
+    )!.set!.call(input, 'zhong');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   for (const extra of [{ isComposing: true }, { keyCode: 229 }]) {
     await act(async () =>
       input.dispatchEvent(
@@ -255,11 +256,13 @@ it('ignores IME confirmation and saves only a subsequent ordinary Enter', async 
     );
   }
   expect(mockPatch).not.toHaveBeenCalled();
-  await act(async () =>
-    Simulate.change(input, {
-      target: { value: '中文电脑' },
-    } as unknown as React.ChangeEvent<HTMLInputElement>)
-  );
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value'
+    )!.set!.call(input, '中文电脑');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   await act(async () =>
     input.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })

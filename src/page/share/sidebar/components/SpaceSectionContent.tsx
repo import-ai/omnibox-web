@@ -36,12 +36,12 @@ export function SpaceSectionContent({
         <div className="relative size-full">
           <SidebarGroupLabel
             onClick={handleHeaderToggle}
-            className="mr-4 flex h-full items-center gap-1 font-normal leading-8 text-neutral-400"
+            className="mr-4 flex h-full cursor-pointer items-center gap-1 font-normal leading-8 text-muted-foreground"
           >
             {t('share.share.title')}
             <ChevronRight
               className={cn(
-                '!size-3 shrink-0 text-neutral-300 transition-transform dark:text-neutral-500',
+                'size-3! shrink-0 text-muted-foreground transition-transform',
                 isOpen && 'rotate-90'
               )}
             />

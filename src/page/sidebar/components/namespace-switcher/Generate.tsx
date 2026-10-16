@@ -1,17 +1,17 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { Info, Plus, SquareArrowOutUpRight } from 'lucide-react';
+import { VisuallyHidden } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import useConfig from '@/hooks/useConfig';
 import GenerateForm from '@/page/settings/tabs/account/GenerateForm';
 
@@ -83,12 +83,12 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
         <Plus className="size-4" />
         {t('namespace.add')}
       </Button>
-      <DialogContent className="w-[90%] max-w-7xl p-4 sm:w-1/2 sm:p-6">
+      <DialogContent className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6">
         <DialogHeader>
           <DialogTitle>{t('namespace.add')}</DialogTitle>
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <DialogDescription></DialogDescription>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
         </DialogHeader>
         <GenerateForm />
       </DialogContent>

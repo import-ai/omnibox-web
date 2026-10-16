@@ -46,7 +46,7 @@ export default function Action(props: ActionProps) {
           disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
         )}
       >
-        <div className="flex items-center text-gray-600 dark:text-white">
+        <div className="flex items-center text-foreground">
           <span>
             {target && target.label ? target.label : t(`permission.${value}`)}
           </span>
@@ -67,8 +67,8 @@ export default function Action(props: ActionProps) {
             className={cn(
               'justify-between',
               disabledValues.includes(item.value)
-                ? 'data-[disabled]:pointer-events-auto data-[disabled]:cursor-not-allowed data-[disabled]:!bg-transparent'
-                : 'cursor-pointer hover:bg-gray-100'
+                ? 'data-disabled:pointer-events-auto data-disabled:cursor-not-allowed data-disabled:bg-transparent!'
+                : 'cursor-pointer hover:bg-accent'
             )}
           >
             <div>
@@ -76,7 +76,7 @@ export default function Action(props: ActionProps) {
                 <div>
                   <div>{item.label}</div>
                   {item.description && (
-                    <div className="text-gray-500 text-xs">
+                    <div className="text-muted-foreground text-xs">
                       {item.description}
                     </div>
                   )}
@@ -85,9 +85,7 @@ export default function Action(props: ActionProps) {
                 item.label
               )}
             </div>
-            {item.value === value && (
-              <Check className="h-5 w-5 text-blue-600 dark:text-white" />
-            )}
+            {item.value === value && <Check className="h-5 w-5 text-primary" />}
           </DropdownMenuItem>
         ))}
         {afterAddon}

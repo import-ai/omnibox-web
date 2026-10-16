@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { Task } from '@/interface.ts';
 import { http } from '@/lib/request';
@@ -130,8 +130,8 @@ export function TaskActions({
               {t('tasks.continue_running')}
             </AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               disabled={isLoading}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleCancel}
             >
               {isLoading && <Spinner className="mr-2" />}

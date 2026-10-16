@@ -1,5 +1,5 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import copy from 'copy-to-clipboard';
+import { VisuallyHidden } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { Switch } from '@/components/ui/Switch';
 import { http } from '@/lib/request';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
@@ -66,12 +66,12 @@ export default function InvitePeople(props: IProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[90%] max-w-sm p-4 sm:p-6">
+        <DialogContent className="w-[90%] max-w-sm sm:max-w-sm p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>{t('invite.title')}</DialogTitle>
-            <VisuallyHidden>
+            <VisuallyHidden.Root>
               <DialogDescription></DialogDescription>
-            </VisuallyHidden>
+            </VisuallyHidden.Root>
           </DialogHeader>
           <AddNamespaceInvitationForm
             namespaceId={namespaceId}
@@ -79,19 +79,19 @@ export default function InvitePeople(props: IProps) {
           />
         </DialogContent>
       </Dialog>
-      <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-col gap-1 lg:gap-2">
-          <h2 className="text-sm font-semibold text-foreground lg:text-base">
+      <div className="mb-4 grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+        <div className="min-w-0">
+          <h2 className="text-sm font-medium leading-5 text-foreground">
             {t('invite.title')}
           </h2>
-          <p className="text-xs text-neutral-400 lg:text-sm">
+          <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
             {t('invite.description')}
           </p>
         </div>
-        <div className="mt-2 flex items-center gap-2 lg:mt-0">
+        <div className="flex shrink-0 items-center gap-2">
           {!!invitationId && (
             <span
-              className="cursor-pointer text-xs text-neutral-400 hover:text-foreground lg:text-sm"
+              className="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
               onClick={handleCopy}
             >
               {t('actions.copy_link')}

@@ -26,7 +26,7 @@ export function SidebarTriggerButton({ collapse }: IProps) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <SidebarTrigger className="text-neutral-400 hover:bg-[#E6E6EC] hover:text-neutral-400 dark:hover:bg-accent" />
+          <SidebarTrigger className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground dark:hover:bg-accent [&_svg]:size-4" />
         </TooltipTrigger>
         <TooltipContent>
           {t(collapse ? 'sidebar.expand' : 'sidebar.collapse')}

@@ -75,7 +75,7 @@ export default function ShareSidebar(props: IProps) {
             })}
           >
             <SidebarMenuButton className="gap-[6px] w-full px-1.5 h-auto">
-              <div className="flex flex-shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-neutral-700 dark:text-white">
+              <div className="flex shrink-0 rounded-[8px] size-[24px] text-[12px] items-center justify-center bg-primary text-primary-foreground dark:bg-accent dark:text-accent-foreground">
                 {username.charAt(0).toUpperCase()}
               </div>
               <span className="truncate">
@@ -86,7 +86,7 @@ export default function ShareSidebar(props: IProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <SidebarTrigger className="text-neutral-400 hover:text-neutral-400 hover:bg-[#E6E6EC] dark:hover:bg-accent" />
+                    <SidebarTrigger className="text-muted-foreground hover:text-muted-foreground hover:bg-sidebar-accent dark:hover:bg-accent" />
                   </TooltipTrigger>
                   <TooltipContent>{t('sidebar.collapse')}</TooltipContent>
                 </Tooltip>

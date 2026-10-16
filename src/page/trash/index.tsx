@@ -1,9 +1,10 @@
-import { ChevronRight, Trash, Trash2 } from 'lucide-react';
+import { ChevronRight, Trash } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { TrashEmptyIcon } from '@/assets/icons/TrashEmptyIcon';
 import { SearchField } from '@/components/search/SearchField';
 import {
   Popover,
@@ -206,12 +207,12 @@ export function TrashPanel() {
       <SidebarGroup>
         <SidebarGroupLabel
           onClick={handleSystemToggle}
-          className="h-8 cursor-pointer select-none gap-1 pl-4 font-normal leading-8 text-neutral-400"
+          className="h-8 cursor-pointer select-none gap-1 pl-4 font-normal leading-8 text-muted-foreground"
         >
           {t('trash.system')}
           <ChevronRight
             className={cn(
-              '!size-3 shrink-0 text-neutral-300 transition-transform dark:text-neutral-500',
+              'size-3! shrink-0 text-muted-foreground transition-transform',
               systemOpen && 'rotate-90'
             )}
           />
@@ -223,25 +224,25 @@ export function TrashPanel() {
                 <Popover open={open} onOpenChange={handleOpenChange}>
                   <PopoverTrigger asChild>
                     <SidebarMenuButton
-                      className={cn({
+                      className={cn('h-(--sidebar-row-height)', {
                         'bg-sidebar-accent text-sidebar-accent-foreground':
                           isOver,
                       })}
                     >
                       {total > 0 ? (
-                        <Trash2 className="size-4 text-neutral-400" />
+                        <Trash className="size-4 text-muted-foreground" />
                       ) : (
-                        <Trash className="size-4 text-neutral-400" />
+                        <TrashEmptyIcon className="size-4 text-muted-foreground" />
                       )}
                       <span>{t('trash.title')}</span>
                     </SidebarMenuButton>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="flex w-80 max-h-[var(--radix-popover-content-available-height)] flex-col overflow-hidden p-3"
+                    className="flex w-[min(20rem,calc(100vw-2rem))] max-h-(--radix-popover-content-available-height) flex-col overflow-hidden p-3"
                     side={placement.side}
                     align={placement.align}
                     sideOffset={8}
-                    collisionPadding={8}
+                    collisionPadding={16}
                     onOpenAutoFocus={e => e.preventDefault()}
                     onCloseAutoFocus={e => e.preventDefault()}
                     onWheel={e => e.stopPropagation()}

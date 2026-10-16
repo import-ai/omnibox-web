@@ -15,7 +15,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 interface ImagePreviewDialogProps {
   alt?: string;
@@ -49,7 +49,7 @@ export function ImagePreviewDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         data-image-preview=""
-        className="fixed left-0 top-0 flex h-full w-full max-w-none translate-x-0 translate-y-0 items-center justify-center gap-0 border-0 bg-transparent p-0 shadow-none motion-reduce:animate-none [&>button:last-child]:hidden"
+        className="fixed left-0 top-0 flex h-full w-full max-w-none sm:max-w-none translate-x-0 translate-y-0 items-center justify-center gap-0 border-0 bg-transparent p-0 shadow-none motion-reduce:animate-none [&>button:last-child]:hidden"
         style={
           {
             '--tw-enter-scale': '1',
@@ -94,7 +94,7 @@ export function ImagePreviewDialog({
                 ref={closeRef}
                 type="button"
                 aria-label={t('close')}
-                className="absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/55 text-white shadow-sm transition-colors hover:bg-black/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+                className="absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/55 text-white shadow-xs transition-colors hover:bg-black/75 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
               >
                 <X className="size-4" />
               </button>

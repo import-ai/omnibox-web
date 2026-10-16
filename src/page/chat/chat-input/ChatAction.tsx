@@ -1,7 +1,7 @@
 import { ArrowUp, ChevronDown, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import {
   Tooltip,
   TooltipContent,
@@ -97,7 +97,7 @@ export default function ChatAction(props: IActionProps) {
                 className="rounded-full size-8"
                 onClick={onStop}
               >
-                <Square className="!size-3 fill-current" />
+                <Square className="size-3! fill-current" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>{t('chat.messages.actions.stop')}</TooltipContent>
@@ -122,9 +122,20 @@ export default function ChatAction(props: IActionProps) {
           </Tooltip>
         </TooltipProvider>
       ) : (
-        <Button size="icon" onClick={onSend} className="rounded-full size-8">
-          <ArrowUp />
-        </Button>
+        <TooltipProvider>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <Button
+                size="icon"
+                onClick={onSend}
+                className="rounded-full size-8"
+              >
+                <ArrowUp />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{t('chat.send')}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )}
     </div>
   );

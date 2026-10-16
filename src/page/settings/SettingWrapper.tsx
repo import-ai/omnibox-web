@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { X } from 'lucide-react';
 import { useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { Separator } from '@/components/ui/Separator';
+import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { http } from '@/lib/request';
 import DeviceSettings from '@/page/localRuntime/DeviceSettings';
@@ -14,12 +17,14 @@ import { SettingsSidebar } from './SettingsSidebar';
 import { SettingsToastProvider } from './SettingsToastProvider';
 import About from './tabs/about';
 import { APIKeyForm } from './tabs/account/APIKeyForm';
+import { AutoRenewalSection } from './tabs/account/AutoRenewalSection';
 import SettingForm from './tabs/account/SettingForm';
 import { ApplicationsForm } from './tabs/applications';
 import CommonForm from './tabs/basic';
 import Content from './tabs/content';
 import { FeaturePreviewsForm } from './tabs/featurePreviews';
 import ProfileForm from './tabs/profile';
+import { RemainQuota } from './tabs/quota';
 
 interface SettingWrapperProps {
   initialTab?: string;
@@ -40,6 +45,8 @@ export default function SettingWrapper({
   onClose,
 }: SettingWrapperProps) {
   const params = useParams();
+  const { t } = useTranslation();
+  const { config } = useConfig();
   const namespaceId = params.namespace_id || '';
   const [userIsOwnerOrAdmin, setUserIsOwnerOrAdmin] = useState(false);
   const [userIsOwner, setUserIsOwner] = useState(false);
@@ -80,6 +87,39 @@ export default function SettingWrapper({
         />
       ),
     },
+    ...(config.commercial
+      ? [
+          {
+            value: 'usage',
+            children: (
+              <div>
+                <div className="flex flex-col gap-2.5">
+                  <h3 className="text-base font-semibold text-foreground">
+                    {t('namespace.usage')}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t('quota.description')}
+                  </p>
+                </div>
+                <Separator className="my-6" />
+                <RemainQuota namespaceId={namespaceId} />
+                {userIsOwnerOrAdmin && (
+                  <>
+                    <AutoRenewalSection
+                      namespaceId={namespaceId}
+                      tier="basic"
+                    />
+                    <AutoRenewalSection
+                      namespaceId={namespaceId}
+                      tier="premium"
+                    />
+                  </>
+                )}
+              </div>
+            ),
+          },
+        ]
+      : []),
     {
       value: 'people',
       children: <PeopleForm canManageMembers={userIsOwnerOrAdmin} />,
@@ -160,7 +200,7 @@ export default function SettingWrapper({
         </button>
 
         {/* Content area */}
-        <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-white px-5 py-4 [scrollbar-gutter:stable] dark:bg-neutral-800 lg:p-4 lg:pl-10 lg:pt-10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent dark:[&::-webkit-scrollbar-track]:bg-neutral-900 [&::-webkit-scrollbar]:w-1.5">
+        <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-background px-5 py-4 scrollbar-gutter-stable lg:p-4 lg:pl-10 lg:pt-10 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5">
           {items.find(item => item.value === activeKey)?.children}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { Dialog as DialogPrimitive } from 'radix-ui';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -11,18 +11,18 @@ import bindPhoneBubbleDark from '@/assets/inviteReferral/bindPhoneBubbleDark.svg
 import bindPhoneCatDark from '@/assets/inviteReferral/bindPhoneCatDark.svg';
 import bindPhoneCatLight from '@/assets/inviteReferral/bindPhoneCatLight.svg';
 import logoSvg from '@/assets/logo.svg';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { CaptchaMount } from '@/components/captcha/CaptchaMount';
-import { PhoneNumberInput } from '@/components/phone-input';
-import { formatPhone } from '@/components/phone-input/utils';
-import { LanguageToggle } from '@/components/toggle/LanguageToggle';
-import { ThemeToggle } from '@/components/toggle/ThemeToggle';
 import {
   Dialog,
   DialogDescription,
   DialogPortal,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
+import { PhoneNumberInput } from '@/components/phone-input';
+import { formatPhone } from '@/components/phone-input/utils';
+import { LanguageToggle } from '@/components/toggle/LanguageToggle';
+import { ThemeToggle } from '@/components/toggle/ThemeToggle';
 import {
   Form,
   FormControl,
@@ -197,7 +197,7 @@ export function InvitePhoneBindingDialog({
     >
       <DialogPortal>
         <DialogPrimitive.Content
-          className="fixed inset-0 z-50 flex h-full w-full max-w-none translate-x-0 translate-y-0 flex-col overflow-y-auto rounded-none border-0 bg-background p-4 shadow-none outline-none"
+          className="fixed inset-0 z-50 flex h-full w-full max-w-none translate-x-0 translate-y-0 flex-col overflow-y-auto rounded-none border-0 bg-background p-4 shadow-none outline-hidden"
           onOpenAutoFocus={event => event.preventDefault()}
           onCloseAutoFocus={event => event.preventDefault()}
           onPointerDownOutside={event => event.preventDefault()}
@@ -224,7 +224,7 @@ export function InvitePhoneBindingDialog({
               </div>
               <div
                 className={cn(
-                  'relative w-full min-w-0 rounded-[18px] bg-white shadow-[0px_10px_28px_rgba(0,0,0,0.16)] dark:bg-[#171717]',
+                  'relative w-full min-w-0 rounded-[18px] bg-popover shadow-lg',
                   step === 'phone' ? 'min-h-[316px]' : 'min-h-[309px]'
                 )}
               >
@@ -277,7 +277,7 @@ export function InvitePhoneBindingDialog({
                         width={207}
                         height={71}
                       />
-                      <p className="absolute left-[41px] top-[17px] w-[146px] text-[14px] font-medium leading-[18px] text-muted-foreground dark:text-[hsl(0_0%_98%)]">
+                      <p className="absolute left-[41px] top-[17px] w-[146px] text-[14px] font-medium leading-[18px] text-muted-foreground dark:text-foreground">
                         {t('inviteReferral.phoneBinding.bubble')}
                       </p>
                     </div>
@@ -301,7 +301,7 @@ export function InvitePhoneBindingDialog({
                                   placeholder={t('phone.enter_phone')}
                                   allowedCountries={allowedCountries}
                                   variant="bind"
-                                  className="h-[52px] rounded-lg border-[#E5E5E5] bg-white opacity-100 focus-within:ring-0 disabled:opacity-100 dark:border-[#303030] dark:bg-[#171717] [&_input]:min-w-0 [&_input]:text-base sm:[&_input]:text-[14px] [&_input]:disabled:opacity-100"
+                                  className="h-[52px] rounded-lg border-input bg-background opacity-100 focus-within:ring-0 disabled:opacity-100 [&_input]:min-w-0 [&_input]:text-base sm:[&_input]:text-[14px] disabled:[&_input]:opacity-100"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -310,7 +310,7 @@ export function InvitePhoneBindingDialog({
                         />
                         <Button
                           type="submit"
-                          className="mt-5 h-[49px] w-full rounded-lg bg-[#0A0A0A] text-[14px] font-medium"
+                          className="mt-5 h-[49px] w-full rounded-lg bg-primary text-[14px] font-medium"
                           loading={sending}
                           disabled={sending}
                         >
@@ -328,7 +328,7 @@ export function InvitePhoneBindingDialog({
                       {t('phone.input_verification_code')}
                     </h2>
                     <div className="mx-auto flex w-full max-w-[335px] flex-col px-4 sm:px-0">
-                      <p className="mt-8 text-center text-[15px] font-normal leading-[23px] text-[#737373]">
+                      <p className="mt-8 text-center text-[15px] font-normal leading-[23px] text-muted-foreground">
                         {t('phone.sent_code_to')}
                         <span className="font-bold">{formatPhone(phone)}</span>
                       </p>
@@ -346,7 +346,7 @@ export function InvitePhoneBindingDialog({
                       </div>
                       <Button
                         type="button"
-                        className="mt-[30px] h-[49px] w-full rounded-lg bg-[#0A0A0A] text-[15px] font-medium leading-[23px] disabled:bg-[#737373] disabled:text-white dark:disabled:bg-[#737373] dark:disabled:text-white"
+                        className="mt-[30px] h-[49px] w-full rounded-lg bg-primary text-[15px] font-medium leading-[23px]"
                         loading={submitting}
                         disabled={!canBind}
                         onClick={() => void handleVerify()}

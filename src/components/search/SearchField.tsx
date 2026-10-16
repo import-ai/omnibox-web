@@ -8,15 +8,15 @@ import {
   useRef,
 } from 'react';
 
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/Button';
+import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 
 import { useSearchFieldValue } from './useSearchFieldValue';
 
 export const searchFieldClearButtonClassName =
-  'h-[22px] rounded border-none bg-transparent px-2 text-sm font-normal text-muted-foreground shadow-none outline-none ring-0 hover:bg-accent hover:text-muted-foreground focus-visible:ring-0 focus-visible:ring-transparent active:!bg-[#3b82f633] active:text-[#3b82f6] dark:hover:bg-accent';
+  'h-[22px] rounded border-none bg-transparent px-2 text-sm font-normal text-muted-foreground shadow-none outline-hidden ring-0 hover:bg-accent hover:text-muted-foreground focus-visible:ring-0 focus-visible:ring-transparent active:bg-accent! active:text-accent-foreground dark:hover:bg-accent';
 
 export interface SearchFieldProps extends Omit<
   ComponentPropsWithoutRef<'input'>,
@@ -73,7 +73,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
     return (
       <div
         className={cn(
-          'relative flex min-h-9 w-full items-center rounded-md border border-line bg-transparent text-sm shadow-none transition-colors focus-within:outline-none focus-within:ring-0 dark:bg-transparent',
+          'relative flex min-h-9 w-full items-center rounded-md border border-line bg-transparent text-sm shadow-none transition-colors focus-within:outline-hidden focus-within:ring-0 dark:bg-transparent',
           disabled && 'cursor-not-allowed opacity-50',
           containerClassName
         )}

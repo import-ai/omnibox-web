@@ -5,13 +5,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { CrownIcon } from '@/assets/icons/CrownIcon';
 import { UpgradeIcon } from '@/assets/icons/UpgradeIcon';
+import { Button } from '@/components/Button';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import Space from '@/components/space';
 import { Avatar } from '@/components/ui/Avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -36,7 +36,7 @@ import Generate from './Generate';
 import { InviteButton } from './InviteButton';
 import { NamespaceList } from './NamespaceList';
 import NamespaceMember from './NamespaceMember';
-import { NamespaceTierBadge } from './NamespaceTierBadge';
+import { NamespaceVersionBadge } from './NamespaceVersionBadge';
 
 interface IProps {
   commercial?: boolean;
@@ -78,8 +78,8 @@ export function Switcher(props: IProps) {
       >
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="h-auto w-full gap-1.5 px-1.5">
-              <div className="flex size-6 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground dark:bg-neutral-700 dark:text-white">
+            <SidebarMenuButton className="h-auto w-full cursor-pointer gap-1.5 px-1.5">
+              <div className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground dark:bg-neutral-700 dark:text-white">
                 {current.name?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <span className="truncate">{current.name}</span>
@@ -90,7 +90,7 @@ export function Switcher(props: IProps) {
             align="start"
             side="bottom"
             sideOffset={4}
-            className="w-64 rounded-lg"
+            className="w-64 rounded-lg border border-border ring-0"
           >
             <DropdownMenuLabel>
               <div className="flex items-center gap-1 pt-1 text-left text-sm">
@@ -101,37 +101,38 @@ export function Switcher(props: IProps) {
                   <span className="truncate font-semibold">{current.name}</span>
                   <div className="flex min-w-0 items-center justify-between gap-2">
                     <NamespaceMember namespaceId={namespaceId} />
-                    <NamespaceTierBadge namespace={current} />
+                    <NamespaceVersionBadge namespace={current} />
                   </div>
                 </div>
               </div>
             </DropdownMenuLabel>
             {pricingEntryVariant && (
-              <DropdownMenuItem
-                asChild
-                className={cn(
-                  'h-8 cursor-pointer gap-1 px-2 py-0 text-xs font-medium',
-                  'text-blue-500 hover:text-blue-500 focus:text-blue-500',
-                  'active:text-blue-500 data-[highlighted]:text-blue-500'
-                )}
-              >
-                <a
-                  href={getUpgradeLink(i18n, namespaceId)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+              <DropdownMenuLabel className="p-0">
+                <Button
+                  asChild
+                  size="sm"
+                  variant="ghost"
+                  className="w-full justify-start gap-1 px-2 text-blue-500 hover:text-blue-500"
                 >
-                  {pricingEntryVariant === 'upgrade' ? (
-                    <UpgradeIcon className="size-4 shrink-0 text-blue-500 hover:text-blue-500 focus:text-blue-500 active:text-blue-500" />
-                  ) : (
-                    <CrownIcon className="size-4 shrink-0 text-blue-500 hover:text-blue-500 focus:text-blue-500 active:text-blue-500" />
-                  )}
-                  <span>{t(`namespace.${pricingEntryVariant}`)}</span>
-                </a>
-              </DropdownMenuItem>
+                  <a
+                    href={getUpgradeLink(i18n, namespaceId)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    {pricingEntryVariant === 'upgrade' ? (
+                      <UpgradeIcon className="size-4 shrink-0" />
+                    ) : (
+                      <CrownIcon className="size-4 shrink-0" />
+                    )}
+                    <span>{t(`namespace.${pricingEntryVariant}`)}</span>
+                  </a>
+                </Button>
+              </DropdownMenuLabel>
             )}
             <DropdownMenuLabel className="p-0">
               <Space className="flex-col items-stretch gap-1">
-                <SettingButton />
+                <SettingButton onOpen={() => setDropdownOpen(false)} />
                 <InviteButton namespaceId={namespaceId} />
               </Space>
             </DropdownMenuLabel>

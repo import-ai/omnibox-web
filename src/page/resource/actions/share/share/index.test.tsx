@@ -39,7 +39,7 @@ jest.mock('@/components/tooltip', () => ({
   TooltipProvider: ({ children }: { children?: ReactNode }) => children,
   TooltipTrigger: ({ children }: { children?: ReactNode }) => children,
 }));
-jest.mock('@/components/ui/Button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     disabled,

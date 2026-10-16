@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import * as z from 'zod';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import {
   Form,

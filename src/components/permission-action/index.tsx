@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -173,7 +173,7 @@ export default function PermissionAction(props: IProps) {
               <DropdownMenuItem
                 onClick={handleRemove}
                 disabled={removeing}
-                className="cursor-pointer justify-between hover:bg-gray-100 hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
+                className="cursor-pointer justify-between hover:bg-accent hover:text-destructive focus:text-destructive data-highlighted:text-destructive"
               >
                 {removeing && <Spinner />}
                 {removeLabel}
@@ -207,7 +207,11 @@ export default function PermissionAction(props: IProps) {
             <AlertDialogCancel onClick={handleRemoveCancel}>
               {t('permission.cancel')}
             </AlertDialogCancel>
-            <AlertDialogAction disabled={removeing} onClick={handleRemoveOk}>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={removeing}
+              onClick={handleRemoveOk}
+            >
               {removeing && <Spinner />}
               {t('permission.ok')}
             </AlertDialogAction>
@@ -215,7 +219,7 @@ export default function PermissionAction(props: IProps) {
         </AlertDialogContent>
       </AlertDialog>
       <AlertDialog open={ownerOnly}>
-        <AlertDialogContent className="w-[85%] max-w-sm">
+        <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {t('permission.owner_full_access_required')}

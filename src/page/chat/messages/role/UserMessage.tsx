@@ -5,11 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { ShareIcon } from '@/assets/icons/ShareIcon';
+import { Button } from '@/components/Button';
 import Copy from '@/components/copy';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
@@ -229,7 +229,7 @@ export function UserMessage(props: IProps) {
         <div
           className={cn(
             'relative flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
-            'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
+            'ml-auto bg-secondary text-secondary-foreground dark:bg-card dark:text-card-foreground'
           )}
         >
           {[MessageStatus.PENDING, MessageStatus.STREAMING].includes(
@@ -266,7 +266,7 @@ export function UserMessage(props: IProps) {
             </div>
           ) : displayLines ? (
             displayLines.map((line, idx) => (
-              <span key={idx} className="break-words [overflow-wrap:anywhere]">
+              <span key={idx} className="wrap-break-word wrap-anywhere">
                 {line.map((part, partIndex) => {
                   if (part.type === 'text') return part.text;
                   if (part.type === 'tool') {
@@ -302,7 +302,7 @@ export function UserMessage(props: IProps) {
             ))
           ) : (
             lines.map((line, idx) => (
-              <span key={idx} className="break-words [overflow-wrap:anywhere]">
+              <span key={idx} className="wrap-break-word wrap-anywhere">
                 {splitUserMessageResourceTokens(line, resources).map(
                   (segment, segmentIndex) => {
                     if (segment.type === 'tool') {

@@ -1,8 +1,7 @@
 import { MessageSquareText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
+import { IconButton } from '@/components/omnibox/IconButton';
 
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
@@ -33,21 +32,17 @@ export function ResourceCommentsToggleButton({
     panel.setPanelOpen(true);
   };
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          className="h-7 w-7 shrink-0"
-          aria-label={label}
-          aria-pressed={panel.panelOpen}
-          onClick={toggle}
-        >
-          <MessageSquareText className="size-4" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{tooltipLabel}</TooltipContent>
-    </Tooltip>
+    <IconButton
+      type="button"
+      size="sm"
+      tone="accent"
+      className="shrink-0"
+      label={tooltipLabel}
+      aria-label={label}
+      aria-pressed={panel.panelOpen}
+      onClick={toggle}
+    >
+      <MessageSquareText className="size-4" />
+    </IconButton>
   );
 }

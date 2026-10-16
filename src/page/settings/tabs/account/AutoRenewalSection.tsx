@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert';
 import {
   AlertDialog,
@@ -12,7 +12,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/Spinner';
 
 import {
@@ -141,7 +141,7 @@ function CancelDialog({
   };
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-md">
+      <AlertDialogContent className="max-w-md sm:max-w-md">
         <AlertDialogHeader>
           <AlertDialogTitle>
             {t('namespace.auto_renewal.confirm_title')}
@@ -159,8 +159,8 @@ function CancelDialog({
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
+            variant="destructive"
             disabled={canceling}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             onClick={event => {
               event.preventDefault();
               handleCancel();
@@ -179,23 +179,12 @@ export function AutoRenewalSection({
   namespaceId,
   tier,
 }: AutoRenewalSectionProps) {
-  const { t } = useTranslation();
   const { cancel, canceling, loading, polling, renewal } = useAutoRenewal(
     namespaceId,
     tier
   );
 
-  if (loading) {
-    return (
-      <Alert
-        className="mt-4 p-3"
-        aria-label={t('namespace.auto_renewal.loading')}
-      >
-        <div className="h-12 animate-pulse rounded bg-muted" />
-      </Alert>
-    );
-  }
-  if (!renewal) return null;
+  if (loading || !renewal) return null;
 
   return (
     <AutoRenewalCard

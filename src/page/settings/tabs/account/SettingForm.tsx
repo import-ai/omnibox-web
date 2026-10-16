@@ -1,15 +1,23 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { ConfirmInputDialog } from '@/components/confirm-input-dialog';
 import { Input } from '@/components/input';
 import Loading from '@/components/loading';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/omnibox/Dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,7 +27,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import {
   Form,
   FormControl,
@@ -30,14 +38,10 @@ import {
 } from '@/components/ui/Form';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
-import useConfig from '@/hooks/useConfig';
 import useNamespace from '@/hooks/useNamespace';
 import useNamespaces from '@/hooks/useNamespaces';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
-
-import { RemainQuota } from '../quota';
-import { AutoRenewalSection } from './AutoRenewalSection';
 
 const createFormSchema = (t: (key: string) => string) =>
   z.object({
@@ -73,13 +77,13 @@ export default function SettingForm({
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [submiting, onSubmiting] = useState(false);
+  const [nameDialogOpen, setNameDialogOpen] = useState(false);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const { app, data, onChange, loading } = useNamespace();
   const { data: namespaces } = useNamespaces();
-  const { config } = useConfig();
   const formSchema = useMemo(
     () => createFormSchema(t),
     [t, i18n.resolvedLanguage]
@@ -97,6 +101,10 @@ export default function SettingForm({
       .then(() => {
         app.fire('namespaces_refetch');
         toast(t('namespace.success'));
+        setNameDialogOpen(false);
+      })
+      .catch(() => {
+        // Keep the dialog open so the user can correct or retry the name.
       })
       .finally(() => {
         onSubmiting(false);
@@ -150,14 +158,7 @@ export default function SettingForm({
     }
   };
 
-  useEffect(() => {
-    if (!data.id) {
-      return;
-    }
-    form.setValue('name', data.name);
-  }, [data]);
-
-  if (loading) {
+  if (loading && !data.id) {
     return <Loading />;
   }
 
@@ -168,56 +169,84 @@ export default function SettingForm({
         <div>
           <h3 className="text-base font-semibold">{t('namespace.title')}</h3>
           <Separator className="my-2 border-t" />
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(handleSubmit)}
-              className="flex w-full flex-row items-start justify-between gap-2.5 px-px"
+          <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <p className="text-sm font-medium leading-5 text-foreground">
+                  {t('namespace.name')}
+                </p>
+                <p className="min-w-0 break-words text-sm font-normal leading-5 text-muted-foreground">
+                  {data.name}
+                </p>
+              </div>
+              <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
+                {t('namespace.name_description')}
+              </p>
+            </div>
+            <SettingPageButton
+              variant="outline"
+              onClick={() => {
+                form.reset({ name: data.name });
+                setNameDialogOpen(true);
+              }}
             >
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem className="flex w-full flex-row items-start gap-7 space-y-0">
-                    <FormLabel className="flex h-10 min-w-14 items-center text-foreground">
-                      {t('namespace.name')}
-                    </FormLabel>
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <FormControl>
-                        <Input
-                          {...field}
-                          disabled={submiting}
-                          className="mt-0 w-full rounded-md border-border bg-transparent dark:bg-transparent"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <Button
-                type="submit"
-                disabled={submiting}
-                loading={submiting}
-                variant="default"
-                className="mt-[5px] h-[30px] w-[71px] shrink-0 text-xs font-medium"
-              >
-                {t('namespace.submit')}
-              </Button>
-            </form>
-          </Form>
-        </div>
-      )}
-      {config.commercial && (
-        <div>
-          <h3 className="text-base font-semibold">{t('namespace.usage')}</h3>
-          <Separator className="my-2 border-t" />
-          <RemainQuota namespaceId={namespaceId} />
-          {userIsOwnerOrAdmin && (
-            <>
-              <AutoRenewalSection namespaceId={namespaceId} tier="basic" />
-              <AutoRenewalSection namespaceId={namespaceId} tier="premium" />
-            </>
-          )}
+              {t('setting.change')}
+            </SettingPageButton>
+          </div>
+          <Dialog
+            open={nameDialogOpen}
+            onOpenChange={open => {
+              if (!submiting) setNameDialogOpen(open);
+            }}
+          >
+            <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
+              <DialogHeader>
+                <DialogTitle>{t('namespace.name')}</DialogTitle>
+                <DialogDescription>
+                  {t('namespace.name_description')}
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                  className="space-y-4"
+                >
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="sr-only">
+                          {t('namespace.name')}
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled={submiting} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={submiting}
+                      onClick={() => setNameDialogOpen(false)}
+                    >
+                      {t('cancel')}
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={submiting}
+                      loading={submiting}
+                    >
+                      {t('namespace.submit')}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
       {/* Danger Zone */}
@@ -226,49 +255,49 @@ export default function SettingForm({
           {t('setting.danger_zone')}
         </h3>
         <Separator className="my-2 border-t" />
-        <div className="space-y-4">
+        <div className="flex flex-col gap-2">
           {/* Leave Space */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
             <div className="min-w-0">
-              <p className="text-sm font-medium">
+              <p className="text-sm font-medium leading-5 text-foreground">
                 {t('namespace.leave.title')}
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
                 {t('namespace.leave.description')}
               </p>
             </div>
-            <Button
+            <SettingPageButton
               variant="destructive"
               onClick={() => setLeaveDialogOpen(true)}
             >
               {t('namespace.leave.button')}
-            </Button>
+            </SettingPageButton>
           </div>
 
           {/* Delete Space - Only for owners */}
           {userIsOwner && (
-            <div className="flex items-center justify-between gap-4">
+            <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
               <div className="min-w-0">
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium leading-5 text-foreground">
                   {t('namespace.delete.title')}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
                   {t('namespace.delete.description')}
                 </p>
               </div>
-              <Button
+              <SettingPageButton
                 variant="destructive"
                 onClick={() => setDeleteDialogOpen(true)}
               >
                 {t('namespace.delete.button')}
-              </Button>
+              </SettingPageButton>
             </div>
           )}
         </div>
       </div>
       {/* Leave Dialog */}
       <AlertDialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
-        <AlertDialogContent className="max-w-md">
+        <AlertDialogContent className="max-w-md sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {t('namespace.leave.confirm_title')}
@@ -285,8 +314,8 @@ export default function SettingForm({
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
+              variant="destructive"
               disabled={leaving}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-[#D95E52]"
               onClick={e => {
                 e.preventDefault();
                 handleLeave();

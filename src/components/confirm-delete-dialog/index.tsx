@@ -11,7 +11,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 
@@ -100,7 +100,7 @@ export default function ConfirmDeleteDialog(props: IProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="w-[85%] max-w-sm">
+      <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
         <AlertDialogHeader>
           <AlertDialogTitle>
             <Trans i18nKey={titleKey || 'common.dialog.delete.title'} />
@@ -120,9 +120,9 @@ export default function ConfirmDeleteDialog(props: IProps) {
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
+            variant="destructive"
             disabled={loading}
             onClick={handleConfirm}
-            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
           >
             {loading && <Spinner className="mr-2" />}
             {t('delete')}

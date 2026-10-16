@@ -9,8 +9,7 @@ import {
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
-import { Button as BaseButton } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import {
   Card,
   CardContent,
@@ -75,12 +74,12 @@ function getDecisionStyle(
 
   if (!isActive) {
     if (decision === 'approve') {
-      borderStyle = 'border-green-50 dark:!border-green-900/50';
+      borderStyle = 'border-green-50 dark:border-green-900/50!';
     } else {
-      borderStyle = 'border-red-50 dark:!border-red-900/50';
+      borderStyle = 'border-red-50 dark:border-red-900/50!';
     }
   } else {
-    borderStyle = 'dark:!border-neutral-500';
+    borderStyle = 'dark:border-border!';
   }
 
   let bgStyle: string;
@@ -360,7 +359,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
   }, [activeCardIndex]);
 
   return (
-    <Card className="max-w-[766px] w-full mx-auto rounded-2xl border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030] shadow-none">
+    <Card className="mx-auto w-full max-w-[766px] gap-0 rounded-2xl py-0">
       <CardHeader className="p-3">
         <CardTitle className="flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -394,7 +393,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
           const showSpinner = loading && interrupts.length === 1 && isSelected;
 
           return (
-            <BaseButton
+            <Button
               key={decisionType}
               variant="outline"
               size="sm"
@@ -414,7 +413,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
               {getDecisionIcon(decisionType)}
               <span>{t(`chat.decision.${decisionType.toLowerCase()}`)}</span>
               {showSpinner && <Spinner className="ml-auto" />}
-            </BaseButton>
+            </Button>
           );
         })}
       </CardContent>
@@ -509,7 +508,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 rounded-lg px-3 text-xs text-green-700 hover:!text-green-700 dark:text-green-300 dark:hover:!text-green-300"
+                  className="h-8 rounded-lg px-3 text-xs text-green-700 hover:text-green-700! dark:text-green-300 dark:hover:text-green-300!"
                   disabled={!canBulkDecide('approve')}
                   onClick={() => handleBulkDecision('approve')}
                 >
@@ -519,7 +518,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-8 rounded-lg px-3 text-xs text-red-700 hover:!text-red-700 dark:text-red-300 dark:hover:!text-red-300"
+                  className="h-8 rounded-lg px-3 text-xs text-red-700 hover:text-red-700! dark:text-red-300 dark:hover:text-red-300!"
                   disabled={!canBulkDecide('reject')}
                   onClick={() => handleBulkDecision('reject')}
                 >
