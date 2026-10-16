@@ -827,7 +827,13 @@
         }
       },
       "user_context": {
-        "selected_resources": "选择了 {{count}} 个资源"
+        "selected_resources": "选择了 {{count}} 个资源",
+        "channel": {
+          "qq": "来自 QQ",
+          "wechat": "来自微信",
+          "wechat_clawbot": "来自微信 ClawBot",
+          "telegram": "来自 Telegram"
+        }
       },
       "tool_calls": {
         "function_name": {

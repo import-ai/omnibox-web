@@ -123,6 +123,7 @@ export function AssistantMessage(props: IProps) {
     message.details_loaded !== undefined &&
     isTerminalMessageStatus(message.status);
   const openAIMessage = message.message;
+  const channel = message.attrs?.user_context?.channel;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
     useMessageSiblings(message.id, messageOperator);
@@ -168,6 +169,7 @@ export function AssistantMessage(props: IProps) {
         currentIndex={currentIndex}
         siblingsLength={siblings.length}
         createdAt={message.created_at}
+        channel={channel}
         onPrevious={handlePrevious}
         onNext={handleNext}
         isLastMessage={isLastMessage}
