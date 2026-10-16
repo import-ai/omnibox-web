@@ -244,8 +244,57 @@
   @apply bg-comment-surface! dark:bg-comment-surface-dark!;
 }
 
+.tiptap.ProseMirror .code-block-node__content {
+  font-family:
+    Menlo, 'Source Code Pro', ui-monospace, SFMono-Regular, Consolas,
+    'Liberation Mono', monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.375rem !important;
+}
+
 .tiptap.ProseMirror .resource-comment-draft-highlight:not(.tiptap-image) {
   @apply bg-comment-surface! dark:bg-comment-surface-dark!;
+}
+
+/* Feishu code comments are one line under the glyphs.
+   These selectors outrank the body underline, selected fill, and draft fill. */
+.tiptap.ProseMirror {
+  --resource-comment-code-underline: #fcdf7e;
+}
+
+.tiptap.ProseMirror
+  .code-block-node
+  [data-resource-comment-thread]:not(
+    [data-resource-comment-resolved='true']
+  ):not(.tiptap-image),
+.tiptap.ProseMirror
+  .code-block-node
+  [data-resource-comment-thread][data-comment-highlight]:not(.tiptap-image),
+.tiptap.ProseMirror
+  .code-block-node
+  .resource-comment-draft-highlight:not(.tiptap-image) {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor;
+  text-decoration-line: underline !important;
+  text-decoration-style: solid !important;
+  text-decoration-thickness: 0.125rem !important;
+  text-decoration-color: var(--resource-comment-code-underline) !important;
+  text-underline-offset: 0.3125rem !important;
+  text-decoration-skip-ink: none !important;
+}
+
+.tiptap.ProseMirror
+  .code-block-node
+  [data-resource-comment-thread][data-resource-comment-resolved='true']:not(
+    .tiptap-image
+  ) {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  text-decoration: none !important;
 }
 
 /* The comment decoration is on div.node-image, outside .tiptap-image.

@@ -370,8 +370,13 @@
   cursor: pointer;
 }
 
-/* The preview is limited to loaded table images; resize controls keep their own cursor. */
-:is(.resource-readonly-editor, .resource-editable-editor)
+/* Read-only images use a pointer. Editing keeps its own image cursor and menu. */
+.resource-readonly-editor .tiptap-image-img:not([class~='tw:invisible']) {
+  cursor: pointer !important;
+}
+
+/* Table images in the editor still open the preview; resize controls keep their cursor. */
+.resource-editable-editor
   :is(td, th)
   .tiptap-image-img:not([class~='tw:invisible']) {
   cursor: zoom-in !important;
