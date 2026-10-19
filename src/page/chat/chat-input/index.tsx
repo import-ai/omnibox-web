@@ -23,6 +23,7 @@ import {
   SendMessageParams,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import { PendingDecisionNotRejected } from '@/page/chat/conversation/pendingDecisionSend';
 import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
 import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
 import type { TreeNode } from '@/page/sidebar/store';
@@ -157,6 +158,16 @@ export default function ChatArea(props: IProps) {
     suppressInitialToolRestore,
     initialQuery,
   });
+  // The composer text as of its latest change, read when a failed send decides
+  // whether the draft can go back without overwriting something new.
+  const composerTextRef = useRef(query);
+  const handleComposerChange = useCallback(
+    (value: string) => {
+      composerTextRef.current = value;
+      handleQueryChange(value);
+    },
+    [handleQueryChange]
+  );
   const appliedFillQueryRef = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (!fillQueryText || appliedFillQueryRef.current === fillQueryText) return;
@@ -263,6 +274,12 @@ export default function ChatArea(props: IProps) {
             ? [{ type: 'text' as const, text: v }]
             : undefined;
         const pendingImages = images;
+        // The draft as the editor holds it, to put back if the message never
+        // goes out (a pending decision that could not be rejected).
+        const draft = {
+          state: inputRef.current?.getState(),
+          tools: [...tools],
+        };
         let prepared = false;
         const clearPreparedDraft = () => {
           if (prepared) return;
@@ -270,25 +287,44 @@ export default function ChatArea(props: IProps) {
           pendingImages.forEach(image => URL.revokeObjectURL(image.url));
           setImages([]);
           clearComposerAfterSend();
+          composerTextRef.current = '';
           setIsPreparingImages(false);
         };
-        // Where typed text may first reject a pending decision, the draft
-        // stays untouched until the message itself goes out
-        // (onImagesUploaded); if the rejection fails or is stopped, the editor
-        // still holds exactly what the user wrote.
         if (pendingImages.length) setIsPreparingImages(true);
-        else if (!textWhilePending) clearPreparedDraft();
-        await sendMessage({
-          query: v,
-          selectedResources: localContext,
-          tools: localTools,
-          mode,
-          approvalMode,
-          displayParts: localDisplayParts,
-          images: pendingImages,
-          ...selection,
-          onImagesUploaded: clearPreparedDraft,
-        });
+        else clearPreparedDraft();
+        try {
+          await sendMessage({
+            query: v,
+            selectedResources: localContext,
+            tools: localTools,
+            mode,
+            approvalMode,
+            displayParts: localDisplayParts,
+            images: pendingImages,
+            ...selection,
+            onImagesUploaded: clearPreparedDraft,
+          });
+        } catch (error) {
+          // The message never went out: put the draft back exactly, unless
+          // the user has started a new one in the meantime.
+          if (
+            error instanceof PendingDecisionNotRejected &&
+            prepared &&
+            draft.state &&
+            !composerTextRef.current &&
+            !imagesRef.current.length
+          ) {
+            inputRef.current?.restore(draft.state);
+            handleToolsChange(draft.tools);
+            setImages(
+              pendingImages.map(image => ({
+                ...image,
+                url: URL.createObjectURL(image.file),
+              }))
+            );
+          }
+          throw error;
+        }
         clearPreparedDraft();
       } catch {
         // Request and stream layers report errors; allow a new submission.
@@ -310,7 +346,7 @@ export default function ChatArea(props: IProps) {
     sendMessage,
     tools,
     images,
-    textWhilePending,
+    handleToolsChange,
   ]);
 
   const interruptedTurn = [...messages]
@@ -355,7 +391,7 @@ export default function ChatArea(props: IProps) {
         onComposerStateChange={handleComposerStateChange}
         tools={composerTools}
         selectedResources={composerSelectedResources}
-        onChange={handleQueryChange}
+        onChange={handleComposerChange}
         onToolsChange={handleToolsChange}
         onSelectedResourcesChange={setSelectedResources}
         onSend={handleSend}
@@ -448,12 +484,13 @@ export default function ChatArea(props: IProps) {
     </div>
   );
 
-  return decisionInput ? (
+  if (!textWhilePending) return decisionInput || composer;
+  // One stable tree whether or not the decision card shows, so the editor is
+  // never remounted (a remount rebuilds its document from the markdown query).
+  return (
     <div className="flex w-full flex-col gap-2">
       {decisionInput}
       {composer}
     </div>
-  ) : (
-    composer
   );
 }

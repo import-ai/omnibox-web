@@ -45,6 +45,10 @@ jest.mock('@/lib/request', () => ({
 }));
 
 const mockInputClear = jest.fn();
+const mockRestore = jest.fn();
+let mockMounts = 0;
+// Stands in for the editor document: the text plus a resource mention.
+const mockMention = { id: 'doc-1', start: 0, end: 7 };
 const mockResourceInsert = jest.fn();
 let mockDropSpec: {
   drop: (item: unknown, monitor: { getItemType: () => string }) => void;
@@ -110,9 +114,21 @@ jest.mock('./ChatInput', () => ({
     ref: React.ForwardedRef<unknown>
   ) {
     mockQueryChange = props.onChange;
+    React.useEffect(() => {
+      mockMounts += 1;
+    }, []);
     React.useImperativeHandle(ref, () => ({
       clear: mockInputClear,
       getDisplayParts: () => [{ type: 'text', text: props.value }],
+      getState: () => ({
+        displayText: props.value,
+        mentions: props.value ? [mockMention] : [],
+        toolRanges: [],
+      }),
+      restore: (state: { displayText: string }) => {
+        mockRestore(state);
+        props.onChange(state.displayText);
+      },
       insertResource: mockResourceInsert,
       rememberSelection: jest.fn(),
       toggleTool: jest.fn(),
@@ -416,82 +432,114 @@ describe('ChatArea', () => {
     typeof ChatArea
   >['selectedResources'][number];
 
+  function renderArea(
+    sendMessage: jest.Mock,
+    messages: React.ComponentProps<typeof ChatArea>['messages'],
+    setSelectedResources = jest.fn()
+  ) {
+    return act(async () =>
+      root.render(
+        <ChatArea
+          initialQuery="一句话总结这个文档"
+          loading={false}
+          messages={messages}
+          navigatePrefix="/namespace-a"
+          selectedResources={[welcome]}
+          setSelectedResources={setSelectedResources}
+          sendMessage={sendMessage}
+          textWhilePending
+        />
+      )
+    );
+  }
+
+  const composerValue = () =>
+    (container.querySelector('[data-testid="composer"]') as HTMLTextAreaElement)
+      .value;
+  const clickSend = () =>
+    act(async () =>
+      (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+    );
+
   it.each([
     ['a pending decision on the page', pendingMessages],
     ['a pending decision found while sending', []],
   ])(
-    'leaves the draft and its resources untouched when %s cannot be rejected',
+    'puts the exact draft back into the empty composer when %s cannot be rejected',
     async (_case, messages) => {
-      const setSelectedResources = jest.fn();
       const sendMessage = jest
         .fn()
         .mockRejectedValue(new PendingDecisionNotRejected(false));
-      await act(async () =>
-        root.render(
-          <ChatArea
-            initialQuery="一句话总结这个文档"
-            loading={false}
-            messages={
-              messages as React.ComponentProps<typeof ChatArea>['messages']
-            }
-            navigatePrefix="/namespace-a"
-            selectedResources={[welcome]}
-            setSelectedResources={setSelectedResources}
-            sendMessage={sendMessage}
-            textWhilePending
-          />
-        )
-      );
-      setSelectedResources.mockClear();
-
-      await act(async () =>
-        (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+      await renderArea(
+        sendMessage,
+        messages as React.ComponentProps<typeof ChatArea>['messages']
       );
 
+      await clickSend();
+
+      expect(sendMessage).toHaveBeenCalledTimes(1);
       expect(sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           query: '一句话总结这个文档',
           selectedResources: [welcome],
         })
       );
-      expect(
-        (
-          container.querySelector(
-            '[data-testid="composer"]'
-          ) as HTMLTextAreaElement
-        ).value
-      ).toBe('一句话总结这个文档');
-      expect(mockInputClear).not.toHaveBeenCalled();
-      expect(setSelectedResources).not.toHaveBeenCalled();
+      expect(mockInputClear).toHaveBeenCalledTimes(1);
+      // The editor document itself, mentions included, not a markdown refill.
+      expect(mockRestore).toHaveBeenCalledWith({
+        displayText: '一句话总结这个文档',
+        mentions: [mockMention],
+        toolRanges: [],
+      });
+      expect(composerValue()).toBe('一句话总结这个文档');
     }
   );
 
-  it('clears the draft once the message goes out', async () => {
+  it('leaves text typed during a held send alone', async () => {
+    let refuse!: () => void;
     const sendMessage = jest.fn(
-      async ({ onImagesUploaded }: { onImagesUploaded?: () => void }) => {
-        onImagesUploaded?.();
-      }
+      () =>
+        new Promise<void>((_resolve, reject) => {
+          refuse = () => reject(new PendingDecisionNotRejected(false));
+        })
     );
-    await act(async () =>
-      root.render(
-        <ChatArea
-          initialQuery="hello"
-          loading={false}
-          messages={pendingMessages}
-          navigatePrefix="/namespace-a"
-          selectedResources={[]}
-          setSelectedResources={jest.fn()}
-          sendMessage={sendMessage}
-          textWhilePending
-        />
-      )
+    await renderArea(sendMessage, []);
+
+    await clickSend();
+    expect(composerValue()).toBe('');
+    await act(async () => mockQueryChange('bar'));
+    await act(async () => refuse());
+
+    expect(mockRestore).not.toHaveBeenCalled();
+    expect(composerValue()).toBe('bar');
+  });
+
+  it('clears a resource draft when it is sent without a pending decision', async () => {
+    const setSelectedResources = jest.fn();
+    await renderArea(
+      jest.fn().mockResolvedValue(undefined),
+      [],
+      setSelectedResources
     );
 
-    await act(async () =>
-      (container.querySelector('[data-testid="send"]') as HTMLElement).click()
-    );
+    await clickSend();
 
     expect(mockInputClear).toHaveBeenCalledTimes(1);
+    expect(setSelectedResources).toHaveBeenCalledWith([]);
+    expect(composerValue()).toBe('');
+    expect(mockRestore).not.toHaveBeenCalled();
+  });
+
+  it('keeps one editor while the decision card comes and goes', async () => {
+    mockMounts = 0;
+    await renderArea(jest.fn(), pendingMessages);
+    expect(container.querySelector('[data-testid="resume"]')).not.toBeNull();
+
+    await renderArea(jest.fn(), pendingMessages.slice(0, 1));
+    expect(container.querySelector('[data-testid="resume"]')).toBeNull();
+    await renderArea(jest.fn(), pendingMessages);
+
+    expect(mockMounts).toBe(1);
   });
 
   it.each(['Enter', 'click', 'mixed'])(
