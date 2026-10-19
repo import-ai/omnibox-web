@@ -32,6 +32,13 @@ const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 
+// The document editor binds Mod-b to bold. While that editor is open, the
+// same shortcut must not open or close the resource sidebar, including when
+// focus is in the title.
+function isResourceEditorOpen() {
+  return document.querySelector('.resource-editable-page') !== null;
+}
+
 type TSidebarContext = {
   state: 'expanded' | 'collapsed';
   open: boolean;
@@ -108,7 +115,8 @@ const SidebarProvider = React.forwardRef<
       const handleKeyDown = (event: KeyboardEvent) => {
         if (
           event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-          (event.metaKey || event.ctrlKey)
+          (event.metaKey || event.ctrlKey) &&
+          !isResourceEditorOpen()
         ) {
           event.preventDefault();
           toggleSidebar();
