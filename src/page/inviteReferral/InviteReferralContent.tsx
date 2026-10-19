@@ -1,5 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useLocation,
@@ -47,6 +47,7 @@ export function InviteReferralContent() {
   const [shareOpen, setShareOpen] = useState(false);
   const [taskPhoneOpen, setTaskPhoneOpen] = useState(false);
   const [wechatSession, setWechatSession] = useState(0);
+  const wechatBindActiveRef = useRef(false);
   const [phoneBindingOpen, setPhoneBindingOpen] = useState(() =>
     hasInvitePhoneBinding()
   );
@@ -84,6 +85,8 @@ export function InviteReferralContent() {
       return;
     }
     if (task.action === 'wechat_assistant_binding') {
+      if (wechatBindActiveRef.current) return;
+      wechatBindActiveRef.current = true;
       setWechatSession(session => session + 1);
       return;
     }
@@ -213,6 +216,7 @@ export function InviteReferralContent() {
               overview={overview}
               onInvite={() => setShareOpen(true)}
               onTask={runTask}
+              wechatBinding={wechatSession > 0}
             />
           </div>
           {!isMobile && (
@@ -240,7 +244,10 @@ export function InviteReferralContent() {
         phoneOpen={taskPhoneOpen}
         onPhoneOpenChange={setTaskPhoneOpen}
         wechatSession={wechatSession}
-        onWechatClose={() => setWechatSession(0)}
+        onWechatClose={() => {
+          wechatBindActiveRef.current = false;
+          setWechatSession(0);
+        }}
         onBound={() => {
           void load();
         }}

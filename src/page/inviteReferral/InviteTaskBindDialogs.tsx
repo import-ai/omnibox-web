@@ -14,6 +14,7 @@ import useApplications from '@/hooks/useApplications';
 import useUser from '@/hooks/useUser';
 import PhoneValidate from '@/page/settings/tabs/account/PhoneValidate';
 import { AlreadyBoundDialog } from '@/page/settings/tabs/applications/AlreadyBoundDialog';
+import { beginCodeBind } from '@/page/settings/tabs/applications/beginCodeBind';
 import { BindDialog } from '@/page/settings/tabs/applications/BindDialog';
 
 const WECHAT_BOT_APP_ID = 'wechat_bot';
@@ -112,32 +113,28 @@ function InviteWechatBindSession({
       onClose();
       return;
     }
-    if (target.api_key_id) {
-      setPhase('already');
-      return;
-    }
-    if (target.attrs?.key) {
-      setBindingCode(target.attrs.key);
-      setApplicationId(target.id);
-      setUrlLink(target.attrs.url_link);
-      setPhase('bind');
-      toast.success(t('applications.bind.continue'));
-      return;
-    }
-
-    void bindApplication(target.app_id)
-      .then(response => {
-        const code = response.attrs?.key;
-        if (!code) {
+    void beginCodeBind(target, bindApplication)
+      .then(result => {
+        if (result.status === 'already_bound') {
+          setPhase('already');
+          return;
+        }
+        if (!result.code) {
           toast.error(t('applications.bind.error'));
           onClose();
           return;
         }
-        setBindingCode(code);
-        setApplicationId(response.id);
-        setUrlLink(response.attrs?.url_link);
+        setBindingCode(result.code);
+        setApplicationId(result.application.id);
+        setUrlLink(result.application.attrs?.url_link);
         setPhase('bind');
-        toast.success(t('applications.bind.initiated'));
+        toast.success(
+          t(
+            result.resumed
+              ? 'applications.bind.continue'
+              : 'applications.bind.initiated'
+          )
+        );
       })
       .catch(() => {
         onClose();
