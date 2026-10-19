@@ -43,8 +43,12 @@ jest.mock('react-i18next', () => ({
 }));
 
 const mockToastError = jest.fn();
+const mockToastInfo = jest.fn();
 jest.mock('sonner', () => ({
-  toast: { error: (...args: unknown[]) => mockToastError(...args) },
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    info: (...args: unknown[]) => mockToastInfo(...args),
+  },
 }));
 
 jest.mock('@/lib/request', () => ({
@@ -299,11 +303,13 @@ describe('useContext conversation cache failures', () => {
     expect(rejectCall.slice(19)).toEqual([
       'pro',
       'max',
-      { deferPendingInterrupt: false },
+      expect.objectContaining({ deferPendingInterrupt: false }),
     ]);
     expect(askCall[1]).toBe('用一句话介绍北京');
     expect(askCall[5]).toBe('tool-2');
-    expect(askCall[21]).toEqual({ deferPendingInterrupt: false });
+    expect(askCall[21]).toEqual(
+      expect.objectContaining({ deferPendingInterrupt: false })
+    );
   });
 
   function pendingInterrupt(id: string, parentId: string) {
@@ -404,13 +410,71 @@ describe('useContext conversation cache failures', () => {
     expect(askCall[5]).toBe('tool-x');
   });
 
-  it('keeps the text unsent when the rejection fails', async () => {
+  // The server state after a rejection that reached the server although the
+  // page saw an error: decision -> rejected tool result under the interrupt.
+  function landedRejection() {
+    const interrupt = pendingInterrupt('interrupt', 'message-a');
+    interrupt.children = ['decision-r'];
+    delete interrupt.attrs?.tool_call?.interrupts;
+    return {
+      id: 'conversation-a',
+      current_node: 'tool-r',
+      mapping: {
+        interrupt,
+        'decision-r': {
+          id: 'decision-r',
+          parent_id: 'interrupt',
+          children: ['tool-r'],
+          status: 'success',
+          message: { role: 'user', content: '' },
+        },
+        'tool-r': {
+          id: 'tool-r',
+          parent_id: 'decision-r',
+          children: [],
+          status: 'success',
+          message: { role: 'tool', content: 'rejected' },
+        },
+      },
+    };
+  }
+
+  function pendingConversation() {
     const conversation = cachedConversation();
     conversation.mapping['message-a'].children = ['interrupt'];
     conversation.mapping.interrupt = pendingInterrupt('interrupt', 'message-a');
     conversation.current_node = 'interrupt';
+    return conversation;
+  }
+
+  function serveBranchBelow(
+    loaded: ConversationDetail,
+    below: Record<string, object>
+  ) {
+    mockGet.mockImplementation(
+      (_url: string, config?: { params?: { branch_node_id?: string } }) =>
+        Promise.resolve(
+          (config?.params?.branch_node_id &&
+            below[config.params.branch_node_id]) ||
+            loaded
+        )
+    );
+  }
+
+  it('keeps the text unsent when the rejection fails and syncs with the server', async () => {
+    const conversation = pendingConversation();
     setCachedConversation(cacheScope, conversation);
-    mockGet.mockResolvedValue(conversation);
+    // The first sync finds the interrupt still pending; after the failure the
+    // server shows that the rejection landed.
+    let syncs = 0;
+    mockGet.mockImplementation(
+      (_url: string, config?: { params?: { branch_node_id?: string } }) =>
+        Promise.resolve(
+          config?.params?.branch_node_id === 'interrupt' && syncs++ > 0
+            ? landedRejection()
+            : conversation
+        )
+    );
     jest
       .mocked(ask)
       .mockReturnValueOnce(
@@ -418,6 +482,7 @@ describe('useContext conversation cache failures', () => {
       );
     mockToastError.mockClear();
     const context = await renderContext();
+    mockGet.mockClear();
 
     let error: unknown;
     await act(async () => {
@@ -431,6 +496,70 @@ describe('useContext conversation cache failures', () => {
     expect(error).toEqual(expect.objectContaining({ stopped: false }));
     expect(jest.mocked(ask)).toHaveBeenCalledTimes(1);
     expect(mockToastError).toHaveBeenCalledWith('chat.decision.reject_failed');
+    expect(
+      mockGet.mock.calls.filter(
+        ([, config]) => config?.params?.branch_node_id === 'interrupt'
+      )
+    ).toHaveLength(2);
+    expect(context().messages.at(-1)?.id).toBe('tool-r');
+  });
+
+  it('drops a card decision on an interrupt decided elsewhere and shows the server state', async () => {
+    const conversation = pendingConversation();
+    setCachedConversation(cacheScope, conversation);
+    serveBranchBelow(conversation, { interrupt: landedRejection() });
+    jest
+      .mocked(ask)
+      .mockReturnValueOnce(
+        askRun({ failed: true, alreadyDecided: true, requestId: 'local-d' })
+      );
+    mockToastInfo.mockClear();
+    const context = await renderContext();
+
+    await act(async () => {
+      await context().sendMessage({
+        ...typed,
+        query: '',
+        decisions: [{ type: 'approve' }],
+      });
+    });
+
+    expect(jest.mocked(ask)).toHaveBeenCalledTimes(1);
+    expect(jest.mocked(ask).mock.calls[0][21]).toEqual(
+      expect.objectContaining({ reportAlreadyDecided: true })
+    );
+    expect(mockToastInfo).toHaveBeenCalledWith('chat.decision.already_decided');
+    expect(context().messages.at(-1)?.id).toBe('tool-r');
+  });
+
+  it('sends typed text once from the server state when the interrupt was decided elsewhere', async () => {
+    const conversation = pendingConversation();
+    setCachedConversation(cacheScope, conversation);
+    let syncs = 0;
+    mockGet.mockImplementation(
+      (_url: string, config?: { params?: { branch_node_id?: string } }) =>
+        Promise.resolve(
+          config?.params?.branch_node_id === 'interrupt' && syncs++ > 0
+            ? landedRejection()
+            : conversation
+        )
+    );
+    jest
+      .mocked(ask)
+      .mockReturnValueOnce(
+        askRun({ failed: true, alreadyDecided: true, requestId: 'local-d' })
+      )
+      .mockReturnValueOnce(askRun({ lastMessageId: 'answer' }));
+    const context = await renderContext();
+
+    await act(async () => {
+      await context().sendMessage(typed);
+    });
+
+    const calls = jest.mocked(ask).mock.calls;
+    expect(calls).toHaveLength(2);
+    expect(calls[1][1]).toBe('用一句话介绍北京');
+    expect(calls[1][5]).toBe('tool-r');
   });
 
   it('lets the rejection finish but drops the text when the user stops', async () => {

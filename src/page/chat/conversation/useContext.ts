@@ -234,7 +234,7 @@ export default function useContext() {
           images
         );
         uploadRetries.current.delete(pendingId);
-        params.onImagesUploaded?.();
+        if (!deferPendingInterrupt) params.onImagesUploaded?.();
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
         askFN = ask(
           conversationId,
@@ -258,11 +258,21 @@ export default function useContext() {
           pendingId,
           edition,
           level,
-          { deferPendingInterrupt }
+          {
+            deferPendingInterrupt,
+            reportAlreadyDecided: true,
+            onAccepted: deferPendingInterrupt
+              ? params.onImagesUploaded
+              : undefined,
+          }
         );
         askAbortRef.current = askFN.cancel;
         detachStreamRef.current = askFN.destroy;
         await askFN.start();
+        // Refused before acceptance for another reason: the error shows on the
+        // message, which can be sent again, so the draft is not kept twice.
+        if (deferPendingInterrupt && !askFN.outcome.pendingInterrupt)
+          params.onImagesUploaded?.();
       } catch (error) {
         if (provisionalTitle) {
           const scope = { userId: getCurrentUserId(), namespaceId };
@@ -328,15 +338,27 @@ export default function useContext() {
     });
   };
 
+  // The interrupt was decided in another client after this page showed it:
+  // drop the local decision, say so, and show what the server has now.
+  const syncAfterDecidedElsewhere = async (
+    outcome: SendTurnOutcome,
+    nodeId: string
+  ) => {
+    discardLocalMessage(outcome.requestId);
+    toast.info(i18n.t('chat.decision.already_decided'));
+    return await history.latestBelow(nodeId).catch(() => undefined);
+  };
+
   const sendMessage = async (
     params: SendMessageParams,
     retryId?: string,
     retryParentId?: string
   ) => {
     if (retryId || params.decisions?.length) {
-      await sendTurn(params, retryId ? retryParentId : messages.at(-1)?.id, {
-        retryId,
-      });
+      const parentId = retryId ? retryParentId : messages.at(-1)?.id;
+      const outcome = await sendTurn(params, parentId, { retryId });
+      if (outcome?.alreadyDecided && parentId)
+        await syncAfterDecidedElsewhere(outcome, parentId);
       return;
     }
     // A failed local message is not a place to continue from.
@@ -374,11 +396,14 @@ export default function useContext() {
           }
         },
         discard: outcome => discardLocalMessage(outcome.requestId),
-        abandon: (outcome, stopped) => {
+        abandon: (outcome, stopped, nodeId) => {
           discardLocalMessage(outcome?.requestId);
           if (!stopped) toast.error(i18n.t('chat.decision.reject_failed'));
-          void history.refreshHistory().catch(() => undefined);
+          // The rejection may have reached the server even though this page
+          // saw an error; sync from the interrupted message to find out.
+          void history.latestBelow(nodeId).catch(() => undefined);
         },
+        alreadyDecided: syncAfterDecidedElsewhere,
         isStopped: () => phase.stopped,
         decisionSettings:
           interruptedTurn?.edition && interruptedTurn.level

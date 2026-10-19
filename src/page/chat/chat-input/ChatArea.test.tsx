@@ -402,23 +402,82 @@ describe('ChatArea', () => {
     ).toBe(true);
   });
 
-  it('keeps the typed text when the pending decision cannot be rejected', async () => {
-    const messages = [
-      { message: { role: 'user', content: 'Do it' }, attrs: {} },
-      {
-        message: { role: 'assistant', content: '' },
-        attrs: { tool_call: { interrupts: [{ id: 'approval' }] } },
-      },
-    ] as React.ComponentProps<typeof ChatArea>['messages'];
-    const sendMessage = jest
-      .fn()
-      .mockRejectedValue(new PendingDecisionNotRejected(false));
+  const pendingMessages = [
+    { message: { role: 'user', content: 'Do it' }, attrs: {} },
+    {
+      message: { role: 'assistant', content: '' },
+      attrs: { tool_call: { interrupts: [{ id: 'approval' }] } },
+    },
+  ] as React.ComponentProps<typeof ChatArea>['messages'];
+  const welcome = {
+    type: 'resource',
+    resource: { id: 'doc-1', name: 'Welcome' },
+  } as unknown as React.ComponentProps<
+    typeof ChatArea
+  >['selectedResources'][number];
+
+  it.each([
+    ['a pending decision on the page', pendingMessages],
+    ['a pending decision found while sending', []],
+  ])(
+    'leaves the draft and its resources untouched when %s cannot be rejected',
+    async (_case, messages) => {
+      const setSelectedResources = jest.fn();
+      const sendMessage = jest
+        .fn()
+        .mockRejectedValue(new PendingDecisionNotRejected(false));
+      await act(async () =>
+        root.render(
+          <ChatArea
+            initialQuery="一句话总结这个文档"
+            loading={false}
+            messages={
+              messages as React.ComponentProps<typeof ChatArea>['messages']
+            }
+            navigatePrefix="/namespace-a"
+            selectedResources={[welcome]}
+            setSelectedResources={setSelectedResources}
+            sendMessage={sendMessage}
+            textWhilePending
+          />
+        )
+      );
+      setSelectedResources.mockClear();
+
+      await act(async () =>
+        (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+      );
+
+      expect(sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          query: '一句话总结这个文档',
+          selectedResources: [welcome],
+        })
+      );
+      expect(
+        (
+          container.querySelector(
+            '[data-testid="composer"]'
+          ) as HTMLTextAreaElement
+        ).value
+      ).toBe('一句话总结这个文档');
+      expect(mockInputClear).not.toHaveBeenCalled();
+      expect(setSelectedResources).not.toHaveBeenCalled();
+    }
+  );
+
+  it('clears the draft once the message goes out', async () => {
+    const sendMessage = jest.fn(
+      async ({ onImagesUploaded }: { onImagesUploaded?: () => void }) => {
+        onImagesUploaded?.();
+      }
+    );
     await act(async () =>
       root.render(
         <ChatArea
           initialQuery="hello"
           loading={false}
-          messages={messages}
+          messages={pendingMessages}
           navigatePrefix="/namespace-a"
           selectedResources={[]}
           setSelectedResources={jest.fn()}
@@ -432,15 +491,7 @@ describe('ChatArea', () => {
       (container.querySelector('[data-testid="send"]') as HTMLElement).click()
     );
 
-    expect(sendMessage).toHaveBeenCalledTimes(1);
-    expect(
-      (
-        container.querySelector(
-          '[data-testid="composer"]'
-        ) as HTMLTextAreaElement
-      ).value
-    ).toBe('hello');
-    expect(mockInputClear).not.toHaveBeenCalled();
+    expect(mockInputClear).toHaveBeenCalledTimes(1);
   });
 
   it.each(['Enter', 'click', 'mixed'])(
