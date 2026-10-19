@@ -1002,6 +1002,7 @@
       "approve_all": "Approve all",
       "reject_all": "Reject all",
       "reject_failed": "Couldn't reject the pending action, so your message was not sent.",
+      "already_decided": "This approval was already handled elsewhere.",
       "mode": {
         "manual": "Manual approval",
         "auto_approve": "Auto approve",

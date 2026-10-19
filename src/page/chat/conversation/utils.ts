@@ -204,6 +204,9 @@ export interface AskOutcome {
   // The server refused the request because the branch waits for a tool
   // decision (reported only when deferPendingInterrupt is set).
   pendingInterrupt?: { messageId: string; count: number };
+  // The decisions were refused because another client already decided the
+  // interrupt (reported only when reportAlreadyDecided is set).
+  alreadyDecided?: boolean;
   failed: boolean;
   // The local pending user message of this request, if one was added.
   requestId?: string;
@@ -213,6 +216,11 @@ export interface AskOptions {
   // Report a pending decision in the outcome instead of showing it as an
   // error, so the caller can decide it and send the message again.
   deferPendingInterrupt?: boolean;
+  // Report an interrupt decided elsewhere in the outcome instead of showing
+  // the refusal on the local decision message.
+  reportAlreadyDecided?: boolean;
+  // Called once the server accepted the user message.
+  onAccepted?: () => void;
 }
 
 export function ask(
@@ -302,6 +310,16 @@ export function ask(
       data = JSON.stringify(chatResponse);
       if (
         chatResponse.response_type === 'error' &&
+        chatResponse.code === 'interrupt_already_decided' &&
+        options.reportAlreadyDecided &&
+        !acceptedId
+      ) {
+        outcome.failed = true;
+        outcome.alreadyDecided = true;
+        return;
+      }
+      if (
+        chatResponse.response_type === 'error' &&
         chatResponse.code === 'pending_interrupt' &&
         chatResponse.message_id &&
         options.deferPendingInterrupt &&
@@ -328,6 +346,7 @@ export function ask(
       if (chatResponse.response_type === 'bos') {
         if (chatResponse.role === OpenAIMessageRole.USER) {
           acceptedId = chatResponse.id;
+          options.onAccepted?.();
           // Also reconciles an older backend that does not echo the optional request ID.
           chatResponse.attrs = {
             ...chatResponse.attrs,

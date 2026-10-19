@@ -45,7 +45,8 @@ export class PendingDecisionNotRejected extends Error {
  * The text goes out only after the rejection succeeded, and continues from a
  * message the server created in that turn (the last tool result). If the
  * rejection fails or the user stops it, `abandon` cleans up and the text is
- * not sent.
+ * not sent. If another client already decided the interrupt, `alreadyDecided`
+ * syncs to the newest message below it and the text is sent from there, once.
  *
  * `pending` is the decision the page knows about. When the page did not know
  * (it was raised in another client), the server refuses the ask with a
@@ -59,6 +60,7 @@ export async function sendRejectingPending({
   send,
   discard,
   abandon,
+  alreadyDecided,
   isStopped,
   decisionSettings,
 }: {
@@ -68,11 +70,19 @@ export async function sendRejectingPending({
   send: SendTurn;
   // Drops the local message of an attempt the server refused.
   discard: (outcome: SendTurnOutcome) => void;
-  // Cleans up after a rejection that failed or was stopped.
+  // Cleans up after a rejection that failed or was stopped; `nodeId` is the
+  // interrupted message, a server message to sync from.
   abandon: (
     outcome: SendTurnOutcome | undefined,
-    stopped: boolean
+    stopped: boolean,
+    nodeId: string
   ) => Promise<void> | void;
+  // Handles decisions refused because the interrupt was decided elsewhere and
+  // returns the newest message below it.
+  alreadyDecided: (
+    outcome: SendTurnOutcome,
+    nodeId: string
+  ) => Promise<{ id: string; role?: string } | undefined>;
   isStopped: () => boolean;
   decisionSettings: Pick<SendMessageParams, 'edition' | 'level'>;
 }): Promise<void> {
@@ -89,11 +99,18 @@ export async function sendRejectingPending({
       decision.messageId,
       { deferPendingInterrupt: false }
     );
+    if (outcome?.alreadyDecided) {
+      const latest = await alreadyDecided(outcome, decision.messageId);
+      // Replying under a user message would make the server reuse it as the
+      // question, so only continue from an assistant or tool message.
+      if (latest && latest.role !== 'user' && !isStopped()) return latest.id;
+      throw new PendingDecisionNotRejected(isStopped(), outcome.errorMessage);
+    }
     const parentId =
       outcome && !outcome.failed ? outcome.lastMessageId : undefined;
     const stopped = isStopped();
     if (!parentId || stopped) {
-      await abandon(outcome, stopped);
+      await abandon(outcome, stopped, decision.messageId);
       throw new PendingDecisionNotRejected(stopped, outcome?.errorMessage);
     }
     return parentId;
