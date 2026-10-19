@@ -166,7 +166,7 @@ function PageContent(props: PageContentProps) {
 export default function Page(props: IProps) {
   const { editPage, namespaceId, resource } = props;
   const commentsNamespaceId = props.commentsNamespaceId ?? namespaceId;
-  const [contentDirty, setContentDirty] = useState(false);
+  const [, setContentDirty] = useState(false);
   const commentsEnabled =
     !props.isHistorical &&
     !!commentsNamespaceId &&
@@ -175,7 +175,9 @@ export default function Page(props: IProps) {
     namespaceId: commentsNamespaceId,
     resource,
     enabled: commentsEnabled,
-    contentDirty: editPage && contentDirty,
+    // New comments belong on the saved page. The edit route keeps the
+    // "save before commenting" notice instead of the comment button.
+    contentDirty: editPage,
   });
 
   return (

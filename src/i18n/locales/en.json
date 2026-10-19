@@ -169,6 +169,8 @@
     "copy_thread_link": "Copy comment link",
     "close": "Close comments",
     "quote_label": "Quoted text",
+    "image_quote": "[Image]",
+    "add_comment": "Add comment",
     "thread_count": "{{count}} discussions",
     "cancel": "Cancel",
     "write_comment": "Write a comment",
@@ -1021,7 +1023,8 @@
   "date": {
     "today": "Today",
     "yesterday": "Yesterday",
-    "last_week": "Last 7 days"
+    "last_week": "Last 7 days",
+    "earlier": "Earlier"
   },
   "pagination": {
     "prev": "Previous",

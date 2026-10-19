@@ -12,6 +12,8 @@ import {
   type ResourceCommentEditor,
   restoreResourceCommentAnchors,
 } from './commentAnchors';
+import { commentQuoteForStorage } from './commentQuote';
+import { addImageCommentMark } from './imageCommentMarks';
 
 interface CreateAnchoredCommentThreadOptions {
   namespaceId: string;
@@ -37,7 +39,10 @@ export async function createAnchoredCommentThread({
     selection.to
   );
   const response = await createResourceCommentThread(namespaceId, resourceId, {
-    quoted_text: selection.quotedText,
+    quoted_text: commentQuoteForStorage(
+      selection.quotedText,
+      isImageSelection(selection.editor, selection.from, selection.to)
+    ),
     anchor_from: selection.from,
     anchor_to: selection.to,
     anchor_prefix: context.prefix,
@@ -48,6 +53,14 @@ export async function createAnchoredCommentThread({
   });
   const range = resolveCommentRange(selection.editor, selection);
   if (range) {
+    if (isImageSelection(selection.editor, range.from, range.to)) {
+      addImageCommentMark(selection.editor, {
+        threadId: response.thread.id,
+        from: range.from,
+        to: range.to,
+        resolved: response.thread.resolved,
+      });
+    }
     selection.editor.commands.addResourceComment({
       threadId: response.thread.id,
       from: range.from,
@@ -70,11 +83,22 @@ export async function createAnchoredCommentThread({
   return response;
 }
 
+function isImageSelection(
+  editor: ResourceCommentEditor,
+  from: number,
+  to: number
+) {
+  const node = editor.state.doc.nodeAt(from);
+  return Boolean(
+    node && node.type.name === 'image' && to === from + node.nodeSize
+  );
+}
+
 function waitForCommentAnchor(editor: ResourceCommentEditor, threadId: string) {
   return new Promise<boolean>(resolve => {
     const hasAnchor = () =>
       !!editor.view.dom.querySelector(
-        `[data-resource-comment-thread="${threadId}"]`
+        `[data-resource-comment-thread="${threadId}"], [data-resource-comment-threads~="${threadId}"]`
       );
     if (hasAnchor()) {
       resolve(true);

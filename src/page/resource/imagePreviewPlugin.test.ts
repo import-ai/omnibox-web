@@ -110,10 +110,14 @@ afterEach(() => {
   jest.useRealTimers();
 });
 
-test.each([true, false])(
-  'opens a table image after native selection without changing content (editable=%s)',
-  editable => {
-    const s = setup(editable);
+test.each([
+  [false, true],
+  [false, false],
+  [true, true],
+])(
+  'opens a loaded image after native selection without changing content (editable=%s table=%s)',
+  (editable, table) => {
+    const s = setup(editable, table);
     try {
       const before = s.view.state.doc.toJSON();
       s.click();
@@ -129,12 +133,15 @@ test.each([true, false])(
   }
 );
 
-test('does not preview ordinary images outside tables', () => {
+test('does not preview ordinary images while editing', () => {
   const s = setup(true, false);
   try {
+    const before = s.view.state.doc.toJSON();
     s.click();
     jest.runAllTimers();
+    expect(s.view.state.selection).toBeInstanceOf(NodeSelection);
     expect(s.preview).not.toHaveBeenCalled();
+    expect(s.view.state.doc.toJSON()).toEqual(before);
   } finally {
     s.destroy();
   }

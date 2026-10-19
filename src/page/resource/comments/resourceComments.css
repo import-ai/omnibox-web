@@ -227,24 +227,147 @@
 }
 
 .tiptap.ProseMirror
-  [data-resource-comment-thread]:not([data-resource-comment-resolved='true']),
-.tiptap.ProseMirror .resource-comment-draft-highlight {
+  [data-resource-comment-thread]:not(
+    [data-resource-comment-resolved='true']
+  ):not(.tiptap-image),
+.tiptap.ProseMirror .resource-comment-draft-highlight:not(.tiptap-image) {
   @apply border-comment pb-0.5 !important;
   border-bottom-width: 2px !important;
   border-bottom-style: solid !important;
 }
 
-.tiptap.ProseMirror [data-resource-comment-thread][data-comment-highlight] {
+.tiptap.ProseMirror
+  [data-resource-comment-thread][data-comment-highlight]:not(.tiptap-image) {
   @apply bg-comment-surface dark:bg-comment-surface-dark !important;
 }
 
-.tiptap.ProseMirror .resource-comment-draft-highlight {
+.tiptap.ProseMirror .code-block-node__content {
+  font-family:
+    Menlo, 'Source Code Pro', ui-monospace, SFMono-Regular, Consolas,
+    'Liberation Mono', monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.375rem !important;
+}
+
+.tiptap.ProseMirror .resource-comment-draft-highlight:not(.tiptap-image) {
   @apply bg-comment-surface dark:bg-comment-surface-dark !important;
+}
+
+/* Feishu code comments are one line under the glyphs.
+   These selectors outrank the body underline, selected fill, and draft fill. */
+.tiptap.ProseMirror {
+  --resource-comment-code-underline: #fcdf7e;
 }
 
 .tiptap.ProseMirror
-  [data-resource-comment-thread][data-resource-comment-resolved='true'][data-comment-highlight] {
+  .code-block-node
+  [data-resource-comment-thread]:not(
+    [data-resource-comment-resolved='true']
+  ):not(.tiptap-image),
+.tiptap.ProseMirror
+  .code-block-node
+  [data-resource-comment-thread][data-comment-highlight]:not(.tiptap-image),
+.tiptap.ProseMirror
+  .code-block-node
+  .resource-comment-draft-highlight:not(.tiptap-image) {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor;
+  text-decoration-line: underline !important;
+  text-decoration-style: solid !important;
+  text-decoration-thickness: 0.125rem !important;
+  text-decoration-color: var(--resource-comment-code-underline) !important;
+  text-underline-offset: 0.3125rem !important;
+  text-decoration-skip-ink: none !important;
+}
+
+.tiptap.ProseMirror
+  .code-block-node
+  [data-resource-comment-thread][data-resource-comment-resolved='true']:not(
+    .tiptap-image
+  ) {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  text-decoration: none !important;
+}
+
+/* The comment decoration is on div.node-image, outside .tiptap-image.
+   That wrapper was inheriting the text underline, so the line sat under the image margin. */
+.tiptap.ProseMirror
+  .node-image.tiptap-thread[data-resource-comment-thread]:has(.tiptap-image),
+.tiptap.ProseMirror
+  .node-image[data-resource-comment-thread]:has(.tiptap-image),
+.tiptap.ProseMirror
+  .node-image.resource-comment-draft-highlight:has(.tiptap-image),
+.tiptap.ProseMirror .tiptap-thread:has(.tiptap-image),
+.tiptap.ProseMirror [data-resource-comment-thread]:has(.tiptap-image),
+.tiptap.ProseMirror .tiptap-image[data-resource-comment-thread],
+.tiptap.ProseMirror .tiptap-image.resource-comment-draft-highlight {
+  outline: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.tiptap.ProseMirror .tiptap-image-caption[hidden] {
+  display: none !important;
+  margin: 0 !important;
+}
+
+.tiptap.ProseMirror
+  [data-resource-comment-thread]:not([data-resource-comment-resolved='true'])
+  .tiptap-image-content::before,
+.tiptap.ProseMirror
+  .tiptap-image[data-resource-comment-thread]:not(
+    [data-resource-comment-resolved='true']
+  )
+  .tiptap-image-content::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Feishu leaves about 1px of the image's own background before the line. */
+  top: calc(100% + 1px);
+  height: 2px;
+  background: #faedc2;
+  pointer-events: none;
+}
+
+.tiptap.ProseMirror
+  [data-resource-comment-thread][data-comment-highlight]
+  .tiptap-image-content::before,
+.tiptap.ProseMirror
+  .resource-comment-draft-highlight
+  .tiptap-image-content::before {
+  content: none;
+}
+
+.tiptap.ProseMirror
+  [data-resource-comment-thread][data-comment-highlight]:not(
+    [data-resource-comment-resolved='true']
+  )
+  .tiptap-image-img,
+.tiptap.ProseMirror .resource-comment-draft-highlight .tiptap-image-img {
+  box-shadow: 0 0 0 2px #f5c518;
+}
+
+.tiptap.ProseMirror
+  [data-resource-comment-thread][data-resource-comment-resolved='true'][data-comment-highlight]:not(
+    .tiptap-image
+  ) {
   @apply bg-comment-resolved dark:bg-comment-resolved-dark !important;
+}
+
+.tiptap.ProseMirror
+  .node-image[data-resource-comment-thread][data-resource-comment-resolved='true'][data-comment-highlight]:has(
+    .tiptap-image
+  ) {
+  background: transparent !important;
 }
 
 .resource-comments-panel
@@ -252,6 +375,23 @@
   .omnibox-comment-thread[data-selected]::before {
   content: '';
   @apply pointer-events-none absolute -inset-x-px -top-px h-2 rounded-t-md bg-comment;
+}
+
+.omnibox-editor-root
+  .tiptap.ProseMirror.resource-image-comment-ready
+  .tiptap-image-content,
+.omnibox-editor-root
+  .tiptap.ProseMirror.resource-image-comment-ready
+  .tiptap-image-content
+  * {
+  cursor: pointer !important;
+}
+
+.resource-image-comment-button-anchor {
+  position: fixed;
+  z-index: 40;
+  transform: translate(-100%, -100%);
+  pointer-events: auto;
 }
 
 .resource-comments-panel .omnibox-comment-thread[data-resolved] {
