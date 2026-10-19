@@ -9,12 +9,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Textarea } from '@/components/ui/Textarea';
 import type { ResourceComment } from '@/interface';
 
+import { CommentMentionMenu } from './CommentMentionMenu';
 import { formatRelativeTime } from './formatRelativeTime';
 import { pasteCommentImage } from './pasteCommentImage';
 import { placeCommentCaretAtEnd } from './placeCommentCaretAtEnd';
 import { ResourceCommentAvatar } from './ResourceCommentAvatar';
 import { ResourceCommentBody } from './ResourceCommentBody';
 import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
+import { useCommentMentionInput } from './useCommentMentionInput';
 import type { ResourceCommentsController } from './useResourceComments';
 
 export function ResourceCommentItem({
@@ -33,6 +35,7 @@ export function ResourceCommentItem({
   const { i18n, t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(comment.content);
+  const mention = useCommentMentionInput(content, setContent);
   const [editImages, setEditImages] = useState<
     Array<{ id: string; url: string }>
   >([]);
@@ -250,9 +253,12 @@ export function ResourceCommentItem({
                 rows={1}
                 value={content}
                 aria-busy={uploading}
-                onChange={event => setContent(event.target.value)}
+                {...mention.inputProps}
                 onPaste={event => pasteCommentImage(event, uploadImage)}
                 onKeyDown={event => {
+                  if (mention.onKeyDown(event)) {
+                    return;
+                  }
                   if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
                     return;
                   }
@@ -266,6 +272,7 @@ export function ResourceCommentItem({
                   submitEdit().catch(() => undefined);
                 }}
               />
+              <CommentMentionMenu spec={mention.menu} />
               {editImages.length ? (
                 <div className="omnibox-comment-composer--edit__preview">
                   {editImages.map(image => (

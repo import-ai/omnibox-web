@@ -965,3 +965,11 @@
 .resource-comments-panel .omnibox-comment-draft-image {
   @apply block min-h-0 min-w-0 cursor-zoom-in rounded border-0 bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring;
 }
+
+.omnibox-comment-mention {
+  color: var(--tt-brand-color-500, #3b82f6);
+}
+
+.omnibox-comment-mention[data-mention-active] {
+  cursor: pointer;
+}

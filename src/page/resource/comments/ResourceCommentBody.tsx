@@ -2,15 +2,38 @@ import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from '@/components/ui/HoverCard';
 import type { ResourceCommentAttachment } from '@/interface';
+
+import {
+  commentMentionActive,
+  commentMentionLabel,
+  type CommentMentionUser,
+  splitCommentContent,
+} from './commentMentions';
+import { useCommentMentionUsers } from './useCommentMentionUsers';
 
 export function ResourceCommentBody({
   content,
   attachments,
+  mentionUsers,
 }: {
   content: string;
   attachments?: ResourceCommentAttachment[];
+  mentionUsers?: CommentMentionUser[];
 }) {
+  const directory = useCommentMentionUsers();
+  const users = mentionUsers ?? directory;
+  const namesById = Object.fromEntries(users.map(user => [user.id, user.name]));
+  const detailById = Object.fromEntries(
+    users.map(user => [user.id, user.position])
+  );
+  const parts = splitCommentContent(content);
+  const hasMention = parts.some(part => part.type === 'user');
   const { t } = useTranslation();
   const contentId = useId();
   const textRef = useRef<HTMLParagraphElement>(null);
@@ -61,7 +84,21 @@ export function ResourceCommentBody({
           className="omnibox-comment-message__text"
           data-expanded={expanded || undefined}
         >
-          {content}
+          {hasMention
+            ? parts.map((part, index) =>
+                part.type === 'text' ? (
+                  part.text
+                ) : (
+                  <CommentMention
+                    key={`${part.id}:${index}`}
+                    id={part.id}
+                    label={commentMentionLabel(part.id, part.label, namesById)}
+                    detail={detailById[part.id]}
+                    active={commentMentionActive(part.id, namesById)}
+                  />
+                )
+              )
+            : content}
         </p>
       ) : null}
       {overflowing ? (
@@ -111,5 +148,52 @@ export function ResourceCommentBody({
         }}
       />
     </div>
+  );
+}
+
+function CommentMention({
+  id,
+  label,
+  detail,
+  active,
+}: {
+  id: string;
+  label: string;
+  detail?: string;
+  active: boolean;
+}) {
+  const text = `@${label}`;
+  if (!active) {
+    return (
+      <span className="omnibox-comment-mention" data-mention-id={id}>
+        {text}
+      </span>
+    );
+  }
+  return (
+    <HoverCard>
+      <HoverCardTrigger asChild>
+        <span
+          className="omnibox-comment-mention"
+          data-mention-id={id}
+          data-mention-active=""
+          onClick={event => event.stopPropagation()}
+          onPointerDown={event => event.stopPropagation()}
+        >
+          {text}
+        </span>
+      </HoverCardTrigger>
+      <HoverCardContent
+        className="w-56 p-3"
+        onClick={event => event.stopPropagation()}
+      >
+        <span className="block text-sm font-medium">{label}</span>
+        {detail ? (
+          <span className="mt-1 block text-xs text-muted-foreground">
+            {detail}
+          </span>
+        ) : null}
+      </HoverCardContent>
+    </HoverCard>
   );
 }

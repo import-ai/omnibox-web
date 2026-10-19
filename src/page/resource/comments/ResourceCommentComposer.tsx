@@ -9,10 +9,12 @@ import {
 } from '@/components/autosize-textarea';
 import { Button } from '@/components/ui/Button';
 
+import { CommentMentionMenu } from './CommentMentionMenu';
 import { imageCommentLabel } from './commentQuote';
 import { pasteCommentImage } from './pasteCommentImage';
 import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
 import { useCommentDraftPosition } from './useCommentDraftPosition';
+import { useCommentMentionInput } from './useCommentMentionInput';
 import type { ResourceCommentsController } from './useResourceComments';
 
 interface ResourceCommentComposerProps {
@@ -27,6 +29,7 @@ export function ResourceCommentComposer({
   const { t } = useTranslation();
   const selection = controller.canComment ? controller.pendingSelection : null;
   const [content, setContent] = useState('');
+  const mention = useCommentMentionInput(content, setContent);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [attachmentId, setAttachmentId] = useState<string | null>(null);
   const [isClosing, setIsClosing] = useState(false);
@@ -211,9 +214,12 @@ export function ResourceCommentComposer({
             rows={1}
             value={content}
             aria-busy={uploading}
-            onChange={event => setContent(event.target.value)}
+            {...mention.inputProps}
             onPaste={event => pasteCommentImage(event, uploadImage)}
             onKeyDown={event => {
+              if (mention.onKeyDown(event)) {
+                return;
+              }
               if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
                 return;
               }
@@ -227,6 +233,7 @@ export function ResourceCommentComposer({
               submit().catch(() => undefined);
             }}
           />
+          <CommentMentionMenu spec={mention.menu} />
           {imagePreview ? (
             <div className="omnibox-comment-composer__preview">
               <ResourceCommentDraftImage

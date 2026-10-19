@@ -3,27 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import type { Member } from '@/interface';
 import { http } from '@/lib/request';
-import {
-  memberDisplayName,
-  memberMentionSubtext,
-} from '@/page/settings/tabs/members/memberDisplay';
-
-function toMentionUsers(members: Member[]): OmniboxEditorMentionUser[] {
-  return members.reduce<OmniboxEditorMentionUser[]>((users, member) => {
-    const id = member.user_id;
-    const name = memberDisplayName(member);
-    if (!id || !name) {
-      return users;
-    }
-
-    users.push({
-      id,
-      name,
-      position: memberMentionSubtext(member),
-    });
-    return users;
-  }, []);
-}
+import { mentionUsersFromMembers } from '@/page/resource/mentionUsers';
 
 export function useMentionUsers(namespaceId?: string) {
   const [mentionUsers, setMentionUsers] = useState<OmniboxEditorMentionUser[]>(
@@ -52,7 +32,9 @@ export function useMentionUsers(namespaceId?: string) {
           return;
         }
 
-        setMentionUsers(toMentionUsers(Array.isArray(members) ? members : []));
+        setMentionUsers(
+          mentionUsersFromMembers(Array.isArray(members) ? members : [])
+        );
       } catch {
         if (!ignore) {
           setMentionUsers([]);
