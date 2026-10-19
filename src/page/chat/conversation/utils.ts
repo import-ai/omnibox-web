@@ -328,7 +328,11 @@ export function ask(
       }
       if (
         chatResponse.response_type === 'error' &&
-        chatResponse.code === 'pending_interrupt' &&
+        // Both name a decision to settle before the question can go out: one
+        // still waiting, or one accepted whose resume failed. Either is
+        // resolved by a decision turn under that message.
+        (chatResponse.code === 'pending_interrupt' ||
+          chatResponse.code === 'decision_not_applied') &&
         chatResponse.message_id &&
         options.deferPendingInterrupt &&
         !acceptedId

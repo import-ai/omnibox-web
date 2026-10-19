@@ -890,6 +890,81 @@ describe('useContext conversation cache failures', () => {
     expect(question[5]).toBe('tool-r');
   });
 
+  it('sends text once when another client resumed the decision it found', async () => {
+    const conversation = cachedConversation();
+    conversation.mapping['message-a'].message.role = 'assistant' as never;
+    setCachedConversation(cacheScope, conversation);
+    const decision = {
+      id: 'decision-d',
+      parent_id: 'message-a',
+      children: [],
+      status: 'success',
+      message: { role: 'user', content: '' },
+      attrs: {
+        tool_call: { status: 'success', decisions: [{ type: 'approve' }] },
+      },
+    };
+    // Tab B approved; its resume is still running, so D has no child yet.
+    const withDecision = {
+      id: 'conversation-a',
+      current_node: 'decision-d',
+      mapping: {
+        'message-a': {
+          ...conversation.mapping['message-a'],
+          children: ['decision-d'],
+        },
+        'decision-d': decision,
+      },
+    };
+    // After the refusal: B's resume finished with a tool result and a reply.
+    const resumed = {
+      id: 'conversation-a',
+      current_node: 'answer-b',
+      mapping: {
+        ...withDecision.mapping,
+        'decision-d': { ...decision, children: ['tool-b'] },
+        'tool-b': {
+          id: 'tool-b',
+          parent_id: 'decision-d',
+          children: ['answer-b'],
+          status: 'success',
+          message: { role: 'tool', content: 'created' },
+        },
+        'answer-b': {
+          id: 'answer-b',
+          parent_id: 'tool-b',
+          children: [],
+          status: 'success',
+          message: { role: 'assistant', content: 'done' },
+        },
+      },
+    };
+    serveBranchBelow(conversation, {
+      'message-a': withDecision,
+      'decision-d': resumed,
+    });
+    jest
+      .mocked(ask)
+      .mockReturnValueOnce(
+        askRun({ failed: true, alreadyDecided: true, requestId: 'local-d' })
+      )
+      .mockReturnValueOnce(askRun({ lastMessageId: 'answer' }));
+    mockToastInfo.mockClear();
+    const context = await renderContext();
+
+    await act(async () => {
+      await context().sendMessage(typed);
+    });
+
+    const calls = jest.mocked(ask).mock.calls;
+    expect(calls).toHaveLength(2);
+    expect(calls[0][5]).toBe('decision-d');
+    expect(calls[0][13]?.decisions).toHaveLength(1);
+    expect(calls[1][1]).toBe('用一句话介绍北京');
+    expect(calls[1][5]).toBe('answer-b');
+    expect(mockToastInfo).toHaveBeenCalledWith('chat.decision.already_decided');
+  });
+
   it('retries the original file and query ID after an image upload fails', async () => {
     const conversation = cachedConversation();
     setCachedConversation(cacheScope, conversation);

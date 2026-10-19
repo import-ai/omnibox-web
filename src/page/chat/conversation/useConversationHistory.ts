@@ -253,10 +253,6 @@ export default function useConversationHistory(
     setConversation(prev => mergeHistoryPage(prev, page, false, revisions));
   };
 
-  // The newest message the server has below `nodeId`. Another client (a bot,
-  // another tab) may have continued the conversation since this page loaded;
-  // the view switches to that message so a new question continues it instead
-  // of forking from a stale one.
   // Looks up the newest message the server has below `nodeId` without
   // changing the view; `adopt` switches the view to that branch. The caller
   // decides: a question another client is still answering is not adopted.

@@ -458,4 +458,26 @@ describe('ask follow-latest and refusals', () => {
     );
     expect(messageOperator.error).not.toHaveBeenCalled();
   });
+
+  it('defers a decision that was not applied like a pending one', async () => {
+    const { run, onData, messageOperator } = start({
+      deferPendingInterrupt: true,
+    });
+
+    await onData(
+      JSON.stringify({
+        response_type: 'error',
+        code: 'decision_not_applied',
+        message: 'not applied',
+        message_id: 'decision-d',
+        interrupt_count: 2,
+      })
+    );
+
+    expect(run.outcome.pendingInterrupt).toEqual({
+      messageId: 'decision-d',
+      count: 2,
+    });
+    expect(messageOperator.error).not.toHaveBeenCalled();
+  });
 });
