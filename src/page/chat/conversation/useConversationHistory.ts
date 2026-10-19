@@ -194,6 +194,13 @@ export default function useConversationHistory(
   const refresh = async () => {
     const token = generation.current;
     const before = current.current;
+    const leaf = before.current_node
+      ? before.mapping[before.current_node]
+      : undefined;
+    // A message the server never accepted keeps its client request ID as its
+    // ID. The server does not know it, so a branch ending there cannot be
+    // loaded.
+    if (leaf && leaf.attrs?.client_request_id === leaf.id) return;
     const revisions = Object.fromEntries(
       Object.entries(before.mapping).map(([id, message]) => [
         id,
