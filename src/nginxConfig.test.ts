@@ -15,6 +15,7 @@ describe('nginx routes', () => {
   it('whitelists every non-root browser entry route', () => {
     const routes = [
       '/welcome',
+      '/captcha',
       '/oauth/authorize',
       '/user/login',
       '/user/auth/confirm',

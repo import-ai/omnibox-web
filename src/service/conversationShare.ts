@@ -4,7 +4,10 @@ export type ConversationShareChannel =
   'copy_link' | 'wechat_session' | 'wechat_timeline';
 
 export interface CreateConversationShareRequest {
-  answer_ids: string[];
+  answer_ids?: string[];
+  select_all?: true;
+  branch_leaf_id?: string;
+  excluded_answer_ids?: string[];
   channel: ConversationShareChannel;
   conversation_id: string;
 }

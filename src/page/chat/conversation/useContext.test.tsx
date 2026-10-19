@@ -4,6 +4,8 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { setPendingChatPayload } from '@/lib/chatBridge';
+import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
 import { ChatMode } from '@/page/chat/chat-input/types';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 
@@ -14,7 +16,12 @@ import {
 } from './conversationCache';
 import * as imageUploads from './uploadConversationImages';
 import useContext from './useContext';
-import { ask, extractOriginalMessageSettings } from './utils';
+import { resetConversationBootstrapState } from './useConversationBootstrap';
+import {
+  ask,
+  extractOriginalMessageSettings,
+  findFirstMessageWithMissingParent,
+} from './utils';
 
 const mockGet = jest.fn();
 const mockFire = jest.fn();
@@ -62,7 +69,7 @@ jest.mock('@/page/chat/conversation/utils.ts', () => ({
   ask: jest.fn(),
   beginPendingQuery: jest.fn(() => 'pending-query'),
   extractOriginalMessageSettings: jest.fn(),
-  findFirstMessageWithMissingParent: () => undefined,
+  findFirstMessageWithMissingParent: jest.fn(() => undefined),
   getStreamEventId: jest.fn(),
   isTerminalMessageStatus: () => true,
   resumeStream: () => ({
@@ -127,6 +134,10 @@ describe('useContext conversation cache failures', () => {
     localStorage.setItem('uid', 'user-a');
     sessionStorage.clear();
     clearConversationCache();
+    resetConversationBootstrapState();
+    jest
+      .mocked(findFirstMessageWithMissingParent)
+      .mockImplementation(() => undefined);
     mockGet.mockReset();
     mockFire.mockReset();
     mockResumeStart.mockReset();
@@ -140,6 +151,25 @@ describe('useContext conversation cache failures', () => {
     await act(async () => root.unmount());
     container.remove();
     clearConversationCache();
+  });
+
+  it('blocks composer while history is unresolved and enables a hydrated empty conversation', async () => {
+    const load = deferred<ConversationDetail>();
+    mockGet.mockReturnValue(load.promise);
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    expect(context.loading).toBe(true);
+    await act(async () => {
+      load.resolve({ id: 'conversation-a', mapping: {}, total: 0 });
+      await load.promise;
+    });
+    expect(context.loading).toBe(false);
   });
 
   it('retains attached images and original strength when editing the user query', async () => {
@@ -241,6 +271,249 @@ describe('useContext conversation cache failures', () => {
       'uploaded'
     );
     upload.mockRestore();
+  });
+
+  it('reloads the reply after leaving a new conversation before it finishes', async () => {
+    setPendingChatPayload('conversation-a', {
+      query: '你好',
+      tools: [],
+      selectedResources: [],
+      mode: ChatMode.ASK,
+    });
+    let releaseStream!: () => void;
+    const started = new Promise<void>(resolve => {
+      releaseStream = resolve;
+    });
+    const destroy = jest.fn(() => releaseStream());
+    jest.mocked(ask).mockReturnValue({
+      cancel: jest.fn(),
+      destroy,
+      start: () => started,
+    });
+    mockGet.mockResolvedValue({ id: 'conversation-a', mapping: {}, total: 0 });
+    function Probe() {
+      useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(jest.mocked(ask)).toHaveBeenCalled();
+    await act(async () => {
+      root.unmount();
+    });
+    expect(destroy).toHaveBeenCalled();
+
+    root = createRoot(container);
+    const clientLeafId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+    setCachedConversation(cacheScope, {
+      id: 'conversation-a',
+      current_node: clientLeafId,
+      mapping: {
+        [clientLeafId]: {
+          id: clientLeafId,
+          parent_id: '',
+          children: [],
+          status: 'pending',
+          message: { role: 'user', content: '你好' },
+        },
+      },
+    } as ConversationDetail);
+    mockGet.mockClear();
+    mockResumeStart.mockClear();
+    mockGet.mockResolvedValue({
+      id: 'conversation-a',
+      title: '',
+      current_node: 'assistant-1',
+      mapping: {
+        'user-1': {
+          id: 'user-1',
+          parent_id: '',
+          children: ['assistant-1'],
+          status: 'success',
+          message: { role: 'user', content: '你好' },
+        },
+        'assistant-1': {
+          id: 'assistant-1',
+          parent_id: 'user-1',
+          children: [],
+          status: 'streaming',
+          message: { role: 'assistant', content: '在的' },
+        },
+      },
+    });
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    expect(mockGet).toHaveBeenCalledWith(
+      '/namespaces/namespace-a/conversations/conversation-a/messages',
+      { params: {} }
+    );
+    expect(
+      mockGet.mock.calls.some(
+        call => call[1]?.params?.branch_leaf_id === clientLeafId
+      )
+    ).toBe(false);
+    expect(mockResumeStart).toHaveBeenCalled();
+  });
+
+  it('requests a generated title from the search-token preview after reopening', async () => {
+    jest
+      .mocked(findFirstMessageWithMissingParent)
+      .mockImplementation(
+        jest.requireActual<typeof import('./utils')>('./utils')
+          .findFirstMessageWithMissingParent
+      );
+    mockGet.mockResolvedValue({
+      id: 'conversation-a',
+      title: '',
+      current_node: 'user-1',
+      mapping: {
+        'user-1': {
+          id: 'user-1',
+          parent_id: '',
+          children: [],
+          status: 'success',
+          message: {
+            role: 'user',
+            content: `  ${WEB_SEARCH_QUERY_TOKEN}\n你好  `,
+          },
+        },
+      },
+    });
+    function Probe() {
+      useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    expect(mockFire).toHaveBeenCalledWith('chat:title:update', {
+      conversationId: 'conversation-a',
+      title: '你好',
+    });
+    expect(mockFire).toHaveBeenCalledWith('chat:title', {
+      conversationId: 'conversation-a',
+      text: '你好',
+    });
+  });
+
+  it('does not request a generated title when the reopened conversation already has one', async () => {
+    jest
+      .mocked(findFirstMessageWithMissingParent)
+      .mockImplementation(
+        jest.requireActual<typeof import('./utils')>('./utils')
+          .findFirstMessageWithMissingParent
+      );
+    mockGet.mockResolvedValue({
+      id: 'conversation-a',
+      title: '别的名字',
+      current_node: 'user-1',
+      mapping: {
+        'user-1': {
+          id: 'user-1',
+          parent_id: '',
+          children: [],
+          status: 'success',
+          message: {
+            role: 'user',
+            content: `${WEB_SEARCH_QUERY_TOKEN}你好`,
+          },
+        },
+      },
+    });
+    function Probe() {
+      useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    expect(mockFire).not.toHaveBeenCalledWith('chat:title', expect.anything());
+  });
+
+  it('publishes the first message text for the sidebar and clears it when sending fails', async () => {
+    mockGet.mockResolvedValue({ id: 'conversation-a', mapping: {}, total: 0 });
+    jest.mocked(ask).mockReturnValue({
+      cancel: jest.fn(),
+      destroy: jest.fn(),
+      start: jest.fn().mockRejectedValue(new Error('offline')),
+    });
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    await act(async () => {
+      await context.sendMessage({
+        query: '  [web_search](tool://web_search)\n你好  ',
+        tools: [],
+        selectedResources: [],
+        mode: ChatMode.ASK,
+      });
+    });
+    expect(mockFire).toHaveBeenCalledWith(
+      'chat:conversation:provisional',
+      expect.objectContaining({
+        userId: 'user-a',
+        namespaceId: 'namespace-a',
+        conversation: expect.objectContaining({
+          id: 'conversation-a',
+          title: '你好',
+        }),
+      })
+    );
+    expect(mockFire).toHaveBeenCalledWith(
+      'chat:conversation:provisional',
+      expect.objectContaining({
+        userId: 'user-a',
+        namespaceId: 'namespace-a',
+        clearId: 'conversation-a',
+      })
+    );
+    expect(mockFire).not.toHaveBeenCalledWith(
+      'chat:title:update',
+      expect.anything()
+    );
+  });
+
+  it('does not replace an existing conversation title with a later message', async () => {
+    const conversation = cachedConversation();
+    conversation.title = '简短问候';
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    jest.mocked(ask).mockReturnValue({
+      cancel: jest.fn(),
+      destroy: jest.fn(),
+      start: jest.fn().mockResolvedValue(undefined),
+    });
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    mockFire.mockClear();
+    await act(async () => {
+      await context.sendMessage({
+        query: '再问一句',
+        tools: [],
+        selectedResources: [],
+        mode: ChatMode.ASK,
+      });
+    });
+    expect(mockFire).not.toHaveBeenCalledWith(
+      'chat:conversation:provisional',
+      expect.anything()
+    );
   });
 
   it('clears cached messages when conversation authorization fails', async () => {

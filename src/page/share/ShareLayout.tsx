@@ -10,10 +10,6 @@ import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { cn } from '@/lib/utils';
 import { ResourceCommentsProvider } from '@/page/resource/comments/ResourceCommentsContext';
 import {
-  selectUseOmniboxEditor,
-  useResourceStore,
-} from '@/page/resource/resourceStore';
-import {
   resourcePaneColumnClassName,
   shouldUseFullWidthResourcePane,
   useResourcePaneLayout,
@@ -57,11 +53,7 @@ export function ShareLayout(props: IProps) {
   const { open, width: sidebarWidth } = useSidebar();
   const location = useLocation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const useOmniboxEditor = useResourceStore(selectUseOmniboxEditor);
-  const useFullWidth = shouldUseFullWidthResourcePane(
-    useOmniboxEditor,
-    resource?.resource_type
-  );
+  const useFullWidth = shouldUseFullWidthResourcePane(resource?.resource_type);
   const showResourcePane = !isChatActive && !chatOnly;
   const onNearBottom = useCallback(() => {
     app.fire('scroll-to-bottom');

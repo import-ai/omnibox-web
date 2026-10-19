@@ -1,9 +1,15 @@
 import { X } from 'lucide-react';
-import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import { cn } from '@/lib/utils';
-import { ImagePreviewDialog } from '@/page/chat/ImagePreviewDialog';
 
 import { composerTextLayoutClassName } from './composerLayout';
 import ComposerOverlay from './ComposerOverlay';
@@ -36,6 +42,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
   function ChatInput(props, ref) {
     const { t } = useTranslation();
     const [preview, setPreview] = useState<ComposerChatImage | null>(null);
+    const invokerRef = useRef<HTMLButtonElement | null>(null);
     const getToolLabel = useCallback(
       (tool: Exclude<ToolType, ToolType.PRIVATE_SEARCH>) =>
         t(`chat.tools.${tool}`),
@@ -58,7 +65,10 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
                 <button
                   type="button"
                   aria-label={t('chat.image.preview')}
-                  onClick={() => setPreview(image)}
+                  onClick={event => {
+                    invokerRef.current = event.currentTarget;
+                    setPreview(image);
+                  }}
                 >
                   <img
                     src={image.url}
@@ -88,6 +98,7 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           alt={preview?.name}
           open={preview !== null}
           src={preview?.url}
+          invokerRef={invokerRef}
           onOpenChange={open => {
             if (!open) setPreview(null);
           }}

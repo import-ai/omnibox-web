@@ -35,6 +35,8 @@ export interface InviteOverview {
     expires_at: string;
     remaining_days: number;
     items: InviteTask[];
+    /** Omitted by backends that only know invited users. */
+    audience?: 'invitee' | 'activation';
   } | null;
   reward_rules: InviteRewardRule[];
   notes: string[];

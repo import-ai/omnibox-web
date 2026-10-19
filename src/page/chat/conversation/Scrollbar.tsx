@@ -1,5 +1,11 @@
 import { ArrowDown } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
@@ -15,6 +21,10 @@ interface IProps {
   children: React.ReactNode;
   resetKey?: string;
   sideContent?: React.ReactNode;
+  onLoadOlder?: () => Promise<void>;
+  hasMore?: boolean;
+  loadingOlder?: boolean;
+  historyError?: boolean;
 }
 
 const showButtonThreshold = 24;
@@ -22,6 +32,28 @@ const stickToBottomThreshold = 200;
 
 export default function Scrollbar(props: IProps) {
   const { t } = useTranslation();
+  const latestProps = useRef(props);
+  latestProps.current = props;
+  const anchor = useRef<{ id: string; top: number } | undefined>(undefined);
+  const loadOlder = useCallback(() => {
+    const options = latestProps.current;
+    if (!options.hasMore || options.loadingOlder) return;
+    const root = rootRef.current;
+    const first = root?.querySelector<HTMLElement>('[id^="message-"]');
+    if (first)
+      anchor.current = { id: first.id, top: first.getBoundingClientRect().top };
+    shouldStickToBottomRef.current = false;
+    void options.onLoadOlder?.();
+  }, []);
+  useLayoutEffect(() => {
+    if (props.loadingOlder || !anchor.current) return;
+    const root = rootRef.current;
+    const element = document.getElementById(anchor.current.id);
+    if (root && element)
+      root.scrollTop +=
+        element.getBoundingClientRect().top - anchor.current.top;
+    anchor.current = undefined;
+  });
   const rootRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const shouldStickToBottomRef = useRef(true);
@@ -38,7 +70,13 @@ export default function Scrollbar(props: IProps) {
       root.scrollHeight - root.scrollTop - root.clientHeight;
     shouldStickToBottomRef.current = distanceToBottom < stickToBottomThreshold;
     setShowScrollToBottom(distanceToBottom > showButtonThreshold);
-  }, []);
+    if (
+      root.scrollTop < 100 &&
+      distanceToBottom > stickToBottomThreshold &&
+      !latestProps.current.historyError
+    )
+      loadOlder();
+  }, [loadOlder]);
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
     const root = rootRef.current;
@@ -112,6 +150,24 @@ export default function Scrollbar(props: IProps) {
           className="relative h-fit w-full max-w-3xl min-w-0"
           data-chat-message-list
         >
+          {props.hasMore && (
+            <div className="flex justify-center pb-4">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={props.loadingOlder}
+                onClick={loadOlder}
+              >
+                {t(
+                  props.loadingOlder
+                    ? 'chat.history.loading'
+                    : props.historyError
+                      ? 'chat.history.retry'
+                      : 'chat.history.load_more'
+                )}
+              </Button>
+            </div>
+          )}
           {props.children}
         </div>
       </div>

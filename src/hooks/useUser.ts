@@ -5,7 +5,7 @@ import { User } from '@/interface';
 import { http } from '@/lib/request';
 
 // Custom event name for user data updates
-const USER_UPDATED_EVENT = 'user-data-updated';
+export const USER_UPDATED_EVENT = 'user-data-updated';
 
 export default function useUser() {
   const uid = localStorage.getItem('uid');

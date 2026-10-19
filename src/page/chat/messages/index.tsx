@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import { ChevronRight, ScrollText } from 'lucide-react';
+import { ScrollText } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +22,8 @@ import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 import { ConversationShareMessageRow } from '@/page/chat/share/ConversationShareMessageRow';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
+import { hasToolCalls } from '../conversation/conversationHistory';
+import { ProcessDetails } from '../conversation/ProcessDetails';
 import {
   buildMessageDisplayItems,
   getCollapsedProcessDurationSeconds,
@@ -181,7 +183,8 @@ function hasVisibleMessageContent(message: MessageDetail, chatOnly = false) {
     return Boolean(
       openAIMessage.content?.trim() ||
       openAIMessage.reasoning_content?.trim() ||
-      openAIMessage.tool_calls?.length ||
+      message.has_reasoning ||
+      hasToolCalls(message) ||
       isRunning
     );
   }
@@ -257,6 +260,41 @@ export function Messages(props: IProps) {
   }, [conversation.id, messages.length]);
 
   const citations = useMemo((): Citation[] => {
+    if (conversation.citations) {
+      const result = conversation.citations.map(citation => {
+        const source = conversation.mapping[citation.source_message_id ?? ''];
+        const full = source?.attrs?.citations?.find(
+          item => item.id === citation.id
+        );
+        return full
+          ? {
+              ...citation,
+              ...full,
+              index: citation.index,
+              source_message_id: citation.source_message_id,
+            }
+          : citation;
+      });
+      let nextIndex = conversation.citation_total ?? result.length;
+      for (const message of messages) {
+        if (!message.localRevision && message.details_loaded !== undefined)
+          continue;
+        for (const citation of message.attrs?.citations ?? []) {
+          if (
+            !result.some(
+              item =>
+                item.id === citation.id && item.source_message_id === message.id
+            )
+          )
+            result.push({
+              ...citation,
+              index: nextIndex++,
+              source_message_id: message.id,
+            });
+        }
+      }
+      return result;
+    }
     const result: Citation[] = [];
     for (const message of messages) {
       if (message.attrs?.citations && message.attrs.citations.length > 0) {
@@ -266,7 +304,7 @@ export function Messages(props: IProps) {
       }
     }
     return result;
-  }, [messages]);
+  }, [messages, conversation]);
 
   const filteredMessages = messages.filter(
     message => message.message.role !== OpenAIMessageRole.SYSTEM
@@ -350,31 +388,26 @@ export function Messages(props: IProps) {
           );
 
           return (
-            <details
-              className="group border-b border-border/60 pb-3"
+            <ProcessDetails
               key={`process_${item.messages[0].id}`}
+              ids={item.messages.map(message => message.id)}
+              title={formatProcessDuration(
+                getCollapsedProcessDurationSeconds(
+                  item.messages,
+                  item.finalMessage
+                ),
+                t
+              )}
             >
-              <summary className="flex w-fit cursor-pointer list-none items-center gap-1 py-3 text-sm text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
-                <span>
-                  {formatProcessDuration(
-                    getCollapsedProcessDurationSeconds(
-                      item.messages,
-                      item.finalMessage
-                    ),
-                    t
-                  )}
-                </span>
-                <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
-              </summary>
-              <div className="space-y-4 pb-3">
-                {visibleProcessMessages.map((message, processIndex) =>
+              {() =>
+                visibleProcessMessages.map((message, processIndex) =>
                   renderMessageBlock(
                     message,
                     processIndex === visibleProcessMessages.length - 1
                   )
-                )}
-              </div>
-            </details>
+                )
+              }
+            </ProcessDetails>
           );
         }
 

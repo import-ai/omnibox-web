@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 
 import { Button } from '@/components/button';
+import { CaptchaMount } from '@/components/captcha/CaptchaMount';
 import { PhoneNumberInput } from '@/components/phone-input';
 import {
   Form,
@@ -15,7 +16,13 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
+import { useCaptcha } from '@/hooks/useCaptcha';
 import { usePhoneConfig } from '@/hooks/usePhoneConfig';
+import {
+  CAPTCHA_REQUEST_CONFIG,
+  captchaResultFromError,
+  withCaptchaParam,
+} from '@/lib/captcha';
 import { http } from '@/lib/request';
 import { buildUrl } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validationSchemas';
@@ -51,6 +58,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
   const redirect = params.get('redirect');
   const [isLoading, setIsLoading] = useState(false);
   const { allowedCountries } = usePhoneConfig();
+  const captcha = useCaptcha({ scene: 'web', mode: 'popup' });
 
   const emailForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
@@ -79,74 +87,91 @@ export function RegisterForm({ children, contactMethod }: IProps) {
   }, [phoneParam]);
 
   const handleEmailSubmit = async (data: z.infer<typeof emailSchema>) => {
-    setIsLoading(true);
-    try {
-      const response = await http.post('auth/send-signup-otp', {
-        email: data.email,
-        url: `${window.location.origin}${buildUrl('/user/verify-otp', withInviteCode({ redirect }))}`,
-      });
+    await captcha.run(async captchaVerifyParam => {
+      setIsLoading(true);
+      try {
+        const response = await http.post(
+          'auth/send-signup-otp',
+          withCaptchaParam(
+            {
+              email: data.email,
+              url: `${window.location.origin}${buildUrl('/user/verify-otp', withInviteCode({ redirect }))}`,
+            },
+            captchaVerifyParam
+          ),
+          CAPTCHA_REQUEST_CONFIG
+        );
 
-      if (response.exists) {
-        toast.error(t('register.email_already_exists'), {
-          position: 'bottom-right',
-        });
+        if (response.exists) {
+          toast.error(t('register.email_already_exists'), {
+            position: 'bottom-right',
+          });
+          navigate(
+            buildUrl(
+              '/user/login',
+              withInviteCode({
+                email: data.email,
+                mode: 'email',
+                redirect,
+              })
+            )
+          );
+          return { captchaResult: true, bizResult: true };
+        }
+
         navigate(
           buildUrl(
-            '/user/login',
-            withInviteCode({
-              email: data.email,
-              mode: 'email',
-              redirect,
-            })
+            '/user/verify-otp',
+            withInviteCode({ email: data.email, redirect })
           )
         );
-        return;
+        return { captchaResult: true, bizResult: true };
+      } catch (err) {
+        setIsLoading(false);
+        return captchaResultFromError(err);
       }
-
-      navigate(
-        buildUrl(
-          '/user/verify-otp',
-          withInviteCode({ email: data.email, redirect })
-        )
-      );
-    } catch {
-      setIsLoading(false);
-    }
+    });
   };
 
   const handlePhoneSubmit = async (data: z.infer<typeof phoneFormSchema>) => {
-    setIsLoading(true);
-    try {
-      const response = await http.post('auth/send-signup-phone-otp', {
-        phone: data.phone,
-      });
+    await captcha.run(async captchaVerifyParam => {
+      setIsLoading(true);
+      try {
+        const response = await http.post(
+          'auth/send-signup-phone-otp',
+          withCaptchaParam({ phone: data.phone }, captchaVerifyParam),
+          CAPTCHA_REQUEST_CONFIG
+        );
 
-      if (response.exists) {
-        toast.error(t('register.phone_already_exists'), {
-          position: 'bottom-right',
-        });
+        if (response.exists) {
+          toast.error(t('register.phone_already_exists'), {
+            position: 'bottom-right',
+          });
+          navigate(
+            buildUrl(
+              '/user/login',
+              withInviteCode({
+                phone: data.phone,
+                mode: 'phone',
+                redirect,
+              })
+            )
+          );
+          return { captchaResult: true, bizResult: true };
+        }
+
         navigate(
           buildUrl(
-            '/user/login',
-            withInviteCode({
-              phone: data.phone,
-              mode: 'phone',
-              redirect,
-            })
+            '/user/verify-otp',
+            withInviteCode({ phone: data.phone, redirect })
           )
         );
-        return;
+        return { captchaResult: true, bizResult: true };
+      } catch (err) {
+        setIsLoading(false);
+        return captchaResultFromError(err);
       }
-
-      navigate(
-        buildUrl(
-          '/user/verify-otp',
-          withInviteCode({ phone: data.phone, redirect })
-        )
-      );
-    } catch {
-      setIsLoading(false);
-    }
+    });
   };
 
   return (
@@ -159,6 +184,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
       </div>
 
       {children}
+      <CaptchaMount captcha={captcha} />
 
       {contactMethod === 'email' && (
         <Form {...emailForm}>
@@ -198,6 +224,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
               type="submit"
               className="w-full disabled:opacity-60"
               loading={isLoading}
+              disabled={isLoading || captcha.running}
             >
               {t('register.submit')}
             </Button>
@@ -250,6 +277,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
               type="submit"
               className="w-full disabled:opacity-60"
               loading={isLoading}
+              disabled={isLoading || captcha.running}
             >
               {t('register.submit')}
             </Button>

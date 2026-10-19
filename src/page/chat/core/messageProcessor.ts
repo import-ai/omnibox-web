@@ -10,6 +10,8 @@ export function messageProcessor(
   data: string
 ) {
   const chatResponse: ChatResponse = JSON.parse(data);
+  // Backend SSE keepalive; carries nothing for the conversation.
+  if (chatResponse.response_type === 'ping') return;
   if (chatResponse.response_type === 'bos') {
     messageOperator.add(chatResponse);
   } else if (chatResponse.response_type === 'delta') {

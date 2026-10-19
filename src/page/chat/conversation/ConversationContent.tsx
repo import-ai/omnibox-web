@@ -13,6 +13,7 @@ import { MessageIndex } from '@/page/chat/messages/MessageIndex';
 import { ConversationShareActions } from '@/page/chat/share/ConversationShareControls';
 import type { useConversationShare } from '@/page/chat/share/useConversationShare';
 
+import { MessageDetailsContext } from './MessageDetailsContext';
 import Scrollbar from './Scrollbar';
 
 type ConversationContext = ReturnType<typeof useContext>;
@@ -29,52 +30,58 @@ export function ConversationMessageList({
 }) {
   const { t } = useTranslation();
   return (
-    <Scrollbar
-      resetKey={context.conversation.id}
-      sideContent={
-        compact || share.isSelecting ? undefined : (
-          <MessageIndex messages={context.messages} />
-        )
-      }
-    >
-      {context.messages.length <= 0 ? (
-        <div className="flex items-center justify-end space-y-4">
-          <Button disabled size="sm" variant="secondary">
-            <Spinner />
-          </Button>
-        </div>
-      ) : (
-        <>
-          <Messages
-            conversation={context.conversation}
-            messages={context.messages}
-            messageOperator={context.messageOperator}
-            onEdit={context.onEdit}
-            onRegenerate={context.onRegenerate}
-            onShareMessage={messageId => share.open(messageId, 'latest')}
-            regeneratingParentId={context.regeneratingParentId}
-            shareSelection={{
-              isSelecting: share.isSelecting,
-              messageGroupIds: share.messageGroupIds,
-              onToggleGroup: share.toggleGroup,
-              selectedGroupIds: share.selectedGroupIds,
-            }}
-          />
-          {context.waitingForAssistantDelta &&
-            context.messages.at(-1)?.message.role === 'user' &&
-            context.messages.at(-1)?.status === MessageStatus.SUCCESS && (
-              <Marker role="status" className="mt-4">
-                <MarkerIcon>
-                  <Spinner />
-                </MarkerIcon>
-                <MarkerContent className="shimmer">
-                  {t('chat.delivery.thinking')}
-                </MarkerContent>
-              </Marker>
-            )}
-        </>
-      )}
-    </Scrollbar>
+    <MessageDetailsContext.Provider value={context.loadDetails}>
+      <Scrollbar
+        onLoadOlder={context.loadMore}
+        hasMore={context.conversation.has_more}
+        loadingOlder={context.loadingHistory}
+        historyError={context.historyError}
+        resetKey={context.conversation.id}
+        sideContent={
+          compact || share.isSelecting ? undefined : (
+            <MessageIndex messages={context.messages} />
+          )
+        }
+      >
+        {context.messages.length <= 0 ? (
+          <div className="flex items-center justify-end space-y-4">
+            <Button disabled size="sm" variant="secondary">
+              <Spinner />
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Messages
+              conversation={context.conversation}
+              messages={context.messages}
+              messageOperator={context.messageOperator}
+              onEdit={context.onEdit}
+              onRegenerate={context.onRegenerate}
+              onShareMessage={messageId => share.open(messageId, 'latest')}
+              regeneratingParentId={context.regeneratingParentId}
+              shareSelection={{
+                isSelecting: share.isSelecting,
+                messageGroupIds: share.messageGroupIds,
+                onToggleGroup: share.toggleGroup,
+                selectedGroupIds: share.selectedGroupIds,
+              }}
+            />
+            {context.waitingForAssistantDelta &&
+              context.messages.at(-1)?.message.role === 'user' &&
+              context.messages.at(-1)?.status === MessageStatus.SUCCESS && (
+                <Marker role="status" className="mt-4">
+                  <MarkerIcon>
+                    <Spinner />
+                  </MarkerIcon>
+                  <MarkerContent className="shimmer">
+                    {t('chat.delivery.thinking')}
+                  </MarkerContent>
+                </Marker>
+              )}
+          </>
+        )}
+      </Scrollbar>
+    </MessageDetailsContext.Provider>
   );
 }
 

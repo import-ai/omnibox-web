@@ -1,3 +1,8 @@
+.resource-readonly-editor,
+.resource-editable-editor {
+  --tt-table-scrollbar-thumb-color: hsl(var(--border));
+}
+
 .resource-readonly-page-header {
   width: 100%;
   max-width: 680px;
@@ -363,4 +368,16 @@
 .resource-readonly-editor span[data-type='mention'],
 .resource-editable-editor span[data-type='mention'] {
   cursor: pointer;
+}
+
+/* Read-only images use a pointer. Editing keeps its own image cursor and menu. */
+.resource-readonly-editor .tiptap-image-img:not([class~='tw:invisible']) {
+  cursor: pointer !important;
+}
+
+/* Table images in the editor still open the preview; resize controls keep their cursor. */
+.resource-editable-editor
+  :is(td, th)
+  .tiptap-image-img:not([class~='tw:invisible']) {
+  cursor: zoom-in !important;
 }

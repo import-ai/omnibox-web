@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -26,6 +26,12 @@ import {
   stopStream,
 } from '@/page/chat/conversation/utils.ts';
 import {
+  clearProvisionalConversation,
+  messagePreviewTitle,
+  provisionalTitleForSend,
+  rememberProvisionalConversation,
+} from '@/page/chat/conversations/provisionalConversation';
+import {
   createMessageOperator,
   MessageOperator,
 } from '@/page/chat/core/messageOperator.ts';
@@ -48,12 +54,18 @@ import {
 import useConversationBootstrap, {
   CHAT_CREATE_PAYLOAD_KEY,
 } from './useConversationBootstrap';
+import useConversationHistory from './useConversationHistory';
 import useScopedConversationState from './useScopedConversationState';
 
 export default function useContext() {
   const app = useApp();
   const { i18n } = useTranslation();
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
+  const detachStreamRef = useRef<(() => void) | null>(null);
+  const detachActiveStream = useCallback(() => {
+    detachStreamRef.current?.();
+    detachStreamRef.current = null;
+  }, []);
   const regeneratingRef = useRef(false);
   const uploadRetries = useRef(new Map<string, () => Promise<void>>());
   const { conversationId, namespaceId } = useChatRouteParams();
@@ -86,6 +98,8 @@ export default function useContext() {
     cacheScope,
     conversationId
   );
+  const conversationRef = useRef(conversation);
+  conversationRef.current = conversation;
   const channel = AgentRequestChannel.WEB;
   const messages = useMemo((): MessageDetail[] => {
     if (conversation.id !== conversationId) return [];
@@ -101,9 +115,20 @@ export default function useContext() {
     }
     return result;
   }, [conversation, conversationId]);
+  const history = useConversationHistory(
+    namespaceId,
+    userId,
+    conversation,
+    setConversation
+  );
   const messageOperator = useMemo((): MessageOperator => {
-    return createMessageOperator(conversation, setConversation);
-  }, [conversation, setConversation]);
+    return {
+      ...createMessageOperator(conversation, setConversation),
+      activate: (id: string) => {
+        void history.activateBranch(id);
+      },
+    };
+  }, [conversation, setConversation, history.activateBranch]);
 
   const sendMessage = async (
     params: SendMessageParams,
@@ -124,6 +149,32 @@ export default function useContext() {
     } = params;
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
+      const provisionalTitle = v
+        ? provisionalTitleForSend({
+            query: v,
+            conversationTitle: conversation.title,
+            hasEarlierUserMessage: messages.some(
+              message =>
+                message.id !== retryId &&
+                message.message.role === OpenAIMessageRole.USER &&
+                Boolean(message.message.content?.trim())
+            ),
+          })
+        : null;
+      if (provisionalTitle) {
+        const scope = { userId: getCurrentUserId(), namespaceId };
+        const provisional = {
+          id: conversationId,
+          title: provisionalTitle,
+          created_at: conversation.created_at || new Date().toISOString(),
+        };
+        rememberProvisionalConversation(scope, provisional);
+        app.fire('chat:conversation:provisional', {
+          userId: scope.userId,
+          namespaceId,
+          conversation: provisional,
+        });
+      }
       const parentMessageId = retryId ? retryParentId : messages.at(-1)?.id;
       const pendingId = beginPendingQuery(
         messageOperator,
@@ -138,6 +189,7 @@ export default function useContext() {
       uploadRetries.current.set(pendingId, () =>
         sendMessage(params, pendingId, parentMessageId)
       );
+      let askFN: ReturnType<typeof ask> | undefined;
       try {
         if (v) {
           setWaitingForAssistantDelta(true);
@@ -151,7 +203,7 @@ export default function useContext() {
         uploadRetries.current.delete(pendingId);
         params.onImagesUploaded?.();
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
-        const askFN = ask(
+        askFN = ask(
           conversationId,
           v,
           tools,
@@ -175,8 +227,18 @@ export default function useContext() {
           level
         );
         askAbortRef.current = askFN.cancel;
+        detachStreamRef.current = askFN.destroy;
         await askFN.start();
       } catch (error) {
+        if (provisionalTitle) {
+          const scope = { userId: getCurrentUserId(), namespaceId };
+          clearProvisionalConversation(scope, conversationId);
+          app.fire('chat:conversation:provisional', {
+            userId: scope.userId,
+            namespaceId,
+            clearId: conversationId,
+          });
+        }
         messageOperator.error(
           {
             response_type: 'error',
@@ -185,14 +247,23 @@ export default function useContext() {
           pendingId
         );
       } finally {
+        const stayedOnConversation =
+          !askFN || detachStreamRef.current === askFN.destroy;
         askAbortRef.current = null;
+        if (askFN && detachStreamRef.current === askFN.destroy) {
+          detachStreamRef.current = null;
+        }
         setWaitingForAssistantDelta(false);
         setLoading(false);
+        if (stayedOnConversation) {
+          void history.refreshHistory().catch(() => undefined);
+        }
       }
     }
   };
 
   useConversationBootstrap({
+    getConversation: () => conversationRef.current,
     app,
     askAbortRef,
     cacheScope,
@@ -200,6 +271,7 @@ export default function useContext() {
     messageOperator,
     namespaceId,
     sendMessage,
+    detachActiveStream,
     setAccessDenied,
     setConversation,
     setInitialApprovalMode,
@@ -208,7 +280,9 @@ export default function useContext() {
   });
 
   const mergedLoading =
-    loading || !isTerminalMessageStatus(messages.at(-1)?.status);
+    loading ||
+    (conversation.total === undefined && !conversation.current_node) ||
+    !isTerminalMessageStatus(messages.at(-1)?.status);
 
   useEffect(() => {
     if (
@@ -280,6 +354,7 @@ export default function useContext() {
       regeneratingRef.current = false;
       setRegeneratingParentId(null);
       setLoading(false);
+      void history.refreshHistory().catch(() => undefined);
     }
   };
 
@@ -337,6 +412,7 @@ export default function useContext() {
     } finally {
       askAbortRef.current = null;
       setLoading(false);
+      void history.refreshHistory().catch(() => undefined);
     }
   };
 
@@ -367,10 +443,9 @@ export default function useContext() {
     ) {
       return;
     }
-    app.fire('chat:title', {
-      conversationId,
-      text: firstUserMessage.message.content,
-    });
+    const text = messagePreviewTitle(firstUserMessage.message.content);
+    if (!text) return;
+    app.fire('chat:title', { conversationId, text });
   }, [
     app,
     conversation.title,
@@ -381,6 +456,7 @@ export default function useContext() {
   ]);
 
   return {
+    ...history,
     loading: mergedLoading,
     accessDenied,
     waitingForAssistantDelta,

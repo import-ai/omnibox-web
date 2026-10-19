@@ -4,6 +4,7 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import {
   getSmartFolderSourceResourceId,
@@ -133,6 +134,29 @@ describe('useNodeActions', () => {
     await act(async () => root.unmount());
   });
 
+  it.each([
+    ['handleAddToChat', 'resource'],
+    ['handleAddAllToChat', 'folder'],
+  ] as const)(
+    'opens Copilot through the app bridge for %s',
+    async (action, type) => {
+      await act(async () => root.render(<Probe />));
+
+      act(() => current[action]());
+
+      expect(openCopilotForChatContext).toHaveBeenCalledWith('namespace', {
+        fire,
+      });
+      expect(addToChatContext).toHaveBeenCalledWith(node, type);
+      expect(
+        jest.mocked(addToChatContext).mock.invocationCallOrder[0]
+      ).toBeLessThan(
+        jest.mocked(openCopilotForChatContext).mock.invocationCallOrder[0]
+      );
+      expect(navigate).not.toHaveBeenCalled();
+    }
+  );
+
   it('opens the folder dialog and renames without navigating', async () => {
     await act(async () => root.render(<Probe />));
     await act(async () => current.handleEdit());
@@ -186,6 +210,11 @@ describe('useNodeActions', () => {
 
     current.handleCreateFile();
     await act(async () => Promise.resolve());
+    expect(navigateToResource).toHaveBeenCalledWith(
+      navigate,
+      '/namespace/created/edit',
+      { state: { fromSidebar: true, focusTitle: true } }
+    );
     expect(locateSidebarResource).toHaveBeenLastCalledWith('created');
 
     current.handleCreateFolderWithDialog();

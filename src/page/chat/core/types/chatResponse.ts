@@ -31,9 +31,11 @@ export enum OpenAIMessageRole {
 }
 
 export interface Citation {
+  index?: number;
+  source_message_id?: string;
   id: string;
   title: string;
-  snippet: string;
+  snippet?: string;
   link: string;
 }
 
@@ -57,7 +59,7 @@ export interface OpenAIMessage {
 }
 
 export type ChatResponseType =
-  'bos' | 'delta' | 'eos' | 'done' | 'error' | 'metrics' | 'stopped';
+  'bos' | 'delta' | 'eos' | 'done' | 'error' | 'metrics' | 'stopped' | 'ping';
 
 export interface ChatBaseResponse {
   response_type: ChatResponseType;
@@ -95,6 +97,10 @@ export interface ChatDoneResponse extends ChatBaseResponse {
   response_type: 'done';
 }
 
+export interface ChatPingResponse extends ChatBaseResponse {
+  response_type: 'ping';
+}
+
 export interface ChatErrorResponse extends ChatBaseResponse {
   response_type: 'error';
   id?: string;
@@ -112,5 +118,6 @@ export type ChatResponse =
   | ChatEOSResponse
   | ChatMetricsResponse
   | ChatDoneResponse
+  | ChatPingResponse
   | ChatErrorResponse
   | ChatStoppedResponse;

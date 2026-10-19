@@ -142,6 +142,13 @@ describe('useChatTitle', () => {
   });
 
   it('posts title generation for untitled conversations', async () => {
+    const onRefresh = jest.fn();
+    mockApp.on('chat:conversation:title-generated', onRefresh);
+    setCachedConversation(cacheScope, {
+      id: 'conversation-a',
+      created_at: '2026-10-12T01:00:00Z',
+      mapping: {},
+    });
     await renderHook('conversation-a');
     await act(async () => {
       mockApp.fire('chat:title', {
@@ -156,6 +163,74 @@ describe('useChatTitle', () => {
     );
     await act(async () => undefined);
     expect(latestTitle).toBe('Generated title');
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    expect(onRefresh).toHaveBeenCalledWith({
+      userId: 'user-a',
+      namespaceId: 'namespace-a',
+      conversation: {
+        id: 'conversation-a',
+        title: 'Generated title',
+        created_at: '2026-10-12T01:00:00Z',
+      },
+    });
+  });
+
+  it('still generates a title after the header shows the first message', async () => {
+    await renderHook('conversation-a');
+    await act(async () => {
+      mockApp.fire('chat:title:update', {
+        conversationId: 'conversation-a',
+        title: '你好',
+      });
+    });
+    expect(latestTitle).toBe('你好');
+    await act(async () => {
+      mockApp.fire('chat:title', {
+        conversationId: 'conversation-a',
+        text: '你好',
+      });
+    });
+    expect(mockPost).toHaveBeenCalledWith(
+      '/namespaces/namespace-a/conversations/conversation-a/title',
+      { text: '你好', lang: 'zh' }
+    );
+  });
+
+  it('generates a title when the request uses the search-token preview', async () => {
+    await renderHook('conversation-a');
+    await act(async () => {
+      mockApp.fire('chat:title:update', {
+        conversationId: 'conversation-a',
+        title: '你好',
+      });
+    });
+    await act(async () => {
+      mockApp.fire('chat:title', {
+        conversationId: 'conversation-a',
+        text: '你好',
+      });
+    });
+    expect(mockPost).toHaveBeenCalledWith(
+      '/namespaces/namespace-a/conversations/conversation-a/title',
+      { text: '你好', lang: 'zh' }
+    );
+  });
+
+  it('does not replace a title the user already set', async () => {
+    await renderHook('conversation-a');
+    await act(async () => {
+      mockApp.fire('chat:title:update', {
+        conversationId: 'conversation-a',
+        title: '手改标题',
+      });
+    });
+    await act(async () => {
+      mockApp.fire('chat:title', {
+        conversationId: 'conversation-a',
+        text: '你好',
+      });
+    });
+    expect(mockPost).not.toHaveBeenCalled();
   });
 
   it('ignores title generation for another conversation', async () => {
@@ -187,6 +262,8 @@ describe('useChatTitle', () => {
   });
 
   it('does not apply a generated title after switching conversations', async () => {
+    const onRefresh = jest.fn();
+    mockApp.on('chat:conversation:title-generated', onRefresh);
     let resolveTitle!: (value: { title: string }) => void;
     mockPost.mockReturnValueOnce(
       new Promise(resolve => {
@@ -208,6 +285,11 @@ describe('useChatTitle', () => {
     });
 
     expect(latestTitle).toBe('');
+    expect(onRefresh).toHaveBeenCalledWith({
+      userId: 'user-a',
+      namespaceId: 'namespace-a',
+      conversation: { id: 'conversation-a', title: 'Generated A' },
+    });
   });
 
   it('clears the active title when conversation authorization fails', async () => {
