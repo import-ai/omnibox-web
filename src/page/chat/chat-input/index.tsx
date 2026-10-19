@@ -7,6 +7,7 @@ import {
 } from 'react';
 import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
+import { flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -314,14 +315,21 @@ export default function ChatArea(props: IProps) {
             !composerTextRef.current &&
             !imagesRef.current.length
           ) {
-            inputRef.current?.restore(draft.state);
-            handleToolsChange(draft.tools);
-            setImages(
-              pendingImages.map(image => ({
-                ...image,
-                url: URL.createObjectURL(image.file),
-              }))
-            );
+            const state = draft.state;
+            // One synchronous render for the editor document, the query and
+            // the selected resources (a store update renders on its own);
+            // otherwise the composer re-syncs from a half-updated render and
+            // keeps only the resource mention.
+            flushSync(() => {
+              inputRef.current?.restore(state);
+              handleToolsChange(draft.tools);
+              setImages(
+                pendingImages.map(image => ({
+                  ...image,
+                  url: URL.createObjectURL(image.file),
+                }))
+              );
+            });
           }
           throw error;
         }
