@@ -114,6 +114,7 @@ export interface ChatRequestBody {
   };
   channel: AgentRequestChannel;
   images?: ChatImageInput[];
+  follow_latest?: boolean;
 }
 
 export type DecisionType = 'approve' | 'reject';

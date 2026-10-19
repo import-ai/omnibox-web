@@ -14,6 +14,7 @@ import {
 } from '@/page/chat/chat-input/types';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import {
+  type PendingDecision,
   sendRejectingPending,
   type SendTurnOutcome,
 } from '@/page/chat/conversation/pendingDecisionSend';
@@ -58,12 +59,43 @@ import {
 import useConversationBootstrap, {
   CHAT_CREATE_PAYLOAD_KEY,
 } from './useConversationBootstrap';
-import useConversationHistory from './useConversationHistory';
+import useConversationHistory, {
+  type LatestMessage,
+} from './useConversationHistory';
 import useScopedConversationState from './useScopedConversationState';
 
 // A message the server never accepted keeps its client request ID as its ID.
 function isLocalMessage(message: MessageDetail | undefined) {
   return Boolean(message && message.attrs?.client_request_id === message.id);
+}
+
+function isQuestion(message: LatestMessage) {
+  return message.role === OpenAIMessageRole.USER && !message.decisions.length;
+}
+
+// Where a new question continues from the newest message of the branch. A
+// user message is never its parent: the server would take the new question as
+// a retry of that message.
+function continuationOf(leaf: LatestMessage | undefined): {
+  leafId?: string;
+  pending?: PendingDecision;
+} {
+  if (!leaf) return {};
+  if (leaf.interrupts.length)
+    return {
+      leafId: leaf.id,
+      pending: { messageId: leaf.id, count: leaf.interrupts.length },
+    };
+  // A decision the server accepted but never applied (no tool result): send
+  // it again under itself; the server reuses it and produces the results.
+  if (leaf.role === OpenAIMessageRole.USER && leaf.decisions.length)
+    return {
+      leafId: leaf.id,
+      pending: { messageId: leaf.id, count: leaf.decisions.length },
+    };
+  // A question whose reply never came: ask beside it.
+  if (leaf.role === OpenAIMessageRole.USER) return { leafId: leaf.parentId };
+  return { leafId: leaf.id };
 }
 
 function lastServerMessage(messages: MessageDetail[]) {
@@ -234,7 +266,7 @@ export default function useContext() {
           images
         );
         uploadRetries.current.delete(pendingId);
-        if (!deferPendingInterrupt) params.onImagesUploaded?.();
+        params.onImagesUploaded?.();
         const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
         askFN = ask(
           conversationId,
@@ -261,18 +293,17 @@ export default function useContext() {
           {
             deferPendingInterrupt,
             reportAlreadyDecided: true,
-            onAccepted: deferPendingInterrupt
-              ? params.onImagesUploaded
-              : undefined,
+            // A new question continues from the newest message once any
+            // running reply finished; edits and retries keep their parent.
+            followLatest: !decisions?.length && !retryId,
+            onReparented: parentId => {
+              void history.mergeBranch(parentId).catch(() => undefined);
+            },
           }
         );
         askAbortRef.current = askFN.cancel;
         detachStreamRef.current = askFN.destroy;
         await askFN.start();
-        // Refused before acceptance for another reason: the error shows on the
-        // message, which can be sent again, so the draft is not kept twice.
-        if (deferPendingInterrupt && !askFN.outcome.pendingInterrupt)
-          params.onImagesUploaded?.();
       } catch (error) {
         if (provisionalTitle) {
           const scope = { userId: getCurrentUserId(), namespaceId };
@@ -363,17 +394,21 @@ export default function useContext() {
     }
     // A failed local message is not a place to continue from.
     const base = lastServerMessage(messages);
-    let leafId = base?.id;
-    let interrupts = base?.attrs?.tool_call?.interrupts ?? [];
+    let leaf: LatestMessage | undefined = base && {
+      id: base.id,
+      role: base.message.role,
+      parentId: base.parent_id || undefined,
+      interrupts: base.attrs?.tool_call?.interrupts ?? [],
+      decisions: base.attrs?.tool_call?.decisions ?? [],
+    };
     if (base) {
       const latest = await history.latestBelow(base.id).catch(() => undefined);
-      // A newer user message is still being answered elsewhere; replying
-      // under it would make the server reuse it as the question.
-      if (latest && latest.role !== OpenAIMessageRole.USER) {
-        leafId = latest.id;
-        interrupts = latest.interrupts;
-      }
+      // A question still being answered elsewhere stays out of the view; the
+      // server waits for its reply and continues from it (follow_latest).
+      if (latest && !(isQuestion(latest) && latest.id !== base.id))
+        leaf = latest;
     }
+    const { leafId, pending } = continuationOf(leaf);
     const interruptedTurn = [...messages]
       .reverse()
       .find(message => message.message.role === OpenAIMessageRole.USER)?.attrs;
@@ -383,10 +418,7 @@ export default function useContext() {
       await sendRejectingPending({
         params,
         leafId,
-        pending:
-          leafId && interrupts.length
-            ? { messageId: leafId, count: interrupts.length }
-            : undefined,
+        pending,
         send: async (turnParams, parentId, options) => {
           phase.rejecting = Boolean(turnParams.decisions?.length);
           try {
@@ -397,7 +429,9 @@ export default function useContext() {
         },
         discard: outcome => discardLocalMessage(outcome.requestId),
         abandon: (outcome, stopped, nodeId) => {
+          // Accepted decisions were renamed to their server ID.
           discardLocalMessage(outcome?.requestId);
+          discardLocalMessage(outcome?.acceptedMessageId);
           if (!stopped) toast.error(i18n.t('chat.decision.reject_failed'));
           // The rejection may have reached the server even though this page
           // saw an error; sync from the interrupted message to find out.

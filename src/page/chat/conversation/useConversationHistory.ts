@@ -17,6 +17,14 @@ import type {
 import { getCurrentUserId } from './conversationCache';
 import { mergeHistoryPage } from './conversationHistory';
 
+export interface LatestMessage {
+  id: string;
+  role?: string;
+  parentId?: string;
+  interrupts: Interrupt[];
+  decisions: unknown[];
+}
+
 export default function useConversationHistory(
   namespaceId: string,
   userId: string,
@@ -221,9 +229,7 @@ export default function useConversationHistory(
   // of forking from a stale one.
   const latestBelow = async (
     nodeId: string
-  ): Promise<
-    { id: string; role?: string; interrupts: Interrupt[] } | undefined
-  > => {
+  ): Promise<LatestMessage | undefined> => {
     const token = generation.current;
     const before = current.current;
     const page: ConversationDetail = await http.get(baseUrl, {
@@ -240,13 +246,35 @@ export default function useConversationHistory(
     return {
       id: page.current_node,
       role: leaf?.message.role,
+      parentId: leaf?.parent_id || undefined,
       interrupts: leaf?.attrs?.tool_call?.interrupts ?? [],
+      decisions: leaf?.attrs?.tool_call?.decisions ?? [],
     };
+  };
+
+  // Brings in the server branch ending at `leafId` without moving the view,
+  // e.g. the messages another client added above the reply being streamed.
+  const mergeBranch = async (leafId: string) => {
+    const token = generation.current;
+    const before = current.current;
+    const page: ConversationDetail = await http.get(baseUrl, {
+      params: { branch_leaf_id: leafId },
+      mute: true,
+    });
+    if (!valid(token)) return;
+    setConversation(prev => {
+      if (prev.id !== before.id) return prev;
+      const merged = mergeHistoryPage(prev, page, false);
+      merged.current_node = prev.current_node;
+      merged.branch_leaf_id = prev.branch_leaf_id;
+      return merged;
+    });
   };
 
   return {
     refreshHistory: refresh,
     latestBelow,
+    mergeBranch,
     loadMore: () => loadPage(),
     activateBranch: (id: string) => loadPage(id),
     loadDetails,

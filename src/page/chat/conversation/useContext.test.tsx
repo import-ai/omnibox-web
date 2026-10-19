@@ -646,6 +646,148 @@ describe('useContext conversation cache failures', () => {
     expect(call.slice(19, 21)).toEqual(['pro', 'max']);
   });
 
+  it('asks new questions to follow the newest message and shows where they landed', async () => {
+    const conversation = cachedConversation();
+    conversation.mapping['message-a'].message.role = 'assistant' as never;
+    setCachedConversation(cacheScope, conversation);
+    const newer = {
+      id: 'conversation-a',
+      current_node: 'answer-2',
+      branch_leaf_id: 'answer-2',
+      mapping: {
+        'message-a': conversation.mapping['message-a'],
+        'question-2': {
+          id: 'question-2',
+          parent_id: 'message-a',
+          children: ['answer-2'],
+          status: 'success',
+          message: { role: 'user', content: 'from another tab' },
+        },
+        'answer-2': {
+          id: 'answer-2',
+          parent_id: 'question-2',
+          children: [],
+          status: 'success',
+          message: { role: 'assistant', content: 'answer' },
+        },
+      },
+    };
+    mockGet.mockImplementation(
+      (_url: string, config?: { params?: { branch_leaf_id?: string } }) =>
+        Promise.resolve(
+          config?.params?.branch_leaf_id === 'answer-2' ? newer : conversation
+        )
+    );
+    jest.mocked(ask).mockReturnValueOnce(askRun({ lastMessageId: 'answer' }));
+    const context = await renderContext();
+
+    await act(async () => {
+      await context().sendMessage(typed);
+    });
+    const options = jest.mocked(ask).mock.calls[0][21]!;
+    expect(options).toEqual(expect.objectContaining({ followLatest: true }));
+    const before = context().conversation.current_node;
+    await act(async () => {
+      options.onReparented?.('answer-2');
+      await Promise.resolve();
+    });
+
+    expect(mockGet).toHaveBeenCalledWith(
+      '/namespaces/namespace-a/conversations/conversation-a/messages',
+      { params: { branch_leaf_id: 'answer-2' }, mute: true }
+    );
+    expect(context().conversation.mapping['answer-2']).toBeDefined();
+    expect(context().conversation.current_node).toBe(before);
+  });
+
+  it('keeps edits and decisions on their own parent', async () => {
+    const conversation = pendingConversation();
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    jest.mocked(ask).mockReturnValueOnce(askRun({ lastMessageId: 'tool-1' }));
+    const context = await renderContext();
+
+    await act(async () => {
+      await context().sendMessage({
+        ...typed,
+        query: '',
+        decisions: [{ type: 'approve' }],
+      });
+    });
+
+    expect(jest.mocked(ask).mock.calls[0][21]).toEqual(
+      expect.objectContaining({ followLatest: false })
+    );
+  });
+
+  it('resumes a decision that never produced a result instead of replying under it', async () => {
+    const conversation = pendingConversation();
+    const interrupt = conversation.mapping.interrupt;
+    interrupt.children = ['decision-s'];
+    conversation.mapping['decision-s'] = {
+      id: 'decision-s',
+      parent_id: 'interrupt',
+      children: [],
+      status: 'success',
+      message: { role: 'user', content: '' },
+      attrs: {
+        tool_call: { status: 'success', decisions: [{ type: 'reject' }] },
+      },
+    } as unknown as ConversationDetail['mapping'][string];
+    conversation.current_node = 'decision-s';
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue({ ...conversation, current_node: 'decision-s' });
+    jest
+      .mocked(ask)
+      .mockReturnValueOnce(askRun({ lastMessageId: 'tool-s' }))
+      .mockReturnValueOnce(askRun({ lastMessageId: 'answer' }));
+    const context = await renderContext();
+
+    await act(async () => {
+      await context().sendMessage(typed);
+    });
+
+    const [resume, question] = jest.mocked(ask).mock.calls;
+    expect(resume[5]).toBe('decision-s');
+    expect(resume[13]?.decisions).toHaveLength(1);
+    expect(question[5]).toBe('tool-s');
+  });
+
+  it('drops a failed decision under the server ID it was accepted with', async () => {
+    const conversation = pendingConversation();
+    conversation.mapping.interrupt.children = ['decision-s'];
+    conversation.mapping['decision-s'] = {
+      id: 'decision-s',
+      parent_id: 'interrupt',
+      children: [],
+      status: 'failed',
+      message: { role: 'user', content: '' },
+      attrs: { client_request_id: 'local-d' },
+    } as unknown as ConversationDetail['mapping'][string];
+    setCachedConversation(cacheScope, conversation);
+    const server = pendingConversation();
+    mockGet.mockResolvedValue(server);
+    jest.mocked(ask).mockReturnValueOnce(
+      askRun({
+        failed: true,
+        requestId: 'local-d',
+        acceptedMessageId: 'decision-s',
+      })
+    );
+    const context = await renderContext();
+
+    await act(async () => {
+      await context()
+        .sendMessage(typed)
+        .catch(() => undefined);
+    });
+
+    expect(context().conversation.mapping['decision-s']).toBeUndefined();
+    expect(context().conversation.mapping.interrupt.children).not.toContain(
+      'decision-s'
+    );
+  });
+
   it('retries the original file and query ID after an image upload fails', async () => {
     const conversation = cachedConversation();
     setCachedConversation(cacheScope, conversation);

@@ -210,6 +210,8 @@ export interface AskOutcome {
   failed: boolean;
   // The local pending user message of this request, if one was added.
   requestId?: string;
+  // The server ID that local message got once accepted.
+  acceptedMessageId?: string;
 }
 
 export interface AskOptions {
@@ -219,8 +221,11 @@ export interface AskOptions {
   // Report an interrupt decided elsewhere in the outcome instead of showing
   // the refusal on the local decision message.
   reportAlreadyDecided?: boolean;
-  // Called once the server accepted the user message.
-  onAccepted?: () => void;
+  // Ask the server to continue from the newest message below the parent
+  // once any running reply has finished (a new question from the composer).
+  followLatest?: boolean;
+  // The server put the user message under another parent than requested.
+  onReparented?: (parentId: string) => void;
 }
 
 export function ask(
@@ -271,6 +276,9 @@ export function ask(
   }
   if (images?.length) {
     chatReq.images = images;
+  }
+  if (options.followLatest) {
+    chatReq.follow_latest = true;
   }
   let pendingDisplayParts = displayParts?.length ? displayParts : undefined;
   const pendingId =
@@ -346,7 +354,13 @@ export function ask(
       if (chatResponse.response_type === 'bos') {
         if (chatResponse.role === OpenAIMessageRole.USER) {
           acceptedId = chatResponse.id;
-          options.onAccepted?.();
+          outcome.acceptedMessageId = chatResponse.id;
+          if (
+            chatResponse.parentId &&
+            parent_message_id &&
+            chatResponse.parentId !== parent_message_id
+          )
+            options.onReparented?.(chatResponse.parentId);
           // Also reconciles an older backend that does not echo the optional request ID.
           chatResponse.attrs = {
             ...chatResponse.attrs,
