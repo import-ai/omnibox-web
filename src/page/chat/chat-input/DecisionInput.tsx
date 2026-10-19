@@ -127,21 +127,20 @@ function getDecisionStyle(
   );
 }
 
-// Keys typed into the text box next to the decision card belong to the text.
-function isEditableTarget(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  return (
-    target.isContentEditable ||
-    target.tagName === 'INPUT' ||
-    target.tagName === 'TEXTAREA' ||
-    target.closest('[contenteditable="true"]') !== null
-  );
+// The shortcuts act only while the decision card has focus, or nothing does.
+// Keys pressed in the composer next to the card (its text box, send button,
+// menus) belong to the composer.
+export function decisionShortcutsActive(card: HTMLElement | null): boolean {
+  const active = document.activeElement;
+  if (!active || active === document.body) return true;
+  return Boolean(card?.contains(active));
 }
 
 export default function DecisionInput(props: IDecisionInputProps) {
   const { interrupts, approvalMode, loading = false, sendMessage } = props;
   const { t } = useTranslation();
   const submittedRef = useRef(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const autoSubmittedRef = useRef<string | null>(null);
 
   const onSubmit = (decisions: { type: DecisionType }[]) => {
@@ -266,7 +265,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
   // Keyboard navigation — global listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (loading || isEditableTarget(e.target)) {
+      if (loading || !decisionShortcutsActive(cardRef.current)) {
         return;
       }
 
@@ -371,7 +370,10 @@ export default function DecisionInput(props: IDecisionInputProps) {
   }, [activeCardIndex]);
 
   return (
-    <Card className="max-w-[766px] w-full mx-auto rounded-2xl border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030] shadow-none">
+    <Card
+      ref={cardRef}
+      className="max-w-[766px] w-full mx-auto rounded-2xl border border-solid border-gray-200 bg-white dark:bg-[#303030] dark:border-[#303030] shadow-none"
+    >
       <CardHeader className="p-3">
         <CardTitle className="flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">
