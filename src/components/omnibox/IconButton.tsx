@@ -1,7 +1,12 @@
 import { cn } from 'cn';
 import * as React from 'react';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
 
 const iconButtonSizes = {
@@ -61,18 +66,22 @@ const IconButton = React.forwardRef<
   );
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        {disabled ? (
-          <span className={cn('inline-flex', disabled && 'cursor-not-allowed')}>
-            {button}
-          </span>
-        ) : (
-          button
-        )}
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {disabled ? (
+            <span
+              className={cn('inline-flex', disabled && 'cursor-not-allowed')}
+            >
+              {button}
+            </span>
+          ) : (
+            button
+          )}
+        </TooltipTrigger>
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 });
 
