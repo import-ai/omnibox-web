@@ -210,6 +210,11 @@ describe('useNodeActions', () => {
 
     current.handleCreateFile();
     await act(async () => Promise.resolve());
+    expect(navigateToResource).toHaveBeenCalledWith(
+      navigate,
+      '/namespace/created/edit',
+      { state: { fromSidebar: true, focusTitle: true } }
+    );
     expect(locateSidebarResource).toHaveBeenLastCalledWith('created');
 
     current.handleCreateFolderWithDialog();
