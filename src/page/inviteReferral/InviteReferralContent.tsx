@@ -24,6 +24,7 @@ import { InviteActivityPanel } from './InviteActivityPanel';
 import { InvitePhoneBindingDialog } from './InvitePhoneBindingDialog';
 import { InviteRecordsPanel } from './InviteRecordsPanel';
 import { InviteShareDialog } from './InviteShareDialog';
+import { InviteTaskBindDialogs } from './InviteTaskBindDialogs';
 import {
   clearInvitePhoneBinding,
   hasInvitePhoneBinding,
@@ -44,6 +45,8 @@ export function InviteReferralContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [taskPhoneOpen, setTaskPhoneOpen] = useState(false);
+  const [wechatSession, setWechatSession] = useState(0);
   const [phoneBindingOpen, setPhoneBindingOpen] = useState(() =>
     hasInvitePhoneBinding()
   );
@@ -77,17 +80,11 @@ export function InviteReferralContent() {
   const runTask = (task: InviteTask) => {
     if (task.status === 'completed') return;
     if (task.action === 'phone_binding') {
-      app.fire('open_settings', {
-        tab: 'profile',
-        autoAction: { type: 'bind_phone' },
-      });
+      setTaskPhoneOpen(true);
       return;
     }
     if (task.action === 'wechat_assistant_binding') {
-      app.fire('open_settings', {
-        tab: 'applications',
-        autoAction: { type: 'bind', appId: 'wechat_bot' },
-      });
+      setWechatSession(session => session + 1);
       return;
     }
     if (task.action === 'home') {
@@ -238,6 +235,16 @@ export function InviteReferralContent() {
           onOpenChange={setShareOpen}
         />
       ) : null}
+      <InviteTaskBindDialogs
+        namespaceId={namespaceId}
+        phoneOpen={taskPhoneOpen}
+        onPhoneOpenChange={setTaskPhoneOpen}
+        wechatSession={wechatSession}
+        onWechatClose={() => setWechatSession(0)}
+        onBound={() => {
+          void load();
+        }}
+      />
       <InvitePhoneBindingDialog
         open={phoneBindingOpen}
         onBound={load}
