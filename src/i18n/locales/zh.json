@@ -1002,6 +1002,7 @@
       "selected": "已选择",
       "approve_all": "全部同意",
       "reject_all": "全部拒绝",
+      "reject_failed": "未能拒绝待确认的操作，消息没有发送。",
       "mode": {
         "manual": "手动确认",
         "auto_approve": "自动同意",

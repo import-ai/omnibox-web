@@ -23,6 +23,7 @@ import {
   SendMessageParams,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import { PendingDecisionNotRejected } from '@/page/chat/conversation/pendingDecisionSend';
 import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
 import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
 import type { TreeNode } from '@/page/sidebar/store';
@@ -249,11 +250,11 @@ export default function ChatArea(props: IProps) {
     if (v) {
       submittingRef.current = true;
       setIsSubmitting(true);
+      const localContext = structuredClone(selectedResources);
       try {
         const localTools = selection
           ? tools.filter(tool => tool !== ToolType.REASONING)
           : [...tools];
-        const localContext = structuredClone(selectedResources);
         const displayParts = inputRef.current?.getDisplayParts();
         const localDisplayParts = displayParts?.some(
           part => part.type !== 'text'
@@ -272,8 +273,11 @@ export default function ChatArea(props: IProps) {
           clearComposerAfterSend();
           setIsPreparingImages(false);
         };
+        // With a decision pending, the draft stays until the decision is
+        // rejected and the message itself goes out (onImagesUploaded), so it
+        // is still there if the rejection fails or is stopped.
         if (pendingImages.length) setIsPreparingImages(true);
-        else clearPreparedDraft();
+        else if (interrupts.length === 0) clearPreparedDraft();
         await sendMessage({
           query: v,
           selectedResources: localContext,
@@ -286,8 +290,17 @@ export default function ChatArea(props: IProps) {
           onImagesUploaded: clearPreparedDraft,
         });
         clearPreparedDraft();
-      } catch {
+      } catch (error) {
         // Request and stream layers report errors; allow a new submission.
+        // A decision the page did not know about could not be rejected: the
+        // text never went out, so give it back unless the user moved on.
+        if (
+          error instanceof PendingDecisionNotRejected &&
+          !inputRef.current?.getDisplayParts()?.length
+        ) {
+          fillQuery(v);
+          setSelectedResources(localContext);
+        }
       } finally {
         submittingRef.current = false;
         setIsSubmitting(false);
@@ -306,6 +319,9 @@ export default function ChatArea(props: IProps) {
     sendMessage,
     tools,
     images,
+    interrupts.length,
+    fillQuery,
+    setSelectedResources,
   ]);
 
   const interruptedTurn = [...messages]

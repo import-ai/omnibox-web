@@ -196,9 +196,11 @@ export function beginPendingQuery(
 // What a finished ask left behind, for callers that chain another request
 // after it.
 export interface AskOutcome {
-  // The last message the server created, e.g. the rejected tool result of a
-  // decision turn; the next request continues from it.
+  // The last assistant or tool message the server created, e.g. the rejected
+  // tool result of a decision turn; the next request continues from it. User
+  // messages never count: a reply under one would reuse it as the query.
   lastMessageId?: string;
+  errorMessage?: string;
   // The server refused the request because the branch waits for a tool
   // decision (reported only when deferPendingInterrupt is set).
   pendingInterrupt?: { messageId: string; count: number };
@@ -273,6 +275,9 @@ export function ask(
             tools: chatReq.tools,
             lang,
             enable_thinking,
+            // Kept on the local message so sending it again keeps the strength.
+            edition,
+            level,
             composer: displayParts
               ? { display_parts: displayParts }
               : undefined,
@@ -309,7 +314,11 @@ export function ask(
         };
         return;
       }
-      if (chatResponse.response_type === 'bos' && chatResponse.id) {
+      if (
+        chatResponse.response_type === 'bos' &&
+        chatResponse.id &&
+        chatResponse.role !== OpenAIMessageRole.USER
+      ) {
         outcome.lastMessageId = chatResponse.id;
       }
       if (chatResponse.response_type === 'eos' && !chatResponse.id) {
@@ -331,6 +340,7 @@ export function ask(
       if (chatResponse.response_type === 'error') {
         streamError = true;
         outcome.failed = true;
+        outcome.errorMessage = chatResponse.message;
         if (!chatResponse.id && !acceptedId) {
           chatResponse.id = pendingId;
           data = JSON.stringify(chatResponse);
@@ -369,6 +379,8 @@ export function ask(
         await transport.start();
       } catch (error) {
         outcome.failed = true;
+        outcome.errorMessage ??=
+          error instanceof Error ? error.message : String(error);
         if (!streamError) {
           let id = pendingId;
           if (acceptedId) {

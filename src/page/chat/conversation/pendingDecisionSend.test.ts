@@ -5,6 +5,7 @@ import {
 } from '@/page/chat/chat-input/types';
 
 import {
+  PendingDecisionNotRejected,
   sendRejectingPending,
   type SendTurn,
   type SendTurnOutcome,
@@ -33,22 +34,40 @@ function sender(outcomes: (SendTurnOutcome | undefined)[]) {
   return { send, calls };
 }
 
+function run(
+  send: SendTurn,
+  pending: { messageId: string; count: number } | undefined,
+  overrides: Partial<Parameters<typeof sendRejectingPending>[0]> = {}
+) {
+  const discard = jest.fn();
+  const abandon = jest.fn();
+  const promise = sendRejectingPending({
+    params,
+    leafId: pending?.messageId ?? 'leaf',
+    pending,
+    send,
+    discard,
+    abandon,
+    isStopped: () => false,
+    decisionSettings: {},
+    ...overrides,
+  });
+  return { promise, discard, abandon };
+}
+
 describe('sendRejectingPending', () => {
   it('rejects every waiting call, then asks after the rejected tool results', async () => {
     const { send, calls } = sender([
       { failed: false, lastMessageId: 'tool-2' },
       { failed: false, lastMessageId: 'answer' },
     ]);
-    const discard = jest.fn();
 
-    await sendRejectingPending({
-      params,
-      leafId: 'interrupt',
-      pending: { messageId: 'interrupt', count: 2 },
+    const { promise, abandon } = run(
       send,
-      discard,
-      decisionSettings: { edition: 'pro', level: 'high' },
-    });
+      { messageId: 'interrupt', count: 2 },
+      { decisionSettings: { edition: 'pro', level: 'high' } }
+    );
+    await promise;
 
     expect(calls).toEqual([
       [
@@ -66,20 +85,13 @@ describe('sendRejectingPending', () => {
       ],
       [params, 'tool-2', { deferPendingInterrupt: false }],
     ]);
-    expect(discard).not.toHaveBeenCalled();
+    expect(abandon).not.toHaveBeenCalled();
   });
 
   it('asks normally when nothing waits', async () => {
     const { send, calls } = sender([{ failed: false, lastMessageId: 'a' }]);
 
-    await sendRejectingPending({
-      params,
-      leafId: 'leaf',
-      pending: undefined,
-      send,
-      discard: jest.fn(),
-      decisionSettings: {},
-    });
+    await run(send, undefined).promise;
 
     expect(calls).toEqual([[params, 'leaf', { deferPendingInterrupt: true }]]);
   });
@@ -95,21 +107,11 @@ describe('sendRejectingPending', () => {
       refused,
       { failed: false, lastMessageId: 'tool-1' },
       // A second refusal is shown as an error, not retried.
-      {
-        failed: true,
-        pendingInterrupt: { messageId: 'third', count: 1 },
-      },
+      { failed: true, pendingInterrupt: { messageId: 'third', count: 1 } },
     ]);
-    const discard = jest.fn();
 
-    await sendRejectingPending({
-      params,
-      leafId: 'leaf',
-      pending: undefined,
-      send,
-      discard,
-      decisionSettings: {},
-    });
+    const { promise, discard } = run(send, undefined);
+    await promise;
 
     expect(discard).toHaveBeenCalledWith(refused);
     expect(calls.map(([, parent, options]) => [parent, options])).toEqual([
@@ -121,22 +123,45 @@ describe('sendRejectingPending', () => {
     expect(calls[2][0]).toEqual({ ...params, images: refused.images });
   });
 
-  it('still sends the text when the rejection fails', async () => {
-    const { send, calls } = sender([{ failed: true }, { failed: true }]);
+  it.each([
+    ['fails', { failed: true, requestId: 'local-d', errorMessage: '503' }],
+    [
+      'creates no tool result to continue from',
+      { failed: false, requestId: 'local-d' },
+    ],
+  ])(
+    'keeps the text when the rejection %s',
+    async (_case, outcome: SendTurnOutcome) => {
+      const { send, calls } = sender([outcome]);
 
-    await sendRejectingPending({
-      params,
-      leafId: 'interrupt',
-      pending: { messageId: 'interrupt', count: 1 },
+      const { promise, abandon } = run(send, {
+        messageId: 'interrupt',
+        count: 1,
+      });
+
+      await expect(promise).rejects.toEqual(
+        expect.objectContaining({ stopped: false })
+      );
+      await expect(promise).rejects.toBeInstanceOf(PendingDecisionNotRejected);
+      expect(calls).toHaveLength(1);
+      expect(abandon).toHaveBeenCalledWith(outcome, false);
+    }
+  );
+
+  it('drops the text when the user stops during the rejection', async () => {
+    const rejected = { failed: false, lastMessageId: 'tool-1' };
+    const { send, calls } = sender([rejected]);
+
+    const { promise, abandon } = run(
       send,
-      discard: jest.fn(),
-      decisionSettings: {},
-    });
+      { messageId: 'interrupt', count: 1 },
+      { isStopped: () => true }
+    );
 
-    expect(calls[1]).toEqual([
-      params,
-      'interrupt',
-      { deferPendingInterrupt: false },
-    ]);
+    await expect(promise).rejects.toEqual(
+      expect.objectContaining({ stopped: true })
+    );
+    expect(calls).toHaveLength(1);
+    expect(abandon).toHaveBeenCalledWith(rejected, true);
   });
 });

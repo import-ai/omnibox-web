@@ -61,6 +61,25 @@ import useConversationBootstrap, {
 import useConversationHistory from './useConversationHistory';
 import useScopedConversationState from './useScopedConversationState';
 
+// A message the server never accepted keeps its client request ID as its ID.
+function isLocalMessage(message: MessageDetail | undefined) {
+  return Boolean(message && message.attrs?.client_request_id === message.id);
+}
+
+function lastServerMessage(messages: MessageDetail[]) {
+  return [...messages].reverse().find(message => !isLocalMessage(message));
+}
+
+function serverAncestorId(
+  conversation: { mapping: Record<string, MessageDetail> },
+  id: string | undefined
+) {
+  let current = id;
+  while (current && isLocalMessage(conversation.mapping[current]))
+    current = conversation.mapping[current].parent_id;
+  return current;
+}
+
 export default function useContext() {
   const app = useApp();
   const { i18n } = useTranslation();
@@ -71,6 +90,8 @@ export default function useContext() {
     detachStreamRef.current = null;
   }, []);
   const regeneratingRef = useRef(false);
+  // Set while a typed message first rejects a pending decision.
+  const rejectPhaseRef = useRef<{ rejecting: boolean; stopped: boolean }>(null);
   const uploadRetries = useRef(new Map<string, () => Promise<void>>());
   const { conversationId, namespaceId } = useChatRouteParams();
   const { resource_id: routeResourceId } = useParams();
@@ -189,6 +210,9 @@ export default function useContext() {
         {
           composer: displayParts ? { display_parts: displayParts } : undefined,
           tool_call: decisions ? { decisions, status: 'pending' } : undefined,
+          // Kept on the local message so sending it again keeps the strength.
+          edition,
+          level,
         },
         retryId
       );
@@ -315,26 +339,55 @@ export default function useContext() {
       });
       return;
     }
-    const leaf = messages.at(-1);
-    const interrupts = leaf?.attrs?.tool_call?.interrupts ?? [];
+    // A failed local message is not a place to continue from.
+    const base = lastServerMessage(messages);
+    let leafId = base?.id;
+    let interrupts = base?.attrs?.tool_call?.interrupts ?? [];
+    if (base) {
+      const latest = await history.latestBelow(base.id).catch(() => undefined);
+      // A newer user message is still being answered elsewhere; replying
+      // under it would make the server reuse it as the question.
+      if (latest && latest.role !== OpenAIMessageRole.USER) {
+        leafId = latest.id;
+        interrupts = latest.interrupts;
+      }
+    }
     const interruptedTurn = [...messages]
       .reverse()
       .find(message => message.message.role === OpenAIMessageRole.USER)?.attrs;
-    await sendRejectingPending({
-      params,
-      leafId: leaf?.id,
-      pending:
-        leaf && interrupts.length
-          ? { messageId: leaf.id, count: interrupts.length }
-          : undefined,
-      send: (turnParams, parentId, options) =>
-        sendTurn(turnParams, parentId, options),
-      discard: outcome => discardLocalMessage(outcome.requestId),
-      decisionSettings:
-        interruptedTurn?.edition && interruptedTurn.level
-          ? { edition: interruptedTurn.edition, level: interruptedTurn.level }
-          : {},
-    });
+    const phase = { rejecting: false, stopped: false };
+    rejectPhaseRef.current = phase;
+    try {
+      await sendRejectingPending({
+        params,
+        leafId,
+        pending:
+          leafId && interrupts.length
+            ? { messageId: leafId, count: interrupts.length }
+            : undefined,
+        send: async (turnParams, parentId, options) => {
+          phase.rejecting = Boolean(turnParams.decisions?.length);
+          try {
+            return await sendTurn(turnParams, parentId, options);
+          } finally {
+            phase.rejecting = false;
+          }
+        },
+        discard: outcome => discardLocalMessage(outcome.requestId),
+        abandon: (outcome, stopped) => {
+          discardLocalMessage(outcome?.requestId);
+          if (!stopped) toast.error(i18n.t('chat.decision.reject_failed'));
+          void history.refreshHistory().catch(() => undefined);
+        },
+        isStopped: () => phase.stopped,
+        decisionSettings:
+          interruptedTurn?.edition && interruptedTurn.level
+            ? { edition: interruptedTurn.edition, level: interruptedTurn.level }
+            : {},
+      });
+    } finally {
+      if (rejectPhaseRef.current === phase) rejectPhaseRef.current = null;
+    }
   };
 
   useConversationBootstrap({
@@ -436,7 +489,10 @@ export default function useContext() {
   const onEdit = async (messageId: string, newContent: string) => {
     const retryUpload = uploadRetries.current.get(messageId);
     if (retryUpload) return retryUpload();
-    const parentId = conversation.mapping[messageId].parent_id;
+    const parentId = serverAncestorId(
+      conversation,
+      conversation.mapping[messageId].parent_id
+    );
     const editedMessage = conversation.mapping[messageId];
 
     const {
@@ -492,6 +548,13 @@ export default function useContext() {
   };
 
   const onStop = async () => {
+    // The rejection before a typed message is short and never calls the
+    // model; let it finish so the conversation does not end at a half-applied
+    // decision, and only drop the typed message.
+    if (rejectPhaseRef.current?.rejecting) {
+      rejectPhaseRef.current.stopped = true;
+      return;
+    }
     const cancel = askAbortRef.current;
     askAbortRef.current = null;
     await stopStream({

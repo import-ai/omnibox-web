@@ -10,6 +10,7 @@ import {
 import { http } from '@/lib/request';
 import type {
   ConversationDetail,
+  Interrupt,
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
 
@@ -214,8 +215,38 @@ export default function useConversationHistory(
     setConversation(prev => mergeHistoryPage(prev, page, false, revisions));
   };
 
+  // The newest message the server has below `nodeId`. Another client (a bot,
+  // another tab) may have continued the conversation since this page loaded;
+  // the view switches to that message so a new question continues it instead
+  // of forking from a stale one.
+  const latestBelow = async (
+    nodeId: string
+  ): Promise<
+    { id: string; role?: string; interrupts: Interrupt[] } | undefined
+  > => {
+    const token = generation.current;
+    const before = current.current;
+    const page: ConversationDetail = await http.get(baseUrl, {
+      params: { branch_node_id: nodeId },
+      mute: true,
+    });
+    if (!valid(token) || !page.current_node) return undefined;
+    const leaf = page.mapping[page.current_node];
+    if (page.current_node !== nodeId) {
+      setConversation(prev =>
+        prev.id === before.id ? mergeHistoryPage(prev, page, true) : prev
+      );
+    }
+    return {
+      id: page.current_node,
+      role: leaf?.message.role,
+      interrupts: leaf?.attrs?.tool_call?.interrupts ?? [],
+    };
+  };
+
   return {
     refreshHistory: refresh,
+    latestBelow,
     loadMore: () => loadPage(),
     activateBranch: (id: string) => loadPage(id),
     loadDetails,

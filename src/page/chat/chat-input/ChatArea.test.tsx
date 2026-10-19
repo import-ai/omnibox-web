@@ -6,6 +6,7 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import { http } from '@/lib/request';
+import { PendingDecisionNotRejected } from '@/page/chat/conversation/pendingDecisionSend';
 
 import ChatArea from './index';
 
@@ -399,6 +400,47 @@ describe('ChatArea', () => {
       (container.querySelector('[data-testid="send"]') as HTMLButtonElement)
         .disabled
     ).toBe(true);
+  });
+
+  it('keeps the typed text when the pending decision cannot be rejected', async () => {
+    const messages = [
+      { message: { role: 'user', content: 'Do it' }, attrs: {} },
+      {
+        message: { role: 'assistant', content: '' },
+        attrs: { tool_call: { interrupts: [{ id: 'approval' }] } },
+      },
+    ] as React.ComponentProps<typeof ChatArea>['messages'];
+    const sendMessage = jest
+      .fn()
+      .mockRejectedValue(new PendingDecisionNotRejected(false));
+    await act(async () =>
+      root.render(
+        <ChatArea
+          initialQuery="hello"
+          loading={false}
+          messages={messages}
+          navigatePrefix="/namespace-a"
+          selectedResources={[]}
+          setSelectedResources={jest.fn()}
+          sendMessage={sendMessage}
+          textWhilePending
+        />
+      )
+    );
+
+    await act(async () =>
+      (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+    );
+
+    expect(sendMessage).toHaveBeenCalledTimes(1);
+    expect(
+      (
+        container.querySelector(
+          '[data-testid="composer"]'
+        ) as HTMLTextAreaElement
+      ).value
+    ).toBe('hello');
+    expect(mockInputClear).not.toHaveBeenCalled();
   });
 
   it.each(['Enter', 'click', 'mixed'])(
