@@ -61,6 +61,7 @@ import useConversationBootstrap, {
 } from './useConversationBootstrap';
 import useConversationHistory, {
   type LatestMessage,
+  latestMessageOf,
 } from './useConversationHistory';
 import useScopedConversationState from './useScopedConversationState';
 
@@ -92,6 +93,24 @@ function continuationOf(leaf: LatestMessage | undefined): {
     return {
       leafId: leaf.id,
       pending: { messageId: leaf.id, count: leaf.decisions.length },
+    };
+  // The same when the resume failed: the server wrote the decision and an
+  // empty, unfinished assistant message under it, but no tool results. A
+  // question under that message would leave the rejected call unanswered.
+  if (
+    leaf.role === OpenAIMessageRole.ASSISTANT &&
+    leaf.status !== MessageStatus.SUCCESS &&
+    !leaf.hasContent &&
+    !leaf.interrupts.length &&
+    leaf.parent?.role === OpenAIMessageRole.USER &&
+    leaf.parent.decisions.length
+  )
+    return {
+      leafId: leaf.parent.id,
+      pending: {
+        messageId: leaf.parent.id,
+        count: leaf.parent.decisions.length,
+      },
     };
   // A question whose reply never came: ask beside it.
   if (leaf.role === OpenAIMessageRole.USER) return { leafId: leaf.parentId };
@@ -377,7 +396,7 @@ export default function useContext() {
   ) => {
     discardLocalMessage(outcome.requestId);
     toast.info(i18n.t('chat.decision.already_decided'));
-    return await history.latestBelow(nodeId).catch(() => undefined);
+    return await history.syncBelow(nodeId).catch(() => undefined);
   };
 
   const sendMessage = async (
@@ -394,19 +413,20 @@ export default function useContext() {
     }
     // A failed local message is not a place to continue from.
     const base = lastServerMessage(messages);
-    let leaf: LatestMessage | undefined = base && {
-      id: base.id,
-      role: base.message.role,
-      parentId: base.parent_id || undefined,
-      interrupts: base.attrs?.tool_call?.interrupts ?? [],
-      decisions: base.attrs?.tool_call?.decisions ?? [],
-    };
+    let leaf = latestMessageOf(base, conversation.mapping);
     if (base) {
       const latest = await history.latestBelow(base.id).catch(() => undefined);
-      // A question still being answered elsewhere stays out of the view; the
-      // server waits for its reply and continues from it (follow_latest).
-      if (latest && !(isQuestion(latest) && latest.id !== base.id))
-        leaf = latest;
+      // A question another client is still answering is neither shown nor
+      // replied to: the view stays here, and the server waits for that reply
+      // and continues from it (follow_latest); the user message's bos then
+      // brings in the final branch (mergeBranch).
+      if (
+        latest &&
+        !(isQuestion(latest.message) && latest.message.id !== base.id)
+      ) {
+        latest.adopt();
+        leaf = latest.message;
+      }
     }
     const { leafId, pending } = continuationOf(leaf);
     const interruptedTurn = [...messages]
@@ -435,7 +455,7 @@ export default function useContext() {
           if (!stopped) toast.error(i18n.t('chat.decision.reject_failed'));
           // The rejection may have reached the server even though this page
           // saw an error; sync from the interrupted message to find out.
-          void history.latestBelow(nodeId).catch(() => undefined);
+          void history.syncBelow(nodeId).catch(() => undefined);
         },
         alreadyDecided: syncAfterDecidedElsewhere,
         isStopped: () => phase.stopped,

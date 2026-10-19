@@ -788,6 +788,108 @@ describe('useContext conversation cache failures', () => {
     );
   });
 
+  it('stays on the page while another client is still answering a newer question', async () => {
+    const conversation = cachedConversation();
+    conversation.mapping['message-a'].message.role = 'assistant' as never;
+    setCachedConversation(cacheScope, conversation);
+    // The server already has tab B's question under message-a, no answer yet.
+    const withQuestion = {
+      id: 'conversation-a',
+      current_node: 'question-b',
+      mapping: {
+        'message-a': {
+          ...conversation.mapping['message-a'],
+          children: ['question-b'],
+        },
+        'question-b': {
+          id: 'question-b',
+          parent_id: 'message-a',
+          children: [],
+          status: 'success',
+          message: { role: 'user', content: 'long question from tab B' },
+        },
+      },
+    };
+    mockGet.mockImplementation(
+      (_url: string, config?: { params?: { branch_node_id?: string } }) =>
+        Promise.resolve(
+          config?.params?.branch_node_id === 'message-a'
+            ? withQuestion
+            : conversation
+        )
+    );
+    const held = deferred<void>();
+    jest.mocked(ask).mockReturnValueOnce(
+      askRun(
+        { lastMessageId: 'answer' },
+        jest.fn(() => held.promise)
+      )
+    );
+    const context = await renderContext();
+
+    let sending!: Promise<void>;
+    await act(async () => {
+      sending = context().sendMessage(typed);
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    // While the server holds the question, nothing shows tab B's question
+    // beside it: no sibling, no switched view.
+    expect(jest.mocked(ask)).toHaveBeenCalledTimes(1);
+    expect(jest.mocked(ask).mock.calls[0][5]).toBe('message-a');
+    expect(context().conversation.mapping['question-b']).toBeUndefined();
+    expect(context().conversation.mapping['message-a'].children).not.toContain(
+      'question-b'
+    );
+    await act(async () => {
+      held.resolve();
+      await sending;
+    });
+  });
+
+  it('resumes a decision whose resume failed instead of asking under the failed reply', async () => {
+    const conversation = pendingConversation();
+    conversation.mapping.interrupt.children = ['decision-d'];
+    conversation.mapping['decision-d'] = {
+      id: 'decision-d',
+      parent_id: 'interrupt',
+      children: ['failed-f'],
+      status: 'success',
+      message: { role: 'user', content: '' },
+      attrs: {
+        tool_call: {
+          status: 'success',
+          decisions: [{ type: 'reject', end_turn: true }],
+        },
+      },
+    } as unknown as ConversationDetail['mapping'][string];
+    conversation.mapping['failed-f'] = {
+      id: 'failed-f',
+      parent_id: 'decision-d',
+      children: [],
+      status: 'failed',
+      message: { role: 'assistant', content: '' },
+      attrs: { error_message: 'fetch failed' },
+    } as unknown as ConversationDetail['mapping'][string];
+    conversation.current_node = 'failed-f';
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    jest
+      .mocked(ask)
+      .mockReturnValueOnce(askRun({ lastMessageId: 'tool-r' }))
+      .mockReturnValueOnce(askRun({ lastMessageId: 'answer' }));
+    const context = await renderContext();
+
+    await act(async () => {
+      await context().sendMessage(typed);
+    });
+
+    const [resume, question] = jest.mocked(ask).mock.calls;
+    expect(resume[5]).toBe('decision-d');
+    expect(resume[13]?.decisions).toHaveLength(1);
+    expect(question[5]).toBe('tool-r');
+  });
+
   it('retries the original file and query ID after an image upload fails', async () => {
     const conversation = cachedConversation();
     setCachedConversation(cacheScope, conversation);
