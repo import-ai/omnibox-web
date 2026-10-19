@@ -32,23 +32,11 @@ const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 
-// TipTap uses Mod-b for bold. While an editable document has focus, that
-// shortcut must not also open or close the resource sidebar.
-function isEditableEditorTarget(target: EventTarget | null) {
-  if (!(target instanceof Element)) {
-    return false;
-  }
-
-  const editor = target.closest('.ProseMirror');
-  if (!(editor instanceof HTMLElement)) {
-    return false;
-  }
-
-  // ProseMirror sets contenteditable="true" on the editable document root.
-  return (
-    editor.getAttribute('contenteditable') === 'true' ||
-    editor.isContentEditable
-  );
+// The document editor binds Mod-b to bold. While that editor is open, the
+// same shortcut must not open or close the resource sidebar, including when
+// focus is in the title.
+function isResourceEditorOpen() {
+  return document.querySelector('.resource-editable-page') !== null;
 }
 
 type TSidebarContext = {
@@ -128,7 +116,7 @@ const SidebarProvider = React.forwardRef<
         if (
           event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
           (event.metaKey || event.ctrlKey) &&
-          !isEditableEditorTarget(event.target)
+          !isResourceEditorOpen()
         ) {
           event.preventDefault();
           toggleSidebar();

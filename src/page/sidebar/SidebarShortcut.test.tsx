@@ -62,31 +62,45 @@ describe('sidebar keyboard shortcut', () => {
       ?.textContent;
   }
 
-  it('keeps the sidebar still when Command+B is used in an editable editor', async () => {
+  function mountEditorPage() {
+    const page = document.createElement('div');
+    page.className = 'resource-editable-page';
+    const title = document.createElement('textarea');
     const editor = document.createElement('div');
     editor.className = 'ProseMirror';
     editor.setAttribute('contenteditable', 'true');
-    const text = document.createElement('p');
-    editor.appendChild(text);
-    document.body.appendChild(editor);
+    page.append(title, editor);
+    document.body.appendChild(page);
+    return { title, editor };
+  }
 
-    await pressShortcut(text, { key: 'b', metaKey: true });
+  it('keeps the sidebar still when Command+B is used in the document body', async () => {
+    const { editor } = mountEditorPage();
 
-    expect(state()).toBe('open');
-  });
-
-  it('keeps the sidebar still when Ctrl+B is used in an editable editor', async () => {
-    const editor = document.createElement('div');
-    editor.className = 'tiptap ProseMirror';
-    editor.setAttribute('contenteditable', 'true');
-    document.body.appendChild(editor);
-
-    await pressShortcut(editor, { key: 'b', ctrlKey: true });
+    await pressShortcut(editor, { key: 'b', metaKey: true });
 
     expect(state()).toBe('open');
   });
 
-  it('toggles the sidebar for Command+B outside the editor', async () => {
+  it('keeps the sidebar still when Command+B is used in the title', async () => {
+    const { title } = mountEditorPage();
+
+    await pressShortcut(title, { key: 'b', metaKey: true });
+
+    expect(state()).toBe('open');
+  });
+
+  it('keeps the sidebar still when Ctrl+B is used anywhere on the edit page', async () => {
+    mountEditorPage();
+    const search = document.createElement('input');
+    document.body.appendChild(search);
+
+    await pressShortcut(search, { key: 'b', ctrlKey: true });
+
+    expect(state()).toBe('open');
+  });
+
+  it('toggles the sidebar for Command+B outside edit mode', async () => {
     const search = document.createElement('input');
     document.body.appendChild(search);
 
@@ -95,7 +109,7 @@ describe('sidebar keyboard shortcut', () => {
     expect(state()).toBe('closed');
   });
 
-  it('still toggles the sidebar for Command+B in a read-only editor', async () => {
+  it('still toggles the sidebar for Command+B in a read-only document', async () => {
     const editor = document.createElement('div');
     editor.className = 'ProseMirror';
     editor.setAttribute('contenteditable', 'false');
