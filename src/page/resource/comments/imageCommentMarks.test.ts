@@ -296,4 +296,129 @@ describe('image comment marks', () => {
       editor.destroy();
     }
   });
+
+  it('does not replace an image caption click with a node selection', () => {
+    const editor = imageEditor();
+    try {
+      const range = imageRange(editor);
+      addImageCommentMark(editor, {
+        threadId: 'thread-1',
+        ...range,
+        resolved: false,
+      });
+      const plugin = editor.state.plugins.find(item =>
+        item.key.startsWith('omniboxWebImageComments')
+      );
+      const caption = document.createElement('div');
+      caption.className = 'tiptap-image-caption';
+      const text = document.createElement('div');
+      text.setAttribute('data-node-view-content', '');
+      caption.append(text);
+      document.body.append(caption);
+      const event = new MouseEvent('click', { bubbles: true });
+      Object.defineProperty(event, 'target', { value: text });
+
+      editor.commands.setTextSelection(range.from + 1);
+      const before = editor.state.selection.from;
+      const handled = plugin?.props.handleClickOn?.(
+        editor.view,
+        range.from + 1,
+        editor.state.doc.nodeAt(range.from)!,
+        range.from,
+        event,
+        true
+      );
+
+      expect(handled).toBe(false);
+      expect(editor.state.selection.from).toBe(before);
+      caption.remove();
+    } finally {
+      editor.destroy();
+    }
+  });
+
+  it('still selects the image when its body is clicked', () => {
+    const editor = imageEditor();
+    try {
+      const range = imageRange(editor);
+      addImageCommentMark(editor, {
+        threadId: 'temporary-thread',
+        ...range,
+        resolved: false,
+      });
+      removeImageCommentMark(editor, 'temporary-thread');
+      const plugin = editor.state.plugins.find(item =>
+        item.key.startsWith('omniboxWebImageComments')
+      );
+      const image = editor.view.dom.querySelector('figure img')!;
+      const event = new MouseEvent('click', { bubbles: true, button: 0 });
+      Object.defineProperty(event, 'target', { value: image });
+
+      const handled = plugin?.props.handleClickOn?.(
+        editor.view,
+        range.from,
+        editor.state.doc.nodeAt(range.from)!,
+        range.from,
+        event,
+        true
+      );
+
+      expect(handled).toBe(true);
+      expect(editor.state.selection).toMatchObject({
+        from: range.from,
+        to: range.to,
+      });
+    } finally {
+      editor.destroy();
+    }
+  });
+
+  it('does not switch image comment threads when clicking a caption', () => {
+    const editor = imageEditor();
+    const opened: string[] = [];
+    setImageCommentOpener(threadId => {
+      opened.push(threadId);
+    });
+    setActiveImageThreadId('thread-1');
+    try {
+      const range = imageRange(editor);
+      addImageCommentMark(editor, {
+        threadId: 'thread-1',
+        ...range,
+        resolved: false,
+      });
+      addImageCommentMark(editor, {
+        threadId: 'thread-2',
+        ...range,
+        resolved: false,
+      });
+      const figure = editor.view.dom.querySelector('figure')!;
+      const caption = document.createElement('figcaption');
+      caption.className = 'tiptap-image-caption';
+      const text = document.createElement('span');
+      caption.append(text);
+      figure.append(caption);
+      const event = new MouseEvent('click', { bubbles: true, button: 0 });
+      Object.defineProperty(event, 'target', { value: text });
+
+      const plugin = editor.state.plugins.find(item =>
+        item.key.startsWith('omniboxWebImageComments')
+      );
+      const handled = plugin?.props.handleClick?.(
+        editor.view,
+        range.from,
+        event
+      );
+
+      expect(handled).toBe(false);
+      expect(opened).toEqual([]);
+      expect(figure.getAttribute('data-resource-comment-thread')).toBe(
+        'thread-1'
+      );
+    } finally {
+      setImageCommentOpener(() => undefined);
+      setActiveImageThreadId(null);
+      editor.destroy();
+    }
+  });
 });

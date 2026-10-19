@@ -113,6 +113,17 @@ function commentHost(dom: HTMLElement) {
   );
 }
 
+function isImageCaptionClick(event: MouseEvent) {
+  const target = event.target;
+  return (
+    target instanceof Element &&
+    Boolean(
+      target.closest('.tiptap-image-caption') ||
+      target.closest('[data-node-view-content]')
+    )
+  );
+}
+
 function clearPaintedComment(element: HTMLElement) {
   element.removeAttribute('data-resource-comment-thread');
   element.removeAttribute(THREADS_ATTR);
@@ -263,6 +274,9 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
           if (!(target instanceof Element) || event.button !== 0) {
             return false;
           }
+          if (isImageCaptionClick(event)) {
+            return false;
+          }
           const host = target.closest<HTMLElement>(`[${THREADS_ATTR}]`);
           if (!host || !view.dom.contains(host)) {
             return false;
@@ -280,6 +294,9 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
         },
         handleClickOn(view, _position, node, nodePosition, event) {
           if (node.type.name !== 'image' || event.button !== 0) {
+            return false;
+          }
+          if (isImageCaptionClick(event)) {
             return false;
           }
           const nodeDom = view.nodeDOM(nodePosition);
