@@ -1,11 +1,13 @@
 /** @jest-environment jsdom */
 
 import { Editor, Node } from '@tiptap/core';
+import { NodeSelection, Plugin } from '@tiptap/pm/state';
 import { NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
 import { createElement, type ReactElement } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { createResourceImagePreviewPlugin } from '../imagePreviewPlugin';
 import {
   addImageCommentMark,
   getImageCommentRange,
@@ -62,7 +64,7 @@ function imageEditor() {
   });
 }
 
-function imageRange(editor: Editor) {
+function imageRange(editor: Editor): { from: number; to: number } {
   let range: { from: number; to: number } | null = null;
   editor.state.doc.descendants((node, position) => {
     if (!range && node.type.name === 'image') {
@@ -260,14 +262,26 @@ describe('image comment marks', () => {
         'thread-1 thread-2'
       );
       expect(getImageCommentRange(editor, 'thread-2')).toMatchObject(range);
-      const plugin = editor.state.plugins.find(item =>
-        item.key.startsWith('omniboxWebImageComments')
-      );
-      const click = new MouseEvent('click');
-      Object.defineProperty(click, 'target', { value: figure });
-      plugin?.props.handleClick?.(editor.view, range.from, click);
-      setActiveImageThreadId('thread-1');
-      plugin?.props.handleClick?.(editor.view, range.from, click);
+      editor.setEditable(false);
+      const image = figure!.querySelector('img')!;
+      const click = () => {
+        const event = new MouseEvent('mouseup', { bubbles: true });
+        image.dispatchEvent(event);
+        editor.view.someProp('handleClickOn', handler =>
+          handler(
+            editor.view,
+            range.from,
+            editor.state.doc.nodeAt(range.from)!,
+            range.from,
+            event,
+            true
+          )
+        );
+      };
+      click();
+      setActiveImageThreadId('thread-2');
+      editor.view.dispatch(editor.state.tr);
+      click();
       expect(opened).toEqual(['thread-1', 'thread-2']);
     } finally {
       setImageCommentOpener(() => undefined);
@@ -297,3 +311,85 @@ describe('image comment marks', () => {
     }
   });
 });
+
+test.each(['before', 'after'])(
+  'navigates once when preview is registered %s comments',
+  registrationOrder => {
+    jest.useFakeTimers();
+    const editor = imageEditor();
+    document.body.append(editor.view.dom);
+    const opened = jest.fn();
+    const preview = jest.fn();
+    const registerPreview = () =>
+      editor.registerPlugin(
+        createResourceImagePreviewPlugin(preview, () => true),
+        (added, existing) => [added, ...existing]
+      );
+    setActiveImageThreadId(null);
+    setImageCommentOpener(opened);
+    try {
+      editor.setEditable(false);
+      editor.registerPlugin(
+        new Plugin({
+          props: {
+            handleClickOn(view, _pos, node, nodePos) {
+              if (node.type.name !== 'image') return false;
+              view.dispatch(
+                view.state.tr.setSelection(
+                  NodeSelection.create(view.state.doc, nodePos)
+                )
+              );
+              return true;
+            },
+          },
+        })
+      );
+      if (registrationOrder === 'before') registerPreview();
+      const range = imageRange(editor);
+      addImageCommentMark(editor, {
+        threadId: 'resolved',
+        ...range,
+        resolved: true,
+      });
+      addImageCommentMark(editor, {
+        threadId: 'open',
+        ...range,
+        resolved: false,
+      });
+      if (registrationOrder === 'after') registerPreview();
+      const image = editor.view.dom.querySelector('img')!;
+      image.src = '/image.png';
+      Object.defineProperties(image, {
+        complete: { value: true },
+        naturalWidth: { value: 100 },
+      });
+      const click = () => {
+        const event = new MouseEvent('mouseup', { bubbles: true });
+        image.dispatchEvent(event);
+        editor.view.someProp('handleClickOn', handler =>
+          handler(
+            editor.view,
+            range.from,
+            editor.state.doc.nodeAt(range.from)!,
+            range.from,
+            event,
+            true
+          )
+        );
+        jest.runOnlyPendingTimers();
+      };
+      click();
+      expect(opened).toHaveBeenCalledWith('open');
+      expect(preview).not.toHaveBeenCalled();
+      click();
+      expect(opened).toHaveBeenCalledTimes(1);
+      expect(preview).toHaveBeenCalledTimes(1);
+    } finally {
+      editor.view.dom.remove();
+      editor.destroy();
+      setImageCommentOpener(() => undefined);
+      setActiveImageThreadId(null);
+      jest.useRealTimers();
+    }
+  }
+);

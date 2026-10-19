@@ -4,6 +4,8 @@ import { Editor, Node } from '@tiptap/core';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { TooltipProvider } from '@/components/tooltip';
+
 import { ImageCommentButton } from './ImageCommentButton';
 import type { ResourceCommentsController } from './useResourceComments';
 
@@ -11,9 +13,19 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+Object.assign(globalThis, {
+  IS_REACT_ACT_ENVIRONMENT: true,
+  ResizeObserver: jest.fn(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  })),
+});
+
 function imageEditor() {
   return new Editor({
     element: document.createElement('div'),
+    editable: false,
     extensions: [
       Node.create({ name: 'doc', topNode: true, content: 'block+' }),
       Node.create({
@@ -44,6 +56,7 @@ describe('ImageCommentButton', () => {
   let mount: HTMLDivElement;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     editor = imageEditor();
     mount = document.createElement('div');
     document.body.append(mount);
@@ -55,6 +68,7 @@ describe('ImageCommentButton', () => {
     act(() => root.unmount());
     mount.remove();
     editor.destroy();
+    jest.useRealTimers();
   });
 
   it('opens an image comment from the web button without editor text', async () => {
@@ -83,7 +97,11 @@ describe('ImageCommentButton', () => {
       return true;
     });
     await act(async () => {
-      root.render(<ImageCommentButton controller={controller} />);
+      root.render(
+        <TooltipProvider>
+          <ImageCommentButton controller={controller} />
+        </TooltipProvider>
+      );
     });
     jest
       .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
@@ -112,6 +130,15 @@ describe('ImageCommentButton', () => {
       '.resource-image-comment-button-anchor .tiptap-button'
     );
     expect(button?.getAttribute('aria-label')).toBe(
+      'resource_comments.add_comment'
+    );
+    await act(async () => {
+      const event = new Event('pointermove', { bubbles: true });
+      Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+      button?.dispatchEvent(event);
+    });
+    await act(async () => jest.advanceTimersByTime(200));
+    expect(document.querySelector('[role="tooltip"]')?.textContent).toBe(
       'resource_comments.add_comment'
     );
     await act(async () => {

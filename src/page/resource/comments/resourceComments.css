@@ -212,7 +212,8 @@
   @apply mx-3 mt-0;
 }
 
-.resource-comments-panel .omnibox-comment-thread[data-selected] {
+.resource-comments-panel
+  .omnibox-comment-thread:is([data-selected], [data-image-highlighted]) {
   @apply border-border bg-white shadow-lg dark:bg-muted;
 }
 
@@ -372,19 +373,12 @@
 
 .resource-comments-panel
   .resource-comments-anchored-list
-  .omnibox-comment-thread[data-selected]::before {
+  .omnibox-comment-thread:is(
+    [data-selected],
+    [data-image-highlighted]
+  )::before {
   content: '';
   @apply pointer-events-none absolute -inset-x-px -top-px h-2 rounded-t-md bg-comment;
-}
-
-.omnibox-editor-root
-  .tiptap.ProseMirror.resource-image-comment-ready
-  .tiptap-image-content,
-.omnibox-editor-root
-  .tiptap.ProseMirror.resource-image-comment-ready
-  .tiptap-image-content
-  * {
-  cursor: pointer !important;
 }
 
 .resource-image-comment-button-anchor {
@@ -400,7 +394,10 @@
 
 .resource-comments-panel
   .resource-comments-anchored-list
-  .omnibox-comment-thread[data-selected][data-resolved]::before {
+  .omnibox-comment-thread:is(
+    [data-selected],
+    [data-image-highlighted]
+  )[data-resolved]::before {
   @apply bg-comment-success-surface;
 }
 

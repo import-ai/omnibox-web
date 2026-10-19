@@ -165,6 +165,57 @@ describe('resource comment image preview', () => {
     expect(container.querySelector('[role="dialog"]')).toBeNull();
   });
 
+  it('highlights all image-related cards while only one thread is active', async () => {
+    function GroupFixture() {
+      const [activeThreadId, setActiveThreadId] = useState('first');
+      const controller = {
+        activeThreadId,
+        setActiveThreadId,
+        selectThread: setActiveThreadId,
+        currentUserId: 'author',
+        canComment: true,
+        canEditComment: () => true,
+        canDeleteComment: () => false,
+        canModerateThread: () => false,
+        submitting: false,
+        threads: [],
+      } as unknown as ResourceCommentsController;
+      return (
+        <TooltipProvider>
+          {['first', 'second', 'unrelated'].map(id => (
+            <ResourceCommentThreadItem
+              key={id}
+              controller={controller}
+              mode="all"
+              thread={{ ...thread, id }}
+              imageHighlighted={id !== 'unrelated'}
+            />
+          ))}
+        </TooltipProvider>
+      );
+    }
+    await act(async () => root.render(<GroupFixture />));
+    expect(
+      [...container.querySelectorAll('[data-image-highlighted]')].map(element =>
+        element.getAttribute('data-thread-id')
+      )
+    ).toEqual(['first', 'second']);
+    expect(container.querySelectorAll('[data-selected]')).toHaveLength(1);
+    await act(async () =>
+      query<HTMLElement>('[data-thread-id="second"]').click()
+    );
+    expect(container.querySelectorAll('[data-image-highlighted]')).toHaveLength(
+      2
+    );
+    expect(container.querySelectorAll('[data-selected]')).toHaveLength(1);
+    expect(query('[data-selected]').getAttribute('data-thread-id')).toBe(
+      'second'
+    );
+    expect(container.querySelectorAll('.omnibox-comment-reply')).toHaveLength(
+      1
+    );
+  });
+
   it('owns Escape and restores the clicked thumbnail even when it was not focused', async () => {
     await act(async () =>
       root.render(
@@ -234,15 +285,7 @@ describe('resource comment image preview', () => {
         expect(input.value).toBe('Keep this reply');
         await act(async () => surface.click());
         await settle();
-        if (target === 'image') {
-          expect(document.querySelector('[role="dialog"]')).toBe(dialog);
-          await act(async () =>
-            query<HTMLButtonElement>('[role="dialog"] button').click()
-          );
-          await settle();
-        } else {
-          expect(document.querySelector('[role="dialog"]')).toBeNull();
-        }
+        expect(document.querySelector('[role="dialog"]')).toBeNull();
         expect(article.hasAttribute('data-selected')).toBe(true);
         expect(input.value).toBe('Keep this reply');
         expect(document.activeElement).toBe(trigger);

@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+
 import type { ResourceCommentEditor } from './commentAnchors';
 import { IMAGE_COMMENT_STORED_QUOTE } from './commentQuote';
 import type { ResourceCommentsController } from './useResourceComments';
@@ -66,6 +68,7 @@ export function ImageCommentButton({
   const available =
     !!editor &&
     !editor.isDestroyed &&
+    !editor.isEditable &&
     controller.canComment &&
     !controller.contentDirty &&
     !controller.pendingSelection;
@@ -76,7 +79,6 @@ export function ImageCommentButton({
       return;
     }
     const root = editor.view.dom;
-    root.classList.add('resource-image-comment-ready');
     const place = (element: HTMLElement) => {
       const range = imageRangeForHoverTarget(editor, element);
       const rect = imageVisualRect(element);
@@ -117,7 +119,6 @@ export function ImageCommentButton({
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', onScroll);
     return () => {
-      root.classList.remove('resource-image-comment-ready');
       root.removeEventListener('mouseover', onOver);
       root.removeEventListener('mouseout', onOut);
       window.removeEventListener('scroll', onScroll, true);
@@ -137,6 +138,7 @@ export function ImageCommentButton({
       ref={buttonRef}
       className="tiptap-toolbar omnibox-floating-toolbar resource-image-comment-button-anchor"
       data-variant="floating"
+      data-image-hover-toolbar=""
       role="toolbar"
       style={{ top: hover.top, left: hover.left }}
       onMouseOut={event => {
@@ -152,23 +154,28 @@ export function ImageCommentButton({
       }}
     >
       <div className="tiptap-toolbar-group" role="group">
-        <button
-          type="button"
-          className="tiptap-button"
-          data-style="ghost"
-          aria-label={t('resource_comments.add_comment')}
-          onMouseDown={event => event.preventDefault()}
-          onClick={() => {
-            controller.commentsConfig.onCreateRequest?.({
-              editor,
-              from: hover.from,
-              to: hover.to,
-              quotedText: IMAGE_COMMENT_STORED_QUOTE,
-            });
-          }}
-        >
-          <MessageSquareText className="tiptap-button-icon" />
-        </button>
+        <Tooltip delayDuration={150} disableHoverableContent>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="tiptap-button"
+              data-style="ghost"
+              aria-label={t('resource_comments.add_comment')}
+              onMouseDown={event => event.preventDefault()}
+              onClick={() => {
+                controller.commentsConfig.onCreateRequest?.({
+                  editor,
+                  from: hover.from,
+                  to: hover.to,
+                  quotedText: IMAGE_COMMENT_STORED_QUOTE,
+                });
+              }}
+            >
+              <MessageSquareText className="tiptap-button-icon" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{t('resource_comments.add_comment')}</TooltipContent>
+        </Tooltip>
       </div>
     </div>,
     mount
