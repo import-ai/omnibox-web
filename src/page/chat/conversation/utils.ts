@@ -19,10 +19,12 @@ import {
   ToolType,
 } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
-import { messageProcessor } from '@/page/chat/core/messageProcessor.ts';
+import {
+  messageProcessor,
+  parseChatResponse,
+} from '@/page/chat/core/messageProcessor.ts';
 import {
   ChatDeltaResponse,
-  ChatResponse,
   isTerminalMessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
@@ -191,6 +193,26 @@ export function beginPendingQuery(
   return id;
 }
 
+// What a finished ask left behind, for callers that chain another request
+// after it.
+export interface AskOutcome {
+  // The last message the server created, e.g. the rejected tool result of a
+  // decision turn; the next request continues from it.
+  lastMessageId?: string;
+  // The server refused the request because the branch waits for a tool
+  // decision (reported only when deferPendingInterrupt is set).
+  pendingInterrupt?: { messageId: string; count: number };
+  failed: boolean;
+  // The local pending user message of this request, if one was added.
+  requestId?: string;
+}
+
+export interface AskOptions {
+  // Report a pending decision in the outcome instead of showing it as an
+  // error, so the caller can decide it and send the message again.
+  deferPendingInterrupt?: boolean;
+}
+
 export function ask(
   conversationId: string,
   query: string,
@@ -212,7 +234,8 @@ export function ask(
   images?: ChatImageInput[],
   pendingQueryId?: string,
   edition?: 'basic' | 'pro',
-  level?: string
+  level?: string,
+  options: AskOptions = {}
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -264,12 +287,31 @@ export function ask(
   let acceptedId = pendingId ? undefined : parent_message_id;
   let assistantId: string | undefined;
   let streamError = false;
+  const outcome: AskOutcome = { failed: false, requestId: pendingId };
 
   const transport = createStreamTransport(
     url,
     chatReq,
     async data => {
-      const chatResponse = JSON.parse(data) as ChatResponse;
+      const chatResponse = parseChatResponse(data);
+      data = JSON.stringify(chatResponse);
+      if (
+        chatResponse.response_type === 'error' &&
+        chatResponse.code === 'pending_interrupt' &&
+        chatResponse.message_id &&
+        options.deferPendingInterrupt &&
+        !acceptedId
+      ) {
+        outcome.failed = true;
+        outcome.pendingInterrupt = {
+          messageId: chatResponse.message_id,
+          count: chatResponse.interrupt_count || 1,
+        };
+        return;
+      }
+      if (chatResponse.response_type === 'bos' && chatResponse.id) {
+        outcome.lastMessageId = chatResponse.id;
+      }
       if (chatResponse.response_type === 'eos' && !chatResponse.id) {
         chatResponse.id = acceptedId;
         data = JSON.stringify(chatResponse);
@@ -288,6 +330,7 @@ export function ask(
       }
       if (chatResponse.response_type === 'error') {
         streamError = true;
+        outcome.failed = true;
         if (!chatResponse.id && !acceptedId) {
           chatResponse.id = pendingId;
           data = JSON.stringify(chatResponse);
@@ -320,10 +363,12 @@ export function ask(
   );
   return {
     ...transport,
+    outcome,
     start: async () => {
       try {
         await transport.start();
       } catch (error) {
+        outcome.failed = true;
         if (!streamError) {
           let id = pendingId;
           if (acceptedId) {

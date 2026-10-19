@@ -365,6 +365,42 @@ describe('ChatArea', () => {
     );
   });
 
+  it('shows the text box next to pending decisions only when enabled', async () => {
+    const messages = [
+      { message: { role: 'user', content: 'Do it' }, attrs: {} },
+      {
+        message: { role: 'assistant', content: '' },
+        attrs: { tool_call: { interrupts: [{ id: 'approval' }] } },
+      },
+    ] as React.ComponentProps<typeof ChatArea>['messages'];
+    const render = (textWhilePending: boolean) =>
+      act(async () =>
+        root.render(
+          <ChatArea
+            loading={false}
+            messages={messages}
+            navigatePrefix="/namespace-a"
+            selectedResources={[]}
+            setSelectedResources={jest.fn()}
+            sendMessage={jest.fn()}
+            textWhilePending={textWhilePending}
+          />
+        )
+      );
+
+    await render(false);
+    expect(container.querySelector('[data-testid="resume"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="composer"]')).toBeNull();
+
+    await render(true);
+    expect(container.querySelector('[data-testid="resume"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="composer"]')).not.toBeNull();
+    expect(
+      (container.querySelector('[data-testid="send"]') as HTMLButtonElement)
+        .disabled
+    ).toBe(true);
+  });
+
   it.each(['Enter', 'click', 'mixed'])(
     'keeps images until prepared and blocks same-batch %s sends',
     async method => {

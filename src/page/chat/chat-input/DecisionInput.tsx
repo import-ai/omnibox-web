@@ -127,6 +127,17 @@ function getDecisionStyle(
   );
 }
 
+// Keys typed into the text box next to the decision card belong to the text.
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return (
+    target.isContentEditable ||
+    target.tagName === 'INPUT' ||
+    target.tagName === 'TEXTAREA' ||
+    target.closest('[contenteditable="true"]') !== null
+  );
+}
+
 export default function DecisionInput(props: IDecisionInputProps) {
   const { interrupts, approvalMode, loading = false, sendMessage } = props;
   const { t } = useTranslation();
@@ -255,7 +266,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
   // Keyboard navigation — global listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (loading) {
+      if (loading || isEditableTarget(e.target)) {
         return;
       }
 

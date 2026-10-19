@@ -110,9 +110,7 @@ export interface ChatRequestBody {
   share_id?: string;
   share_password?: string;
   tool_call?: {
-    decisions: {
-      type: DecisionType;
-    }[];
+    decisions: Decision[];
   };
   channel: AgentRequestChannel;
   images?: ChatImageInput[];
@@ -122,7 +120,24 @@ export type DecisionType = 'approve' | 'reject';
 
 export type Decision = {
   type: DecisionType;
+  // Tool result the model reads for a rejected call.
+  message?: string;
+  // Record the rejection and stop before the model runs again; the user's
+  // next message is sent as a turn of its own.
+  end_turn?: boolean;
 };
+
+// Same reason the chat bots send when the user moves on without deciding.
+export const DEFAULT_REJECT_REASON =
+  '用户没有批准这个操作，而是发送了新的消息，请不要重试该操作。';
+
+export function defaultRejectDecisions(count: number): Decision[] {
+  return Array.from({ length: Math.max(count, 1) }, () => ({
+    type: 'reject' as const,
+    message: DEFAULT_REJECT_REASON,
+    end_turn: true,
+  }));
+}
 
 export type ApprovalMode = 'manual' | 'auto_approve' | 'auto_reject';
 

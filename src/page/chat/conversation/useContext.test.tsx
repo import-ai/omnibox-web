@@ -197,6 +197,7 @@ describe('useContext conversation cache failures', () => {
       originalEnableThinking: false,
     });
     jest.mocked(ask).mockReturnValue({
+      outcome: { failed: false },
       cancel: jest.fn().mockResolvedValue(undefined),
       destroy: jest.fn(),
       start: jest.fn().mockResolvedValue(undefined),
@@ -221,6 +222,83 @@ describe('useContext conversation cache failures', () => {
     ]);
   });
 
+  it('rejects a pending decision before sending typed text after it', async () => {
+    const conversation = cachedConversation();
+    conversation.mapping['message-a'].attrs = { edition: 'pro', level: 'max' };
+    conversation.mapping['message-a'].children = ['interrupt'];
+    conversation.mapping.interrupt = {
+      id: 'interrupt',
+      parent_id: 'message-a',
+      children: [],
+      status: 'success',
+      message: { role: 'assistant', content: '' },
+      attrs: {
+        tool_call: {
+          status: 'pending',
+          interrupts: [
+            {
+              name: 'create_resource',
+              args: {},
+              decisions: ['approve', 'reject'],
+            },
+            {
+              name: 'create_resource',
+              args: {},
+              decisions: ['approve', 'reject'],
+            },
+          ],
+        },
+      },
+    } as unknown as ConversationDetail['mapping'][string];
+    conversation.current_node = 'interrupt';
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    const run = (lastMessageId?: string) => ({
+      outcome: { failed: false, lastMessageId },
+      cancel: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn(),
+      start: jest.fn().mockResolvedValue(undefined),
+    });
+    jest
+      .mocked(ask)
+      .mockReturnValueOnce(run('tool-2'))
+      .mockReturnValueOnce(run('answer'));
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    jest.mocked(ask).mockClear();
+
+    await act(async () => {
+      await context.sendMessage({
+        query: '用一句话介绍北京',
+        tools: [],
+        selectedResources: [],
+        mode: ChatMode.ASK,
+      });
+    });
+
+    const [rejectCall, askCall] = jest.mocked(ask).mock.calls;
+    expect(rejectCall[1]).toBe('');
+    expect(rejectCall[5]).toBe('interrupt');
+    expect(rejectCall[13]?.decisions).toEqual([
+      expect.objectContaining({ type: 'reject', end_turn: true }),
+      expect.objectContaining({ type: 'reject', end_turn: true }),
+    ]);
+    expect(rejectCall.slice(19)).toEqual([
+      'pro',
+      'max',
+      { deferPendingInterrupt: false },
+    ]);
+    expect(askCall[1]).toBe('用一句话介绍北京');
+    expect(askCall[5]).toBe('tool-2');
+    expect(askCall[21]).toEqual({ deferPendingInterrupt: false });
+  });
+
   it('retries the original file and query ID after an image upload fails', async () => {
     const conversation = cachedConversation();
     setCachedConversation(cacheScope, conversation);
@@ -236,6 +314,7 @@ describe('useContext conversation cache failures', () => {
       { id: 'local-image', name: file.name, file, url: 'blob:preview' },
     ];
     jest.mocked(ask).mockReturnValue({
+      outcome: { failed: false },
       cancel: jest.fn(),
       destroy: jest.fn(),
       start: jest.fn().mockResolvedValue(undefined),
@@ -286,6 +365,7 @@ describe('useContext conversation cache failures', () => {
     });
     const destroy = jest.fn(() => releaseStream());
     jest.mocked(ask).mockReturnValue({
+      outcome: { failed: false },
       cancel: jest.fn(),
       destroy,
       start: () => started,
@@ -438,6 +518,7 @@ describe('useContext conversation cache failures', () => {
   it('publishes the first message text for the sidebar and clears it when sending fails', async () => {
     mockGet.mockResolvedValue({ id: 'conversation-a', mapping: {}, total: 0 });
     jest.mocked(ask).mockReturnValue({
+      outcome: { failed: false },
       cancel: jest.fn(),
       destroy: jest.fn(),
       start: jest.fn().mockRejectedValue(new Error('offline')),
@@ -489,6 +570,7 @@ describe('useContext conversation cache failures', () => {
     setCachedConversation(cacheScope, conversation);
     mockGet.mockResolvedValue(conversation);
     jest.mocked(ask).mockReturnValue({
+      outcome: { failed: false },
       cancel: jest.fn(),
       destroy: jest.fn(),
       start: jest.fn().mockResolvedValue(undefined),

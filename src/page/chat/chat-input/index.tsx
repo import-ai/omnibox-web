@@ -61,6 +61,9 @@ interface IProps {
   initialQuery?: string;
   fillQuery?: string;
   sendMessage: (params: SendMessageParams) => void | Promise<void>;
+  // Keep the text box next to the decision buttons; text sent there rejects
+  // the pending tool calls first (the sendMessage handler does that).
+  textWhilePending?: boolean;
   onStop?: () => void;
   onThinkingSelectionChange?: (
     selection: ThinkingSelection | undefined
@@ -86,6 +89,7 @@ export default function ChatArea(props: IProps) {
     initialQuery,
     fillQuery: fillQueryText,
     sendMessage,
+    textWhilePending = false,
     onStop,
   } = props;
   const { t } = useTranslation();
@@ -184,7 +188,8 @@ export default function ChatArea(props: IProps) {
     loading ||
     isSubmitting ||
     hasUnsupportedImages ||
-    (interrupts.length === 0 && (!query || query.trim().length === 0));
+    !query ||
+    query.trim().length === 0;
 
   useEffect(() => {
     return () => {
@@ -307,7 +312,7 @@ export default function ChatArea(props: IProps) {
     .reverse()
     .find(message => message.message.role === 'user')?.attrs;
 
-  return interrupts.length > 0 ? (
+  const decisionInput = interrupts.length > 0 && (
     <DecisionInput
       interrupts={interrupts}
       approvalMode={approvalMode}
@@ -321,7 +326,10 @@ export default function ChatArea(props: IProps) {
         })
       }
     />
-  ) : (
+  );
+  if (decisionInput && !textWhilePending) return decisionInput;
+
+  const composer = (
     <div
       ref={resourceDropRef}
       onPaste={event => {
@@ -433,5 +441,14 @@ export default function ChatArea(props: IProps) {
         </div>
       </div>
     </div>
+  );
+
+  return decisionInput ? (
+    <div className="flex w-full flex-col gap-2">
+      {decisionInput}
+      {composer}
+    </div>
+  ) : (
+    composer
   );
 }

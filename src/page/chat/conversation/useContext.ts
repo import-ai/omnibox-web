@@ -14,6 +14,10 @@ import {
 } from '@/page/chat/chat-input/types';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import {
+  sendRejectingPending,
+  type SendTurnOutcome,
+} from '@/page/chat/conversation/pendingDecisionSend';
+import {
   resolveConversationImages,
   withUploadedImageParts,
 } from '@/page/chat/conversation/uploadConversationImages';
@@ -130,11 +134,14 @@ export default function useContext() {
     };
   }, [conversation, setConversation, history.activateBranch]);
 
-  const sendMessage = async (
+  const sendTurn = async (
     params: SendMessageParams,
-    retryId?: string,
-    retryParentId?: string
-  ) => {
+    parentMessageId: string | undefined,
+    {
+      retryId,
+      deferPendingInterrupt = false,
+    }: { retryId?: string; deferPendingInterrupt?: boolean } = {}
+  ): Promise<SendTurnOutcome | undefined> => {
     const {
       query,
       tools,
@@ -175,7 +182,6 @@ export default function useContext() {
           conversation: provisional,
         });
       }
-      const parentMessageId = retryId ? retryParentId : messages.at(-1)?.id;
       const pendingId = beginPendingQuery(
         messageOperator,
         v,
@@ -186,16 +192,19 @@ export default function useContext() {
         },
         retryId
       );
-      uploadRetries.current.set(pendingId, () =>
-        sendMessage(params, pendingId, parentMessageId)
-      );
+      uploadRetries.current.set(pendingId, async () => {
+        await sendTurn(params, parentMessageId, { retryId: pendingId });
+      });
       let askFN: ReturnType<typeof ask> | undefined;
+      let uploadedImages: Awaited<
+        ReturnType<typeof resolveConversationImages>
+      > = [];
       try {
         if (v) {
           setWaitingForAssistantDelta(true);
         }
         setLoading(true);
-        const uploadedImages = await resolveConversationImages(
+        uploadedImages = await resolveConversationImages(
           namespaceId,
           conversationId,
           images
@@ -224,7 +233,8 @@ export default function useContext() {
           uploadedImages,
           pendingId,
           edition,
-          level
+          level,
+          { deferPendingInterrupt }
         );
         askAbortRef.current = askFN.cancel;
         detachStreamRef.current = askFN.destroy;
@@ -259,7 +269,72 @@ export default function useContext() {
           void history.refreshHistory().catch(() => undefined);
         }
       }
+      return askFN
+        ? { ...askFN.outcome, images: uploadedImages }
+        : { failed: true, requestId: pendingId };
     }
+    return undefined;
+  };
+
+  // Removes the local message of a request the server refused before
+  // accepting it, so the retry does not leave a stray branch behind.
+  const discardLocalMessage = (id: string | undefined) => {
+    if (!id) return;
+    uploadRetries.current.delete(id);
+    setConversation(prev => {
+      const message = prev.mapping[id];
+      if (!message) return prev;
+      const mapping = { ...prev.mapping };
+      delete mapping[id];
+      const parent = message.parent_id ? mapping[message.parent_id] : undefined;
+      if (parent) {
+        mapping[parent.id] = {
+          ...parent,
+          children: parent.children.filter(child => child !== id),
+        };
+      }
+      return {
+        ...prev,
+        mapping,
+        current_node:
+          prev.current_node === id
+            ? message.parent_id || undefined
+            : prev.current_node,
+      };
+    });
+  };
+
+  const sendMessage = async (
+    params: SendMessageParams,
+    retryId?: string,
+    retryParentId?: string
+  ) => {
+    if (retryId || params.decisions?.length) {
+      await sendTurn(params, retryId ? retryParentId : messages.at(-1)?.id, {
+        retryId,
+      });
+      return;
+    }
+    const leaf = messages.at(-1);
+    const interrupts = leaf?.attrs?.tool_call?.interrupts ?? [];
+    const interruptedTurn = [...messages]
+      .reverse()
+      .find(message => message.message.role === OpenAIMessageRole.USER)?.attrs;
+    await sendRejectingPending({
+      params,
+      leafId: leaf?.id,
+      pending:
+        leaf && interrupts.length
+          ? { messageId: leaf.id, count: interrupts.length }
+          : undefined,
+      send: (turnParams, parentId, options) =>
+        sendTurn(turnParams, parentId, options),
+      discard: outcome => discardLocalMessage(outcome.requestId),
+      decisionSettings:
+        interruptedTurn?.edition && interruptedTurn.level
+          ? { edition: interruptedTurn.edition, level: interruptedTurn.level }
+          : {},
+    });
   };
 
   useConversationBootstrap({
