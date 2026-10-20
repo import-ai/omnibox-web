@@ -1,4 +1,4 @@
-import { MessageSquareText } from 'lucide-react';
+import { ResourceCommentAction } from '@import-ai/omnibox-editor';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -66,6 +66,7 @@ export function ImageCommentButton({
   const available =
     !!editor &&
     !editor.isDestroyed &&
+    !editor.isEditable &&
     controller.canComment &&
     !controller.contentDirty &&
     !controller.pendingSelection;
@@ -76,7 +77,6 @@ export function ImageCommentButton({
       return;
     }
     const root = editor.view.dom;
-    root.classList.add('resource-image-comment-ready');
     const place = (element: HTMLElement) => {
       const range = imageRangeForHoverTarget(editor, element);
       const rect = imageVisualRect(element);
@@ -117,7 +117,6 @@ export function ImageCommentButton({
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', onScroll);
     return () => {
-      root.classList.remove('resource-image-comment-ready');
       root.removeEventListener('mouseover', onOver);
       root.removeEventListener('mouseout', onOut);
       window.removeEventListener('scroll', onScroll, true);
@@ -137,6 +136,7 @@ export function ImageCommentButton({
       ref={buttonRef}
       className="tiptap-toolbar omnibox-floating-toolbar resource-image-comment-button-anchor"
       data-variant="floating"
+      data-image-hover-toolbar=""
       role="toolbar"
       style={{ top: hover.top, left: hover.left }}
       onMouseOut={event => {
@@ -152,12 +152,8 @@ export function ImageCommentButton({
       }}
     >
       <div className="tiptap-toolbar-group" role="group">
-        <button
-          type="button"
-          className="tiptap-button"
-          data-style="ghost"
-          aria-label={t('resource_comments.add_comment')}
-          onMouseDown={event => event.preventDefault()}
+        <ResourceCommentAction
+          label={t('resource_comments.add_comment')}
           onClick={() => {
             controller.commentsConfig.onCreateRequest?.({
               editor,
@@ -166,9 +162,7 @@ export function ImageCommentButton({
               quotedText: IMAGE_COMMENT_STORED_QUOTE,
             });
           }}
-        >
-          <MessageSquareText className="tiptap-button-icon" />
-        </button>
+        />
       </div>
     </div>,
     mount
