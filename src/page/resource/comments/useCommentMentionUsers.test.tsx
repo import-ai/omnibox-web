@@ -5,11 +5,7 @@ import { createRoot, type Root } from 'react-dom/client';
 
 import { http } from '@/lib/request';
 
-import {
-  frozenMentionName,
-  rememberMentionNames,
-  useCommentMentionUsers,
-} from './useCommentMentionUsers';
+import { useCommentMentionUsers } from './useCommentMentionUsers';
 
 jest.mock('react', () => {
   const react = jest.requireActual<typeof import('react')>('react');
@@ -54,13 +50,5 @@ describe('useCommentMentionUsers', () => {
       root.render(<Probe />);
     });
     expect(http.get).toHaveBeenCalledTimes(2);
-  });
-
-  it('freezes the last shown name after the member disappears', () => {
-    rememberMentionNames([{ id: 'u1', name: 'Lizhi' }]);
-    expect(frozenMentionName('u1')).toBe('Lizhi');
-    rememberMentionNames([{ id: 'u1', name: 'Lizhi（Alice）' }]);
-    expect(frozenMentionName('u1')).toBe('Lizhi（Alice）');
-    expect(frozenMentionName('gone')).toBeUndefined();
   });
 });

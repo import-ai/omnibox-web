@@ -15,7 +15,6 @@ jest.mock('react-i18next', () => ({
 jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
 jest.mock('./useCommentMentionUsers', () => ({
   useCommentMentionUsers: () => [],
-  frozenMentionName: () => undefined,
 }));
 jest.mock('@/components/ui/HoverCard', () => {
   const React = jest.requireActual<typeof import('react')>('react');
