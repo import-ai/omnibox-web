@@ -15,7 +15,10 @@ import {
   type CommentMentionUser,
   splitCommentContent,
 } from './commentMentions';
-import { useCommentMentionUsers } from './useCommentMentionUsers';
+import {
+  frozenMentionName,
+  useCommentMentionUsers,
+} from './useCommentMentionUsers';
 
 export function ResourceCommentBody({
   content,
@@ -92,7 +95,11 @@ export function ResourceCommentBody({
                   <CommentMention
                     key={`${part.id}:${index}`}
                     id={part.id}
-                    label={commentMentionLabel(part.id, part.label, namesById)}
+                    label={
+                      commentMentionActive(part.id, namesById)
+                        ? commentMentionLabel(part.id, part.label, namesById)
+                        : frozenMentionName(part.id) || part.label
+                    }
                     detail={detailById[part.id]}
                     active={commentMentionActive(part.id, namesById)}
                   />
