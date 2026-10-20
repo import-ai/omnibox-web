@@ -43,7 +43,11 @@ export function useCommentHighlight({
         .querySelectorAll<HTMLElement>('[data-resource-comment-thread]')
         .forEach(quote => {
           if (elementHasCommentThread(quote, activeThreadId)) {
-            quote.dataset.commentHighlight = resolved ? 'resolved' : 'open';
+            const highlight = resolved ? 'resolved' : 'open';
+            // Caption marks are observed by ProseMirror and must settle after a redraw.
+            if (quote.dataset.commentHighlight !== highlight) {
+              quote.dataset.commentHighlight = highlight;
+            }
             highlighted.add(quote);
           }
         });
