@@ -29,14 +29,17 @@ export function createResourceImagePreviewPlugin(
           observed.has(event)
         )
           return false;
+        // Editing keeps image selection and its menu. Preview stays on
+        // read-only images, plus the existing table-image behavior.
+        if (view.editable && !image.closest('td, th')) return false;
         const ownsImage = () => {
           const nodeDOM = view.nodeDOM(nodePos);
           const cell = image.closest('td, th');
           return (
             image.isConnected &&
-            !!cell &&
-            view.dom.contains(cell) &&
-            !!nodeDOM?.contains(image)
+            view.dom.contains(image) &&
+            !!nodeDOM?.contains(image) &&
+            (!view.editable || (!!cell && view.dom.contains(cell)))
           );
         };
         const src = image.currentSrc || image.src;

@@ -9,6 +9,7 @@ import {
 } from '@/components/autosize-textarea';
 import { Button } from '@/components/ui/Button';
 
+import { imageCommentLabel } from './commentQuote';
 import { pasteCommentImage } from './pasteCommentImage';
 import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
 import { useCommentDraftPosition } from './useCommentDraftPosition';
@@ -189,7 +190,13 @@ export function ResourceCommentComposer({
           submit().catch(() => undefined);
         }}
       >
-        <q>{selection.quotedText}</q>
+        <q>
+          {imageCommentLabel(
+            null,
+            selection.quotedText,
+            t('resource_comments.image_quote')
+          )}
+        </q>
         <div
           className="omnibox-comment-composer__input"
           data-has-preview={imagePreview ? '' : undefined}

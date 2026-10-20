@@ -169,6 +169,8 @@
     "copy_thread_link": "复制评论链接",
     "close": "关闭评论",
     "quote_label": "引用内容",
+    "image_quote": "[图片]",
+    "add_comment": "添加评论",
     "thread_count": "{{count}} 个讨论",
     "cancel": "取消",
     "write_comment": "输入评论",
@@ -1016,7 +1018,9 @@
   "date": {
     "today": "今天",
     "yesterday": "昨天",
-    "last_week": "过去 7 天"
+    "last_week": "过去 7 天",
+    "earlier": "更早",
+    "calendar_day": "{{year}} 年 {{month}} 月 {{day}} 日"
   },
   "pagination": {
     "prev": "前页",

@@ -4,7 +4,14 @@ import {
 } from '@import-ai/omnibox-editor';
 import { type RefObject, useLayoutEffect, useState } from 'react';
 
-import { getCommentDraftPosition } from './commentDraftPosition';
+import {
+  getCommentDraftPosition,
+  getVisibleCommentAnchorTop,
+} from './commentDraftPosition';
+import {
+  getImageCommentRange,
+  imageCommentAnchorRect,
+} from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
 interface UseCommentDraftPositionOptions {
@@ -34,7 +41,27 @@ export function useCommentDraftPosition({
         return;
       }
       const panelTop = panelElement.getBoundingClientRect().top;
-      const selectionTop = selection.editor.view.coordsAtPos(selection.to).top;
+      const resourceScroll = selection.editor.view.dom.closest<HTMLElement>(
+        '[data-resource-scroll]'
+      );
+      const viewport = resourceScroll?.getBoundingClientRect();
+      const imageRect = imageCommentAnchorRect(
+        selection.editor,
+        selection.from,
+        selection.to
+      );
+      const selectionTop = getVisibleCommentAnchorTop({
+        isImage: !!imageRect,
+        startTop:
+          imageRect?.top ??
+          selection.editor.view.coordsAtPos(selection.from).top,
+        endTop:
+          imageRect?.bottom ??
+          selection.editor.view.coordsAtPos(selection.to).top,
+        viewportTop: viewport?.top ?? 0,
+        viewportBottom: viewport?.bottom ?? window.innerHeight,
+        surfaceHeight: surface.getBoundingClientRect().height,
+      });
       const elements = Array.from(
         panelElement.querySelectorAll<HTMLElement>('[data-thread-id]')
       );
@@ -44,12 +71,21 @@ export function useCommentDraftPosition({
         const threadId = card.dataset.threadId;
         const offset = appliedOffsets.get(card) ?? 0;
         const range = threadId
-          ? findResourceCommentRange(selection.editor, threadId)
+          ? (getImageCommentRange(selection.editor, threadId) ??
+            findResourceCommentRange(selection.editor, threadId))
+          : null;
+        const rangeImage = range
+          ? imageCommentAnchorRect(selection.editor, range.from, range.to)
           : null;
         return {
           range,
           anchorTop: range
-            ? selection.editor.view.coordsAtPos(range.to).top
+            ? (rangeImage?.top ??
+              selection.editor.view.coordsAtPos(
+                isImageCommentRange(selection.editor, range.from, range.to)
+                  ? range.from
+                  : range.to
+              ).top)
             : undefined,
           top: bounds.top - offset,
           bottom: bounds.bottom - offset,
@@ -110,4 +146,15 @@ export function useCommentDraftPosition({
   }, [panelElement, selection, surfaceRef]);
 
   return top;
+}
+
+function isImageCommentRange(
+  editor: OmniboxEditorCommentSelection['editor'],
+  from: number,
+  to: number
+) {
+  const node = editor.state.doc.nodeAt(from);
+  return Boolean(
+    node && node.type.name === 'image' && to === from + node.nodeSize
+  );
 }
