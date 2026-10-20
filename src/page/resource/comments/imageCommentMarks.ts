@@ -114,6 +114,17 @@ function commentHost(dom: HTMLElement) {
   );
 }
 
+function isImageCaptionClick(event: MouseEvent) {
+  const target = event.target;
+  return (
+    target instanceof Element &&
+    Boolean(
+      target.closest('.tiptap-image-caption') ||
+      target.closest('[data-node-view-content]')
+    )
+  );
+}
+
 function clearPaintedComment(element: HTMLElement) {
   element.removeAttribute('data-resource-comment-thread');
   element.removeAttribute(THREADS_ATTR);
@@ -259,6 +270,29 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
         },
       },
       props: {
+        handleClick(view, _position, event) {
+          const target = event.target;
+          if (!(target instanceof Element) || event.button !== 0) {
+            return false;
+          }
+          if (isImageCaptionClick(event)) {
+            return false;
+          }
+          const host = target.closest<HTMLElement>(`[${THREADS_ATTR}]`);
+          if (!host || !view.dom.contains(host)) {
+            return false;
+          }
+          const ids = commentThreadIds(host);
+          if (ids.length < 2) {
+            return false;
+          }
+          const start = ids.indexOf(activeImageThreadId ?? '');
+          const next = ids[(start + 1) % ids.length];
+          activeImageThreadId = next;
+          host.setAttribute('data-resource-comment-thread', next);
+          imageCommentOpener(next);
+          return true;
+        },
         handleClickOn(view, _position, node, nodePosition, event) {
           if (
             node.type.name !== 'image' ||
@@ -269,6 +303,9 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
             event.altKey ||
             !(event.target instanceof HTMLImageElement)
           ) {
+            return false;
+          }
+          if (isImageCaptionClick(event)) {
             return false;
           }
           const nodeDom = view.nodeDOM(nodePosition);
