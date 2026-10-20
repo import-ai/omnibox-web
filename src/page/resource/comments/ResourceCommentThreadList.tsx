@@ -7,6 +7,7 @@ import { commentThreadIds } from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { ResourceCommentThreadItem } from './ResourceCommentThreadItem';
 import type { ResourceCommentsController } from './useResourceComments';
+import { useSelectedImageCommentThreads } from './useSelectedImageCommentThreads';
 
 const COMMENT_GAP = 8;
 const DEFAULT_COMMENT_HEIGHT = 120;
@@ -25,6 +26,9 @@ export function ResourceCommentThreadList({
   const root = panel?.rootElement;
   const panelElement = panel?.panelElement;
   const panelOpen = panel?.panelOpen;
+  const highlightedImageThreads = useSelectedImageCommentThreads(
+    controller.editor
+  );
   const [positions, setPositions] = useState<Record<string, number>>({});
   const [contentHeight, setContentHeight] = useState(0);
   const [orderedThreadIds, setOrderedThreadIds] = useState<string[]>([]);
@@ -284,6 +288,7 @@ export function ResourceCommentThreadList({
             mode="all"
             orderedThreadIds={orderedThreadIds}
             thread={thread}
+            imageHighlighted={highlightedImageThreads.includes(thread.id)}
           />
         </div>
       ))}
