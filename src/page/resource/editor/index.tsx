@@ -36,6 +36,7 @@ import {
   type EditorUpdatePayload,
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
+import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
@@ -112,11 +113,13 @@ export default function Editor(props: IEditorProps) {
   );
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
   const titleRef = useRef<AutosizeTextAreaRef | null>(null);
+  const editorSurfaceRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const loc = useLocation();
   const { app, theme } = useTheme();
   const [title, onTitle] = useState('');
-  const { mentionUsers, namesById, ready } = useMentionUsers(namespaceId);
+  const { mentionUsers, membersById, namesById, ready } =
+    useMentionUsers(namespaceId);
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const hasCachedContentChange =
@@ -341,7 +344,7 @@ export default function Editor(props: IEditorProps) {
           aria-label={t('resource.title')}
         />
       </div>
-      <div className="resource-editable-editor">
+      <div className="resource-editable-editor" ref={editorSurfaceRef}>
         {editorContent !== null ? (
           <ResourceOmniboxEditor
             key={resource.id}
@@ -370,6 +373,10 @@ export default function Editor(props: IEditorProps) {
           />
         ) : null}
       </div>
+      <MentionHoverCard
+        containerRef={editorSurfaceRef}
+        membersById={membersById}
+      />
     </div>
   );
 }

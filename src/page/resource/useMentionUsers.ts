@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import type { Member } from '@/interface';
 import { http } from '@/lib/request';
+import { toMentionMembersById } from '@/page/resource/mentionCard';
 import {
   memberDisplayName,
   memberMentionSubtext,
@@ -26,14 +27,12 @@ function toMentionUsers(members: Member[]): OmniboxEditorMentionUser[] {
 }
 
 export function useMentionUsers(namespaceId?: string) {
-  const [mentionUsers, setMentionUsers] = useState<OmniboxEditorMentionUser[]>(
-    []
-  );
+  const [members, setMembers] = useState<Member[]>([]);
   const [ready, setReady] = useState(!namespaceId);
 
   useEffect(() => {
     if (!namespaceId) {
-      setMentionUsers([]);
+      setMembers([]);
       setReady(true);
       return;
     }
@@ -44,7 +43,7 @@ export function useMentionUsers(namespaceId?: string) {
 
     async function loadMentionUsers() {
       try {
-        const members = await http.get<Member[]>(
+        const loaded = await http.get<Member[]>(
           `/namespaces/${namespace}/members`,
           { mute: true }
         );
@@ -52,10 +51,10 @@ export function useMentionUsers(namespaceId?: string) {
           return;
         }
 
-        setMentionUsers(toMentionUsers(Array.isArray(members) ? members : []));
+        setMembers(Array.isArray(loaded) ? loaded : []);
       } catch {
         if (!ignore) {
-          setMentionUsers([]);
+          setMembers([]);
         }
       } finally {
         if (!ignore) {
@@ -71,10 +70,12 @@ export function useMentionUsers(namespaceId?: string) {
     };
   }, [namespaceId]);
 
+  const mentionUsers = useMemo(() => toMentionUsers(members), [members]);
+  const membersById = useMemo(() => toMentionMembersById(members), [members]);
   const namesById = useMemo(
     () => Object.fromEntries(mentionUsers.map(user => [user.id, user.name])),
     [mentionUsers]
   );
 
-  return { mentionUsers, namesById, ready };
+  return { mentionUsers, membersById, namesById, ready };
 }
