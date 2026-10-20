@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import useApp from '@/hooks/useApp';
 import type { Member } from '@/interface';
-import { toMentionMembersById } from '@/page/resource/mentionCard';
+import {
+  NAMESPACE_MEMBERS_REFRESH,
+  toMentionMembersById,
+} from '@/page/resource/mentionCard';
 import { mentionUsersFromMembers } from '@/page/resource/mentionUsers';
 
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
 // ponytail: coalesce one in-flight members request per namespace. Do not keep
-// the member list; nicknames and membership must refresh on the next mount.
+// the list across mounts. A profile save asks open documents to load again.
 const pending = new Map<string, Promise<Member[]>>();
 
 function loadMembers(namespaceId: string) {
@@ -33,6 +37,7 @@ export function useCommentMentionUsers() {
   const namespaceId = useResourceCommentsPanel()?.namespaceId;
   const id =
     namespaceId && !namespaceId.startsWith('share:') ? namespaceId : '';
+  const app = useApp();
   const [members, setMembers] = useState<Member[]>([]);
 
   useEffect(() => {
@@ -56,6 +61,33 @@ export function useCommentMentionUsers() {
       ignore = true;
     };
   }, [id]);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+    let ignore = false;
+    const unsubscribe = app.on(NAMESPACE_MEMBERS_REFRESH, (nextId: string) => {
+      if (nextId !== id) {
+        return;
+      }
+      loadMembers(id)
+        .then(next => {
+          if (!ignore) {
+            setMembers(next);
+          }
+        })
+        .catch(() => {
+          if (!ignore) {
+            setMembers([]);
+          }
+        });
+    });
+    return () => {
+      ignore = true;
+      unsubscribe();
+    };
+  }, [app, id]);
 
   const users = useMemo(() => mentionUsersFromMembers(members), [members]);
   const membersById = useMemo(() => toMentionMembersById(members), [members]);

@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import useApp from '@/hooks/useApp';
 import type { Member } from '@/interface';
 import { http } from '@/lib/request';
-import { toMentionMembersById } from '@/page/resource/mentionCard';
+import {
+  NAMESPACE_MEMBERS_REFRESH,
+  toMentionMembersById,
+} from '@/page/resource/mentionCard';
 import { mentionUsersFromMembers } from '@/page/resource/mentionUsers';
 
 export function useMentionUsers(namespaceId?: string) {
+  const app = useApp();
   const [members, setMembers] = useState<Member[]>([]);
   const [ready, setReady] = useState(!namespaceId);
 
@@ -15,39 +20,43 @@ export function useMentionUsers(namespaceId?: string) {
       setReady(true);
       return;
     }
-    const namespace: string = namespaceId;
-
     let ignore = false;
-    setReady(false);
 
-    async function loadMentionUsers() {
-      try {
-        const loaded = await http.get<Member[]>(
-          `/namespaces/${namespace}/members`,
-          { mute: true }
-        );
-        if (ignore) {
-          return;
-        }
-
-        setMembers(Array.isArray(loaded) ? loaded : []);
-      } catch {
-        if (!ignore) {
-          setMembers([]);
-        }
-      } finally {
-        if (!ignore) {
-          setReady(true);
-        }
+    const load = (initial: boolean) => {
+      if (initial) {
+        setReady(false);
       }
-    }
+      http
+        .get<Member[]>(`/namespaces/${namespaceId}/members`, { mute: true })
+        .then(loaded => {
+          if (!ignore) {
+            setMembers(Array.isArray(loaded) ? loaded : []);
+          }
+        })
+        .catch(() => {
+          if (!ignore) {
+            setMembers([]);
+          }
+        })
+        .finally(() => {
+          if (!ignore && initial) {
+            setReady(true);
+          }
+        });
+    };
 
-    loadMentionUsers();
+    load(true);
+    const unsubscribe = app.on(NAMESPACE_MEMBERS_REFRESH, (nextId: string) => {
+      if (nextId === namespaceId) {
+        load(false);
+      }
+    });
 
     return () => {
       ignore = true;
+      unsubscribe();
     };
-  }, [namespaceId]);
+  }, [app, namespaceId]);
 
   const mentionUsers = useMemo(
     () => mentionUsersFromMembers(members),

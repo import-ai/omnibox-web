@@ -1,3 +1,5 @@
+export const NAMESPACE_MEMBERS_REFRESH = 'namespace_members_refetch';
+
 export type MentionCardMember = {
   id: string;
   username?: string | null;

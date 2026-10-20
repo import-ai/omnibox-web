@@ -7,6 +7,19 @@ import { http } from '@/lib/request';
 
 import { useCommentMentionUsers } from './useCommentMentionUsers';
 
+const listeners = new Set<(id: string) => void>();
+const app = {
+  on: (_event: string, callback: (id: string) => void) => {
+    listeners.add(callback);
+    return () => listeners.delete(callback);
+  },
+};
+
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => app,
+}));
+
 jest.mock('react', () => {
   const react = jest.requireActual<typeof import('react')>('react');
   return { ...react, default: react };
@@ -26,6 +39,7 @@ describe('useCommentMentionUsers', () => {
   let container: HTMLDivElement;
 
   beforeEach(() => {
+    listeners.clear();
     jest.mocked(http.get).mockReset();
     jest.mocked(http.get).mockResolvedValue([]);
     container = document.createElement('div');
@@ -48,6 +62,23 @@ describe('useCommentMentionUsers', () => {
     root = createRoot(container);
     await act(async () => {
       root.render(<Probe />);
+    });
+    expect(http.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('reloads when a member profile in this namespace is saved', async () => {
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    expect(http.get).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      listeners.forEach(listener => listener('other'));
+    });
+    expect(http.get).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      listeners.forEach(listener => listener('ns'));
     });
     expect(http.get).toHaveBeenCalledTimes(2);
   });
