@@ -84,6 +84,9 @@ test('owns one preview registration, restores readonly focus, and clears it on r
     await act(async () => {
       preview.registerImagePreview(editor);
       preview.registerImagePreview(editor);
+      editor.commands.selectAll();
+      click();
+      editor.commands.setNodeSelection(3);
       click();
       jest.runOnlyPendingTimers();
     });
