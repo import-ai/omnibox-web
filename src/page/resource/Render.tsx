@@ -60,10 +60,10 @@ const ResourceOmniboxEditor =
 function getResourceEditorContent(
   resource: Resource | SharedResource,
   linkBase?: string,
-  namesById: Record<string, string> = {}
+  displayNamesById: Record<string, string> = {}
 ): TiptapJsonContent {
   return contentToTiptapJson(
-    resolveMentionLabels(embedImage(resource), namesById),
+    resolveMentionLabels(embedImage(resource), displayNamesById),
     { linkBase }
   );
 }
@@ -85,7 +85,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
   } = props;
   const { i18n, t } = useTranslation();
   const { theme } = useTheme();
-  const { mentionUsers, membersById, namesById, ready } =
+  const { mentionUsers, membersById, displayNamesById, ready } =
     useMentionUsers(namespaceId);
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -104,8 +104,8 @@ function OmniboxRender(props: OmniboxRenderProps) {
     [registerImagePreview, props.commentsDisabled, comments.registerEditor]
   );
   const content = useMemo(
-    () => getResourceEditorContent(resource, linkBase, namesById),
-    [linkBase, namesById, resource]
+    () => getResourceEditorContent(resource, linkBase, displayNamesById),
+    [linkBase, displayNamesById, resource]
   );
   const targetScrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;

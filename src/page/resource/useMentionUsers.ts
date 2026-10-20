@@ -7,6 +7,7 @@ import {
   NAMESPACE_MEMBERS_REFRESH,
   toMentionMembersById,
 } from '@/page/resource/mentionCard';
+import { mentionNamesForDisplay } from '@/page/resource/mentionLabels';
 import { mentionUsersFromMembers } from '@/page/resource/mentionUsers';
 
 export function useMentionUsers(namespaceId?: string) {
@@ -67,6 +68,10 @@ export function useMentionUsers(namespaceId?: string) {
     () => Object.fromEntries(mentionUsers.map(user => [user.id, user.name])),
     [mentionUsers]
   );
+  const displayNamesById = useMemo(
+    () => mentionNamesForDisplay(namespaceId ?? '', namesById),
+    [namespaceId, namesById]
+  );
 
-  return { mentionUsers, membersById, namesById, ready };
+  return { mentionUsers, membersById, namesById, displayNamesById, ready };
 }

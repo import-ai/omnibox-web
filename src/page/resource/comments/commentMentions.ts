@@ -140,6 +140,135 @@ export function commentMentionActive(
   return !!namesById[id];
 }
 
+export type CommentDraftAtom = {
+  displayStart: number;
+  displayEnd: number;
+  storageStart: number;
+  storageEnd: number;
+};
+
+export function commentDraftDisplay(
+  storage: string,
+  namesById: Record<string, string> = {}
+) {
+  const atoms: CommentDraftAtom[] = [];
+  let display = '';
+  let last = 0;
+  for (const match of storage.matchAll(MENTION)) {
+    const index = match.index ?? 0;
+    display += storage.slice(last, index);
+    const attributes = match[1];
+    const type = attribute(attributes, 'type');
+    const id = attribute(attributes, 'id');
+    const label = attribute(attributes, 'label');
+    if ((type && type !== 'user') || !id) {
+      display += match[0];
+    } else {
+      const shown = `@${namesById[id] || label || id}`;
+      atoms.push({
+        displayStart: display.length,
+        displayEnd: display.length + shown.length,
+        storageStart: index,
+        storageEnd: index + match[0].length,
+      });
+      display += shown;
+    }
+    last = index + match[0].length;
+  }
+  display += storage.slice(last);
+  return { display, atoms };
+}
+
+export function displayOffsetToStorage(
+  draft: { atoms: CommentDraftAtom[] },
+  offset: number
+) {
+  let shift = 0;
+  for (const atom of draft.atoms) {
+    if (offset <= atom.displayStart) {
+      return offset + shift;
+    }
+    if (offset < atom.displayEnd) {
+      return atom.storageStart;
+    }
+    shift = atom.storageEnd - atom.displayEnd;
+    if (offset === atom.displayEnd) {
+      return atom.storageEnd;
+    }
+  }
+  return offset + shift;
+}
+
+export function storageOffsetToDisplay(
+  draft: { atoms: CommentDraftAtom[] },
+  offset: number
+) {
+  let shift = 0;
+  for (const atom of draft.atoms) {
+    if (offset <= atom.storageStart) {
+      return offset + shift;
+    }
+    if (offset <= atom.storageEnd) {
+      return atom.displayEnd;
+    }
+    shift = atom.displayEnd - atom.storageEnd;
+  }
+  return offset + shift;
+}
+
+export function applyCommentDraftChange(
+  storage: string,
+  nextDisplay: string,
+  namesById: Record<string, string> = {}
+) {
+  const draft = commentDraftDisplay(storage, namesById);
+  const previous = draft.display;
+  if (nextDisplay === previous) {
+    return storage;
+  }
+  let start = 0;
+  while (
+    start < previous.length &&
+    start < nextDisplay.length &&
+    previous[start] === nextDisplay[start]
+  ) {
+    start += 1;
+  }
+  let previousEnd = previous.length;
+  let nextEnd = nextDisplay.length;
+  while (
+    previousEnd > start &&
+    nextEnd > start &&
+    previous[previousEnd - 1] === nextDisplay[nextEnd - 1]
+  ) {
+    previousEnd -= 1;
+    nextEnd -= 1;
+  }
+  let displayStart = start;
+  let displayEnd = previousEnd;
+  for (const atom of draft.atoms) {
+    const caretInside =
+      displayStart === displayEnd &&
+      displayStart > atom.displayStart &&
+      displayStart < atom.displayEnd;
+    const overlaps =
+      displayStart < atom.displayEnd && displayEnd > atom.displayStart;
+    if (caretInside || overlaps) {
+      displayStart = Math.min(displayStart, atom.displayStart);
+      displayEnd = Math.max(displayEnd, atom.displayEnd);
+    }
+  }
+  const replacement = nextDisplay.slice(
+    displayStart,
+    nextEnd + (displayEnd - previousEnd)
+  );
+  const storageStart = displayOffsetToStorage(draft, displayStart);
+  const storageEnd = displayOffsetToStorage(draft, displayEnd);
+  return (
+    storage.slice(0, storageStart) + replacement + storage.slice(storageEnd)
+  );
+}
+
 export function mentionMenuPlacement(
   rect: { top: number; bottom: number; left: number },
   viewport: { width: number; height: number },

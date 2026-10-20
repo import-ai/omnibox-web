@@ -11,9 +11,13 @@ import { useTranslation } from 'react-i18next';
 
 import type { CommentMentionUser } from './commentMentions';
 import {
+  applyCommentDraftChange,
+  commentDraftDisplay,
+  displayOffsetToStorage,
   filterCommentMentionUsers,
   insertUserMention,
   mentionTrigger,
+  storageOffsetToDisplay,
 } from './commentMentions';
 import { useCommentMentionUsers } from './useCommentMentionUsers';
 
@@ -28,8 +32,10 @@ export function useCommentMentionInput(
   const [index, setIndex] = useState(0);
   const elementRef = useRef<HTMLTextAreaElement | null>(null);
   const pendingCaret = useRef<number | null>(null);
-  const safeCaret = Math.min(caret, value.length);
-  const query = mentionTrigger(value, safeCaret);
+  const namesById = Object.fromEntries(users.map(user => [user.id, user.name]));
+  const draft = commentDraftDisplay(value, namesById);
+  const safeCaret = Math.min(caret, draft.display.length);
+  const query = mentionTrigger(draft.display, safeCaret);
   const matches = query ? filterCommentMentionUsers(users, query.query) : [];
   const signature = query ? `${query.start}:${query.query}` : null;
   const open = !!query && matches.length > 0 && dismissed !== signature;
@@ -49,7 +55,7 @@ export function useCommentMentionInput(
     element.focus({ preventScroll: true });
     element.selectionStart = next;
     element.selectionEnd = next;
-  }, [value]);
+  }, [draft.display]);
 
   const track = (element: HTMLTextAreaElement) => {
     elementRef.current = element;
@@ -63,13 +69,17 @@ export function useCommentMentionInput(
     }
     const next = insertUserMention(
       value,
-      current.start,
-      caretRef.current,
+      displayOffsetToStorage(draft, current.start),
+      displayOffsetToStorage(draft, caretRef.current),
       user.id,
       user.name
     );
-    pendingCaret.current = next.caret;
-    setCaret(next.caret);
+    const nextCaret = storageOffsetToDisplay(
+      commentDraftDisplay(next.value, namesById),
+      next.caret
+    );
+    pendingCaret.current = nextCaret;
+    setCaret(nextCaret);
     setDismissed(null);
     onValueChange(next.value);
   };
@@ -85,11 +95,14 @@ export function useCommentMentionInput(
     : null;
 
   return {
+    displayValue: draft.display,
     menu,
     inputProps: {
       onChange: (event: ChangeEvent<HTMLTextAreaElement>) => {
         track(event.currentTarget);
-        onValueChange(event.currentTarget.value);
+        onValueChange(
+          applyCommentDraftChange(value, event.currentTarget.value, namesById)
+        );
       },
       onClick: (event: ReactMouseEvent<HTMLTextAreaElement>) => {
         track(event.currentTarget);

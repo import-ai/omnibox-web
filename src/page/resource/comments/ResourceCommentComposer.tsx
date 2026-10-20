@@ -212,7 +212,7 @@ export function ResourceCommentComposer({
             maxLength={10000}
             placeholder={t('resource_comments.write_comment')}
             rows={1}
-            value={content}
+            value={mention.displayValue}
             aria-busy={uploading}
             {...mention.inputProps}
             onPaste={event => pasteCommentImage(event, uploadImage)}

@@ -1,4 +1,6 @@
 import {
+  applyCommentDraftChange,
+  commentDraftDisplay,
   commentMentionActive,
   commentMentionLabel,
   filterCommentMentionUsers,
@@ -70,5 +72,28 @@ describe('comment mentions', () => {
         { width: 1200, height: 800 }
       ).bottom
     ).toBe(104);
+  });
+
+  it('shows @name in the editor while keeping the shortcode', () => {
+    const stored = 'Hi [@ id="u1" label="Old"] there';
+    expect(commentDraftDisplay(stored).display).toBe('Hi @Old there');
+    expect(commentDraftDisplay(stored, { u1: 'New' }).display).toBe(
+      'Hi @New there'
+    );
+
+    const token = '[@ id="u1" label="Old"]';
+    expect(applyCommentDraftChange(stored, 'Hi @Old there!')).toBe(
+      `Hi ${token} there!`
+    );
+    expect(applyCommentDraftChange(stored, 'Hi @Ol there')).toBe(
+      'Hi @Ol there'
+    );
+    expect(applyCommentDraftChange(stored, 'Hi  there')).toBe('Hi  there');
+    expect(
+      applyCommentDraftChange(
+        '[@ id="r1" label="Doc" type="resource"]',
+        '[@ id="r1" label="Doc" type="resource"]'
+      )
+    ).toBe('[@ id="r1" label="Doc" type="resource"]');
   });
 });

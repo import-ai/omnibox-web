@@ -251,7 +251,7 @@ export function ResourceCommentItem({
                 className="border-line"
                 maxLength={10000}
                 rows={1}
-                value={content}
+                value={mention.displayValue}
                 aria-busy={uploading}
                 {...mention.inputProps}
                 onPaste={event => pasteCommentImage(event, uploadImage)}

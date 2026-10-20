@@ -120,7 +120,7 @@ export default function Editor(props: IEditorProps) {
   const loc = useLocation();
   const { app, theme } = useTheme();
   const [title, onTitle] = useState('');
-  const { mentionUsers, membersById, namesById, ready } =
+  const { mentionUsers, membersById, displayNamesById, ready } =
     useMentionUsers(namespaceId);
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
@@ -138,8 +138,8 @@ export default function Editor(props: IEditorProps) {
     [resource.id]
   );
   const resolvedContent = useMemo(
-    () => resolveMentionLabels(initialContent, namesById),
-    [initialContent, namesById]
+    () => resolveMentionLabels(initialContent, displayNamesById),
+    [initialContent, displayNamesById]
   );
   if (ready && !dirtyRef.current) {
     markdownRef.current = resolvedContent;

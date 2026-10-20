@@ -116,7 +116,7 @@ export function ResourceCommentReplyComposer({
           maxLength={10000}
           placeholder={t('resource_comments.reply_placeholder')}
           rows={1}
-          value={reply}
+          value={mention.displayValue}
           {...mention.inputProps}
           onPaste={event => pasteCommentImage(event, uploadImage)}
           aria-busy={uploading}
