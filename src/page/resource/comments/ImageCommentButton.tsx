@@ -1,9 +1,7 @@
-import { MessageSquareText } from 'lucide-react';
+import { ResourceCommentAction } from '@import-ai/omnibox-editor';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 
 import type { ResourceCommentEditor } from './commentAnchors';
 import { IMAGE_COMMENT_STORED_QUOTE } from './commentQuote';
@@ -154,28 +152,17 @@ export function ImageCommentButton({
       }}
     >
       <div className="tiptap-toolbar-group" role="group">
-        <Tooltip delayDuration={150} disableHoverableContent>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              className="tiptap-button"
-              data-style="ghost"
-              aria-label={t('resource_comments.add_comment')}
-              onMouseDown={event => event.preventDefault()}
-              onClick={() => {
-                controller.commentsConfig.onCreateRequest?.({
-                  editor,
-                  from: hover.from,
-                  to: hover.to,
-                  quotedText: IMAGE_COMMENT_STORED_QUOTE,
-                });
-              }}
-            >
-              <MessageSquareText className="tiptap-button-icon" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>{t('resource_comments.add_comment')}</TooltipContent>
-        </Tooltip>
+        <ResourceCommentAction
+          label={t('resource_comments.add_comment')}
+          onClick={() => {
+            controller.commentsConfig.onCreateRequest?.({
+              editor,
+              from: hover.from,
+              to: hover.to,
+              quotedText: IMAGE_COMMENT_STORED_QUOTE,
+            });
+          }}
+        />
       </div>
     </div>,
     mount

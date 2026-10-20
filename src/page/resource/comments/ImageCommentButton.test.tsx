@@ -4,10 +4,20 @@ import { Editor, Node } from '@tiptap/core';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
-import { TooltipProvider } from '@/components/tooltip';
-
 import { ImageCommentButton } from './ImageCommentButton';
 import type { ResourceCommentsController } from './useResourceComments';
+
+jest.mock('@import-ai/omnibox-editor', () => ({
+  ResourceCommentAction: ({
+    label,
+    onClick,
+  }: {
+    label: string;
+    onClick: () => void;
+  }) => (
+    <button className="tiptap-button" aria-label={label} onClick={onClick} />
+  ),
+}));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -97,11 +107,7 @@ describe('ImageCommentButton', () => {
       return true;
     });
     await act(async () => {
-      root.render(
-        <TooltipProvider>
-          <ImageCommentButton controller={controller} />
-        </TooltipProvider>
-      );
+      root.render(<ImageCommentButton controller={controller} />);
     });
     jest
       .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
@@ -130,15 +136,6 @@ describe('ImageCommentButton', () => {
       '.resource-image-comment-button-anchor .tiptap-button'
     );
     expect(button?.getAttribute('aria-label')).toBe(
-      'resource_comments.add_comment'
-    );
-    await act(async () => {
-      const event = new Event('pointermove', { bubbles: true });
-      Object.defineProperty(event, 'pointerType', { value: 'mouse' });
-      button?.dispatchEvent(event);
-    });
-    await act(async () => jest.advanceTimersByTime(200));
-    expect(document.querySelector('[role="tooltip"]')?.textContent).toBe(
       'resource_comments.add_comment'
     );
     await act(async () => {
