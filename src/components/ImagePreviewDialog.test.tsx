@@ -78,7 +78,7 @@ describe('ImagePreviewDialog', () => {
     return invoker;
   };
 
-  it('keeps the failed image dismissible and does not close on image click', async () => {
+  it('keeps the failed image dismissible through the backdrop', async () => {
     await act(async () => root.render(<Fixture />));
     const invoker = await openPreview();
     const dialog = document.querySelector<HTMLElement>('[data-image-preview]')!;
@@ -90,9 +90,20 @@ describe('ImagePreviewDialog', () => {
     expect(image.getAttribute('referrerpolicy')).toBe('no-referrer');
     expect(document.activeElement).toBe(close);
     await act(async () => image.dispatchEvent(new Event('error')));
-    await act(async () => image.click());
     expect(document.querySelector('[data-image-preview]')).toBe(dialog);
     await act(async () => dialog.click());
+    await act(async () => jest.runOnlyPendingTimers());
+    expect(document.querySelector('[data-image-preview]')).toBeNull();
+    expect(document.activeElement).toBe(invoker);
+  });
+
+  it('dismisses the enlarged image on click and restores the invoker', async () => {
+    await act(async () => root.render(<Fixture />));
+    const invoker = await openPreview();
+    const image = document.querySelector<HTMLImageElement>(
+      '[data-image-preview] img'
+    )!;
+    await act(async () => image.click());
     await act(async () => jest.runOnlyPendingTimers());
     expect(document.querySelector('[data-image-preview]')).toBeNull();
     expect(document.activeElement).toBe(invoker);

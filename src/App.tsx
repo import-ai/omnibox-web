@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import CoreApp from '@/hooks/app.class';
 import AppContext from '@/hooks/appContext';
 import { AuthConfigProvider } from '@/hooks/AuthConfigContext';
+import { PublicSiteOriginContext } from '@/hooks/publicSiteContext';
 import Layout from '@/layout';
 import Error from '@/layout/ErrorPage';
 import { lazyRoute } from '@/lib/lazyRoute';
@@ -195,11 +196,13 @@ const router = createBrowserRouter([
 ]);
 
 export interface AppProps {
+  publicSiteOrigin?: string | null;
   getCurrentDeviceId?: () => Promise<string | null>;
   settingsExtensions?: readonly SettingsExtension[];
 }
 
 export default function Main({
+  publicSiteOrigin,
   settingsExtensions = [],
   getCurrentDeviceId,
 }: AppProps = {}) {
@@ -209,7 +212,9 @@ export default function Main({
         <AuthConfigProvider>
           <SettingsExtensionsContext.Provider value={settingsExtensions}>
             <CurrentDeviceContext.Provider value={getCurrentDeviceId}>
-              <RouterProvider router={router} />
+              <PublicSiteOriginContext.Provider value={publicSiteOrigin}>
+                <RouterProvider router={router} />
+              </PublicSiteOriginContext.Provider>
             </CurrentDeviceContext.Provider>
           </SettingsExtensionsContext.Provider>
         </AuthConfigProvider>
