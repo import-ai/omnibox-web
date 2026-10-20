@@ -1,6 +1,7 @@
 import { NodeSelection, Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 
+import { resourceImagePreviewKey } from '../imagePreviewPlugin';
 import type { ResourceCommentEditor } from './commentAnchors';
 
 export interface ImageCommentMark {
@@ -230,8 +231,8 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
   if (!canDecorate(editor)) {
     return false;
   }
-  const installed = editor.state.plugins.some(plugin =>
-    plugin.key.startsWith(imageCommentMarkKey.key)
+  const installed = editor.state.plugins.some(
+    plugin => plugin.spec.key === imageCommentMarkKey
   );
   if (installed) {
     return true;
@@ -293,7 +294,15 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
           return true;
         },
         handleClickOn(view, _position, node, nodePosition, event) {
-          if (node.type.name !== 'image' || event.button !== 0) {
+          if (
+            node.type.name !== 'image' ||
+            event.button !== 0 ||
+            event.shiftKey ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.altKey ||
+            !(event.target instanceof HTMLImageElement)
+          ) {
             return false;
           }
           if (isImageCaptionClick(event)) {
@@ -314,7 +323,18 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
               )
             );
           }
-          return !commented && !alreadySelected;
+          if (commented && !view.editable && nodeDom instanceof HTMLElement) {
+            const threadId = commentHost(nodeDom).getAttribute(
+              'data-resource-comment-thread'
+            );
+            if (threadId) {
+              activeImageThreadId = threadId;
+              imageCommentOpener(threadId);
+            }
+          }
+          // The preview plugin consumes subsequent clicks. Preserve the native
+          // image handler so selection-side and caption behavior stay intact.
+          return false;
         },
         decorations: state => {
           const images = imageCommentMarkKey.getState(state)?.images;
@@ -348,7 +368,16 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
           update: paintImageCommentDom,
         };
       },
-    })
+    }),
+    (added, existing) => {
+      // Preview must consume repeat clicks before comment navigation; both
+      // precede the native image handler that consumes selection clicks.
+      const previewIndex = existing.findIndex(
+        plugin => plugin.spec.key === resourceImagePreviewKey
+      );
+      const index = previewIndex + 1;
+      return [...existing.slice(0, index), added, ...existing.slice(index)];
+    }
   );
   return true;
 }

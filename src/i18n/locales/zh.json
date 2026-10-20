@@ -1208,6 +1208,7 @@
       "title": "分享",
       "user_share": "{{username}} 的分享",
       "url_placeholder": "发布的 URL",
+      "url_unavailable": "无法获取分享网站地址，请刷新页面或重新打开客户端后重试。",
       "save": "保存",
       "current_file_only": "仅分享当前文件",
       "current_file_only_tooltip": "启用时，仅分享当前文件。\n禁用时，会连同所有子文件一起分享。",
