@@ -47,7 +47,10 @@ export function mentionTrigger(
   if (caret < 0 || caret > value.length) {
     return null;
   }
-  const match = /(?:^|[\s\u3000])@([^\s@\u3000]*)$/.exec(value.slice(0, caret));
+  // @ after CJK or punctuation counts. ASCII before @ is an email, not a mention.
+  const match = /(?:^|[^A-Za-z0-9._%+-])@([^\s@\u3000]*)$/.exec(
+    value.slice(0, caret)
+  );
   if (!match) {
     return null;
   }
@@ -135,4 +138,29 @@ export function commentMentionActive(
   namesById: Record<string, string>
 ) {
   return !!namesById[id];
+}
+
+export function mentionMenuPlacement(
+  rect: { top: number; bottom: number; left: number },
+  viewport: { width: number; height: number },
+  menuWidth = 256,
+  menuHeight = 192,
+  gap = 4
+) {
+  const spaceBelow = viewport.height - rect.bottom;
+  const spaceAbove = rect.top;
+  const openUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+  const left = Math.max(8, Math.min(rect.left, viewport.width - menuWidth - 8));
+  if (openUp) {
+    return {
+      left,
+      bottom: viewport.height - rect.top + gap,
+      maxHeight: Math.max(96, spaceAbove - gap - 8),
+    };
+  }
+  return {
+    left,
+    top: rect.bottom + gap,
+    maxHeight: Math.max(96, spaceBelow - gap - 8),
+  };
 }

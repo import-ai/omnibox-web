@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 
 import type { CommentMentionUser } from './commentMentions';
+import { mentionMenuPlacement } from './commentMentions';
 
 export type CommentMentionMenuSpec = {
   anchor: HTMLTextAreaElement | null;
@@ -19,12 +20,16 @@ export function CommentMentionMenu({
   if (!spec || !rect || typeof document === 'undefined') {
     return null;
   }
+  const placement = mentionMenuPlacement(rect, {
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
   return createPortal(
     <ul
       role="listbox"
       aria-label={spec.label}
-      className="fixed z-[80] max-h-48 w-64 overflow-auto rounded-md border bg-popover p-1 shadow-md"
-      style={{ left: rect.left, top: rect.bottom + 4 }}
+      className="fixed z-[200] w-64 overflow-auto rounded-md border bg-popover p-1 shadow-md"
+      style={placement}
     >
       {spec.matches.map((user, itemIndex) => (
         <li key={user.id} role="presentation">

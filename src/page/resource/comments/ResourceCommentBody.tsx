@@ -8,6 +8,11 @@ import {
   HoverCardTrigger,
 } from '@/components/ui/HoverCard';
 import type { ResourceCommentAttachment } from '@/interface';
+import {
+  hasMentionCard,
+  type MentionCardMember,
+} from '@/page/resource/mentionCard';
+import { MentionCard } from '@/page/resource/MentionHoverCard';
 
 import {
   commentMentionActive,
@@ -21,17 +26,17 @@ export function ResourceCommentBody({
   content,
   attachments,
   mentionUsers,
+  membersById,
 }: {
   content: string;
   attachments?: ResourceCommentAttachment[];
   mentionUsers?: CommentMentionUser[];
+  membersById?: Record<string, MentionCardMember>;
 }) {
   const directory = useCommentMentionUsers();
-  const users = mentionUsers ?? directory;
+  const users = mentionUsers ?? directory.users;
+  const cards = membersById ?? directory.membersById;
   const namesById = Object.fromEntries(users.map(user => [user.id, user.name]));
-  const detailById = Object.fromEntries(
-    users.map(user => [user.id, user.position])
-  );
   const parts = splitCommentContent(content);
   const hasMention = parts.some(part => part.type === 'user');
   const { t } = useTranslation();
@@ -93,7 +98,7 @@ export function ResourceCommentBody({
                     key={`${part.id}:${index}`}
                     id={part.id}
                     label={commentMentionLabel(part.id, part.label, namesById)}
-                    detail={detailById[part.id]}
+                    member={cards[part.id]}
                     active={commentMentionActive(part.id, namesById)}
                   />
                 )
@@ -154,16 +159,16 @@ export function ResourceCommentBody({
 function CommentMention({
   id,
   label,
-  detail,
+  member,
   active,
 }: {
   id: string;
   label: string;
-  detail?: string;
+  member?: MentionCardMember;
   active: boolean;
 }) {
   const text = `@${label}`;
-  if (!active) {
+  if (!active || !member || !hasMentionCard(member)) {
     return (
       <span className="omnibox-comment-mention" data-mention-id={id}>
         {text}
@@ -183,16 +188,8 @@ function CommentMention({
           {text}
         </span>
       </HoverCardTrigger>
-      <HoverCardContent
-        className="w-56 p-3"
-        onClick={event => event.stopPropagation()}
-      >
-        <span className="block text-sm font-medium">{label}</span>
-        {detail ? (
-          <span className="mt-1 block text-xs text-muted-foreground">
-            {detail}
-          </span>
-        ) : null}
+      <HoverCardContent onClick={event => event.stopPropagation()}>
+        <MentionCard member={member} />
       </HoverCardContent>
     </HoverCard>
   );

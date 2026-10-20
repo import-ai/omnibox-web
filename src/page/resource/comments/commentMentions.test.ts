@@ -3,6 +3,7 @@ import {
   commentMentionLabel,
   filterCommentMentionUsers,
   insertUserMention,
+  mentionMenuPlacement,
   mentionTrigger,
   splitCommentContent,
   userMentionShortcode,
@@ -18,6 +19,9 @@ describe('comment mentions', () => {
     expect(mentionTrigger('Hello @li', 9)).toEqual({ start: 6, query: 'li' });
     expect(mentionTrigger('@', 1)).toEqual({ start: 0, query: '' });
     expect(mentionTrigger('email@li', 8)).toBeNull();
+    expect(mentionTrigger('user.name@host', 14)).toBeNull();
+    expect(mentionTrigger('神针”@', 4)).toEqual({ start: 3, query: '' });
+    expect(mentionTrigger('你好@mz', 5)).toEqual({ start: 2, query: 'mz' });
     expect(mentionTrigger('[@ id="u1" label="A"]', 4)).toBeNull();
   });
 
@@ -57,5 +61,14 @@ describe('comment mentions', () => {
     ).toEqual([
       { type: 'text', text: '[@ id="r1" label="Doc" type="resource"]' },
     ]);
+  });
+
+  it('opens the mention menu upward when the field is at the bottom', () => {
+    expect(
+      mentionMenuPlacement(
+        { top: 700, bottom: 740, left: 900 },
+        { width: 1200, height: 800 }
+      ).bottom
+    ).toBe(104);
   });
 });

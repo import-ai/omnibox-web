@@ -22,7 +22,7 @@ export function useCommentMentionInput(
   onValueChange: (value: string) => void
 ) {
   const { t } = useTranslation();
-  const users = useCommentMentionUsers();
+  const { users } = useCommentMentionUsers();
   const [caret, setCaret] = useState(0);
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [index, setIndex] = useState(0);

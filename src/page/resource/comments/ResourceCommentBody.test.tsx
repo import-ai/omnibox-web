@@ -14,7 +14,7 @@ jest.mock('react-i18next', () => ({
 }));
 jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
 jest.mock('./useCommentMentionUsers', () => ({
-  useCommentMentionUsers: () => [],
+  useCommentMentionUsers: () => ({ users: [], membersById: {} }),
 }));
 jest.mock('@/components/ui/HoverCard', () => {
   const React = jest.requireActual<typeof import('react')>('react');
@@ -134,34 +134,55 @@ describe('ResourceCommentBody', () => {
   it('shows the live name and hover only while the member is present', () => {
     const content = 'Hi [@ id="u1" label="Old"]';
     const renderUsers = (
-      mentionUsers: Array<{ id: string; name: string; position?: string }>
+      mentionUsers: Array<{ id: string; name: string }>,
+      membersById: Record<string, { id: string; [key: string]: string }> = {}
     ) => {
       act(() => {
         root.render(
-          <ResourceCommentBody content={content} mentionUsers={mentionUsers} />
+          <ResourceCommentBody
+            content={content}
+            mentionUsers={mentionUsers}
+            membersById={membersById}
+          />
         );
       });
     };
 
-    renderUsers([{ id: 'u1', name: 'New', position: 'dev' }]);
+    renderUsers([{ id: 'u1', name: 'New' }], {
+      u1: {
+        id: 'u1',
+        nickname: 'New',
+        username: 'new',
+        email: 'a@b.c',
+        phone: '138',
+        note: 'dev',
+      },
+    });
     expect(container.querySelector('[data-mention-active]')?.textContent).toBe(
       '@New'
     );
-    expect(container.querySelector('[data-hover-card]')?.textContent).toContain(
-      'dev'
-    );
+    const card = container.querySelector('[data-hover-card]')?.textContent;
+    expect(card).toContain('New');
+    expect(card).toContain('a@b.c');
+    expect(card).toContain('138');
+    expect(card).toContain('dev');
 
     renderUsers([]);
     expect(container.querySelector('[data-mention-active]')).toBeNull();
     expect(container.querySelector('[data-mention-id="u1"]')?.textContent).toBe(
       '@Old'
     );
+    expect(container.querySelector('[data-hover-card]')).toBeNull();
 
-    renderUsers([{ id: 'u1', name: 'New' }]);
+    renderUsers([{ id: 'u1', name: 'New' }], {
+      u1: { id: 'u1', username: 'new' },
+    });
     expect(container.querySelector('[data-mention-active]')?.textContent).toBe(
       '@New'
     );
-    expect(container.querySelector('[data-hover-card]')).not.toBeNull();
+    const partial = container.querySelector('[data-hover-card]')?.textContent;
+    expect(partial).toContain('new');
+    expect(partial).not.toContain('form.phone');
   });
 
   it('remeasures window resizing when ResizeObserver is unavailable', () => {
