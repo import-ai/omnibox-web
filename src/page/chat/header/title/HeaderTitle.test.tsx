@@ -3,9 +3,11 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { TooltipProvider } from '@/components/tooltip';
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
 
+import Actions from '../Actions';
 import HeaderTitle from './HeaderTitle';
 
 jest.mock('react', () => {
@@ -13,6 +15,14 @@ jest.mock('react', () => {
   return { ...react, default: react };
 });
 jest.mock('@/hooks/useApp');
+jest.mock('@/components/confirm-delete-dialog', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock('react-router-dom', () => ({ useNavigate: () => jest.fn() }));
+jest.mock('@/lib/chatBridge', () => ({
+  resetChatForNamespaceSwitch: jest.fn(),
+}));
 jest.mock('@/lib/request', () => ({ http: { patch: jest.fn() } }));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -34,7 +44,10 @@ describe('HeaderTitle rename', () => {
     root = createRoot(container);
     listeners = new Set();
     jest.mocked(useApp).mockReturnValue({
-      fire: jest.fn(),
+      fire: (event: string) => {
+        if (event === 'chat:title:edit')
+          listeners.forEach(listener => listener());
+      },
       on: (event: string, listener: () => void) => {
         if (event === 'chat:title:edit') listeners.add(listener);
         return () => listeners.delete(listener);
@@ -116,5 +129,46 @@ describe('HeaderTitle rename', () => {
     await openFromMenu();
     expect(input().value).toBe('Updated title');
     expect(listeners.size).toBe(1);
+  });
+
+  it('keeps the caret at the end after the actions menu closes', async () => {
+    await act(async () =>
+      root.render(
+        <TooltipProvider>
+          <HeaderTitle
+            data="太阳系三句话介绍"
+            editable
+            namespaceId="space"
+            conversationId="conversation-a"
+          />
+          <Actions
+            homePage={false}
+            chatTitle="太阳系三句话介绍"
+            conversationId="conversation-a"
+            conversationsPage={false}
+            namespaceId="space"
+          />
+        </TooltipProvider>
+      )
+    );
+    const trigger = container.querySelector<HTMLElement>(
+      '[aria-haspopup="menu"]'
+    )!;
+    await act(async () => {
+      trigger.focus();
+      trigger.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
+      );
+    });
+    const rename = Array.from(
+      document.querySelectorAll<HTMLElement>('[role="menuitem"]')
+    ).find(item => item.textContent === 'chat.conversations.rename.option')!;
+    await act(async () => rename.click());
+    await act(async () => new Promise(resolve => setTimeout(resolve, 10)));
+
+    expect(input().value).toBe('太阳系三句话介绍');
+    expect(document.activeElement).toBe(input());
+    expect(input().selectionStart).toBe(input().value.length);
+    expect(input().selectionEnd).toBe(input().value.length);
   });
 });
