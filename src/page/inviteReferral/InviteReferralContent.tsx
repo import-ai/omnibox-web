@@ -24,7 +24,10 @@ import { InviteActivityPanel } from './InviteActivityPanel';
 import { InvitePhoneBindingDialog } from './InvitePhoneBindingDialog';
 import { InviteRecordsPanel } from './InviteRecordsPanel';
 import { InviteShareDialog } from './InviteShareDialog';
-import { InviteTaskBindDialogs } from './InviteTaskBindDialogs';
+import {
+  InviteTaskBindDialogs,
+  type InviteWechatAppId,
+} from './InviteTaskBindDialogs';
 import {
   clearInvitePhoneBinding,
   hasInvitePhoneBinding,
@@ -47,6 +50,8 @@ export function InviteReferralContent() {
   const [shareOpen, setShareOpen] = useState(false);
   const [taskPhoneOpen, setTaskPhoneOpen] = useState(false);
   const [wechatSession, setWechatSession] = useState(0);
+  const [wechatAppId, setWechatAppId] =
+    useState<InviteWechatAppId>('wechat_oa_bot');
   const wechatBindActiveRef = useRef(false);
   const [phoneBindingOpen, setPhoneBindingOpen] = useState(() =>
     hasInvitePhoneBinding()
@@ -84,9 +89,15 @@ export function InviteReferralContent() {
       setTaskPhoneOpen(true);
       return;
     }
-    if (task.action === 'wechat_assistant_binding') {
+    if (
+      task.action === 'wechat_oa_binding' ||
+      task.action === 'wechat_assistant_binding'
+    ) {
       if (wechatBindActiveRef.current) return;
       wechatBindActiveRef.current = true;
+      setWechatAppId(
+        task.action === 'wechat_oa_binding' ? 'wechat_oa_bot' : 'wechat_bot'
+      );
       setWechatSession(session => session + 1);
       return;
     }
@@ -244,6 +255,7 @@ export function InviteReferralContent() {
         phoneOpen={taskPhoneOpen}
         onPhoneOpenChange={setTaskPhoneOpen}
         wechatSession={wechatSession}
+        wechatAppId={wechatAppId}
         onWechatClose={() => {
           wechatBindActiveRef.current = false;
           setWechatSession(0);

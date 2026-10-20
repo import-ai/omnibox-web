@@ -60,7 +60,9 @@ function NewcomerTasks({
           const locked =
             !completed && task.task_code !== 'phone_bound' && !phoneBound;
           const wechatBusy =
-            wechatBinding && task.action === 'wechat_assistant_binding';
+            wechatBinding &&
+            (task.action === 'wechat_assistant_binding' ||
+              task.action === 'wechat_oa_binding');
           return (
             <div key={task.task_code}>
               {index > 0 ? (
