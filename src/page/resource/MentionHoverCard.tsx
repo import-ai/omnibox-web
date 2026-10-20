@@ -34,6 +34,8 @@ type ActiveMention = {
   id: string;
   member: MentionCardMember;
   rect: DOMRect;
+  anchor: HTMLElement;
+  anchorKey: number;
 };
 
 function mentionElement(target: EventTarget | null) {
@@ -88,11 +90,16 @@ export function MentionHoverCard({
         return;
       }
       clearCloseTimer();
-      setActive(current =>
-        current?.id === id
-          ? current
-          : { id, member, rect: mention.getBoundingClientRect() }
-      );
+      setActive(current => {
+        if (current?.anchor === mention) return current;
+        return {
+          id,
+          member,
+          rect: mention.getBoundingClientRect(),
+          anchor: mention,
+          anchorKey: (current?.anchorKey ?? 0) + 1,
+        };
+      });
     };
 
     const onOver = (event: MouseEvent) => {
@@ -150,7 +157,7 @@ export function MentionHoverCard({
   }
 
   return createPortal(
-    <HoverCard open>
+    <HoverCard key={active.anchorKey} open>
       <HoverCardTrigger asChild>
         <span
           aria-hidden
