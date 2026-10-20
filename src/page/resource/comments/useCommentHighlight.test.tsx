@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 
 import { Editor, Mark, Node } from '@tiptap/core';
+import { NodeSelection } from '@tiptap/pm/state';
 import {
   EditorContent,
   NodeViewContent,
@@ -10,7 +11,10 @@ import {
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
-import { addImageCommentMark } from './imageCommentMarks';
+import {
+  addImageCommentMark,
+  syncImageDraftHighlight,
+} from './imageCommentMarks';
 import { useCommentHighlight } from './useCommentHighlight';
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
@@ -92,6 +96,7 @@ describe('comment highlight DOM updates', () => {
   let container: HTMLElement;
   let root: Root;
   let editor: Editor;
+  let rootMounted: boolean;
   let observerDeliveries: number;
   let stoppedLoop: boolean;
   const nativeObserver = globalThis.MutationObserver;
@@ -118,12 +123,16 @@ describe('comment highlight DOM updates', () => {
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
+    rootMounted = true;
     editor = imageEditor();
   });
 
   afterEach(async () => {
-    await act(async () => root.unmount());
+    if (rootMounted) {
+      await act(async () => root.unmount());
+    }
     editor.destroy();
+    syncImageDraftHighlight(editor, null);
     observers.forEach(observer => observer.disconnect());
     observers.length = 0;
     globalThis.MutationObserver = nativeObserver;
@@ -166,6 +175,75 @@ describe('comment highlight DOM updates', () => {
         await new Promise(resolve => setTimeout(resolve, 30));
       });
       expect(observerDeliveries).toBe(deliveriesAfterHighlight);
+    }
+  );
+
+  it.each([
+    { resolved: false, selected: true, threadCount: 0, draft: false },
+    { resolved: false, selected: true, threadCount: 1, draft: false },
+    { resolved: false, selected: false, threadCount: 1, draft: false },
+    { resolved: true, selected: true, threadCount: 1, draft: false },
+    { resolved: false, selected: true, threadCount: 2, draft: false },
+    { resolved: false, selected: true, threadCount: 1, draft: true },
+  ])(
+    'settles while EditorContent unmounts before editor destruction: %j',
+    async ({ resolved, selected, threadCount, draft }) => {
+      await act(async () => {
+        root.render(createElement(EditorContent, { editor }));
+      });
+      await act(async () => {
+        for (let index = 1; index <= threadCount; index += 1) {
+          addImageCommentMark(editor, {
+            threadId: `thread-${index}`,
+            from: 0,
+            to: editor.state.doc.firstChild!.nodeSize,
+            resolved,
+          });
+        }
+        if (selected) {
+          editor.view.dispatch(
+            editor.state.tr.setSelection(
+              NodeSelection.create(editor.state.doc, 0)
+            )
+          );
+        }
+        if (draft) {
+          syncImageDraftHighlight(editor, {
+            from: 0,
+            to: editor.state.doc.firstChild!.nodeSize,
+          });
+        }
+        await new Promise(resolve => setTimeout(resolve, 30));
+      });
+      const content = editor.getJSON();
+
+      // React removes node views before useEditor's deferred destroy runs.
+      await act(async () => {
+        root.unmount();
+        rootMounted = false;
+        await new Promise(resolve => setTimeout(resolve, 30));
+      });
+
+      expect(editor.isDestroyed).toBe(false);
+      expect(editor.view.dom.isConnected).toBe(false);
+      expect(editor.view.dom.firstElementChild?.tagName).toBe('FIGURE');
+      expect(stoppedLoop).toBe(false);
+      expect(editor.getJSON()).toEqual(content);
+      const deliveriesAfterUnmount = observerDeliveries;
+      await new Promise(resolve => setTimeout(resolve, 30));
+      expect(observerDeliveries).toBe(deliveriesAfterUnmount);
+      if (threadCount > 0) {
+        expect(
+          editor.view.dom.firstElementChild?.getAttribute(
+            'data-resource-comment-threads'
+          )
+        ).toBe(
+          Array.from(
+            { length: threadCount },
+            (_, index) => `thread-${index + 1}`
+          ).join(' ')
+        );
+      }
     }
   );
 
