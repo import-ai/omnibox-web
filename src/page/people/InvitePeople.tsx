@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/Dialog';
 import { Switch } from '@/components/ui/Switch';
+import { usePublicSiteOrigin } from '@/hooks/publicSiteContext';
 import { http } from '@/lib/request';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
@@ -26,11 +27,16 @@ export default function InvitePeople(props: IProps) {
   const { namespaceId, invitationId, refetch } = props;
   const { t } = useTranslation();
   const { showToast } = useSettingsToast();
+  const publicSiteOrigin = usePublicSiteOrigin();
   const [open, setOpen] = useState(false);
   const handleCopy = () => {
+    if (!publicSiteOrigin) {
+      showToast(t('share.share.url_unavailable'), 'error');
+      return;
+    }
     try {
       const success = copy(
-        `${location.origin}/invite/${namespaceId}/${invitationId}`,
+        `${publicSiteOrigin}/invite/${namespaceId}/${invitationId}`,
         {
           format: 'text/plain',
         }
