@@ -265,6 +265,9 @@ export default function ChatConversationsPage({
                                 side="right"
                                 align="start"
                                 sideOffset={10}
+                                onCloseAutoFocus={event => {
+                                  if (edit.open) event.preventDefault();
+                                }}
                               >
                                 <DropdownMenuItem
                                   className={menuItemClass}
@@ -379,7 +382,13 @@ export default function ChatConversationsPage({
                                   <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent side="bottom" align="end">
+                              <DropdownMenuContent
+                                side="bottom"
+                                align="end"
+                                onCloseAutoFocus={event => {
+                                  if (edit.open) event.preventDefault();
+                                }}
+                              >
                                 <DropdownMenuItem
                                   className="cursor-pointer"
                                   onClick={event => {

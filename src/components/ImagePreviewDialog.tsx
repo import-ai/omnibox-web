@@ -87,7 +87,8 @@ export function ImagePreviewDialog({
               src={imageSrc}
               referrerPolicy={open ? referrerPolicy : retained.referrerPolicy}
               alt={title}
-              className="max-h-[85vh] w-full rounded-md object-contain"
+              className="max-h-[85vh] w-full cursor-zoom-out rounded-md object-contain"
+              onClick={() => onOpenChange(false)}
             />
             <DialogClose asChild>
               <button

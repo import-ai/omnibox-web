@@ -7,7 +7,7 @@ import {
   SquarePen,
   Trash2,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -56,6 +56,7 @@ export default function Actions(props: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [remove, onRemove] = useState(false);
+  const renaming = useRef(false);
 
   const handleDeleteSuccess = () => {
     navigateToResource(navigate, `/${namespaceId}/chat/conversations`);
@@ -82,6 +83,7 @@ export default function Actions(props: IProps) {
   };
   const handleAction = (id: string) => {
     if (id === 'rename') {
+      renaming.current = true;
       app.fire('chat:title:edit');
       return;
     }
@@ -171,7 +173,14 @@ export default function Actions(props: IProps) {
               <MoreHorizontal className="size-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent
+            align="end"
+            className="w-56"
+            onCloseAutoFocus={event => {
+              if (renaming.current) event.preventDefault();
+              renaming.current = false;
+            }}
+          >
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={onChatCreate}
