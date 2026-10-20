@@ -592,13 +592,15 @@
       "wechat_bot": "WeChat Assistant",
       "qq_bot": "QQ Assistant",
       "telegram_bot": "Telegram Assistant",
-      "wechat_clawbot": "WeChat ClawBot"
+      "wechat_clawbot": "WeChat ClawBot",
+      "wechat_oa_bot": "WeChat AI Assistant"
     },
     "scan_via": {
       "wechat_bot": "WeChat",
       "qq_bot": "QQ",
       "telegram_bot": "Telegram",
-      "wechat_clawbot": "WeChat"
+      "wechat_clawbot": "WeChat",
+      "wechat_oa_bot": "WeChat"
     },
     "unsupported_app": "Unsupported application type: {{ app_id }}",
     "status": {
@@ -608,7 +610,8 @@
     },
     "already_bound": {
       "title": "Already Connected",
-      "description": "You are already connected to the {{ platform_name }}. You can scan the QR code below to add the assistant."
+      "description": "You are already connected to the {{ platform_name }}. You can scan the QR code below to add the assistant.",
+      "description_no_qr": "You are already connected to the {{ platform_name }}."
     },
     "bind": {
       "button": "Bind",
@@ -639,6 +642,7 @@
       }
     },
     "qr_bind": {
+      "title": "Bind {{ app_name }}",
       "description": "Scan the QR code with {{ platform_name }} to complete the binding",
       "step1": "Scan QR Code with {{ platform_name }}",
       "instruction": "Open {{ platform_name }} and scan the QR code above to bind your account"

@@ -593,13 +593,15 @@
       "wechat_bot": "微信助手",
       "qq_bot": " QQ 助手",
       "telegram_bot": "Telegram 助手",
-      "wechat_clawbot": "微信 ClawBot"
+      "wechat_clawbot": "微信 ClawBot",
+      "wechat_oa_bot": "微信 AI 对话助手"
     },
     "scan_via": {
       "wechat_bot": "微信",
       "qq_bot": "QQ",
       "telegram_bot": "Telegram",
-      "wechat_clawbot": "微信"
+      "wechat_clawbot": "微信",
+      "wechat_oa_bot": "微信"
     },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
@@ -609,7 +611,8 @@
     },
     "already_bound": {
       "title": "已绑定",
-      "description": "您已成功绑定{{ platform_name }}，您可以扫描下方二维码添加助手。"
+      "description": "您已成功绑定{{ platform_name }}，您可以扫描下方二维码添加助手。",
+      "description_no_qr": "您已成功绑定{{ platform_name }}。"
     },
     "bind": {
       "button": "绑定",
@@ -640,6 +643,7 @@
       }
     },
     "qr_bind": {
+      "title": "绑定{{ app_name }}",
       "description": "使用{{ platform_name }}扫描二维码完成绑定",
       "step1": "使用{{ platform_name }}扫描二维码",
       "instruction": "打开{{ platform_name }}并扫描上方二维码以绑定您的账户"
