@@ -13,6 +13,7 @@ import {
 } from '@/components/tooltip';
 import { Button } from '@/components/ui/Button';
 import { Switch } from '@/components/ui/Switch';
+import { usePublicSiteOrigin } from '@/hooks/publicSiteContext';
 import {
   parseShareInfo,
   ResourceType,
@@ -43,6 +44,7 @@ const folderResourceTypes: ResourceType[] = [
 export function ShareTabContent(props: ShareTabContentProps) {
   const { resource_id, namespace_id, resourceType } = props;
   const { t } = useTranslation();
+  const publicSiteOrigin = usePublicSiteOrigin();
   const [shareInfo, setShareInfo] = useState<ShareInfo | null>(null);
   const [normalizationFailed, setNormalizationFailed] = useState(false);
   const [reloadVersion, setReloadVersion] = useState(0);
@@ -150,8 +152,8 @@ export function ShareTabContent(props: ShareTabContentProps) {
   };
 
   const shareUrl =
-    shareInfo?.enabled && !normalizationFailed
-      ? `${location.origin}/s/${shareInfo.id}`
+    shareInfo?.enabled && !normalizationFailed && publicSiteOrigin
+      ? `${publicSiteOrigin}/s/${shareInfo.id}`
       : '';
 
   const handleEnable = (enabled: boolean) => {
@@ -237,6 +239,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
           size="icon"
           onClick={handleCopy}
           disabled={!shareUrl}
+          aria-label={t('actions.copy_link')}
         >
           <Copy className="w-4 h-4" />
         </Button>
@@ -246,6 +249,11 @@ export function ShareTabContent(props: ShareTabContentProps) {
           onCheckedChange={handleEnable}
         />
       </div>
+      {!publicSiteOrigin && (
+        <p role="alert" className="mt-3 text-xs text-destructive">
+          {t('share.share.url_unavailable')}
+        </p>
+      )}
       {normalizationFailed && (
         <div
           role="alert"
