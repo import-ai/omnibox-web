@@ -7,7 +7,6 @@ import {
   NAMESPACE_MEMBERS_REFRESH,
   toMentionMembersById,
 } from '@/page/resource/mentionCard';
-import { mentionNamesForDisplay } from '@/page/resource/mentionLabels';
 import { mentionUsersFromMembers } from '@/page/resource/mentionUsers';
 
 export function useMentionUsers(namespaceId?: string) {
@@ -23,24 +22,25 @@ export function useMentionUsers(namespaceId?: string) {
     }
     let ignore = false;
 
+    let ticket = 0;
     const load = (initial: boolean) => {
+      const current = ++ticket;
       if (initial) {
         setReady(false);
       }
       http
         .get<Member[]>(`/namespaces/${namespaceId}/members`, { mute: true })
         .then(loaded => {
-          if (!ignore) {
-            setMembers(Array.isArray(loaded) ? loaded : []);
+          if (ignore || current !== ticket) {
+            return;
           }
+          setMembers(Array.isArray(loaded) ? loaded : []);
         })
         .catch(() => {
-          if (!ignore) {
-            setMembers([]);
-          }
+          // A failed refresh must keep the list already on screen.
         })
         .finally(() => {
-          if (!ignore && initial) {
+          if (!ignore && initial && current === ticket) {
             setReady(true);
           }
         });
@@ -68,10 +68,5 @@ export function useMentionUsers(namespaceId?: string) {
     () => Object.fromEntries(mentionUsers.map(user => [user.id, user.name])),
     [mentionUsers]
   );
-  const displayNamesById = useMemo(
-    () => mentionNamesForDisplay(namespaceId ?? '', namesById),
-    [namespaceId, namesById]
-  );
-
-  return { mentionUsers, membersById, namesById, displayNamesById, ready };
+  return { mentionUsers, membersById, namesById, ready };
 }

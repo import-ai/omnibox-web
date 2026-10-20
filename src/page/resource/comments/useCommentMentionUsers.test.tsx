@@ -52,6 +52,18 @@ describe('useCommentMentionUsers', () => {
     container.remove();
   });
 
+  it('shares one members request across every comment input', async () => {
+    await act(async () => {
+      root.render(
+        <>
+          <Probe />
+          <Probe />
+        </>
+      );
+    });
+    expect(http.get).toHaveBeenCalledTimes(1);
+  });
+
   it('loads members again the next time the comment UI mounts', async () => {
     await act(async () => {
       root.render(<Probe />);

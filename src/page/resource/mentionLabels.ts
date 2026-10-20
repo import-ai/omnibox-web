@@ -87,23 +87,3 @@ export function resolveMentionLabels(
 
   return restoreCodeBlocks(rewritten, slots);
 }
-
-const lastMentionNames = new Map<string, Record<string, string>>();
-
-export function mentionNamesForDisplay(
-  namespaceId: string,
-  namesById: Record<string, string>
-) {
-  if (!namespaceId) {
-    return namesById;
-  }
-  const remembered = lastMentionNames.get(namespaceId) ?? {};
-  const next = { ...remembered };
-  for (const [id, name] of Object.entries(namesById)) {
-    if (name) {
-      next[id] = name;
-    }
-  }
-  lastMentionNames.set(namespaceId, next);
-  return next;
-}

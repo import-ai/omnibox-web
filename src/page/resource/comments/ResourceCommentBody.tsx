@@ -2,17 +2,12 @@ import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from '@/components/ui/HoverCard';
 import type { ResourceCommentAttachment } from '@/interface';
 import {
   hasMentionCard,
   type MentionCardMember,
 } from '@/page/resource/mentionCard';
-import { MentionCard } from '@/page/resource/MentionHoverCard';
+import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 
 import {
   commentMentionActive,
@@ -106,6 +101,7 @@ export function ResourceCommentBody({
             : content}
         </p>
       ) : null}
+      <MentionHoverCard containerRef={textRef} membersById={cards} />
       {overflowing ? (
         <button
           type="button"
@@ -168,29 +164,18 @@ function CommentMention({
   active: boolean;
 }) {
   const text = `@${label}`;
-  if (!active || !member || !hasMentionCard(member)) {
-    return (
-      <span className="omnibox-comment-mention" data-mention-id={id}>
-        {text}
-      </span>
-    );
-  }
+  const hover = active && !!member && hasMentionCard(member);
   return (
-    <HoverCard>
-      <HoverCardTrigger asChild>
-        <span
-          className="omnibox-comment-mention"
-          data-mention-id={id}
-          data-mention-active=""
-          onClick={event => event.stopPropagation()}
-          onPointerDown={event => event.stopPropagation()}
-        >
-          {text}
-        </span>
-      </HoverCardTrigger>
-      <HoverCardContent onClick={event => event.stopPropagation()}>
-        <MentionCard member={member} />
-      </HoverCardContent>
-    </HoverCard>
+    <span
+      className="omnibox-comment-mention"
+      data-mention-id={id}
+      data-type={hover ? 'mention' : undefined}
+      data-id={hover ? id : undefined}
+      data-mention-active={hover ? '' : undefined}
+      onClick={event => event.stopPropagation()}
+      onPointerDown={event => event.stopPropagation()}
+    >
+      {text}
+    </span>
   );
 }

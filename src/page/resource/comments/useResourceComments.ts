@@ -12,7 +12,11 @@ import type {
   ResourceCommentAuthor,
   ResourceCommentThread,
 } from '@/interface';
-import { listResourceCommentThreads } from '@/service/resourceComments';
+import { resolveMentionLabels } from '@/page/resource/mentionLabels';
+import {
+  listResourceCommentThreads,
+  updateResourceComment,
+} from '@/service/resourceComments';
 
 import {
   collectResourceCommentAnchors,
@@ -485,6 +489,51 @@ export function useResourceComments({
     resolved: activeThread?.resolved ?? false,
   });
 
+  const syncCommentMentionLabels = useCallback(
+    (namesById: Record<string, string>) => {
+      if (!Object.keys(namesById).length) {
+        return;
+      }
+      const nextThreads = threadsRef.current.map(thread => {
+        let threadChanged = false;
+        const comments = thread.comments.map(comment => {
+          const next = resolveMentionLabels(comment.content, namesById);
+          if (next === comment.content) {
+            return comment;
+          }
+          threadChanged = true;
+          updateResourceComment(
+            namespaceId,
+            resource.id,
+            thread.id,
+            comment.id,
+            {
+              content: next,
+              attachment_ids: (comment.attachments ?? []).map(item => item.id),
+            }
+          )
+            .then(updated => {
+              if (updated) {
+                applyThreadUpdate(updated);
+              }
+            })
+            .catch(() => undefined);
+          return { ...comment, content: next };
+        });
+        return threadChanged ? { ...thread, comments } : thread;
+      });
+      if (
+        nextThreads.some(
+          (thread, index) => thread !== threadsRef.current[index]
+        )
+      ) {
+        setThreads(nextThreads);
+        setAnchorThreads(current => mergeThreads(current, nextThreads));
+      }
+    },
+    [applyThreadUpdate, namespaceId, resource.id]
+  );
+
   return {
     activeThread,
     activeThreadId,
@@ -526,6 +575,7 @@ export function useResourceComments({
     setPendingSelection,
     setResolved,
     setThreadResolved,
+    syncCommentMentionLabels,
     submitting,
     threads: visibleThreads,
     total,

@@ -10,27 +10,48 @@ import { mentionUsersFromMembers } from '@/page/resource/mentionUsers';
 
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
-// ponytail: coalesce one in-flight members request per namespace. Do not keep
-// the list across mounts. A profile save asks open documents to load again.
-const pending = new Map<string, Promise<Member[]>>();
+type Listener = (members: Member[]) => void;
 
-function loadMembers(namespaceId: string) {
-  const current = pending.get(namespaceId);
-  if (current) {
-    return current;
+type Inflight = {
+  ticket: number;
+  promise: Promise<Member[] | null>;
+  refresh: boolean;
+};
+
+// One load per namespace. Each comment input subscribes; a newer refresh
+// drops the older response instead of leaving every input but the last empty.
+const generation = new Map<string, number>();
+const inflight = new Map<string, Inflight>();
+const listeners = new Map<string, Set<Listener>>();
+
+function loadMembers(namespaceId: string, refresh = false) {
+  const current = inflight.get(namespaceId);
+  if (current && (!refresh || current.refresh)) {
+    return current.promise;
   }
-  const task = import('@/lib/request')
+  const ticket = (generation.get(namespaceId) ?? 0) + 1;
+  generation.set(namespaceId, ticket);
+  const promise = import('@/lib/request')
     .then(({ http }) =>
       Promise.resolve(
         http.get<Member[]>(`/namespaces/${namespaceId}/members`, { mute: true })
       )
     )
-    .then(members => (Array.isArray(members) ? members : []))
+    .then(members => {
+      if (generation.get(namespaceId) !== ticket) {
+        return null;
+      }
+      const next = Array.isArray(members) ? members : [];
+      listeners.get(namespaceId)?.forEach(listener => listener(next));
+      return next;
+    })
     .finally(() => {
-      pending.delete(namespaceId);
+      if (inflight.get(namespaceId)?.ticket === ticket) {
+        inflight.delete(namespaceId);
+      }
     });
-  pending.set(namespaceId, task);
-  return task;
+  inflight.set(namespaceId, { ticket, promise, refresh });
+  return promise;
 }
 
 export function useCommentMentionUsers() {
@@ -46,19 +67,21 @@ export function useCommentMentionUsers() {
       return;
     }
     let ignore = false;
-    loadMembers(id)
-      .then(next => {
-        if (!ignore) {
-          setMembers(next);
-        }
-      })
-      .catch(() => {
-        if (!ignore) {
-          setMembers([]);
-        }
-      });
+    const listener: Listener = next => {
+      if (!ignore) {
+        setMembers(next);
+      }
+    };
+    const group = listeners.get(id) ?? new Set<Listener>();
+    group.add(listener);
+    listeners.set(id, group);
+    loadMembers(id).catch(() => undefined);
     return () => {
       ignore = true;
+      group.delete(listener);
+      if (group.size === 0) {
+        listeners.delete(id);
+      }
     };
   }, [id]);
 
@@ -66,27 +89,12 @@ export function useCommentMentionUsers() {
     if (!id) {
       return;
     }
-    let ignore = false;
-    const unsubscribe = app.on(NAMESPACE_MEMBERS_REFRESH, (nextId: string) => {
+    return app.on(NAMESPACE_MEMBERS_REFRESH, (nextId: string) => {
       if (nextId !== id) {
         return;
       }
-      loadMembers(id)
-        .then(next => {
-          if (!ignore) {
-            setMembers(next);
-          }
-        })
-        .catch(() => {
-          if (!ignore) {
-            setMembers([]);
-          }
-        });
+      loadMembers(id, true).catch(() => undefined);
     });
-    return () => {
-      ignore = true;
-      unsubscribe();
-    };
   }, [app, id]);
 
   const users = useMemo(() => mentionUsersFromMembers(members), [members]);

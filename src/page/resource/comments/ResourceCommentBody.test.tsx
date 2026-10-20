@@ -158,21 +158,17 @@ describe('ResourceCommentBody', () => {
         note: 'dev',
       },
     });
-    expect(container.querySelector('[data-mention-active]')?.textContent).toBe(
-      '@New'
-    );
-    const card = container.querySelector('[data-hover-card]')?.textContent;
-    expect(card).toContain('New');
-    expect(card).toContain('a@b.c');
-    expect(card).toContain('138');
-    expect(card).toContain('dev');
+    const active = container.querySelector('[data-mention-active]');
+    expect(active?.textContent).toBe('@New');
+    expect(active?.getAttribute('data-type')).toBe('mention');
+    expect(active?.getAttribute('data-id')).toBe('u1');
 
     renderUsers([]);
     expect(container.querySelector('[data-mention-active]')).toBeNull();
+    expect(container.querySelector('[data-type="mention"]')).toBeNull();
     expect(container.querySelector('[data-mention-id="u1"]')?.textContent).toBe(
       '@Old'
     );
-    expect(container.querySelector('[data-hover-card]')).toBeNull();
 
     renderUsers([{ id: 'u1', name: 'New' }], {
       u1: { id: 'u1', username: 'new' },
@@ -180,9 +176,7 @@ describe('ResourceCommentBody', () => {
     expect(container.querySelector('[data-mention-active]')?.textContent).toBe(
       '@New'
     );
-    const partial = container.querySelector('[data-hover-card]')?.textContent;
-    expect(partial).toContain('new');
-    expect(partial).not.toContain('form.phone');
+    expect(container.querySelector('[data-type="mention"]')).not.toBeNull();
   });
 
   it('remeasures window resizing when ResizeObserver is unavailable', () => {

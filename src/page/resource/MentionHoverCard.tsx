@@ -1,10 +1,4 @@
-import {
-  type RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -82,7 +76,7 @@ export function MentionHoverCard({
   containerRef,
   membersById,
 }: {
-  containerRef: RefObject<HTMLElement | null>;
+  containerRef: { readonly current: HTMLElement | null };
   membersById: Record<string, MentionCardMember>;
 }) {
   const [active, setActive] = useState<ActiveMention | null>(null);
@@ -205,6 +199,7 @@ export function MentionHoverCard({
         ref={cardRef}
         side="bottom"
         align="start"
+        className="z-[80]"
         onMouseEnter={clearCloseTimer}
         onMouseLeave={scheduleClose}
       >
