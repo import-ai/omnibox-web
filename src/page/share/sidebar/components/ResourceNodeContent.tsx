@@ -31,6 +31,7 @@ import { ResourceTreeProps } from './ResourceNode';
 interface ResourceNodeContentProps extends ResourceTreeProps {
   node: TreeNode;
   nodeId: string;
+  renderChildren?: boolean;
 }
 
 export function ResourceNodeContent({
@@ -42,6 +43,7 @@ export function ResourceNodeContent({
   isResourceActive,
   onAddToContext,
   canBrowseResources,
+  renderChildren = true,
 }: ResourceNodeContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -203,24 +205,26 @@ export function ResourceNodeContent({
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>
-        <CollapsibleContent>
-          <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
-            {canRenderChildren &&
-              isExpanded &&
-              node.children.map(childId => (
-                <ResourceNode
-                  nodeId={childId}
-                  key={childId}
-                  shareId={shareId}
-                  showChat={showChat}
-                  isChatActive={isChatActive}
-                  isResourceActive={isResourceActive}
-                  onAddToContext={onAddToContext}
-                  canBrowseResources={canBrowseResources}
-                />
-              ))}
-          </SidebarMenuSub>
-        </CollapsibleContent>
+        {renderChildren && (
+          <CollapsibleContent>
+            <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
+              {canRenderChildren &&
+                isExpanded &&
+                node.children.map(childId => (
+                  <ResourceNode
+                    nodeId={childId}
+                    key={childId}
+                    shareId={shareId}
+                    showChat={showChat}
+                    isChatActive={isChatActive}
+                    isResourceActive={isResourceActive}
+                    onAddToContext={onAddToContext}
+                    canBrowseResources={canBrowseResources}
+                  />
+                ))}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        )}
       </Collapsible>
     </SidebarMenuItem>
   );

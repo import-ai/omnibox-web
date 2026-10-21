@@ -5,6 +5,7 @@ import {
   FolderPlus,
   MoreHorizontal,
 } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -50,16 +51,22 @@ import {
 } from '@/page/sidebar/rssFolderQuota';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { isManagedChildrenNode } from '@/page/sidebar/store/utils';
 import {
   locateSidebarResource,
   triggerGlobalFileUpload,
 } from '@/page/sidebar/utils';
+import { flattenExpandedResources } from '@/page/sidebar/virtualResourceTree';
 import type { ResourceSortOptions } from '@/service/resource';
 
 import { DisabledMenuTooltip } from './DisabledMenuTooltip';
 import ResourceNode from './ResourceNode';
 import { ResourceSortMenu } from './ResourceSortMenu';
 import { menuIconClass, menuItemClass } from './shared';
+import {
+  VirtualEmptyFolderRow,
+  VirtualResourceRows,
+} from './VirtualResourceRows';
 
 interface SpaceSectionContentProps {
   rootNode: TreeNode;
@@ -107,6 +114,25 @@ export function SpaceSectionContent({
   const isTouch = useIsTouch();
 
   const upload = useSidebarStore(s => s.dialogs.upload[rootId]);
+  const nodes = useSidebarStore(s => s.nodes);
+  const nodeUI = useSidebarStore(s => s.ui);
+  const activeId = useSidebarStore(s => s.activeId);
+  const rows = useMemo(
+    () =>
+      flattenExpandedResources(
+        rootNode.children,
+        nodes,
+        id => nodeUI[id]?.expanded === true,
+        id => {
+          const node = nodes[id];
+          const ui = nodeUI[id];
+          return (
+            !!node && !!ui?.loaded && !ui.loading && isManagedChildrenNode(node)
+          );
+        }
+      ),
+    [nodeUI, nodes, rootNode.children]
+  );
 
   const handleCreateFolder = () => {
     useSidebarStore.getState().openCreateFolderDialog(rootId);
@@ -383,18 +409,28 @@ export function SpaceSectionContent({
         <SidebarGroupContent>
           <SidebarMenu className="gap-0.5">
             {rootNode.children.length > 0 ? (
-              rootNode.children.map(childId => (
-                <ResourceNode
-                  nodeId={childId}
-                  key={childId}
-                  hasTeamspace={hasTeamspace}
-                  currentNamespace={currentNamespace}
-                  onBatchDelete={onBatchDelete}
-                  onBatchMove={onBatchMove}
-                  onBatchCreate={onBatchCreate}
-                  onAddToChat={onAddToChat}
-                />
-              ))
+              <VirtualResourceRows
+                listId={rootId}
+                publishSpans
+                revealId={activeId}
+                rows={rows}
+                renderEmpty={({ depth, parentId }) => (
+                  <VirtualEmptyFolderRow depth={depth} parentId={parentId} />
+                )}
+                renderNode={({ depth, id }) => (
+                  <ResourceNode
+                    nodeId={id}
+                    depth={depth}
+                    renderChildren={false}
+                    hasTeamspace={hasTeamspace}
+                    currentNamespace={currentNamespace}
+                    onBatchDelete={onBatchDelete}
+                    onBatchMove={onBatchMove}
+                    onBatchCreate={onBatchCreate}
+                    onAddToChat={onAddToChat}
+                  />
+                )}
+              />
             ) : (
               <SidebarMenuItem>
                 <div className="my-px flex h-8 cursor-not-allowed items-center pl-7 pr-2 text-sm text-muted-foreground">

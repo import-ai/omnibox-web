@@ -14,10 +14,22 @@ export interface ResourceTreeProps {
 
 interface ResourceNodeProps extends ResourceTreeProps {
   nodeId: string;
+  renderChildren?: boolean;
 }
 
-export default function ResourceNode({ nodeId, ...props }: ResourceNodeProps) {
+export default function ResourceNode({
+  nodeId,
+  renderChildren = true,
+  ...props
+}: ResourceNodeProps) {
   const node = useNode(nodeId);
   if (!node) return null;
-  return <ResourceNodeContent node={node} nodeId={nodeId} {...props} />;
+  return (
+    <ResourceNodeContent
+      node={node}
+      nodeId={nodeId}
+      renderChildren={renderChildren}
+      {...props}
+    />
+  );
 }
