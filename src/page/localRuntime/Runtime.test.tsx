@@ -3,8 +3,10 @@
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { Simulate } from 'react-dom/test-utils';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { http } from '@/lib/request';
+import { useCopilotStore } from '@/page/copilot/copilotStore';
 import { setGlobalCredential } from '@/page/user/util';
 
 import {
@@ -13,6 +15,7 @@ import {
 } from './ConversationExecutions';
 import ExecutionCard from './ExecutionCard';
 import ExecutionList from './ExecutionList';
+import ExecutionStatus from './ExecutionStatus';
 import RenameDevice from './RenameDevice';
 import {
   CurrentDeviceContext,
@@ -22,6 +25,14 @@ import {
   useLocalDevices,
 } from './runtime';
 
+jest.mock('react-router-dom', () => {
+  const util = jest.requireActual<typeof import('node:util')>('node:util');
+  Object.assign(globalThis, {
+    TextDecoder: util.TextDecoder,
+    TextEncoder: util.TextEncoder,
+  });
+  return jest.requireActual('react-router-dom');
+});
 jest.mock('@/lib/request', () => ({
   http: { get: jest.fn(), patch: jest.fn() },
 }));
@@ -234,6 +245,98 @@ it('shows failure details from status events without routine progress messages',
     )
   );
   expect(container.querySelector('[role="alert"]')).toBeNull();
+});
+
+it('opens uploaded artifacts beside the conversation like chat resource links', async () => {
+  const show = jest
+    .spyOn(useCopilotStore.getState(), 'showResourceBesideConversation')
+    .mockImplementation(() => {});
+  mockGet.mockResolvedValue([
+    {
+      sequence: 1,
+      kind: 'artifact',
+      data: JSON.stringify({
+        id: 'file-1',
+        name: 'report.txt',
+        url: 'https://server.example/namespace-a/file-1',
+      }),
+    },
+  ]);
+  const card = (namespaceId: string) => (
+    <MemoryRouter initialEntries={['/namespace-a/chat/conversation-a']}>
+      <Routes>
+        <Route
+          path="/:namespace_id/chat/:conversation_id"
+          element={
+            <ExecutionCard
+              execution={{
+                ...execution,
+                namespace_id: namespaceId,
+                status: 'succeeded',
+              }}
+              deviceName={device.name}
+              refresh={() => {}}
+            />
+          }
+        />
+      </Routes>
+    </MemoryRouter>
+  );
+  await act(async () => root.render(card('namespace-a')));
+  await act(async () => button('local_runtime.show_output').click());
+  const link = container.querySelector('a')!;
+  expect(link.textContent).toBe('report.txt');
+  expect(link.getAttribute('href')).toBe('/namespace-a/file-1');
+  expect(link.getAttribute('target')).toBeNull();
+  Simulate.click(link, { button: 0 });
+  expect(show).toHaveBeenCalledWith(
+    'namespace-a',
+    'conversation-a',
+    'file-1',
+    undefined
+  );
+  await act(async () => root.render(card('namespace-b')));
+  const other = container.querySelector('a')!;
+  expect(other.getAttribute('href')).toBe('/namespace-b/file-1');
+  expect(other.getAttribute('target')).toBe('_blank');
+  show.mockRestore();
+});
+
+it('spins only while an execution waits to start', async () => {
+  for (const [status, spinning] of [
+    ['queued', true],
+    ['accepted', true],
+    ['awaiting_approval', true],
+    ['approved', true],
+    ['running', false],
+    ['offline', false],
+  ] as const) {
+    await act(async () => root.render(<ExecutionStatus status={status} />));
+    expect(
+      container.querySelector('svg')?.classList.contains('animate-spin')
+    ).toBe(spinning);
+  }
+});
+
+it('explains an unavailable device and offers no further actions', async () => {
+  mockGet.mockResolvedValue([
+    { sequence: 1, kind: 'status', data: 'The device went offline' },
+  ]);
+  await act(async () =>
+    root.render(
+      <ExecutionCard
+        execution={{ ...execution, status: 'offline' }}
+        deviceName={device.name}
+        refresh={() => {}}
+      />
+    )
+  );
+  expect(container.querySelector('[role="alert"]')?.textContent).toContain(
+    'local_runtime.offline_reason'
+  );
+  expect(container.textContent).toContain('local_runtime.status.offline');
+  expect(button('local_runtime.cancel')).toBeUndefined();
+  expect(button('local_runtime.approve')).toBeUndefined();
 });
 
 it('ignores IME confirmation and saves only a subsequent ordinary Enter', async () => {

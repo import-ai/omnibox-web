@@ -14,4 +14,5 @@ it('merges replayed output once and preserves sequence ordering', () => {
   ).toBe('ab');
   expect(terminal.has('cancel_requested')).toBe(false);
   expect(terminal.has('unknown')).toBe(true);
+  expect(terminal.has('offline')).toBe(true);
 });
