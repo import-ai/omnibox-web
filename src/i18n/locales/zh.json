@@ -1652,6 +1652,7 @@
     "show_output": "查看输出",
     "hide_output": "收起输出",
     "no_output": "没有输出",
+    "offline_reason": "命令开始前，设备已离线、退出登录或关闭了本地执行，命令未执行。",
     "artifacts": "产物",
     "approvals": "审批记录",
     "decision": {
@@ -1670,7 +1671,8 @@
       "denied": "已拒绝",
       "canceled": "已取消",
       "timed_out": "已超时",
-      "unknown": "状态未知"
+      "unknown": "状态未知",
+      "offline": "设备不可用"
     }
   }
 }
