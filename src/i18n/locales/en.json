@@ -37,7 +37,7 @@
     "notification_type": "Tags",
     "created_at": "Created at",
     "tags": {
-      "wechat_bot": "WeChat Assistant",
+      "wechat_bot": "WeChat Collection Assistant",
       "community": "Community",
       "system": "System",
       "marketing": "Campaign",
@@ -589,7 +589,7 @@
     "description": "Manage your application integrations and bindings",
     "empty": "No applications found",
     "app_names": {
-      "wechat_bot": "WeChat Assistant",
+      "wechat_bot": "WeChat Collection Assistant",
       "qq_bot": "QQ Assistant",
       "telegram_bot": "Telegram Assistant",
       "wechat_clawbot": "WeChat ClawBot",
