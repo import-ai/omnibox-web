@@ -1670,5 +1670,9 @@
       "timed_out": "已超时",
       "unknown": "状态未知"
     }
+  },
+  "login_link": {
+    "invalid": "链接已失效或已使用，请回到公众号「小黑 OmniBox」重新获取",
+    "go_pricing": "前往开通页"
   }
 }

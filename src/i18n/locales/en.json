@@ -1668,5 +1668,9 @@
       "timed_out": "Timed out",
       "unknown": "Unknown"
     }
+  },
+  "login_link": {
+    "invalid": "This link has expired or was already used. Get a new one from the OmniBox official account.",
+    "go_pricing": "Go to pricing"
   }
 }
