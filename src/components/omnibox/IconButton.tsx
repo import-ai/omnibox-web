@@ -24,10 +24,22 @@ const iconButtonTones = {
 type IconButtonSize = keyof typeof iconButtonSizes;
 type IconButtonTone = keyof typeof iconButtonTones;
 
+/**
+ * Hover and press only. Ghost ships `hover:bg-muted` and
+ * `dark:hover:bg-muted/50` as separate utilities. `hover:bg-transparent`
+ * only replaces the light slot; `dark:hover:bg-transparent` must be paired.
+ * `!` is required because ui/Button feeds `className` through CVA, so both
+ * fills can remain in the class string and stylesheet order then prefers
+ * `muted/50` in dark mode.
+ */
+export const iconButtonHoverClassName =
+  'hover:bg-transparent! dark:hover:bg-transparent! aria-expanded:bg-transparent! data-[state=open]:bg-transparent! data-open:bg-transparent!';
+
 /** Hover and press only. Open menus do not add a selected background. */
 export const sidebarToolbarIconButtonClassName = cn(
   iconButtonTones.sidebar,
-  'hover:bg-transparent aria-expanded:bg-transparent data-[state=open]:bg-transparent data-open:bg-transparent transition-all active:translate-y-px'
+  iconButtonHoverClassName,
+  'transition-all active:translate-y-px'
 );
 
 const IconButton = React.forwardRef<
@@ -60,7 +72,7 @@ const IconButton = React.forwardRef<
       aria-label={typeof label === 'string' ? label : props['aria-label']}
       className={cn(
         iconButtonSizes[size],
-        'hover:bg-transparent aria-expanded:bg-transparent data-[state=open]:bg-transparent data-open:bg-transparent',
+        iconButtonHoverClassName,
         iconButtonTones[tone],
         destructive && 'hover:text-destructive',
         className

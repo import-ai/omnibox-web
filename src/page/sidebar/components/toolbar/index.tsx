@@ -134,6 +134,7 @@ export function Toolbar({
             <ToolbarButton
               icon={Trash}
               onClick={onBatchDelete}
+              destructive
               label={t('batch.delete_tooltip')}
               disabledLabel={disabledLabel || unsupportedLabel('delete')}
             />

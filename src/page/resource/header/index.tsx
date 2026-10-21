@@ -2,7 +2,10 @@ import { Eye, FileClock, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
-import { IconButton } from '@/components/omnibox/IconButton';
+import {
+  IconButton,
+  iconButtonHoverClassName,
+} from '@/components/omnibox/IconButton';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { cn } from '@/lib/utils';
@@ -91,7 +94,10 @@ export default function Header(props: IActionProps) {
               size="sm"
               type="button"
               variant="ghost"
-              className="hover:bg-transparent hover:text-sidebar-accent-foreground"
+              className={cn(
+                iconButtonHoverClassName,
+                'hover:text-sidebar-accent-foreground'
+              )}
             >
               <Eye />
               {t('resource.history.back_to_current')}
@@ -103,7 +109,10 @@ export default function Header(props: IActionProps) {
                 size="sm"
                 type="button"
                 variant="ghost"
-                className="hover:bg-transparent hover:text-sidebar-accent-foreground"
+                className={cn(
+                  iconButtonHoverClassName,
+                  'hover:text-sidebar-accent-foreground'
+                )}
               >
                 <RotateCcw />
                 {t('resource.history.restore')}

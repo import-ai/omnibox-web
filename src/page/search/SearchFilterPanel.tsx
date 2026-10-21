@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
 import { DatePicker, DateRangePicker } from '@/components/date-picker';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import {
   Select,
   SelectContent,
@@ -128,7 +129,8 @@ function SearchFilterConditionRow({
           variant="ghost"
           size="icon"
           className={cn(
-            'size-5 rounded-md border-none bg-transparent p-0 text-foreground shadow-none hover:bg-transparent',
+            iconButtonHoverClassName,
+            'size-5 rounded-md border-none bg-transparent p-0 text-foreground shadow-none',
             hideRemove && 'invisible'
           )}
           onClick={() => onRemoveCondition(index)}
@@ -385,7 +387,10 @@ export function SearchFilterPanel({
             <Button
               type="button"
               variant="ghost"
-              className="h-5 w-fit gap-1 px-0 text-sm font-normal hover:bg-transparent"
+              className={cn(
+                iconButtonHoverClassName,
+                'h-5 w-fit gap-1 px-0 text-sm font-normal'
+              )}
               disabled={!canAddCondition}
               onClick={onAddCondition}
             >

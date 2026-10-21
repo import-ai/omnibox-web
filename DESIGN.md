@@ -82,6 +82,13 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
 - Dark mode is a class on the root (`.dark`), not a media query. Write the
   light value and add a `dark:` variant; never read the theme in JS just to
   pick a class.
+- Light and dark hover fills are different Tailwind slots. Ghost `Button`
+  ships `hover:bg-muted` **and** `dark:hover:bg-muted/50`.
+  `hover:bg-transparent` only replaces the light slot, so dark mode still
+  shows a gray icon chip. Pair `dark:hover:bg-transparent!` (the `!` beats
+  leftover `muted/50` when both stay in the class string), or use
+  `iconButtonHoverClassName` / `IconButton` /
+  `sidebarToolbarIconButtonClassName` from `@/components/omnibox/IconButton`.
 - `useTheme()` (`src/hooks/useTheme.ts`) exists for the cases where a rendered
   value must differ in JS, not for the theme toggle itself — syntax
   highlighting (`CitationMarkdown.tsx`) and the markdown preview
@@ -135,6 +142,8 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
   takes its colour from `variant="destructive"` — see
   [Destructive menu items](#destructive-menu-items).
 - Icon-only buttons always get a `Tooltip`.
+- Icon and toolbar ghost actions have **no hover fill** in light or dark.
+  Do not rely on `hover:bg-transparent` alone; see [Dark mode](#dark-mode).
 - Render a resource's icon through `ResourceTypeIcon`
   (`src/components/ResourceTypeIcon.tsx`), never `ResourceIcon` directly — the
   wrapper normalises the metadata and forces a uniform `size-4` box. Direct use

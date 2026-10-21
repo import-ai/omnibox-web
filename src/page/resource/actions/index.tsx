@@ -25,7 +25,10 @@ import { useResourceTasks } from '@/components/attributes/resource-tasks/Resourc
 import { Button } from '@/components/Button';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
-import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
+import {
+  iconButtonHoverClassName,
+  sidebarToolbarIconButtonClassName,
+} from '@/components/omnibox/IconButton';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
@@ -51,6 +54,7 @@ import { downloadFile } from '@/lib/downloadFile';
 import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
+import { cn } from '@/lib/utils';
 import { clearCache } from '@/page/resource/editor/cache';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
@@ -643,7 +647,10 @@ export default function Actions(props: IActionProps) {
                 variant="ghost"
                 size="sm"
                 onClick={handleSave}
-                className="hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent"
+                className={cn(
+                  iconButtonHoverClassName,
+                  'hover:text-sidebar-accent-foreground'
+                )}
               >
                 <Save />
                 {t('header.actions.save')}
@@ -652,7 +659,10 @@ export default function Actions(props: IActionProps) {
                 variant="ghost"
                 size="sm"
                 onClick={handleExitEdit}
-                className="hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent"
+                className={cn(
+                  iconButtonHoverClassName,
+                  'hover:text-sidebar-accent-foreground'
+                )}
               >
                 <PencilOff />
                 {t('header.actions.discard')}
@@ -663,7 +673,10 @@ export default function Actions(props: IActionProps) {
               variant="ghost"
               size="sm"
               onClick={handleEdit}
-              className="w-7 px-0 hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent sm:w-auto sm:px-2.5"
+              className={cn(
+                iconButtonHoverClassName,
+                'w-7 px-0 hover:text-sidebar-accent-foreground sm:w-auto sm:px-2.5'
+              )}
             >
               <Pencil />
               <span className="sr-only sm:not-sr-only">

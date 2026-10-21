@@ -2,6 +2,7 @@ import { EyeIcon, EyeOffIcon } from 'lucide-react';
 import React from 'react';
 
 import { Button } from '@/components/Button';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +26,10 @@ export const Password = React.forwardRef<HTMLInputElement, InputProps>(
           type="button"
           variant="ghost"
           size="sm"
-          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+          className={cn(
+            iconButtonHoverClassName,
+            'absolute right-0 top-0 h-full px-3 py-2'
+          )}
           onClick={() => setShowPassword(prev => !prev)}
           disabled={disabled}
         >

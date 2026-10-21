@@ -2,6 +2,7 @@ import { Plus, X } from 'lucide-react';
 
 import { Button } from '@/components/Button';
 import ActionDialog from '@/components/invite-dialog/ActionDialog';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
@@ -196,7 +197,10 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-8 gap-1 px-0 text-sm font-normal hover:bg-transparent"
+                  className={cn(
+                    iconButtonHoverClassName,
+                    'h-8 gap-1 px-0 text-sm font-normal'
+                  )}
                   onClick={addLink}
                   disabled={!canAddLink}
                 >

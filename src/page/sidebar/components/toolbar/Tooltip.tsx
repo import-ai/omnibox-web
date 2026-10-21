@@ -9,6 +9,7 @@ interface IProps {
   iconClassName?: string;
   loading?: boolean;
   disabled?: boolean;
+  destructive?: boolean;
 }
 
 export function ToolbarButton({
@@ -19,6 +20,7 @@ export function ToolbarButton({
   iconClassName,
   loading,
   disabled = false,
+  destructive = false,
 }: IProps) {
   const unavailable = !!disabledLabel || loading || disabled;
 
@@ -26,6 +28,7 @@ export function ToolbarButton({
     <IconButton
       size="xs"
       tone="sidebar"
+      destructive={destructive}
       label={disabledLabel || label}
       onClick={onClick}
       disabled={unavailable}

@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import {
   Tooltip,
@@ -110,7 +111,10 @@ function SectionHeader({
               <Button
                 variant="ghost"
                 size="sm"
-                className="size-5 p-0 text-muted-foreground hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent"
+                className={cn(
+                  iconButtonHoverClassName,
+                  'size-5 p-0 text-muted-foreground hover:text-sidebar-accent-foreground'
+                )}
                 type="button"
               >
                 <CircleHelp className="size-4" />

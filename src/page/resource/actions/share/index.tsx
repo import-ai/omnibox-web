@@ -2,6 +2,7 @@ import { Share as ShareIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import {
   Popover,
   PopoverContent,
@@ -9,6 +10,7 @@ import {
 } from '@/components/ui/Popover';
 import { useIsMobile } from '@/hooks/useMobile';
 import { ResourceType } from '@/interface';
+import { cn } from '@/lib/utils';
 
 import ShareTabs from './ShareTabs';
 
@@ -30,7 +32,10 @@ export default function ShareAction(props: ShareActionProps) {
         <Button
           size="sm"
           variant="ghost"
-          className="w-7 px-0 hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent sm:w-auto sm:px-2.5"
+          className={cn(
+            iconButtonHoverClassName,
+            'w-7 px-0 hover:text-sidebar-accent-foreground sm:w-auto sm:px-2.5'
+          )}
         >
           <ShareIcon />
           <span className="sr-only sm:not-sr-only">

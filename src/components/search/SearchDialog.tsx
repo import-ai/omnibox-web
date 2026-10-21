@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { Button } from '@/components/Button';
 import { CommandInput } from '@/components/omnibox/Command';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
 import { Command, CommandDialog } from '@/components/ui/Command';
 import { cn } from '@/lib/utils';
@@ -89,7 +90,10 @@ export function SearchDialog({
                 variant="ghost"
                 size="icon"
                 aria-label={closeLabel}
-                className="size-4 rounded-none p-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
+                className={cn(
+                  iconButtonHoverClassName,
+                  'size-4 rounded-none p-0 text-muted-foreground hover:text-foreground'
+                )}
                 onClick={() => onOpenChange(false)}
               >
                 <X className="size-4" />

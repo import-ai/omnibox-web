@@ -4,6 +4,7 @@ import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { cn } from '@/lib/utils';
 
@@ -101,7 +102,10 @@ export function ResourceConditionEditor({
             <Button
               type="button"
               variant="ghost"
-              className="h-8 gap-1 px-0 text-sm font-normal hover:bg-transparent"
+              className={cn(
+                iconButtonHoverClassName,
+                'h-8 gap-1 px-0 text-sm font-normal'
+              )}
               onClick={() => onAddCondition(conditions.length - 1)}
               disabled={!canAddCondition}
             >
