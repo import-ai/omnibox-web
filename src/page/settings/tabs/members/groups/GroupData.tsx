@@ -21,6 +21,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/Collapsible';
 import { Switch } from '@/components/ui/Switch';
+import { usePublicSiteOrigin } from '@/hooks/publicSiteContext';
 import { Group, Member } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ export default function GroupData(props: GroupProps) {
     props;
   const { t } = useTranslation();
   const { showToast } = useSettingsToast();
+  const publicSiteOrigin = usePublicSiteOrigin();
   const [fold, onFold] = useState(false);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -51,9 +53,13 @@ export default function GroupData(props: GroupProps) {
 
   const handleCopyLink = () => {
     if (!invitation_id) return;
+    if (!publicSiteOrigin) {
+      showToast(t('share.share.url_unavailable'), 'error');
+      return;
+    }
     try {
       const success = copy(
-        `${location.origin}/invite/${namespace_id}/${invitation_id}`,
+        `${publicSiteOrigin}/invite/${namespace_id}/${invitation_id}`,
         { format: 'text/plain' }
       );
       if (success) {
