@@ -7,13 +7,35 @@ import { createRoot, type Root } from 'react-dom/client';
 import { ImageCommentButton } from './ImageCommentButton';
 import type { ResourceCommentsController } from './useResourceComments';
 
+jest.mock('@import-ai/omnibox-editor', () => ({
+  ResourceCommentAction: ({
+    label,
+    onClick,
+  }: {
+    label: string;
+    onClick: () => void;
+  }) => (
+    <button className="tiptap-button" aria-label={label} onClick={onClick} />
+  ),
+}));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+Object.assign(globalThis, {
+  IS_REACT_ACT_ENVIRONMENT: true,
+  ResizeObserver: jest.fn(() => ({
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+    disconnect: jest.fn(),
+  })),
+});
+
 function imageEditor() {
   return new Editor({
     element: document.createElement('div'),
+    editable: false,
     extensions: [
       Node.create({ name: 'doc', topNode: true, content: 'block+' }),
       Node.create({
@@ -44,6 +66,7 @@ describe('ImageCommentButton', () => {
   let mount: HTMLDivElement;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     editor = imageEditor();
     mount = document.createElement('div');
     document.body.append(mount);
@@ -55,6 +78,7 @@ describe('ImageCommentButton', () => {
     act(() => root.unmount());
     mount.remove();
     editor.destroy();
+    jest.useRealTimers();
   });
 
   it('opens an image comment from the web button without editor text', async () => {

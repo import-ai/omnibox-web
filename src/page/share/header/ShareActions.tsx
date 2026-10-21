@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Switch } from '@/components/ui/Switch';
+import { usePublicSiteOrigin } from '@/hooks/publicSiteContext';
 
 interface ShareActionsProps {
   resource: {
@@ -41,6 +42,7 @@ export default function ShareActions({
   onWide,
 }: ShareActionsProps) {
   const { t } = useTranslation();
+  const publicSiteOrigin = usePublicSiteOrigin();
   const [open, setOpen] = useState(false);
   const isFolderResource =
     resource.resource_type === 'folder' ||
@@ -48,7 +50,9 @@ export default function ShareActions({
 
   const handleAction = (id: string) => {
     if (id === 'copy_link') {
-      const returnValue = copy(location.href);
+      if (!publicSiteOrigin) return;
+      const shareUrl = `${publicSiteOrigin}${location.pathname}${location.search}${location.hash}`;
+      const returnValue = copy(shareUrl);
       toast(t(returnValue ? 'actions.copy_link_success' : 'copy.fail'), {
         position: 'bottom-right',
       });
@@ -127,10 +131,16 @@ export default function ShareActions({
         <DropdownMenuItem
           className="cursor-pointer gap-2"
           onClick={() => handleAction('copy_link')}
+          disabled={!publicSiteOrigin}
         >
           <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
           <span>{t('actions.copy_link')}</span>
         </DropdownMenuItem>
+        {!publicSiteOrigin && (
+          <p role="alert" className="px-2 py-1 text-xs text-destructive">
+            {t('share.share.url_unavailable')}
+          </p>
+        )}
         {resource.content && !isFolderResource && (
           <DropdownMenuItem
             className="cursor-pointer gap-2"
