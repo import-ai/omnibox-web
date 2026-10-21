@@ -28,7 +28,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
           size="xs"
           tone="sidebar"
           label={t('trash.restore')}
-          className="hover:bg-transparent hover:text-foreground"
+          className="hover:bg-transparent"
           onClick={() => onRestore(item.id)}
         >
           <Undo2 className="size-4" />

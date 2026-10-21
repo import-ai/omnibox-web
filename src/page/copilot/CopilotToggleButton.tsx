@@ -57,7 +57,7 @@ export default function CopilotToggleButton({
       label={tooltipLabel}
       aria-label={label}
       size="sm"
-      tone="accent"
+      tone="sidebar"
       className="shrink-0"
       onClick={handleToggle}
     >

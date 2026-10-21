@@ -123,6 +123,24 @@
   scrollbar-width: none;
 }
 
+@utility scrollbar-thin-visible {
+  overflow-y: scroll !important;
+  scrollbar-width: auto !important;
+  &::-webkit-scrollbar {
+    -webkit-appearance: none;
+    display: block !important;
+    width: 8px !important;
+    height: 8px !important;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--muted-foreground);
+    border-radius: 999px;
+  }
+  &::-webkit-scrollbar-track {
+    background: var(--muted);
+  }
+}
+
 @utility touch-none-select {
   -webkit-user-select: none;
   user-select: none;

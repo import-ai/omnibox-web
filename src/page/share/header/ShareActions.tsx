@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
@@ -23,6 +24,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Switch } from '@/components/ui/Switch';
+import { cn } from '@/lib/utils';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
 interface ShareActionsProps {
   resource: {
@@ -43,6 +46,7 @@ export default function ShareActions({
 }: ShareActionsProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const menuTriggerPress = useMenuTriggerPress();
   const isFolderResource =
     resource.resource_type === 'folder' ||
     resource.resource_type === 'smart_folder';
@@ -50,9 +54,13 @@ export default function ShareActions({
   const handleAction = (id: string) => {
     if (id === 'copy_link') {
       const returnValue = copy(location.href);
-      toast(t(returnValue ? 'actions.copy_link_success' : 'copy.fail'), {
-        position: 'bottom-right',
-      });
+      if (returnValue) {
+        toast.success(t('actions.copy_link_success'), {
+          position: 'bottom-right',
+        });
+      } else {
+        toast.error(t('copy.fail'), { position: 'bottom-right' });
+      }
       setOpen(false);
       return;
     }
@@ -71,16 +79,20 @@ export default function ShareActions({
           }
         },
       });
-      toast(t(returnValue ? 'actions.copy_content_success' : 'copy.fail'), {
-        position: 'bottom-right',
-      });
+      if (returnValue) {
+        toast.success(t('actions.copy_content_success'), {
+          position: 'bottom-right',
+        });
+      } else {
+        toast.error(t('copy.fail'), { position: 'bottom-right' });
+      }
       setOpen(false);
       return;
     }
 
     if (id === 'download_as_markdown') {
       if (!resource.content) {
-        toast(t('resource.no_content'), {
+        toast.error(t('resource.no_content'), {
           position: 'bottom-right',
         });
         setOpen(false);
@@ -117,11 +129,11 @@ export default function ShareActions({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
+              className={cn(sidebarToolbarIconButtonClassName, 'size-7')}
             >
               <MoreHorizontal className="size-4" />
             </Button>
@@ -129,7 +141,11 @@ export default function ShareActions({
         </TooltipTrigger>
         <TooltipContent>{t('common.more_actions')}</TooltipContent>
       </Tooltip>
-      <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuContent
+        align="end"
+        className="w-56"
+        {...menuTriggerPress.contentProps}
+      >
         <DropdownMenuItem
           className="cursor-pointer gap-2"
           onClick={() => handleAction('copy_link')}

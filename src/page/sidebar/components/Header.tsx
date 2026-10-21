@@ -8,6 +8,7 @@ import ActionDialog from '@/components/invite-dialog/ActionDialog';
 import Notification from '@/components/notification';
 import { useNotificationUnreadCount } from '@/components/notification/hooks/useNotifications';
 import { notificationDialogContentClassName } from '@/components/notification/utils';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -72,7 +73,8 @@ export function Header(props: IProps) {
                 variant="ghost"
                 onClick={onChatHistory}
                 className={cn(
-                  'absolute right-2 top-2 z-10 h-5 w-5 p-0 text-muted-foreground hover:text-foreground focus-visible:outline-hidden focus-visible:ring-transparent [&_svg]:size-4',
+                  sidebarToolbarIconButtonClassName,
+                  'absolute right-2 top-2 z-10 h-5 w-5 p-0 focus-visible:outline-hidden focus-visible:ring-transparent [&_svg]:size-4',
                   isTouch
                     ? 'pointer-events-auto opacity-100'
                     : 'pointer-events-none opacity-0 group-hover/chat:pointer-events-auto group-hover/chat:opacity-100'

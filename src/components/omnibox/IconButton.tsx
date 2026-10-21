@@ -24,6 +24,12 @@ const iconButtonTones = {
 type IconButtonSize = keyof typeof iconButtonSizes;
 type IconButtonTone = keyof typeof iconButtonTones;
 
+/** Hover and press only. Open menus do not add a selected background. */
+export const sidebarToolbarIconButtonClassName = cn(
+  iconButtonTones.sidebar,
+  'hover:bg-transparent aria-expanded:bg-transparent data-[state=open]:bg-transparent data-open:bg-transparent transition-all active:translate-y-px'
+);
+
 const IconButton = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button> & {
@@ -54,7 +60,7 @@ const IconButton = React.forwardRef<
       aria-label={typeof label === 'string' ? label : props['aria-label']}
       className={cn(
         iconButtonSizes[size],
-        'hover:bg-transparent',
+        'hover:bg-transparent aria-expanded:bg-transparent data-[state=open]:bg-transparent data-open:bg-transparent',
         iconButtonTones[tone],
         destructive && 'hover:text-destructive',
         className

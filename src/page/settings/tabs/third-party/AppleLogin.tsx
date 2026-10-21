@@ -103,7 +103,7 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
           lang: i18n.language,
         })
         .then(() => {
-          toast(t('setting.third_party_account.bound'), {
+          toast.success(t('setting.third_party_account.bound'), {
             position: 'bottom-right',
           });
           onSuccess?.();

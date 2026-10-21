@@ -85,7 +85,9 @@ export default function Action(props: ActionProps) {
                 item.label
               )}
             </div>
-            {item.value === value && <Check className="h-5 w-5 text-primary" />}
+            {item.value === value && (
+              <Check className="size-5 text-blue-500! [&_path]:text-blue-500!" />
+            )}
           </DropdownMenuItem>
         ))}
         {afterAddon}

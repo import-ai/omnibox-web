@@ -92,7 +92,7 @@ function NewcomerTasks({
                   disabled={completed}
                   onClick={() => {
                     if (locked) {
-                      toast(t('inviteReferral.tasks.phoneRequired'), {
+                      toast.warning(t('inviteReferral.tasks.phoneRequired'), {
                         position: 'bottom-right',
                       });
                       return;

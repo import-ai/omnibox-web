@@ -253,8 +253,8 @@ export default function InviteForm(props: InviteFormProps) {
   };
 
   return (
-    <div className="mb-4 flex gap-2">
-      <div className="relative flex-1">
+    <div className="mb-4 flex items-center gap-2">
+      <div className="relative min-w-0 flex-1">
         <MultipleSelector
           onChange={handleRecipientChange}
           options={optionsReady ? options : []}
@@ -271,7 +271,7 @@ export default function InviteForm(props: InviteFormProps) {
                 : undefined
           }
           inputProps={{
-            className: 'pr-24 select-text',
+            className: 'pr-28 select-text',
             'aria-label': t('share.permissions.invite_placeholder'),
             onValueChange: handleInputValueChange,
           }}
@@ -300,7 +300,7 @@ export default function InviteForm(props: InviteFormProps) {
               setPermission(value);
               return Promise.resolve();
             }}
-            className="absolute right-[4px] top-[4px] rounded-sm bg-accent p-1 text-sm text-accent-foreground"
+            className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm bg-accent p-1 text-sm text-accent-foreground"
           />
         )}
       </div>

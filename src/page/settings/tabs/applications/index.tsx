@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { Button } from '@/components/Button';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
@@ -21,6 +22,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import useApplications from '@/hooks/useApplications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/getDocsLink.ts';
+import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
@@ -310,7 +312,10 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                         <TooltipTrigger asChild>
                           <button
                             onClick={() => handleDocsClick(application.app_id)}
-                            className="transition-opacity hover:opacity-70"
+                            className={cn(
+                              sidebarToolbarIconButtonClassName,
+                              'self-center hover:bg-transparent'
+                            )}
                           >
                             <CircleHelp className="size-4 text-muted-foreground" />
                           </button>

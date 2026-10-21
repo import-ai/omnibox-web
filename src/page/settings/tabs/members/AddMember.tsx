@@ -1,17 +1,44 @@
 import { Loader2, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { Popover as PopoverPrimitive } from 'radix-ui';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
 import MultipleSelector, { Option } from '@/components/multiple-selector';
 import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
-import { Popover, PopoverContent } from '@/components/ui/Popover';
+import { Popover, PopoverAnchor } from '@/components/ui/Popover';
 import { Member } from '@/interface';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 
 import { memberRecipientLabel } from './memberDisplay';
+
+const memberOptionListClassName = [
+  'max-h-[min(18rem,max(0px,calc(var(--radix-popper-available-height)-4.25rem)))]',
+  'scrollbar-thin-visible overscroll-contain pr-1',
+].join(' ');
+
+function keepMemberListScroll(event: WheelEvent) {
+  const content = event.currentTarget;
+  if (!(content instanceof HTMLElement) || !event.deltaY) {
+    return;
+  }
+  const list = content.querySelector('[data-slot="command-list"]');
+  if (
+    !(list instanceof HTMLElement) ||
+    !(event.target instanceof Node) ||
+    !list.contains(event.target)
+  ) {
+    return;
+  }
+  const atStart = list.scrollTop <= 0;
+  const atEnd = list.scrollTop + list.clientHeight >= list.scrollHeight - 1;
+  const scrollingDown = event.deltaY > 0;
+  if ((scrollingDown && !atEnd) || (!scrollingDown && !atStart)) {
+    event.stopPropagation();
+  }
+}
 
 interface AddMemberProps {
   group_id: string;
@@ -24,6 +51,17 @@ export default function AddMember(props: AddMemberProps) {
   const { data, namespace_id, group_id, refetch } = props;
   const { t } = useTranslation();
   const [open, onOpen] = useState(false);
+  const [contentEl, setContentEl] = useState<HTMLElement | null>(null);
+  const setContent = useCallback((node: HTMLElement | null) => {
+    setContentEl(current => (current === node ? current : node));
+  }, []);
+  useEffect(() => {
+    if (!contentEl) {
+      return;
+    }
+    contentEl.addEventListener('wheel', keepMemberListScroll);
+    return () => contentEl.removeEventListener('wheel', keepMemberListScroll);
+  }, [contentEl]);
   const [loading, onLoading] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [value, onChange] = useState<Array<Option>>([]);
@@ -93,40 +131,60 @@ export default function AddMember(props: AddMemberProps) {
 
   return (
     <Popover open={open} onOpenChange={onOpen}>
-      <SettingPageButton className="mt-2" onClick={() => onOpen(true)}>
-        <Plus />
-        {t('manage.add_member')}
-      </SettingPageButton>
-      <PopoverContent
-        side="bottom"
-        align="start"
-        className="w-[85vw] max-w-[360px] border-none p-0 shadow-none"
-      >
-        <MultipleSelector
-          value={value}
-          hideClearAllButton
-          onChange={onChange}
-          inputValue={inputValue}
-          options={data.map(item => ({
-            label: memberRecipientLabel(item),
-            value: item.user_id,
-          }))}
-          inputProps={{
-            onValueChange: setInputValue,
-            onKeyDown: handleInputEnter,
-          }}
-          afterAddon={
-            <Button
-              size="sm"
-              disabled={loading}
-              onClick={handleAddMember}
-              className="absolute right-0 top-0 h-7 w-9"
-            >
-              {loading ? <Loader2 className="animate-spin" /> : t('manage.add')}
-            </Button>
-          }
-        />
-      </PopoverContent>
+      <PopoverAnchor asChild>
+        <div className="w-full">
+          <SettingPageButton
+            className="mt-2 w-full"
+            onClick={() => onOpen(true)}
+          >
+            <Plus />
+            {t('manage.add_member')}
+          </SettingPageButton>
+        </div>
+      </PopoverAnchor>
+      <PopoverPrimitive.Portal>
+        <PopoverPrimitive.Content
+          ref={setContent}
+          side="bottom"
+          align="start"
+          sideOffset={4}
+          collisionPadding={16}
+          data-slot="popover-content"
+          className="z-50 w-[85vw] max-w-[360px] rounded-md border-none bg-popover p-0 shadow-none outline-hidden"
+        >
+          <MultipleSelector
+            value={value}
+            hideClearAllButton
+            onChange={onChange}
+            inputValue={inputValue}
+            listClassName={memberOptionListClassName}
+            options={data.map(item => ({
+              label: memberRecipientLabel(item),
+              value: item.user_id,
+            }))}
+            inputProps={{
+              onValueChange: setInputValue,
+              onKeyDown: handleInputEnter,
+            }}
+            afterAddon={
+              <div className="absolute inset-y-0 right-1 flex items-center">
+                <Button
+                  size="sm"
+                  disabled={loading}
+                  onClick={handleAddMember}
+                  className="h-7 w-9"
+                >
+                  {loading ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    t('manage.add')
+                  )}
+                </Button>
+              </div>
+            }
+          />
+        </PopoverPrimitive.Content>
+      </PopoverPrimitive.Portal>
     </Popover>
   );
 }

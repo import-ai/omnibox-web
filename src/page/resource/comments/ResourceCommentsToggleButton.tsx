@@ -35,7 +35,7 @@ export function ResourceCommentsToggleButton({
     <IconButton
       type="button"
       size="sm"
-      tone="accent"
+      tone="sidebar"
       className="shrink-0"
       label={tooltipLabel}
       aria-label={label}

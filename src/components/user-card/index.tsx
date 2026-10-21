@@ -77,7 +77,10 @@ export default function UserCard(props: IProps) {
         <TooltipTrigger asChild>
           <div className="min-w-0 cursor-pointer">{identity}</div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="space-y-1.5 text-left">
+        <TooltipContent
+          side="top"
+          className="flex-col items-start gap-1.5 text-left"
+        >
           {tooltipRows.map(row => (
             <div key={row.label}>
               <div className="text-primary-foreground/70">{row.label}</div>

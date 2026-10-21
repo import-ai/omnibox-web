@@ -114,10 +114,14 @@ export function ResourceCommentThreadItem({
     navigator.clipboard
       .writeText(url.toString())
       .then(() => {
-        toast(t('actions.copy_link_success'), { position: 'bottom-right' });
+        toast.success(t('actions.copy_link_success'), {
+          position: 'bottom-right',
+        });
       })
       .catch(() => {
-        toast(t('actions.copy_link_failed'), { position: 'bottom-right' });
+        toast.error(t('actions.copy_link_failed'), {
+          position: 'bottom-right',
+        });
       });
   };
 

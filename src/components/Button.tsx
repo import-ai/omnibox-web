@@ -5,6 +5,10 @@ import { Button as BaseButton } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 
+/** Press feedback for native `<button>` elements outside `@/components/Button`. */
+export const buttonPressClassName =
+  'transition-all active:translate-y-px select-none';
+
 type ButtonProps = React.ComponentProps<typeof BaseButton> & {
   loading?: boolean;
 };

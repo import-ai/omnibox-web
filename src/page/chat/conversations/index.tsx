@@ -5,6 +5,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/Button';
 import Loading from '@/components/loading';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import Pagination from '@/components/pagination';
 import {
   DropdownMenu,
@@ -15,6 +16,7 @@ import {
 import { Separator } from '@/components/ui/Separator';
 import {
   SidebarContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
@@ -24,6 +26,7 @@ import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils';
 import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 import {
   menuIconClass,
   menuItemClass,
@@ -57,6 +60,7 @@ export default function ChatConversationsPage({
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const isTouch = useIsTouch();
+  const menuTriggerPress = useMenuTriggerPress();
   const {
     list: {
       data,
@@ -191,11 +195,9 @@ export default function ChatConversationsPage({
             <>
               {groupItemsByTimestamp(data.data, i18n).map(([key, items]) => (
                 <div key={key}>
-                  <div className="flex h-8 items-center px-4">
-                    <p className="text-xs font-normal leading-8 text-muted-foreground">
-                      {key}
-                    </p>
-                  </div>
+                  <SidebarGroupLabel className="h-(--sidebar-row-height) px-4 font-normal text-muted-foreground">
+                    {key}
+                  </SidebarGroupLabel>
                   <SidebarMenu className="gap-0.5">
                     {items.map(item => {
                       const conversationTitle: string =
@@ -248,23 +250,30 @@ export default function ChatConversationsPage({
                               </div>
                             </SidebarMenuButton>
                             <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                              <DropdownMenuTrigger
+                                asChild
+                                {...menuTriggerPress.triggerProps}
+                              >
                                 <SidebarMenuAction
                                   asChild
                                   className={cn(
-                                    'right-2 size-4 cursor-pointer text-muted-foreground! hover:bg-transparent hover:text-sidebar-foreground! focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-1/2 -translate-y-1/2',
+                                    sidebarToolbarIconButtonClassName,
+                                    'right-2 size-4 cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-1/2 -translate-y-1/2 active:translate-y-[calc(-50%+1px)] select-none',
                                     isTouch
                                       ? 'pointer-events-auto opacity-100'
                                       : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'
                                   )}
                                 >
-                                  <MoreHorizontal className="cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent" />
+                                  <button type="button">
+                                    <MoreHorizontal />
+                                  </button>
                                 </SidebarMenuAction>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
                                 side="right"
                                 align="start"
                                 sideOffset={10}
+                                {...menuTriggerPress.contentProps}
                               >
                                 <DropdownMenuItem
                                   className={menuItemClass}
@@ -281,7 +290,8 @@ export default function ChatConversationsPage({
                                   {t('chat.conversations.rename.option')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="group cursor-pointer gap-2 data-highlighted:text-destructive"
+                                  variant="destructive"
+                                  className={menuItemClass}
                                   onClick={event => {
                                     event.stopPropagation();
                                     onRemove({
@@ -291,7 +301,7 @@ export default function ChatConversationsPage({
                                     });
                                   }}
                                 >
-                                  <Trash className="size-4 text-muted-foreground group-hover:text-destructive" />
+                                  <Trash className={menuIconClass} />
                                   {t('chat.conversations.delete.option')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -374,18 +384,26 @@ export default function ChatConversationsPage({
                               {conversationTitle}
                             </h3>
                             <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
+                              <DropdownMenuTrigger
+                                asChild
+                                {...menuTriggerPress.triggerProps}
+                              >
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="hover:bg-accent dark:hover:bg-accent aria-expanded:bg-accent"
+                                  className={sidebarToolbarIconButtonClassName}
                                 >
                                   <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent side="bottom" align="end">
+                              <DropdownMenuContent
+                                side="bottom"
+                                align="end"
+                                className="w-auto! min-w-36"
+                                {...menuTriggerPress.contentProps}
+                              >
                                 <DropdownMenuItem
-                                  className="cursor-pointer"
+                                  className={menuItemClass}
                                   onClick={event => {
                                     event.stopPropagation();
                                     onEdit({
@@ -395,10 +413,12 @@ export default function ChatConversationsPage({
                                     });
                                   }}
                                 >
+                                  <SquarePen className={menuIconClass} />
                                   {t('rename')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="cursor-pointer hover:text-red-500 focus:text-red-500 data-highlighted:text-red-500"
+                                  variant="destructive"
+                                  className={menuItemClass}
                                   onClick={event => {
                                     event.stopPropagation();
                                     onRemove({
@@ -408,6 +428,7 @@ export default function ChatConversationsPage({
                                     });
                                   }}
                                 >
+                                  <Trash className={menuIconClass} />
                                   {t('delete')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>

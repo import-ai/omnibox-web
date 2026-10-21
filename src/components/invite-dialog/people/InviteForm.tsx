@@ -79,7 +79,7 @@ export default function InviteForm(props: IProps) {
       .then(() => {
         form.resetField('email');
         form.resetField('role');
-        toast(t('invite.success'), { position: 'bottom-right' });
+        toast.success(t('invite.success'), { position: 'bottom-right' });
         onFinish();
       })
       .finally(() => {

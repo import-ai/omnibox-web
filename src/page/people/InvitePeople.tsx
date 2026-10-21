@@ -91,7 +91,7 @@ export default function InvitePeople(props: IProps) {
         <div className="flex shrink-0 items-center gap-2">
           {!!invitationId && (
             <span
-              className="cursor-pointer text-xs text-muted-foreground hover:text-foreground"
+              className="inline-flex cursor-pointer text-xs text-muted-foreground transition-all select-none hover:text-sidebar-accent-foreground active:translate-y-px"
               onClick={handleCopy}
             >
               {t('actions.copy_link')}

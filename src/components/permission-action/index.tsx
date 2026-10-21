@@ -171,9 +171,10 @@ export default function PermissionAction(props: IProps) {
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
+                variant="destructive"
                 onClick={handleRemove}
                 disabled={removeing}
-                className="cursor-pointer justify-between hover:bg-accent hover:text-destructive focus:text-destructive data-highlighted:text-destructive"
+                className="cursor-pointer justify-between"
               >
                 {removeing && <Spinner />}
                 {removeLabel}

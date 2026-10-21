@@ -17,7 +17,7 @@ export function WechatLogin(props: IProps) {
   const isWeChat = userAgent.includes('micromessenger');
 
   const alertDisableWeChatLogin = () => {
-    toast(t('login.wechat_disabled'), { position: 'bottom-right' });
+    toast.warning(t('login.wechat_disabled'), { position: 'bottom-right' });
   };
 
   const loginWithWeChat = () => {

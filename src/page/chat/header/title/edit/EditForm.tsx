@@ -80,9 +80,11 @@ export default function EditForm(props: IProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} loading={loading}>
-          {t('ok')}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={loading} loading={loading}>
+            {t('ok')}
+          </Button>
+        </div>
       </form>
     </Form>
   );

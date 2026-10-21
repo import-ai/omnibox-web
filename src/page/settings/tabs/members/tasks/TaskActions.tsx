@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { StopIcon } from '@/assets/icons/StopIcon';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -82,9 +83,12 @@ export function TaskActions({
               <Link
                 to={`/${namespaceId}/${task.attrs.resource_id}`}
                 reloadDocument
-                className="flex items-center justify-center transition-opacity hover:opacity-70"
+                className={cn(
+                  sidebarToolbarIconButtonClassName,
+                  'flex items-center justify-center'
+                )}
               >
-                <ExternalLink className="size-4 text-muted-foreground" />
+                <ExternalLink className="size-4" />
               </Link>
             ) : (
               <span className="flex cursor-not-allowed items-center justify-center opacity-40">
@@ -103,13 +107,12 @@ export function TaskActions({
                 <button
                   disabled={isLoading || !canCancel}
                   className={cn(
-                    'flex items-center justify-center transition-opacity disabled:opacity-40',
-                    canCancel
-                      ? 'hover:opacity-70'
-                      : 'cursor-not-allowed opacity-40'
+                    sidebarToolbarIconButtonClassName,
+                    'flex items-center justify-center disabled:opacity-40',
+                    !canCancel && 'cursor-not-allowed opacity-40'
                   )}
                 >
-                  <StopIcon className="size-3.5 text-muted-foreground" />
+                  <StopIcon className="size-3.5" />
                 </button>
               </AlertDialogTrigger>
             </TooltipTrigger>
@@ -148,11 +151,12 @@ export function TaskActions({
               onClick={canRerun ? handleRerun : undefined}
               disabled={isLoading || !canRerun}
               className={cn(
-                'flex items-center justify-center transition-opacity disabled:opacity-40',
-                canRerun ? 'hover:opacity-70' : 'cursor-not-allowed opacity-40'
+                sidebarToolbarIconButtonClassName,
+                'flex items-center justify-center disabled:opacity-40',
+                !canRerun && 'cursor-not-allowed opacity-40'
               )}
             >
-              <RefreshCw className="size-3.5 text-muted-foreground" />
+              <RefreshCw className="size-3.5" />
             </button>
           </TooltipTrigger>
           <TooltipContent side="top">{t('common.retry')}</TooltipContent>

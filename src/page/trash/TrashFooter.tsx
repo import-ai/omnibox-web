@@ -28,7 +28,7 @@ export function TrashFooter({
       {hasItems && (
         <IconButton
           size="sm"
-          tone="accent"
+          tone="sidebar"
           destructive
           label={t('trash.clear_all')}
           onClick={onClearAll}

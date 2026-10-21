@@ -2,6 +2,7 @@ import { Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -9,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/tooltip';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 export function LanguageToggle() {
   const { t, i18n } = useTranslation();
@@ -32,7 +34,7 @@ export function LanguageToggle() {
           <Button
             size="icon"
             variant="ghost"
-            className="h-7 w-7 "
+            className={cn(sidebarToolbarIconButtonClassName, 'size-7')}
             onClick={toggleLanguage}
             aria-label="Switch Language"
           >

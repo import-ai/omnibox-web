@@ -62,7 +62,7 @@ export default function GroupDataUser(props: GroupProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className="shrink-0 hover:text-red-500"
+                className="shrink-0 hover:bg-transparent hover:text-red-500 aria-expanded:bg-transparent data-[state=open]:bg-transparent"
               >
                 {t('manage.remove_from_group')}
               </Button>

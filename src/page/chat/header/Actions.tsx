@@ -14,7 +14,10 @@ import { useNavigate } from 'react-router-dom';
 import { ShareIcon } from '@/assets/icons/ShareIcon';
 import { Button } from '@/components/Button';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
-import { IconButton } from '@/components/omnibox/IconButton';
+import {
+  IconButton,
+  sidebarToolbarIconButtonClassName,
+} from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
@@ -25,9 +28,11 @@ import {
 } from '@/components/ui/DropdownMenu';
 import useApp from '@/hooks/useApp';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
+import { cn } from '@/lib/utils';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
 interface IProps {
   compact?: boolean;
@@ -57,6 +62,7 @@ export default function Actions(props: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [remove, onRemove] = useState(false);
+  const menuTriggerPress = useMenuTriggerPress();
 
   const handleDeleteSuccess = () => {
     navigateToResource(navigate, `/${namespaceId}/chat/conversations`);
@@ -98,7 +104,7 @@ export default function Actions(props: IProps) {
         <IconButton
           label={t('chat.conversations.search')}
           size="sm"
-          tone="accent"
+          tone="sidebar"
           onClick={onChatSearch}
         >
           <Search className="size-4" />
@@ -108,7 +114,7 @@ export default function Actions(props: IProps) {
         <IconButton
           label={t('chat.share.action')}
           size="sm"
-          tone="accent"
+          tone="sidebar"
           onClick={() =>
             app.fire(CONVERSATION_SHARE_OPEN_EVENT, {
               conversationId,
@@ -123,7 +129,7 @@ export default function Actions(props: IProps) {
         <IconButton
           label={t('chat.conversations.new_chat')}
           size="sm"
-          tone="accent"
+          tone="sidebar"
           onClick={onChatCreate}
         >
           <MessageCirclePlus className="size-4" />
@@ -133,7 +139,7 @@ export default function Actions(props: IProps) {
         <IconButton
           label={t('chat.conversations.history')}
           size="sm"
-          tone="accent"
+          tone="sidebar"
           onClick={onChatHistory}
         >
           <History className="size-4" />
@@ -143,11 +149,14 @@ export default function Actions(props: IProps) {
         <DropdownMenu>
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
+                  className={cn(
+                    sidebarToolbarIconButtonClassName,
+                    'size-7 aria-expanded:bg-transparent'
+                  )}
                 >
                   <MoreHorizontal className="size-4" />
                 </Button>
@@ -155,7 +164,11 @@ export default function Actions(props: IProps) {
             </TooltipTrigger>
             <TooltipContent>{t('common.more_actions')}</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent
+            align="end"
+            className="w-56"
+            {...menuTriggerPress.contentProps}
+          >
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={onChatCreate}
@@ -179,10 +192,11 @@ export default function Actions(props: IProps) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="group cursor-pointer gap-2 hover:text-red-500 focus:text-red-500 data-highlighted:text-red-500"
+              variant="destructive"
+              className="cursor-pointer gap-2"
               onClick={() => handleAction('delete')}
             >
-              <Trash className="size-4 text-muted-foreground group-hover:text-destructive group-focus:text-destructive group-data-highlighted:text-destructive" />
+              <Trash className="size-4" />
               <span>{t('chat.conversations.delete.option')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

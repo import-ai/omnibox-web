@@ -1,5 +1,5 @@
 import { UserPlus } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
@@ -12,35 +12,65 @@ interface IProps {
   children?: React.ReactNode;
 }
 
+function withDialogOpenHandler(
+  children: React.ReactNode,
+  openDialog: () => void
+): React.ReactNode {
+  if (!React.isValidElement(children)) {
+    return children;
+  }
+
+  const child = children as React.ReactElement<{
+    onClick?: React.MouseEventHandler;
+  }>;
+
+  return React.cloneElement(child, {
+    onClick: event => {
+      child.props.onClick?.(event);
+      if (!event.defaultPrevented) {
+        openDialog();
+      }
+    },
+  });
+}
+
 export default function Invite(props: IProps) {
   const { onFinish, children } = props;
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+
+  const trigger = children ? (
+    withDialogOpenHandler(children, () => setOpen(true))
+  ) : (
+    <Button
+      size="sm"
+      variant="ghost"
+      className="h-8 w-full justify-start gap-1 px-2 font-medium text-muted-foreground"
+      onClick={() => setOpen(true)}
+    >
+      <UserPlus />
+      {t('invite.add')}
+    </Button>
+  );
 
   return (
-    <ActionDialog
-      title={t('invite.add')}
-      contentClassName="w-[90%] max-w-sm"
-      trigger={
-        children || (
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 w-full justify-start gap-1 px-2 font-medium text-muted-foreground"
-          >
-            <UserPlus />
-            {t('invite.add')}
-          </Button>
-        )
-      }
-    >
-      {close => (
-        <InviteForm
-          onFinish={() => {
-            close();
-            onFinish && onFinish();
-          }}
-        />
-      )}
-    </ActionDialog>
+    <>
+      {trigger}
+      <ActionDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={t('invite.add')}
+        contentClassName="w-[90%] max-w-sm"
+      >
+        {close => (
+          <InviteForm
+            onFinish={() => {
+              close();
+              onFinish?.();
+            }}
+          />
+        )}
+      </ActionDialog>
+    </>
   );
 }

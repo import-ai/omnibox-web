@@ -25,6 +25,7 @@ import { useResourceTasks } from '@/components/attributes/resource-tasks/Resourc
 import { Button } from '@/components/Button';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
@@ -53,6 +54,7 @@ import { uploadFiles } from '@/lib/uploadFiles';
 import { clearCache } from '@/page/resource/editor/cache';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 import { CreateRssFolderPayload } from '@/page/sidebar/components/rss-folder';
 import { CreateRssFolderDialog } from '@/page/sidebar/components/rss-folder/CreateRssFolderDialog';
 import { useRssFolderConfig } from '@/page/sidebar/components/rss-folder/useRssFolderConfig';
@@ -133,6 +135,7 @@ export default function Actions(props: IActionProps) {
   const loc = useLocation();
   const { resource_id: routeResourceId } = useParams();
   const isMobile = useIsMobile();
+  const menuTriggerPress = useMenuTriggerPress();
   const { deleteResource } = useDeleteResource();
   const { config, loading: configLoading } = useConfig();
   const { data: smartFolderEntitlements } = useSmartFolderEntitlements({
@@ -324,9 +327,13 @@ export default function Actions(props: IActionProps) {
           ? `${window.location.origin}/${namespaceId}/${resource.id}`
           : location.href;
       const returnValue = copy(resourceUrl);
-      toast(t(returnValue ? 'actions.copy_link_success' : 'copy.fail'), {
-        position: 'bottom-right',
-      });
+      if (returnValue) {
+        toast.success(t('actions.copy_link_success'), {
+          position: 'bottom-right',
+        });
+      } else {
+        toast.error(t('copy.fail'), { position: 'bottom-right' });
+      }
       setOpen(false);
       return;
     }
@@ -416,7 +423,7 @@ export default function Actions(props: IActionProps) {
           setOpen(false);
         })
         .catch(() => {
-          toast(t('actions.export_png_failed'), {
+          toast.error(t('actions.export_png_failed'), {
             position: 'bottom-right',
           });
         })
@@ -427,7 +434,7 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'download_as_markdown') {
       if (!resource.content) {
-        toast(t('resource.no_content'), {
+        toast.error(t('resource.no_content'), {
           position: 'bottom-right',
         });
         setOpen(false);
@@ -515,7 +522,7 @@ export default function Actions(props: IActionProps) {
         })
         .catch(error => {
           console.error('Failed to create zip:', error);
-          toast(t('download.failed'), {
+          toast.error(t('download.failed'), {
             position: 'bottom-right',
           });
         })
@@ -584,7 +591,7 @@ export default function Actions(props: IActionProps) {
         );
       })
       .catch(err => {
-        toast(err && err.message ? err.message : err, {
+        toast.error(err && err.message ? err.message : err, {
           position: 'bottom-right',
         });
       })
@@ -632,48 +639,59 @@ export default function Actions(props: IActionProps) {
         >
           {editPage ? (
             <>
-              <Button variant="ghost" size="sm" onClick={handleSave}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSave}
+                className="hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent"
+              >
                 <Save />
                 {t('header.actions.save')}
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleExitEdit}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExitEdit}
+                className="hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent"
+              >
                 <PencilOff />
                 {t('header.actions.discard')}
               </Button>
             </>
           ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEdit}
-                  className="w-7 px-0 sm:w-auto sm:px-2.5"
-                >
-                  <Pencil />
-                  <span className="sr-only sm:not-sr-only">
-                    {t('header.actions.edit')}
-                  </span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t('header.actions.edit')}</TooltipContent>
-            </Tooltip>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleEdit}
+              className="w-7 px-0 hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent sm:w-auto sm:px-2.5"
+            >
+              <Pencil />
+              <span className="sr-only sm:not-sr-only">
+                {t('header.actions.edit')}
+              </span>
+            </Button>
           )}
         </PermissionWrapper>
       )}
       <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
-          >
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`${sidebarToolbarIconButtonClassName} size-7`}
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent>{t('common.more_actions')}</TooltipContent>
+        </Tooltip>
         <DropdownMenuContent
           align="end"
           className="w-48 max-w-[calc(100vw-24px)] sm:w-56 animate-none! fade-in-0! fade-out-0! zoom-in-100! zoom-out-100! slide-in-from-top-0! slide-in-from-bottom-0! slide-in-from-left-0! slide-in-from-right-0!"
+          {...menuTriggerPress.contentProps}
         >
           <DropdownMenuItem
             className="cursor-pointer gap-2"
@@ -787,7 +805,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'move_to_trash' ? (
                 <Spinner />
               ) : (
-                <Trash className="size-4 text-muted-foreground" />
+                <Trash className="size-4" />
               )}
               <span>{t('actions.move_to_trash')}</span>
             </DropdownMenuItem>

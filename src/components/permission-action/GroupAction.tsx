@@ -62,8 +62,9 @@ export default function GroupAction(props: IProps) {
         <>
           <DropdownMenuSeparator />
           <DropdownMenuItem
+            variant="destructive"
             onClick={handleRemove}
-            className="cursor-pointer justify-between hover:bg-accent hover:text-destructive focus:text-destructive data-highlighted:text-destructive"
+            className="cursor-pointer justify-between"
           >
             {t('permission.remove')}
           </DropdownMenuItem>

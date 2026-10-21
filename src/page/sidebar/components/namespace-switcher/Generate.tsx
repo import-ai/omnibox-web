@@ -77,7 +77,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
       <Button
         size="sm"
         variant="ghost"
-        className="w-full justify-start gap-1 px-2 text-muted-foreground"
+        className="h-8 w-full justify-start gap-1 px-2 text-muted-foreground"
         onClick={handleClick}
       >
         <Plus className="size-4" />

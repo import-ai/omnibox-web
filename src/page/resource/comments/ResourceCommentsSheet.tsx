@@ -5,7 +5,10 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
-import { IconButton } from '@/components/omnibox/IconButton';
+import {
+  IconButton,
+  sidebarToolbarIconButtonClassName,
+} from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
@@ -15,6 +18,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
 import { ResourceCommentComposer } from './ResourceCommentComposer';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
@@ -36,6 +40,7 @@ export function ResourceCommentsSheet({
 }: ResourceCommentsSheetProps) {
   const { t } = useTranslation();
   const panel = useResourceCommentsPanel();
+  const menuTriggerPress = useMenuTriggerPress();
   const isComposerOpen = controller.canComment && !!controller.pendingSelection;
   const close = () => {
     controller.setPanelOpen(false);
@@ -60,7 +65,7 @@ export function ResourceCommentsSheet({
         <IconButton
           type="button"
           size="sm"
-          tone="accent"
+          tone="sidebar"
           className="shrink-0"
           label={t('resource_comments.collapse')}
           onClick={close}
@@ -73,12 +78,12 @@ export function ResourceCommentsSheet({
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-7 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  className={cn(sidebarToolbarIconButtonClassName, 'size-7')}
                   aria-label={filterLabel}
                 >
                   <ListFilter className="size-4" />
@@ -91,6 +96,7 @@ export function ResourceCommentsSheet({
             align="end"
             className="w-44"
             aria-label={filterLabel}
+            {...menuTriggerPress.contentProps}
           >
             {FILTER_OPTIONS.map(option => {
               const selected = option.value === filter;
@@ -110,7 +116,7 @@ export function ResourceCommentsSheet({
                     {selected && (
                       <Check
                         aria-hidden="true"
-                        className="size-4 text-blue-500"
+                        className="size-4 text-blue-500! [&_path]:text-blue-500!"
                       />
                     )}
                   </span>

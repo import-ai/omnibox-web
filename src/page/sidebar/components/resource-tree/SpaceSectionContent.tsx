@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
 import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import { ContextMenuContent } from '@/components/ContextMenuContent';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -57,6 +58,7 @@ import {
 import type { ResourceSortOptions } from '@/service/resource';
 
 import { DisabledMenuTooltip } from './DisabledMenuTooltip';
+import { useMenuTriggerPress } from './menuTriggerPress';
 import ResourceNode from './ResourceNode';
 import { ResourceSortMenu } from './ResourceSortMenu';
 import { menuIconClass, menuItemClass } from './shared';
@@ -105,6 +107,7 @@ export function SpaceSectionContent({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isTouch = useIsTouch();
+  const menuTriggerPress = useMenuTriggerPress();
 
   const upload = useSidebarStore(s => s.dialogs.upload[rootId]);
 
@@ -197,7 +200,7 @@ export function SpaceSectionContent({
                 />
               </SidebarGroupLabel>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
                   {upload !== undefined ? (
                     <SidebarMenuAction
                       asChild
@@ -226,17 +229,26 @@ export function SpaceSectionContent({
                     <SidebarMenuAction
                       asChild
                       className={cn(
-                        'right-0 top-1/2 -translate-y-1/2 size-4 text-muted-foreground hover:bg-transparent focus-visible:outline-hidden focus-visible:ring-transparent',
+                        sidebarToolbarIconButtonClassName,
+                        'right-0 top-1/2 size-4 -translate-y-1/2 cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent active:translate-y-[calc(-50%+1px)] select-none',
                         isTouch
                           ? 'pointer-events-auto opacity-100'
                           : 'pointer-events-none opacity-0 group-hover/sidebar-header:pointer-events-auto group-hover/sidebar-header:opacity-100'
                       )}
                     >
-                      <MoreHorizontal className="rounded-sm hover:bg-sidebar-accent focus-visible:outline-hidden focus-visible:ring-transparent" />
+                      <button type="button">
+                        <MoreHorizontal />
+                      </button>
                     </SidebarMenuAction>
                   )}
                 </DropdownMenuTrigger>
-                <DropdownMenuContent side="right" sideOffset={10} align="start">
+                <DropdownMenuContent
+                  side="right"
+                  sideOffset={10}
+                  align="start"
+                  className="w-auto! min-w-36"
+                  {...menuTriggerPress.contentProps}
+                >
                   <DropdownMenuItem
                     className={menuItemClass}
                     onClick={handleCreateFile}

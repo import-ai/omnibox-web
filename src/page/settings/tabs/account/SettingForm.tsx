@@ -100,7 +100,7 @@ export default function SettingForm({
     onChange(data)
       .then(() => {
         app.fire('namespaces_refetch');
-        toast(t('namespace.success'));
+        toast.success(t('namespace.success'), { position: 'bottom-right' });
         setNameDialogOpen(false);
       })
       .catch(() => {

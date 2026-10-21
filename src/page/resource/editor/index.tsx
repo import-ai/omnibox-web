@@ -188,7 +188,7 @@ export default function Editor(props: IEditorProps) {
   }, [isFolder]);
 
   const handleCodeBlockCopy = useCallback(() => {
-    toast(t('actions.copy_content_success'), {
+    toast.success(t('actions.copy_content_success'), {
       position: 'bottom-right',
     });
   }, [t]);

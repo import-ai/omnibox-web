@@ -12,17 +12,17 @@ wins; update the older code when you touch it.
 
 ## Where things are
 
-| Area                                                  | Look at                                                  |
-| ----------------------------------------------------- | -------------------------------------------------------- |
-| Foundations: colour, type, icons, spacing, responsive | `src/index.css`, `src/components/ui/`                    |
-| App shell, sidebar, resource tree                     | `src/page/sidebar/`, `src/components/ui/Sidebar.tsx`     |
-| Chat                                                  | `src/page/chat/`                                         |
-| Resource viewer and editor                            | `src/page/resource/`                                     |
-| Copilot panel                                         | `src/page/copilot/`                                      |
-| Dialogs, overlays, forms                              | `src/components/ui/`, `src/components/confirm-*`         |
-| Feedback: loading, empty, error, toast                | `src/components/loading/`, `src/components/ui/Empty.tsx` |
-| Public share                                          | `src/page/share/`, `src/page/shared-*`                   |
-| Auth and account                                      | `src/page/user/`, `src/page/oauth/`                      |
+| Area                                                  | Look at                                                                            |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Foundations: colour, type, icons, spacing, responsive | `src/index.css`, `src/components/ui/`                                              |
+| App shell, sidebar, resource tree                     | `src/page/sidebar/`, `src/components/ui/Sidebar.tsx`                               |
+| Chat                                                  | `src/page/chat/`                                                                   |
+| Resource viewer and editor                            | `src/page/resource/`                                                               |
+| Copilot panel                                         | `src/page/copilot/`                                                                |
+| Dialogs, overlays, forms                              | `src/components/ui/`, `src/components/confirm-*`                                   |
+| Feedback: loading, empty, error, toast                | `src/components/loading/`, `src/components/ui/Empty.tsx`, `src/components/sonner/` |
+| Public share                                          | `src/page/share/`, `src/page/shared-*`                                             |
+| Auth and account                                      | `src/page/user/`, `src/page/oauth/`                                                |
 
 ---
 
@@ -128,9 +128,12 @@ Use the semantic CSS custom properties, never raw Tailwind palette colours.
   what `ExecutionStatus` renders); a status mark standing alone as a badge is
   `size-5` (`TaskStatusBadge`); a panel spinner is `size-6`. Do not write
   `h-4 w-4` — it survives only inside shadcn primitives.
-- An icon inherits its label's colour. Tint it only to signal state or
-  emphasis (`text-muted-foreground`, `group-hover:text-destructive`,
-  `text-blue-500` for upgrade affordances).
+- An icon inherits its label's colour. Tint a non-destructive icon only to
+  signal state or emphasis (`text-muted-foreground`, `text-blue-500` for
+  upgrade affordances and for a selected check — see
+  [Selected checks](#selected-checks)). A delete or remove icon inside a menu
+  takes its colour from `variant="destructive"` — see
+  [Destructive menu items](#destructive-menu-items).
 - Icon-only buttons always get a `Tooltip`.
 - Render a resource's icon through `ResourceTypeIcon`
   (`src/components/ResourceTypeIcon.tsx`), never `ResourceIcon` directly — the
@@ -335,9 +338,12 @@ bg-transparent text-sm caret-blue-500 outline-none" />` replaces the label,
   header math, scroll centering, and drop handling. Keep them when you refactor.
 - Node menus come from `useNodeMenu(...)` rendered through `NodeContextMenu`
   (right-click) and `NodeActionsContent` (hover button). The two must show
-  identical items, so add items to the hook, never to one surface. A disabled
-  item stays enabled and wraps in `DisabledMenuTooltip` rather than rendering a
-  disabled entry.
+  identical items, so add items to the hook, never to one surface. Mark trash
+  and any other delete or remove entry `destructive: true` so both surfaces
+  render `variant="destructive"` (see
+  [Destructive menu items](#destructive-menu-items)). A disabled item stays
+  enabled and wraps in `DisabledMenuTooltip` rather than rendering a disabled
+  entry.
 - The resource overflow menu is content-sized with `w-auto!` and a `min-w-36`
   floor so long labels stay on one line while short menus do not become too
   narrow. The matching context menu also keeps `min-w-36`.
@@ -523,8 +529,9 @@ text-[34px] font-bold` and highlights the search term by splitting on
   `t('resource.title_placeholder')`.
 - All secondary actions live in one `DropdownMenu` behind a ghost
   `MoreHorizontal` button with `className="cursor-pointer gap-2"` items and
-  `size-4` icons. While an item's own action is in flight, swap its icon for a
-  `Spinner` and disable it rather than removing it.
+  `size-4` icons. Move to trash uses `variant="destructive"`. While an item's
+  own action is in flight, swap its icon for a `Spinner` and disable it rather
+  than removing it.
 - Gate action clusters with `PermissionWrapper`, not with conditionals inside
   the item list.
 
@@ -644,6 +651,73 @@ p-3"`.
   never the raw primitive — the wrapper keeps the menu open on right-click and
   handles macOS Control+click.
 
+## Destructive menu items
+
+Delete and remove actions inside a `DropdownMenu` or `ContextMenu` use
+`variant="destructive"` on the item. This is the sidebar "Move to Trash"
+treatment (`actions.move_to_trash`). `useNodeMenu` marks that entry
+`destructive: true`; `NodeContextMenu` and `NodeActionsContent` pass the flag
+through as the item variant. Conversation delete, resource move-to-trash,
+permission removal, and member removal in a role menu use the same variant.
+
+The menu primitive owns both themes. Do not restate the colours at the call
+site.
+
+- The label and icon are `text-destructive` at rest. Light and dark each read
+  the theme `--destructive` token.
+- The highlighted state uses `bg-destructive/10` in light mode and
+  `bg-destructive/20` in dark mode. Text and the icon stay `text-destructive`.
+- The icon is `size-4` and has no colour class of its own, so it inherits the
+  item. Sidebar rows may still pass `menuIconClass`; the variant paints the
+  icon.
+
+Do not paint these items with `text-red-500`, `hover:text-red-500`,
+`hover:text-destructive`, `data-highlighted:text-destructive`, or
+`hover:bg-accent`. Those leave a gray highlight and skip the theme token.
+
+A confirmation button is a different control. Use `Button` or
+`AlertDialogAction` with `variant="destructive"` (see
+[Destructive actions](#destructive-actions)), not these menu-item classes.
+Icon-only delete actions use `IconButton` with `destructive`; that prop only
+turns the icon `text-destructive` on hover and does not apply this menu
+background.
+
+## Selected checks
+
+A check that marks the current value in a `DropdownMenu`, `ContextMenu`, or
+`Select` is blue in every state. Rest, hover, focus, and the moment the pointer
+leaves the row all keep the same blue. The row may still take the normal
+highlight background. The check does not.
+
+- Colour is `text-blue-500` (`oklch(0.623 0.214 259.815)`). Do not use
+  `text-primary`, `text-foreground`, or `text-accent-foreground`. Primary flips
+  between near-black and near-white with the theme, so the check stops reading
+  as blue.
+- Do not add `hover:`, `focus:`, or `data-highlighted:` colour classes on the
+  check. Those are what make it change colour.
+- Menu and select items paint every descendant on highlight
+  (`focus:**:text-accent-foreground`). That rule reaches the Lucide `path`, and
+  the path's `stroke` is `currentColor`, so a colour class on the `<svg>` alone
+  loses as soon as the row is highlighted. Put the same blue on the path, with
+  Tailwind's important modifier, at the call site. Do not edit
+  `src/components/ui/DropdownMenu.tsx` or `src/components/ui/Select.tsx` for
+  this.
+
+```tsx
+<Check className="size-4 text-blue-500! [&_path]:text-blue-500!" />
+```
+
+A `SelectItem` draws its own check. Pass the same colours from the item:
+
+```tsx
+<SelectItem className="[&_svg]:text-blue-500! [&_path]:text-blue-500!">
+```
+
+This is only the selected-value check. A tool-call success mark stays
+`Check text-green-600`. A destructive menu icon stays on
+[Destructive menu items](#destructive-menu-items) and has no check colour of
+its own.
+
 ## Sizing
 
 - Never accept the default `max-w-lg`. Pick a tier and always pair a percentage
@@ -728,7 +802,8 @@ Use these before composing an `AlertDialog`:
 ## Pickers
 
 - Pick one of a few values: `DropdownMenu` with an outline `Button` trigger, a
-  `Check` on the selected item, and content matched to the trigger width. This
+  `Check` on the selected item, and content matched to the trigger width. The
+  check stays blue on hover — see [Selected checks](#selected-checks). This
   is the settings pattern; see `src/page/settings/tabs/basic/Theme.tsx`.
 - `Select` is for in-form field choices, with a 36px default trigger matching `Input`. Add `w-full` for form rows;
   the primitive defaults to content width.
@@ -807,17 +882,35 @@ Use these before composing an `AlertDialog`:
 
 ## Toasts
 
-- `toast.success` for completed writes, `toast.error` for failures the user
-  caused, `toast.warning` sparingly. `toast.info` and `toast.promise` have no
-  call sites — do not introduce them.
-- Always pin `{ position: 'bottom-right' }`. Roughly 98 sites do; the rest
-  drift.
+There is one result toast: Sonner at the bottom-right, with a type icon from
+`src/components/ui/Toaster.tsx` (`CircleCheckIcon` for success,
+`OctagonXIcon` for error, `TriangleAlertIcon` for warning). Do not invent a
+second toast — no centered overlay inside a dialog, no custom popover, no
+hand-rolled snackbar.
+
+- Icons come from the typed APIs, not from JSX you pass in:
+  `toast.success` for completed writes (copy link, "已更新", profile saved,
+  added to chat), `toast.error` for failures the user caused or the action
+  could not finish, `toast.warning` sparingly (blocked action, disabled
+  login). `toast.info` and `toast.promise` have no call sites — do not
+  introduce them.
+- Bare `toast()` has **no** status icon. Do not use it for success or failure
+  copy. A toast that says "链接复制成功" or "资料更新成功" without a check
+  is a miss; use `toast.success`.
+- Always pin `{ position: 'bottom-right' }`.
+- Inside the settings dialog, keep calling `useSettingsToast()`
+  (`src/page/settings/SettingsToastProvider.tsx`). It forwards to Sonner at
+  bottom-right with the same icons. Do not restore a centered in-dialog toast
+  for username, password, space name, API keys, or anything else.
 - Use `showActionToast` (`src/components/sonner/`) when the toast carries an
-  undo. It exists to keep undo toasts consistent and currently has one caller —
-  prefer it over hand-rolling `action: { label, onClick }`.
-- Inside the settings dialog, use `useSettingsToast()`. It duplicates Sonner's
-  look with its own palette to stay inside the dialog's stacking context. Do
-  not mix the two systems in one file.
+  undo. It exists to keep undo toasts consistent — prefer it over
+  hand-rolling `action: { label, onClick }`. Untyped `toast()` is allowed
+  there because the action button is the affordance, not a status icon;
+  `src/components/confirm-delete-dialog/index.tsx` is the other undo caller.
+- The namespace quota toast in
+  `src/page/sidebar/components/namespace-switcher/Generate.tsx` is a custom
+  top-center notice with its own icon and pricing CTA. Do not copy that
+  layout for ordinary results.
 
 ## Optimistic updates
 
@@ -1042,7 +1135,9 @@ the title. Apply this structure to switches, selectors, and action buttons alike
   press movement. Tooltip triggers may still wrap icon actions.
 - Icon-only actions use `IconButton` with `size="md"`, a `size-4` icon, and
   its built-in tooltip. Pass `destructive` for a delete action instead of
-  adding `hover:opacity-70` or a separate hover color.
+  adding `hover:opacity-70` or a separate hover color. That hover treatment is
+  for icon buttons; a delete row inside a menu uses
+  [Destructive menu items](#destructive-menu-items).
 - Settings save immediately. Do not add a separate save button for a switch or
   dropdown.
 
@@ -1148,6 +1243,9 @@ separators (for example "macOS · Online · Allow"). Show each value on its own:
 
 ## Destructive actions
 
+- A delete or remove row inside a menu is not this button. Use
+  `variant="destructive"` on the menu item. See
+  [Destructive menu items](#destructive-menu-items).
 - Confirm with `AlertDialog`: the title asks the question ("Remove this
   device?"), and the description states what stops working and how to undo it.
 - Cancel is `<AlertDialogCancel asChild><Button variant="outline">`.

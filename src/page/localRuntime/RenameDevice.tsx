@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
@@ -12,6 +13,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/Popover';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 import { LocalDevice } from './runtime';
 const NAME_MAX_LENGTH = 120;
@@ -31,9 +33,10 @@ export default function RenameDevice({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(device.name);
   const [saving, setSaving] = useState(false);
+  const unavailable = disabled || !device.online;
   const save = async () => {
     const value = name.trim();
-    if (saving || disabled || !device.online) return;
+    if (saving || unavailable) return;
     if (!value || value === device.name) return setOpen(false);
     setSaving(true);
     try {
@@ -46,29 +49,42 @@ export default function RenameDevice({
       setSaving(false);
     }
   };
+  const renameButton = (
+    <PopoverTrigger asChild>
+      <button
+        type="button"
+        disabled={unavailable}
+        aria-label={t('local_runtime.rename')}
+        className={cn(
+          sidebarToolbarIconButtonClassName,
+          'inline-flex size-6 shrink-0 items-center justify-center rounded-md md:opacity-0',
+          unavailable
+            ? 'pointer-events-none opacity-50 md:group-hover:opacity-50'
+            : 'hover:text-foreground md:group-hover:opacity-100 md:data-[state=open]:opacity-100'
+        )}
+      >
+        <Pencil className="size-3.5" />
+      </button>
+    </PopoverTrigger>
+  );
   return (
     <Popover
       open={open}
       onOpenChange={next => {
+        if (next && unavailable) return;
         setOpen(next);
         if (next) setName(device.name);
       }}
     >
       <Tooltip>
         <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              disabled={disabled || !device.online}
-              title={
-                !device.online ? t('local_runtime.rename_offline') : undefined
-              }
-              aria-label={t('local_runtime.rename')}
-              className="inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground md:opacity-0 md:group-hover:opacity-100 md:data-[state=open]:opacity-100"
-            >
-              <Pencil className="size-3.5" />
-            </button>
-          </PopoverTrigger>
+          {unavailable ? (
+            <span className="inline-flex cursor-not-allowed">
+              {renameButton}
+            </span>
+          ) : (
+            renameButton
+          )}
         </TooltipTrigger>
         <TooltipContent side="top">
           {t(
@@ -117,7 +133,7 @@ export default function RenameDevice({
         <div className="flex justify-end">
           <Button
             className="h-8"
-            disabled={saving || disabled || !device.online || !name.trim()}
+            disabled={saving || unavailable || !name.trim()}
             onClick={() => void save()}
           >
             {t('local_runtime.save')}

@@ -111,7 +111,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                             value={option.value}
                             id={`smart-folder-owner-${option.value}`}
                             disabled={option.disabled}
-                            className="size-4"
+                            className="size-4 border-border bg-transparent text-blue-500 data-checked:border-border data-checked:bg-transparent disabled:bg-neutral-400 dark:border-none dark:bg-white dark:data-checked:border-transparent dark:data-checked:bg-white dark:disabled:bg-neutral-300 [&_[data-slot=radio-group-indicator]>span]:bg-blue-500!"
                           />
                           <Label
                             htmlFor={`smart-folder-owner-${option.value}`}

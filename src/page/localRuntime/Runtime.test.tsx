@@ -273,6 +273,21 @@ it('ignores IME confirmation and saves only a subsequent ordinary Enter', async 
   });
 });
 
+it('shows the unavailable cursor when a device cannot be renamed', async () => {
+  await act(async () =>
+    root.render(
+      <RenameDevice device={{ ...device, online: false }} refresh={() => {}} />
+    )
+  );
+  const rename = container.querySelector(
+    'button[aria-label="local_runtime.rename"]'
+  ) as HTMLButtonElement;
+  expect(rename.disabled).toBe(true);
+  expect(rename.className).toContain('pointer-events-none');
+  expect(rename.className).toContain('opacity-50');
+  expect(rename.parentElement?.className).toContain('cursor-not-allowed');
+});
+
 it('clears the host device identity and ignores requests from the old account', async () => {
   function Identity() {
     return <span>{useCurrentDeviceId()}</span>;

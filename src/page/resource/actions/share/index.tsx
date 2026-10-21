@@ -2,7 +2,6 @@ import { Share as ShareIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   Popover,
   PopoverContent,
@@ -27,23 +26,18 @@ export default function ShareAction(props: ShareActionProps) {
 
   return (
     <Popover>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="w-7 px-0 sm:w-auto sm:px-2.5"
-            >
-              <ShareIcon />
-              <span className="sr-only sm:not-sr-only">
-                {t('share.share.title')}
-              </span>
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent>{t('share.share.title')}</TooltipContent>
-      </Tooltip>
+      <PopoverTrigger asChild>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="w-7 px-0 hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent sm:w-auto sm:px-2.5"
+        >
+          <ShareIcon />
+          <span className="sr-only sm:not-sr-only">
+            {t('share.share.title')}
+          </span>
+        </Button>
+      </PopoverTrigger>
       <PopoverContent
         side="bottom"
         align={isMobile ? 'center' : 'end'}

@@ -22,7 +22,7 @@ export function ThemeToggle() {
   return (
     <IconButton
       size="sm"
-      tone="accent"
+      tone="sidebar"
       label={t('toggle_theme')}
       onClick={handleToggleTheme}
     >

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { FolderNameDialog } from '@/components/FolderNameDialog';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -26,6 +27,7 @@ import { useNodeMenu } from '@/page/sidebar/hooks/useNodeMenu';
 import type { TreeNode } from '@/page/sidebar/store/types';
 
 import { DisabledMenuTooltip } from './DisabledMenuTooltip';
+import { useMenuTriggerPress } from './menuTriggerPress';
 import { menuIconClass, menuItemClass } from './shared';
 
 interface NodeActionsContentProps {
@@ -48,6 +50,7 @@ export function NodeActionsContent({
   const { t } = useTranslation();
   const isTouch = useIsTouch();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuTriggerPress = useMenuTriggerPress();
 
   const menu = useNodeMenu(actions, () => {
     setMenuOpen(false);
@@ -59,7 +62,7 @@ export function NodeActionsContent({
   return (
     <>
       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
           {upload !== undefined ? (
             <>
               {upload ? (
@@ -83,13 +86,16 @@ export function NodeActionsContent({
             <SidebarMenuAction
               asChild
               className={cn(
-                'right-2 size-4 cursor-pointer text-muted-foreground! hover:bg-transparent hover:text-sidebar-foreground! focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-1/2 -translate-y-1/2',
+                sidebarToolbarIconButtonClassName,
+                'right-2 size-4 cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-1/2 -translate-y-1/2 active:translate-y-[calc(-50%+1px)] select-none',
                 isTouch
                   ? 'pointer-events-auto opacity-100'
                   : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'
               )}
             >
-              <MoreHorizontal className="cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent" />
+              <button type="button">
+                <MoreHorizontal />
+              </button>
             </SidebarMenuAction>
           )}
         </DropdownMenuTrigger>
@@ -98,6 +104,7 @@ export function NodeActionsContent({
           align="start"
           sideOffset={10}
           className="w-auto! min-w-36"
+          {...menuTriggerPress.contentProps}
         >
           {menu.items.map(item => {
             if (item.separator) {

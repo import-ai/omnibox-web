@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom';
 import { ShareIcon } from '@/assets/icons/ShareIcon';
 import { Button } from '@/components/Button';
 import Copy from '@/components/copy';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Spinner } from '@/components/ui/Spinner';
 import { Textarea } from '@/components/ui/textarea';
@@ -380,7 +381,7 @@ export function UserMessage(props: IProps) {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="p-0 w-7 h-7"
+                  className={`${sidebarToolbarIconButtonClassName} size-7`}
                   onClick={handleEditClick}
                 >
                   <Pencil className="w-4 h-4" />
@@ -401,7 +402,7 @@ export function UserMessage(props: IProps) {
               <TooltipTrigger asChild>
                 <Button
                   aria-label={t('chat.share.action')}
-                  className="h-7 w-7 p-0"
+                  className={`${sidebarToolbarIconButtonClassName} size-7`}
                   onClick={() => onShare(message.id)}
                   size="icon"
                   type="button"

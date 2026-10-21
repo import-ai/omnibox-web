@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { ChatIcon } from '@/assets/icons/ChatIcon';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -86,7 +87,9 @@ export default function ShareSidebar(props: IProps) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <SidebarTrigger className="text-muted-foreground hover:text-muted-foreground hover:bg-sidebar-accent dark:hover:bg-accent" />
+                    <SidebarTrigger
+                      className={sidebarToolbarIconButtonClassName}
+                    />
                   </TooltipTrigger>
                   <TooltipContent>{t('sidebar.collapse')}</TooltipContent>
                 </Tooltip>

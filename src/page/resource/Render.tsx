@@ -109,7 +109,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
   const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;
 
   const handleCodeBlockCopy = useCallback(() => {
-    toast(t('actions.copy_content_success'), {
+    toast.success(t('actions.copy_content_success'), {
       position: 'bottom-right',
     });
   }, [t]);

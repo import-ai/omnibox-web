@@ -45,6 +45,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/Form';
+import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import useUser from '@/hooks/useUser';
 import { UserBinding } from '@/interface';
@@ -109,10 +110,10 @@ function SectionHeader({
               <Button
                 variant="ghost"
                 size="sm"
-                className="size-5 p-0 hover:bg-transparent"
+                className="size-5 p-0 text-muted-foreground hover:bg-transparent hover:text-sidebar-accent-foreground aria-expanded:bg-transparent data-[state=open]:bg-transparent"
                 type="button"
               >
-                <CircleHelp className="size-4 text-muted-foreground" />
+                <CircleHelp className="size-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -163,7 +164,7 @@ function InfoRow({
             </p>
           )}
         </div>
-        <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
+        <p className="mt-1 whitespace-normal text-xs leading-4 text-muted-foreground">
           {description}
         </p>
       </div>
@@ -423,333 +424,341 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
   const maskedPassword = '********';
 
   return (
-    <div className="flex w-full flex-col items-start gap-2">
-      {/* Account Section Header */}
-      <SectionHeader title={t('setting.account')} />
-
-      {/* Username Row */}
-      <InfoRow
-        label={t('form.username')}
-        value={user?.username || ''}
-        description={t('setting.option_descriptions.username')}
-        button={
-          <SettingPageButton
-            variant="outline"
-            onClick={() => setUsernameDialogOpen(true)}
-          >
-            {t('setting.change')}
-          </SettingPageButton>
-        }
-      />
-
-      {/* Password Row */}
-      <InfoRow
-        label={t('form.password')}
-        value={maskedPassword}
-        description={t('setting.option_descriptions.password')}
-        button={
-          <SettingPageButton
-            variant="outline"
-            onClick={() => setPasswordDialogOpen(true)}
-          >
-            {t('setting.change')}
-          </SettingPageButton>
-        }
-      />
-
-      {/* Binding Section Header */}
-      <SectionHeader
-        title={t('setting.binding')}
-        className="mt-4"
-        tooltip={t('setting.binding_tooltip')}
-      />
-
-      <InfoRow
-        icon={<SmartphoneIcon />}
-        label={t('setting.phone')}
-        value={phoneBinding?.login_id || t('setting.not_bound')}
-        description={t('setting.option_descriptions.phone')}
-        button={
-          <SettingPageButton
-            variant={phoneBinding?.id ? 'outline' : 'default'}
-            onClick={() => setPhoneDialogOpen(true)}
-          >
-            {t(phoneBinding?.id ? 'setting.change' : 'setting.bind_btn')}
-          </SettingPageButton>
-        }
-      />
-      <InfoRow
-        icon={<MailIcon className="text-blue-400" />}
-        label={t('setting.email_binding')}
-        value={user?.email || t('setting.not_bound')}
-        description={t('setting.option_descriptions.email')}
-        button={
-          <SettingPageButton
-            variant="outline"
-            onClick={() => setEmailDialogOpen(true)}
-          >
-            {t('setting.change')}
-          </SettingPageButton>
-        }
-      />
-
-      {/* WeChat, Google & Apple Bindings */}
-      {bindingData
-        .filter(item => item.login_type !== 'phone')
-        .map(item => {
-          let displayValue = t('setting.not_bound');
-          if (item.id) {
-            if (item.login_type === 'wechat') {
-              displayValue =
-                item.metadata?.nickname ||
-                t('setting.third_party_account.bound');
-            } else if (
-              item.login_type === 'google' ||
-              item.login_type === 'apple'
-            ) {
-              displayValue = item.metadata?.email || item.email || '';
-            } else {
-              displayValue = t('setting.third_party_account.bound');
-            }
+    <div className="flex w-full flex-col">
+      <div className="flex flex-col gap-2.5">
+        <h3 className="text-base font-semibold text-foreground">
+          {t('setting.account')}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {t('setting.account_description')}
+        </p>
+      </div>
+      <Separator className="my-6" />
+      <div className="flex w-full flex-col items-start gap-2">
+        {/* Username Row */}
+        <InfoRow
+          label={t('form.username')}
+          value={user?.username || ''}
+          description={t('setting.option_descriptions.username')}
+          button={
+            <SettingPageButton
+              variant="outline"
+              onClick={() => setUsernameDialogOpen(true)}
+            >
+              {t('setting.change')}
+            </SettingPageButton>
           }
+        />
 
-          return (
-            <BindingRow
-              key={item.login_type}
-              icon={item.icon}
-              label={t(`setting.third_party_account.${item.login_type}`)}
-              value={displayValue}
-              isBound={!!item.id}
-              onUnbind={() => handleUnbind(item.login_type)}
-              onBind={
-                <Wrapper type={item.login_type} onSuccess={refetchBindings} />
+        {/* Password Row */}
+        <InfoRow
+          label={t('form.password')}
+          value={maskedPassword}
+          description={t('setting.option_descriptions.password')}
+          button={
+            <SettingPageButton
+              variant="outline"
+              onClick={() => setPasswordDialogOpen(true)}
+            >
+              {t('setting.change')}
+            </SettingPageButton>
+          }
+        />
+
+        {/* Binding Section Header */}
+        <SectionHeader
+          title={t('setting.binding')}
+          className="mt-4"
+          tooltip={t('setting.binding_tooltip')}
+        />
+
+        <InfoRow
+          icon={<SmartphoneIcon />}
+          label={t('setting.phone')}
+          value={phoneBinding?.login_id || t('setting.not_bound')}
+          description={t('setting.option_descriptions.phone')}
+          button={
+            <SettingPageButton
+              variant={phoneBinding?.id ? 'outline' : 'default'}
+              onClick={() => setPhoneDialogOpen(true)}
+            >
+              {t(phoneBinding?.id ? 'setting.change' : 'setting.bind_btn')}
+            </SettingPageButton>
+          }
+        />
+        <InfoRow
+          icon={<MailIcon className="text-blue-400" />}
+          label={t('setting.email_binding')}
+          value={user?.email || t('setting.not_bound')}
+          description={t('setting.option_descriptions.email')}
+          button={
+            <SettingPageButton
+              variant="outline"
+              onClick={() => setEmailDialogOpen(true)}
+            >
+              {t('setting.change')}
+            </SettingPageButton>
+          }
+        />
+
+        {/* WeChat, Google & Apple Bindings */}
+        {bindingData
+          .filter(item => item.login_type !== 'phone')
+          .map(item => {
+            let displayValue = t('setting.not_bound');
+            if (item.id) {
+              if (item.login_type === 'wechat') {
+                displayValue =
+                  item.metadata?.nickname ||
+                  t('setting.third_party_account.bound');
+              } else if (
+                item.login_type === 'google' ||
+                item.login_type === 'apple'
+              ) {
+                displayValue = item.metadata?.email || item.email || '';
+              } else {
+                displayValue = t('setting.third_party_account.bound');
               }
-              unbinding={unbinding}
-            />
-          );
-        })}
+            }
 
-      {/* Username Change Dialog */}
-      <Dialog open={usernameDialogOpen} onOpenChange={setUsernameDialogOpen}>
-        <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
-          <DialogHeader>
-            <DialogTitle>{t('form.username')}</DialogTitle>
-            <VisuallyHidden.Root>
-              <DialogDescription>
-                {t('form.change_username_desc')}
-              </DialogDescription>
-            </VisuallyHidden.Root>
-          </DialogHeader>
-          <Form {...usernameForm}>
-            <form
-              onSubmit={usernameForm.handleSubmit(handleUsernameSubmit)}
-              className="space-y-4"
-            >
-              <FormField
-                control={usernameForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input {...field} disabled={submitting} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+            return (
+              <BindingRow
+                key={item.login_type}
+                icon={item.icon}
+                label={t(`setting.third_party_account.${item.login_type}`)}
+                value={displayValue}
+                isBound={!!item.id}
+                onUnbind={() => handleUnbind(item.login_type)}
+                onBind={
+                  <Wrapper type={item.login_type} onSuccess={refetchBindings} />
+                }
+                unbinding={unbinding}
               />
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setUsernameDialogOpen(false)}
-                >
-                  {t('cancel')}
-                </Button>
-                <Button type="submit" disabled={submitting} size="sm">
-                  {submitting ? <Spinner /> : t('ok')}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+            );
+          })}
 
-      {/* Password Change Dialog */}
-      <Dialog
-        open={passwordDialogOpen}
-        onOpenChange={open => {
-          setPasswordDialogOpen(open);
-          if (!open) {
-            passwordForm.reset();
-            setShowPassword(false);
-            setShowPasswordRepeat(false);
+        {/* Username Change Dialog */}
+        <Dialog open={usernameDialogOpen} onOpenChange={setUsernameDialogOpen}>
+          <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
+            <DialogHeader>
+              <DialogTitle>{t('form.username')}</DialogTitle>
+              <VisuallyHidden.Root>
+                <DialogDescription>
+                  {t('form.change_username_desc')}
+                </DialogDescription>
+              </VisuallyHidden.Root>
+            </DialogHeader>
+            <Form {...usernameForm}>
+              <form
+                onSubmit={usernameForm.handleSubmit(handleUsernameSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={usernameForm.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input {...field} disabled={submitting} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setUsernameDialogOpen(false)}
+                  >
+                    {t('cancel')}
+                  </Button>
+                  <Button type="submit" disabled={submitting} size="sm">
+                    {submitting ? <Spinner /> : t('ok')}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Password Change Dialog */}
+        <Dialog
+          open={passwordDialogOpen}
+          onOpenChange={open => {
+            setPasswordDialogOpen(open);
+            if (!open) {
+              passwordForm.reset();
+              setShowPassword(false);
+              setShowPasswordRepeat(false);
+            }
+          }}
+        >
+          <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
+            <DialogHeader>
+              <DialogTitle>{t('form.password')}</DialogTitle>
+              <VisuallyHidden.Root>
+                <DialogDescription>
+                  {t('form.change_password_desc')}
+                </DialogDescription>
+              </VisuallyHidden.Root>
+            </DialogHeader>
+            <Form {...passwordForm}>
+              <form
+                onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={passwordForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            {...field}
+                            disabled={submitting}
+                            className="border-line pr-10 shadow-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="size-4" />
+                            ) : (
+                              <Eye className="size-4" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={passwordForm.control}
+                  name="password_repeat"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('form.confirm_password')}</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            type={showPasswordRepeat ? 'text' : 'password'}
+                            autoComplete="new-password"
+                            {...field}
+                            disabled={submitting}
+                            className="border-line pr-10 shadow-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setShowPasswordRepeat(!showPasswordRepeat)
+                            }
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            {showPasswordRepeat ? (
+                              <EyeOff className="size-4" />
+                            ) : (
+                              <Eye className="size-4" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setPasswordDialogOpen(false);
+                      passwordForm.reset();
+                      setShowPassword(false);
+                      setShowPasswordRepeat(false);
+                    }}
+                  >
+                    {t('cancel')}
+                  </Button>
+                  <Button type="submit" disabled={submitting} size="sm">
+                    {submitting ? <Spinner /> : t('ok')}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Email Validation Dialog */}
+        <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+          <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]">
+            <VisuallyHidden.Root>
+              <DialogHeader>
+                <DialogTitle>{t('email.validate')}</DialogTitle>
+                <DialogDescription>{t('email.description')}</DialogDescription>
+              </DialogHeader>
+            </VisuallyHidden.Root>
+            <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
+              <EmailValidate onFinish={handleEmailValidateFinish} />
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Phone Binding Dialog */}
+        <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
+          <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
+            <VisuallyHidden.Root>
+              <DialogHeader>
+                <DialogTitle>{t('phone.input_phone')}</DialogTitle>
+                <DialogDescription>
+                  {t('phone.will_send_verification')}
+                </DialogDescription>
+              </DialogHeader>
+            </VisuallyHidden.Root>
+            <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
+              <PhoneValidate
+                currentPhone={user?.phone}
+                onFinish={() => {
+                  setPhoneDialogOpen(false);
+                  // Refresh user data to show updated phone
+                  window.location.reload();
+                }}
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Danger Zone Section */}
+        <SectionHeader
+          title={t('setting.danger_zone')}
+          className="mt-4 text-destructive"
+        />
+        <InfoRow
+          label={t('setting.delete_account.section_title')}
+          description={t('setting.delete_account.section_description')}
+          button={
+            <SettingPageButton
+              variant="destructive"
+              onClick={() => setDeleteAccountOpen(true)}
+            >
+              {t('setting.delete_account.button')}
+            </SettingPageButton>
           }
-        }}
-      >
-        <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
-          <DialogHeader>
-            <DialogTitle>{t('form.password')}</DialogTitle>
-            <VisuallyHidden.Root>
-              <DialogDescription>
-                {t('form.change_password_desc')}
-              </DialogDescription>
-            </VisuallyHidden.Root>
-          </DialogHeader>
-          <Form {...passwordForm}>
-            <form
-              onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)}
-              className="space-y-4"
-            >
-              <FormField
-                control={passwordForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? 'text' : 'password'}
-                          autoComplete="new-password"
-                          {...field}
-                          disabled={submitting}
-                          className="border-line pr-10 shadow-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          {showPassword ? (
-                            <EyeOff className="size-4" />
-                          ) : (
-                            <Eye className="size-4" />
-                          )}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={passwordForm.control}
-                name="password_repeat"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('form.confirm_password')}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showPasswordRepeat ? 'text' : 'password'}
-                          autoComplete="new-password"
-                          {...field}
-                          disabled={submitting}
-                          className="border-line pr-10 shadow-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setShowPasswordRepeat(!showPasswordRepeat)
-                          }
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          {showPasswordRepeat ? (
-                            <EyeOff className="size-4" />
-                          ) : (
-                            <Eye className="size-4" />
-                          )}
-                        </button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setPasswordDialogOpen(false);
-                    passwordForm.reset();
-                    setShowPassword(false);
-                    setShowPasswordRepeat(false);
-                  }}
-                >
-                  {t('cancel')}
-                </Button>
-                <Button type="submit" disabled={submitting} size="sm">
-                  {submitting ? <Spinner /> : t('ok')}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Email Validation Dialog */}
-      <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-        <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]">
-          <VisuallyHidden.Root>
-            <DialogHeader>
-              <DialogTitle>{t('email.validate')}</DialogTitle>
-              <DialogDescription>{t('email.description')}</DialogDescription>
-            </DialogHeader>
-          </VisuallyHidden.Root>
-          <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
-            <EmailValidate onFinish={handleEmailValidateFinish} />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Phone Binding Dialog */}
-      <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
-        <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
-          <VisuallyHidden.Root>
-            <DialogHeader>
-              <DialogTitle>{t('phone.input_phone')}</DialogTitle>
-              <DialogDescription>
-                {t('phone.will_send_verification')}
-              </DialogDescription>
-            </DialogHeader>
-          </VisuallyHidden.Root>
-          <div className="flex min-h-[280px] w-full items-center justify-center rounded-[12px] bg-background p-6 lg:min-h-[303px] lg:p-[48px_30px_32px_30px]">
-            <PhoneValidate
-              currentPhone={user?.phone}
-              onFinish={() => {
-                setPhoneDialogOpen(false);
-                // Refresh user data to show updated phone
-                window.location.reload();
-              }}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Danger Zone Section */}
-      <SectionHeader
-        title={t('setting.danger_zone')}
-        className="mt-4 text-destructive"
-      />
-      <InfoRow
-        label={t('setting.delete_account.section_title')}
-        description={t('setting.delete_account.section_description')}
-        button={
-          <SettingPageButton
-            variant="destructive"
-            onClick={() => setDeleteAccountOpen(true)}
-          >
-            {t('setting.delete_account.button')}
-          </SettingPageButton>
-        }
-      />
-      <DeleteAccountDialog
-        username={user?.username || ''}
-        open={deleteAccountOpen}
-        onOpenChange={setDeleteAccountOpen}
-      />
+        />
+        <DeleteAccountDialog
+          username={user?.username || ''}
+          open={deleteAccountOpen}
+          onOpenChange={setDeleteAccountOpen}
+        />
+      </div>
     </div>
   );
 }

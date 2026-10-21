@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { actionButtonClassName } from '@/components/sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,11 +59,14 @@ export default function ConfirmDeleteDialog(props: IProps) {
         onSuccess?.();
 
         // show success message
-        const toastOptions: any = {
+        const toastOptions: {
+          description?: string;
+          action?: { label: string; onClick: () => void };
+          classNames?: { actionButton: string };
+        } = {
           description: successDescription,
         };
 
-        // if restore url is provided, add undo function
         if (restoreUrl) {
           toastOptions.action = {
             label: t('undo'),
@@ -76,6 +80,7 @@ export default function ConfirmDeleteDialog(props: IProps) {
               });
             },
           };
+          toastOptions.classNames = { actionButton: actionButtonClassName };
         }
 
         toast(successMessage, toastOptions);

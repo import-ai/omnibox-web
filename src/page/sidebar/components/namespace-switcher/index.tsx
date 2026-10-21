@@ -7,7 +7,6 @@ import { CrownIcon } from '@/assets/icons/CrownIcon';
 import { UpgradeIcon } from '@/assets/icons/UpgradeIcon';
 import { Button } from '@/components/Button';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
-import Space from '@/components/space';
 import { Avatar } from '@/components/ui/Avatar';
 import {
   DropdownMenu,
@@ -94,7 +93,7 @@ export function Switcher(props: IProps) {
           >
             <DropdownMenuLabel>
               <div className="flex items-center gap-1 pt-1 text-left text-sm">
-                <Avatar className="flex size-8 items-center justify-center rounded-lg bg-primary font-normal text-primary-foreground dark:bg-neutral-700 dark:text-white">
+                <Avatar className="flex size-8 items-center justify-center rounded-lg bg-primary font-normal text-primary-foreground after:hidden dark:bg-neutral-700 dark:text-white">
                   {current.name?.charAt(0)?.toUpperCase() || '?'}
                 </Avatar>
                 <div className="grid min-w-0 flex-1 text-left text-sm leading-tight gap-0.5">
@@ -112,7 +111,7 @@ export function Switcher(props: IProps) {
                   asChild
                   size="sm"
                   variant="ghost"
-                  className="w-full justify-start gap-1 px-2 text-blue-500 hover:text-blue-500"
+                  className="h-8 w-full justify-start gap-1 px-2 text-blue-500 hover:text-blue-500"
                 >
                   <a
                     href={getUpgradeLink(i18n, namespaceId)}
@@ -131,10 +130,10 @@ export function Switcher(props: IProps) {
               </DropdownMenuLabel>
             )}
             <DropdownMenuLabel className="p-0">
-              <Space className="flex-col items-stretch gap-1">
-                <SettingButton onOpen={() => setDropdownOpen(false)} />
-                <InviteButton namespaceId={namespaceId} />
-              </Space>
+              <SettingButton onOpen={() => setDropdownOpen(false)} />
+            </DropdownMenuLabel>
+            <DropdownMenuLabel className="p-0">
+              <InviteButton namespaceId={namespaceId} />
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="mx-0" />
             <DropdownMenuLabel className="py-2 text-xs font-medium text-muted-foreground">

@@ -3,6 +3,7 @@ import { ChevronRight, Copy, Pencil, Trash } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   AlertDialog,
@@ -24,6 +25,7 @@ import { Switch } from '@/components/ui/Switch';
 import { TableCell, TableRow } from '@/components/ui/Table';
 import { Group, Member } from '@/interface';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 import { useSettingsToast } from '../../../SettingsToastProvider';
 import DataGroupUser from './GroupDataUser';
@@ -140,9 +142,12 @@ export default function GroupData(props: GroupProps) {
                     <TooltipTrigger asChild>
                       <button
                         onClick={handleCopyLink}
-                        className="flex items-center justify-center transition-opacity hover:opacity-70"
+                        className={cn(
+                          sidebarToolbarIconButtonClassName,
+                          'flex items-center justify-center'
+                        )}
                       >
-                        <Copy className="size-4 text-muted-foreground" />
+                        <Copy className="size-4" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="top">
@@ -157,9 +162,12 @@ export default function GroupData(props: GroupProps) {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => onEdit(id, title)}
-                    className="flex items-center justify-center transition-opacity hover:opacity-70"
+                    className={cn(
+                      sidebarToolbarIconButtonClassName,
+                      'flex items-center justify-center'
+                    )}
                   >
-                    <Pencil className="size-4 text-muted-foreground" />
+                    <Pencil className="size-4" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top">{t('edit')}</TooltipContent>
@@ -170,8 +178,13 @@ export default function GroupData(props: GroupProps) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <AlertDialogTrigger asChild>
-                      <button className="flex items-center justify-center transition-opacity hover:opacity-70">
-                        <Trash className="size-4 text-muted-foreground" />
+                      <button
+                        className={cn(
+                          sidebarToolbarIconButtonClassName,
+                          'flex items-center justify-center hover:text-destructive'
+                        )}
+                      >
+                        <Trash className="size-4" />
                       </button>
                     </AlertDialogTrigger>
                   </TooltipTrigger>

@@ -183,7 +183,7 @@
 }
 
 .omnibox-comment-surface .omnibox-comment-composer__attach {
-  @apply absolute right-2 top-1/2 flex size-5 -translate-y-1/2 cursor-pointer items-center justify-center text-muted-foreground;
+  @apply absolute right-2 top-1/2 flex size-5 -translate-y-1/2 cursor-pointer items-center justify-center text-muted-foreground transition-all select-none hover:text-sidebar-accent-foreground active:translate-y-[calc(-50%+1px)];
 }
 
 .omnibox-comment-surface
@@ -448,7 +448,7 @@
 }
 
 .resource-comments-panel .omnibox-comment-thread__toolbar button {
-  @apply flex h-5 w-5 items-center justify-center border-l border-border/60 text-muted-foreground/80 transition-colors first:border-l-0 enabled:hover:bg-accent enabled:hover:text-foreground disabled:cursor-not-allowed disabled:opacity-30;
+  @apply flex h-5 w-5 items-center justify-center border-l border-border/60 text-muted-foreground transition-all select-none first:border-l-0 enabled:hover:bg-transparent enabled:hover:text-sidebar-accent-foreground enabled:active:translate-y-px disabled:cursor-not-allowed disabled:opacity-30;
 }
 
 .resource-comments-panel .omnibox-comment-thread__toolbar svg {
@@ -503,6 +503,10 @@
 .resource-comments-panel .omnibox-comment-message__edited,
 .resource-comments-panel .omnibox-comment-message__action {
   @apply text-muted-foreground;
+}
+
+.resource-comments-panel .omnibox-comment-message__action {
+  @apply transition-all select-none hover:bg-transparent hover:text-sidebar-accent-foreground active:translate-y-px;
 }
 
 .resource-comments-panel .omnibox-comment-message {
@@ -706,6 +710,18 @@
 
 .resource-comments-panel
   .omnibox-comment-thread[data-selected]
+  .omnibox-comment-reply__attach:hover {
+  color: var(--sidebar-accent-foreground) !important;
+}
+
+.resource-comments-panel
+  .omnibox-comment-thread[data-selected]
+  .omnibox-comment-reply__attach:active {
+  translate: 0 1px;
+}
+
+.resource-comments-panel
+  .omnibox-comment-thread[data-selected]
   .omnibox-comment-reply__input[data-has-preview]
   .omnibox-comment-reply__attach {
   top: auto;
@@ -806,7 +822,7 @@
 }
 
 .resource-comments-panel .omnibox-comment-composer__attach {
-  @apply absolute right-2 top-1/2 flex size-5 -translate-y-1/2 cursor-pointer items-center justify-center text-muted-foreground;
+  @apply absolute right-2 top-1/2 flex size-5 -translate-y-1/2 cursor-pointer items-center justify-center text-muted-foreground transition-all select-none hover:text-sidebar-accent-foreground active:translate-y-[calc(-50%+1px)];
 }
 
 .resource-comments-panel .omnibox-comment-composer__actions {
@@ -942,7 +958,7 @@
 }
 
 .resource-comments-panel .omnibox-comment-message__action:hover {
-  @apply bg-accent text-accent-foreground;
+  @apply bg-transparent text-sidebar-accent-foreground;
 }
 
 .resource-comments-panel

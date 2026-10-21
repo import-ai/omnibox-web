@@ -54,7 +54,7 @@ export default function SaveMain(props: IProps) {
   return (
     <IconButton
       size="sm"
-      tone="accent"
+      tone="sidebar"
       label={t('chat.messages.actions.save')}
       disabled={loading}
       onClick={handleCreate}

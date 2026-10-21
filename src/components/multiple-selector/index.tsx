@@ -64,6 +64,8 @@ interface MultipleSelectorProps {
   groupBy?: string;
   className?: string;
   badgeClassName?: string;
+  /** Classes for the options list. */
+  listClassName?: string;
   /**
    * First item selected is a default behavior by cmdk. That is why the default is true.
    * This is a workaround solution by add a dummy item.
@@ -208,6 +210,7 @@ const MultipleSelector = React.forwardRef<
       groupBy,
       className,
       badgeClassName,
+      listClassName,
       selectFirstItem = true,
       onCreate,
       creatable = false,
@@ -654,7 +657,10 @@ const MultipleSelector = React.forwardRef<
           {open && (
             <CommandList
               ref={handleListRef}
-              className="absolute top-1 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-hidden animate-in"
+              className={cn(
+                'absolute top-1 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-hidden animate-in',
+                listClassName
+              )}
               onMouseLeave={() => {
                 setOnScrollbar(false);
               }}

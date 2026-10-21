@@ -2,7 +2,8 @@ import { Pencil } from 'lucide-react';
 import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/Button';
+import { Button, buttonPressClassName } from '@/components/Button';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -19,6 +20,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Member } from '@/interface';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
 
 import {
   MEMBER_NICKNAME_MAX_LENGTH,
@@ -137,7 +139,11 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className="inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground opacity-100 hover:bg-muted hover:text-foreground md:opacity-0 md:group-hover:opacity-100 md:data-[state=open]:opacity-100"
+                className={cn(
+                  buttonPressClassName,
+                  'inline-flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md opacity-100 hover:bg-transparent md:opacity-0 md:group-hover:opacity-100 md:data-[state=open]:opacity-100',
+                  sidebarToolbarIconButtonClassName
+                )}
                 aria-label={tooltipLabel}
                 onPointerEnter={releaseTooltip}
                 onPointerLeave={() => {

@@ -1,3 +1,4 @@
+import copy from 'copy-to-clipboard';
 import { Copy } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
@@ -174,15 +175,40 @@ export function ShareTabContent(props: ShareTabContentProps) {
   };
 
   const handleCopy = async () => {
-    if (shareUrl) {
-      try {
+    if (!shareUrl) {
+      return;
+    }
+    let ok = false;
+    try {
+      if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareUrl);
-        toast(t('actions.copy_link_success'), { position: 'bottom-right' });
-      } catch (error: any) {
-        toast(error.message, { position: 'bottom-right' });
+        ok = true;
       }
+    } catch {
+      // fall through to copy-to-clipboard
+    }
+    if (!ok) {
+      ok = copy(shareUrl);
+    }
+    if (ok) {
+      toast.success(t('actions.copy_link_success'), {
+        position: 'bottom-right',
+      });
+    } else {
+      toast.error(t('actions.copy_link_failed'), { position: 'bottom-right' });
     }
   };
+
+  const copyButton = (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={handleCopy}
+      disabled={!shareUrl}
+    >
+      <Copy className="w-4 h-4" />
+    </Button>
+  );
 
   const handleExpireDateChange = (expiresAt: Date | null) => {
     updateShareInfo({ expires_at: expiresAt });
@@ -232,14 +258,11 @@ export function ShareTabContent(props: ShareTabContentProps) {
           placeholder={t('share.share.url_placeholder')}
           disabled={!shareUrl}
         />
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleCopy}
-          disabled={!shareUrl}
-        >
-          <Copy className="w-4 h-4" />
-        </Button>
+        {shareUrl ? (
+          copyButton
+        ) : (
+          <span className="inline-flex cursor-not-allowed">{copyButton}</span>
+        )}
         <Switch
           checked={shareInfo?.enabled ?? false}
           disabled={!shareInfo}

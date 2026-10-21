@@ -212,14 +212,15 @@ export default function Action(props: ActionProps) {
                 )}
               </div>
               {item.value === value && (
-                <Check className="size-5 text-blue-600" />
+                <Check className="size-5 text-blue-500! [&_path]:text-blue-500!" />
               )}
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuItem
+            variant="destructive"
             onClick={handleRemove}
-            className="cursor-pointer justify-between hover:bg-accent hover:text-red-500 focus:text-red-500 data-highlighted:text-red-500"
+            className="cursor-pointer justify-between"
           >
             {t('manage.remove')}
           </DropdownMenuItem>

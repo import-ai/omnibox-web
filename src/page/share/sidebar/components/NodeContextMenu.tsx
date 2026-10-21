@@ -70,23 +70,12 @@ export default function NodeContextMenu({
           return (
             <ContextMenuItem
               key={item.key}
-              className={
-                item.destructive
-                  ? 'group cursor-pointer gap-2 data-highlighted:text-destructive'
-                  : menuItemClass
-              }
+              variant={item.destructive ? 'destructive' : 'default'}
+              className={menuItemClass}
               onClick={item.onClick}
               onSelect={item.onSelect}
             >
-              {Icon && (
-                <Icon
-                  className={
-                    item.destructive
-                      ? 'size-4 text-muted-foreground group-hover:text-destructive'
-                      : menuIconClass
-                  }
-                />
-              )}
+              {Icon && <Icon className={menuIconClass} />}
               {item.label}
             </ContextMenuItem>
           );

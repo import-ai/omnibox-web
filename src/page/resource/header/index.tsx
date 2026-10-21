@@ -91,6 +91,7 @@ export default function Header(props: IActionProps) {
               size="sm"
               type="button"
               variant="ghost"
+              className="hover:bg-transparent hover:text-sidebar-accent-foreground"
             >
               <Eye />
               {t('resource.history.back_to_current')}
@@ -102,6 +103,7 @@ export default function Header(props: IActionProps) {
                 size="sm"
                 type="button"
                 variant="ghost"
+                className="hover:bg-transparent hover:text-sidebar-accent-foreground"
               >
                 <RotateCcw />
                 {t('resource.history.restore')}
@@ -121,7 +123,7 @@ export default function Header(props: IActionProps) {
           <IconButton
             label={t('resource.history.tooltip')}
             size="sm"
-            tone="accent"
+            tone="sidebar"
             className="shrink-0"
             aria-label={t('resource.history.open')}
             onClick={() => {
