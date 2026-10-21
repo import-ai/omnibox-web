@@ -1,5 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useLocation,
@@ -24,6 +24,7 @@ import { InviteActivityPanel } from './InviteActivityPanel';
 import { InvitePhoneBindingDialog } from './InvitePhoneBindingDialog';
 import { InviteRecordsPanel } from './InviteRecordsPanel';
 import { InviteShareDialog } from './InviteShareDialog';
+import { InviteTaskBindDialogs } from './InviteTaskBindDialogs';
 import {
   clearInvitePhoneBinding,
   hasInvitePhoneBinding,
@@ -44,6 +45,9 @@ export function InviteReferralContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [taskPhoneOpen, setTaskPhoneOpen] = useState(false);
+  const [wechatSession, setWechatSession] = useState(0);
+  const wechatBindActiveRef = useRef(false);
   const [phoneBindingOpen, setPhoneBindingOpen] = useState(() =>
     hasInvitePhoneBinding()
   );
@@ -77,17 +81,13 @@ export function InviteReferralContent() {
   const runTask = (task: InviteTask) => {
     if (task.status === 'completed') return;
     if (task.action === 'phone_binding') {
-      app.fire('open_settings', {
-        tab: 'profile',
-        autoAction: { type: 'bind_phone' },
-      });
+      setTaskPhoneOpen(true);
       return;
     }
     if (task.action === 'wechat_assistant_binding') {
-      app.fire('open_settings', {
-        tab: 'applications',
-        autoAction: { type: 'bind', appId: 'wechat_bot' },
-      });
+      if (wechatBindActiveRef.current) return;
+      wechatBindActiveRef.current = true;
+      setWechatSession(session => session + 1);
       return;
     }
     if (task.action === 'home') {
@@ -216,6 +216,7 @@ export function InviteReferralContent() {
               overview={overview}
               onInvite={() => setShareOpen(true)}
               onTask={runTask}
+              wechatBinding={wechatSession > 0}
             />
           </div>
           {!isMobile && (
@@ -238,6 +239,19 @@ export function InviteReferralContent() {
           onOpenChange={setShareOpen}
         />
       ) : null}
+      <InviteTaskBindDialogs
+        namespaceId={namespaceId}
+        phoneOpen={taskPhoneOpen}
+        onPhoneOpenChange={setTaskPhoneOpen}
+        wechatSession={wechatSession}
+        onWechatClose={() => {
+          wechatBindActiveRef.current = false;
+          setWechatSession(0);
+        }}
+        onBound={() => {
+          void load();
+        }}
+      />
       <InvitePhoneBindingDialog
         open={phoneBindingOpen}
         onBound={load}

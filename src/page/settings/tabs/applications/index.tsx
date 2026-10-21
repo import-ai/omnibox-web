@@ -25,6 +25,7 @@ import { getDocsLink } from '@/lib/getDocsLink.ts';
 import { cn } from '@/lib/utils';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
+import { beginCodeBind } from './beginCodeBind';
 import { BindDialog } from './BindDialog';
 import { QRCodeBindDialog } from './QRCodeBindDialog';
 
@@ -144,21 +145,21 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
       }
 
       // Handle code-based binding (wechat_bot, qq_bot)
-      // Check if there's already a verify_code in progress
-      if (application.attrs?.key) {
-        // Use existing verify_code
-        setBindingCode(application.attrs.key);
-        setCurrentBindingApplication(application);
-        setBindDialogOpen(true);
-        toast.success(t('applications.bind.continue'));
-      } else {
-        // Start new binding process
-        const response = await bindApplication(application.app_id);
-        setBindingCode(response.attrs?.key!);
-        setCurrentBindingApplication(response);
-        setBindDialogOpen(true);
-        toast.success(t('applications.bind.initiated'));
+      const result = await beginCodeBind(application, bindApplication);
+      if (result.status === 'already_bound') {
+        setAlreadyBoundDialogOpen(true);
+        return;
       }
+      setBindingCode(result.code);
+      setCurrentBindingApplication(result.application);
+      setBindDialogOpen(true);
+      toast.success(
+        t(
+          result.resumed
+            ? 'applications.bind.continue'
+            : 'applications.bind.initiated'
+        )
+      );
     } catch (error: any) {
       toast.error(error.message || t('applications.bind.error'));
     } finally {
