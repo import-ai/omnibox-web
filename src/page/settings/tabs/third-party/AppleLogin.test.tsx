@@ -22,7 +22,7 @@ jest.mock('sonner', () => ({
 jest.mock('@/lib/request', () => ({
   http: { get: jest.fn(), post: jest.fn() },
 }));
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     onClick,
