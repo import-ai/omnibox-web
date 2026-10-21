@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { Button } from '@/components/Button';
+import { Checkbox } from '@/components/Checkbox';
 import CopyMain from '@/components/copy';
 import { HelpTooltip } from '@/components/help-tooltip';
 import Loading from '@/components/loading';
@@ -31,7 +32,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Checkbox } from '@/components/ui/Checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
