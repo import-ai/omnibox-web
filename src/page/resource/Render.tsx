@@ -21,6 +21,7 @@ import {
 } from '@/page/resource/editor/const';
 import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
+import { saveResourceMentionLabels } from '@/page/resource/mentionLabelSync';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import { ImageCommentButton } from './comments/ImageCommentButton';
@@ -105,8 +106,62 @@ function OmniboxRender(props: OmniboxRenderProps) {
   );
   const content = useMemo(
     () => getResourceEditorContent(resource, linkBase, namesById),
-    [linkBase, namesById, resource]
+    [namesById, linkBase, resource]
   );
+  const persistedMentionContentRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (
+      !ready ||
+      !namespaceId ||
+      namespaceId.startsWith('share:') ||
+      resource.read_only ||
+      comments.loading ||
+      !comments.editor ||
+      comments.editor.isDestroyed
+    ) {
+      return;
+    }
+    const stored = resource.content ?? '';
+    const next = resolveMentionLabels(stored, namesById);
+    if (
+      !next ||
+      next === stored ||
+      next === persistedMentionContentRef.current
+    ) {
+      return;
+    }
+    const anchorSync = resource.content_hash ? comments.getAnchorSync() : null;
+    const anchorsKnown =
+      !resource.content_hash ||
+      (anchorSync?.comment_anchors.length ?? 0) > 0 ||
+      (anchorSync?.orphaned_comment_thread_ids.length ?? 0) > 0 ||
+      resource.comment_threads !== undefined;
+    if (!anchorsKnown) {
+      return;
+    }
+    persistedMentionContentRef.current = next;
+    saveResourceMentionLabels(
+      namespaceId,
+      resource.id,
+      next,
+      resource.content_hash,
+      anchorSync
+    ).catch(() => {
+      persistedMentionContentRef.current = null;
+    });
+  }, [
+    comments.editor,
+    comments.getAnchorSync,
+    comments.loading,
+    namesById,
+    namespaceId,
+    ready,
+    resource.comment_threads,
+    resource.content,
+    resource.content_hash,
+    resource.id,
+    resource.read_only,
+  ]);
   const targetScrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;
 

@@ -24,3 +24,9 @@ export function mentionUsersFromMembers(
     return users;
   }, []);
 }
+
+export function mentionNameMap(members: Member[]) {
+  return Object.fromEntries(
+    mentionUsersFromMembers(members).map(user => [user.id, user.name])
+  );
+}

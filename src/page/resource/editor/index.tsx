@@ -38,6 +38,7 @@ import {
 } from '@/page/resource/editor/contentSerialization';
 import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
+import { saveResourceMentionLabels } from '@/page/resource/mentionLabelSync';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import type { ResourceCommentsController } from '../comments/useResourceComments';
@@ -124,6 +125,8 @@ export default function Editor(props: IEditorProps) {
     useMentionUsers(namespaceId);
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
+  const applyingMentionLabelsRef = useRef(false);
+  const persistedMentionContentRef = useRef<string | null>(null);
   const hasCachedContentChange =
     cache?.content !== undefined && cache.content !== (resource.content ?? '');
   const cachedTitle = cache?.title ?? resource.name ?? '';
@@ -160,7 +163,13 @@ export default function Editor(props: IEditorProps) {
     () => (isFolder || !ready ? null : resolvedContent),
     [isFolder, ready, resolvedContent]
   );
-  const { commentsConfig, getAnchorSync, registerEditor } = comments;
+  const {
+    commentsConfig,
+    editor: registeredEditor,
+    getAnchorSync,
+    loading: commentsLoading,
+    registerEditor,
+  } = comments;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newTitle = normalizeTitleInput(e.target.value);
@@ -172,6 +181,10 @@ export default function Editor(props: IEditorProps) {
   const handleEditorUpdate = useCallback(
     (payload: EditorUpdatePayload) => {
       const content = serializeResourceEditorContent(payload);
+      if (applyingMentionLabelsRef.current) {
+        markdownRef.current = content;
+        return;
+      }
       if (content !== markdownRef.current) {
         dirtyRef.current = true;
         onContentDirtyChange(content !== (resource.content ?? ''));
@@ -210,10 +223,71 @@ export default function Editor(props: IEditorProps) {
       tr.setNodeMarkup(pos, undefined, { ...node.attrs, label: next });
       changed = true;
     });
-    if (changed) {
-      editor.view.dispatch(tr);
+    if (!changed) {
+      return;
     }
+    applyingMentionLabelsRef.current = true;
+    editor.view.dispatch(tr);
+    applyingMentionLabelsRef.current = false;
   }, [namesById, ready]);
+
+  useEffect(() => {
+    if (
+      !ready ||
+      dirtyRef.current ||
+      resource.read_only ||
+      commentsLoading ||
+      !registeredEditor ||
+      registeredEditor.isDestroyed
+    ) {
+      return;
+    }
+    const content = markdownRef.current;
+    const stored = resource.content ?? '';
+    if (
+      !content ||
+      content === stored ||
+      content === persistedMentionContentRef.current
+    ) {
+      return;
+    }
+    const anchorSync = resource.content_hash ? getAnchorSync() : null;
+    const anchorsKnown =
+      !resource.content_hash ||
+      (anchorSync?.comment_anchors.length ?? 0) > 0 ||
+      (anchorSync?.orphaned_comment_thread_ids.length ?? 0) > 0 ||
+      resource.comment_threads !== undefined;
+    if (!anchorsKnown) {
+      return;
+    }
+    persistedMentionContentRef.current = content;
+    saveResourceMentionLabels(
+      namespaceId,
+      resource.id,
+      content,
+      resource.content_hash,
+      anchorSync
+    )
+      .then(delta => {
+        onResource(delta);
+      })
+      .catch(() => {
+        persistedMentionContentRef.current = null;
+      });
+  }, [
+    commentsLoading,
+    getAnchorSync,
+    namesById,
+    namespaceId,
+    onResource,
+    ready,
+    registeredEditor,
+    resource.comment_threads,
+    resource.content,
+    resource.content_hash,
+    resource.id,
+    resource.read_only,
+  ]);
 
   const handleTitleEnter = useCallback(() => {
     if (isFolder) {

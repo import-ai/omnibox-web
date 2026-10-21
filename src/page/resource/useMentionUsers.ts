@@ -7,7 +7,10 @@ import {
   NAMESPACE_MEMBERS_REFRESH,
   toMentionMembersById,
 } from '@/page/resource/mentionCard';
-import { mentionUsersFromMembers } from '@/page/resource/mentionUsers';
+import {
+  mentionNameMap,
+  mentionUsersFromMembers,
+} from '@/page/resource/mentionUsers';
 
 export function useMentionUsers(namespaceId?: string) {
   const app = useApp();
@@ -30,11 +33,11 @@ export function useMentionUsers(namespaceId?: string) {
       }
       http
         .get<Member[]>(`/namespaces/${namespaceId}/members`, { mute: true })
-        .then(loaded => {
+        .then(loadedMembers => {
           if (ignore || current !== ticket) {
             return;
           }
-          setMembers(Array.isArray(loaded) ? loaded : []);
+          setMembers(Array.isArray(loadedMembers) ? loadedMembers : []);
         })
         .catch(() => {
           // A failed refresh must keep the list already on screen.
@@ -64,9 +67,6 @@ export function useMentionUsers(namespaceId?: string) {
     [members]
   );
   const membersById = useMemo(() => toMentionMembersById(members), [members]);
-  const namesById = useMemo(
-    () => Object.fromEntries(mentionUsers.map(user => [user.id, user.name])),
-    [mentionUsers]
-  );
+  const namesById = useMemo(() => mentionNameMap(members), [members]);
   return { mentionUsers, membersById, namesById, ready };
 }

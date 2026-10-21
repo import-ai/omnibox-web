@@ -6,7 +6,10 @@ import {
   NAMESPACE_MEMBERS_REFRESH,
   toMentionMembersById,
 } from '@/page/resource/mentionCard';
-import { mentionUsersFromMembers } from '@/page/resource/mentionUsers';
+import {
+  mentionNameMap,
+  mentionUsersFromMembers,
+} from '@/page/resource/mentionUsers';
 
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
@@ -60,16 +63,20 @@ export function useCommentMentionUsers() {
     namespaceId && !namespaceId.startsWith('share:') ? namespaceId : '';
   const app = useApp();
   const [members, setMembers] = useState<Member[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!id) {
       setMembers([]);
+      setLoaded(false);
       return;
     }
+    setLoaded(false);
     let ignore = false;
     const listener: Listener = next => {
       if (!ignore) {
         setMembers(next);
+        setLoaded(true);
       }
     };
     const group = listeners.get(id) ?? new Set<Listener>();
@@ -98,6 +105,7 @@ export function useCommentMentionUsers() {
   }, [app, id]);
 
   const users = useMemo(() => mentionUsersFromMembers(members), [members]);
+  const namesById = useMemo(() => mentionNameMap(members), [members]);
   const membersById = useMemo(() => toMentionMembersById(members), [members]);
-  return { users, membersById };
+  return { users, membersById, namesById, loaded };
 }

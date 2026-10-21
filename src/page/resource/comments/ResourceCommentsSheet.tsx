@@ -1,7 +1,6 @@
 import './resourceComments.css';
 
 import { Check, ListFilter, MessageSquareText, PanelRight } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -19,7 +18,6 @@ import { cn } from '@/lib/utils';
 import { ResourceCommentComposer } from './ResourceCommentComposer';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { ResourceCommentThreadList } from './ResourceCommentThreadList';
-import { useCommentMentionUsers } from './useCommentMentionUsers';
 import type { ResourceCommentsController } from './useResourceComments';
 
 interface ResourceCommentsSheetProps {
@@ -37,14 +35,6 @@ export function ResourceCommentsSheet({
 }: ResourceCommentsSheetProps) {
   const { t } = useTranslation();
   const panel = useResourceCommentsPanel();
-  const { users } = useCommentMentionUsers();
-  const mentionNames = useMemo(
-    () => Object.fromEntries(users.map(user => [user.id, user.name])),
-    [users]
-  );
-  useEffect(() => {
-    controller.syncCommentMentionLabels(mentionNames);
-  }, [controller, mentionNames]);
   const isComposerOpen = controller.canComment && !!controller.pendingSelection;
   const close = () => {
     controller.setPanelOpen(false);

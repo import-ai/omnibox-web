@@ -31,7 +31,7 @@ export function ResourceCommentBody({
   const directory = useCommentMentionUsers();
   const users = mentionUsers ?? directory.users;
   const cards = membersById ?? directory.membersById;
-  const namesById = Object.fromEntries(users.map(user => [user.id, user.name]));
+  const liveNames = Object.fromEntries(users.map(user => [user.id, user.name]));
   const parts = splitCommentContent(content);
   const hasMention = parts.some(part => part.type === 'user');
   const { t } = useTranslation();
@@ -92,9 +92,9 @@ export function ResourceCommentBody({
                   <CommentMention
                     key={`${part.id}:${index}`}
                     id={part.id}
-                    label={commentMentionLabel(part.id, part.label, namesById)}
+                    label={commentMentionLabel(part.id, part.label, liveNames)}
                     member={cards[part.id]}
-                    active={commentMentionActive(part.id, namesById)}
+                    active={commentMentionActive(part.id, liveNames)}
                   />
                 )
               )

@@ -12,11 +12,9 @@ import type {
   ResourceCommentAuthor,
   ResourceCommentThread,
 } from '@/interface';
-import { resolveMentionLabels } from '@/page/resource/mentionLabels';
-import {
-  listResourceCommentThreads,
-  updateResourceComment,
-} from '@/service/resourceComments';
+import { rewriteThreadMentionLabels } from '@/page/resource/mentionLabels';
+import { syncCommentMentionLabels } from '@/page/resource/mentionLabelSync';
+import { listResourceCommentThreads } from '@/service/resourceComments';
 
 import {
   collectResourceCommentAnchors,
@@ -35,6 +33,7 @@ import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentDraftHighlight } from './useCommentDraftHighlight';
 import { useCommentHighlight } from './useCommentHighlight';
 import { useCommentLinkNavigation } from './useCommentLinkNavigation';
+import { useCommentMentionUsers } from './useCommentMentionUsers';
 import { useCommentMutations } from './useCommentMutations';
 import { useCommentNavigation } from './useCommentNavigation';
 
@@ -93,6 +92,9 @@ export function useResourceComments({
     useState<OmniboxEditorCommentSelection | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const panel = useResourceCommentsPanel();
+  const { namesById: mentionNames, loaded: mentionNamesLoaded } =
+    useCommentMentionUsers();
+  const mentionNamesKey = JSON.stringify(mentionNames);
   const [fallbackPanelOpen, setFallbackPanelOpen] = useState(false);
   const panelOpen = panel?.panelOpen ?? fallbackPanelOpen;
   const setPanelOpen = panel?.setPanelOpen ?? setFallbackPanelOpen;
@@ -489,50 +491,28 @@ export function useResourceComments({
     resolved: activeThread?.resolved ?? false,
   });
 
-  const syncCommentMentionLabels = useCallback(
-    (namesById: Record<string, string>) => {
-      if (!Object.keys(namesById).length) {
-        return;
-      }
-      const nextThreads = threadsRef.current.map(thread => {
-        let threadChanged = false;
-        const comments = thread.comments.map(comment => {
-          const next = resolveMentionLabels(comment.content, namesById);
-          if (next === comment.content) {
-            return comment;
-          }
-          threadChanged = true;
-          updateResourceComment(
-            namespaceId,
-            resource.id,
-            thread.id,
-            comment.id,
-            {
-              content: next,
-              attachment_ids: (comment.attachments ?? []).map(item => item.id),
-            }
-          )
-            .then(updated => {
-              if (updated) {
-                applyThreadUpdate(updated);
-              }
-            })
-            .catch(() => undefined);
-          return { ...comment, content: next };
-        });
-        return threadChanged ? { ...thread, comments } : thread;
-      });
-      if (
-        nextThreads.some(
-          (thread, index) => thread !== threadsRef.current[index]
-        )
-      ) {
-        setThreads(nextThreads);
-        setAnchorThreads(current => mergeThreads(current, nextThreads));
-      }
-    },
-    [applyThreadUpdate, namespaceId, resource.id]
-  );
+  useEffect(() => {
+    if (!enabled || !mentionNamesLoaded || mentionNamesKey === '{}') {
+      return;
+    }
+    if (namespaceId.startsWith('share:')) {
+      return;
+    }
+    let ignore = false;
+    syncCommentMentionLabels(namespaceId, resource.id)
+      .then(() => {
+        if (ignore) {
+          return;
+        }
+        const names = JSON.parse(mentionNamesKey) as Record<string, string>;
+        setThreads(current => rewriteThreadMentionLabels(current, names));
+        setAnchorThreads(current => rewriteThreadMentionLabels(current, names));
+      })
+      .catch(() => undefined);
+    return () => {
+      ignore = true;
+    };
+  }, [enabled, mentionNamesKey, mentionNamesLoaded, namespaceId, resource.id]);
 
   return {
     activeThread,
@@ -575,7 +555,6 @@ export function useResourceComments({
     setPendingSelection,
     setResolved,
     setThreadResolved,
-    syncCommentMentionLabels,
     submitting,
     threads: visibleThreads,
     total,

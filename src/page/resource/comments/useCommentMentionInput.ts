@@ -26,13 +26,12 @@ export function useCommentMentionInput(
   onValueChange: (value: string) => void
 ) {
   const { t } = useTranslation();
-  const { users } = useCommentMentionUsers();
+  const { users, namesById } = useCommentMentionUsers();
   const [caret, setCaret] = useState(0);
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [index, setIndex] = useState(0);
   const elementRef = useRef<HTMLTextAreaElement | null>(null);
   const pendingCaret = useRef<number | null>(null);
-  const namesById = Object.fromEntries(users.map(user => [user.id, user.name]));
   const draft = commentDraftDisplay(value, namesById);
   const safeCaret = Math.min(caret, draft.display.length);
   const query = mentionTrigger(draft.display, safeCaret);
