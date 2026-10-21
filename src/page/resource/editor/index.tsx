@@ -38,7 +38,6 @@ import {
 } from '@/page/resource/editor/contentSerialization';
 import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
-import { saveResourceMentionLabels } from '@/page/resource/mentionLabelSync';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import type { ResourceCommentsController } from '../comments/useResourceComments';
@@ -126,7 +125,6 @@ export default function Editor(props: IEditorProps) {
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const applyingMentionLabelsRef = useRef(false);
-  const persistedMentionContentRef = useRef<string | null>(null);
   const hasCachedContentChange =
     cache?.content !== undefined && cache.content !== (resource.content ?? '');
   const cachedTitle = cache?.title ?? resource.name ?? '';
@@ -146,30 +144,29 @@ export default function Editor(props: IEditorProps) {
     id: string;
     names: Record<string, string>;
   } | null>(null);
+  // True after mention labels are written into the live doc. The open
+  // snapshot is older, and a later render must not put it back into the save.
+  const liveMentionLabelsRef = useRef(false);
   if (!ready) {
     openedNamesRef.current = null;
+    liveMentionLabelsRef.current = false;
   } else if (openedNamesRef.current?.id !== resource.id) {
     openedNamesRef.current = { id: resource.id, names: namesById };
+    liveMentionLabelsRef.current = false;
   }
   const resolvedContent = useMemo(
     () =>
       resolveMentionLabels(initialContent, openedNamesRef.current?.names ?? {}),
     [initialContent, ready, resource.id]
   );
-  if (ready && !dirtyRef.current) {
+  if (ready && !dirtyRef.current && !liveMentionLabelsRef.current) {
     markdownRef.current = resolvedContent;
   }
   const editorContent = useMemo(
     () => (isFolder || !ready ? null : resolvedContent),
     [isFolder, ready, resolvedContent]
   );
-  const {
-    commentsConfig,
-    editor: registeredEditor,
-    getAnchorSync,
-    loading: commentsLoading,
-    registerEditor,
-  } = comments;
+  const { commentsConfig, getAnchorSync, registerEditor } = comments;
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newTitle = normalizeTitleInput(e.target.value);
@@ -226,68 +223,11 @@ export default function Editor(props: IEditorProps) {
     if (!changed) {
       return;
     }
+    liveMentionLabelsRef.current = true;
     applyingMentionLabelsRef.current = true;
     editor.view.dispatch(tr);
     applyingMentionLabelsRef.current = false;
   }, [namesById, ready]);
-
-  useEffect(() => {
-    if (
-      !ready ||
-      dirtyRef.current ||
-      resource.read_only ||
-      commentsLoading ||
-      !registeredEditor ||
-      registeredEditor.isDestroyed
-    ) {
-      return;
-    }
-    const content = markdownRef.current;
-    const stored = resource.content ?? '';
-    if (
-      !content ||
-      content === stored ||
-      content === persistedMentionContentRef.current
-    ) {
-      return;
-    }
-    const anchorSync = resource.content_hash ? getAnchorSync() : null;
-    const anchorsKnown =
-      !resource.content_hash ||
-      (anchorSync?.comment_anchors.length ?? 0) > 0 ||
-      (anchorSync?.orphaned_comment_thread_ids.length ?? 0) > 0 ||
-      resource.comment_threads !== undefined;
-    if (!anchorsKnown) {
-      return;
-    }
-    persistedMentionContentRef.current = content;
-    saveResourceMentionLabels(
-      namespaceId,
-      resource.id,
-      content,
-      resource.content_hash,
-      anchorSync
-    )
-      .then(delta => {
-        onResource(delta);
-      })
-      .catch(() => {
-        persistedMentionContentRef.current = null;
-      });
-  }, [
-    commentsLoading,
-    getAnchorSync,
-    namesById,
-    namespaceId,
-    onResource,
-    ready,
-    registeredEditor,
-    resource.comment_threads,
-    resource.content,
-    resource.content_hash,
-    resource.id,
-    resource.read_only,
-  ]);
 
   const handleTitleEnter = useCallback(() => {
     if (isFolder) {
@@ -345,7 +285,7 @@ export default function Editor(props: IEditorProps) {
 
   useEffect(() => {
     onTitle(cachedTitle);
-    if (ready && !dirtyRef.current) {
+    if (ready && !dirtyRef.current && !liveMentionLabelsRef.current) {
       markdownRef.current = resolvedContent;
     }
     onContentDirtyChange(hasCachedContentChange);

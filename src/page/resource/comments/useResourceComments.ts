@@ -65,6 +65,7 @@ interface UseResourceCommentsOptions {
   resource: CommentableResource;
   enabled: boolean;
   contentDirty?: boolean;
+  onMentionContent?: (content: string, contentHash: string) => void;
 }
 
 export function useResourceComments({
@@ -72,9 +73,12 @@ export function useResourceComments({
   resource,
   enabled,
   contentDirty = false,
+  onMentionContent,
 }: UseResourceCommentsOptions) {
   const resourceRef = useRef(resource);
   resourceRef.current = resource;
+  const onMentionContentRef = useRef(onMentionContent);
+  onMentionContentRef.current = onMentionContent;
   const editorRef = useRef<ResourceCommentEditor | null>(null);
   const [registeredEditor, setRegisteredEditor] =
     useState<ResourceCommentEditor | null>(null);
@@ -500,13 +504,20 @@ export function useResourceComments({
     }
     let ignore = false;
     syncCommentMentionLabels(namespaceId, resource.id)
-      .then(() => {
+      .then(result => {
         if (ignore) {
           return;
         }
         const names = JSON.parse(mentionNamesKey) as Record<string, string>;
         setThreads(current => rewriteThreadMentionLabels(current, names));
         setAnchorThreads(current => rewriteThreadMentionLabels(current, names));
+        if (
+          result.content &&
+          result.content_hash &&
+          result.content !== resourceRef.current.content
+        ) {
+          onMentionContentRef.current?.(result.content, result.content_hash);
+        }
       })
       .catch(() => undefined);
     return () => {

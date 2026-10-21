@@ -177,6 +177,13 @@ export default function Page(props: IProps) {
     enabled: commentsEnabled,
     // Block new anchored comments only while this edit has unsaved changes.
     contentDirty: editPage && contentDirty,
+    onMentionContent: (content, contentHash) => {
+      props.onResource?.({
+        ...resource,
+        content,
+        content_hash: contentHash,
+      });
+    },
   });
 
   return (
