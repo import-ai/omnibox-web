@@ -68,11 +68,13 @@ export function SettingsSidebar({
       hidden: true,
       icon: <FlaskConical className="size-4" />,
     },
-    ...extensions.map(extension => ({
-      value: `extension:${extension.id}`,
-      label: extension.label,
-      icon: extension.icon,
-    })),
+    ...extensions
+      .filter(extension => (extension.group ?? 'account') === 'account')
+      .map(extension => ({
+        value: `extension:${extension.id}`,
+        label: extension.label,
+        icon: extension.icon,
+      })),
   ];
 
   // Space section items
@@ -111,6 +113,13 @@ export function SettingsSidebar({
       value: 'apikey',
       icon: <KeyRound className="size-4" />,
     },
+    ...extensions
+      .filter(extension => extension.group === 'space')
+      .map(extension => ({
+        value: `extension:${extension.id}`,
+        label: extension.label,
+        icon: extension.icon,
+      })),
   ];
 
   // About section item

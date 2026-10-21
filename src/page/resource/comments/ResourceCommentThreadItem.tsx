@@ -16,6 +16,7 @@ interface ResourceCommentThreadItemProps {
   mode: 'thread' | 'all';
   orderedThreadIds?: string[];
   thread: ResourceCommentThread;
+  imageHighlighted?: boolean;
 }
 
 export function ResourceCommentThreadItem({
@@ -23,6 +24,7 @@ export function ResourceCommentThreadItem({
   mode,
   orderedThreadIds,
   thread,
+  imageHighlighted = false,
 }: ResourceCommentThreadItemProps) {
   const { t } = useTranslation();
   const [replying, setReplying] = useState(false);
@@ -152,6 +154,7 @@ export function ResourceCommentThreadItem({
       className="omnibox-comment-thread"
       data-thread-id={thread.id}
       data-selected={active || undefined}
+      data-image-highlighted={imageHighlighted || undefined}
       data-resolved={thread.resolved || undefined}
       data-editing={editingCommentId || undefined}
       data-submitting={controller.submitting || undefined}

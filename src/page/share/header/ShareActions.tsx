@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Switch } from '@/components/ui/Switch';
+import { usePublicSiteOrigin } from '@/hooks/publicSiteContext';
 import { cn } from '@/lib/utils';
 import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
@@ -45,6 +46,7 @@ export default function ShareActions({
   onWide,
 }: ShareActionsProps) {
   const { t } = useTranslation();
+  const publicSiteOrigin = usePublicSiteOrigin();
   const [open, setOpen] = useState(false);
   const menuTriggerPress = useMenuTriggerPress();
   const isFolderResource =
@@ -53,7 +55,9 @@ export default function ShareActions({
 
   const handleAction = (id: string) => {
     if (id === 'copy_link') {
-      const returnValue = copy(location.href);
+      if (!publicSiteOrigin) return;
+      const shareUrl = `${publicSiteOrigin}${location.pathname}${location.search}${location.hash}`;
+      const returnValue = copy(shareUrl);
       if (returnValue) {
         toast.success(t('actions.copy_link_success'), {
           position: 'bottom-right',
@@ -149,10 +153,16 @@ export default function ShareActions({
         <DropdownMenuItem
           className="cursor-pointer gap-2"
           onClick={() => handleAction('copy_link')}
+          disabled={!publicSiteOrigin}
         >
           <Link className="size-4 text-muted-foreground" />
           <span>{t('actions.copy_link')}</span>
         </DropdownMenuItem>
+        {!publicSiteOrigin && (
+          <p role="alert" className="px-2 py-1 text-xs text-destructive">
+            {t('share.share.url_unavailable')}
+          </p>
+        )}
         {resource.content && !isFolderResource && (
           <DropdownMenuItem
             className="cursor-pointer gap-2"

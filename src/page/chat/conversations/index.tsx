@@ -274,6 +274,12 @@ export default function ChatConversationsPage({
                                 align="start"
                                 sideOffset={10}
                                 {...menuTriggerPress.contentProps}
+                                onCloseAutoFocus={event => {
+                                  menuTriggerPress.contentProps.onCloseAutoFocus(
+                                    event
+                                  );
+                                  if (edit.open) event.preventDefault();
+                                }}
                               >
                                 <DropdownMenuItem
                                   className={menuItemClass}
@@ -401,6 +407,12 @@ export default function ChatConversationsPage({
                                 align="end"
                                 className="w-auto! min-w-36"
                                 {...menuTriggerPress.contentProps}
+                                onCloseAutoFocus={event => {
+                                  menuTriggerPress.contentProps.onCloseAutoFocus(
+                                    event
+                                  );
+                                  if (edit.open) event.preventDefault();
+                                }}
                               >
                                 <DropdownMenuItem
                                   className={menuItemClass}

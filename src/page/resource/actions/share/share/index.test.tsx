@@ -3,6 +3,7 @@
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { PublicSiteOriginContext } from '@/hooks/publicSiteContext';
 import { ResourceType } from '@/interface';
 import type { ResourceSortOptions } from '@/service/resource';
 
@@ -11,6 +12,7 @@ import { ShareTabContent } from '.';
 
 const mockGet = jest.fn();
 const mockPatch = jest.fn();
+const mockWriteText = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }: { i18nKey: string }) => i18nKey,
@@ -140,10 +142,94 @@ describe('ShareTabContent', () => {
     mockPatch.mockResolvedValue({ ...shareInfo, all_resources: true });
     container = document.createElement('div');
     root = createRoot(container);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: mockWriteText },
+    });
   });
 
   afterEach(async () => {
     await act(async () => root.unmount());
+  });
+
+  const renderWithOrigin = async (origin?: string | null) => {
+    await act(async () => {
+      root.render(
+        <PublicSiteOriginContext.Provider value={origin}>
+          <ShareTabContent
+            namespace_id="namespace-1"
+            resource_id="resource-1"
+            resourceType="doc"
+          />
+        </PublicSiteOriginContext.Provider>
+      );
+    });
+    const input = container.querySelector<HTMLInputElement>(
+      '[data-testid="share-url"]'
+    )!;
+    const sibling = input.nextElementSibling;
+    const copyButton = (
+      sibling instanceof HTMLButtonElement
+        ? sibling
+        : sibling?.querySelector('button')
+    ) as HTMLButtonElement;
+    return { input, copyButton };
+  };
+
+  it.each([
+    'https://test.omnibox.pro',
+    'https://pre.omnibox.pro',
+    'https://www.omnibox.pro',
+    'http://127.0.0.1:43123',
+  ])('displays and copies the host share URL for %s', async origin => {
+    const { input, copyButton } = await renderWithOrigin(origin);
+    expect(input.value).toBe(`${origin}/s/share-1`);
+    expect(copyButton.disabled).toBe(false);
+    await act(async () => copyButton.click());
+    expect(mockWriteText).toHaveBeenCalledWith(input.value);
+    expect(mockPatch).not.toHaveBeenCalled();
+  });
+
+  it('keeps the browser origin when no host origin is provided', async () => {
+    const { input, copyButton } = await renderWithOrigin();
+    expect(input.value).toBe(`${location.origin}/s/share-1`);
+    await act(async () => copyButton.click());
+    expect(mockWriteText).toHaveBeenCalledWith(input.value);
+  });
+
+  it.each([
+    null,
+    '',
+    'not a URL',
+    'omnibox://app',
+    'javascript:alert(1)',
+    'https://user:password@example.com',
+    'https://example.com/path',
+    'https://example.com?target=other',
+    'https://example.com#hash',
+  ])(
+    'blocks copying and explains an unavailable host origin: %s',
+    async origin => {
+      const { input, copyButton } = await renderWithOrigin(origin);
+      expect(input.value).toBe('');
+      expect(copyButton.disabled).toBe(true);
+      expect(container.querySelector('[role="alert"]')?.textContent).toContain(
+        'share.share.url_unavailable'
+      );
+      await act(async () => copyButton.click());
+      expect(mockWriteText).not.toHaveBeenCalled();
+      expect(mockPatch).not.toHaveBeenCalled();
+    }
+  );
+
+  it('does not expose a URL when sharing is off', async () => {
+    mockGet.mockResolvedValueOnce({ ...shareInfo, enabled: false });
+    const { input, copyButton } = await renderWithOrigin(
+      'https://test.omnibox.pro'
+    );
+    expect(input.value).toBe('');
+    expect(copyButton.disabled).toBe(true);
+    expect(container.querySelector('[role="alert"]')).toBeNull();
   });
 
   it.each<ResourceType>(['folder', 'smart_folder', 'rss_folder'])(

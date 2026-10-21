@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
+import { beginCodeBind } from './beginCodeBind';
 import { BindDialog } from './BindDialog';
 import { QRCodeBindDialog } from './QRCodeBindDialog';
 
@@ -161,21 +162,22 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
       }
 
       // Handle code-based binding (wechat_bot, qq_bot)
-      // Check if there's already a verify_code in progress
-      if (application.attrs?.key) {
-        // Use existing verify_code
-        setBindingCode(application.attrs.key);
-        setCurrentBindingApplication(application);
-        setBindDialogOpen(true);
-        showToast(t('applications.bind.continue'), 'success');
-      } else {
-        // Start new binding process
-        const response = await bindApplication(application.app_id);
-        setBindingCode(response.attrs?.key!);
-        setCurrentBindingApplication(response);
-        setBindDialogOpen(true);
-        showToast(t('applications.bind.initiated'), 'success');
+      const result = await beginCodeBind(application, bindApplication);
+      if (result.status === 'already_bound') {
+        setAlreadyBoundDialogOpen(true);
+        return;
       }
+      setBindingCode(result.code);
+      setCurrentBindingApplication(result.application);
+      setBindDialogOpen(true);
+      showToast(
+        t(
+          result.resumed
+            ? 'applications.bind.continue'
+            : 'applications.bind.initiated'
+        ),
+        'success'
+      );
     } catch {
       showToast(t('applications.bind.error'), 'error');
     } finally {

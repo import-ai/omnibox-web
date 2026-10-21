@@ -1,5 +1,5 @@
 import { Edit } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Button } from '@/components/Button';
 import Space from '@/components/space';
@@ -36,17 +36,17 @@ export default function HeaderTitle(props: IProps) {
   const onEditChange = (open: boolean) => {
     onEdit({ ...edit, open });
   };
-  const onEditTitle = () => {
+  const onEditTitle = useCallback(() => {
     onEdit({
       id: conversationId,
       title: data,
       open: true,
     });
-  };
+  }, [conversationId, data]);
 
   useEffect(() => {
     return app.on('chat:title:edit', onEditTitle);
-  }, []);
+  }, [app, onEditTitle]);
 
   useEffect(() => {
     if (edit.title && edit.title !== data) {

@@ -28,7 +28,18 @@ export default function editHistory(props: IProps) {
 
   return (
     <Dialog open={data.open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] sm:w-1/2 max-w-7xl sm:max-w-7xl p-4 sm:p-6">
+      <DialogContent
+        className="w-[90%] sm:w-1/2 max-w-7xl sm:max-w-7xl p-4 sm:p-6"
+        onOpenAutoFocus={event => {
+          const input = (
+            event.target as HTMLElement
+          ).querySelector<HTMLInputElement>('input[name="title"]');
+          if (!input) return;
+          event.preventDefault();
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }}
+      >
         <DialogHeader>
           <DialogTitle>
             {t('chat.conversations.rename.dialog.title')}

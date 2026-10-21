@@ -20,14 +20,17 @@ interface InviteActivityPanelProps {
   overview: InviteOverview;
   onInvite: () => void;
   onTask: (task: InviteTask) => void;
+  wechatBinding?: boolean;
 }
 
 function NewcomerTasks({
   overview,
   onTask,
+  wechatBinding = false,
 }: {
   overview: InviteOverview;
   onTask: (task: InviteTask) => void;
+  wechatBinding?: boolean;
 }) {
   const { t } = useTranslation();
   const tasks = overview.newcomer_tasks;
@@ -56,6 +59,8 @@ function NewcomerTasks({
           const completed = task.status === 'completed';
           const locked =
             !completed && task.task_code !== 'phone_bound' && !phoneBound;
+          const wechatBusy =
+            wechatBinding && task.action === 'wechat_assistant_binding';
           return (
             <div key={task.task_code}>
               {index > 0 ? <div className="mx-4 h-px bg-border" /> : null}
@@ -89,7 +94,7 @@ function NewcomerTasks({
                     locked &&
                       'border-border bg-background text-muted-foreground hover:bg-background hover:text-muted-foreground'
                   )}
-                  disabled={completed}
+                  disabled={completed || wechatBusy}
                   onClick={() => {
                     if (locked) {
                       toast.warning(t('inviteReferral.tasks.phoneRequired'), {
@@ -119,6 +124,7 @@ export function InviteActivityPanel({
   overview,
   onInvite,
   onTask,
+  wechatBinding = false,
 }: InviteActivityPanelProps) {
   const { t } = useTranslation();
   const rewardRules = overview.reward_rules ?? [];
@@ -129,7 +135,11 @@ export function InviteActivityPanel({
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-64 pt-6">
         <div className="flex flex-col gap-1">
           {overview.newcomer_tasks ? (
-            <NewcomerTasks overview={overview} onTask={onTask} />
+            <NewcomerTasks
+              overview={overview}
+              onTask={onTask}
+              wechatBinding={wechatBinding}
+            />
           ) : null}
           <div className="rounded-lg px-3 py-4">
             <h2 className="text-sm font-medium">

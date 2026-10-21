@@ -41,6 +41,7 @@ import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import type { ResourceCommentsController } from '../comments/useResourceComments';
 import { useResourceImagePreview } from '../useResourceImagePreview';
+import { useFocusNewFileTitle } from './focusNewFileTitle';
 import {
   type AutosizeTextAreaRef,
   normalizeTitleInput,
@@ -112,6 +113,7 @@ export default function Editor(props: IEditorProps) {
   );
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
   const titleRef = useRef<AutosizeTextAreaRef | null>(null);
+  useFocusNewFileTitle(titleRef);
   const navigate = useNavigate();
   const loc = useLocation();
   const { app, theme } = useTheme();

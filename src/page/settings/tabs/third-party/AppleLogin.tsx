@@ -62,12 +62,7 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
       setSdkLoaded(true);
     };
 
-    script.onerror = () => {
-      toast.error(t('login.apple_sdk_not_loaded'), {
-        position: 'bottom-right',
-      });
-    };
-
+    // A failed SDK preload leaves binding disabled without interrupting settings.
     document.body.appendChild(script);
 
     return () => {

@@ -74,7 +74,11 @@ function setup(editable = true, table = true) {
   });
   const host = document.body.appendChild(document.createElement('div'));
   const view = new EditorView(host, {
-    state: EditorState.create({ doc, plugins: [plugin, native] }),
+    state: EditorState.create({
+      doc,
+      selection: new AllSelection(doc),
+      plugins: [plugin, native],
+    }),
     editable: () => editable,
   });
   const image = host.querySelector('img')!;
@@ -114,8 +118,9 @@ test.each([
   [false, true],
   [false, false],
   [true, true],
+  [true, false],
 ])(
-  'opens a loaded image after native selection without changing content (editable=%s table=%s)',
+  'selects first and previews on the next click without changing content (editable=%s table=%s)',
   (editable, table) => {
     const s = setup(editable, table);
     try {
@@ -123,6 +128,9 @@ test.each([
       s.click();
       expect(s.view.state.selection).toBeInstanceOf(NodeSelection);
       expect(s.preview).not.toHaveBeenCalled();
+      jest.runAllTimers();
+      expect(s.preview).not.toHaveBeenCalled();
+      s.click();
       jest.runAllTimers();
       expect(s.preview).toHaveBeenCalledTimes(1);
       expect(s.preview).toHaveBeenCalledWith(s.image, s.view);
@@ -133,7 +141,7 @@ test.each([
   }
 );
 
-test('does not preview ordinary images while editing', () => {
+test('does not preview ordinary images on the first click while editing', () => {
   const s = setup(true, false);
   try {
     const before = s.view.state.doc.toJSON();
@@ -183,6 +191,7 @@ test.each(['deactivate', 'destroy', 'detach', 'selection', 'source'])(
     const s = setup();
     try {
       s.click();
+      s.click();
       if (change === 'deactivate') s.deactivate();
       if (change === 'destroy') s.view.destroy();
       if (change === 'detach') s.image.remove();
@@ -198,3 +207,44 @@ test.each(['deactivate', 'destroy', 'detach', 'selection', 'source'])(
     }
   }
 );
+
+test('does not mistake selection made during mousedown for a second click', () => {
+  const s = setup(false, false);
+  try {
+    const down = new MouseEvent('mousedown', { bubbles: true });
+    Object.defineProperty(down, 'target', { value: s.image });
+    s.view.someProp('handleDOMEvents', handlers =>
+      handlers.mousedown?.(s.view, down)
+    );
+    s.view.dispatch(
+      s.view.state.tr.setSelection(NodeSelection.create(s.view.state.doc, 0))
+    );
+    s.click();
+    jest.runAllTimers();
+    expect(s.preview).not.toHaveBeenCalled();
+    s.click();
+    jest.runAllTimers();
+    expect(s.preview).toHaveBeenCalledTimes(1);
+  } finally {
+    s.destroy();
+  }
+});
+
+test('previews when the second click is classified as a double click', () => {
+  const s = setup(false, false);
+  try {
+    s.click();
+    const down = new MouseEvent('mousedown', { bubbles: true });
+    Object.defineProperty(down, 'target', { value: s.image });
+    s.view.someProp('handleDOMEvents', handlers =>
+      handlers.mousedown?.(s.view, down)
+    );
+    s.view.someProp('handleDoubleClickOn', handler =>
+      handler(s.view, 0, s.view.state.doc.nodeAt(0)!, 0, down, true)
+    );
+    jest.runAllTimers();
+    expect(s.preview).toHaveBeenCalledTimes(1);
+  } finally {
+    s.destroy();
+  }
+});
