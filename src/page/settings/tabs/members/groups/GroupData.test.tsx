@@ -52,7 +52,7 @@ jest.mock('@/components/ui/Collapsible', () => ({
 jest.mock('@/components/ui/Switch', () => ({
   Switch: () => null,
 }));
-jest.mock('@/components/ui/AlertDialog', () => ({
+jest.mock('@/components/ui/alert-dialog', () => ({
   AlertDialog: ({ children }: { children?: ReactNode }) => children,
   AlertDialogAction: () => null,
   AlertDialogCancel: () => null,

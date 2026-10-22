@@ -11,7 +11,7 @@ export function UrlAttribute({ url }: UrlAttributeProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="grid min-w-0 grid-cols-[auto,minmax(0,1fr)] items-start gap-4">
+    <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-start gap-4">
       <div className={ATTRIBUTE_STYLES.containerLabel}>
         <Link className={`shrink-0 ${ATTRIBUTE_STYLES.icon}`} />
         <span className={ATTRIBUTE_STYLES.label}>

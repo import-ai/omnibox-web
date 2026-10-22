@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router-dom';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 import { removeGlobalCredential } from '@/page/user/util';
@@ -124,7 +124,7 @@ export default function OAuthAuthorizePage() {
         ) : (
           account && (
             <div className="grid w-full gap-3">
-              <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white dark:border-neutral-700 dark:bg-transparent p-4 text-left">
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-4 text-left">
                 <div
                   className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background"
                   aria-hidden
@@ -134,7 +134,9 @@ export default function OAuthAuthorizePage() {
                     .toUpperCase()}
                 </div>
                 <div className="min-w-0 text-sm">
-                  <p className="break-words font-medium">{account.username}</p>
+                  <p className="wrap-break-word font-medium">
+                    {account.username}
+                  </p>
                   <p className="break-all text-muted-foreground">
                     {account.email}
                   </p>

@@ -1,33 +1,42 @@
 /** @jest-environment jsdom */
 
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 const postcss = jest.requireActual<typeof import('postcss').default>('postcss');
-const tailwindcss =
-  jest.requireActual<typeof import('tailwindcss')>('tailwindcss');
-const loadConfig = jest.requireActual<typeof import('tailwindcss/loadConfig')>(
-  'tailwindcss/loadConfig'
-);
+function compileComments(candidates: string[] = []) {
+  // Compile in Node because jsdom lacks the modern APIs used by Tailwind 4.
+  const css = execFileSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      `
+    import { readFileSync } from 'node:fs';
+    import { resolve } from 'node:path';
+    import { compile } from '@tailwindcss/node';
+    const file = resolve('src/page/resource/comments/resourceComments.css');
+    const compiler = await compile(readFileSync(file, 'utf8') + '\\n@tailwind utilities;', {
+      base: resolve('src/page/resource/comments'), onDependency() {},
+    });
+    process.stdout.write(compiler.build(${JSON.stringify(candidates)}));
+  `,
+    ],
+    { encoding: 'utf8' }
+  );
+  return postcss.parse(css);
+}
 
 describe('compiled resource comment styles', () => {
   it('keeps the shared panel out of the document flow', async () => {
     const panel = document.createElement('div');
     panel.className = 'resource-comments-panel absolute';
-    const config = loadConfig(resolve('tailwind.config.js'));
-    const css = readFileSync(
-      'src/page/resource/comments/resourceComments.css',
-      'utf8'
-    );
-    const result = await postcss([
-      tailwindcss({
-        ...config,
-        content: [{ raw: panel.outerHTML, extension: 'html' }],
-      }),
-    ]).process(`@tailwind utilities;\n${css}`, { from: undefined });
+    const result = await compileComments(['absolute']);
     const positions: string[] = [];
-    result.root.walkRules(rule => {
-      if (panel.matches(rule.selector)) {
+    result.walkRules(rule => {
+      if (
+        rule.selector === '.absolute' ||
+        rule.selector === '.resource-comments-panel'
+      ) {
         rule.walkDecls('position', declaration => {
           positions.push(declaration.value);
         });
@@ -53,19 +62,17 @@ describe('compiled resource comment styles', () => {
     <div class="tiptap ProseMirror">
       <span class="resource-comment-draft-highlight">Selected text</span>
     </div>`;
-    const config = loadConfig(resolve('tailwind.config.js'));
-    const css = readFileSync(
-      'src/page/resource/comments/resourceComments.css',
-      'utf8'
-    );
-    const result = await postcss([
-      tailwindcss({
-        ...config,
-        content: [{ raw: fixture.outerHTML, extension: 'html' }],
-      }),
-    ]).process(css, { from: undefined });
+    const result = await compileComments();
     const style = document.createElement('style');
-    style.textContent = result.css;
+    // jsdom does not implement CSS nesting; these layout rules are top-level.
+    style.textContent = result.nodes
+      .filter(node => node.type === 'rule')
+      .map(node => {
+        const rule = node.clone();
+        rule.nodes = rule.nodes?.filter(child => child.type === 'decl');
+        return rule.toString();
+      })
+      .join('\n');
     document.head.append(style);
     document.body.append(fixture);
     try {

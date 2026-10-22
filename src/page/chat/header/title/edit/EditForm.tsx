@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import * as z from 'zod';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import {
   Form,
   FormControl,
@@ -12,7 +12,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { http } from '@/lib/request';
 
 const FormSchema = z.object({
@@ -80,9 +80,11 @@ export default function EditForm(props: IProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} loading={loading}>
-          {t('ok')}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={loading} loading={loading}>
+            {t('ok')}
+          </Button>
+        </div>
       </form>
     </Form>
   );

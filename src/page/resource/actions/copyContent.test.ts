@@ -9,7 +9,12 @@ jest.mock('copy-to-clipboard', () => ({
   __esModule: true,
   default: jest.fn(),
 }));
-jest.mock('sonner', () => ({ toast: jest.fn() }));
+jest.mock('sonner', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
+}));
 
 const mockedCopy = jest.mocked(copy);
 const mockedToast = jest.mocked(toast);
@@ -35,9 +40,12 @@ describe('copyContentToClipboard', () => {
 
     expect(writeText).toHaveBeenCalledWith('# RSS article');
     expect(mockedCopy).not.toHaveBeenCalled();
-    expect(mockedToast).toHaveBeenCalledWith('actions.copy_content_success', {
-      position: 'bottom-right',
-    });
+    expect(mockedToast.success).toHaveBeenCalledWith(
+      'actions.copy_content_success',
+      {
+        position: 'bottom-right',
+      }
+    );
   });
 
   it('falls back when the Clipboard API rejects', async () => {
@@ -54,18 +62,24 @@ describe('copyContentToClipboard', () => {
       '# RSS article',
       expect.objectContaining({ format: 'text/plain' })
     );
-    expect(mockedToast).toHaveBeenCalledWith('actions.copy_content_success', {
-      position: 'bottom-right',
-    });
+    expect(mockedToast.success).toHaveBeenCalledWith(
+      'actions.copy_content_success',
+      {
+        position: 'bottom-right',
+      }
+    );
   });
 
   it('shows a copy-specific message when content is empty', async () => {
     await copyContentToClipboard(null, t);
 
     expect(mockedCopy).not.toHaveBeenCalled();
-    expect(mockedToast).toHaveBeenCalledWith('actions.no_content_to_copy', {
-      position: 'bottom-right',
-    });
+    expect(mockedToast.error).toHaveBeenCalledWith(
+      'actions.no_content_to_copy',
+      {
+        position: 'bottom-right',
+      }
+    );
   });
 
   it('shows failure when neither clipboard method succeeds', async () => {
@@ -73,7 +87,7 @@ describe('copyContentToClipboard', () => {
 
     await copyContentToClipboard('# RSS article', t);
 
-    expect(mockedToast).toHaveBeenCalledWith('copy.fail', {
+    expect(mockedToast.error).toHaveBeenCalledWith('copy.fail', {
       position: 'bottom-right',
     });
   });

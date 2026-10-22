@@ -4,8 +4,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
-import { Button } from '@/components/ui/Button';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/Dialog';
+import { Button } from '@/components/Button';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/components/omnibox/Dialog';
 import {
   Form,
   FormControl,
@@ -13,7 +17,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/Switch';
 import { passwordSchema } from '@/lib/validationSchemas';
 

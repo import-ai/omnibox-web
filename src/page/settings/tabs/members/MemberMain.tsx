@@ -1,9 +1,17 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
 import Invite from '@/components/invite-dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import PermissionAction from '@/components/permission-action';
 import { SearchField } from '@/components/search/SearchField';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import UserCard from '@/components/user-card';
 import { Member, Role } from '@/interface';
 
@@ -51,34 +59,24 @@ export default function MemberMain(props: MemberProps) {
           onValueChange={onSearch}
           placeholder={t('manage.search')}
           clearLabel={t('search.clear')}
-          containerClassName="h-7 min-h-7 w-[150px] rounded-md border-border lg:h-9 lg:min-h-9 lg:w-[435px]"
-          inputClassName="h-7 lg:h-9"
+          containerClassName="w-full max-w-sm min-w-0 flex-1"
         />
         {canManageMembers && (
           <Invite onFinish={refetch}>
-            <Button
-              variant="default"
-              className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-            >
-              {t('manage.add')}
-            </Button>
+            <SettingPageButton>{t('manage.add')}</SettingPageButton>
           </Invite>
         )}
       </div>
-      <div className="max-w-[83vw] overflow-auto sm:max-w-full">
-        <div className="min-w-[320px]">
-          <div className="sticky top-0 z-10 flex w-full border-b border-border bg-background">
-            <div className="flex h-8 w-[120px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[210px] lg:text-base">
-              {t('manage.user')}
-            </div>
-            <div className="flex h-8 w-[90px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[124px] lg:text-base">
-              {t('manage.permission')}
-            </div>
-            <div className="flex h-8 w-[90px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[127px] lg:text-base">
-              {t('manage.role')}
-            </div>
-          </div>
-          <div className="w-full text-sm">
+      <div className="overflow-hidden rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('manage.user')}</TableHead>
+              <TableHead>{t('manage.permission')}</TableHead>
+              <TableHead>{t('manage.role')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {data.map(item => {
               // Check if current user can modify target based on role hierarchy
               const currentLevel = ROLE_LEVEL[currentUserRole ?? 'member'];
@@ -87,26 +85,25 @@ export default function MemberMain(props: MemberProps) {
                 currentUserRole === 'owner' || currentLevel < targetLevel;
 
               return (
-                <div
-                  key={item.user_id}
-                  className="group flex h-[50px] items-center border-b border-border lg:h-[60px]"
-                >
-                  <div className="flex w-[120px] min-w-0 items-center gap-1 px-2 lg:w-[210px]">
-                    <UserCard
-                      email={item.email || ''}
-                      username={item.username}
-                      nickname={item.nickname}
-                      note={item.note}
-                      you={item.user_id === uid}
-                    />
-                    <MemberDisplayEditor
-                      member={item}
-                      namespaceId={namespace_id}
-                      canEditNickname={item.user_id === uid}
-                      refetch={refetch}
-                    />
-                  </div>
-                  <div className="w-[90px] whitespace-nowrap px-2 lg:w-[124px]">
+                <TableRow key={item.user_id} className="group">
+                  <TableCell>
+                    <div className="flex min-w-0 items-center gap-1">
+                      <UserCard
+                        email={item.email || ''}
+                        username={item.username}
+                        nickname={item.nickname}
+                        note={item.note}
+                        you={item.user_id === uid}
+                      />
+                      <MemberDisplayEditor
+                        member={item}
+                        namespaceId={namespace_id}
+                        canEditNickname={item.user_id === uid}
+                        refetch={refetch}
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell>
                     <PermissionAction
                       disabled={!canManageMembers || !canModifyTarget}
                       value={item.permission}
@@ -116,8 +113,8 @@ export default function MemberMain(props: MemberProps) {
                       canRemove={false}
                       canNoAccess={true}
                     />
-                  </div>
-                  <div className="w-[90px] whitespace-nowrap px-2 lg:w-[127px]">
+                  </TableCell>
+                  <TableCell>
                     <Action
                       disabled={!canManageMembers}
                       id={item.user_id}
@@ -133,12 +130,22 @@ export default function MemberMain(props: MemberProps) {
                           .findIndex(i => i.role === 'owner') >= 0
                       }
                     />
-                  </div>
-                </div>
+                  </TableCell>
+                </TableRow>
               );
             })}
-          </div>
-        </div>
+            {data.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={3}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  {t('manage.no_results')}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

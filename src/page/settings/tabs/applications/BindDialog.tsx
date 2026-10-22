@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoUrl from '@/assets/logo.svg';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import CopyMain from '@/components/copy';
 import {
   Dialog,
@@ -11,7 +11,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { BIND_CHECK_INTERVAL } from '@/const';
 
 import { getQrCodeUrl } from './getQrCodeUrl';
@@ -109,7 +109,7 @@ export function BindDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-2xl sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{t('applications.bind.title')}</DialogTitle>
           <DialogDescription>
@@ -139,7 +139,7 @@ export function BindDialog({
                   <img
                     src={logoUrl}
                     alt="OmniBox Logo"
-                    className="size-12 rounded-lg bg-white p-1 shadow-sm"
+                    className="size-12 rounded-lg bg-white p-1 shadow-xs"
                   />
                 </div>
               </div>

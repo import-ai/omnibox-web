@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/Marker';
 import { Spinner } from '@/components/ui/Spinner';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
@@ -122,7 +122,7 @@ export function ConversationFooter({
 
   return (
     <div
-      className="relative z-20 flex min-h-0 max-h-full min-w-0 shrink-0 justify-center bg-white px-4 dark:bg-background"
+      className="relative z-20 flex min-h-0 max-h-full min-w-0 shrink-0 justify-center bg-background px-4"
       data-chat-composer
     >
       <div className="min-w-0 w-full max-w-3xl">

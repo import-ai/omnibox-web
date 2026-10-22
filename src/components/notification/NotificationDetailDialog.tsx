@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 import type { NotificationDetail } from './types';
 
@@ -21,9 +21,9 @@ export function NotificationDetailDialog({
 }: NotificationDetailDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
+      <DialogContent className="max-w-2xl sm:max-w-2xl border-border bg-popover">
         <DialogHeader>
-          <DialogTitle className="text-left text-neutral-950 dark:text-neutral-50">
+          <DialogTitle className="text-left text-foreground">
             {detail?.title}
           </DialogTitle>
         </DialogHeader>

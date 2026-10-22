@@ -37,10 +37,12 @@ export default function useAPIKeys(userId?: string, namespaceId?: string) {
   };
 
   const createAPIKey = (data: CreateAPIKeyDto) => {
-    return http.post('/api-keys', data).then((newKey: APIKey) => {
-      setAPIKeys(prev => [...prev, newKey]);
-      return newKey;
-    });
+    return http
+      .post('/api-keys', data, { mute: true })
+      .then((newKey: APIKey) => {
+        setAPIKeys(prev => [...prev, newKey]);
+        return newKey;
+      });
   };
 
   const updateAPIKey = (id: string, data: UpdateAPIKeyDto) => {
@@ -51,14 +53,16 @@ export default function useAPIKeys(userId?: string, namespaceId?: string) {
   };
 
   const patchAPIKey = (id: string, data: Partial<APIKeyAttrs>) => {
-    return http.patch(`/api-keys/${id}`, data).then((updatedKey: APIKey) => {
-      setAPIKeys(prev => prev.map(key => (key.id === id ? updatedKey : key)));
-      return updatedKey;
-    });
+    return http
+      .patch(`/api-keys/${id}`, data, { mute: true })
+      .then((updatedKey: APIKey) => {
+        setAPIKeys(prev => prev.map(key => (key.id === id ? updatedKey : key)));
+        return updatedKey;
+      });
   };
 
   const deleteAPIKey = (id: string) => {
-    return http.delete(`/api-keys/${id}`).then(() => {
+    return http.delete(`/api-keys/${id}`, { mute: true }).then(() => {
       setAPIKeys(prev => prev.filter(key => key.id !== id));
     });
   };

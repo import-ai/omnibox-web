@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { Arrow } from '@/assets/icons/Arrow';
+import { Button } from '@/components/Button';
 import { Checkbox } from '@/components/Checkbox';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -65,6 +65,7 @@ export function ResourceNodeContent({
   onBatchMove,
   onBatchCreate,
   onAddToChat,
+  renderChildren = true,
 }: ResourceNodeContentProps) {
   const { t } = useTranslation();
   const app = useApp();
@@ -303,15 +304,15 @@ export function ResourceNodeContent({
                 'group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent',
                 'flex items-center',
                 (isActive || isEditing) &&
-                  'hover:bg-[#E2E2E6] bg-[#E2E2E6] dark:bg-[#363637]',
+                  'bg-sidebar-accent text-sidebar-accent-foreground',
                 selectionMode && 'pl-2',
                 isSelectionHighlighted &&
-                  'bg-[#E2E2E6] dark:bg-[#363637] hover:bg-[#E2E2E6]',
+                  'bg-sidebar-accent text-sidebar-accent-foreground',
                 isFileDragOver &&
                   'bg-sidebar-accent text-sidebar-accent-foreground',
                 isInsideDrop &&
                   'bg-sidebar-accent text-sidebar-accent-foreground ring-2 ring-inset ring-blue-500',
-                isDisabledOver && 'cursor-not-allowed [&_*]:cursor-not-allowed'
+                isDisabledOver && 'cursor-not-allowed **:cursor-not-allowed'
               )}
             >
               {selectionMode && isSelectable && (
@@ -322,13 +323,13 @@ export function ResourceNodeContent({
                   checked={isFullySelected}
                 />
               )}
-              <Tooltip delayDuration={0}>
+              <Tooltip delayDuration={0} disableHoverableContent>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
                     className={cn(
-                      'h-auto gap-1 py-1.5 transition-none bg-transparent group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
-                      !selectionMode && 'group-hover/sidebar-item:!pr-[30px]',
+                      'h-(--sidebar-row-height) gap-1 py-0 transition-none bg-transparent group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:font-normal data-[active=true]:bg-transparent dark:data-[active=true]:bg-transparent hover:bg-transparent',
+                      !selectionMode && 'group-hover/sidebar-item:pr-[30px]!',
                       isDisabledOver && 'cursor-not-allowed'
                     )}
                     onClick={handleClick}
@@ -351,8 +352,8 @@ export function ResourceNodeContent({
                         (nodeUI?.loading ? (
                           <Button
                             size="icon"
-                            variant="outline"
-                            className="size-5 border-none bg-transparent shadow-none hover:bg-transparent"
+                            variant="ghost"
+                            className="size-5 cursor-pointer border-none bg-transparent shadow-none hover:bg-transparent dark:hover:bg-transparent"
                             onClick={event => {
                               event.preventDefault();
                               event.stopPropagation();
@@ -364,8 +365,8 @@ export function ResourceNodeContent({
                         ) : (
                           <Button
                             size="icon"
-                            variant="outline"
-                            className="size-5 border-none bg-transparent text-neutral-400 shadow-none hover:bg-transparent"
+                            variant="ghost"
+                            className="size-5 cursor-pointer border-none bg-transparent text-muted-foreground shadow-none hover:bg-transparent dark:hover:bg-transparent"
                             onClick={event => {
                               event.preventDefault();
                               event.stopPropagation();
@@ -403,7 +404,7 @@ export function ResourceNodeContent({
                           autoComplete="off"
                           onClick={e => e.stopPropagation()}
                           onDoubleClick={e => e.stopPropagation()}
-                          className="min-w-0 flex-1 bg-transparent text-sm caret-blue-500 outline-none"
+                          className="min-w-0 flex-1 bg-transparent text-sm caret-blue-500 outline-hidden"
                         />
                       ) : (
                         <span className="flex-1 truncate">
@@ -436,42 +437,44 @@ export function ResourceNodeContent({
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>
-        <CollapsibleContent>
-          <SidebarMenuSub className="m-0 translate-x-0 gap-0 border-0 p-0">
-            {isExpanded &&
-              node.hasChildren &&
-              node.children.length > 0 &&
-              node.children.map(childId => (
-                <ResourceNode
-                  nodeId={childId}
-                  key={childId}
-                  depth={depth + 1}
-                  hasTeamspace={hasTeamspace}
-                  currentNamespace={currentNamespace}
-                  onBatchDelete={onBatchDelete}
-                  onBatchMove={onBatchMove}
-                  onBatchCreate={onBatchCreate}
-                  onAddToChat={onAddToChat}
-                />
-              ))}
-            {/* A folder the backend fills — a smart folder or a feed — reads as
+        {renderChildren && (
+          <CollapsibleContent>
+            <SidebarMenuSub className="m-0 translate-x-0 gap-0 border-0 p-0">
+              {isExpanded &&
+                node.hasChildren &&
+                node.children.length > 0 &&
+                node.children.map(childId => (
+                  <ResourceNode
+                    nodeId={childId}
+                    key={childId}
+                    depth={depth + 1}
+                    hasTeamspace={hasTeamspace}
+                    currentNamespace={currentNamespace}
+                    onBatchDelete={onBatchDelete}
+                    onBatchMove={onBatchMove}
+                    onBatchCreate={onBatchCreate}
+                    onAddToChat={onAddToChat}
+                  />
+                ))}
+              {/* A folder the backend fills — a smart folder or a feed — reads as
                 broken when it expands to nothing, so it says so. An empty
                 plain folder is the user's own doing and stays silent. */}
-            {isExpanded &&
-              nodeUI?.loaded &&
-              !nodeUI.loading &&
-              isManagedChildrenNode(node) &&
-              (initialSyncLoading || initialSyncStatus === 'failed' ? (
-                <FolderEmptyState
-                  depth={depth + 1}
-                  loading={initialSyncLoading}
-                  failed={initialSyncStatus === 'failed'}
-                />
-              ) : node.children.length === 0 ? (
-                <FolderEmptyState depth={depth + 1} />
-              ) : null)}
-          </SidebarMenuSub>
-        </CollapsibleContent>
+              {isExpanded &&
+                nodeUI?.loaded &&
+                !nodeUI.loading &&
+                isManagedChildrenNode(node) &&
+                (initialSyncLoading || initialSyncStatus === 'failed' ? (
+                  <FolderEmptyState
+                    depth={depth + 1}
+                    loading={initialSyncLoading}
+                    failed={initialSyncStatus === 'failed'}
+                  />
+                ) : node.children.length === 0 ? (
+                  <FolderEmptyState depth={depth + 1} />
+                ) : null)}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        )}
       </Collapsible>
     </SidebarMenuItem>
   );

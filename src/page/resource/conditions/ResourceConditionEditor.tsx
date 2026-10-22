@@ -3,7 +3,8 @@ import type { ReactNode, RefObject } from 'react';
 import { Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { cn } from '@/lib/utils';
 
@@ -80,9 +81,7 @@ export function ResourceConditionEditor({
       >
         {conditions.map((condition, index) => (
           <Fragment key={index}>
-            {index > 0 && (
-              <div className="my-5 h-px bg-slate-100 dark:bg-neutral-800" />
-            )}
+            {index > 0 && <div className="my-5 h-px bg-border" />}
             <ResourceConditionRow
               index={index}
               condition={condition}
@@ -103,7 +102,10 @@ export function ResourceConditionEditor({
             <Button
               type="button"
               variant="ghost"
-              className="h-8 gap-1 px-0 text-sm font-normal hover:bg-transparent"
+              className={cn(
+                iconButtonHoverClassName,
+                'h-8 gap-1 px-0 text-sm font-normal'
+              )}
               onClick={() => onAddCondition(conditions.length - 1)}
               disabled={!canAddCondition}
             >

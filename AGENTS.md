@@ -28,7 +28,7 @@ pnpm exec jest src/page/chat/core/messageOperator.test.ts
 
 ## Architecture Overview
 
-This is a React 18 + TypeScript web application built with Vite, Tailwind CSS,
+This is a React 19 + TypeScript web application built with Vite, Tailwind CSS 4,
 shadcn-ui, React Router v7, and Zustand. The app is a collaborative workspace
 with chat, resource management, sharing, notifications, and user management.
 
@@ -159,6 +159,8 @@ installation. Keep this contract stable:
 
 ### UI Design
 
+Follow the workspace [Chinese copywriting guidelines](../../docs/chinese-copywriting-guidelines.md) for Chinese UI copy, including i18n strings and rendered interpolation boundaries. For standalone checkouts, use the [upstream reference](https://github.com/sparanoid/chinese-copywriting-guidelines/blob/master/README.zh-Hans.md). Optional conventions remain optional; preserve code, identifiers, and user-authored content.
+
 Read [DESIGN.md](DESIGN.md) before building or changing UI, especially settings
 tabs. It defines page headers, setting rows, controls, item cards, tables,
 status and time display, destructive confirmations, and copy rules.
@@ -174,11 +176,29 @@ status and time display, destructive confirmations, and copy rules.
 - `src/styles/` - Global third-party style patches
 - `src/i18n/` - Internationalization resources (`en`, `zh`)
 - Existing shadcn modules live under `src/components/ui/`
+- Do not edit files under `src/components/ui/**` for product changes. Only an
+  explicitly requested shadcn CLI upgrade may replace those primitives; put
+  product-specific visual overrides in `src/components/omnibox/**` wrappers or
+  at the call site.
 - When a reusable local UI module is missing, check https://ui.shadcn.com/llms.txt for available shadcn modules before building one from scratch.
-- shadcn config is in `components.json`: style `new-york`, `tsx: true`,
+- shadcn config is in `components.json`: style `radix-vega`, `tsx: true`,
   aliases `@/components`, `@/components/ui`, `@/lib`, `@/hooks`, icon library
   `lucide`.
-- Do not manually edit files under `src/components/ui/`; they are shadcn-ui components. Adjust behavior with wrappers or call-site overrides instead.
+- Use wrappers or call-site overrides for product styling. Refresh primitives from the
+  official `radix-vega` registry during explicit shadcn upgrades, preserving the
+  documented Sidebar resizing, Tooltip arrow, Form translation, and Toaster theme
+  integrations. Keep PascalCase filenames and Lucide icons.
+- Theme tokens and product utilities live in `src/index.css` with Tailwind 4
+  `@theme inline`; there is no JavaScript Tailwind configuration. Use full CSS
+  color values (`var(--popover)`), never `hsl(var(--popover))`.
+- Import Radix primitives from `radix-ui` so compound components share contexts.
+- Do not make a visible button a Radix `asChild` trigger for a dialog, alert
+  dialog, or popover. Those triggers set `aria-haspopup`, and the shared button
+  press style `active:not-aria-[haspopup]:translate-y-px` then skips the 1px
+  press movement. Open the overlay from the button `onClick` with controlled
+  `open` state instead. Tooltip triggers are exempt because the press movement
+  is not expected there.
+- Embedded hosts must resolve React and React DOM to the same React 19 installation.
 
 ### File Naming
 

@@ -13,15 +13,13 @@ describe('composer textarea layout', () => {
   it('uses one explicit wrapping contract for the textarea and overlay', () => {
     expect(composerTextLayoutClassName).toContain('box-border');
     expect(composerTextLayoutClassName).toContain('p-0');
-    expect(composerTextLayoutClassName).toContain(
-      '[padding-inline-end:0.25em]'
-    );
+    expect(composerTextLayoutClassName).toContain('pe-[0.25em]');
     expect(composerTextLayoutClassName).toContain('whitespace-pre-wrap');
-    expect(composerTextLayoutClassName).toContain('break-words');
+    expect(composerTextLayoutClassName).toContain('wrap-break-word');
     expect(composerTextLayoutClassName).toContain('text-base');
     expect(composerTextLayoutClassName).toContain('md:text-sm');
     expect(composerTextLayoutClassName).toContain('[font-weight:inherit]');
-    expect(composerTextLayoutClassName).toContain('[overflow-wrap:break-word]');
+    expect(composerTextLayoutClassName).toContain('wrap-break-word');
     expect(composerTextLayoutClassName).toContain('[word-break:normal]');
     expect(composerTextLayoutClassName).not.toContain('break-all');
   });

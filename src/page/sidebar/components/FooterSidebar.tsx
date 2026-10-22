@@ -6,8 +6,8 @@ import { CrownIcon } from '@/assets/icons/CrownIcon';
 import { UpgradeIcon } from '@/assets/icons/UpgradeIcon';
 import { WechatGroupQrCode } from '@/assets/icons/WechatGroupQrCode';
 import { Wechat } from '@/assets/icons/WechatStroke';
+import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { SidebarFooter } from '@/components/ui/Sidebar';
 import { DISCORD_LINK } from '@/const';
 import type { Namespace } from '@/interface';
@@ -72,13 +72,13 @@ export function FooterSidebar(props: IProps) {
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                size="sm"
-                className="size-8 px-0 text-neutral-400 hover:bg-[#E8E8EE] hover:text-neutral-400 dark:hover:bg-accent [&_svg]:size-5 [&_svg]:scale-[1.3]"
+                size="icon"
+                className="size-8 px-0 text-muted-foreground hover:bg-sidebar-accent hover:text-muted-foreground dark:hover:bg-accent [&_svg]:size-5! [&_svg]:scale-[1.3]"
               >
                 {item.icon}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="w-[178px] rounded-xl border-none px-[22px] pb-4 pt-[22px] shadow-sm">
+            <TooltipContent className="block w-[178px] rounded-xl border-none px-[22px] pb-4 pt-[22px] shadow-xs">
               <WechatGroupQrCode />
               <p className="mt-2 p-0 text-center">{t('footer.join')}</p>
             </TooltipContent>
@@ -90,12 +90,12 @@ export function FooterSidebar(props: IProps) {
                 href={`${item.value}${item.value === '/docs/' && i18n.language.includes('zh') ? 'zh-cn/' : ''}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="!text-neutral-400"
+                className="text-muted-foreground!"
               >
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="size-8 px-0 hover:bg-[#E8E8EE] hover:text-neutral-400 dark:hover:bg-accent [&_svg]:size-5"
+                  size="icon"
+                  className="size-8 px-0 hover:bg-sidebar-accent hover:text-muted-foreground dark:hover:bg-accent [&_svg]:size-5!"
                 >
                   {item.icon}
                 </Button>

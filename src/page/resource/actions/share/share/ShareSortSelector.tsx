@@ -1,13 +1,13 @@
 import { Check, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,7 +73,7 @@ export function ShareSortSelector({
         <span>{t('sidebar.sort.manual')}</span>
         <span className="flex size-4">
           {sort.sort_by === 'manual' && (
-            <Check className="size-4 text-blue-500" />
+            <Check className="size-4 text-blue-500! [&_path]:text-blue-500!" />
           )}
         </span>
       </span>
@@ -88,7 +88,7 @@ export function ShareSortSelector({
             <Button
               variant="outline"
               disabled={disabled}
-              className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-[#303030]"
+              className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-input/30"
             >
               <span className="truncate">
                 {selectedAutomaticOption
@@ -126,7 +126,9 @@ export function ShareSortSelector({
                   <span>{t(option.fieldKey)}</span>
                   <span>{t(option.orderKey)}</span>
                   <span className="flex size-4">
-                    {selected && <Check className="size-4 text-blue-500" />}
+                    {selected && (
+                      <Check className="size-4 text-blue-500! [&_path]:text-blue-500!" />
+                    )}
                   </span>
                 </span>
               </DropdownMenuItem>

@@ -1,8 +1,8 @@
-import * as DialogPrimitive from '@radix-ui/react-dialog';
+import { Dialog as DialogPrimitive } from 'radix-ui';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import {
   Dialog,
@@ -10,7 +10,7 @@ import {
   DialogOverlay,
   DialogPortal,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { cn } from '@/lib/utils';
 import { validateInviteCode } from '@/service/inviteReferral';
 
@@ -96,17 +96,17 @@ export function InviteCodeDialog({
         <DialogOverlay className="bg-black/50" />
         <DialogPrimitive.Content
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-[335px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 rounded-[18px] border-0 bg-[#FFFFFF] p-[18px] shadow-[0px_10px_14px_rgba(0,0,0,0.16)] outline-none dark:bg-popover',
+            'fixed left-1/2 top-1/2 z-50 w-[335px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 rounded-[18px] border-0 bg-popover p-[18px] shadow-[0px_10px_14px_rgba(0,0,0,0.16)] outline-hidden',
             'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]'
           )}
         >
           <div className="relative flex h-[22px] items-center">
-            <DialogTitle className="text-[18px] font-bold leading-normal tracking-normal text-[#14141A] dark:text-foreground">
+            <DialogTitle className="text-[18px] font-bold leading-normal tracking-normal text-foreground">
               {t('inviteReferral.code.title')}
             </DialogTitle>
             <button
               type="button"
-              className="absolute right-0 top-0 inline-flex size-[22px] items-center justify-center text-[#737373] hover:text-foreground"
+              className="absolute right-0 top-0 inline-flex size-[22px] items-center justify-center text-muted-foreground hover:text-foreground"
               aria-label={t('inviteReferral.common.close')}
               onClick={() => onOpenChange(false)}
             >
@@ -125,7 +125,7 @@ export function InviteCodeDialog({
               disabled={submitting}
               placeholder={t('inviteReferral.code.placeholder')}
               className={cn(
-                'h-10 rounded-lg border-[1.5px] border-[#F5F5F5] bg-[#FBFBFC] px-[14px] text-base leading-normal text-[#171717] shadow-none placeholder:text-[14px] placeholder:text-muted-foreground focus-visible:ring-0 dark:border-input dark:bg-background dark:text-foreground',
+                'h-10 rounded-lg border-[1.5px] border-input bg-background px-[14px] text-base leading-normal text-foreground shadow-none placeholder:text-[14px] placeholder:text-muted-foreground focus-visible:ring-0',
                 error && 'border-destructive'
               )}
               onChange={event => {
@@ -146,7 +146,7 @@ export function InviteCodeDialog({
               }}
             />
             {error ? (
-              <p className="mt-2 pl-[15px] text-[12px] leading-[19px] text-[#E52E33]">
+              <p className="mt-2 pl-[15px] text-[12px] leading-[19px] text-destructive">
                 {error}
               </p>
             ) : null}
@@ -154,7 +154,7 @@ export function InviteCodeDialog({
           <Button
             type="button"
             className={cn(
-              'h-10 w-full rounded-lg bg-[#09090A] text-[16px] font-medium leading-normal',
+              'h-10 w-full rounded-lg bg-primary text-[16px] font-medium leading-normal',
               error ? 'mt-2' : 'mt-[21px]'
             )}
             loading={submitting}

@@ -1,14 +1,15 @@
-import { Image, Pencil, Trash2, X } from 'lucide-react';
+import { Image, Pencil, Trash, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
 import { useAutosizeTextArea } from '@/components/autosize-textarea';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 import type { ResourceComment } from '@/interface';
 
+import { CommentMentionField } from './CommentMentionField';
 import { CommentMentionMenu } from './CommentMentionMenu';
 import { formatRelativeTime } from './formatRelativeTime';
 import { pasteCommentImage } from './pasteCommentImage';
@@ -217,7 +218,7 @@ export function ResourceCommentItem({
                           .catch(() => undefined);
                       }}
                     >
-                      <Trash2 aria-hidden="true" />
+                      <Trash aria-hidden="true" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -246,32 +247,40 @@ export function ResourceCommentItem({
               className="omnibox-comment-composer--edit__input"
               data-has-preview={editImages.length ? '' : undefined}
             >
-              <Textarea
-                ref={editInputRef}
-                className="border-line"
-                maxLength={10000}
-                rows={1}
-                value={mention.displayValue}
-                aria-busy={uploading}
-                {...mention.inputProps}
-                onPaste={event => pasteCommentImage(event, uploadImage)}
-                onKeyDown={event => {
-                  if (mention.onKeyDown(event)) {
-                    return;
-                  }
-                  if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
-                    return;
-                  }
-                  if (event.shiftKey) {
-                    return;
-                  }
-                  event.preventDefault();
-                  if (event.repeat) {
-                    return;
-                  }
-                  submitEdit().catch(() => undefined);
-                }}
-              />
+              <CommentMentionField
+                display={mention.displayValue}
+                atoms={mention.atoms}
+              >
+                <Textarea
+                  ref={editInputRef}
+                  className="border-line"
+                  maxLength={10000}
+                  rows={1}
+                  value={mention.displayValue}
+                  aria-busy={uploading}
+                  {...mention.inputProps}
+                  onPaste={event => pasteCommentImage(event, uploadImage)}
+                  onKeyDown={event => {
+                    if (mention.onKeyDown(event)) {
+                      return;
+                    }
+                    if (
+                      event.key !== 'Enter' ||
+                      event.nativeEvent.isComposing
+                    ) {
+                      return;
+                    }
+                    if (event.shiftKey) {
+                      return;
+                    }
+                    event.preventDefault();
+                    if (event.repeat) {
+                      return;
+                    }
+                    submitEdit().catch(() => undefined);
+                  }}
+                />
+              </CommentMentionField>
               <CommentMentionMenu spec={mention.menu} />
               {editImages.length ? (
                 <div className="omnibox-comment-composer--edit__preview">

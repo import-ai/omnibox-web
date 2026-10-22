@@ -138,7 +138,9 @@ export default function ThinkingLevelSelector({
                         </span>
                       )}
                     </span>
-                    {group === item && <Check className="size-4" />}
+                    {group === item && (
+                      <Check className="size-4 text-blue-500! [&_path]:text-blue-500!" />
+                    )}
                   </button>
                 );
                 if (!disabledReason) return <div key={item}>{button}</div>;
@@ -192,7 +194,7 @@ export default function ThinkingLevelSelector({
                       </button>
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="z-[60]">
+                  <TooltipContent side="top" className="z-60">
                     {t('chat.restore_default')}
                   </TooltipContent>
                 </Tooltip>
@@ -200,7 +202,7 @@ export default function ThinkingLevelSelector({
             </div>
             <div
               title={defaultSliderHint}
-              className="thinking-slider relative mx-1 h-6 rounded-full bg-black/10 dark:bg-white/10"
+              className="thinking-slider relative mx-1 h-6 rounded-full bg-accent"
             >
               <div
                 aria-hidden="true"
@@ -243,7 +245,7 @@ export default function ThinkingLevelSelector({
                     thinkingStep(visibleLevels[Number(event.target.value)])
                   )
                 }
-                className="relative block h-6 w-full cursor-pointer appearance-none rounded-full bg-transparent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-default"
+                className="relative block h-6 w-full cursor-pointer appearance-none rounded-full bg-transparent focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-default"
               />
             </div>
           </>

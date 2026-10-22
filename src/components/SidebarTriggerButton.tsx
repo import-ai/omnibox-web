@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -7,6 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/tooltip';
 import { SidebarTrigger, useSidebar } from '@/components/ui/Sidebar';
+import { cn } from '@/lib/utils';
 
 interface IProps {
   collapse: boolean;
@@ -26,7 +28,12 @@ export function SidebarTriggerButton({ collapse }: IProps) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <SidebarTrigger className="text-neutral-400 hover:bg-[#E6E6EC] hover:text-neutral-400 dark:hover:bg-accent" />
+          <SidebarTrigger
+            className={cn(
+              sidebarToolbarIconButtonClassName,
+              'size-7 [&_svg]:size-4'
+            )}
+          />
         </TooltipTrigger>
         <TooltipContent>
           {t(collapse ? 'sidebar.expand' : 'sidebar.collapse')}

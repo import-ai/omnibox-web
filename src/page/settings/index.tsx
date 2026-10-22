@@ -1,4 +1,4 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { VisuallyHidden } from 'radix-ui';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import useApp from '@/hooks/useApp';
 
 import SettingWrapper from './SettingWrapper';
@@ -59,13 +59,13 @@ export default function Setting() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex h-[85vh] max-h-[517px] w-[90vw] max-w-[858px] flex-col gap-0 overflow-hidden !rounded-[12px] border-0 p-0 sm:h-[80vh] sm:w-[85vw] lg:h-[517px] lg:w-[858px] [&>button]:hidden">
-        <VisuallyHidden>
+      <DialogContent className="flex h-[85vh] max-h-[517px] w-[90vw] max-w-[858px] sm:max-w-[858px] flex-col gap-0 overflow-hidden rounded-[12px]! border-0 p-0 sm:h-[80vh] sm:w-[85vw] lg:h-[517px] lg:w-[858px] [&>button]:hidden">
+        <VisuallyHidden.Root>
           <DialogHeader>
             <DialogTitle>{t('setting.preferences')}</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-        </VisuallyHidden>
+        </VisuallyHidden.Root>
         <SettingWrapper
           initialTab={initialTab}
           autoAction={autoAction}

@@ -30,8 +30,12 @@ function i18nMock(language: string): I18nType {
 const en = i18nMock('en');
 const zh = i18nMock('zh-CN');
 
-function item(id: string, created_at?: string): ConversationSummary {
-  return { id, title: id, created_at };
+function item(
+  id: string,
+  created_at?: string,
+  updated_at?: string
+): ConversationSummary {
+  return { id, title: id, created_at, updated_at };
 }
 
 describe('groupItemsByTimestamp', () => {
@@ -86,6 +90,40 @@ describe('groupItemsByTimestamp', () => {
 
     expect(groupItemsByTimestamp(items, zh).map(([key]) => key)).toEqual([
       '2026 年 9 月 1 日',
+    ]);
+  });
+
+  it('groups a conversation by its update time instead of its creation time', () => {
+    const items = [
+      item('updated-today', '2026-09-01T09:00:00', '2026-09-15T09:00:00'),
+    ];
+
+    expect(groupItemsByTimestamp(items, en).map(([key]) => key)).toEqual([
+      'date.today',
+    ]);
+  });
+
+  it('places a conversation from exactly seven days ago on its calendar day', () => {
+    const items = [item('seven-days', '2026-09-08T09:00:00')];
+
+    expect(groupItemsByTimestamp(items, en).map(([key]) => key)).toEqual([
+      'Sep 8, 2026',
+    ]);
+  });
+
+  it('uses the creation time when the update time is blank', () => {
+    const items = [item('created-yesterday', '2026-09-14T09:00:00', '')];
+
+    expect(groupItemsByTimestamp(items, en).map(([key]) => key)).toEqual([
+      'date.yesterday',
+    ]);
+  });
+
+  it('keeps an invalid update time out of the creation-time group', () => {
+    const items = [item('bad-update', '2026-09-15T09:00:00', 'not-a-date')];
+
+    expect(groupItemsByTimestamp(items, en).map(([key]) => key)).toEqual([
+      'date.earlier',
     ]);
   });
 

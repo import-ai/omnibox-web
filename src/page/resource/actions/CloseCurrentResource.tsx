@@ -37,7 +37,7 @@ export default function CloseCurrentResource({
 
   return (
     <DropdownMenuItem className="cursor-pointer gap-2" onClick={handleClose}>
-      <X className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+      <X className="size-4 text-muted-foreground" />
       <span>{t('resource.close_current')}</span>
     </DropdownMenuItem>
   );

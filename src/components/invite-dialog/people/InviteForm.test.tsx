@@ -34,7 +34,7 @@ jest.mock('@/components/ui/Form', () => {
     FormMessage: () => null,
   };
 });
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     loading,
@@ -46,6 +46,13 @@ jest.mock('@/components/button', () => ({
   ),
 }));
 jest.mock('@/components/ui/Select', () => ({
+  Select: () => null,
+  SelectTrigger: () => null,
+  SelectValue: () => null,
+  SelectContent: () => null,
+  SelectItem: () => null,
+}));
+jest.mock('@/components/omnibox/Select', () => ({
   Select: ({
     children,
     value,

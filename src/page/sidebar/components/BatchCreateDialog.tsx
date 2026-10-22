@@ -2,16 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
-import { ResourceSelect } from '@/components/resourceSelect';
-import { Button } from '@/components/ui/Button';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
+import { ResourceSelect } from '@/components/resourceSelect';
 import { Label } from '@/components/ui/Label';
 import { useSidebarStore } from '@/page/sidebar/store';
 import {
@@ -83,7 +83,7 @@ export function BatchCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-popover dark:bg-neutral-900 w-[480px] max-w-[90%]">
+      <DialogContent className="bg-popover w-[480px] max-w-[90%] sm:max-w-[90%]">
         <DialogHeader>
           <DialogTitle>{t('batch.create_tooltip')}</DialogTitle>
         </DialogHeader>

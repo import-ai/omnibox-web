@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
-import { Input } from '@/components/ui/Input';
+} from '@/components/omnibox/Dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 
 interface FolderNameDialogProps {

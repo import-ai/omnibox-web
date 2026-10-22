@@ -16,8 +16,8 @@ jest.mock('react', () => {
   return { ...react, default: react };
 });
 
-jest.mock('@/components/button', () =>
-  jest.requireActual('@/components/ui/Button')
+jest.mock('@/components/Button', () =>
+  jest.requireActual('@/components/ui/button')
 );
 jest.mock('@import-ai/omnibox-editor', () => ({
   findResourceCommentRange: jest.fn(),

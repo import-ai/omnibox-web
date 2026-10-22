@@ -28,6 +28,14 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+Object.assign(globalThis, {
+  ResizeObserver: jest.fn(() => ({
+    observe: jest.fn(),
+    disconnect: jest.fn(),
+    unobserve: jest.fn(),
+  })),
+});
+
 describe('HeaderTitle rename', () => {
   let container: HTMLDivElement;
   let root: Root;

@@ -70,7 +70,7 @@ export default function PaginationMain({
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            previousText={t('pagination.prev')}
+            text={t('pagination.prev')}
             onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
             className={cn('text-black dark:text-white', {
               'pointer-events-none opacity-50': currentPage <= 1,
@@ -83,7 +83,7 @@ export default function PaginationMain({
             {pageNumber === '...' ? (
               <PaginationEllipsis
                 className="text-black dark:text-white"
-                more_pages={t('pagination.more_pages')}
+                title={t('pagination.more_pages')}
               />
             ) : (
               <PaginationLink
@@ -104,7 +104,7 @@ export default function PaginationMain({
         ))}
         <PaginationItem>
           <PaginationNext
-            nextText={t('pagination.next')}
+            text={t('pagination.next')}
             onClick={() =>
               currentPage < totalPages && handlePageChange(currentPage + 1)
             }
