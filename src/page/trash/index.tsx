@@ -109,6 +109,7 @@ export function TrashPanel() {
     permanentlyDelete,
     emptyTrash,
     fetchTrash,
+    refresh,
     trashRetentionDays,
   } = useTrash();
 
@@ -117,12 +118,13 @@ export function TrashPanel() {
     fetchTrash('', 0, false);
   }, [fetchTrash]);
 
-  // Fetch trash when popover opens (for refresh)
+  // Refresh the open list with the current keyword. An empty fetch here would
+  // race a search request and put non-matching items back.
   useEffect(() => {
     if (open) {
-      fetchTrash('', 0, false);
+      refresh();
     }
-  }, [open, fetchTrash]);
+  }, [open, refresh]);
 
   // Disable scrolling of the entire page when opening the trash can
   useEffect(() => {
@@ -151,13 +153,6 @@ export function TrashPanel() {
       document.removeEventListener('touchmove', preventScroll);
     };
   }, [open]);
-
-  // Update to monitor sidebar deletion operations
-  useEffect(() => {
-    return app.on('trash_updated', () => {
-      fetchTrash('', 0, false);
-    });
-  }, [app, fetchTrash]);
 
   const handleSystemToggle = useCallback(() => {
     setSystemOpen(current => {
