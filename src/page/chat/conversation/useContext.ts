@@ -14,6 +14,11 @@ import {
 } from '@/page/chat/chat-input/types';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import {
+  type PendingDecision,
+  sendRejectingPending,
+  type SendTurnOutcome,
+} from '@/page/chat/conversation/pendingDecisionSend';
+import {
   resolveConversationImages,
   withUploadedImageParts,
 } from '@/page/chat/conversation/uploadConversationImages';
@@ -54,8 +59,77 @@ import {
 import useConversationBootstrap, {
   CHAT_CREATE_PAYLOAD_KEY,
 } from './useConversationBootstrap';
-import useConversationHistory from './useConversationHistory';
+import useConversationHistory, {
+  type LatestMessage,
+  latestMessageOf,
+} from './useConversationHistory';
 import useScopedConversationState from './useScopedConversationState';
+
+// A message the server never accepted keeps its client request ID as its ID.
+function isLocalMessage(message: MessageDetail | undefined) {
+  return Boolean(message && message.attrs?.client_request_id === message.id);
+}
+
+function isQuestion(message: LatestMessage) {
+  return message.role === OpenAIMessageRole.USER && !message.decisions.length;
+}
+
+// Where a new question continues from the newest message of the branch. A
+// user message is never its parent: the server would take the new question as
+// a retry of that message.
+function continuationOf(leaf: LatestMessage | undefined): {
+  leafId?: string;
+  pending?: PendingDecision;
+} {
+  if (!leaf) return {};
+  if (leaf.interrupts.length)
+    return {
+      leafId: leaf.id,
+      pending: { messageId: leaf.id, count: leaf.interrupts.length },
+    };
+  // A decision the server accepted but never applied (no tool result): send
+  // it again under itself; the server reuses it and produces the results.
+  if (leaf.role === OpenAIMessageRole.USER && leaf.decisions.length)
+    return {
+      leafId: leaf.id,
+      pending: { messageId: leaf.id, count: leaf.decisions.length },
+    };
+  // The same when the resume failed: the server wrote the decision and an
+  // empty, unfinished assistant message under it, but no tool results. A
+  // question under that message would leave the rejected call unanswered.
+  if (
+    leaf.role === OpenAIMessageRole.ASSISTANT &&
+    leaf.status !== MessageStatus.SUCCESS &&
+    !leaf.hasContent &&
+    !leaf.interrupts.length &&
+    leaf.parent?.role === OpenAIMessageRole.USER &&
+    leaf.parent.decisions.length
+  )
+    return {
+      leafId: leaf.parent.id,
+      pending: {
+        messageId: leaf.parent.id,
+        count: leaf.parent.decisions.length,
+      },
+    };
+  // A question whose reply never came: ask beside it.
+  if (leaf.role === OpenAIMessageRole.USER) return { leafId: leaf.parentId };
+  return { leafId: leaf.id };
+}
+
+function lastServerMessage(messages: MessageDetail[]) {
+  return [...messages].reverse().find(message => !isLocalMessage(message));
+}
+
+function serverAncestorId(
+  conversation: { mapping: Record<string, MessageDetail> },
+  id: string | undefined
+) {
+  let current = id;
+  while (current && isLocalMessage(conversation.mapping[current]))
+    current = conversation.mapping[current].parent_id;
+  return current;
+}
 
 export default function useContext() {
   const app = useApp();
@@ -67,6 +141,8 @@ export default function useContext() {
     detachStreamRef.current = null;
   }, []);
   const regeneratingRef = useRef(false);
+  // Set while a typed message first rejects a pending decision.
+  const rejectPhaseRef = useRef<{ rejecting: boolean; stopped: boolean }>(null);
   const uploadRetries = useRef(new Map<string, () => Promise<void>>());
   const { conversationId, namespaceId } = useChatRouteParams();
   const { resource_id: routeResourceId } = useParams();
@@ -130,11 +206,14 @@ export default function useContext() {
     };
   }, [conversation, setConversation, history.activateBranch]);
 
-  const sendMessage = async (
+  const sendTurn = async (
     params: SendMessageParams,
-    retryId?: string,
-    retryParentId?: string
-  ) => {
+    parentMessageId: string | undefined,
+    {
+      retryId,
+      deferPendingInterrupt = false,
+    }: { retryId?: string; deferPendingInterrupt?: boolean } = {}
+  ): Promise<SendTurnOutcome | undefined> => {
     const {
       query,
       tools,
@@ -175,7 +254,6 @@ export default function useContext() {
           conversation: provisional,
         });
       }
-      const parentMessageId = retryId ? retryParentId : messages.at(-1)?.id;
       const pendingId = beginPendingQuery(
         messageOperator,
         v,
@@ -183,19 +261,25 @@ export default function useContext() {
         {
           composer: displayParts ? { display_parts: displayParts } : undefined,
           tool_call: decisions ? { decisions, status: 'pending' } : undefined,
+          // Kept on the local message so sending it again keeps the strength.
+          edition,
+          level,
         },
         retryId
       );
-      uploadRetries.current.set(pendingId, () =>
-        sendMessage(params, pendingId, parentMessageId)
-      );
+      uploadRetries.current.set(pendingId, async () => {
+        await sendTurn(params, parentMessageId, { retryId: pendingId });
+      });
       let askFN: ReturnType<typeof ask> | undefined;
+      let uploadedImages: Awaited<
+        ReturnType<typeof resolveConversationImages>
+      > = [];
       try {
         if (v) {
           setWaitingForAssistantDelta(true);
         }
         setLoading(true);
-        const uploadedImages = await resolveConversationImages(
+        uploadedImages = await resolveConversationImages(
           namespaceId,
           conversationId,
           images
@@ -224,7 +308,17 @@ export default function useContext() {
           uploadedImages,
           pendingId,
           edition,
-          level
+          level,
+          {
+            deferPendingInterrupt,
+            reportAlreadyDecided: true,
+            // A new question continues from the newest message once any
+            // running reply finished; edits and retries keep their parent.
+            followLatest: !decisions?.length && !retryId,
+            onReparented: parentId => {
+              void history.mergeBranch(parentId).catch(() => undefined);
+            },
+          }
         );
         askAbortRef.current = askFN.cancel;
         detachStreamRef.current = askFN.destroy;
@@ -259,6 +353,119 @@ export default function useContext() {
           void history.refreshHistory().catch(() => undefined);
         }
       }
+      return askFN
+        ? { ...askFN.outcome, images: uploadedImages }
+        : { failed: true, requestId: pendingId };
+    }
+    return undefined;
+  };
+
+  // Removes the local message of a request the server refused before
+  // accepting it, so the retry does not leave a stray branch behind.
+  const discardLocalMessage = (id: string | undefined) => {
+    if (!id) return;
+    uploadRetries.current.delete(id);
+    setConversation(prev => {
+      const message = prev.mapping[id];
+      if (!message) return prev;
+      const mapping = { ...prev.mapping };
+      delete mapping[id];
+      const parent = message.parent_id ? mapping[message.parent_id] : undefined;
+      if (parent) {
+        mapping[parent.id] = {
+          ...parent,
+          children: parent.children.filter(child => child !== id),
+        };
+      }
+      return {
+        ...prev,
+        mapping,
+        current_node:
+          prev.current_node === id
+            ? message.parent_id || undefined
+            : prev.current_node,
+      };
+    });
+  };
+
+  // The interrupt was decided in another client after this page showed it:
+  // drop the local decision, say so, and show what the server has now.
+  const syncAfterDecidedElsewhere = async (
+    outcome: SendTurnOutcome,
+    nodeId: string
+  ) => {
+    discardLocalMessage(outcome.requestId);
+    toast.info(i18n.t('chat.decision.already_decided'));
+    return await history.syncBelow(nodeId).catch(() => undefined);
+  };
+
+  const sendMessage = async (
+    params: SendMessageParams,
+    retryId?: string,
+    retryParentId?: string
+  ) => {
+    if (retryId || params.decisions?.length) {
+      const parentId = retryId ? retryParentId : messages.at(-1)?.id;
+      const outcome = await sendTurn(params, parentId, { retryId });
+      if (outcome?.alreadyDecided && parentId)
+        await syncAfterDecidedElsewhere(outcome, parentId);
+      return;
+    }
+    // A failed local message is not a place to continue from.
+    const base = lastServerMessage(messages);
+    let leaf = latestMessageOf(base, conversation.mapping);
+    if (base) {
+      const latest = await history.latestBelow(base.id).catch(() => undefined);
+      // A question another client is still answering is neither shown nor
+      // replied to: the view stays here, and the server waits for that reply
+      // and continues from it (follow_latest); the user message's bos then
+      // brings in the final branch (mergeBranch).
+      if (
+        latest &&
+        !(isQuestion(latest.message) && latest.message.id !== base.id)
+      ) {
+        latest.adopt();
+        leaf = latest.message;
+      }
+    }
+    const { leafId, pending } = continuationOf(leaf);
+    const interruptedTurn = [...messages]
+      .reverse()
+      .find(message => message.message.role === OpenAIMessageRole.USER)?.attrs;
+    const phase = { rejecting: false, stopped: false };
+    rejectPhaseRef.current = phase;
+    try {
+      await sendRejectingPending({
+        params,
+        leafId,
+        pending,
+        send: async (turnParams, parentId, options) => {
+          phase.rejecting = Boolean(turnParams.decisions?.length);
+          try {
+            return await sendTurn(turnParams, parentId, options);
+          } finally {
+            phase.rejecting = false;
+          }
+        },
+        discard: outcome => discardLocalMessage(outcome.requestId),
+        abandon: (outcome, stopped, nodeId) => {
+          // Accepted decisions were renamed to their server ID.
+          discardLocalMessage(outcome?.requestId);
+          discardLocalMessage(outcome?.acceptedMessageId);
+          if (!stopped) toast.error(i18n.t('chat.decision.reject_failed'));
+          // The rejection may have reached the server even though this page
+          // saw an error; sync from the interrupted message to find out.
+          void history.syncBelow(nodeId).catch(() => undefined);
+        },
+        alreadyDecided: syncAfterDecidedElsewhere,
+        isStopped: () => phase.stopped,
+        decisionSettings:
+          interruptedTurn?.edition && interruptedTurn.level
+            ? { edition: interruptedTurn.edition, level: interruptedTurn.level }
+            : {},
+      });
+    } finally {
+      if (rejectPhaseRef.current === phase) rejectPhaseRef.current = null;
     }
   };
 
@@ -361,7 +568,10 @@ export default function useContext() {
   const onEdit = async (messageId: string, newContent: string) => {
     const retryUpload = uploadRetries.current.get(messageId);
     if (retryUpload) return retryUpload();
-    const parentId = conversation.mapping[messageId].parent_id;
+    const parentId = serverAncestorId(
+      conversation,
+      conversation.mapping[messageId].parent_id
+    );
     const editedMessage = conversation.mapping[messageId];
 
     const {
@@ -417,6 +627,13 @@ export default function useContext() {
   };
 
   const onStop = async () => {
+    // The rejection before a typed message is short and never calls the
+    // model; let it finish so the conversation does not end at a half-applied
+    // decision, and only drop the typed message.
+    if (rejectPhaseRef.current?.rejecting) {
+      rejectPhaseRef.current.stopped = true;
+      return;
+    }
     const cancel = askAbortRef.current;
     askAbortRef.current = null;
     await stopStream({

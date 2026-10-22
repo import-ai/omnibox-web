@@ -6,6 +6,33 @@ import {
   type StickyFolderBounds,
 } from '../stickyFolder';
 import { useSidebarStore } from '../store';
+import {
+  getVirtualFolderSpans,
+  getVirtualRowIndex,
+  subscribeVirtualFolderSpans,
+} from '../virtualFolderSpans';
+import { RESOURCE_ROW_HEIGHT } from '../virtualResourceTree';
+
+function scrollVirtualRowIntoView(
+  scroller: HTMLElement,
+  id: string,
+  position: (element: HTMLElement) => number
+) {
+  for (const list of scroller.querySelectorAll<HTMLElement>(
+    '[data-virtual-resource-list]'
+  )) {
+    const listId = list.dataset.virtualResourceList;
+    if (!listId) continue;
+    const index = getVirtualRowIndex(listId, id);
+    if (index === undefined) continue;
+    scroller.scrollTop = Math.max(
+      0,
+      position(list) + index * RESOURCE_ROW_HEIGHT - STICKY_FOLDER_HEIGHT
+    );
+    return true;
+  }
+  return false;
+}
 
 export function useStickyFolder(
   scrollRef: RefObject<HTMLDivElement | null>,
@@ -48,8 +75,14 @@ export function useStickyFolder(
           row.querySelector<HTMLButtonElement>('button')?.focus({
             preventScroll: true,
           });
+          pendingAnchor = null;
+        } else {
+          const previousTop = scroller.scrollTop;
+          const revealed = scrollVirtualRowIntoView(scroller, id, position);
+          if (!revealed || scroller.scrollTop === previousTop) {
+            pendingAnchor = null;
+          }
         }
-        pendingAnchor = null;
         dirty = true;
       }
       if (dirty) {
@@ -60,6 +93,7 @@ export function useStickyFolder(
           .forEach(element => {
             const id = element.dataset.resourceTreeId!;
             const node = state.nodes[id];
+            if (element.closest('[data-virtual-resource-list]')) return;
             if (!node || !state.ui[id]?.expanded || !node.hasChildren) return;
             const row = getRow(id);
             if (!row || !row.getClientRects().length) return;
@@ -70,6 +104,21 @@ export function useStickyFolder(
                 position(element) + element.getBoundingClientRect().height,
               depth: Number(element.dataset.resourceDepth || 0),
             });
+          });
+        scroller
+          .querySelectorAll<HTMLElement>('[data-virtual-resource-list]')
+          .forEach(list => {
+            const listId = list.dataset.virtualResourceList;
+            if (!listId) return;
+            const listTop = position(list);
+            for (const span of getVirtualFolderSpans(listId)) {
+              bounds.push({
+                id: span.id,
+                depth: span.depth,
+                top: listTop + span.start * RESOURCE_ROW_HEIGHT,
+                bottom: listTop + span.end * RESOURCE_ROW_HEIGHT,
+              });
+            }
           });
         dirty = false;
       }
@@ -98,6 +147,7 @@ export function useStickyFolder(
       invalidate();
     });
     mutations.observe(scroller, { childList: true, subtree: true });
+    const unsubscribeSpans = subscribeVirtualFolderSpans(invalidate);
     const unsubscribe = useSidebarStore.subscribe((state, previous) => {
       if (
         state.nodes !== previous.nodes ||
@@ -118,6 +168,7 @@ export function useStickyFolder(
       mutations.disconnect();
       resize.disconnect();
       unsubscribe();
+      unsubscribeSpans();
       scroller.removeEventListener('scroll', schedule);
       locateRef.current = () => {};
     };

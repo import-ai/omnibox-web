@@ -962,3 +962,59 @@
 .resource-comments-panel .omnibox-comment-draft-image {
   @apply block min-h-0 min-w-0 cursor-zoom-in rounded border-0 bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring;
 }
+
+.omnibox-comment-mention-field {
+  position: relative;
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+
+.omnibox-comment-surface .omnibox-comment-mention-field {
+  background: #fff;
+  border-radius: 0.375rem;
+}
+
+.dark .omnibox-comment-surface .omnibox-comment-mention-field {
+  background: transparent;
+}
+
+.omnibox-comment-mention-field__mirror {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: hsl(var(--foreground));
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.omnibox-comment-mention-field > textarea {
+  color: transparent !important;
+  caret-color: hsl(var(--foreground));
+  background-color: transparent !important;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.omnibox-comment-mention-field.is-composing > textarea {
+  color: hsl(var(--foreground)) !important;
+}
+
+.omnibox-comment-mention-field.is-composing
+  .omnibox-comment-mention-field__mirror {
+  visibility: hidden;
+}
+
+.omnibox-comment-mention-field > textarea::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 1;
+}
+
+.omnibox-comment-mention {
+  color: var(--tt-brand-color-500, #0090ff);
+}
+
+.omnibox-comment-mention[data-mention-active] {
+  cursor: pointer;
+}

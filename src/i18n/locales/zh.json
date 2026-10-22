@@ -199,6 +199,7 @@
     "save_before_commenting": "请先保存正文修改，再发起新的划线评论。",
     "no_resolved_threads": "暂无已解决的评论",
     "no_open_threads": "暂无未解决的评论",
+    "mention_members": "提及成员",
     "load_more": "加载更多"
   },
   "folder": {
@@ -831,7 +832,13 @@
         }
       },
       "user_context": {
-        "selected_resources": "选择了 {{count}} 个资源"
+        "selected_resources": "选择了 {{count}} 个资源",
+        "channel": {
+          "qq": "来自 QQ",
+          "wechat": "来自微信",
+          "wechat_clawbot": "来自微信 ClawBot",
+          "telegram": "来自 Telegram"
+        }
       },
       "tool_calls": {
         "function_name": {
@@ -1002,6 +1009,8 @@
       "selected": "已选择",
       "approve_all": "全部同意",
       "reject_all": "全部拒绝",
+      "reject_failed": "未能拒绝待确认的操作，消息没有发送。",
+      "already_decided": "这个审批已经在别处处理过了。",
       "mode": {
         "manual": "手动确认",
         "auto_approve": "自动同意",

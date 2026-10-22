@@ -1,4 +1,7 @@
-import { resolveMentionLabels } from './mentionLabels';
+import {
+  resolveMentionLabels,
+  rewriteThreadMentionLabels,
+} from './mentionLabels';
 
 const names = { u1: 'Lizhi（Alice）', u2: 'Bob' };
 
@@ -51,5 +54,24 @@ describe('resolveMentionLabels', () => {
     const markdown = 'Hello [@ id="u2" label="Bob"]';
     expect(resolveMentionLabels(markdown, names)).toBe(markdown);
     expect(resolveMentionLabels(markdown, {})).toBe(markdown);
+  });
+});
+
+describe('rewriteThreadMentionLabels', () => {
+  it('stores the current name and leaves a departed member on the shortcode label', () => {
+    const threads = [
+      {
+        comments: [
+          {
+            content: '[@ id="u1" label="Old"] [@ id="gone" label="Kept"]',
+          },
+        ],
+      },
+    ];
+    const next = rewriteThreadMentionLabels(threads, { u1: 'New' });
+    expect(next[0].comments[0].content).toBe(
+      '[@ id="u1" label="New"] [@ id="gone" label="Kept"]'
+    );
+    expect(rewriteThreadMentionLabels(next, { u1: 'New' })).toBe(next);
   });
 });

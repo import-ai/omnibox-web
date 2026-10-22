@@ -12,6 +12,7 @@ export default function ResourceNode({
   onBatchMove,
   onBatchCreate,
   onAddToChat,
+  renderChildren = true,
 }: ResourceNodeProps) {
   const node = useNode(nodeId);
   if (!node) return null;
@@ -20,6 +21,7 @@ export default function ResourceNode({
       node={node}
       nodeId={nodeId}
       depth={depth}
+      renderChildren={renderChildren}
       hasTeamspace={hasTeamspace}
       currentNamespace={currentNamespace}
       onBatchDelete={onBatchDelete}

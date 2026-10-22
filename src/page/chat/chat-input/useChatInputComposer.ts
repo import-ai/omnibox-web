@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 
 import type { ResourceMeta } from '@/interface';
 
+import type { ComposerState } from './composerState';
 import { syncOverlayScroll } from './composerTextarea';
 import type { ChatMessageDisplayPart } from './types';
 import { ToolType } from './types';
@@ -14,6 +15,10 @@ import { useComposerTextChange } from './useComposerTextChange';
 export interface ChatInputHandle {
   clear: () => void;
   getDisplayParts: () => ChatMessageDisplayPart[];
+  // The editor document itself (text, resource mentions, tool tokens), for
+  // putting a draft back exactly as it was.
+  getState: () => ComposerState;
+  restore: (state: ComposerState) => void;
   insertResource: (resource: ResourceMeta) => void;
   rememberSelection: () => void;
   toggleTool: (tool: ToolType) => void;
