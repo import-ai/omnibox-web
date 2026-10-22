@@ -87,3 +87,23 @@ export function resolveMentionLabels(
 
   return restoreCodeBlocks(rewritten, slots);
 }
+
+export function rewriteThreadMentionLabels<
+  T extends { comments: Array<{ content: string }> },
+>(threads: T[], namesById: Record<string, string>): T[] {
+  let changed = false;
+  const next = threads.map(thread => {
+    let threadChanged = false;
+    const comments = thread.comments.map(comment => {
+      const content = resolveMentionLabels(comment.content, namesById);
+      if (content === comment.content) {
+        return comment;
+      }
+      threadChanged = true;
+      changed = true;
+      return { ...comment, content };
+    });
+    return threadChanged ? { ...thread, comments } : thread;
+  });
+  return changed ? next : threads;
+}
