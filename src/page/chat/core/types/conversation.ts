@@ -55,6 +55,14 @@ export interface MessageAttrs {
   };
   user_context?: {
     selected_resources?: string[];
+    channel?: string;
+    saved_resource?: {
+      resource_id: string;
+      resource_type: string;
+      created_at: string;
+      file_name?: string;
+      url?: string;
+    };
   };
   // frontend only
   composer?: {

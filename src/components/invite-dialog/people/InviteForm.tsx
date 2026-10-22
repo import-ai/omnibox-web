@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/Select';
+import { Role } from '@/interface';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
 
@@ -46,18 +47,59 @@ export default function InviteForm(props: IProps) {
   const { t } = useTranslation();
   const params = useParams();
   const namespace_id = params.namespace_id || '';
+  const uid = localStorage.getItem('uid');
   const [loading, setLoading] = useState(false);
+  const [membership, setMembership] = useState<{
+    namespaceId: string;
+    userId: string;
+    role: Role;
+  } | null>(null);
+  const currentUserRole =
+    membership?.namespaceId === namespace_id && membership?.userId === uid
+      ? membership?.role
+      : null;
+  const canInvite = currentUserRole === 'owner' || currentUserRole === 'admin';
+
+  useEffect(() => {
+    if (!namespace_id || !uid) return;
+    let active = true;
+    const controller = new AbortController();
+    http
+      .get(`/namespaces/${namespace_id}/me`, { signal: controller.signal })
+      .then(data => {
+        if (active) {
+          setMembership({
+            namespaceId: namespace_id,
+            userId: uid,
+            role: data.role,
+          });
+        }
+      })
+      .catch(() => {
+        if (active) setMembership(null);
+      });
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, [namespace_id, uid]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: '',
-      role: '',
+      role: 'member',
+      permission: '',
     },
   });
 
   const role = form.watch('role');
-  const isAdmin = role === 'admin';
+  const invitationRole = currentUserRole === 'owner' ? role : 'member';
+  const isAdmin = invitationRole === 'admin';
+
+  useEffect(() => {
+    form.setValue('role', 'member');
+  }, [currentUserRole, namespace_id, uid, form]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -66,10 +108,11 @@ export default function InviteForm(props: IProps) {
   }, [isAdmin, form]);
 
   const handleSubmit = (data: z.infer<typeof formSchema>) => {
+    if (!canInvite || loading) return;
     setLoading(true);
     http
       .post('invite', {
-        role: data.role,
+        role: invitationRole,
         emails: [data.email],
         permission: data.permission,
         namespace: namespace_id,
@@ -82,6 +125,7 @@ export default function InviteForm(props: IProps) {
         toast(t('invite.success'), { position: 'bottom-right' });
         onFinish();
       })
+      .catch(() => {})
       .finally(() => {
         setLoading(false);
       });
@@ -123,8 +167,9 @@ export default function InviteForm(props: IProps) {
               <FormLabel>{t('manage.role')}</FormLabel>
               <FormControl>
                 <Select
-                  defaultValue={field.value}
+                  value={invitationRole}
                   onValueChange={field.onChange}
+                  disabled={loading || !canInvite}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -132,7 +177,9 @@ export default function InviteForm(props: IProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="admin">{t('invite.admin')}</SelectItem>
+                    {currentUserRole === 'owner' && (
+                      <SelectItem value="admin">{t('invite.admin')}</SelectItem>
+                    )}
                     <SelectItem value="member">{t('invite.member')}</SelectItem>
                   </SelectContent>
                 </Select>
@@ -185,7 +232,7 @@ export default function InviteForm(props: IProps) {
         <div className="flex justify-center">
           <Button
             type="submit"
-            disabled={loading}
+            disabled={loading || !canInvite}
             loading={loading}
             className="w-full"
           >
