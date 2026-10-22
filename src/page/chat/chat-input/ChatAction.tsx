@@ -61,12 +61,14 @@ export default function ChatAction(props: IActionProps) {
             <DropdownMenuContent side="bottom" align="end">
               <DropdownMenuCheckboxItem
                 checked={mode === ChatMode.ASK}
+                className="[&_svg]:text-blue-500! [&_path]:text-blue-500!"
                 onCheckedChange={() => setMode(ChatMode.ASK)}
               >
                 {t('chat.action.mode.ask')}
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={mode === ChatMode.WRITE}
+                className="[&_svg]:text-blue-500! [&_path]:text-blue-500!"
                 onCheckedChange={() => setMode(ChatMode.WRITE)}
               >
                 {t('chat.action.mode.write')}

@@ -25,10 +25,7 @@ import { useResourceTasks } from '@/components/attributes/resource-tasks/Resourc
 import { Button } from '@/components/Button';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
-import {
-  iconButtonHoverClassName,
-  sidebarToolbarIconButtonClassName,
-} from '@/components/omnibox/IconButton';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
@@ -647,10 +644,7 @@ export default function Actions(props: IActionProps) {
                 variant="ghost"
                 size="sm"
                 onClick={handleSave}
-                className={cn(
-                  iconButtonHoverClassName,
-                  'hover:text-sidebar-accent-foreground'
-                )}
+                className={sidebarToolbarIconButtonClassName}
               >
                 <Save />
                 {t('header.actions.save')}
@@ -659,10 +653,7 @@ export default function Actions(props: IActionProps) {
                 variant="ghost"
                 size="sm"
                 onClick={handleExitEdit}
-                className={cn(
-                  iconButtonHoverClassName,
-                  'hover:text-sidebar-accent-foreground'
-                )}
+                className={sidebarToolbarIconButtonClassName}
               >
                 <PencilOff />
                 {t('header.actions.discard')}
@@ -674,8 +665,8 @@ export default function Actions(props: IActionProps) {
               size="sm"
               onClick={handleEdit}
               className={cn(
-                iconButtonHoverClassName,
-                'w-7 px-0 hover:text-sidebar-accent-foreground sm:w-auto sm:px-2.5'
+                sidebarToolbarIconButtonClassName,
+                'w-7 px-0 sm:w-auto sm:px-2.5'
               )}
             >
               <Pencil />

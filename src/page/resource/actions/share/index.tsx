@@ -2,7 +2,7 @@ import { Share as ShareIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
-import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Popover,
   PopoverContent,
@@ -33,8 +33,8 @@ export default function ShareAction(props: ShareActionProps) {
           size="sm"
           variant="ghost"
           className={cn(
-            iconButtonHoverClassName,
-            'w-7 px-0 hover:text-sidebar-accent-foreground sm:w-auto sm:px-2.5'
+            sidebarToolbarIconButtonClassName,
+            'w-7 px-0 sm:w-auto sm:px-2.5'
           )}
         >
           <ShareIcon />

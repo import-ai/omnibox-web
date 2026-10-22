@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/Button';
 import {
   IconButton,
-  iconButtonHoverClassName,
+  sidebarToolbarIconButtonClassName,
 } from '@/components/omnibox/IconButton';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { useSidebar } from '@/components/ui/Sidebar';
@@ -94,10 +94,7 @@ export default function Header(props: IActionProps) {
               size="sm"
               type="button"
               variant="ghost"
-              className={cn(
-                iconButtonHoverClassName,
-                'hover:text-sidebar-accent-foreground'
-              )}
+              className={sidebarToolbarIconButtonClassName}
             >
               <Eye />
               {t('resource.history.back_to_current')}
@@ -109,10 +106,7 @@ export default function Header(props: IActionProps) {
                 size="sm"
                 type="button"
                 variant="ghost"
-                className={cn(
-                  iconButtonHoverClassName,
-                  'hover:text-sidebar-accent-foreground'
-                )}
+                className={sidebarToolbarIconButtonClassName}
               >
                 <RotateCcw />
                 {t('resource.history.restore')}

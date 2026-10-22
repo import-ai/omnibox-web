@@ -167,7 +167,7 @@ export default function AddMember(props: AddMemberProps) {
               onKeyDown: handleInputEnter,
             }}
             afterAddon={
-              <div className="absolute inset-y-0 right-1 flex items-center">
+              <div className="absolute top-1 right-1">
                 <Button
                   size="sm"
                   disabled={loading}

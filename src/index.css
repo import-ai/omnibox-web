@@ -124,8 +124,8 @@
 }
 
 @utility scrollbar-thin-visible {
-  overflow-y: scroll !important;
-  scrollbar-width: auto !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin !important;
   &::-webkit-scrollbar {
     -webkit-appearance: none;
     display: block !important;

@@ -533,7 +533,12 @@ const MultipleSelector = React.forwardRef<
             inputRef?.current?.focus();
           }}
         >
-          <div className="relative flex flex-wrap gap-1">
+          <div
+            className={cn(
+              'relative flex flex-wrap gap-1',
+              afterAddon && 'pr-11'
+            )}
+          >
             {selected.map(option => {
               return (
                 <Badge

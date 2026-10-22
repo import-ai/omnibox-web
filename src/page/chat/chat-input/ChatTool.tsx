@@ -159,7 +159,9 @@ export default function ChatTool(props: IProps) {
               >
                 <Icon className="size-4 text-muted-foreground" />
                 <span className="flex-1">{t('chat.tools.' + label)}</span>
-                {tools.includes(value) && <Check className="size-4" />}
+                {tools.includes(value) && (
+                  <Check className="size-4 text-blue-500! [&_path]:text-blue-500!" />
+                )}
               </DropdownMenuItem>
             ))}
         </DropdownMenuContent>

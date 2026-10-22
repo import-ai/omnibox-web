@@ -598,7 +598,7 @@
       "back_to_login": "Back to Login"
     },
     "select_placeholder": "Please select",
-    "account_description": "Manage your profile and sign-in information.",
+    "account_description": "Manage your account information",
     "basic_description": "Choose the theme, color, font, and language.",
     "content_description": "Manage how your content is processed and organized.",
     "about_description": "Learn about OmniBox and its open-source project."

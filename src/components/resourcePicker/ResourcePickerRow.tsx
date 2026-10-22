@@ -49,7 +49,9 @@ function ResourceSelectButton({
         <ResourceTypeIcon expand={expanded} resource={resource} />
       </span>
       <span className="min-w-0 truncate text-left">{name}</span>
-      {selected && <Check className="size-4 shrink-0 text-primary" />}
+      {selected && (
+        <Check className="size-4 shrink-0 text-blue-500! [&_path]:text-blue-500!" />
+      )}
     </Button>
   );
 }

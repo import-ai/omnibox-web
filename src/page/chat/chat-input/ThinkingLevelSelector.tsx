@@ -138,7 +138,9 @@ export default function ThinkingLevelSelector({
                         </span>
                       )}
                     </span>
-                    {group === item && <Check className="size-4" />}
+                    {group === item && (
+                      <Check className="size-4 text-blue-500! [&_path]:text-blue-500!" />
+                    )}
                   </button>
                 );
                 if (!disabledReason) return <div key={item}>{button}</div>;
