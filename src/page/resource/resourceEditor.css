@@ -1,6 +1,6 @@
 .resource-readonly-editor,
 .resource-editable-editor {
-  --tt-table-scrollbar-thumb-color: hsl(var(--border));
+  --tt-table-scrollbar-thumb-color: var(--border);
 }
 
 .resource-readonly-page-header {
@@ -375,10 +375,10 @@
   width: 16rem;
   max-width: calc(100vw - 1rem);
   box-sizing: border-box;
-  border: 1px solid hsl(var(--border));
+  border: 1px solid var(--border);
   border-radius: 0.375rem;
-  background: hsl(var(--popover));
-  color: hsl(var(--popover-foreground));
+  background: var(--popover);
+  color: var(--popover-foreground);
   padding: 0.25rem;
   box-shadow:
     0 4px 6px -1px rgb(0 0 0 / 0.1),
@@ -416,8 +416,8 @@
 
 [data-selector='tiptap-mention-dropdown-menu']
   .tiptap-button[data-active-state='on'] {
-  background: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 
 [data-selector='tiptap-mention-dropdown-menu']
@@ -433,7 +433,7 @@
   .tiptap-button
   .tiptap-button-text
   + .tiptap-button-text {
-  color: hsl(var(--muted-foreground));
+  color: var(--muted-foreground);
   font-size: 0.75rem;
   font-weight: 400;
   line-height: 1rem;
