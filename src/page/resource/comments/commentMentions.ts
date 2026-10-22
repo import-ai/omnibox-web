@@ -258,10 +258,8 @@ export function applyCommentDraftChange(
       displayEnd = Math.max(displayEnd, atom.displayEnd);
     }
   }
-  const replacement = nextDisplay.slice(
-    displayStart,
-    nextEnd + (displayEnd - previousEnd)
-  );
+  // A touched mention is removed whole. Keep only text the user actually added.
+  const replacement = nextDisplay.slice(start, nextEnd);
   const storageStart = displayOffsetToStorage(draft, displayStart);
   const storageEnd = displayOffsetToStorage(draft, displayEnd);
   return (

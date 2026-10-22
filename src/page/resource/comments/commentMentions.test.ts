@@ -85,8 +85,9 @@ describe('comment mentions', () => {
     expect(applyCommentDraftChange(stored, 'Hi @Old there!')).toBe(
       `Hi ${token} there!`
     );
-    expect(applyCommentDraftChange(stored, 'Hi @Ol there')).toBe(
-      'Hi @Ol there'
+    expect(applyCommentDraftChange(stored, 'Hi @Ol there')).toBe('Hi  there');
+    expect(applyCommentDraftChange(stored, 'Hi @Oldthere')).toBe(
+      'Hi [@ id="u1" label="Old"]there'
     );
     expect(applyCommentDraftChange(stored, 'Hi  there')).toBe('Hi  there');
     expect(

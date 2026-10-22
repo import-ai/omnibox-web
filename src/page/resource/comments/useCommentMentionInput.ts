@@ -95,6 +95,7 @@ export function useCommentMentionInput(
 
   return {
     displayValue: draft.display,
+    atoms: draft.atoms,
     menu,
     inputProps: {
       onChange: (event: ChangeEvent<HTMLTextAreaElement>) => {
