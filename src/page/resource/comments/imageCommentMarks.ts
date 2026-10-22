@@ -138,6 +138,18 @@ function clearPaintedComment(element: HTMLElement) {
   );
 }
 
+function imageCommentDomState(marks: ImageCommentMark[]) {
+  const open = marks.filter(mark => !mark.resolved);
+  return {
+    primary:
+      marks.find(mark => mark.threadId === activeImageThreadId) ??
+      open[0] ??
+      marks[0],
+    threadIds: marks.map(mark => mark.threadId).join(' '),
+    resolved: open.length === 0,
+  };
+}
+
 // TipTap's React node view returns true when only decorations change, and does
 // not copy those attributes onto div.node-image. Write them after the view updates.
 function paintImageCommentDom(view: EditorViewLike) {
@@ -150,29 +162,30 @@ function paintImageCommentDom(view: EditorViewLike) {
     if (!(nodeDom instanceof HTMLElement)) {
       continue;
     }
-    const host = commentHost(nodeDom);
+    // Unmounting EditorContent replaces React views with native node DOM.
+    // Native nodes use decorations; manual writes would trigger redraw loops.
+    const host = nodeDom.closest<HTMLElement>('.node-image');
+    if (!host) {
+      continue;
+    }
     const marks = grouped.get(host) ?? [];
     marks.push(image);
     grouped.set(host, marks);
   }
   const active = new Set<HTMLElement>();
   for (const [host, marks] of grouped) {
-    const open = marks.filter(mark => !mark.resolved);
-    const primary =
-      marks.find(mark => mark.threadId === activeImageThreadId) ??
-      open[0] ??
-      marks[0];
+    const { primary, threadIds, resolved } = imageCommentDomState(marks);
     host.setAttribute('data-resource-comment-thread', primary.threadId);
-    host.setAttribute(THREADS_ATTR, marks.map(mark => mark.threadId).join(' '));
+    host.setAttribute(THREADS_ATTR, threadIds);
     host.setAttribute(PAINTED_COMMENT, '');
-    if (open.length === 0) {
+    if (resolved) {
       host.setAttribute('data-resource-comment-resolved', 'true');
     } else {
       host.removeAttribute('data-resource-comment-resolved');
     }
     host.classList.add('tiptap-thread', 'tiptap-thread--block');
-    host.classList.toggle('tiptap-thread--resolved', open.length === 0);
-    host.classList.toggle('tiptap-thread--unresolved', open.length > 0);
+    host.classList.toggle('tiptap-thread--resolved', resolved);
+    host.classList.toggle('tiptap-thread--unresolved', !resolved);
     active.add(host);
   }
   view.dom
@@ -202,7 +215,10 @@ function paintDraftImage(view: EditorViewLike) {
   if (!(nodeDom instanceof HTMLElement)) {
     return;
   }
-  const host = commentHost(nodeDom);
+  const host = nodeDom.closest<HTMLElement>('.node-image');
+  if (!host) {
+    return;
+  }
   host.classList.add('resource-comment-draft-highlight');
   host.setAttribute(DRAFT_COMMENT, '');
 }
@@ -218,8 +234,8 @@ export function syncImageDraftHighlight(
     selection.to === selection.from + node.nodeSize
       ? { from: selection.from, to: selection.to }
       : null;
-  if (!editor.isDestroyed) {
-    paintDraftImage(editor.view);
+  if (!editor.isDestroyed && ensureImageCommentPlugin(editor)) {
+    editor.view.dispatch(editor.state.tr);
   }
 }
 
@@ -338,28 +354,37 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
         },
         decorations: state => {
           const images = imageCommentMarkKey.getState(state)?.images;
-          if (!images?.size) {
-            return DecorationSet.empty;
+          const grouped = new Map<number, ImageCommentMark[]>();
+          for (const image of images?.values() ?? []) {
+            if (isImageRange(state.doc, image.from, image.to)) {
+              const marks = grouped.get(image.from) ?? [];
+              marks.push(image);
+              grouped.set(image.from, marks);
+            }
           }
-          return DecorationSet.create(
-            state.doc,
-            Array.from(images.values()).flatMap(image => {
-              if (!isImageRange(state.doc, image.from, image.to)) {
-                return [];
-              }
-              return [
-                Decoration.node(image.from, image.to, {
-                  class: image.resolved
-                    ? 'tiptap-thread tiptap-thread--block tiptap-thread--resolved'
-                    : 'tiptap-thread tiptap-thread--block tiptap-thread--unresolved',
-                  'data-resource-comment-thread': image.threadId,
-                  ...(image.resolved
-                    ? { 'data-resource-comment-resolved': 'true' }
-                    : {}),
-                }),
-              ];
-            })
-          );
+          const decorations = Array.from(grouped.values()).map(marks => {
+            const { primary, threadIds, resolved } =
+              imageCommentDomState(marks);
+            return Decoration.node(primary.from, primary.to, {
+              class: resolved
+                ? 'tiptap-thread tiptap-thread--block tiptap-thread--resolved'
+                : 'tiptap-thread tiptap-thread--block tiptap-thread--unresolved',
+              'data-resource-comment-thread': primary.threadId,
+              [THREADS_ATTR]: threadIds,
+              ...(resolved ? { 'data-resource-comment-resolved': 'true' } : {}),
+            });
+          });
+          if (
+            draftImageRange &&
+            isImageRange(state.doc, draftImageRange.from, draftImageRange.to)
+          ) {
+            decorations.push(
+              Decoration.node(draftImageRange.from, draftImageRange.to, {
+                class: 'resource-comment-draft-highlight',
+              })
+            );
+          }
+          return DecorationSet.create(state.doc, decorations);
         },
       },
       view: editorView => {
