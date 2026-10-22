@@ -129,8 +129,13 @@ export function useTrash() {
     fetchTrash(searchValueRef.current, items.length, true);
   }, [loading, hasMore, fetchTrash, items.length]);
 
-  const ignoreInFlightTrashCount = () => {
+  // A list request that started before the mutation is still the latest
+  // generation. Bump both generations so its snapshot cannot paint removed
+  // rows back or restore the icon count.
+  const ignoreInFlightTrashRequests = () => {
+    listRequestIdRef.current += 1;
     countRequestIdRef.current += 1;
+    setLoading(false);
   };
 
   const restoreItem = useCallback(
@@ -143,7 +148,7 @@ export function useTrash() {
         );
         toast.success(t('trash.restore_success'));
 
-        ignoreInFlightTrashCount();
+        ignoreInFlightTrashRequests();
         setItems(prev => prev.filter(item => item.id !== id));
         setTotal(prev => Math.max(0, prev - 1));
 
@@ -172,7 +177,7 @@ export function useTrash() {
         await http.delete(`/namespaces/${namespace_id}/resources/trash/${id}`);
         toast.success(t('trash.delete_success'));
 
-        ignoreInFlightTrashCount();
+        ignoreInFlightTrashRequests();
         setItems(prev => prev.filter(item => item.id !== id));
         setTotal(prev => Math.max(0, prev - 1));
       } catch {
@@ -189,7 +194,7 @@ export function useTrash() {
       await http.delete(`/namespaces/${namespace_id}/resources/trash`);
       toast.success(t('trash.clear_success'));
 
-      ignoreInFlightTrashCount();
+      ignoreInFlightTrashRequests();
       setItems([]);
       setTotal(0);
       setHasMore(false);

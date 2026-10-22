@@ -3,6 +3,8 @@
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { http } from '@/lib/request';
+
 import type { TrashItem, TrashListResponse } from './types';
 import { useTrash } from './useTrash';
 
@@ -70,10 +72,14 @@ jest.mock('@/page/sidebar/store', () => ({
 interface TrashApi {
   items: TrashItem[];
   total: number;
+  loading: boolean;
   searchValue: string;
   setSearchValue: (value: string) => void;
   refresh: () => void;
   fetchTrash: (search?: string, offset?: number, append?: boolean) => void;
+  restoreItem: (id: string) => Promise<void>;
+  permanentlyDelete: (id: string) => Promise<void>;
+  emptyTrash: () => Promise<void>;
 }
 
 function deferred<T>() {
@@ -109,6 +115,8 @@ describe('useTrash search races', () => {
   beforeEach(() => {
     listeners.clear();
     mockGet.mockReset();
+    (http.post as jest.Mock).mockReset();
+    (http.delete as jest.Mock).mockReset();
     jest.useFakeTimers();
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -279,6 +287,76 @@ describe('useTrash search races', () => {
 
     expect(api.items.map(item => item.name)).toEqual(['文件夹1']);
   });
+
+  async function showTwoItemsAndStartSearch() {
+    const initial = deferred<TrashListResponse>();
+    const searched = deferred<TrashListResponse>();
+    mockGet
+      .mockReturnValueOnce(initial.promise)
+      .mockReturnValueOnce(searched.promise);
+
+    await renderHook();
+    await act(async () => {
+      api.fetchTrash('', 0, false);
+    });
+    await act(async () => {
+      initial.resolve(
+        trashResponse(
+          [trashItem('a', '文件夹1'), trashItem('b', '请勿删除')],
+          2
+        )
+      );
+    });
+    await act(async () => {
+      api.setSearchValue('文件');
+      jest.advanceTimersByTime(300);
+    });
+    return searched;
+  }
+
+  it('keeps a deleted row removed when the in-flight search returns', async () => {
+    const searched = await showTwoItemsAndStartSearch();
+    (http.delete as jest.Mock).mockResolvedValue(undefined);
+
+    await act(async () => {
+      await api.permanentlyDelete('a');
+    });
+    expect(api.items.map(item => item.id)).toEqual(['b']);
+    expect(api.total).toBe(1);
+    expect(api.loading).toBe(false);
+
+    await act(async () => {
+      searched.resolve(
+        trashResponse(
+          [trashItem('a', '文件夹1'), trashItem('b', '请勿删除')],
+          2
+        )
+      );
+    });
+
+    expect(api.items.map(item => item.id)).toEqual(['b']);
+    expect(api.total).toBe(1);
+  });
+
+  it('keeps the list empty when a search returns after emptying the trash', async () => {
+    const searched = await showTwoItemsAndStartSearch();
+    (http.delete as jest.Mock).mockResolvedValue(undefined);
+
+    await act(async () => {
+      await api.emptyTrash();
+    });
+    await act(async () => {
+      searched.resolve(
+        trashResponse(
+          [trashItem('a', '文件夹1'), trashItem('b', '请勿删除')],
+          2
+        )
+      );
+    });
+
+    expect(api.items).toEqual([]);
+    expect(api.total).toBe(0);
+  });
 });
 
 function Probe({ onState }: { onState: (state: TrashApi) => void }) {
@@ -286,10 +364,14 @@ function Probe({ onState }: { onState: (state: TrashApi) => void }) {
   onState({
     items: trash.items,
     total: trash.total,
+    loading: trash.loading,
     searchValue: trash.searchValue,
     setSearchValue: trash.setSearchValue,
     refresh: trash.refresh,
     fetchTrash: trash.fetchTrash,
+    restoreItem: trash.restoreItem,
+    permanentlyDelete: trash.permanentlyDelete,
+    emptyTrash: trash.emptyTrash,
   });
   return null;
 }
