@@ -12,7 +12,6 @@ import type {
   ResourceCommentAuthor,
   ResourceCommentThread,
 } from '@/interface';
-import { listResourceCommentThreads } from '@/service/resourceComments';
 
 import {
   collectResourceCommentAnchors,
@@ -21,6 +20,12 @@ import {
   restoreResourceCommentAnchors,
 } from './commentAnchors';
 import { createAnchoredCommentThread } from './createAnchoredCommentThread';
+import {
+  isDocumentCommentThread,
+  isInlineCommentThread,
+  matchesCommentView,
+  mergeCommentThreads,
+} from './documentCommentThreads';
 import {
   installImageCommentPlugin,
   removeImageCommentMark,
@@ -33,14 +38,8 @@ import { useCommentHighlight } from './useCommentHighlight';
 import { useCommentLinkNavigation } from './useCommentLinkNavigation';
 import { useCommentMutations } from './useCommentMutations';
 import { useCommentNavigation } from './useCommentNavigation';
-
-const PAGE_SIZE = 20;
-
-function defaultResolved(
-  threads: ResourceCommentThread[] | undefined
-): boolean | undefined {
-  return threads?.length ? false : undefined;
-}
+import { useCommentThreadCollection } from './useCommentThreadCollection';
+import { useDocumentComments } from './useDocumentComments';
 
 const PERMISSIONS: Permission[] = [
   'no_access',
@@ -72,19 +71,33 @@ export function useResourceComments({
 }: UseResourceCommentsOptions) {
   const resourceRef = useRef(resource);
   resourceRef.current = resource;
+  const lifecycleKey = `${namespaceId}:${resource.id}`;
+  const lifecycleRef = useRef({ key: lifecycleKey, generation: 0 });
+  if (lifecycleRef.current.key !== lifecycleKey) {
+    lifecycleRef.current = {
+      key: lifecycleKey,
+      generation: lifecycleRef.current.generation + 1,
+    };
+  }
+  const generation = lifecycleRef.current.generation;
   const editorRef = useRef<ResourceCommentEditor | null>(null);
   const [registeredEditor, setRegisteredEditor] =
     useState<ResourceCommentEditor | null>(null);
   editorRef.current = registeredEditor;
-  const threadsRef = useRef<ResourceCommentThread[]>([]);
+  const knownThreadsRef = useRef<ResourceCommentThread[]>(
+    resource.comment_threads ?? []
+  );
+  const localThreadVersionsRef = useRef(new Map<string, number>());
   const anchorThreadsRef = useRef<ResourceCommentThread[]>(
+    (resource.comment_threads ?? []).filter(isInlineCommentThread)
+  );
+  const [knownThreads, setKnownThreads] = useState<ResourceCommentThread[]>(
     resource.comment_threads ?? []
   );
-  const requestIdRef = useRef(0);
-  const [anchorThreads, setAnchorThreads] = useState<ResourceCommentThread[]>(
-    resource.comment_threads ?? []
+  const anchorThreads = useMemo(
+    () => knownThreads.filter(isInlineCommentThread),
+    [knownThreads]
   );
-  const [threads, setThreads] = useState<ResourceCommentThread[]>([]);
   const [pendingSelection, setPendingSelection] =
     useState<OmniboxEditorCommentSelection | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -92,14 +105,8 @@ export function useResourceComments({
   const [fallbackPanelOpen, setFallbackPanelOpen] = useState(false);
   const panelOpen = panel?.panelOpen ?? fallbackPanelOpen;
   const setPanelOpen = panel?.setPanelOpen ?? setFallbackPanelOpen;
-  const [resolved, setResolved] = useState<boolean | undefined>(() =>
-    defaultResolved(resource.comment_threads)
-  );
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [resolved, setResolved] = useState<boolean | undefined>(false);
   const [submitting, setSubmitting] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [total, setTotal] = useState(0);
   const [createConflict, setCreateConflict] = useState(false);
   const [updatedAuthor, setUpdatedAuthor] =
     useState<ResourceCommentAuthor | null>(null);
@@ -170,61 +177,46 @@ export function useResourceComments({
     };
   }, [currentUserId]);
 
-  const mergeAnchorThreads = useCallback(
-    (incoming: ResourceCommentThread[]) => {
-      setAnchorThreads(current => mergeThreads(current, incoming));
-    },
-    []
-  );
-
-  const removeAnchorThread = useCallback((threadId: string) => {
-    setAnchorThreads(current =>
-      current.filter(thread => thread.id !== threadId)
+  const mergeKnownThreads = useCallback((incoming: ResourceCommentThread[]) => {
+    knownThreadsRef.current = mergeCommentThreads(
+      knownThreadsRef.current,
+      incoming
     );
+    setKnownThreads(knownThreadsRef.current);
   }, []);
 
-  const loadThreads = useCallback(
-    async (append = false) => {
-      const requestId = ++requestIdRef.current;
-      append ? setLoadingMore(true) : setLoading(true);
-      try {
-        const offset = append ? threadsRef.current.length : 0;
-        const response = await listResourceCommentThreads(
-          namespaceId,
-          resource.id,
-          { offset, limit: PAGE_SIZE, resolved }
-        );
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-        setThreads(current =>
-          append ? mergeThreads(current, response.items) : response.items
-        );
-        setTotal(response.total);
-        setHasMore(response.has_more);
-        mergeAnchorThreads(response.items);
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setLoading(false);
-          setLoadingMore(false);
-        }
-      }
+  const sidebar = useCommentThreadCollection({
+    namespaceId,
+    resourceId: resource.id,
+    enabled,
+    view: 'sidebar',
+    resolved,
+    onThreads: mergeKnownThreads,
+  });
+  const onDocumentCreated = useCallback(
+    (thread: ResourceCommentThread, created: boolean) => {
+      mergeKnownThreads([thread]);
+      sidebar.put(thread, undefined, created);
     },
-    [mergeAnchorThreads, namespaceId, resolved, resource.id]
+    [mergeKnownThreads, sidebar.put]
   );
-
-  threadsRef.current = threads;
+  const documentComments = useDocumentComments({
+    namespaceId,
+    resourceId: resource.id,
+    enabled,
+    canComment,
+    onThreads: mergeKnownThreads,
+    onCreated: onDocumentCreated,
+  });
 
   useEffect(() => {
-    setAnchorThreads(resourceRef.current.comment_threads ?? []);
-    setThreads([]);
+    localThreadVersionsRef.current.clear();
+    knownThreadsRef.current = resourceRef.current.comment_threads ?? [];
+    setKnownThreads(knownThreadsRef.current);
     setPendingSelection(null);
     setActiveThreadId(null);
-    setResolved(defaultResolved(resourceRef.current.comment_threads));
-    setTotal(0);
-    setHasMore(false);
+    setResolved(false);
     setCreateConflict(false);
-    requestIdRef.current += 1;
   }, [namespaceId, resource.id]);
 
   useEffect(() => {
@@ -232,19 +224,23 @@ export function useResourceComments({
     if (!incoming) {
       return;
     }
-    mergeAnchorThreads(incoming);
-    const updatedThreads = new Map(incoming.map(thread => [thread.id, thread]));
-    setThreads(current =>
-      current.map(thread => updatedThreads.get(thread.id) ?? thread)
-    );
-  }, [mergeAnchorThreads, resource.comment_threads, resource.id]);
-
-  useEffect(() => {
-    if (!enabled) {
+    if (incoming.every(thread => knownThreadsRef.current.includes(thread)))
       return;
-    }
-    loadThreads().catch(() => undefined);
-  }, [enabled, loadThreads]);
+    incoming.forEach(thread => {
+      const previous = knownThreadsRef.current.find(
+        item => item.id === thread.id
+      );
+      sidebar.put(thread, previous);
+      documentComments.put(thread, previous);
+    });
+    mergeKnownThreads(incoming);
+  }, [
+    mergeKnownThreads,
+    resource.comment_threads,
+    resource.id,
+    sidebar.put,
+    documentComments.put,
+  ]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -264,11 +260,12 @@ export function useResourceComments({
     (threadId: string) => {
       setPendingSelection(null);
       setActiveThreadId(threadId);
+      const thread = knownThreadsRef.current.find(item => item.id === threadId);
+      if (thread && isDocumentCommentThread(thread) && !thread.resolved) return;
       setPanelOpen(true);
-      const thread = anchorThreadsRef.current.find(
-        item => item.id === threadId
-      );
-      if (thread) {
+      if (thread && isDocumentCommentThread(thread)) {
+        setResolved(current => (current === false ? true : current));
+      } else if (thread) {
         setResolved(current =>
           current !== undefined && current !== thread.resolved
             ? undefined
@@ -284,7 +281,9 @@ export function useResourceComments({
     cancelNavigation,
     navigatingThreadId,
     navigatingReplyThreadId,
-  } = useCommentNavigation(resource.id, openThread);
+  } = useCommentNavigation(lifecycleKey, openThread, threadId =>
+    knownThreadsRef.current.find(thread => thread.id === threadId)
+  );
 
   const selectThread = useCallback(
     (threadId: string) => {
@@ -315,8 +314,11 @@ export function useResourceComments({
   }, [focusThread]);
 
   useEffect(() => {
-    setActiveImageThreadId(activeThreadId);
-  }, [activeThreadId]);
+    const active = knownThreads.find(thread => thread.id === activeThreadId);
+    setActiveImageThreadId(
+      active && isInlineCommentThread(active) ? active.id : null
+    );
+  }, [activeThreadId, knownThreads]);
 
   useEffect(() => {
     if (contentDirty) {
@@ -326,11 +328,33 @@ export function useResourceComments({
 
   useCommentLinkNavigation({
     enabled,
-    loading,
+    loading: sidebar.loading,
+    namespaceId,
     resourceId: resource.id,
     editorReady: !!registeredEditor && !registeredEditor.isDestroyed,
     activeThreadId,
-    threads: anchorThreads,
+    threads: knownThreads,
+    getTargetVersion: threadId =>
+      localThreadVersionsRef.current.get(threadId) ?? 0,
+    onTarget: (thread, requestVersion) => {
+      // Local actions supersede a pending link; later lookups accept fresh server state.
+      if (
+        (localThreadVersionsRef.current.get(thread.id) ?? 0) !== requestVersion
+      )
+        return null;
+      const previous = knownThreadsRef.current.find(
+        item => item.id === thread.id
+      );
+      mergeKnownThreads([thread]);
+      sidebar.put(thread);
+      documentComments.put(thread);
+      if (previous && previous.resolved !== thread.resolved) {
+        // A remote transition may already be reflected in one collection's total.
+        void sidebar.load().catch(() => undefined);
+        void documentComments.load().catch(() => undefined);
+      }
+      return thread;
+    },
     openThread,
     focusThread,
   });
@@ -341,6 +365,7 @@ export function useResourceComments({
       const contentHash = resourceRef.current.content_hash;
       const trimmed = content.trim();
       if (
+        !canComment ||
         !selection ||
         !contentHash ||
         contentDirty ||
@@ -359,22 +384,22 @@ export function useResourceComments({
           content: trimmed,
           attachmentIds,
         });
-        mergeAnchorThreads([response.thread]);
-        const switchingFilter = resolved !== false;
+        if (lifecycleRef.current.generation !== generation) return true;
+        const previous = knownThreadsRef.current.find(
+          thread => thread.id === response.thread.id
+        );
+        mergeKnownThreads([response.thread]);
+        sidebar.put(response.thread, previous, response.thread_created);
         setResolved(false);
-        if (switchingFilter) {
-          setThreads([response.thread]);
-        } else {
-          setThreads(current => mergeThreads(current, [response.thread]));
-          setTotal(current => current + (response.thread_created ? 1 : 0));
-        }
         setPendingSelection(null);
         requestAnimationFrame(() => {
-          focusThread(response.thread.id, { openReply: false });
+          if (lifecycleRef.current.generation === generation)
+            focusThread(response.thread.id, { openReply: false });
         });
         return true;
       } catch (error) {
         if (
+          lifecycleRef.current.generation === generation &&
           axios.isAxiosError(error) &&
           error.response?.data?.code === 'resource_content_conflict'
         ) {
@@ -382,47 +407,92 @@ export function useResourceComments({
         }
         throw error;
       } finally {
-        setSubmitting(false);
+        if (lifecycleRef.current.generation === generation)
+          setSubmitting(false);
       }
     },
     [
       contentDirty,
+      canComment,
+      generation,
       focusThread,
-      mergeAnchorThreads,
+      mergeKnownThreads,
       namespaceId,
       pendingSelection,
-      resolved,
+      sidebar.put,
       resource.id,
     ]
   );
 
   const applyThreadUpdate = useCallback(
     (updated: ResourceCommentThread) => {
-      mergeAnchorThreads([updated]);
-      setThreads(current => {
-        if (resolved !== undefined && updated.resolved !== resolved) {
-          return current.filter(thread => thread.id !== updated.id);
-        }
-        return mergeThreads(current, [updated]);
-      });
+      localThreadVersionsRef.current.set(
+        updated.id,
+        (localThreadVersionsRef.current.get(updated.id) ?? 0) + 1
+      );
+      const previous = knownThreadsRef.current.find(
+        thread => thread.id === updated.id
+      );
+      mergeKnownThreads([updated]);
+      sidebar.put(updated, previous);
+      documentComments.put(updated, previous);
     },
-    [mergeAnchorThreads, resolved]
+    [mergeKnownThreads, sidebar.put, documentComments.put]
   );
 
   const removeThreadLocally = useCallback(
     (threadId: string) => {
-      removeAnchorThread(threadId);
-      setThreads(current => current.filter(thread => thread.id !== threadId));
-      setTotal(current => Math.max(0, current - 1));
+      localThreadVersionsRef.current.set(
+        threadId,
+        (localThreadVersionsRef.current.get(threadId) ?? 0) + 1
+      );
+      const previous = knownThreadsRef.current.find(
+        thread => thread.id === threadId
+      );
+      knownThreadsRef.current = knownThreadsRef.current.filter(
+        thread => thread.id !== threadId
+      );
+      setKnownThreads(knownThreadsRef.current);
+      sidebar.remove(threadId, previous);
+      documentComments.remove(threadId, previous);
       setActiveThreadId(current => (current === threadId ? null : current));
       const editor = editorRef.current;
-      if (editor && !editor.isDestroyed) {
+      if (
+        previous &&
+        isInlineCommentThread(previous) &&
+        editor &&
+        !editor.isDestroyed
+      ) {
         editor.commands.removeResourceComment(threadId);
         removeImageCommentMark(editor, threadId);
       }
     },
-    [removeAnchorThread]
+    [sidebar.remove, documentComments.remove]
   );
+
+  const canEditComment = (comment: ResourceComment) =>
+    canComment && isCommentAuthor(comment.author.id);
+  const canDeleteComment = (
+    comment: ResourceComment,
+    thread?: ResourceCommentThread
+  ) => {
+    const owner =
+      thread ??
+      knownThreadsRef.current.find(item =>
+        item.comments.some(candidate => candidate.id === comment.id)
+      );
+    return (
+      canComment &&
+      (isCommentAuthor(comment.author.id) ||
+        (!(owner && isDocumentCommentThread(owner)) && canEditResource))
+    );
+  };
+  const canModerateThread = (thread: ResourceCommentThread) =>
+    canComment && (canEditResource || isCommentAuthor(thread.creator.id));
+  const canDeleteThread = (thread: ResourceCommentThread) =>
+    canComment &&
+    (isCommentAuthor(thread.creator.id) ||
+      (isInlineCommentThread(thread) && canEditResource));
 
   const {
     reply,
@@ -435,13 +505,16 @@ export function useResourceComments({
     namespaceId,
     resourceId: resource.id,
     editorRef,
-    anchorThreadsRef,
+    anchorThreadsRef: knownThreadsRef,
     applyThreadUpdate,
     removeThreadLocally,
     setSubmitting,
     setActiveThreadId,
-    setTotal,
-    resolved,
+    canComment,
+    canEditComment,
+    canDeleteComment,
+    canModerateThread,
+    canDeleteThread,
   });
 
   const getAnchorSync = useCallback((): ResourceCommentAnchorSync => {
@@ -456,7 +529,7 @@ export function useResourceComments({
   }, []);
 
   const activeAnchorThread = activeThreadId
-    ? (anchorThreads.find(thread => thread.id === activeThreadId) ?? null)
+    ? (knownThreads.find(thread => thread.id === activeThreadId) ?? null)
     : null;
   const activeThread = useMemo(
     () => (activeAnchorThread ? withUpdatedAuthor(activeAnchorThread) : null),
@@ -465,23 +538,26 @@ export function useResourceComments({
   const authorThreads = useMemo(
     () =>
       updatedAuthor?.id === currentUserId
-        ? threads.map(withUpdatedAuthor)
-        : threads,
-    [currentUserId, threads, updatedAuthor, withUpdatedAuthor]
+        ? sidebar.threads.map(withUpdatedAuthor)
+        : sidebar.threads,
+    [currentUserId, sidebar.threads, updatedAuthor, withUpdatedAuthor]
   );
   const visibleThreads = useMemo(
     () =>
       activeThread &&
-      (resolved === undefined || activeThread.resolved === resolved) &&
+      matchesCommentView(activeThread, 'sidebar', resolved) &&
       !authorThreads.some(thread => thread.id === activeThread.id)
-        ? [...authorThreads, activeThread]
+        ? mergeCommentThreads(authorThreads, [activeThread], true)
         : authorThreads,
     [activeThread, authorThreads, resolved]
   );
 
   useCommentHighlight({
     root: panel?.rootElement,
-    activeThreadId,
+    activeThreadId:
+      activeThread && isInlineCommentThread(activeThread)
+        ? activeThreadId
+        : null,
     resolved: activeThread?.resolved ?? false,
   });
 
@@ -489,12 +565,10 @@ export function useResourceComments({
     activeThread,
     activeThreadId,
     canComment,
-    canEditComment: (comment: ResourceComment) =>
-      canComment && isCommentAuthor(comment.author.id),
-    canDeleteComment: (comment: ResourceComment) =>
-      canComment && (canEditResource || isCommentAuthor(comment.author.id)),
-    canModerateThread: (thread: ResourceCommentThread) =>
-      canComment && (canEditResource || isCommentAuthor(thread.creator.id)),
+    canEditComment,
+    canDeleteComment,
+    canModerateThread,
+    canDeleteThread,
     commentsConfig,
     contentDirty,
     editor: registeredEditor,
@@ -504,10 +578,20 @@ export function useResourceComments({
     editComment,
     uploadCommentImage,
     getAnchorSync,
-    hasMore,
-    loading,
-    loadingMore,
-    loadMore: () => loadThreads(true),
+    hasMore: sidebar.hasMore,
+    loading: sidebar.loading,
+    loadingMore: sidebar.loadingMore,
+    loadMore: () => sidebar.load(true),
+    documentThreads: documentComments.threads.map(withUpdatedAuthor),
+    documentTotal: documentComments.total,
+    documentLoading: documentComments.loading,
+    documentLoadingMore: documentComments.loadingMore,
+    documentHasMore: documentComments.hasMore,
+    loadMoreDocumentThreads: () => documentComments.load(true),
+    createDocumentThread: documentComments.createThread,
+    documentDraft: documentComments.draft,
+    submitDocumentDraft: documentComments.submitDraft,
+    documentSubmitting: documentComments.submitting,
     openThread,
     focusThread,
     selectThread,
@@ -528,7 +612,7 @@ export function useResourceComments({
     setThreadResolved,
     submitting,
     threads: visibleThreads,
-    total,
+    total: sidebar.total,
   };
 }
 
@@ -536,14 +620,4 @@ export type ResourceCommentsController = ReturnType<typeof useResourceComments>;
 
 function hasPermission(current: Permission, required: Permission) {
   return PERMISSIONS.indexOf(current) >= PERMISSIONS.indexOf(required);
-}
-
-function mergeThreads(
-  current: ResourceCommentThread[],
-  incoming: ResourceCommentThread[]
-) {
-  const incomingById = new Map(incoming.map(thread => [thread.id, thread]));
-  const merged = current.map(thread => incomingById.get(thread.id) ?? thread);
-  const existingIds = new Set(current.map(thread => thread.id));
-  return [...incoming.filter(thread => !existingIds.has(thread.id)), ...merged];
 }

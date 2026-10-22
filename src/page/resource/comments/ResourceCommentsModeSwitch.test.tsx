@@ -54,7 +54,14 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),
 }));
 
-Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+Object.assign(globalThis, {
+  IS_REACT_ACT_ENVIRONMENT: true,
+  ResizeObserver: class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+});
 
 const thread: ResourceCommentThread = {
   id: 'thread',
@@ -275,6 +282,81 @@ describe('resource comments across view and edit modes', () => {
     expect(listResourceCommentThreads).toHaveBeenCalledTimes(requestCount);
   });
 
+  it.each([false, true])(
+    'keeps resolved document cards below the body boundary with inline cards=%s',
+    async includeInline => {
+      let bodyBottom = 800;
+      jest
+        .mocked(listResourceCommentThreads)
+        .mockImplementation(async (_namespace, _resource, options) => ({
+          items:
+            options?.view === 'document'
+              ? []
+              : [
+                  ...(includeInline ? [thread] : []),
+                  {
+                    ...thread,
+                    id: 'document',
+                    type: 'document',
+                    anchor: null,
+                    resolved: true,
+                  },
+                ],
+          total: 2,
+          offset: 0,
+          limit: 20,
+          has_more: false,
+        }));
+      jest
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockImplementation(function (this: HTMLElement) {
+          const top = this.hasAttribute('data-resource-body-end')
+            ? bodyBottom
+            : 0;
+          return {
+            x: 0,
+            y: top,
+            top,
+            bottom:
+              top + (this.hasAttribute('data-resource-body-end') ? 0 : 120),
+            left: 0,
+            right: 300,
+            width: 300,
+            height: 120,
+            toJSON: () => ({}),
+          };
+        });
+      await render(false);
+      const end = document.createElement('span');
+      end.setAttribute('data-resource-body-end', '');
+      source.append(end);
+      await act(async () => readonlyComments().setResolved(undefined));
+      await act(async () => jest.advanceTimersByTime(100));
+      const wrapper = () =>
+        panel.querySelector<HTMLElement>('[data-thread-id="document"]')
+          ?.parentElement;
+      expect(parseFloat(wrapper()?.style.top ?? '0')).toBeGreaterThanOrEqual(
+        bodyBottom
+      );
+      await act(async () => readonlyComments().selectThread('document'));
+      bodyBottom = 1100;
+      await act(async () => window.dispatchEvent(new Event('resize')));
+      await act(async () => jest.advanceTimersByTime(100));
+      expect(parseFloat(wrapper()?.style.top ?? '0')).toBeGreaterThanOrEqual(
+        bodyBottom
+      );
+      if (!includeInline) {
+        bodyBottom = -200;
+        await act(async () =>
+          source.dispatchEvent(new Event('scroll', { bubbles: true }))
+        );
+        await act(async () => jest.advanceTimersByTime(100));
+        expect(parseFloat(wrapper()?.style.top ?? '0')).toBeLessThan(0);
+      }
+      jest.restoreAllMocks();
+    }
+  );
+
   it('shares the unsaved content state with the persistent comments controller', async () => {
     await render(false);
     await render(true);
@@ -288,11 +370,11 @@ describe('resource comments across view and edit modes', () => {
 
     await act(async () => editorProps().onContentDirtyChange(false));
     expect(editorProps().comments.threads).toBe(visibleThreads);
-    expect(editorProps().comments.commentsConfig.enabled).toBe(true);
-    expect(panel.textContent).not.toContain(
+    expect(editorProps().comments.commentsConfig.enabled).toBe(false);
+    expect(panel.textContent).toContain(
       'resource_comments.save_before_commenting'
     );
-    expect(listResourceCommentThreads).toHaveBeenCalledTimes(1);
+    expect(listResourceCommentThreads).toHaveBeenCalledTimes(2);
   });
 
   it.each([undefined, false])(
@@ -360,8 +442,48 @@ describe('resource comments across view and edit modes', () => {
     expect(readonlyComments().commentsConfig.enabled).toBe(false);
     expect(jest.mocked(Render).mock.lastCall?.[0].commentsDisabled).toBe(true);
     expect(panel.textContent).toBe('');
+    expect(source.querySelector('.resource-document-comments')).toBeNull();
     await render(false);
     expect(readonlyComments().canComment).toBe(true);
     expect(jest.mocked(Render).mock.lastCall?.[0].commentsDisabled).toBe(false);
+    expect(source.querySelector('.resource-document-comments')).not.toBeNull();
+  });
+
+  it.each<Resource['resource_type']>(['doc', 'file', 'link', 'rss_item'])(
+    'includes the footer for an empty or body-read-only %s outside the export boundary',
+    async resourceType => {
+      await render(false, {
+        ...resource,
+        resource_type: resourceType,
+        content: '',
+        read_only: true,
+      });
+      const footer = source.querySelector('.resource-document-comments');
+      expect(footer).not.toBeNull();
+      expect(footer?.querySelector('textarea')).not.toBeNull();
+      expect(footer?.closest('[data-resource-export-content]')).toBeNull();
+    }
+  );
+
+  it.each<Resource['resource_type']>(['folder', 'smart_folder', 'rss_folder'])(
+    'excludes the %s footer',
+    async resourceType => {
+      await render(false, { ...resource, resource_type: resourceType });
+      expect(source.querySelector('.resource-document-comments')).toBeNull();
+    }
+  );
+
+  it('preserves the document draft through actual Page read/edit branches', async () => {
+    await render(false);
+    await act(async () =>
+      readonlyComments().documentDraft.setContent('Preserved draft')
+    );
+    await render(true);
+    expect(editorProps().comments.documentDraft.content).toBe(
+      'Preserved draft'
+    );
+    expect(source.querySelector('textarea')?.value).toBe('Preserved draft');
+    await render(false);
+    expect(readonlyComments().documentDraft.content).toBe('Preserved draft');
   });
 });

@@ -321,7 +321,7 @@ export default function Editor(props: IEditorProps) {
 
   return (
     <div
-      className={`resource-editable-page relative pb-[30vh] ${
+      className={`resource-editable-page relative ${
         wide ? 'resource-editable-page--wide' : ''
       }`}
       style={

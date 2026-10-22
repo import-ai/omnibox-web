@@ -1,8 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import type { ResourceCommentThread } from '@/interface';
+import { getResourceCommentThread } from '@/service/resourceComments';
 
+import { isDocumentCommentThread } from './documentCommentThreads';
 import { elementHasCommentThread } from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
@@ -16,6 +20,12 @@ interface UseCommentLinkNavigationOptions {
   enabled: boolean;
   loading: boolean;
   resourceId: string;
+  namespaceId?: string;
+  getTargetVersion?: (threadId: string) => number;
+  onTarget?: (
+    thread: ResourceCommentThread,
+    requestVersion: number
+  ) => ResourceCommentThread | null;
   editorReady: boolean;
   activeThreadId: string | null;
   threads: ResourceCommentThread[];
@@ -27,6 +37,9 @@ export function useCommentLinkNavigation({
   enabled,
   loading,
   resourceId,
+  namespaceId,
+  onTarget,
+  getTargetVersion,
   editorReady,
   activeThreadId,
   threads,
@@ -34,17 +47,62 @@ export function useCommentLinkNavigation({
   focusThread,
 }: UseCommentLinkNavigationOptions): void {
   const location = useLocation();
+  const { t } = useTranslation();
   const panel = useResourceCommentsPanel();
   const handledLinkRef = useRef<string | null>(null);
   const focusThreadRef = useRef(focusThread);
   focusThreadRef.current = focusThread;
+  const onTargetRef = useRef(onTarget);
+  onTargetRef.current = onTarget;
+  const getTargetVersionRef = useRef(getTargetVersion);
+  getTargetVersionRef.current = getTargetVersion;
+  const translateRef = useRef(t);
+  translateRef.current = t;
+  const [lookup, setLookup] = useState<{
+    key: string;
+    thread: ResourceCommentThread | null;
+  } | null>(null);
   const threadId = /^#comment-(.+)$/.exec(location.hash)?.[1];
-  const target = threads.find(thread => thread.id === threadId);
+  const requestKey = `${namespaceId}:${resourceId}:${location.key}:${location.hash}`;
+  const target =
+    lookup?.key === requestKey
+      ? lookup.thread
+        ? (threads.find(thread => thread.id === threadId) ??
+          (onTarget ? null : lookup.thread))
+        : null
+      : namespaceId
+        ? null
+        : threads.find(thread => thread.id === threadId);
   const targetId = target?.id;
-  const linkKey = `${resourceId}:${location.key}:${location.hash}`;
+  const documentTarget = !!target && isDocumentCommentThread(target);
+  const linkKey = requestKey;
   const root = panel?.rootElement;
   const panelElement = panel?.panelElement;
   const panelOpen = panel?.panelOpen;
+
+  useEffect(() => {
+    if (!enabled || !namespaceId || !threadId) return;
+    let canceled = false;
+    const requestVersion = getTargetVersionRef.current?.(threadId) ?? 0;
+    getResourceCommentThread(namespaceId, resourceId, threadId)
+      .then(thread => {
+        if (canceled) return;
+        const accepted = onTargetRef.current
+          ? onTargetRef.current(thread, requestVersion)
+          : thread;
+        setLookup({ key: requestKey, thread: accepted });
+      })
+      .catch(() => {
+        if (canceled) return;
+        setLookup({ key: requestKey, thread: null });
+        toast.error(
+          translateRef.current('resource_comments.comment_unavailable')
+        );
+      });
+    return () => {
+      canceled = true;
+    };
+  }, [enabled, namespaceId, resourceId, threadId, requestKey]);
 
   useEffect(() => {
     handledLinkRef.current = null;
@@ -53,18 +111,45 @@ export function useCommentLinkNavigation({
   useEffect(() => {
     if (
       !enabled ||
-      loading ||
+      (loading && !documentTarget) ||
       !targetId ||
       handledLinkRef.current === linkKey
     ) {
       return;
     }
     openThread(targetId);
-  }, [enabled, loading, targetId, linkKey, openThread]);
+  }, [enabled, loading, targetId, linkKey, openThread, documentTarget]);
 
   useEffect(() => {
     if (
       !enabled ||
+      !documentTarget ||
+      !targetId ||
+      activeThreadId !== targetId ||
+      handledLinkRef.current === linkKey ||
+      !root
+    )
+      return;
+    if (target.resolved && (!panelElement || !panelOpen)) return;
+    // Document navigation selects and scrolls its own row without body alignment or reply focus.
+    handledLinkRef.current = linkKey;
+    focusThreadRef.current(targetId, { openReply: false });
+  }, [
+    enabled,
+    documentTarget,
+    targetId,
+    target?.resolved,
+    activeThreadId,
+    linkKey,
+    root,
+    panelElement,
+    panelOpen,
+  ]);
+
+  useEffect(() => {
+    if (
+      !enabled ||
+      documentTarget ||
       loading ||
       !targetId ||
       !editorReady ||
@@ -105,7 +190,7 @@ export function useCommentLinkNavigation({
           stableFrames >= 3 &&
           (marker ||
             target?.resolved ||
-            target?.anchor.status === 'orphaned' ||
+            target?.anchor?.status === 'orphaned' ||
             now - startedAt >= 1000)
         ) {
           navigationStarted = true;
@@ -124,6 +209,10 @@ export function useCommentLinkNavigation({
           return;
         }
       }
+      if (now - startedAt >= 5000) {
+        handledLinkRef.current = linkKey;
+        return;
+      }
       frame = requestAnimationFrame(navigate);
     };
     frame = requestAnimationFrame(navigate);
@@ -135,7 +224,8 @@ export function useCommentLinkNavigation({
     loading,
     targetId,
     target?.resolved,
-    target?.anchor.status,
+    target?.anchor?.status,
+    documentTarget,
     linkKey,
     editorReady,
     activeThreadId,

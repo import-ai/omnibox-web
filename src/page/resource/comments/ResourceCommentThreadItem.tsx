@@ -7,6 +7,10 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import type { ResourceCommentThread } from '@/interface';
 
 import { imageCommentLabel } from './commentQuote';
+import {
+  isDocumentCommentThread,
+  isInlineCommentThread,
+} from './documentCommentThreads';
 import { ResourceCommentItem } from './ResourceCommentItem';
 import { ResourceCommentReplyComposer } from './ResourceCommentReplyComposer';
 import type { ResourceCommentsController } from './useResourceComments';
@@ -47,6 +51,7 @@ export function ResourceCommentThreadItem({
   useEffect(() => {
     if (
       active &&
+      isInlineCommentThread(thread) &&
       controller.navigatingReplyThreadId === thread.id &&
       !thread.resolved &&
       controller.canComment
@@ -59,6 +64,7 @@ export function ResourceCommentThreadItem({
     controller.canComment,
     thread.id,
     thread.resolved,
+    thread.type,
   ]);
 
   useEffect(() => {
@@ -135,7 +141,12 @@ export function ResourceCommentThreadItem({
     if (!active) {
       controller.selectThread(thread.id);
     }
-    if (!thread.resolved && controller.canComment && !editingCommentId) {
+    if (
+      isInlineCommentThread(thread) &&
+      !thread.resolved &&
+      controller.canComment &&
+      !editingCommentId
+    ) {
       setReplying(true);
     }
   };
@@ -165,11 +176,13 @@ export function ResourceCommentThreadItem({
           >
             <span>{t('resource_comments.quote_label')}</span>
             <q>
-              {imageCommentLabel(
-                thread.id,
-                thread.quoted_text,
-                t('resource_comments.image_quote')
-              )}
+              {isDocumentCommentThread(thread)
+                ? t('resource_comments.document_title')
+                : imageCommentLabel(
+                    thread.id,
+                    thread.quoted_text,
+                    t('resource_comments.image_quote')
+                  )}
             </q>
           </button>
           <div
@@ -271,7 +284,7 @@ export function ResourceCommentThreadItem({
         </div>
       ) : null}
 
-      {thread.anchor.status === 'orphaned' ? (
+      {thread.anchor?.status === 'orphaned' ? (
         <span className="omnibox-comment-thread__orphaned">
           {t('resource_comments.original_text_removed')}
         </span>
@@ -284,6 +297,7 @@ export function ResourceCommentThreadItem({
             comment={comment}
             threadId={thread.id}
             threadResolved={thread.resolved}
+            thread={thread}
             controller={controller}
             onEditingChange={editing =>
               setEditingCommentId(editing ? comment.id : null)

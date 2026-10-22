@@ -1,5 +1,11 @@
 import { Image, Pencil, Trash2, X } from 'lucide-react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -7,7 +13,7 @@ import { useAutosizeTextArea } from '@/components/autosize-textarea';
 import { Button } from '@/components/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Textarea } from '@/components/ui/Textarea';
-import type { ResourceComment } from '@/interface';
+import type { ResourceComment, ResourceCommentThread } from '@/interface';
 
 import { formatRelativeTime } from './formatRelativeTime';
 import { pasteCommentImage } from './pasteCommentImage';
@@ -21,14 +27,18 @@ export function ResourceCommentItem({
   comment,
   threadId,
   threadResolved,
+  thread,
   controller,
   onEditingChange,
+  actions,
 }: {
   comment: ResourceComment;
   threadId: string;
   threadResolved: boolean;
+  thread?: ResourceCommentThread;
   controller: ResourceCommentsController;
   onEditingChange?: (editing: boolean) => void;
+  actions?: ReactNode;
 }) {
   const { i18n, t } = useTranslation();
   const [editing, setEditing] = useState(false);
@@ -178,8 +188,11 @@ export function ResourceCommentItem({
               ) : null}
             </span>
           </div>
-          {canEdit || controller.canDeleteComment(comment) ? (
+          {actions ||
+          canEdit ||
+          controller.canDeleteComment(comment, thread) ? (
             <div className="omnibox-comment-message__meta">
+              {actions}
               {canEdit && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -199,7 +212,7 @@ export function ResourceCommentItem({
                   <TooltipContent>{t('resource_comments.edit')}</TooltipContent>
                 </Tooltip>
               )}
-              {controller.canDeleteComment(comment) && (
+              {controller.canDeleteComment(comment, thread) && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button

@@ -3,6 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/Button';
 
+import {
+  isDocumentCommentThread,
+  isInlineCommentThread,
+} from './documentCommentThreads';
 import { commentThreadIds } from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { ResourceCommentThreadItem } from './ResourceCommentThreadItem';
@@ -27,7 +31,8 @@ export function ResourceCommentThreadList({
   const panelElement = panel?.panelElement;
   const panelOpen = panel?.panelOpen;
   const highlightedImageThreads = useSelectedImageCommentThreads(
-    controller.editor
+    controller.editor,
+    controller.threads
   );
   const [positions, setPositions] = useState<Record<string, number>>({});
   const [contentHeight, setContentHeight] = useState(0);
@@ -58,6 +63,18 @@ export function ResourceCommentThreadList({
       }
 
       const commentsRect = commentsScroll.getBoundingClientRect();
+      const listTop =
+        commentsScroll
+          .querySelector<HTMLElement>('.resource-comments-anchored-list')
+          ?.getBoundingClientRect().top ?? commentsRect.top;
+      const bodyEnd =
+        root.querySelector<HTMLElement>('[data-resource-body-end]') ??
+        resourceScroll.querySelector<HTMLElement>('.tiptap');
+      const documentFloor =
+        (bodyEnd?.getBoundingClientRect().bottom ??
+          resourceScroll.getBoundingClientRect().bottom) -
+        listTop +
+        COMMENT_GAP;
       const markers = new Map<string, HTMLElement>();
       root
         .querySelectorAll<HTMLElement>('[data-resource-comment-thread]')
@@ -82,7 +99,9 @@ export function ResourceCommentThreadList({
       const markerOrder = [...markers.keys()];
       const anchoredThreads = controller.threads
         .map((thread, index) => {
-          const marker = markers.get(thread.id);
+          const marker = isInlineCommentThread(thread)
+            ? markers.get(thread.id)
+            : undefined;
           const documentIndex = markerOrder.indexOf(thread.id);
           const position = marker
             ? marker.getBoundingClientRect().top - commentsRect.top
@@ -93,6 +112,10 @@ export function ResourceCommentThreadList({
           return { thread, documentIndex, index, position, height };
         })
         .sort((left, right) => {
+          const typeOrder =
+            Number(isDocumentCommentThread(left.thread)) -
+            Number(isDocumentCommentThread(right.thread));
+          if (typeOrder) return typeOrder;
           const leftHasMarker = Number.isFinite(left.position);
           const rightHasMarker = Number.isFinite(right.position);
           if (leftHasMarker && rightHasMarker) {
@@ -119,13 +142,16 @@ export function ResourceCommentThreadList({
       const nextPositions: Record<string, number> = {};
       let previousBottom = -Infinity;
       anchoredThreads.forEach(({ thread, position, height }) => {
-        const preferredPosition = Number.isFinite(position)
-          ? position
-          : previousBottom === -Infinity
-            ? 0
-            : previousBottom + COMMENT_GAP;
+        const preferredPosition = isDocumentCommentThread(thread)
+          ? documentFloor
+          : Number.isFinite(position)
+            ? position
+            : previousBottom === -Infinity
+              ? 0
+              : previousBottom + COMMENT_GAP;
         const nextPosition = Math.max(
           preferredPosition,
+          isDocumentCommentThread(thread) ? documentFloor : -Infinity,
           previousBottom === -Infinity
             ? preferredPosition
             : previousBottom + COMMENT_GAP
@@ -139,7 +165,11 @@ export function ResourceCommentThreadList({
         threadElements.get(thread.id)?.hasAttribute('data-selected')
       );
       const selected = anchoredThreads[selectedIndex];
-      if (selected && previousMarkerPositions.has(selected.thread.id)) {
+      if (
+        selected &&
+        isInlineCommentThread(selected.thread) &&
+        previousMarkerPositions.has(selected.thread.id)
+      ) {
         const element = threadElements.get(selected.thread.id);
         const wrapper = element?.parentElement;
         const previousMarker = previousMarkerPositions.get(selected.thread.id);
@@ -178,6 +208,18 @@ export function ResourceCommentThreadList({
           }
         }
       }
+      // Inline alignment can shift neighboring cards. Clamp document cards again afterwards.
+      let precedingBottom = -Infinity;
+      anchoredThreads.forEach(({ thread, height }) => {
+        if (isDocumentCommentThread(thread)) {
+          nextPositions[thread.id] = Math.max(
+            nextPositions[thread.id],
+            documentFloor,
+            precedingBottom + COMMENT_GAP
+          );
+        }
+        precedingBottom = nextPositions[thread.id] + height;
+      });
       anchoredThreads.forEach(({ thread, position }) => {
         previousMarkerPositions.set(thread.id, position);
       });
@@ -242,6 +284,10 @@ export function ResourceCommentThreadList({
         ? null
         : new MutationObserver(schedule);
     if (mutationObserver && resourceScroll) {
+      mutationObserver.observe(root, {
+        attributes: true,
+        attributeFilter: ['style'],
+      });
       mutationObserver.observe(resourceScroll, {
         childList: true,
         subtree: true,

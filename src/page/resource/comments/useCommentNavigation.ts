@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import type { ResourceCommentThread } from '@/interface';
+
+import { isDocumentCommentThread } from './documentCommentThreads';
 import { elementHasCommentThread } from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import type { CommentFocusOptions } from './useCommentLinkNavigation';
@@ -39,7 +42,8 @@ function getSourceScrollTarget(
 
 export function useCommentNavigation(
   resourceId: string,
-  openThread: (threadId: string) => void
+  openThread: (threadId: string) => void,
+  getThread?: (threadId: string) => ResourceCommentThread | undefined
 ): {
   focusThread: (threadId: string, options?: CommentFocusOptions) => void;
   cancelNavigation: () => void;
@@ -69,6 +73,61 @@ export function useCommentNavigation(
       openThread(threadId);
       const root = panel?.rootElement;
       const panelElement = panel?.panelElement;
+      const thread = getThread?.(threadId);
+      if (thread && isDocumentCommentThread(thread)) {
+        const targetRoot = thread.resolved ? panelElement : root;
+        let attempts = 0;
+        let boundaryScrollStarted = false;
+        const locate = () => {
+          const boundary = thread.resolved
+            ? root?.querySelector<HTMLElement>('[data-resource-body-end]')
+            : null;
+          const source = root?.querySelector<HTMLElement>(
+            '[data-resource-scroll]'
+          );
+          if (boundary && source) {
+            const bodyBounds = boundary.getBoundingClientRect();
+            const viewport = source.getBoundingClientRect();
+            if (
+              bodyBounds.bottom < viewport.top ||
+              bodyBounds.top > viewport.bottom
+            ) {
+              if (!boundaryScrollStarted) {
+                boundary.scrollIntoView?.({
+                  block: 'nearest',
+                  behavior: 'smooth',
+                });
+                boundaryScrollStarted = true;
+              }
+              if (++attempts < MAX_ALIGNMENT_FRAMES)
+                frameRef.current = requestAnimationFrame(locate);
+              else options?.onLocated?.();
+              return;
+            }
+          }
+          const selector = thread.resolved
+            ? '[data-thread-id]'
+            : '[data-document-comment-id]';
+          const card = Array.from(
+            targetRoot?.querySelectorAll<HTMLElement>(selector) ?? []
+          ).find(
+            element =>
+              (thread.resolved
+                ? element.dataset.threadId
+                : element.dataset.documentCommentId) === threadId
+          );
+          if (card && card.parentElement?.style.visibility !== 'hidden') {
+            card.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+            options?.onLocated?.();
+            return;
+          }
+          if (++attempts < MAX_ALIGNMENT_FRAMES)
+            frameRef.current = requestAnimationFrame(locate);
+          else options?.onLocated?.();
+        };
+        frameRef.current = requestAnimationFrame(locate);
+        return;
+      }
       if (!root || !panelElement || !panel) {
         return;
       }
@@ -174,7 +233,7 @@ export function useCommentNavigation(
       };
       frameRef.current = requestAnimationFrame(tick);
     },
-    [cancelNavigation, openThread, panel]
+    [cancelNavigation, openThread, panel, getThread]
   );
 
   return {

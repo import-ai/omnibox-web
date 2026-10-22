@@ -19,6 +19,8 @@ jest.mock('react', () => {
 jest.mock('@/components/button', () =>
   jest.requireActual('@/components/ui/Button')
 );
+jest.mock('@/lib/captcha', () => ({}));
+jest.mock('@/hooks/useUser', () => ({ USER_UPDATED_EVENT: 'user_updated' }));
 jest.mock('@import-ai/omnibox-editor', () => ({
   findResourceCommentRange: jest.fn(),
 }));
