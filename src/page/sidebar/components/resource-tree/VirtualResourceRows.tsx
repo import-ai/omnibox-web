@@ -75,10 +75,19 @@ export function VirtualResourceRows({
     measure();
     scroller.addEventListener('scroll', measure, { passive: true });
     const resize = new ResizeObserver(measure);
-    resize.observe(scroller);
-    resize.observe(list);
+    const observe = () => {
+      resize.observe(scroller);
+      resize.observe(list);
+      // Sibling sections share this scroller. Their height changes move this
+      // list without resizing it or firing scroll.
+      for (const child of scroller.children) resize.observe(child);
+    };
+    observe();
+    const mutations = new MutationObserver(observe);
+    mutations.observe(scroller, { childList: true });
     return () => {
       scroller.removeEventListener('scroll', measure);
+      mutations.disconnect();
       resize.disconnect();
     };
   }, [rows.length]);

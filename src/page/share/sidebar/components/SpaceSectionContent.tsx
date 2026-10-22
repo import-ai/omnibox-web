@@ -72,9 +72,10 @@ export function SpaceSectionContent({
                 listId={rootNode.id}
                 revealId={activeId}
                 rows={rows}
-                renderNode={({ id }) => (
+                renderNode={({ depth, id }) => (
                   <ResourceNode
                     nodeId={id}
+                    depth={depth}
                     renderChildren={false}
                     {...nodeProps}
                   />

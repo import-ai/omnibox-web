@@ -29,10 +29,14 @@ import ResourceNode from './ResourceNode';
 import { ResourceTreeProps } from './ResourceNode';
 
 interface ResourceNodeContentProps extends ResourceTreeProps {
+  depth?: number;
   node: TreeNode;
   nodeId: string;
   renderChildren?: boolean;
 }
+
+// One nested SidebarMenuSub: mx-3.5 + border-l + px-2.5. mr-0/pr-0 keep the left side.
+const SHARE_SUBMENU_INSET = 25;
 
 export function ResourceNodeContent({
   node,
@@ -43,6 +47,7 @@ export function ResourceNodeContent({
   isResourceActive,
   onAddToContext,
   canBrowseResources,
+  depth = 0,
   renderChildren = true,
 }: ResourceNodeContentProps) {
   const { t } = useTranslation();
@@ -125,7 +130,24 @@ export function ResourceNodeContent({
             isChatActive={isChatActive}
             onAddToContext={onAddToContext}
           >
-            <div className="group/sidebar-item my-px rounded-md hover:bg-sidebar-accent">
+            <div
+              className="group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent"
+              style={
+                depth > 0
+                  ? { marginLeft: depth * SHARE_SUBMENU_INSET }
+                  : undefined
+              }
+            >
+              {Array.from({ length: depth }, (_, level) => (
+                <span
+                  key={level}
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 w-px bg-sidebar-border"
+                  style={{
+                    left: (level - depth) * SHARE_SUBMENU_INSET + 14,
+                  }}
+                />
+              ))}
               <Tooltip delayDuration={0}>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
