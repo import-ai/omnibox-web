@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Textarea } from '@/components/ui/Textarea';
 import type { ResourceComment } from '@/interface';
 
+import { CommentMentionField } from './CommentMentionField';
 import { CommentMentionMenu } from './CommentMentionMenu';
 import { formatRelativeTime } from './formatRelativeTime';
 import { pasteCommentImage } from './pasteCommentImage';
@@ -246,32 +247,40 @@ export function ResourceCommentItem({
               className="omnibox-comment-composer--edit__input"
               data-has-preview={editImages.length ? '' : undefined}
             >
-              <Textarea
-                ref={editInputRef}
-                className="border-line"
-                maxLength={10000}
-                rows={1}
-                value={mention.displayValue}
-                aria-busy={uploading}
-                {...mention.inputProps}
-                onPaste={event => pasteCommentImage(event, uploadImage)}
-                onKeyDown={event => {
-                  if (mention.onKeyDown(event)) {
-                    return;
-                  }
-                  if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
-                    return;
-                  }
-                  if (event.shiftKey) {
-                    return;
-                  }
-                  event.preventDefault();
-                  if (event.repeat) {
-                    return;
-                  }
-                  submitEdit().catch(() => undefined);
-                }}
-              />
+              <CommentMentionField
+                display={mention.displayValue}
+                atoms={mention.atoms}
+              >
+                <Textarea
+                  ref={editInputRef}
+                  className="border-line"
+                  maxLength={10000}
+                  rows={1}
+                  value={mention.displayValue}
+                  aria-busy={uploading}
+                  {...mention.inputProps}
+                  onPaste={event => pasteCommentImage(event, uploadImage)}
+                  onKeyDown={event => {
+                    if (mention.onKeyDown(event)) {
+                      return;
+                    }
+                    if (
+                      event.key !== 'Enter' ||
+                      event.nativeEvent.isComposing
+                    ) {
+                      return;
+                    }
+                    if (event.shiftKey) {
+                      return;
+                    }
+                    event.preventDefault();
+                    if (event.repeat) {
+                      return;
+                    }
+                    submitEdit().catch(() => undefined);
+                  }}
+                />
+              </CommentMentionField>
               <CommentMentionMenu spec={mention.menu} />
               {editImages.length ? (
                 <div className="omnibox-comment-composer--edit__preview">
