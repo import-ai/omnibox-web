@@ -1,13 +1,13 @@
-import { Check, ChevronDown, Languages } from 'lucide-react';
+import { Languages } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/omnibox/Select';
 import { http } from '@/lib/request';
 
 export default function Language() {
@@ -30,39 +30,29 @@ export default function Language() {
     t('setting.select_placeholder');
 
   return (
-    <div className="flex h-10 w-full items-center justify-between gap-2">
-      <div className="flex shrink-0 items-center gap-2 lg:gap-2.5">
-        <Languages className="size-4 dark:text-neutral-50 lg:size-5" />
-        <span className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
+    <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+      <Languages className="size-4 text-muted-foreground" />
+      <span className="min-w-0">
+        <span className="block text-sm font-medium leading-5 text-foreground">
           {t('manage.language_setting')}
         </span>
-      </div>
+        <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
+          {t('manage.language_description')}
+        </span>
+      </span>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            className="h-8 w-[120px] justify-between rounded-md border-border bg-transparent px-2 font-normal shadow-none lg:h-9 lg:w-[180px] lg:px-3"
-          >
-            <span className="text-xs font-normal text-neutral-950 dark:text-neutral-50 lg:text-sm">
-              {selectedLabel}
-            </span>
-            <ChevronDown className="size-4 text-foreground" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[120px] dark:bg-neutral-900 lg:w-[180px]">
+      <Select value={i18n.language} onValueChange={toggleLanguage}>
+        <SelectTrigger className="w-[120px] px-2 lg:w-[180px] lg:px-3">
+          <SelectValue placeholder={selectedLabel} />
+        </SelectTrigger>
+        <SelectContent position="popper" className="w-[120px] lg:w-[180px]">
           {data.map(item => (
-            <DropdownMenuItem
-              key={item.value}
-              className="flex justify-between dark:focus:bg-neutral-700"
-              onClick={() => toggleLanguage(item.value)}
-            >
+            <SelectItem key={item.value} value={item.value}>
               {item.label}
-              {item.value === i18n.language && <Check className="size-4" />}
-            </DropdownMenuItem>
+            </SelectItem>
           ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

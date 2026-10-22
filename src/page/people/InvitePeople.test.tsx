@@ -27,7 +27,7 @@ jest.mock('@/lib/request', () => ({
     post: jest.fn(),
   },
 }));
-jest.mock('@/components/ui/Dialog', () => ({
+jest.mock('@/components/ui/dialog', () => ({
   Dialog: ({ children }: { children?: ReactNode }) => children,
   DialogContent: ({ children }: { children?: ReactNode }) => children,
   DialogDescription: () => null,

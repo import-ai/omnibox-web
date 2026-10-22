@@ -1,10 +1,6 @@
 import { type RefObject, useLayoutEffect, useRef, useState } from 'react';
 
-import {
-  findStickyFolder,
-  STICKY_FOLDER_HEIGHT,
-  type StickyFolderBounds,
-} from '../stickyFolder';
+import { findStickyFolder, type StickyFolderBounds } from '../stickyFolder';
 import { useSidebarStore } from '../store';
 import {
   getVirtualFolderSpans,
@@ -45,6 +41,7 @@ export function useStickyFolder(
     const scroller = scrollRef.current;
     if (!scroller) return;
     let bounds: StickyFolderBounds[] = [];
+    let rowHeight = 0;
     let dirty = true;
     let frame = 0;
     let pendingAnchor: { id: string; collapse: boolean } | null = null;
@@ -68,7 +65,7 @@ export function useStickyFolder(
         if (row) {
           scroller.scrollTop = Math.max(
             0,
-            position(row) - STICKY_FOLDER_HEIGHT
+            position(row) - row.getBoundingClientRect().height
           );
           locatedId = collapse ? null : id;
           locatedScrollTop = scroller.scrollTop;
@@ -87,6 +84,10 @@ export function useStickyFolder(
       }
       if (dirty) {
         const state = useSidebarStore.getState();
+        rowHeight =
+          scroller
+            .querySelector<HTMLElement>('[data-resource-row-id]')
+            ?.getBoundingClientRect().height ?? 0;
         bounds = [];
         scroller
           .querySelectorAll<HTMLElement>('[data-resource-tree-id]')
@@ -127,7 +128,7 @@ export function useStickyFolder(
         return;
       }
       locatedId = null;
-      setStickyId(findStickyFolder(bounds, scroller.scrollTop));
+      setStickyId(findStickyFolder(bounds, scroller.scrollTop, rowHeight));
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);

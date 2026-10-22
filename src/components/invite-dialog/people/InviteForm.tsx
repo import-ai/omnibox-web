@@ -6,7 +6,14 @@ import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/omnibox/Select';
 import { SupportedEmailLink } from '@/components/SupportedEmailLink';
 import {
   Form,
@@ -17,14 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/Select';
+import { Input } from '@/components/ui/input';
 import { Role } from '@/interface';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
@@ -122,7 +122,7 @@ export default function InviteForm(props: IProps) {
       .then(() => {
         form.resetField('email');
         form.resetField('role');
-        toast(t('invite.success'), { position: 'bottom-right' });
+        toast.success(t('invite.success'), { position: 'bottom-right' });
         onFinish();
       })
       .catch(() => {})
@@ -172,7 +172,7 @@ export default function InviteForm(props: IProps) {
                   disabled={loading || !canInvite}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -202,7 +202,7 @@ export default function InviteForm(props: IProps) {
                   disabled={isAdmin}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>

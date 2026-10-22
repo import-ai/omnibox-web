@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { CompletedStatus } from '@/assets/icons/CompletedStatus';
+import { ErrorStatus } from '@/assets/icons/ErrorStatus';
+import { Button } from '@/components/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 
 import { removeGlobalCredential } from './util';
+import WrapperPage from './WrapperPage';
 
 type DeletionState = 'loading' | 'success' | 'error';
 
@@ -28,7 +31,7 @@ export default function AccountDeleteConfirm() {
 
     // Confirm deletion
     http
-      .post('/user/account/delete/confirm', { token })
+      .post('/user/account/delete/confirm', { token }, { mute: true })
       .then(() => {
         removeGlobalCredential();
 
@@ -53,67 +56,48 @@ export default function AccountDeleteConfirm() {
   }, [token, t, navigate]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-md p-8">
-        {state === 'loading' && (
-          <div className="text-center space-y-4">
-            <svg
-              className="mx-auto h-8 w-8 animate-spin text-primary"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            <h2 className="text-xl font-semibold">
-              {t('setting.delete_account.processing')}
-            </h2>
-            <p className="text-muted-foreground">
-              {t('setting.delete_account.processing_description')}
-            </p>
-          </div>
-        )}
+    <WrapperPage useCard={false}>
+      {state === 'loading' && (
+        <div className="text-center space-y-4">
+          <Spinner className="mx-auto size-6 text-muted-foreground" />
+          <h2 className="text-2xl font-bold">
+            {t('setting.delete_account.processing')}
+          </h2>
+          <p className="text-balance text-sm text-muted-foreground">
+            {t('setting.delete_account.processing_description')}
+          </p>
+        </div>
+      )}
 
-        {state === 'success' && (
-          <div className="text-center space-y-4">
-            <div className="text-green-500 text-5xl mb-4">✓</div>
-            <h2 className="text-xl font-semibold">
-              {t('setting.delete_account.success_title')}
-            </h2>
-            <p className="text-muted-foreground">
-              {t('setting.delete_account.success_description')}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {t('setting.delete_account.redirecting')}
-            </p>
-          </div>
-        )}
+      {state === 'success' && (
+        <div className="text-center space-y-4">
+          <CompletedStatus className="mx-auto size-5" />
+          <h2 className="text-2xl font-bold">
+            {t('setting.delete_account.success_title')}
+          </h2>
+          <p className="text-balance text-sm text-muted-foreground">
+            {t('setting.delete_account.success_description')}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {t('setting.delete_account.redirecting')}
+          </p>
+        </div>
+      )}
 
-        {state === 'error' && (
-          <div className="text-center space-y-4">
-            <div className="text-destructive text-5xl mb-4">✕</div>
-            <h2 className="text-xl font-semibold text-destructive">
-              {t('setting.delete_account.error_title')}
-            </h2>
-            <p className="text-muted-foreground">{errorMessage}</p>
-            <Button onClick={() => navigate('/user/login')}>
-              {t('setting.delete_account.back_to_login')}
-            </Button>
-          </div>
-        )}
-      </Card>
-    </div>
+      {state === 'error' && (
+        <div className="text-center space-y-4">
+          <ErrorStatus className="mx-auto size-5" />
+          <h2 className="text-2xl font-bold text-destructive">
+            {t('setting.delete_account.error_title')}
+          </h2>
+          <p className="text-balance text-sm text-muted-foreground">
+            {errorMessage}
+          </p>
+          <Button onClick={() => navigate('/user/login')}>
+            {t('setting.delete_account.back_to_login')}
+          </Button>
+        </div>
+      )}
+    </WrapperPage>
   );
 }

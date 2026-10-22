@@ -10,8 +10,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
-import { Input } from '@/components/ui/Input';
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
 
@@ -63,7 +63,7 @@ export function ConfirmInputDialog({
   };
 
   const content = (
-    <AlertDialogContent className="max-w-md">
+    <AlertDialogContent className="max-w-md sm:max-w-md">
       <AlertDialogHeader>
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription className="space-y-4">
@@ -96,8 +96,8 @@ export function ConfirmInputDialog({
           {cancelButtonText}
         </AlertDialogCancel>
         <AlertDialogAction
+          variant="destructive"
           disabled={isConfirmDisabled}
-          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           onClick={handleConfirm}
         >
           {loading && <Spinner className="mr-2" />}

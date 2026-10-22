@@ -7,7 +7,7 @@ import {
   AutosizeTextarea,
   type AutosizeTextAreaRef,
 } from '@/components/autosize-textarea';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 
 import { CommentMentionField } from './CommentMentionField';
 import { CommentMentionMenu } from './CommentMentionMenu';

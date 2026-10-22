@@ -245,7 +245,7 @@ export default function SharePage() {
   }
   if (errorMessage) {
     return (
-      <Empty className="h-full bg-white dark:bg-background">
+      <Empty className="h-full bg-background">
         <EmptyHeader>
           <EmptyMedia>
             <img

@@ -34,8 +34,8 @@ jest.mock('@/hooks/useUser', () => ({
   USER_UPDATED_EVENT: 'user-data-updated',
 }));
 jest.mock('./commentAnchors', () => ({}));
-jest.mock('@/components/button', () =>
-  jest.requireActual('@/components/ui/Button')
+jest.mock('@/components/Button', () =>
+  jest.requireActual('@/components/ui/button')
 );
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: 'en' } }),

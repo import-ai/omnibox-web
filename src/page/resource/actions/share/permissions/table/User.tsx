@@ -57,7 +57,7 @@ export default function User(props: IProps) {
         return (
           <div
             key={item.user ? item.user.id : item.permission}
-            className="flex items-center p-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900"
+            className="flex items-center p-2 rounded-sm transition-all justify-between cursor-pointer hover:bg-accent"
           >
             {item.user ? (
               <>

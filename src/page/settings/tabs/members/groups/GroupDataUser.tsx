@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import PopConfirm from '@/components/popconfirm';
-import { Button } from '@/components/ui/Button';
 import UserCard from '@/components/user-card';
 import { Member, Role } from '@/interface';
 
@@ -49,7 +49,7 @@ export default function GroupDataUser(props: GroupProps) {
                 nickname={profile?.nickname}
                 note={profile?.note}
               />
-              <span className="ml-2 shrink-0 whitespace-nowrap rounded bg-gray-100 px-2 py-0.5 dark:bg-gray-800">
+              <span className="ml-2 shrink-0 whitespace-nowrap rounded bg-muted px-2 py-0.5 text-xs">
                 {t(`manage.${item.role}`)}
               </span>
             </div>
@@ -62,7 +62,7 @@ export default function GroupDataUser(props: GroupProps) {
               <Button
                 size="sm"
                 variant="ghost"
-                className="shrink-0 hover:text-red-500"
+                className="shrink-0 hover:bg-transparent hover:text-red-500 aria-expanded:bg-transparent data-[state=open]:bg-transparent"
               >
                 {t('manage.remove_from_group')}
               </Button>

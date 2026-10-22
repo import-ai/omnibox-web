@@ -16,9 +16,10 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 import { ShareIcon } from '@/assets/icons/ShareIcon';
+import { Button } from '@/components/Button';
 import Copy from '@/components/copy';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme.ts';
 import Save from '@/page/chat/components/SaveMain';
@@ -211,7 +212,7 @@ export function CitationMarkdown(props: IProps) {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="p-0 w-7 h-7"
+                  className={`${sidebarToolbarIconButtonClassName} size-7`}
                   disabled={regenerateDisabled}
                   onClick={() => onRegenerate(messageId)}
                 >
@@ -231,7 +232,7 @@ export function CitationMarkdown(props: IProps) {
                 <TooltipTrigger asChild>
                   <Button
                     aria-label={t('chat.share.action')}
-                    className="h-7 w-7 p-0"
+                    className={`${sidebarToolbarIconButtonClassName} size-7`}
                     onClick={() => onShare(messageId)}
                     size="icon"
                     type="button"

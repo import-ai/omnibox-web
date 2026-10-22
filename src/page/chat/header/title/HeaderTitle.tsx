@@ -1,8 +1,8 @@
 import { Edit } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { Button } from '@/components/Button';
 import Space from '@/components/space';
-import { Button } from '@/components/ui/Button';
 import useApp from '@/hooks/useApp';
 
 import EditForm from './edit';

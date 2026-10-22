@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { Button } from '@/components/Button';
 import {
   Breadcrumb,
   BreadcrumbEllipsis,
@@ -11,7 +12,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/Breadcrumb';
-import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,7 +80,7 @@ export default function ShareBreadcrumb(props: IProps) {
                   <BreadcrumbLink asChild>
                     <Button
                       variant="ghost"
-                      className="h-6 max-w-[7rem] justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
+                      className="h-6 max-w-28 justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
                       onClick={() => {
                         navigate(`/s/${shareId}/${item.id}`);
                       }}
@@ -111,7 +111,7 @@ export default function ShareBreadcrumb(props: IProps) {
           <BreadcrumbLink asChild>
             <Button
               variant="ghost"
-              className="h-6 max-w-[7rem] justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
+              className="h-6 max-w-28 justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
               onClick={() => {
                 navigate(`/s/${shareId}/${rootItem.id}`);
               }}

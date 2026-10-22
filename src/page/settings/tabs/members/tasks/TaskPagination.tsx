@@ -1,6 +1,14 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/Pagination';
 
 export interface TaskPaginationProps {
   currentPage: number;
@@ -50,50 +58,62 @@ export function TaskPagination({
     return pages;
   };
 
+  const changePage = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    page: number
+  ) => {
+    event.preventDefault();
+    if (page >= 1 && page <= totalPages && page !== currentPage)
+      onPageChange(page);
+  };
+
   return (
-    <div className="mt-1 flex items-center justify-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-      >
-        {t('common.previous')}
-      </Button>
-
-      {getPageNumbers().map((page, index) => {
-        if (page === '...') {
-          return (
-            <span
-              key={`ellipsis-${index}`}
-              className="px-2 text-muted-foreground"
-            >
-              ...
-            </span>
-          );
-        }
-
-        return (
-          <Button
-            key={page}
-            variant={currentPage === page ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => onPageChange(page as number)}
-            className="min-w-[40px]"
-          >
-            {page}
-          </Button>
-        );
-      })}
-
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      >
-        {t('common.next')}
-      </Button>
-    </div>
+    <Pagination className="mt-4 shrink-0 [&_a]:text-foreground">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            href="#"
+            text={t('common.previous')}
+            aria-label={t('common.previous')}
+            aria-disabled={currentPage <= 1}
+            tabIndex={currentPage <= 1 ? -1 : undefined}
+            className={
+              currentPage <= 1 ? 'pointer-events-none opacity-50' : undefined
+            }
+            onClick={event => changePage(event, currentPage - 1)}
+          />
+        </PaginationItem>
+        {getPageNumbers().map((page, index) => (
+          <PaginationItem key={`${page}-${index}`}>
+            {typeof page === 'number' ? (
+              <PaginationLink
+                href="#"
+                isActive={currentPage === page}
+                onClick={event => changePage(event, page)}
+              >
+                {page}
+              </PaginationLink>
+            ) : (
+              <PaginationEllipsis />
+            )}
+          </PaginationItem>
+        ))}
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            text={t('common.next')}
+            aria-label={t('common.next')}
+            aria-disabled={currentPage >= totalPages}
+            tabIndex={currentPage >= totalPages ? -1 : undefined}
+            className={
+              currentPage >= totalPages
+                ? 'pointer-events-none opacity-50'
+                : undefined
+            }
+            onClick={event => changePage(event, currentPage + 1)}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
   );
 }

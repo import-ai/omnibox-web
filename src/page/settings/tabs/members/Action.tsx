@@ -12,7 +12,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -184,7 +184,7 @@ export default function Action(props: ActionProps) {
             isDisabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'
           )}
         >
-          <div className="flex items-center text-gray-600 dark:text-white">
+          <div className="flex items-center text-foreground">
             <span>{allRoles.find(item => item.value === value)?.label}</span>
             {!isDisabled && <ChevronDown className="ml-1 size-5" />}
           </div>
@@ -199,14 +199,14 @@ export default function Action(props: ActionProps) {
             <DropdownMenuItem
               key={item.value}
               onClick={() => handleChange(item.value)}
-              className="cursor-pointer justify-between hover:bg-gray-100"
+              className="cursor-pointer justify-between hover:bg-accent"
             >
               <div>
                 {item.description ? (
                   <div>
                     <div>{item.label}</div>
                     {item.description && (
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {item.description}
                       </div>
                     )}
@@ -216,14 +216,15 @@ export default function Action(props: ActionProps) {
                 )}
               </div>
               {item.value === value && (
-                <Check className="size-5 text-blue-600" />
+                <Check className="size-5 text-blue-500! [&_path]:text-blue-500!" />
               )}
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuItem
+            variant="destructive"
             onClick={handleRemove}
-            className="cursor-pointer justify-between hover:bg-gray-100 hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
+            className="cursor-pointer justify-between"
           >
             {t('manage.remove')}
           </DropdownMenuItem>
@@ -250,7 +251,7 @@ export default function Action(props: ActionProps) {
       />
 
       <AlertDialog open={ownerOnly}>
-        <AlertDialogContent className="w-[85%] max-w-sm">
+        <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('manage.keep_one_owner')}</AlertDialogTitle>
           </AlertDialogHeader>
@@ -262,7 +263,7 @@ export default function Action(props: ActionProps) {
         </AlertDialogContent>
       </AlertDialog>
       <AlertDialog open={remove}>
-        <AlertDialogContent className="w-[85%] max-w-sm">
+        <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
           <AlertDialogHeader>
             <AlertDialogTitle>{t('manage.sure_to_remove')}</AlertDialogTitle>
           </AlertDialogHeader>
@@ -273,7 +274,7 @@ export default function Action(props: ActionProps) {
             >
               {t('cancel')}
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleRemoveOk}>
+            <AlertDialogAction variant="destructive" onClick={handleRemoveOk}>
               {t('ok')}
             </AlertDialogAction>
           </AlertDialogFooter>

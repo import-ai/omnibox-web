@@ -2,16 +2,17 @@ import { X } from 'lucide-react';
 import { ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { DatePicker, DateRangePicker } from '@/components/date-picker';
-import { Input } from '@/components/ui/Input';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/Select';
+} from '@/components/omnibox/Select';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 import {
@@ -97,7 +98,8 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
           variant="ghost"
           size="icon"
           className={cn(
-            'text-muted-foreground hover:text-foreground size-4 rounded-none border-none bg-transparent p-0 shadow-none hover:bg-transparent',
+            iconButtonHoverClassName,
+            'text-muted-foreground hover:text-foreground size-4 rounded-none border-none bg-transparent p-0 shadow-none',
             hideRemove && 'invisible'
           )}
           onClick={() => onRemove(index)}

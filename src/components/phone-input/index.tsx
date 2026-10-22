@@ -7,17 +7,17 @@ import {
 import { ChevronDown } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { Button } from '@/components/Button';
 import { ALLOWED_PHONE_COUNTRIES } from '@/const';
 import { cn } from '@/lib/utils';
 
-import { Button } from '../ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/DropdownMenu';
-import { Input } from '../ui/Input';
+import { InputGroup, InputGroupInput } from '../ui/input-group';
 import { ScrollArea } from '../ui/ScrollArea';
 import { countries, type CountryData } from './consts';
 
@@ -157,9 +157,9 @@ function PhoneNumberInput({
   );
 
   return (
-    <div
+    <InputGroup
       className={cn(
-        'flex h-10 w-full items-center rounded-md border border-line bg-transparent transition-[color,box-shadow] focus-within:outline-none focus-within:ring-1 focus-within:ring-ring',
+        'h-9',
         disabled && 'cursor-not-allowed opacity-50',
         isBind && 'overflow-hidden rounded-lg',
         className
@@ -171,7 +171,7 @@ function PhoneNumberInput({
             'flex shrink-0 items-center',
             isBind
               ? 'h-8 w-[85px] gap-1 px-[15px] text-[15px]'
-              : 'h-full gap-1 border-r px-2 text-sm'
+              : 'h-full gap-1 border-r border-input px-2 text-sm'
           )}
         >
           {countryPrefix}
@@ -183,10 +183,10 @@ function PhoneNumberInput({
               type="button"
               variant="ghost"
               className={cn(
-                'shrink-0 gap-1 rounded-l-md rounded-r-none text-sm hover:bg-accent focus-visible:ring-0',
+                'shrink-0 gap-1 rounded-l-lg rounded-r-none text-sm hover:bg-accent focus-visible:ring-0',
                 isBind
                   ? 'h-8 w-[85px] px-[15px]'
-                  : 'h-full border-r border-line px-2'
+                  : 'h-full border-r border-input px-2'
               )}
             >
               {countryPrefix}
@@ -212,22 +212,20 @@ function PhoneNumberInput({
           </DropdownMenuContent>
         </DropdownMenu>
       )}
-      {isBind ? (
-        <div className="h-8 w-px shrink-0 bg-[#E5E5E5] dark:bg-[#303030]" />
-      ) : null}
-      <Input
+      {isBind ? <div className="h-8 w-px shrink-0 bg-input" /> : null}
+      <InputGroupInput
         type="tel"
         value={nationalNumber}
         onChange={handleInputChange}
         disabled={disabled}
         placeholder={placeholder}
         className={cn(
-          'h-full flex-1 border-0 shadow-none focus-visible:ring-0',
+          'h-full',
           isBind &&
             'pl-[18px] text-[14px] leading-[23px] placeholder:text-[14px] placeholder:text-muted-foreground md:text-[14px]'
         )}
       />
-    </div>
+    </InputGroup>
   );
 }
 

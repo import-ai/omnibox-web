@@ -137,6 +137,9 @@ const fileNamingPlugin = {
 
 export default [
   {
+    ignores: ['dist/**', 'node_modules/**', 'src/components/ui/**'],
+  },
+  {
     files: ['**/*.{js,jsx,ts,tsx}'],
     ignores: ['dist/**', 'node_modules/**'],
     languageOptions: {

@@ -16,7 +16,7 @@ jest.mock('react-router-dom', () => ({
 jest.mock('@/page/user/authRedirect', () => ({
   getAuthSuccessRedirect: jest.fn(),
 }));
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     onClick,

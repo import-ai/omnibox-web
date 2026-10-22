@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 interface SmartFolderTrashConfirmDialogProps {
   open: boolean;
@@ -26,7 +26,7 @@ export function SmartFolderTrashConfirmDialog(
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[520px] [&>button]:hidden">
+      <DialogContent className="max-w-[520px] sm:max-w-[520px] [&>button]:hidden">
         <DialogHeader>
           <DialogTitle className="pb-2">
             {t('smart_folder.trash.title', { count })}
@@ -49,7 +49,6 @@ export function SmartFolderTrashConfirmDialog(
               onConfirm();
               onOpenChange(false);
             }}
-            className="text-destructive text-sm"
           >
             {t('ok')}
           </Button>

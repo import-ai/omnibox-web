@@ -69,7 +69,7 @@ export default function ApprovalModeSelect({
               </span>
             </span>
             {approvalMode === value && (
-              <Check className="size-4 text-muted-foreground" />
+              <Check className="size-4 text-blue-500! [&_path]:text-blue-500!" />
             )}
           </DropdownMenuItem>
         ))}

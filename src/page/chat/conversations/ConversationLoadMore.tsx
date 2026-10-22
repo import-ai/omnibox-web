@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { Spinner } from '@/components/ui/Spinner';
 
 interface ConversationLoadMoreProps {

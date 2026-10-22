@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { http } from '@/lib/request';
 
 export function InviteForm() {

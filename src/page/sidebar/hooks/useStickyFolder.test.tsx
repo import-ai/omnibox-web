@@ -55,11 +55,13 @@ function Probe({
 let host: HTMLDivElement;
 let root: Root;
 let scroller: HTMLDivElement;
+let rowHeight: number;
 const flush = () =>
   act(() => {
     jest.runOnlyPendingTimers();
   });
 beforeEach(() => {
+  rowHeight = 36;
   jest.useFakeTimers();
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
   Object.assign(window, { CSS: { escape: (s: string) => s } });
@@ -102,7 +104,7 @@ beforeEach(() => {
         (this.hasAttribute('data-top') ? scroller?.scrollTop || 0 : 0);
       const height = this.hasAttribute('data-resource-tree-id')
         ? 1000 - Number(this.dataset.top)
-        : 34;
+        : rowHeight;
       return {
         top,
         bottom: top + height,
@@ -156,12 +158,18 @@ it('mounts against the actual scroller and hands off through five levels', () =>
   expect(host.querySelector('[data-collapse]')).toBeNull();
   expect(useSidebarStore.getState().activeId).toBeNull();
 });
-it('locates the original title without collapsing or activating it', () => {
-  scroll(500);
-  act(() => (host.querySelector('[data-locate]') as HTMLButtonElement).click());
-  flush();
-  expect(scroller.scrollTop).toBe(366);
-  expect(host.querySelector('[data-collapse]')).toBeNull();
-  expect(useSidebarStore.getState().ui['4'].expanded).toBe(true);
-  expect(useSidebarStore.getState().activeId).toBeNull();
-});
+it.each([32, 36, 48])(
+  'locates the original title using its %ipx height without collapsing or activating it',
+  height => {
+    rowHeight = height;
+    scroll(500);
+    act(() =>
+      (host.querySelector('[data-locate]') as HTMLButtonElement).click()
+    );
+    flush();
+    expect(scroller.scrollTop).toBe(400 - height);
+    expect(host.querySelector('[data-collapse]')).toBeNull();
+    expect(useSidebarStore.getState().ui['4'].expanded).toBe(true);
+    expect(useSidebarStore.getState().activeId).toBeNull();
+  }
+);

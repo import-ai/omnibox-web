@@ -2,7 +2,7 @@ import { File } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { downloadFile } from '@/lib/downloadFile';
 
 import { ATTRIBUTE_STYLES } from './constants';

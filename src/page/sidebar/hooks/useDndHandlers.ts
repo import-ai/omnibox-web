@@ -126,7 +126,7 @@ export function useDndHandlers({
     const validFiles = files.filter(file => isValidFileType(file.name));
 
     if (validFiles.length === 0) {
-      toast(t('upload.invalid_ext'), { position: 'bottom-right' });
+      toast.error(t('upload.invalid_ext'), { position: 'bottom-right' });
       return;
     }
 
@@ -150,7 +150,7 @@ export function useDndHandlers({
       .catch(err => {
         const message =
           err instanceof Error ? err.message : err || t('upload.failed');
-        toast(message, { position: 'bottom-right' });
+        toast.error(message, { position: 'bottom-right' });
       });
   };
 

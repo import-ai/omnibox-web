@@ -13,7 +13,7 @@ const mockParams = {
   invitation_id: 'DP7NLl',
 };
 
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     loading,

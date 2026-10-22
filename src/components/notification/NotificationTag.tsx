@@ -25,7 +25,7 @@ interface NotificationTagIconProps {
 }
 
 const tagClassName =
-  'inline-flex max-h-6 items-center gap-1 rounded-sm border border-10 border-border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-muted-foreground dark:border-neutral-500 dark:bg-neutral-900';
+  'inline-flex max-h-6 items-center gap-1 rounded-sm border border-border bg-popover px-2 py-1 text-xs font-medium text-muted-foreground';
 
 const iconMap = {
   assistant: BotMessageSquare,

@@ -16,7 +16,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     loading,
@@ -28,7 +28,7 @@ jest.mock('@/components/button', () => ({
   ),
 }));
 
-jest.mock('@/components/ui/Dialog', () => ({
+jest.mock('@/components/omnibox/Dialog', () => ({
   Dialog: ({ open, children }: { open: boolean; children: ReactNode }) =>
     open ? children : null,
   DialogContent: ({ children }: { children: ReactNode }) => children,
@@ -37,7 +37,7 @@ jest.mock('@/components/ui/Dialog', () => ({
   DialogTitle: ({ children }: { children: ReactNode }) => children,
 }));
 
-jest.mock('@/components/ui/Input', () => ({
+jest.mock('@/components/ui/input', () => ({
   Input: (props: InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
 }));
 
