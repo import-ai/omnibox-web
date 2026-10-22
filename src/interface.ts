@@ -418,6 +418,7 @@ export interface ApplicationAttrs {
   url_link?: string;
   session_key?: string;
   qrcode_content?: string;
+  qrcode_expires_at?: string;
   account_id?: string;
 }
 
