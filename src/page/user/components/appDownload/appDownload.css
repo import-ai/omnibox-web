@@ -140,14 +140,6 @@
     z-index: 10;
     margin: 0;
   }
-
-  .auth-split-visual .app-download-entry {
-    position: absolute;
-    right: 3vw;
-    bottom: 3vw;
-    z-index: 10;
-    margin: 0;
-  }
 }
 
 @keyframes app-download-fade {

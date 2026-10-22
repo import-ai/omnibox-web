@@ -97,37 +97,25 @@ export default function WrapperPage(props: WrapperPageProps) {
     return (
       <div
         ref={scrollerRef}
-        className="auth-split absolute inset-0 overflow-y-auto bg-background lg:overflow-hidden"
+        className="auth-split absolute inset-0 overflow-y-auto bg-background"
       >
-        <div className="grid min-h-full lg:h-full lg:min-h-0 lg:grid-cols-2">
-          <div className="flex min-h-full min-w-0 flex-col gap-4 p-6 md:p-10 lg:min-h-0">
-            <div className="flex shrink-0 items-center justify-between gap-2">
-              {logo}
-              {toggles}
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              <div className="flex min-h-full flex-col items-center justify-center gap-6 py-8">
-                <div className={contentClassName}>
-                  {children}
-                  {extra && <div className="mt-6">{extra}</div>}
-                </div>
-              </div>
-            </div>
+        <div className="flex min-h-full flex-col gap-4 p-6 md:p-10">
+          <div className="flex shrink-0 items-center justify-between gap-2">
+            {logo}
+            {toggles}
           </div>
-          <div className="auth-split-visual relative hidden overflow-hidden bg-muted lg:block">
-            <img
-              src={logoSvg}
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.35] dark:grayscale"
-            />
-            {showAppDownload && (
-              <Suspense fallback={null}>
-                <AppDownload />
-              </Suspense>
-            )}
+          <div className="flex flex-1 flex-col items-center justify-center gap-6 py-8">
+            <div className={contentClassName}>
+              {children}
+              {extra && <div className="mt-6">{extra}</div>}
+            </div>
           </div>
         </div>
+        {showAppDownload && (
+          <Suspense fallback={null}>
+            <AppDownload />
+          </Suspense>
+        )}
       </div>
     );
   }

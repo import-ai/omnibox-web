@@ -600,7 +600,7 @@
       "back_to_login": "返回登录"
     },
     "select_placeholder": "请选择",
-    "account_description": "管理您的账号信息",
+    "account_description": "管理您的账号信息。",
     "basic_description": "选择界面主题、配色、字体和显示语言。",
     "content_description": "管理内容处理和整理功能。",
     "about_description": "了解小黑和开源项目信息。"

@@ -980,12 +980,10 @@ hand-rolled snackbar.
   (`src/page/user/WrapperPage.tsx`). Do not hand-roll a centered container; the
   shell owns vertical centering, keyboard-inset handling, the logo, and the
   language and theme toggles.
-- Login and registration follow shadcn `login-02`: on large screens they use a
-  two-column shell with the form in a `max-w-xs` left column and a visual panel
-  on the right; the visual panel is hidden on narrow screens. Other auth pages
-  keep the centered card layout. Use `bg-background` for the form surface and
-  separator labels, and `bg-muted` for the auth visual panel. Do not hard-code
-  light or dark surface colors.
+- Login and registration use a centered shell: the form sits in a `max-w-xs`
+  column in the middle of a `bg-background` page. Other auth pages keep the
+  centered card layout on `bg-muted`. Use `bg-background` for login and
+  registration separator labels. Do not hard-code light or dark surface colors.
 - Compose phone fields with `InputGroup` and `InputGroupInput` so the country
   prefix and input share one background, border, and outer radius.
 - `useCard` defaults to true. A page that is a spinner or a message passes
