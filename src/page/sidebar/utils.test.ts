@@ -12,6 +12,11 @@ import {
   isManagedChildrenNode,
 } from './store/utils';
 import { clearSidebarActiveKeyFromState, locateSidebarResource } from './utils';
+import {
+  clearVirtualFolderSpans,
+  setVirtualFolderLayout,
+} from './virtualFolderSpans';
+import { RESOURCE_ROW_HEIGHT } from './virtualResourceTree';
 
 const mockExpandPathTo = jest.fn();
 const mockToggleSpace = jest.fn();
@@ -45,7 +50,9 @@ async function flushLocate(
   locating: Promise<void>,
   frames: FrameRequestCallback[]
 ) {
-  // expandPathTo resolves first; centerSidebarElement schedules rAF after that.
+  // expandPathTo resolves first. The virtual-row check settles before
+  // centerSidebarElement schedules its animation frames.
+  await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();
   frames.shift()?.(0);
@@ -56,6 +63,7 @@ async function flushLocate(
 describe('locateSidebarResource', () => {
   afterEach(() => {
     document.body.replaceChildren();
+    clearVirtualFolderSpans('space');
     jest.restoreAllMocks();
     jest.clearAllMocks();
     mockSidebarState.nodes = {
@@ -144,6 +152,66 @@ describe('locateSidebarResource', () => {
     expect(mockToggleSpace).not.toHaveBeenCalled();
     expect(mockActivate).not.toHaveBeenCalled();
     expect(frames).toHaveLength(0);
+  });
+
+  it('scrolls an unmounted virtual row by its published index', async () => {
+    mockExpandPathTo.mockResolvedValue(undefined);
+    const index = 19;
+    setVirtualFolderLayout(
+      'space',
+      Array.from({ length: index + 1 }, (_, rowIndex) => ({
+        kind: 'node' as const,
+        id: rowIndex === index ? 'target' : `row-${rowIndex}`,
+        depth: 0,
+      }))
+    );
+    const container = document.createElement('div');
+    container.dataset.sidebar = 'content';
+    Object.defineProperty(container, 'clientHeight', { value: 100 });
+    container.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+    const list = document.createElement('div');
+    list.dataset.virtualResourceList = 'space';
+    list.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+    container.appendChild(list);
+    document.body.appendChild(container);
+
+    await locateSidebarResource('target');
+
+    expect(container.scrollTop).toBe(
+      index * RESOURCE_ROW_HEIGHT - (100 - RESOURCE_ROW_HEIGHT) / 2
+    );
+  });
+
+  it('animates an unmounted virtual row when locate asks for smooth scrolling', async () => {
+    mockExpandPathTo.mockResolvedValue(undefined);
+    const index = 19;
+    setVirtualFolderLayout(
+      'space',
+      Array.from({ length: index + 1 }, (_, rowIndex) => ({
+        kind: 'node' as const,
+        id: rowIndex === index ? 'target' : `row-${rowIndex}`,
+        depth: 0,
+      }))
+    );
+    const container = document.createElement('div');
+    container.dataset.sidebar = 'content';
+    Object.defineProperty(container, 'clientHeight', { value: 100 });
+    container.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+    const scrollTo = jest.fn();
+    container.scrollTo = scrollTo;
+    const list = document.createElement('div');
+    list.dataset.virtualResourceList = 'space';
+    list.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+    container.appendChild(list);
+    document.body.appendChild(container);
+
+    await locateSidebarResource('target', { behavior: 'smooth' });
+
+    expect(scrollTo).toHaveBeenCalledWith({
+      top: index * RESOURCE_ROW_HEIGHT - (100 - RESOURCE_ROW_HEIGHT) / 2,
+      behavior: 'smooth',
+    });
+    expect(container.scrollTop).toBe(0);
   });
 });
 

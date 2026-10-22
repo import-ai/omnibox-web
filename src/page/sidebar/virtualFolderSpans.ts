@@ -56,6 +56,14 @@ export function getVirtualRowIndex(listId: string, id: string) {
   return layouts.get(listId)?.indexes[id];
 }
 
+export function findVirtualResourcePlacement(id: string) {
+  for (const [listId, layout] of layouts) {
+    const index = layout.indexes[id];
+    if (index !== undefined) return { listId, index };
+  }
+  return null;
+}
+
 export function subscribeVirtualFolderSpans(listener: () => void) {
   listeners.add(listener);
   return () => {
