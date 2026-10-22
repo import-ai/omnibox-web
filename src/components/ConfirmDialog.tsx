@@ -10,7 +10,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { cn } from '@/lib/utils';
 
 interface ConfirmDialogProps {
@@ -47,11 +47,6 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const { t } = useTranslation();
-  const confirmButtonClassName =
-    variant === 'destructive'
-      ? 'border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground'
-      : undefined;
-
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
       onCancel?.();
@@ -63,7 +58,7 @@ export function ConfirmDialog({
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent
         className={cn(
-          'w-11/12 max-w-lg bg-popover dark:bg-neutral-800',
+          'w-11/12 max-w-lg sm:max-w-lg bg-popover',
           contentClassName
         )}
       >
@@ -86,11 +81,8 @@ export function ConfirmDialog({
             {cancelText ?? t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
-            className={cn(
-              'shadow-none',
-              confirmButtonClassName,
-              confirmClassName
-            )}
+            variant={variant}
+            className={cn('shadow-none', confirmClassName)}
             disabled={loading}
             onClick={onConfirm}
           >

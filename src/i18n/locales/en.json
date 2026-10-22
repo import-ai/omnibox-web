@@ -214,7 +214,10 @@
     }
   },
   "error": {
-    "title": "404 Not Found"
+    "title": "404 Not Found",
+    "unexpected_title": "Unable to load this page",
+    "not_found_description": "This page does not exist or has been removed. Return home to continue.",
+    "unexpected_description": "Refresh the page to try again, or return home to continue."
   },
   "request": {
     "bad_request": "Bad Request",
@@ -315,6 +318,7 @@
     "not_found": "Invitation not found"
   },
   "namespace": {
+    "name_description": "Choose the space name shown to members",
     "add": "Add Namespace",
     "title": "Namespace Name",
     "name": "Namespace Name",
@@ -521,12 +525,19 @@
     "bind_failed": "Failed to bind phone"
   },
   "setting": {
+    "option_descriptions": {
+      "username": "Choose the name shown to other space members",
+      "password": "Set or update the password used to sign in",
+      "phone": "Link a phone number to sign in to this account",
+      "email": "Use email to sign in, receive codes, and reset your password",
+      "third_party": "Sign in to OmniBox with your {{provider}} account"
+    },
     "basic": "General",
     "title": "Settings",
     "profile": "Profile",
     "members": "Members",
     "tasks": "Tasks",
-    "preferences": "Preferences",
+    "preferences": "Appearance",
     "namespace": "Namespace",
     "api_key": "API Keys",
     "applications": "Applications",
@@ -587,9 +598,14 @@
       "error_title": "Deletion Failed",
       "back_to_login": "Back to Login"
     },
-    "select_placeholder": "Please select"
+    "select_placeholder": "Please select",
+    "account_description": "Manage your account information.",
+    "basic_description": "Choose the theme, color, font, and language.",
+    "content_description": "Manage how your content is processed and organized.",
+    "about_description": "Learn about OmniBox and its open-source project."
   },
   "applications": {
+    "connection_description": "Connect the assistant in {{platform}} to this space",
     "title": "Application Management",
     "description": "Manage your application integrations and bindings",
     "empty": "No applications found",
@@ -667,9 +683,15 @@
     "editor_v2": {
       "title": "Editor 2.0",
       "description": "A modern editor with a brand-new experience"
-    }
+    },
+    "description": "Try upcoming features and choose which ones to enable."
   },
   "manage": {
+    "description": "View space members and groups, and manage invitations, roles, and permissions.",
+    "no_results": "No results.",
+    "theme_description": "Choose light, dark, or follow your system appearance",
+    "color_theme_description": "Choose the base palette for surfaces and controls",
+    "language_description": "Choose the language for menus and messages",
     "search": "Enter and search",
     "disable": "Disable",
     "remove": "Remove from Namespace",
@@ -708,7 +730,33 @@
     "invitation": "Invitation",
     "invite_link": "Invite Link",
     "language_setting": "Language",
-    "theme_setting": "Appearance",
+    "color_theme": "Color",
+    "color_theme_omnibox": "OmniBox",
+    "color_theme_neutral": "Neutral",
+    "color_theme_stone": "Stone",
+    "color_theme_zinc": "Zinc",
+    "color_theme_mauve": "Mauve",
+    "color_theme_olive": "Olive",
+    "color_theme_mist": "Mist",
+    "color_theme_taupe": "Taupe",
+    "color_theme_amber": "Amber",
+    "color_theme_blue": "Blue",
+    "color_theme_cyan": "Cyan",
+    "color_theme_emerald": "Emerald",
+    "color_theme_fuchsia": "Fuchsia",
+    "color_theme_green": "Green",
+    "color_theme_indigo": "Indigo",
+    "color_theme_lime": "Lime",
+    "color_theme_orange": "Orange",
+    "color_theme_pink": "Pink",
+    "color_theme_purple": "Purple",
+    "color_theme_red": "Red",
+    "color_theme_rose": "Rose",
+    "color_theme_sky": "Sky",
+    "color_theme_teal": "Teal",
+    "color_theme_violet": "Violet",
+    "color_theme_yellow": "Yellow",
+    "theme_setting": "Theme",
     "theme_light": "Light",
     "theme_dark": "Dark",
     "theme_system": "System",
@@ -721,7 +769,10 @@
     "nickname_placeholder": "What to call you in this namespace",
     "note_placeholder": "A note about this person",
     "nickname_length_error": "Nickname cannot exceed {{max}} characters",
-    "note_length_error": "Note cannot exceed {{max}} characters"
+    "note_length_error": "Note cannot exceed {{max}} characters",
+    "font": "Font",
+    "font_description": "Choose the interface font; Chinese uses system fallback fonts",
+    "font_system": "System default"
   },
   "unauth_page": {
     "title": "Access Denied",
@@ -835,7 +886,13 @@
         }
       },
       "user_context": {
-        "selected_resources": "{{count}} Resources Selected"
+        "selected_resources": "{{count}} Resources Selected",
+        "channel": {
+          "qq": "from QQ",
+          "wechat": "from WeChat",
+          "wechat_clawbot": "from WeChat ClawBot",
+          "telegram": "from Telegram"
+        }
       },
       "tool_calls": {
         "function_name": {
@@ -988,11 +1045,11 @@
       }
     },
     "agent_credits": {
-      "text": "Agent 2.1 credits used up. Switched to Agent 1.1. Expand to restore.",
+      "text": "Agent 2.1 credits used up. Switched to Agent 1.1. Purchase credits to restore.",
       "compact_text": "Switched to Agent 1.1",
       "compact_tooltip": "Agent 2.1 credits used up",
-      "not_owner": "Please contact namespace owner to expand",
-      "expand_button": "Expand",
+      "not_owner": "Please contact the namespace owner to purchase credits",
+      "expand_button": "Purchase",
       "tooltip": {
         "base": "Buy or upgrade to keep using Agent 2.1"
       }
@@ -1006,6 +1063,8 @@
       "selected": "Selected",
       "approve_all": "Approve all",
       "reject_all": "Reject all",
+      "reject_failed": "Couldn't reject the pending action, so your message was not sent.",
+      "already_decided": "This approval was already handled elsewhere.",
       "mode": {
         "manual": "Manual approval",
         "auto_approve": "Auto approve",
@@ -1017,6 +1076,7 @@
         "auto_reject": "Automatically reject requests"
       }
     },
+    "send": "Send message",
     "history": {
       "load_more": "Load older messages",
       "loading": "Loading history…",
@@ -1113,6 +1173,7 @@
     "hide": "Hide"
   },
   "tasks": {
+    "description": "View background task status and manage task execution.",
     "title": "Task Management",
     "related_tasks": "Related Tasks",
     "loading": "Loading tasks...",
@@ -1182,7 +1243,8 @@
       "generate_audio_note": "Audio Parsing",
       "collect_url": "Visit URL",
       "web_analysis": "Web Analysis"
-    }
+    },
+    "empty_description": "Upload a file or import a link to see its processing tasks here."
   },
   "common": {
     "actions": "Actions",
@@ -1195,7 +1257,8 @@
         "title": "Delete?",
         "description": "You are going to delete <strong>{{title}}</strong>"
       }
-    }
+    },
+    "more_actions": "More actions"
   },
   "loading": "Loading...",
   "load_more": "Load More",
@@ -1297,6 +1360,7 @@
     "clear_success": "Trash emptied"
   },
   "quota": {
+    "description": "View resource usage, credit balances, and expiration dates for this space.",
     "storage_usage": "Storage",
     "upload": "Upload",
     "file": "File",
@@ -1310,7 +1374,7 @@
     "pdf": "PDF",
     "image": "Image",
     "other": "Other",
-    "expand_button": "Expand",
+    "expand_button": "Purchase",
     "basic_period": "Namespace validity period: ",
     "premium_period": "Pro validity period: ",
     "days_remaining": "{{days}} days remaining (expires {{date}})",

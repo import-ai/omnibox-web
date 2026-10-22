@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { Button } from '@/components/Button';
 import { CaptchaMount } from '@/components/captcha/CaptchaMount';
 import { PhoneNumberInput } from '@/components/phone-input';
 import { formatPhone } from '@/components/phone-input/utils.ts';
@@ -103,13 +104,14 @@ function PhoneInputStep({
               )}
             />
 
-            <button
+            <Button
               type="submit"
               disabled={submitting}
-              className="mt-5 h-10 w-full rounded-md bg-foreground text-sm font-medium text-background hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              loading={submitting}
+              className="mt-5 h-10 w-full bg-foreground text-background hover:bg-foreground/90"
             >
               {t('phone.send_verification_code')}
-            </button>
+            </Button>
           </form>
         </Form>
       </div>

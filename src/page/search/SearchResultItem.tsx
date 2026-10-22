@@ -67,7 +67,7 @@ export function SearchResultContent({
         </div>
       </div>
       {preview ? (
-        <div className="ml-6 line-clamp-2 text-sm leading-[22px] text-[rgba(26,26,26,0.36)] dark:text-neutral-500">
+        <div className="ml-6 line-clamp-2 text-sm leading-[22px] text-muted-foreground">
           {preview}
         </div>
       ) : null}

@@ -5,6 +5,7 @@ import {
   getFailedTasks,
   getRetryableTasks,
   getSupersededTaskIds,
+  getTaskBadgeConfig,
   hasRetryableTasks,
 } from './utils';
 
@@ -228,4 +229,10 @@ describe('getFailedTasks', () => {
 
     expect(getFailedTasks([stale], [stale, retry])).toEqual([]);
   });
+});
+
+it('falls back to the error status mark for an unknown task status', () => {
+  expect(getTaskBadgeConfig('future_status' as TaskStatus)).toBe(
+    getTaskBadgeConfig('error')
+  );
 });

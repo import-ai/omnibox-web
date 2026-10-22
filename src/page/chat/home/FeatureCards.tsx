@@ -6,21 +6,15 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ExtensionIcon } from '@/assets/icons/ExtensionIcon';
-import ResourceIcon from '@/assets/icons/ResourceIcon';
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
@@ -130,21 +124,19 @@ export default function FeatureCards() {
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
       {/* Upload Files Card */}
-      <Card className="shadow-none dark:border-none dark:bg-[#303030]">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-medium">
-            {t('chat.home.upload.title')}
-          </CardTitle>
-          <CardDescription className="text-base font-medium text-foreground">
-            {t('chat.home.upload.subtitle')}
-          </CardDescription>
-          <CardDescription className="text-sm text-muted-foreground">
-            {t('chat.home.upload.description')}
-          </CardDescription>
+      <Card className="min-w-0 gap-4 [--card-spacing:--spacing(5)]">
+        <CardHeader>
+          <CardTitle>{t('chat.home.upload.title')}</CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-between">
+        <CardContent className="flex flex-1 flex-col gap-4">
+          <div className="space-y-1">
+            <p className="font-medium">{t('chat.home.upload.subtitle')}</p>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              {t('chat.home.upload.description')}
+            </p>
+          </div>
           <input
             type="file"
             multiple
@@ -154,14 +146,15 @@ export default function FeatureCards() {
             style={{ display: 'none' }}
           />
           <TooltipProvider>
-            <div className="flex flex-wrap gap-2">
+            <div className="mt-auto flex flex-wrap gap-2">
               {uploading ? (
                 <Tooltip delayDuration={0}>
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-24 opacity-50"
+                      className="min-w-24"
+                      disabled
                     >
                       <Spinner className="text-red-500" />
                       {t('chat.home.upload.local')}
@@ -177,7 +170,7 @@ export default function FeatureCards() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-24"
+                      className="min-w-24"
                       onClick={() => openFilePicker(fileInputRef.current)}
                     >
                       <FileUp className="size-4 text-red-500" />
@@ -194,7 +187,7 @@ export default function FeatureCards() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-24"
+                    className="min-w-24"
                     onClick={handleWeChatClick}
                   >
                     <MessageCircle className="size-4 text-green-500" />
@@ -210,7 +203,7 @@ export default function FeatureCards() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-24"
+                    className="min-w-24"
                     onClick={handleBrowserClick}
                   >
                     <ExtensionIcon />
@@ -227,9 +220,9 @@ export default function FeatureCards() {
       </Card>
 
       {/* Recent Resources Card */}
-      <Card className="border-gray-200 bg-white shadow-none dark:border-none dark:bg-[#303030]">
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg font-medium">
+      <Card className="min-w-0 gap-4 [--card-spacing:--spacing(5)]">
+        <CardHeader>
+          <CardTitle>
             {t('chat.home.recent.title', {
               defaultValue: 'Recently Updated',
             })}
@@ -243,7 +236,7 @@ export default function FeatureCards() {
               })}
             </div>
           ) : (
-            <div className="no-scrollbar max-h-28 space-y-1 overflow-y-auto pr-1">
+            <div className="max-h-28 space-y-1 overflow-y-auto">
               {recent.map(item => {
                 const name = item.name || t('untitled');
                 const time = getTime(item as any, i18n);
@@ -266,7 +259,10 @@ export default function FeatureCards() {
                   >
                     <div className="flex min-w-0 items-center gap-2">
                       <div className="[&>svg]:size-4">
-                        <ResourceIcon expand={false} resource={iconResource} />
+                        <ResourceTypeIcon
+                          expand={false}
+                          resource={iconResource}
+                        />
                       </div>
                       <div className="min-w-0">
                         <div className="truncate text-sm group-hover:text-foreground">
@@ -277,7 +273,7 @@ export default function FeatureCards() {
                         </div>
                       </div>
                     </div>
-                    <ChevronRight className="size-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
                   </div>
                 );
               })}

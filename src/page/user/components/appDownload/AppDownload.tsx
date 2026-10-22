@@ -1,7 +1,7 @@
 import './appDownload.css';
 
-import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
+import { Dialog as DialogPrimitive } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,7 +12,7 @@ import {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { cn } from '@/lib/utils';
 
 import { getAppDownloadUrl, isMobileDownloadClient } from './downloadQr';
@@ -43,7 +43,7 @@ export default function AppDownload() {
           <DialogPrimitive.Content
             aria-describedby={undefined}
             className={cn(
-              'fixed inset-0 z-50 flex flex-col items-center justify-center outline-none',
+              'fixed inset-0 z-50 flex flex-col items-center justify-center outline-hidden',
               'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 motion-reduce:animate-none'
             )}
             onClick={event => {

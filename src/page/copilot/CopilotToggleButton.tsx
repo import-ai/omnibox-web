@@ -2,8 +2,7 @@ import { PanelRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ChatIcon } from '@/assets/icons/ChatIcon';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
+import { IconButton } from '@/components/omnibox/IconButton';
 import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
@@ -54,24 +53,19 @@ export default function CopilotToggleButton({
   };
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          aria-label={label}
-          className="h-7 w-7 shrink-0"
-          onClick={handleToggle}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          {collapseOnly || copilotActive ? (
-            <PanelRight />
-          ) : (
-            <ChatIcon className="size-4" />
-          )}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{tooltipLabel}</TooltipContent>
-    </Tooltip>
+    <IconButton
+      label={tooltipLabel}
+      aria-label={label}
+      size="sm"
+      tone="sidebar"
+      className="shrink-0"
+      onClick={handleToggle}
+    >
+      {collapseOnly || copilotActive ? (
+        <PanelRight className="size-4" />
+      ) : (
+        <ChatIcon className="size-4" />
+      )}
+    </IconButton>
   );
 }

@@ -5,16 +5,20 @@ import {
   Plus,
   Search,
   SquarePen,
-  Trash2,
+  Trash,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { ShareIcon } from '@/assets/icons/ShareIcon';
+import { Button } from '@/components/Button';
 import ConfirmDeleteDialog from '@/components/confirm-delete-dialog';
+import {
+  IconButton,
+  sidebarToolbarIconButtonClassName,
+} from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,9 +28,11 @@ import {
 } from '@/components/ui/DropdownMenu';
 import useApp from '@/hooks/useApp';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
+import { cn } from '@/lib/utils';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
 interface IProps {
   compact?: boolean;
@@ -56,6 +62,7 @@ export default function Actions(props: IProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [remove, onRemove] = useState(false);
+  const menuTriggerPress = useMenuTriggerPress();
   const renaming = useRef(false);
 
   const handleDeleteSuccess = () => {
@@ -96,87 +103,75 @@ export default function Actions(props: IProps) {
   return (
     <div className="flex items-center gap-1 text-sm">
       {conversationsPage && onChatSearch && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="size-[28px]"
-              onClick={onChatSearch}
-            >
-              <Search />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('chat.conversations.search')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          label={t('chat.conversations.search')}
+          size="sm"
+          tone="sidebar"
+          onClick={onChatSearch}
+        >
+          <Search className="size-4" />
+        </IconButton>
       )}
       {conversationId && !compact && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              aria-label={t('chat.share.action')}
-              className="size-7"
-              onClick={() =>
-                app.fire(CONVERSATION_SHARE_OPEN_EVENT, {
-                  conversationId,
-                  initialSelection: 'all',
-                })
-              }
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <ShareIcon className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('chat.share.action')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          label={t('chat.share.action')}
+          size="sm"
+          tone="sidebar"
+          onClick={() =>
+            app.fire(CONVERSATION_SHARE_OPEN_EVENT, {
+              conversationId,
+              initialSelection: 'all',
+            })
+          }
+        >
+          <ShareIcon className="size-4" />
+        </IconButton>
       )}
       {!homePage && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="size-[28px]"
-              onClick={onChatCreate}
-            >
-              <MessageCirclePlus />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('chat.conversations.new_chat')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          label={t('chat.conversations.new_chat')}
+          size="sm"
+          tone="sidebar"
+          onClick={onChatCreate}
+        >
+          <MessageCirclePlus className="size-4" />
+        </IconButton>
       )}
       {!conversationsPage && (compact || !conversationId) && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="size-[28px] text-[#585D65] dark:text-white"
-              onClick={onChatHistory}
-            >
-              <History />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('chat.conversations.history')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          label={t('chat.conversations.history')}
+          size="sm"
+          tone="sidebar"
+          onClick={onChatHistory}
+        >
+          <History className="size-4" />
+        </IconButton>
       )}
       {conversationId && !compact && (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 data-[state=open]:bg-accent"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    sidebarToolbarIconButtonClassName,
+                    'size-7 aria-expanded:bg-transparent'
+                  )}
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>{t('common.more_actions')}</TooltipContent>
+          </Tooltip>
           <DropdownMenuContent
             align="end"
             className="w-56"
+            {...menuTriggerPress.contentProps}
             onCloseAutoFocus={event => {
+              menuTriggerPress.contentProps.onCloseAutoFocus(event);
               if (renaming.current) event.preventDefault();
               renaming.current = false;
             }}
@@ -185,29 +180,30 @@ export default function Actions(props: IProps) {
               className="cursor-pointer gap-2"
               onClick={onChatCreate}
             >
-              <Plus className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <Plus className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.new_chat')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={onChatHistory}
             >
-              <History className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <History className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.history')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer gap-2"
               onClick={() => handleAction('rename')}
             >
-              <SquarePen className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <SquarePen className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.rename.option')}</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="group cursor-pointer gap-2 hover:text-red-500 focus:text-red-500 data-[highlighted]:text-red-500"
+              variant="destructive"
+              className="cursor-pointer gap-2"
               onClick={() => handleAction('delete')}
             >
-              <Trash2 className="size-4 text-neutral-500 group-hover:text-red-500 group-focus:text-red-500 group-data-[highlighted]:text-red-500 dark:text-[#a1a1a1]" />
+              <Trash className="size-4" />
               <span>{t('chat.conversations.delete.option')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -1,16 +1,10 @@
 .app-download-card {
-  --download-qr-surface: #fff;
-  color: #171717;
+  --download-qr-surface: var(--background);
+  color: var(--foreground);
   background: var(--download-qr-surface);
-  border: 1px solid #e4e4e7;
-  box-shadow: 0 12px 40px -16px rgb(24 24 27 / 22%);
-}
-
-.dark .app-download-card {
-  --download-qr-surface: #171717;
-  color: #fafafa;
-  border-color: #404040;
-  box-shadow: 0 12px 40px -16px rgb(0 0 0 / 45%);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 40px -16px
+    color-mix(in oklab, var(--foreground) 22%, transparent);
 }
 
 .app-download-entry {
@@ -38,11 +32,7 @@
 .app-download-caption {
   font-size: 13px;
   line-height: 20px;
-  color: #737373;
-}
-
-.dark .app-download-caption {
-  color: #e5e5e5;
+  color: var(--muted-foreground);
 }
 .app-download-qr {
   display: block;
@@ -86,18 +76,15 @@
   display: none;
 }
 .app-download-overlay {
-  background: #f2f2f7;
+  background: var(--background);
 }
 
-.dark .app-download-overlay {
-  background: #262626;
-}
-
-.dark .app-download-dialog-panel {
-  --download-qr-surface: #171717;
-  background: #171717;
-  border-color: transparent;
-  box-shadow: 0 8px 32px -8px rgb(0 0 0 / 55%);
+.app-download-dialog-panel {
+  --download-qr-surface: var(--background);
+  background: var(--background);
+  border-color: var(--border);
+  box-shadow: 0 8px 32px -8px
+    color-mix(in oklab, var(--foreground) 24%, transparent);
 }
 
 .app-download-close {
@@ -111,16 +98,8 @@
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  color: #171717;
+  color: var(--foreground);
   transition: background-color 150ms ease;
-}
-
-.dark .app-download-close {
-  color: #fafafa;
-}
-
-.app-download-close:hover {
-  background: rgb(0 0 0 / 6%);
 }
 
 .dark .app-download-close:hover {
@@ -128,7 +107,7 @@
 }
 
 .app-download-close:focus-visible {
-  outline: 2px solid hsl(var(--ring));
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 
@@ -138,15 +117,11 @@
   font-size: 14px;
   font-weight: 400;
   line-height: 20px;
-  color: #171717;
-}
-
-.dark .app-download-dialog-title {
-  color: #fafafa;
+  color: var(--foreground);
 }
 
 .app-download-trigger:focus-visible {
-  outline: 2px solid hsl(var(--ring));
+  outline: 2px solid var(--ring);
   outline-offset: 4px;
 }
 

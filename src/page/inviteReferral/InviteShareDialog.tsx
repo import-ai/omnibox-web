@@ -2,7 +2,7 @@ import copy from 'copy-to-clipboard';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import {
   Dialog,
@@ -10,7 +10,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 import { buildLocalizedInviteUrl } from './inviteUrl';
 
@@ -57,7 +57,7 @@ export function InviteShareDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="w-[510px] max-w-[calc(100vw-32px)] gap-5 rounded-xl p-6 sm:p-8"
+        className="w-[510px] max-w-[calc(100vw-32px)] sm:max-w-[calc(100vw-32px)] gap-5 rounded-xl p-6 sm:p-8"
         onOpenAutoFocus={event => event.preventDefault()}
       >
         <DialogHeader className="space-y-0 text-left">

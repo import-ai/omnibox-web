@@ -18,7 +18,7 @@ export function InviteNote({ note }: InviteNoteProps) {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className="!text-foreground underline"
+            className="text-foreground! underline"
           >
             {children}
           </a>

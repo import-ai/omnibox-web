@@ -116,7 +116,7 @@ export function MessageIndex({ messages }: { messages: MessageDetail[] }) {
                 </a>
               </HoverCardTrigger>
               <HoverCardContent
-                className="w-80 rounded-xl p-3 !animate-none"
+                className="w-80 rounded-xl p-3 animate-none!"
                 side="right"
               >
                 <p className="truncate text-sm font-medium">{item.query}</p>

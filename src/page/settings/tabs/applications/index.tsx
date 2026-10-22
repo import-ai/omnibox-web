@@ -2,9 +2,10 @@ import { CircleHelp } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   AlertDialog,
@@ -15,14 +16,14 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import useApplications from '@/hooks/useApplications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/getDocsLink.ts';
 import { cn } from '@/lib/utils';
+import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
 import { beginCodeBind } from './beginCodeBind';
@@ -49,6 +50,18 @@ function validateAppId(appId: string): void {
     appId !== WECHAT_OA_APP_ID
   ) {
     throw new Error(`Unsupported application type: ${appId}`);
+  }
+}
+
+function getConfirmAppName(
+  application: Application,
+  t: (key: string, options?: Record<string, string>) => string
+) {
+  try {
+    validateAppId(application.app_id);
+    return getLocalizedAppName(application.app_id, t);
+  } catch {
+    return application.app_id;
   }
 }
 
@@ -85,9 +98,8 @@ interface ApplicationsFormProps {
   };
 }
 
-const BUTTON_CLASS: string = 'text-xs font-medium w-[71px] h-[30px] shrink-0';
-
 export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
+  const { showToast } = useSettingsToast();
   const { t, i18n } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
@@ -112,6 +124,11 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   const [currentAppId, setCurrentAppId] = useState<string>('');
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
+  const [confirmApplication, setConfirmApplication] =
+    useState<Application | null>(null);
+  const [confirmAction, setConfirmAction] = useState<
+    'unbind' | 'cancel' | null
+  >(null);
 
   // Track if autoAction has been processed to prevent re-triggering
   const autoActionProcessedRef = useRef(false);
@@ -162,14 +179,14 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
           setQrcodeContent(application.attrs.qrcode_content);
           setCurrentBindingApplication(application);
           setQrBindDialogOpen(true);
-          toast.success(t('applications.bind.continue'));
+          showToast(t('applications.bind.continue'), 'success');
         } else {
           // Start new binding process
           const response = await bindApplication(application.app_id);
           setQrcodeContent(response.attrs?.qrcode_content || '');
           setCurrentBindingApplication(response);
           setQrBindDialogOpen(true);
-          toast.success(t('applications.bind.initiated'));
+          showToast(t('applications.bind.initiated'), 'success');
         }
         return;
       }
@@ -183,15 +200,16 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
       setBindingCode(result.code);
       setCurrentBindingApplication(result.application);
       setBindDialogOpen(true);
-      toast.success(
+      showToast(
         t(
           result.resumed
             ? 'applications.bind.continue'
             : 'applications.bind.initiated'
-        )
+        ),
+        'success'
       );
-    } catch (error: any) {
-      toast.error(error.message || t('applications.bind.error'));
+    } catch {
+      showToast(t('applications.bind.error'), 'error');
     } finally {
       setBindingLoading(false);
     }
@@ -201,9 +219,11 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     try {
       setUnbindingLoading(true);
       await unbindApplication(application.id);
-      toast.success(t('applications.unbind.success'));
-    } catch (error: any) {
-      toast.error(error.message || t('applications.unbind.error'));
+      setConfirmApplication(null);
+      setConfirmAction(null);
+      showToast(t('applications.unbind.success'), 'success');
+    } catch {
+      showToast(t('applications.unbind.error'), 'error');
     } finally {
       setUnbindingLoading(false);
     }
@@ -217,16 +237,18 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     setQrcodeContent('');
     setCurrentAppId('');
     await refetch();
-    toast.success(t('applications.bind.success'));
+    showToast(t('applications.bind.success'), 'success');
   };
 
   const handleCancelBind = async (application: Application) => {
     try {
       setCancelingLoading(true);
       await unbindApplication(application.id);
-      toast.success(t('applications.bind.cancel.success'));
-    } catch (error: any) {
-      toast.error(error.message || t('applications.unbind.error'));
+      setConfirmApplication(null);
+      setConfirmAction(null);
+      showToast(t('applications.bind.cancel.success'), 'success');
+    } catch {
+      showToast(t('applications.unbind.error'), 'error');
     } finally {
       setCancelingLoading(false);
     }
@@ -266,14 +288,14 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   if (loading) {
     return (
       <div className="flex size-full items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     );
   }
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-2">
         <div className="flex flex-col gap-2.5">
           <h3 className="text-base font-semibold text-foreground">
             {t('applications.title')}
@@ -310,156 +332,105 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
             return (
               <div
                 key={application.app_id}
-                className="flex w-full items-center justify-between gap-2"
+                className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-2 py-2"
               >
-                <div className="flex min-w-0 flex-1 items-center gap-1">
-                  <span className="truncate text-base font-semibold text-foreground">
-                    {appDisplayName}
-                  </span>
-                  {!hasError && hasDocs(application.app_id) && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => handleDocsClick(application.app_id)}
-                          className="transition-opacity hover:opacity-70"
-                        >
-                          <CircleHelp className="size-4 text-muted-foreground" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        {t('footer.docs')}
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="text-sm font-medium leading-5 text-foreground">
+                      {appDisplayName}
+                    </span>
+                    {!hasError && hasDocs(application.app_id) && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => handleDocsClick(application.app_id)}
+                            className={cn(
+                              sidebarToolbarIconButtonClassName,
+                              'self-center hover:bg-transparent'
+                            )}
+                          >
+                            <CircleHelp className="size-4 text-muted-foreground" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">
+                          {t('footer.docs')}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                    {!hasError && (
+                      <span className="min-w-0 break-words text-sm font-normal leading-5 text-muted-foreground">
+                        {t(`applications.status.${state}`)}
+                      </span>
+                    )}
+                    {hasError && (
+                      <span className="min-w-0 break-words text-sm font-normal leading-5 text-muted-foreground">
+                        {t('applications.unsupported_app', {
+                          app_id: application.app_id,
+                        })}
+                      </span>
+                    )}
+                  </div>
                   {!hasError && (
-                    <span className="ml-2 shrink-0 whitespace-nowrap text-sm text-muted-foreground lg:text-base">
-                      {t(
-                        `applications.status.${isBound ? 'bound' : 'unbound'}`
-                      )}
-                    </span>
-                  )}
-                  {hasError && (
-                    <span className="ml-2 min-w-0 truncate text-sm text-muted-foreground lg:text-base">
-                      {t('applications.unsupported_app', {
-                        app_id: application.app_id,
+                    <p className="whitespace-normal text-xs leading-4 text-muted-foreground">
+                      {t('applications.connection_description', {
+                        platform: t(
+                          `applications.scan_via.${application.app_id}`
+                        ),
                       })}
-                    </span>
+                    </p>
                   )}
                 </div>
 
                 {hasError ? (
-                  <Button
-                    disabled
+                  <SettingPageButton disabled variant="outline">
+                    {t('applications.unbind.button')}
+                  </SettingPageButton>
+                ) : isBound ? (
+                  <SettingPageButton
                     variant="outline"
-                    size="sm"
-                    className={BUTTON_CLASS}
+                    onClick={() => {
+                      setConfirmApplication(application);
+                      setConfirmAction('unbind');
+                    }}
                   >
                     {t('applications.unbind.button')}
-                  </Button>
-                ) : isBound ? (
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn(BUTTON_CLASS, 'border-line')}
-                      >
-                        {t('applications.unbind.button')}
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>
-                          {t('applications.unbind.confirm.title')}
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          {t('applications.unbind.confirm.description', {
-                            name: appDisplayName,
-                          })}
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel asChild>
-                          <Button variant="outline">{t('cancel')}</Button>
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                          disabled={unbindingLoading}
-                          className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                          onClick={() => handleUnbind(application)}
-                        >
-                          {unbindingLoading && <Spinner className="mr-2" />}
-                          {t('applications.unbind.confirm.button')}
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  </SettingPageButton>
                 ) : state === 'binding_in_progress' ? (
                   <div className="flex gap-2">
-                    <Button
+                    <SettingPageButton
                       onClick={() => handleBind(application)}
                       disabled={
                         bindingLoading && currentAppId === application.app_id
                       }
-                      variant="default"
-                      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
                     >
                       {bindingLoading &&
                         currentAppId === application.app_id && (
                           <Spinner className="mr-2" />
                         )}
                       {t('applications.bind.button')}
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className={cn(BUTTON_CLASS, 'border-line')}
-                        >
-                          {t('applications.bind.cancel_button')}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            {t('applications.bind.cancel.confirm.title')}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {t('applications.bind.cancel.confirm.description', {
-                              name: appDisplayName,
-                            })}
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel asChild>
-                            <Button variant="outline">{t('cancel')}</Button>
-                          </AlertDialogCancel>
-                          <AlertDialogAction
-                            disabled={cancelingLoading}
-                            className="border border-destructive bg-transparent text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                            onClick={() => handleCancelBind(application)}
-                          >
-                            {cancelingLoading && <Spinner className="mr-2" />}
-                            {t('applications.bind.cancel.confirm.button')}
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    </SettingPageButton>
+                    <SettingPageButton
+                      variant="outline"
+                      onClick={() => {
+                        setConfirmApplication(application);
+                        setConfirmAction('cancel');
+                      }}
+                    >
+                      {t('applications.bind.cancel_button')}
+                    </SettingPageButton>
                   </div>
                 ) : (
-                  <Button
+                  <SettingPageButton
                     onClick={() => handleBind(application)}
                     disabled={
                       bindingLoading && currentAppId === application.app_id
                     }
-                    variant="default"
-                    className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
                   >
                     {bindingLoading && currentAppId === application.app_id && (
                       <Spinner className="mr-2" />
                     )}
                     {t('applications.bind.button')}
-                  </Button>
+                  </SettingPageButton>
                 )}
               </div>
             );
@@ -493,6 +464,71 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         onOpenChange={setAlreadyBoundDialogOpen}
         appId={currentAppId}
       />
+      <AlertDialog
+        open={confirmApplication !== null}
+        onOpenChange={open => {
+          if (!open && !unbindingLoading && !cancelingLoading) {
+            setConfirmApplication(null);
+            setConfirmAction(null);
+          }
+        }}
+      >
+        <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t(
+                confirmAction === 'cancel'
+                  ? 'applications.bind.cancel.confirm.title'
+                  : 'applications.unbind.confirm.title'
+              )}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t(
+                confirmAction === 'cancel'
+                  ? 'applications.bind.cancel.confirm.description'
+                  : 'applications.unbind.confirm.description',
+                {
+                  name: confirmApplication
+                    ? getConfirmAppName(confirmApplication, t)
+                    : '',
+                }
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel asChild>
+              <Button
+                variant="outline"
+                disabled={unbindingLoading || cancelingLoading}
+              >
+                {t('cancel')}
+              </Button>
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={unbindingLoading || cancelingLoading}
+              onClick={event => {
+                event.preventDefault();
+                if (!confirmApplication) return;
+                if (confirmAction === 'cancel') {
+                  void handleCancelBind(confirmApplication);
+                  return;
+                }
+                void handleUnbind(confirmApplication);
+              }}
+            >
+              {(unbindingLoading || cancelingLoading) && (
+                <Spinner className="mr-2" />
+              )}
+              {t(
+                confirmAction === 'cancel'
+                  ? 'applications.bind.cancel.confirm.button'
+                  : 'applications.unbind.confirm.button'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

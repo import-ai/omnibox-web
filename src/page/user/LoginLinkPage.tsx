@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';

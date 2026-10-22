@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { toast } from 'sonner';
 
 const actionButtonClassName =
-  'bg-black hover:!bg-neutral-800 dark:!bg-white dark:!text-black active:!bg-neutral-700 dark:active:!bg-neutral-300 dark:hover:!bg-neutral-100 h-[30px] px-3 rounded-md';
+  'cursor-pointer bg-black hover:bg-neutral-800! dark:bg-white! dark:text-black! active:bg-neutral-700! dark:active:bg-neutral-300! dark:hover:bg-neutral-100! h-[30px] px-3 rounded-md transition-all active:translate-y-px';
 
 interface ShowActionToastOptions {
   actionLabel: ReactNode;

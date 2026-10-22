@@ -223,7 +223,7 @@ function ResourceDetailContent({
     >
       <SidebarInset
         className={cn(
-          'h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]',
+          'h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-background md:h-[calc(100svh-16px)]',
           compactResourcePane && 'resource-detail-view--compact',
           flushLayout ? 'm-0 md:h-full' : 'm-[8px]'
         )}
@@ -251,7 +251,7 @@ function ResourceDetailContent({
           restoring={restoring}
           wide={wide}
         />
-        <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
+        <Separator className="bg-border" />
         <div
           className={cn(
             'no-scrollbar flex min-w-0 flex-1 justify-center overflow-x-hidden overflow-y-auto p-4',

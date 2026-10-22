@@ -4,7 +4,14 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import * as z from 'zod';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/omnibox/Select';
 import {
   Form,
   FormControl,
@@ -13,13 +20,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/Form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/Select';
 import { Group } from '@/interface';
 import { http } from '@/lib/request';
 
@@ -75,7 +75,7 @@ export function AddGroupInvitationForm(props: IProps) {
                   onValueChange={field.onChange}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>

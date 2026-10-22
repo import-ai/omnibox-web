@@ -9,7 +9,7 @@ import {
   Move,
   Pencil,
   SquarePen,
-  Trash2,
+  Trash,
 } from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
 import { useMemo } from 'react';
@@ -131,7 +131,7 @@ export function useNodeMenu(
           { key: 'batch_3', separator: true },
           {
             key: 'batch_delete',
-            icon: Trash2,
+            icon: Trash,
             label: t('batch.delete_tooltip'),
             destructive: true,
             ...unsupported('delete'),
@@ -198,7 +198,7 @@ export function useNodeMenu(
           { key: 'separator_2', separator: true },
           {
             key: 'delete',
-            icon: Trash2,
+            icon: Trash,
             label: t('actions.move_to_trash'),
             destructive: true,
             onClick: actions.handleDelete,
@@ -234,7 +234,7 @@ export function useNodeMenu(
           { key: 'separator_2', separator: true },
           {
             key: 'delete',
-            icon: Trash2,
+            icon: Trash,
             label: t('actions.move_to_trash'),
             destructive: true,
             onClick: actions.handleDelete,
@@ -303,7 +303,7 @@ export function useNodeMenu(
         { key: 'separator_3', separator: true },
         {
           key: 'delete',
-          icon: Trash2,
+          icon: Trash,
           label: t('actions.move_to_trash'),
           destructive: true,
           onClick: actions.handleDelete,

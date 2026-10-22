@@ -1,11 +1,36 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import logoUrl from '@/assets/logo.svg';
+import useConfig from '@/hooks/useConfig';
+import { http } from '@/lib/request';
 
 import GenerateForm from '../settings/tabs/account/GenerateForm';
 
 export default function WelcomePage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { config, loading } = useConfig();
+
+  useEffect(() => {
+    if (loading || !localStorage.getItem('uid')) return;
+
+    let active = true;
+    const endpoint = config.commercial ? 'pro-namespaces' : 'namespaces';
+    http
+      .get(endpoint)
+      .then(namespaces => {
+        if (active && Array.isArray(namespaces) && namespaces.length > 0) {
+          navigate(`/${namespaces[0].id}/chat`, { replace: true });
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      active = false;
+    };
+  }, [config.commercial, loading, navigate]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">

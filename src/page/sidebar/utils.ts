@@ -1,7 +1,10 @@
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import { openFilePicker } from '@/lib/openFilePicker';
 
-import { centerSidebarElement } from './sidebarScroll';
+import {
+  centerSidebarElement,
+  scrollVirtualResourceIntoView,
+} from './sidebarScroll';
 import { useSidebarStore } from './store';
 
 export { centerSidebarElementOnce } from './sidebarScroll';
@@ -44,6 +47,8 @@ export function clearSidebarActiveKeyFromState(state: unknown): {
 export type LocateSidebarResourceOptions = {
   signal?: AbortSignal;
   shouldApply?: () => boolean;
+  /** Locate clicks animate. Refresh and route opens stay instant. */
+  behavior?: ScrollBehavior;
 };
 
 function canApplyLocate(options?: LocateSidebarResourceOptions) {
@@ -74,6 +79,10 @@ export async function locateSidebarResource(
 ) {
   const applied = await expandAndActivateSidebarNode(resourceId, options);
   if (!applied) return;
+  // Unmounted virtual rows have no element to center. Scroll by row index, and
+  // keep the measured-rect path for rows that are already mounted.
+  const scrolled = await scrollVirtualResourceIntoView(resourceId, { options });
+  if (scrolled) return;
   await centerSidebarElement(`[data-resource-id="${resourceId}"]`, {
     options,
   });

@@ -28,25 +28,19 @@ export default function ManagePeople({ canManageMembers }: ManagePeopleProps) {
   if (loading) {
     return (
       <div className="flex size-full items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     );
   }
 
   return (
     <Tabs value={tab} onValueChange={onTab} className="w-full">
-      <TabsList className="h-9 w-full shrink-0 justify-start rounded-none border-b border-border bg-transparent lg:h-11">
-        <TabsTrigger
-          value="member"
-          className="h-9 max-w-[100px] flex-1 text-xs font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none lg:h-11 lg:max-w-[120px] lg:text-sm"
-        >
+      <TabsList>
+        <TabsTrigger value="member">
           {t('manage.member')} {data.member.length}
         </TabsTrigger>
         {canManageMembers && (
-          <TabsTrigger
-            value="group"
-            className="h-9 max-w-[100px] flex-1 text-xs font-bold text-muted-foreground data-[state=active]:rounded-none data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none lg:h-11 lg:max-w-[120px] lg:text-sm"
-          >
+          <TabsTrigger value="group">
             {t('manage.group')} {data.group.length}
           </TabsTrigger>
         )}

@@ -7,7 +7,7 @@ import { createRoot } from 'react-dom/client';
 import type { AutoRenewal } from './autoRenewal';
 import { AutoRenewalCard } from './AutoRenewalSection';
 
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({ children, ...props }: React.ComponentProps<'button'>) => (
     <button {...props}>{children}</button>
   ),

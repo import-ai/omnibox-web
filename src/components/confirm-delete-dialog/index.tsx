@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { actionButtonClassName } from '@/components/sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +12,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 
@@ -58,11 +59,14 @@ export default function ConfirmDeleteDialog(props: IProps) {
         onSuccess?.();
 
         // show success message
-        const toastOptions: any = {
+        const toastOptions: {
+          description?: string;
+          action?: { label: string; onClick: () => void };
+          classNames?: { actionButton: string };
+        } = {
           description: successDescription,
         };
 
-        // if restore url is provided, add undo function
         if (restoreUrl) {
           toastOptions.action = {
             label: t('undo'),
@@ -76,6 +80,7 @@ export default function ConfirmDeleteDialog(props: IProps) {
               });
             },
           };
+          toastOptions.classNames = { actionButton: actionButtonClassName };
         }
 
         toast(successMessage, toastOptions);
@@ -100,7 +105,7 @@ export default function ConfirmDeleteDialog(props: IProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="w-[85%] max-w-sm">
+      <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
         <AlertDialogHeader>
           <AlertDialogTitle>
             <Trans i18nKey={titleKey || 'common.dialog.delete.title'} />
@@ -120,9 +125,9 @@ export default function ConfirmDeleteDialog(props: IProps) {
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
+            variant="destructive"
             disabled={loading}
             onClick={handleConfirm}
-            className="border border-destructive text-destructive bg-transparent hover:bg-destructive hover:text-destructive-foreground"
           >
             {loading && <Spinner className="mr-2" />}
             {t('delete')}

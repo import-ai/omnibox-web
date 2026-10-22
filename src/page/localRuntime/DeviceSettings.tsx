@@ -1,8 +1,10 @@
 import { format } from 'date-fns';
-import { Trash2 } from 'lucide-react';
+import { Trash } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
+import { IconButton } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -18,9 +20,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/AlertDialog';
-import { Button } from '@/components/ui/Button';
+} from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
@@ -52,6 +52,7 @@ function DeviceCard({
 }) {
   const { t, i18n } = useTranslation();
   const [removing, setRemoving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const remove = async () => {
     setRemoving(true);
     try {
@@ -79,23 +80,16 @@ function DeviceCard({
           <RenameDevice device={device} devices={devices} refresh={refresh} />
           {isCurrent && <Chip>{t('local_runtime.this_device')}</Chip>}
         </div>
-        <AlertDialog>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <AlertDialogTrigger asChild>
-                <button
-                  type="button"
-                  aria-label={t('local_runtime.remove.label')}
-                  className="group flex size-10 items-center justify-center transition-opacity hover:opacity-70 lg:size-auto lg:p-1"
-                >
-                  <Trash2 className="size-4 text-muted-foreground group-hover:text-destructive" />
-                </button>
-              </AlertDialogTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="top">
-              {t('local_runtime.remove.label')}
-            </TooltipContent>
-          </Tooltip>
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <IconButton
+            size="sm"
+            tone="sidebar"
+            label={t('local_runtime.remove.label')}
+            destructive
+            onClick={() => setConfirmOpen(true)}
+          >
+            <Trash />
+          </IconButton>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
@@ -110,9 +104,9 @@ function DeviceCard({
                 <Button variant="outline">{t('cancel')}</Button>
               </AlertDialogCancel>
               <AlertDialogAction
+                variant="destructive"
                 disabled={removing}
                 onClick={() => void remove()}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {removing && <Spinner className="mr-2" />}
                 {t('local_runtime.remove.confirm.button')}
@@ -159,7 +153,7 @@ export default function DeviceSettings() {
   if (!devices && !error) {
     return (
       <div className="flex size-full items-center justify-center">
-        <Spinner className="size-6 text-gray-400" />
+        <Spinner className="size-6 text-muted-foreground" />
       </div>
     );
   }

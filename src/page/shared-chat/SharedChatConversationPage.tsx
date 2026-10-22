@@ -325,7 +325,7 @@ export default function SharedChatConversationPage() {
         />
       </Scrollbar>
       <div
-        className="relative z-20 flex shrink-0 justify-center bg-white px-4 pb-[max(8px,env(safe-area-inset-bottom))] dark:bg-background"
+        className="relative z-20 flex shrink-0 justify-center bg-background px-4 pb-[max(8px,env(safe-area-inset-bottom))]"
         data-chat-composer
       >
         <div className="flex-1 max-w-3xl w-full">

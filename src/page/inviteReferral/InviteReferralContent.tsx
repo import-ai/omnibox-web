@@ -8,7 +8,7 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -132,15 +132,15 @@ export function InviteReferralContent() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white dark:bg-[#262626]">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
       {isMobile ? (
-        <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-[#F2F2F7] px-3 dark:border-border">
+        <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-border px-3 dark:border-border">
           <div className="flex min-w-0 items-center">
             {showRecords ? (
               <button
                 type="button"
                 aria-label={t('login.back')}
-                className="flex size-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex size-11 items-center justify-center rounded-md focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={closeRecords}
               >
                 <ChevronLeft className="size-5" />
@@ -169,7 +169,7 @@ export function InviteReferralContent() {
             {!showRecords && (
               <button
                 type="button"
-                className="flex min-h-11 items-end pb-1 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex min-h-11 items-end pb-1 text-xs font-medium focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={openRecords}
               >
                 {t('inviteReferral.records.subtitle')}
@@ -178,7 +178,7 @@ export function InviteReferralContent() {
           </div>
         </header>
       ) : (
-        <header className="flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-[#F2F2F7] dark:border-border">
+        <header className="flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-border dark:border-border">
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <SidebarTriggerButton collapse />
             {activationEntry ? (
@@ -230,9 +230,7 @@ export function InviteReferralContent() {
               wechatBinding={wechatSession > 0}
             />
           </div>
-          {!isMobile && (
-            <div className="mt-[11px] w-px shrink-0 bg-[#F2F2F7] dark:bg-border" />
-          )}
+          {!isMobile && <div className="mt-[11px] w-px shrink-0 bg-border" />}
           {!isMobile || showRecords ? (
             <InviteRecordsPanel
               standalone={isMobile}

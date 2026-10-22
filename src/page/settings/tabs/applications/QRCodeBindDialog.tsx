@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 import { BIND_CHECK_INTERVAL } from '@/const';
 
 import { useQrCode } from './useQrCode';
@@ -104,7 +104,7 @@ export function QRCodeBindDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-md sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {t('applications.qr_bind.title', { app_name: appName })}
@@ -131,7 +131,7 @@ export function QRCodeBindDialog({
                 <img
                   src={logoUrl}
                   alt="OmniBox Logo"
-                  className="size-12 rounded-lg bg-white p-1 shadow-sm"
+                  className="size-12 rounded-lg bg-white p-1 shadow-xs"
                 />
               </div>
             </div>

@@ -54,6 +54,9 @@ jest.mock('@/components/ui/Sidebar', () => {
     SidebarContent: (props: React.HTMLAttributes<HTMLDivElement>) => (
       <Div {...props} data-sidebar="content" />
     ),
+    SidebarGroupLabel: (props: React.HTMLAttributes<HTMLDivElement>) => (
+      <Div {...props} data-sidebar="group-label" />
+    ),
     SidebarMenu: Passthrough,
     SidebarMenuItem: Div,
     SidebarMenuButton: Passthrough,
@@ -198,13 +201,13 @@ it('renders compact conversations as title-only rows with resource menu icons', 
     expect(container.querySelector('.lucide-square-pen')).not.toBeNull();
     expect(container.querySelector('.lucide-trash-2')).not.toBeNull();
 
-    const dateLabel = Array.from(container.querySelectorAll('p')).find(
-      element => element.textContent === '今天'
-    );
-    if (!(dateLabel instanceof HTMLParagraphElement)) {
+    const dateLabel = Array.from(
+      container.querySelectorAll('[data-sidebar="group-label"]')
+    ).find(element => element.textContent === '今天');
+    if (!(dateLabel instanceof HTMLElement)) {
       throw new Error('Conversation date label is missing');
     }
-    expect(dateLabel.parentElement?.classList.contains('px-4')).toBe(true);
+    expect(dateLabel.classList.contains('px-4')).toBe(true);
 
     const title = container.querySelector(
       '[data-conversation-id="conversation-1"]'

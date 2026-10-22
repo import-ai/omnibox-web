@@ -28,7 +28,7 @@ jest.mock('@/components/tooltip', () => ({
   ),
 }));
 
-jest.mock('@/components/ui/Button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     ...props

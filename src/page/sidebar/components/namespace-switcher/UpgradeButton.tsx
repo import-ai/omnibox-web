@@ -32,7 +32,7 @@ export function UpgradeButton() {
       onClick={handleClick}
       className={cn(
         'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
-        'hover:bg-neutral-200/50 dark:hover:bg-neutral-700/50'
+        'hover:bg-sidebar-accent'
       )}
     >
       <UpgradeIcon className="size-4 shrink-0 text-blue-500" />

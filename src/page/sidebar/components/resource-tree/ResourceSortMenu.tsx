@@ -109,7 +109,9 @@ export function ResourceSortMenu({
                 <span>{t(option.fieldKey)}</span>
                 <span>{t(option.orderKey)}</span>
                 <span className="flex size-4">
-                  {selected && <Check className="size-4 text-blue-500" />}
+                  {selected && (
+                    <Check className="size-4 text-blue-500! [&_path]:text-blue-500!" />
+                  )}
                 </span>
               </span>
             </MenuItem>
@@ -129,7 +131,7 @@ export function ResourceSortMenu({
             <span>{t('sidebar.sort.manual')}</span>
             <span className="flex size-4">
               {value.sort_by === 'manual' && (
-                <Check className="size-4 text-blue-500" />
+                <Check className="size-4 text-blue-500! [&_path]:text-blue-500!" />
               )}
             </span>
           </span>
