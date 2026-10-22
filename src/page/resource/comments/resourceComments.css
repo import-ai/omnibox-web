@@ -120,7 +120,7 @@
   transform: translateY(0);
 }
 
-.omnibox-comment-surface .omnibox-comment-composer button {
+.omnibox-comment-surface .omnibox-comment-composer__actions button {
   min-height: 2rem;
   min-width: 3.5rem;
   padding: 0 0.75rem;
@@ -129,13 +129,17 @@
   font-weight: 500;
 }
 
-.omnibox-comment-surface .omnibox-comment-composer button[type='button'] {
+.omnibox-comment-surface
+  .omnibox-comment-composer__actions
+  button[type='button'] {
   border: 1px solid hsl(var(--border));
   background: transparent;
   color: hsl(var(--foreground));
 }
 
-.omnibox-comment-surface .omnibox-comment-composer button[type='button']:hover {
+.omnibox-comment-surface
+  .omnibox-comment-composer__actions
+  button[type='button']:hover {
   background: hsl(var(--accent));
 }
 
@@ -208,7 +212,8 @@
   @apply mx-3 mt-0;
 }
 
-.resource-comments-panel .omnibox-comment-thread[data-selected] {
+.resource-comments-panel
+  .omnibox-comment-thread:is([data-selected], [data-image-highlighted]) {
   @apply border-border bg-white shadow-lg dark:bg-muted;
 }
 
@@ -223,31 +228,164 @@
 }
 
 .tiptap.ProseMirror
-  [data-resource-comment-thread]:not([data-resource-comment-resolved='true']),
-.tiptap.ProseMirror .resource-comment-draft-highlight {
+  [data-resource-comment-thread]:not(
+    [data-resource-comment-resolved='true']
+  ):not(.tiptap-image),
+.tiptap.ProseMirror .resource-comment-draft-highlight:not(.tiptap-image) {
   @apply border-comment pb-0.5 !important;
   border-bottom-width: 2px !important;
   border-bottom-style: solid !important;
 }
 
-.tiptap.ProseMirror [data-resource-comment-thread][data-comment-highlight] {
+.tiptap.ProseMirror
+  [data-resource-comment-thread][data-comment-highlight]:not(.tiptap-image) {
   @apply bg-comment-surface dark:bg-comment-surface-dark !important;
 }
 
-.tiptap.ProseMirror .resource-comment-draft-highlight {
+.tiptap.ProseMirror .code-block-node__content {
+  font-family:
+    Menlo, 'Source Code Pro', ui-monospace, SFMono-Regular, Consolas,
+    'Liberation Mono', monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.375rem !important;
+}
+
+.tiptap.ProseMirror .resource-comment-draft-highlight:not(.tiptap-image) {
   @apply bg-comment-surface dark:bg-comment-surface-dark !important;
+}
+
+/* Feishu code comments are one line under the glyphs.
+   These selectors outrank the body underline, selected fill, and draft fill. */
+.tiptap.ProseMirror {
+  --resource-comment-code-underline: #fcdf7e;
 }
 
 .tiptap.ProseMirror
-  [data-resource-comment-thread][data-resource-comment-resolved='true'][data-comment-highlight] {
+  .code-block-node
+  [data-resource-comment-thread]:not(
+    [data-resource-comment-resolved='true']
+  ):not(.tiptap-image),
+.tiptap.ProseMirror
+  .code-block-node
+  [data-resource-comment-thread][data-comment-highlight]:not(.tiptap-image),
+.tiptap.ProseMirror
+  .code-block-node
+  .resource-comment-draft-highlight:not(.tiptap-image) {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  -webkit-text-fill-color: currentColor;
+  text-decoration-line: underline !important;
+  text-decoration-style: solid !important;
+  text-decoration-thickness: 0.125rem !important;
+  text-decoration-color: var(--resource-comment-code-underline) !important;
+  text-underline-offset: 0.3125rem !important;
+  text-decoration-skip-ink: none !important;
+}
+
+.tiptap.ProseMirror
+  .code-block-node
+  [data-resource-comment-thread][data-resource-comment-resolved='true']:not(
+    .tiptap-image
+  ) {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  text-decoration: none !important;
+}
+
+/* The comment decoration is on div.node-image, outside .tiptap-image.
+   That wrapper was inheriting the text underline, so the line sat under the image margin. */
+.tiptap.ProseMirror
+  .node-image.tiptap-thread[data-resource-comment-thread]:has(.tiptap-image),
+.tiptap.ProseMirror
+  .node-image[data-resource-comment-thread]:has(.tiptap-image),
+.tiptap.ProseMirror
+  .node-image.resource-comment-draft-highlight:has(.tiptap-image),
+.tiptap.ProseMirror .tiptap-thread:has(.tiptap-image),
+.tiptap.ProseMirror [data-resource-comment-thread]:has(.tiptap-image),
+.tiptap.ProseMirror .tiptap-image[data-resource-comment-thread],
+.tiptap.ProseMirror .tiptap-image.resource-comment-draft-highlight {
+  outline: none !important;
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.tiptap.ProseMirror .tiptap-image-caption[hidden] {
+  display: none !important;
+  margin: 0 !important;
+}
+
+.tiptap.ProseMirror
+  [data-resource-comment-thread]:not([data-resource-comment-resolved='true'])
+  .tiptap-image-content::before,
+.tiptap.ProseMirror
+  .tiptap-image[data-resource-comment-thread]:not(
+    [data-resource-comment-resolved='true']
+  )
+  .tiptap-image-content::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* Feishu leaves about 1px of the image's own background before the line. */
+  top: calc(100% + 1px);
+  height: 2px;
+  background: #faedc2;
+  pointer-events: none;
+}
+
+.tiptap.ProseMirror
+  [data-resource-comment-thread][data-comment-highlight]
+  .tiptap-image-content::before,
+.tiptap.ProseMirror
+  .resource-comment-draft-highlight
+  .tiptap-image-content::before {
+  content: none;
+}
+
+.tiptap.ProseMirror
+  [data-resource-comment-thread][data-comment-highlight]:not(
+    [data-resource-comment-resolved='true']
+  )
+  .tiptap-image-img,
+.tiptap.ProseMirror .resource-comment-draft-highlight .tiptap-image-img {
+  box-shadow: 0 0 0 2px #f5c518;
+}
+
+.tiptap.ProseMirror
+  [data-resource-comment-thread][data-resource-comment-resolved='true'][data-comment-highlight]:not(
+    .tiptap-image
+  ) {
   @apply bg-comment-resolved dark:bg-comment-resolved-dark !important;
+}
+
+.tiptap.ProseMirror
+  .node-image[data-resource-comment-thread][data-resource-comment-resolved='true'][data-comment-highlight]:has(
+    .tiptap-image
+  ) {
+  background: transparent !important;
 }
 
 .resource-comments-panel
   .resource-comments-anchored-list
-  .omnibox-comment-thread[data-selected]::before {
+  .omnibox-comment-thread:is(
+    [data-selected],
+    [data-image-highlighted]
+  )::before {
   content: '';
   @apply pointer-events-none absolute -inset-x-px -top-px h-2 rounded-t-md bg-comment;
+}
+
+.resource-image-comment-button-anchor {
+  position: fixed;
+  z-index: 40;
+  transform: translate(-100%, -100%);
+  pointer-events: auto;
 }
 
 .resource-comments-panel .omnibox-comment-thread[data-resolved] {
@@ -256,8 +394,11 @@
 
 .resource-comments-panel
   .resource-comments-anchored-list
-  .omnibox-comment-thread[data-selected][data-resolved]::before {
-  @apply bg-comment-success-surface;
+  .omnibox-comment-thread:is(
+    [data-selected],
+    [data-image-highlighted]
+  )[data-resolved]::before {
+  @apply bg-[#BFE8DA];
 }
 
 .resource-comments-panel > header {
@@ -338,7 +479,7 @@
   .omnibox-comment-thread[data-resolved]:not(:hover)
   .omnibox-comment-thread__toolbar
   .omnibox-comment-thread__resolve {
-  @apply flex size-5 shrink-0 items-center justify-center rounded-full border-0 bg-comment-success-surface text-comment-success-foreground;
+  @apply flex size-5 shrink-0 items-center justify-center rounded-full border-0 bg-[#BFE8DA] text-comment-success-foreground;
 }
 
 .resource-comments-panel
@@ -381,6 +522,15 @@
 
 .resource-comments-panel .omnibox-comment-message p {
   @apply mt-1 whitespace-pre-wrap text-base leading-6;
+}
+
+.resource-comments-panel .omnibox-comment-message__text:not([data-expanded]) {
+  max-height: 16lh;
+  overflow: hidden;
+}
+
+.resource-comments-panel .omnibox-comment-message__toggle {
+  @apply mt-1 block cursor-pointer border-0 bg-transparent p-0 text-base leading-6 text-blue-500 hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 dark:text-blue-400 dark:hover:text-blue-300;
 }
 
 .resource-comments-panel .omnibox-comment-message__image-button {
@@ -500,7 +650,7 @@
 .resource-comments-panel
   .omnibox-comment-thread[data-selected]
   .omnibox-comment-reply__preview
-  button {
+  .omnibox-comment-image-remove {
   position: absolute !important;
   right: -0.375rem !important;
   top: -0.375rem !important;
@@ -643,7 +793,9 @@
   @apply size-16 rounded object-cover;
 }
 
-.resource-comments-panel .omnibox-comment-composer__preview button {
+.resource-comments-panel
+  .omnibox-comment-composer__preview
+  .omnibox-comment-image-remove {
   @apply absolute -right-2 -top-2 flex size-4 items-center justify-center rounded-full bg-black/70 p-0 text-xs leading-none text-white;
 }
 
@@ -712,8 +864,12 @@
   @apply size-16 rounded object-cover;
 }
 
-.omnibox-comment-surface .omnibox-comment-composer__preview button,
-.resource-comments-panel .omnibox-comment-composer--edit__preview button {
+.omnibox-comment-surface
+  .omnibox-comment-composer__preview
+  .omnibox-comment-image-remove,
+.resource-comments-panel
+  .omnibox-comment-composer--edit__preview
+  .omnibox-comment-image-remove {
   position: absolute !important;
   right: -0.375rem !important;
   top: -0.375rem !important;
@@ -802,19 +958,15 @@
   @apply cursor-not-allowed opacity-50;
 }
 
-.omnibox-comment-image-preview,
-.omnibox-comment-image-preview > button {
-  border: 0 !important;
-  outline: none !important;
-  box-shadow: none;
-  --tw-ring-offset-width: 0px;
-  --tw-ring-width: 0px;
-  --tw-ring-shadow: 0 0 #0000;
-  --tw-ring-offset-shadow: 0 0 #0000;
+.omnibox-comment-surface .omnibox-comment-draft-image,
+.resource-comments-panel .omnibox-comment-draft-image {
+  @apply block min-h-0 min-w-0 cursor-zoom-in rounded border-0 bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring;
 }
 
-.omnibox-comment-image-preview > button {
-  background: transparent !important;
-  color: #fff !important;
-  opacity: 1;
+.omnibox-comment-mention {
+  color: var(--tt-brand-color-500, #3b82f6);
+}
+
+.omnibox-comment-mention[data-mention-active] {
+  cursor: pointer;
 }

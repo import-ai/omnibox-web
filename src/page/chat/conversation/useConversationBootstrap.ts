@@ -11,6 +11,7 @@ import type {
 } from '@/page/chat/chat-input/types';
 import { getStreamEventId, resumeStream } from '@/page/chat/conversation/utils';
 import type { MessageOperator } from '@/page/chat/core/messageOperator';
+import { isTerminalMessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
 
@@ -31,6 +32,12 @@ import {
 
 export const CHAT_CREATE_PAYLOAD_KEY = 'chat-create-payload';
 const bootstrappedConversationIds = new Set<string>();
+const openedConversationIds = new Set<string>();
+
+export function resetConversationBootstrapState() {
+  bootstrappedConversationIds.clear();
+  openedConversationIds.clear();
+}
 
 interface ConversationBootstrapOptions {
   app: App;
@@ -41,6 +48,7 @@ interface ConversationBootstrapOptions {
   messageOperator: MessageOperator;
   namespaceId: string;
   sendMessage: (params: SendMessageParams) => Promise<void>;
+  detachActiveStream?: () => void;
   setAccessDenied: Dispatch<SetStateAction<boolean>>;
   setConversation: Dispatch<SetStateAction<ConversationDetail>>;
   setInitialApprovalMode: Dispatch<SetStateAction<ApprovalMode | undefined>>;
@@ -108,7 +116,8 @@ function invalidateFailedConversation(
 async function loadConversation(
   options: ConversationBootstrapOptions,
   runtime: ConversationBootstrapRuntime,
-  phase: ConversationLoadPhase
+  phase: ConversationLoadPhase,
+  leafSource: 'state' | 'omit' = 'state'
 ): Promise<ConversationDetail | undefined> {
   const { app, cacheScope, conversationId, namespaceId, setConversation } =
     options;
@@ -124,13 +133,16 @@ async function loadConversation(
     ])
   );
   try {
+    const branchLeafId =
+      leafSource === 'omit'
+        ? undefined
+        : phase === 'refresh'
+          ? before.current_node
+          : before.branch_leaf_id;
     const response: ConversationDetail = await http.get(
       `/namespaces/${namespaceId}/conversations/${conversationId}/messages`,
       {
-        params: {
-          branch_leaf_id:
-            phase === 'refresh' ? before.current_node : before.branch_leaf_id,
-        },
+        params: branchLeafId ? { branch_leaf_id: branchLeafId } : {},
       }
     );
     if (!isActiveRequest(options, runtime)) return undefined;
@@ -160,10 +172,20 @@ async function loadConversation(
   }
 }
 
+function replyStillRunning(conversation: ConversationDetail) {
+  const leaf = conversation.current_node
+    ? conversation.mapping[conversation.current_node]
+    : undefined;
+  if (!leaf) return false;
+  if (leaf.message.role !== 'assistant') return true;
+  return !isTerminalMessageStatus(leaf.status);
+}
+
 function resumeLoadedConversation(
   options: ConversationBootstrapOptions,
   runtime: ConversationBootstrapRuntime,
-  conversation: ConversationDetail
+  conversation: ConversationDetail,
+  refreshLeaf: 'state' | 'omit' = 'state'
 ) {
   if (!isActiveRequest(options, runtime)) return;
   const { askAbortRef, conversationId, messageOperator, namespaceId } = options;
@@ -179,7 +201,7 @@ function resumeLoadedConversation(
       askAbortRef.current = null;
     }
     if (isActiveRequest(options, runtime)) {
-      void loadConversation(options, runtime, 'refresh');
+      void loadConversation(options, runtime, 'refresh', refreshLeaf);
     }
   });
 }
@@ -194,18 +216,42 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
   const payload =
     takePendingChatPayload(options.conversationId) ?? storedPayload;
   if (bootstrappedConversationIds.has(options.conversationId)) {
-    return;
+    if (!openedConversationIds.has(options.conversationId)) {
+      return () => {
+        if (openedConversationIds.has(options.conversationId)) {
+          options.detachActiveStream?.();
+        }
+      };
+    }
+    const runtime: ConversationBootstrapRuntime = { destroyed: false };
+    void loadConversation(options, runtime, 'hydrate', 'omit').then(
+      conversation => {
+        if (conversation && replyStillRunning(conversation)) {
+          resumeLoadedConversation(options, runtime, conversation, 'omit');
+        }
+      }
+    );
+    return () => {
+      runtime.destroyed = true;
+      runtime.resumeFN?.destroy();
+    };
   }
   options.setInitialApprovalMode(payload?.approvalMode);
   options.setSuppressInitialToolRestore(Boolean(payload));
   const runtime: ConversationBootstrapRuntime = { destroyed: false };
   if (payload) {
     bootstrappedConversationIds.add(options.conversationId);
+    queueMicrotask(() => {
+      openedConversationIds.add(options.conversationId);
+    });
     sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
     void options.sendMessage(payload);
     return () => {
       runtime.destroyed = true;
       runtime.resumeFN?.destroy();
+      if (openedConversationIds.has(options.conversationId)) {
+        options.detachActiveStream?.();
+      }
     };
   }
   void loadConversation(options, runtime, 'hydrate').then(conversation => {

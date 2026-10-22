@@ -8,8 +8,11 @@ import { Button } from '@/components/button';
 import { Textarea } from '@/components/ui/Textarea';
 import type { ResourceCommentAttachment } from '@/interface';
 
+import { CommentMentionMenu } from './CommentMentionMenu';
 import { pasteCommentImage } from './pasteCommentImage';
 import { ResourceCommentAvatar } from './ResourceCommentAvatar';
+import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
+import { useCommentMentionInput } from './useCommentMentionInput';
 
 export function ResourceCommentReplyComposer({
   author,
@@ -29,6 +32,7 @@ export function ResourceCommentReplyComposer({
   onUploadImage: (file: File) => Promise<ResourceCommentAttachment>;
 }) {
   const { t } = useTranslation();
+  const mention = useCommentMentionInput(reply, onChange);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [attachmentId, setAttachmentId] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -112,11 +116,14 @@ export function ResourceCommentReplyComposer({
           maxLength={10000}
           placeholder={t('resource_comments.reply_placeholder')}
           rows={1}
-          value={reply}
-          onChange={event => onChange(event.target.value)}
+          value={mention.displayValue}
+          {...mention.inputProps}
           onPaste={event => pasteCommentImage(event, uploadImage)}
           aria-busy={uploading}
           onKeyDown={event => {
+            if (mention.onKeyDown(event)) {
+              return;
+            }
             if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
               return;
             }
@@ -130,11 +137,13 @@ export function ResourceCommentReplyComposer({
             submitDraft();
           }}
         />
+        <CommentMentionMenu spec={mention.menu} />
         {imagePreview ? (
           <div className="omnibox-comment-reply__preview">
-            <img src={imagePreview} alt="" />
+            <ResourceCommentDraftImage key={imagePreview} src={imagePreview} />
             <button
               type="button"
+              className="omnibox-comment-image-remove"
               aria-label={t('resource_comments.remove_image')}
               title={t('resource_comments.remove_image')}
               onClick={clearImage}

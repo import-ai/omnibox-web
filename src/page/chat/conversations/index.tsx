@@ -1,5 +1,5 @@
 import { MessageCircle, MoreHorizontal, SquarePen, Trash2 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -42,6 +42,7 @@ interface ChatConversationsPageProps {
   activeConversationId?: string;
   isSidebarVisible?: boolean;
   onConversationSelect?: (conversationId: string) => void;
+  onBindRefresh?: (refresh: (() => Promise<void>) | null) => void;
 }
 
 export default function ChatConversationsPage({
@@ -50,6 +51,7 @@ export default function ChatConversationsPage({
   activeConversationId,
   isSidebarVisible = true,
   onConversationSelect,
+  onBindRefresh,
 }: ChatConversationsPageProps = {}) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,10 +63,12 @@ export default function ChatConversationsPage({
       current,
       pageSize,
       loading,
+      loadingMore,
       accessDenied,
       hasLoadError,
       hasMore,
       refetch,
+      retry,
       onPagerChange,
     },
     edit,
@@ -79,6 +83,14 @@ export default function ChatConversationsPage({
   } = useContext(namespaceIdOverride, compact);
 
   const handleLoadMore = () => onPagerChange(current + 1);
+
+  useLayoutEffect(() => {
+    if (!onBindRefresh) {
+      return;
+    }
+    onBindRefresh(() => refetch());
+    return () => onBindRefresh(null);
+  }, [onBindRefresh, refetch]);
   const activeConversationRef = useRef<HTMLDivElement>(null);
   const locatedConversationRef = useRef<string | undefined>(undefined);
 
@@ -253,6 +265,9 @@ export default function ChatConversationsPage({
                                 side="right"
                                 align="start"
                                 sideOffset={10}
+                                onCloseAutoFocus={event => {
+                                  if (edit.open) event.preventDefault();
+                                }}
                               >
                                 <DropdownMenuItem
                                   className={menuItemClass}
@@ -293,9 +308,9 @@ export default function ChatConversationsPage({
               ))}
               <ConversationLoadMore
                 hasMore={hasMore}
-                loading={loading}
+                loading={loadingMore}
                 hasError={hasLoadError}
-                onLoadMore={handleLoadMore}
+                onLoadMore={hasLoadError ? retry : handleLoadMore}
               />
             </>
           ) : hasLoadError ? (
@@ -367,7 +382,13 @@ export default function ChatConversationsPage({
                                   <MoreHorizontal className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent side="bottom" align="end">
+                              <DropdownMenuContent
+                                side="bottom"
+                                align="end"
+                                onCloseAutoFocus={event => {
+                                  if (edit.open) event.preventDefault();
+                                }}
+                              >
                                 <DropdownMenuItem
                                   className="cursor-pointer"
                                   onClick={event => {

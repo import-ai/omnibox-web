@@ -1,4 +1,4 @@
-import { http } from '@/lib/request';
+import { http, type RequestConfig } from '@/lib/request';
 
 /**
  * Alibaba Cloud Captcha 2.0 (V3 architecture) browser integration helpers.
@@ -172,10 +172,16 @@ export function withCaptchaParam<T extends object>(
     : body;
 }
 
+interface CaptchaRequestError {
+  response?: {
+    data?: { code?: unknown; message?: unknown };
+    status?: number;
+  };
+}
+
 /**
- * Translate a failed send request into the SDK result: a captcha rejection
- * (the backend answers 403) means the SDK should refresh the challenge;
- * anything else is a business failure with a valid captcha.
+ * True when a failed send request is the backend captcha guard rejecting the
+ * captcha param rather than the endpoint failing on its own.
  *
  * The 403 is ambiguous: the backend's captcha guard returns the same
  * `403 captcha.errors.failed` for a challenge Aliyun rejected
@@ -188,24 +194,36 @@ export function withCaptchaParam<T extends object>(
  * `ForbiddenException` raised by the endpoint itself) is treated as a business
  * failure and never refreshes the challenge.
  */
+export function isCaptchaRejection(error: unknown): boolean {
+  const response = (error as CaptchaRequestError | undefined)?.response;
+  const hasErrorCode =
+    typeof response?.data?.code === 'string' && response.data.code.length > 0;
+  return response?.status === 403 && !hasErrorCode;
+}
+
+/**
+ * Request config for a send protected by the captcha popup. A rejection is
+ * not toasted by the request layer: the SDK escalates to (or refreshes) its
+ * challenge, and `useCaptcha` reports the rejection once it stops retrying.
+ * Notably, Aliyun's seamless pass on the trigger click is often rejected
+ * before the user has seen any challenge.
+ */
+export const CAPTCHA_REQUEST_CONFIG: RequestConfig = {
+  muteWhen: isCaptchaRejection,
+};
+
+/**
+ * Translate a failed send request into the SDK result: a captcha rejection
+ * (see `isCaptchaRejection`) means the SDK should refresh the challenge;
+ * anything else is a business failure with a valid captcha.
+ */
 export function captchaResultFromError(error: unknown): CaptchaVerifyResult {
-  const response = (
-    error as
-      | {
-          response?: {
-            data?: { code?: unknown; message?: unknown };
-            status?: number;
-          };
-        }
-      | undefined
-  )?.response;
+  const response = (error as CaptchaRequestError | undefined)?.response;
   const message =
     typeof response?.data?.message === 'string' && response.data.message
       ? response.data.message
       : undefined;
-  const hasErrorCode =
-    typeof response?.data?.code === 'string' && response.data.code.length > 0;
-  return response?.status === 403 && !hasErrorCode
+  return isCaptchaRejection(error)
     ? { captchaResult: false, bizResult: false, message }
     : { captchaResult: true, bizResult: false, message };
 }

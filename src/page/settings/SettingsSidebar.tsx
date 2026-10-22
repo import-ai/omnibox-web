@@ -25,6 +25,7 @@ interface SettingsSidebarProps {
 }
 
 interface MenuItem {
+  hidden?: boolean;
   label: React.ReactNode;
   value: string;
   icon: React.ReactNode;
@@ -59,13 +60,19 @@ export function SettingsSidebar({
     {
       label: t('setting.feature_previews'),
       value: 'featurePreviews',
+      // Hidden until a new preview is available; keep the tab for future use.
+      // TODO: Restore useFeaturePreviews() in namespace-switcher and SharePage
+      // when reopening this entry so previews apply before settings are opened.
+      hidden: true,
       icon: <FlaskConical className="size-4" />,
     },
-    ...extensions.map(extension => ({
-      value: `extension:${extension.id}`,
-      label: extension.label,
-      icon: extension.icon,
-    })),
+    ...extensions
+      .filter(extension => (extension.group ?? 'account') === 'account')
+      .map(extension => ({
+        value: `extension:${extension.id}`,
+        label: extension.label,
+        icon: extension.icon,
+      })),
   ];
 
   // Space section items
@@ -95,6 +102,13 @@ export function SettingsSidebar({
       value: 'apikey',
       icon: <KeyRound className="size-4" />,
     },
+    ...extensions
+      .filter(extension => extension.group === 'space')
+      .map(extension => ({
+        value: `extension:${extension.id}`,
+        label: extension.label,
+        icon: extension.icon,
+      })),
   ];
 
   // About section item
@@ -146,6 +160,7 @@ export function SettingsSidebar({
               </button>
 
               {accountItems.map(item => {
+                if (item.hidden) return null;
                 const isSelected = value === item.value;
                 return (
                   <button

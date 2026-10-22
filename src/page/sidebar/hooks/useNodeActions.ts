@@ -10,6 +10,7 @@ import type { Resource } from '@/interface';
 import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
 import { deleteResource } from '@/lib/deleteResource';
 import { http } from '@/lib/request';
+import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { useRssFolderConfig } from '@/page/sidebar/components/rss-folder/useRssFolderConfig';
 import {
@@ -113,7 +114,7 @@ export function useNodeActions(
       .create(nodeId, 'doc')
       .then(async id => {
         navigateToResource(navigate, `/${namespaceId}/${id}/edit`, {
-          state: { fromSidebar: true },
+          state: newFileEditorLocationState(),
         });
         await locateSidebarResource(id);
         if (isMobile) setOpenMobile(false);
@@ -211,14 +212,10 @@ export function useNodeActions(
             parentId: sourceParentId || node.parentId,
           }
         : node;
-    const doAdd = () =>
-      addToChatContext(contextResource!, type as 'resource' | 'folder');
-    if (loc.pathname.includes('/chat')) {
-      doAdd();
-    } else {
+    addToChatContext(contextResource!, type);
+    if (!loc.pathname.includes('/chat')) {
       // Stay on the resource page and surface Copilot with the new context.
-      openCopilotForChatContext(namespaceId);
-      doAdd();
+      openCopilotForChatContext(namespaceId, app);
     }
     if (isMobile) setOpenMobile(false);
   };

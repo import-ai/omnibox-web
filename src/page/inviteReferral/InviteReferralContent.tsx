@@ -1,5 +1,5 @@
 import { ChevronLeft } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useLocation,
@@ -24,7 +24,12 @@ import { InviteActivityPanel } from './InviteActivityPanel';
 import { InvitePhoneBindingDialog } from './InvitePhoneBindingDialog';
 import { InviteRecordsPanel } from './InviteRecordsPanel';
 import { InviteShareDialog } from './InviteShareDialog';
-import { clearInvitePhoneBinding, hasInvitePhoneBinding } from './registration';
+import { InviteTaskBindDialogs } from './InviteTaskBindDialogs';
+import {
+  clearInvitePhoneBinding,
+  hasInvitePhoneBinding,
+  isActivationEntry,
+} from './registration';
 import { useInviteSinglePage } from './useInviteSinglePage';
 
 export function InviteReferralContent() {
@@ -40,6 +45,9 @@ export function InviteReferralContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [taskPhoneOpen, setTaskPhoneOpen] = useState(false);
+  const [wechatSession, setWechatSession] = useState(0);
+  const wechatBindActiveRef = useRef(false);
   const [phoneBindingOpen, setPhoneBindingOpen] = useState(() =>
     hasInvitePhoneBinding()
   );
@@ -73,17 +81,13 @@ export function InviteReferralContent() {
   const runTask = (task: InviteTask) => {
     if (task.status === 'completed') return;
     if (task.action === 'phone_binding') {
-      app.fire('open_settings', {
-        tab: 'profile',
-        autoAction: { type: 'bind_phone' },
-      });
+      setTaskPhoneOpen(true);
       return;
     }
     if (task.action === 'wechat_assistant_binding') {
-      app.fire('open_settings', {
-        tab: 'applications',
-        autoAction: { type: 'bind', appId: 'wechat_bot' },
-      });
+      if (wechatBindActiveRef.current) return;
+      wechatBindActiveRef.current = true;
+      setWechatSession(session => session + 1);
       return;
     }
     if (task.action === 'home') {
@@ -92,6 +96,11 @@ export function InviteReferralContent() {
   };
 
   const showRecords = isMobile && searchParams.get('view') === 'records';
+  const activationEntry = isActivationEntry(searchParams.get('entry'));
+
+  const goHome = () => {
+    navigate(namespaceId ? `/${namespaceId}/chat` : '/', { replace: true });
+  };
 
   const openRecords = () => {
     const nextParams = new URLSearchParams(searchParams);
@@ -125,6 +134,15 @@ export function InviteReferralContent() {
               >
                 <ChevronLeft className="size-5" />
               </button>
+            ) : activationEntry ? (
+              <button
+                type="button"
+                aria-label={t('login.back')}
+                className="flex size-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={goHome}
+              >
+                <ChevronLeft className="size-5" />
+              </button>
             ) : (
               <SidebarTriggerButton collapse />
             )}
@@ -152,6 +170,16 @@ export function InviteReferralContent() {
         <header className="flex h-12 min-w-0 shrink-0 items-center gap-2 border-b border-[#F2F2F7] dark:border-border">
           <div className="flex min-w-0 flex-1 items-center gap-1 px-3 sm:gap-2">
             <SidebarTriggerButton collapse />
+            {activationEntry ? (
+              <button
+                type="button"
+                aria-label={t('login.back')}
+                className="flex size-8 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                onClick={goHome}
+              >
+                <ChevronLeft className="size-5" />
+              </button>
+            ) : null}
             <div className={sidebarOpen ? 'min-w-0 ml-2' : 'min-w-0'}>
               <h1 className="pl-2 text-sm font-medium">
                 {t('inviteReferral.title')}
@@ -188,6 +216,7 @@ export function InviteReferralContent() {
               overview={overview}
               onInvite={() => setShareOpen(true)}
               onTask={runTask}
+              wechatBinding={wechatSession > 0}
             />
           </div>
           {!isMobile && (
@@ -210,6 +239,19 @@ export function InviteReferralContent() {
           onOpenChange={setShareOpen}
         />
       ) : null}
+      <InviteTaskBindDialogs
+        namespaceId={namespaceId}
+        phoneOpen={taskPhoneOpen}
+        onPhoneOpenChange={setTaskPhoneOpen}
+        wechatSession={wechatSession}
+        onWechatClose={() => {
+          wechatBindActiveRef.current = false;
+          setWechatSession(0);
+        }}
+        onBound={() => {
+          void load();
+        }}
+      />
       <InvitePhoneBindingDialog
         open={phoneBindingOpen}
         onBound={load}

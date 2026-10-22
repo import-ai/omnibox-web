@@ -3,7 +3,10 @@
 import { registerInviteReferral } from '@/service/inviteReferral';
 
 import {
+  consumeInviteReferralLanding,
   getStoredInviteRegistration,
+  markInviteReferralLanding,
+  markOrganicActivationLanding,
   registerInviteAfterLogin,
   retryPendingInviteRegistration,
   setStoredInviteRegistration,
@@ -23,6 +26,7 @@ const mockedRegisterInviteReferral = jest.mocked(registerInviteReferral);
 describe('invite referral registration policy', () => {
   beforeEach(() => {
     sessionStorage.clear();
+    localStorage.clear();
     mockedRegisterInviteReferral.mockReset();
   });
 
@@ -49,11 +53,29 @@ describe('invite referral registration policy', () => {
     ).toBe(false);
   });
 
+  it('marks a new user who registered without an invite code for activation', async () => {
+    await expect(registerInviteAfterLogin(true, 'user-1')).resolves.toEqual({
+      result: null,
+      activation: true,
+    });
+    expect(mockedRegisterInviteReferral).not.toHaveBeenCalled();
+  });
+
+  it('routes the remembered landing to the activation page', () => {
+    markOrganicActivationLanding();
+    expect(consumeInviteReferralLanding()).toBe('activation');
+    expect(consumeInviteReferralLanding()).toBeNull();
+
+    markInviteReferralLanding(false);
+    expect(consumeInviteReferralLanding()).toBe('invite');
+  });
+
   it('clears an invite code when an existing user logs in', async () => {
     setStoredInviteRegistration({ code: '123456', source: 'link' });
 
     await expect(registerInviteAfterLogin(false, 'user-1')).resolves.toEqual({
       result: null,
+      activation: false,
     });
     expect(getStoredInviteRegistration()).toEqual({
       code: '',
@@ -82,6 +104,19 @@ describe('invite referral registration policy', () => {
     mockedRegisterInviteReferral.mockClear();
     await registerInviteAfterLogin(true, 'user-2');
     expect(mockedRegisterInviteReferral).not.toHaveBeenCalled();
+  });
+
+  it('does not mark activation when invite registration succeeds', async () => {
+    setStoredInviteRegistration({ code: '123456', source: 'manual' });
+    mockedRegisterInviteReferral.mockResolvedValueOnce({
+      is_invited_new_user: true,
+      requires_phone_binding: false,
+      task_expires_at: '2026-10-01T00:00:00Z',
+    });
+
+    await expect(registerInviteAfterLogin(true, 'user-1')).resolves.toEqual({
+      result: expect.objectContaining({ is_invited_new_user: true }),
+    });
   });
 
   it('clears ordinary attribution after a terminal failure', async () => {

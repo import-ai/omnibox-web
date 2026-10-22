@@ -16,6 +16,7 @@ import {
 } from '@/service/resourceComments';
 
 import type { ResourceCommentEditor } from './commentAnchors';
+import { setImageCommentResolved } from './imageCommentMarks';
 interface UseCommentMutationsOptions {
   namespaceId: string;
   resourceId: string;
@@ -167,6 +168,7 @@ export function useCommentMutations({
         const editor = editorRef.current;
         if (editor && !editor.isDestroyed) {
           editor.commands.setResourceCommentResolved(threadId, nextResolved);
+          setImageCommentResolved(editor, threadId, nextResolved);
         }
       } finally {
         setSubmitting(false);

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import type { ResourceCommentThread } from '@/interface';
 
+import { imageCommentLabel } from './commentQuote';
 import { ResourceCommentItem } from './ResourceCommentItem';
 import { ResourceCommentReplyComposer } from './ResourceCommentReplyComposer';
 import type { ResourceCommentsController } from './useResourceComments';
@@ -15,6 +16,7 @@ interface ResourceCommentThreadItemProps {
   mode: 'thread' | 'all';
   orderedThreadIds?: string[];
   thread: ResourceCommentThread;
+  imageHighlighted?: boolean;
 }
 
 export function ResourceCommentThreadItem({
@@ -22,6 +24,7 @@ export function ResourceCommentThreadItem({
   mode,
   orderedThreadIds,
   thread,
+  imageHighlighted = false,
 }: ResourceCommentThreadItemProps) {
   const { t } = useTranslation();
   const [replying, setReplying] = useState(false);
@@ -67,6 +70,7 @@ export function ResourceCommentThreadItem({
       if (!(target instanceof Element)) {
         return;
       }
+      if (target.closest('[data-image-preview]')) return;
       const threadElement = target.closest<HTMLElement>(
         '.omnibox-comment-thread'
       );
@@ -146,6 +150,7 @@ export function ResourceCommentThreadItem({
       className="omnibox-comment-thread"
       data-thread-id={thread.id}
       data-selected={active || undefined}
+      data-image-highlighted={imageHighlighted || undefined}
       data-resolved={thread.resolved || undefined}
       data-editing={editingCommentId || undefined}
       data-submitting={controller.submitting || undefined}
@@ -159,7 +164,13 @@ export function ResourceCommentThreadItem({
             onClick={handleQuoteClick}
           >
             <span>{t('resource_comments.quote_label')}</span>
-            <q>{thread.quoted_text}</q>
+            <q>
+              {imageCommentLabel(
+                thread.id,
+                thread.quoted_text,
+                t('resource_comments.image_quote')
+              )}
+            </q>
           </button>
           <div
             className="omnibox-comment-thread__toolbar"

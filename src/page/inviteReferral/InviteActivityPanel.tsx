@@ -20,18 +20,22 @@ interface InviteActivityPanelProps {
   overview: InviteOverview;
   onInvite: () => void;
   onTask: (task: InviteTask) => void;
+  wechatBinding?: boolean;
 }
 
 function NewcomerTasks({
   overview,
   onTask,
+  wechatBinding = false,
 }: {
   overview: InviteOverview;
   onTask: (task: InviteTask) => void;
+  wechatBinding?: boolean;
 }) {
   const { t } = useTranslation();
   const tasks = overview.newcomer_tasks;
   if (!tasks) return null;
+  const activation = tasks.audience === 'activation';
   const phoneBound = tasks.items.some(
     task => task.task_code === 'phone_bound' && task.status === 'completed'
   );
@@ -40,7 +44,11 @@ function NewcomerTasks({
     <div className="overflow-hidden rounded-lg border border-[#f2f2f7] bg-white dark:border-border dark:bg-[#262626]">
       <div className="flex items-center justify-between px-4 pt-[23px]">
         <h2 className="text-sm font-medium">
-          {t('inviteReferral.tasks.title')}
+          {t(
+            activation
+              ? 'inviteReferral.tasks.giftTitle'
+              : 'inviteReferral.tasks.title'
+          )}
         </h2>
         <span className="text-xs text-muted-foreground">
           {t('inviteReferral.tasks.expires', { count: tasks.remaining_days })}
@@ -51,6 +59,8 @@ function NewcomerTasks({
           const completed = task.status === 'completed';
           const locked =
             !completed && task.task_code !== 'phone_bound' && !phoneBound;
+          const wechatBusy =
+            wechatBinding && task.action === 'wechat_assistant_binding';
           return (
             <div key={task.task_code}>
               {index > 0 ? (
@@ -86,7 +96,7 @@ function NewcomerTasks({
                     locked &&
                       'border-neutral-200 bg-white text-muted-foreground hover:bg-white hover:text-muted-foreground dark:!border-neutral-700 dark:!bg-[#262626] dark:text-muted-foreground dark:hover:!bg-[#262626] dark:hover:text-muted-foreground'
                   )}
-                  disabled={completed}
+                  disabled={completed || wechatBusy}
                   onClick={() => {
                     if (locked) {
                       toast(t('inviteReferral.tasks.phoneRequired'), {
@@ -116,6 +126,7 @@ export function InviteActivityPanel({
   overview,
   onInvite,
   onTask,
+  wechatBinding = false,
 }: InviteActivityPanelProps) {
   const { t } = useTranslation();
   const rewardRules = overview.reward_rules ?? [];
@@ -126,7 +137,11 @@ export function InviteActivityPanel({
       <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-64 pt-6">
         <div className="flex flex-col gap-1">
           {overview.newcomer_tasks ? (
-            <NewcomerTasks overview={overview} onTask={onTask} />
+            <NewcomerTasks
+              overview={overview}
+              onTask={onTask}
+              wechatBinding={wechatBinding}
+            />
           ) : null}
           <div className="rounded-lg bg-white px-3 py-4 dark:bg-[#262626]">
             <h2 className="text-sm font-medium">

@@ -27,6 +27,7 @@ it('only renders registered settings and namespaces extension IDs', async () => 
   );
   await act(async () => root.render(sidebar));
   expect(container.textContent).not.toContain('Local sync');
+  expect(container.textContent).not.toContain('setting.feature_previews');
   await act(async () =>
     root.render(
       <SettingsExtensionsContext.Provider
@@ -50,4 +51,70 @@ it('only renders registered settings and namespaces extension IDs', async () => 
   await act(async () => button!.click());
   expect(onChange).toHaveBeenCalledWith('extension:sync');
   await act(async () => root.unmount());
+});
+
+it.each<{
+  group?: 'account' | 'space';
+  section: string;
+}>([
+  { section: 'setting.account' },
+  { group: 'account', section: 'setting.account' },
+  { group: 'space', section: 'setting.space' },
+])('places a $group extension in $section', async ({ group, section }) => {
+  (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const onChange = jest.fn();
+  const extensions = [
+    {
+      id: 'runtime',
+      label: 'Local execution',
+      icon: null,
+      component: () => null,
+    },
+    {
+      id: 'localSync',
+      label: 'Local sync',
+      icon: null,
+      component: () => null,
+      group,
+    },
+  ];
+  const getSection = (label: string) => {
+    const heading = Array.from(container.querySelectorAll('span')).find(
+      element => element.textContent === label
+    );
+    expect(heading).toBeDefined();
+    return heading!.parentElement!.parentElement!;
+  };
+
+  try {
+    await act(async () =>
+      root.render(
+        <SettingsExtensionsContext.Provider value={extensions}>
+          <SettingsSidebar
+            value="extension:localSync"
+            onChange={onChange}
+            username="User"
+          />
+        </SettingsExtensionsContext.Provider>
+      )
+    );
+    const buttons = Array.from(container.querySelectorAll('button')).filter(
+      button => button.textContent === 'Local sync'
+    );
+    expect(buttons).toHaveLength(1);
+    expect(getSection(section).contains(buttons[0])).toBe(true);
+    const otherSection =
+      section === 'setting.account' ? 'setting.space' : 'setting.account';
+    expect(getSection(otherSection).contains(buttons[0])).toBe(false);
+    expect(getSection('setting.account').textContent).toContain(
+      'Local execution'
+    );
+    expect(buttons[0].classList.contains('bg-neutral-200')).toBe(true);
+    await act(async () => buttons[0].click());
+    expect(onChange).toHaveBeenCalledWith('extension:localSync');
+  } finally {
+    await act(async () => root.unmount());
+  }
 });

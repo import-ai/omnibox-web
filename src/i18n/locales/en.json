@@ -154,6 +154,8 @@
     }
   },
   "resource_comments": {
+    "expand_content": "Expand",
+    "collapse_content": "Collapse",
     "collapse": "Collapse comments",
     "panel_title": "Comments ({{count}})",
     "no_threads": "No comments yet",
@@ -167,6 +169,8 @@
     "copy_thread_link": "Copy comment link",
     "close": "Close comments",
     "quote_label": "Quoted text",
+    "image_quote": "[Image]",
+    "add_comment": "Add comment",
     "thread_count": "{{count}} discussions",
     "cancel": "Cancel",
     "write_comment": "Write a comment",
@@ -182,6 +186,7 @@
     "comment_actions": "Comment actions",
     "edit": "Edit",
     "edited": "(edited)",
+    "just_now": "Just now",
     "delete": "Delete",
     "save": "Save",
     "reply_placeholder": "Reply",
@@ -194,6 +199,7 @@
     "save_before_commenting": "Save your content changes before starting a new discussion.",
     "no_resolved_threads": "No resolved comments yet",
     "no_open_threads": "No unresolved comments at the moment",
+    "mention_members": "Mention a member",
     "load_more": "Load more"
   },
   "folder": {
@@ -299,6 +305,10 @@
     "button": "Send Invitation",
     "success": "Invitation sent",
     "add_namespace": "Add namespace",
+    "confirm_title": "You have received an invitation",
+    "confirm_description": "Accept the invitation to join the corresponding namespace or group.",
+    "accept_invitation": "Accept invitation",
+    "accept_failed": "Failed to accept the invitation. The link may have expired. Try again or contact the inviter.",
     "please_login_first": "Please log in first to accept this invitation",
     "user_mismatch": "This invitation is for {{ username }}",
     "user_mismatch_generic": "This invitation is for another user",
@@ -864,9 +874,12 @@
           "tag_filter": "Tag Filter",
           "collect_url": "Collect URL",
           "list_resource_tasks": "List Resource Tasks",
+          "list_resource_comments": "List Resource Comments",
           "load_docs": "Read Docs",
           "get_agent_asset_resource_id": "Get Agent Asset",
           "create_agent_asset": "Create Agent Asset",
+          "search_conversation_messages": "Search Conversation History",
+          "read_conversation_message": "Read History Message",
           "get_current_info": "Get Current Info",
           "wait": "Wait",
           "frontend_operations": "Frontend Operating",
@@ -1011,7 +1024,8 @@
   "date": {
     "today": "Today",
     "yesterday": "Yesterday",
-    "last_week": "Last 7 days"
+    "last_week": "Last 7 days",
+    "earlier": "Earlier"
   },
   "pagination": {
     "prev": "Previous",
@@ -1199,6 +1213,7 @@
       "title": "Share",
       "user_share": "{{username}}'s Share",
       "url_placeholder": "Published URL",
+      "url_unavailable": "The sharing website address is unavailable. Please refresh the page or reopen the app and try again.",
       "save": "Save",
       "current_file_only": "Current file only",
       "current_file_only_tooltip": "When enabled, only shares the current file.\nWhen disabled, shares with all sub-files.",
@@ -1522,6 +1537,7 @@
     },
     "tasks": {
       "title": "Newcomer tasks",
+      "giftTitle": "Newcomer gifts",
       "expires": "Expires in {{count}} days",
       "completed": "Completed",
       "action": "Start",

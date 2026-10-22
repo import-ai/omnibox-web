@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { elementHasCommentThread } from './imageCommentMarks';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import type { CommentFocusOptions } from './useCommentLinkNavigation';
 
@@ -95,7 +96,7 @@ export function useCommentNavigation(
         ).find(element => element.dataset.threadId === threadId);
         const marker = Array.from(
           root.querySelectorAll<HTMLElement>('[data-resource-comment-thread]')
-        ).find(element => element.dataset.resourceCommentThread === threadId);
+        ).find(element => elementHasCommentThread(element, threadId));
         attempts += 1;
         if (
           scroll &&

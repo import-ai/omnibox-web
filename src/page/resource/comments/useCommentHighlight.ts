@@ -1,5 +1,7 @@
 import { useLayoutEffect } from 'react';
 
+import { elementHasCommentThread } from './imageCommentMarks';
+
 interface UseCommentHighlightOptions {
   root: HTMLElement | null | undefined;
   activeThreadId: string | null;
@@ -31,7 +33,7 @@ export function useCommentHighlight({
       highlighted.forEach(quote => {
         if (
           !root.contains(quote) ||
-          quote.dataset.resourceCommentThread !== activeThreadId
+          !elementHasCommentThread(quote, activeThreadId)
         ) {
           delete quote.dataset.commentHighlight;
           highlighted.delete(quote);
@@ -40,8 +42,12 @@ export function useCommentHighlight({
       root
         .querySelectorAll<HTMLElement>('[data-resource-comment-thread]')
         .forEach(quote => {
-          if (quote.dataset.resourceCommentThread === activeThreadId) {
-            quote.dataset.commentHighlight = resolved ? 'resolved' : 'open';
+          if (elementHasCommentThread(quote, activeThreadId)) {
+            const highlight = resolved ? 'resolved' : 'open';
+            // Caption marks are observed by ProseMirror and must settle after a redraw.
+            if (quote.dataset.commentHighlight !== highlight) {
+              quote.dataset.commentHighlight = highlight;
+            }
             highlighted.add(quote);
           }
         });
@@ -57,7 +63,10 @@ export function useCommentHighlight({
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['data-resource-comment-thread'],
+      attributeFilter: [
+        'data-resource-comment-thread',
+        'data-resource-comment-threads',
+      ],
     });
     return () => {
       observer.disconnect();
