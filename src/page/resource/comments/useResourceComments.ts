@@ -12,6 +12,8 @@ import type {
   ResourceCommentAuthor,
   ResourceCommentThread,
 } from '@/interface';
+import { rewriteThreadMentionLabels } from '@/page/resource/mentionLabels';
+import { syncCommentMentionLabels } from '@/page/resource/mentionLabelSync';
 import { listResourceCommentThreads } from '@/service/resourceComments';
 
 import {
@@ -31,6 +33,7 @@ import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentDraftHighlight } from './useCommentDraftHighlight';
 import { useCommentHighlight } from './useCommentHighlight';
 import { useCommentLinkNavigation } from './useCommentLinkNavigation';
+import { useCommentMentionUsers } from './useCommentMentionUsers';
 import { useCommentMutations } from './useCommentMutations';
 import { useCommentNavigation } from './useCommentNavigation';
 
@@ -62,6 +65,7 @@ interface UseResourceCommentsOptions {
   resource: CommentableResource;
   enabled: boolean;
   contentDirty?: boolean;
+  onMentionContent?: (content: string, contentHash: string) => void;
 }
 
 export function useResourceComments({
@@ -69,9 +73,12 @@ export function useResourceComments({
   resource,
   enabled,
   contentDirty = false,
+  onMentionContent,
 }: UseResourceCommentsOptions) {
   const resourceRef = useRef(resource);
   resourceRef.current = resource;
+  const onMentionContentRef = useRef(onMentionContent);
+  onMentionContentRef.current = onMentionContent;
   const editorRef = useRef<ResourceCommentEditor | null>(null);
   const [registeredEditor, setRegisteredEditor] =
     useState<ResourceCommentEditor | null>(null);
@@ -89,6 +96,9 @@ export function useResourceComments({
     useState<OmniboxEditorCommentSelection | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const panel = useResourceCommentsPanel();
+  const { namesById: mentionNames, loaded: mentionNamesLoaded } =
+    useCommentMentionUsers();
+  const mentionNamesKey = JSON.stringify(mentionNames);
   const [fallbackPanelOpen, setFallbackPanelOpen] = useState(false);
   const panelOpen = panel?.panelOpen ?? fallbackPanelOpen;
   const setPanelOpen = panel?.setPanelOpen ?? setFallbackPanelOpen;
@@ -484,6 +494,36 @@ export function useResourceComments({
     activeThreadId,
     resolved: activeThread?.resolved ?? false,
   });
+
+  useEffect(() => {
+    if (!enabled || !mentionNamesLoaded || mentionNamesKey === '{}') {
+      return;
+    }
+    if (namespaceId.startsWith('share:')) {
+      return;
+    }
+    let ignore = false;
+    syncCommentMentionLabels(namespaceId, resource.id)
+      .then(result => {
+        if (ignore) {
+          return;
+        }
+        const names = JSON.parse(mentionNamesKey) as Record<string, string>;
+        setThreads(current => rewriteThreadMentionLabels(current, names));
+        setAnchorThreads(current => rewriteThreadMentionLabels(current, names));
+        if (
+          result.content &&
+          result.content_hash &&
+          result.content !== resourceRef.current.content
+        ) {
+          onMentionContentRef.current?.(result.content, result.content_hash);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      ignore = true;
+    };
+  }, [enabled, mentionNamesKey, mentionNamesLoaded, namespaceId, resource.id]);
 
   return {
     activeThread,
