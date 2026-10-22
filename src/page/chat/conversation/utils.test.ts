@@ -350,3 +350,134 @@ describe('thinking selection request', () => {
     }
   });
 });
+
+describe('ask follow-latest and refusals', () => {
+  function operator(): MessageOperator {
+    return {
+      update: jest.fn(),
+      add: jest.fn(),
+      done: jest.fn(),
+      stop: jest.fn(),
+      error: jest.fn(),
+      activate: jest.fn(),
+      getSiblings: jest.fn(() => []),
+      getParent: jest.fn(() => ''),
+    };
+  }
+
+  function start(options: Parameters<typeof ask>[21]) {
+    (createStreamTransport as jest.Mock).mockReset();
+    (createStreamTransport as jest.Mock).mockReturnValue({
+      start: jest.fn(),
+      cancel: jest.fn(),
+      destroy: jest.fn(),
+    });
+    const messageOperator = operator();
+    const run = ask(
+      'c1',
+      'hello',
+      [],
+      [],
+      AgentRequestChannel.WEB,
+      'answer-1',
+      messageOperator,
+      '/ask',
+      '简体中文',
+      'n1',
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      options
+    );
+    const [, requestBody, onData] = (createStreamTransport as jest.Mock).mock
+      .calls[0];
+    return { run, requestBody, onData, messageOperator };
+  }
+
+  it('asks the server to follow the newest message and reports where it landed', async () => {
+    const onReparented = jest.fn();
+    const { run, requestBody, onData } = start({
+      followLatest: true,
+      onReparented,
+    });
+
+    await onData(
+      JSON.stringify({
+        response_type: 'bos',
+        role: OpenAIMessageRole.USER,
+        id: 'q2',
+        parentId: 'answer-2',
+      })
+    );
+
+    expect(requestBody.follow_latest).toBe(true);
+    expect(onReparented).toHaveBeenCalledWith('answer-2');
+    expect(run.outcome.acceptedMessageId).toBe('q2');
+  });
+
+  it('does not report a question that landed where it was asked', async () => {
+    const onReparented = jest.fn();
+    const { requestBody, onData } = start({ onReparented });
+
+    await onData(
+      JSON.stringify({
+        response_type: 'bos',
+        role: OpenAIMessageRole.USER,
+        id: 'q2',
+        parentId: 'answer-1',
+      })
+    );
+
+    expect(requestBody).not.toHaveProperty('follow_latest');
+    expect(onReparented).not.toHaveBeenCalled();
+  });
+
+  it('reports an interrupt decided elsewhere instead of showing the refusal', async () => {
+    const { run, onData, messageOperator } = start({
+      reportAlreadyDecided: true,
+    });
+
+    await onData(
+      JSON.stringify({
+        response_type: 'error',
+        code: 'interrupt_already_decided',
+        message: 'already decided',
+      })
+    );
+
+    expect(run.outcome).toEqual(
+      expect.objectContaining({ failed: true, alreadyDecided: true })
+    );
+    expect(messageOperator.error).not.toHaveBeenCalled();
+  });
+
+  it('defers a decision that was not applied like a pending one', async () => {
+    const { run, onData, messageOperator } = start({
+      deferPendingInterrupt: true,
+    });
+
+    await onData(
+      JSON.stringify({
+        response_type: 'error',
+        code: 'decision_not_applied',
+        message: 'not applied',
+        message_id: 'decision-d',
+        interrupt_count: 2,
+      })
+    );
+
+    expect(run.outcome.pendingInterrupt).toEqual({
+      messageId: 'decision-d',
+      count: 2,
+    });
+    expect(messageOperator.error).not.toHaveBeenCalled();
+  });
+});
