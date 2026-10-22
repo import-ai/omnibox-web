@@ -13,10 +13,13 @@ interface ResourceNodeActions {
 export interface ResourceNodeProps extends ResourceNodeActions {
   depth?: number;
   nodeId: string;
+  /** False when an ancestor virtual list already flattened this node's children. */
+  renderChildren?: boolean;
 }
 
 export interface ResourceNodeContentProps extends ResourceNodeActions {
   depth: number;
   node: TreeNode;
   nodeId: string;
+  renderChildren?: boolean;
 }

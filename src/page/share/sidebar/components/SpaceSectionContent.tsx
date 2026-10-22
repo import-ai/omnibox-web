@@ -1,4 +1,5 @@
 import { ChevronRight } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -11,6 +12,8 @@ import {
 import { cn } from '@/lib/utils';
 import type { TreeNode } from '@/page/share/sidebar/store';
 import { useSidebarStore } from '@/page/share/sidebar/store';
+import { VirtualResourceRows } from '@/page/sidebar/components/resource-tree/VirtualResourceRows';
+import { flattenExpandedResources } from '@/page/sidebar/virtualResourceTree';
 
 import ResourceNode from './ResourceNode';
 import { ResourceTreeProps } from './ResourceNode';
@@ -26,6 +29,19 @@ export function SpaceSectionContent({
   ...nodeProps
 }: SpaceSectionContentProps & ResourceTreeProps) {
   const { t } = useTranslation();
+  const nodes = useSidebarStore(s => s.nodes);
+  const nodeUI = useSidebarStore(s => s.ui);
+  const activeId = useSidebarStore(s => s.activeId);
+  const rows = useMemo(
+    () =>
+      flattenExpandedResources(
+        rootNode.children,
+        nodes,
+        id => nodeUI[id]?.expanded === true,
+        () => false
+      ),
+    [nodeUI, nodes, rootNode.children]
+  );
   const handleHeaderToggle = () => {
     useSidebarStore.getState().toggleSpace('share');
   };
@@ -51,11 +67,21 @@ export function SpaceSectionContent({
       {isOpen && (
         <SidebarGroupContent>
           <SidebarMenu className="gap-0.5">
-            {rootNode.hasChildren &&
-              rootNode.children.length > 0 &&
-              rootNode.children.map(childId => (
-                <ResourceNode nodeId={childId} key={childId} {...nodeProps} />
-              ))}
+            {rootNode.hasChildren && rootNode.children.length > 0 && (
+              <VirtualResourceRows
+                listId={rootNode.id}
+                revealId={activeId}
+                rows={rows}
+                renderNode={({ depth, id }) => (
+                  <ResourceNode
+                    nodeId={id}
+                    depth={depth}
+                    renderChildren={false}
+                    {...nodeProps}
+                  />
+                )}
+              />
+            )}
           </SidebarMenu>
         </SidebarGroupContent>
       )}

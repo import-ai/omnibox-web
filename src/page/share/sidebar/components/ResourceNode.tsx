@@ -13,11 +13,26 @@ export interface ResourceTreeProps {
 }
 
 interface ResourceNodeProps extends ResourceTreeProps {
+  depth?: number;
   nodeId: string;
+  renderChildren?: boolean;
 }
 
-export default function ResourceNode({ nodeId, ...props }: ResourceNodeProps) {
+export default function ResourceNode({
+  nodeId,
+  depth = 0,
+  renderChildren = true,
+  ...props
+}: ResourceNodeProps) {
   const node = useNode(nodeId);
   if (!node) return null;
-  return <ResourceNodeContent node={node} nodeId={nodeId} {...props} />;
+  return (
+    <ResourceNodeContent
+      node={node}
+      nodeId={nodeId}
+      depth={depth}
+      renderChildren={renderChildren}
+      {...props}
+    />
+  );
 }
