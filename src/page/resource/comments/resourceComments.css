@@ -964,7 +964,7 @@
 }
 
 .resource-document-comments {
-  @apply mt-12 pb-8;
+  @apply mt-12 shrink-0 pb-8;
 }
 
 .resource-document-comments__boundary {
@@ -979,21 +979,25 @@
   @apply flex shrink-0 items-center opacity-0;
 }
 
+.resource-document-comment__toolbar-row {
+  @apply mb-2 flex h-5 justify-end;
+}
+
+.resource-document-comment .omnibox-comment-thread__toolbar {
+  @apply flex opacity-0;
+}
+
+.resource-document-comment:hover .omnibox-comment-thread__toolbar,
+.resource-document-comment:focus-within .omnibox-comment-thread__toolbar,
 .resource-document-comment:hover .omnibox-comment-message__meta,
-.resource-document-comment:focus-within .omnibox-comment-message__meta {
+.resource-document-comment:focus-within .omnibox-comment-message__meta,
+.resource-document-comment:hover .omnibox-comment-message__action,
+.resource-document-comment:focus-within .omnibox-comment-message__action {
   @apply opacity-100;
 }
 
-.resource-document-comment .omnibox-comment-message__action {
-  @apply flex size-6 items-center justify-center rounded-sm;
-}
-
-.resource-document-comment .omnibox-comment-message__action svg {
-  @apply size-3;
-}
-
-.resource-document-comments__composer {
-  @apply mt-3 rounded-md border-0 bg-transparent shadow-none;
+.omnibox-comment-surface.resource-document-comments__composer {
+  @apply static z-auto mt-3 block max-h-none w-full overflow-visible rounded-md border-0 bg-transparent shadow-none;
 }
 
 .resource-document-comments__composer .omnibox-comment-composer {

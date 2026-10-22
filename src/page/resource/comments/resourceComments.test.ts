@@ -11,6 +11,63 @@ const loadConfig = jest.requireActual<typeof import('tailwindcss/loadConfig')>(
 );
 
 describe('compiled resource comment styles', () => {
+  it('keeps the full-width document composer in scrollable document flow', async () => {
+    const fixture = document.createElement('section');
+    fixture.className = 'resource-document-comments resource-comments-panel';
+    fixture.innerHTML = `<div class="omnibox-comment-surface resource-document-comments__composer">
+      <form class="omnibox-comment-composer" data-has-draft>
+        <div class="omnibox-comment-composer__input" data-has-preview>
+          <textarea></textarea>
+          <div class="omnibox-comment-composer__preview"><img alt="" /></div>
+        </div>
+        <div class="omnibox-comment-composer__actions"><button>Cancel</button><button type="submit">Publish</button></div>
+      </form>
+    </div>`;
+    const editorCss = postcss.parse(
+      readFileSync(
+        'node_modules/@import-ai/omnibox-editor/dist/omnibox-editor.css',
+        'utf8'
+      )
+    );
+    const surfaceRule = editorCss.nodes.find(
+      node =>
+        node.type === 'rule' && node.selector === '.omnibox-comment-surface'
+    );
+    if (!surfaceRule) throw new Error('Missing editor comment surface styles');
+    const result = await postcss([
+      tailwindcss({
+        ...loadConfig(resolve('tailwind.config.js')),
+        content: [{ raw: fixture.outerHTML, extension: 'html' }],
+      }),
+    ]).process(
+      `${surfaceRule.toString()}\n${readFileSync('src/page/resource/comments/resourceComments.css', 'utf8')}`,
+      { from: undefined }
+    );
+    const style = document.createElement('style');
+    style.textContent = result.css;
+    document.head.append(style);
+    document.body.append(fixture);
+    try {
+      const composer = fixture.querySelector(
+        '.resource-document-comments__composer'
+      )!;
+      const css = getComputedStyle(composer);
+      expect(css.position).toBe('static');
+      expect(css.width).toBe('100%');
+      expect(css.maxHeight).toBe('none');
+      expect(css.overflow).toBe('visible');
+      expect(css.zIndex).toBe('auto');
+      expect(getComputedStyle(fixture).flexShrink).toBe('0');
+      expect(
+        getComputedStyle(
+          fixture.querySelector('.omnibox-comment-composer__actions')!
+        ).pointerEvents
+      ).toBe('auto');
+    } finally {
+      fixture.remove();
+      style.remove();
+    }
+  });
   it('keeps the shared panel out of the document flow', async () => {
     const panel = document.createElement('div');
     panel.className = 'resource-comments-panel absolute';

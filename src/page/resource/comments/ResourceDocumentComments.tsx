@@ -49,6 +49,60 @@ export function ResourceDocumentComments({
                 data-document-comment-id={thread.id}
                 className={'resource-document-comment'}
               >
+                <div className={'resource-document-comment__toolbar-row'}>
+                  <div
+                    className={'omnibox-comment-thread__toolbar'}
+                    aria-label={t('resource_comments.thread_actions')}
+                  >
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type={'button'}
+                          aria-label={t('resource_comments.copy_thread_link')}
+                          onClick={() => {
+                            const url = new URL(window.location.href);
+                            url.hash = 'comment-' + thread.id;
+                            navigator.clipboard
+                              ?.writeText(url.toString())
+                              .then(() =>
+                                toast(t('actions.copy_link_success'), {
+                                  position: 'bottom-right',
+                                })
+                              )
+                              .catch(() => undefined);
+                          }}
+                        >
+                          <Link2 aria-hidden strokeWidth={1.75} />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {t('resource_comments.copy_thread_link')}
+                      </TooltipContent>
+                    </Tooltip>
+                    {controller.canModerateThread(thread) ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type={'button'}
+                            className={'omnibox-comment-thread__resolve'}
+                            aria-label={t('resource_comments.resolve_and_hide')}
+                            disabled={controller.submitting}
+                            onClick={() => {
+                              controller
+                                .setThreadResolved(thread.id, true)
+                                .catch(() => undefined);
+                            }}
+                          >
+                            <Check aria-hidden strokeWidth={1.75} />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {t('resource_comments.resolve_and_hide')}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : null}
+                  </div>
+                </div>
                 {thread.comments.map(comment => (
                   <ResourceCommentItem
                     key={comment.id}
@@ -57,62 +111,6 @@ export function ResourceDocumentComments({
                     threadResolved={false}
                     thread={thread}
                     controller={controller}
-                    actions={
-                      <>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              type={'button'}
-                              className={'omnibox-comment-message__action'}
-                              aria-label={t(
-                                'resource_comments.copy_thread_link'
-                              )}
-                              onClick={() => {
-                                const url = new URL(window.location.href);
-                                url.hash = 'comment-' + thread.id;
-                                navigator.clipboard
-                                  ?.writeText(url.toString())
-                                  .then(() =>
-                                    toast(t('actions.copy_link_success'), {
-                                      position: 'bottom-right',
-                                    })
-                                  )
-                                  .catch(() => undefined);
-                              }}
-                            >
-                              <Link2 aria-hidden />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {t('resource_comments.copy_thread_link')}
-                          </TooltipContent>
-                        </Tooltip>
-                        {controller.canModerateThread(thread) ? (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type={'button'}
-                                className={'omnibox-comment-message__action'}
-                                aria-label={t(
-                                  'resource_comments.resolve_and_hide'
-                                )}
-                                disabled={controller.submitting}
-                                onClick={() => {
-                                  controller
-                                    .setThreadResolved(thread.id, true)
-                                    .catch(() => undefined);
-                                }}
-                              >
-                                <Check aria-hidden />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {t('resource_comments.resolve_and_hide')}
-                            </TooltipContent>
-                          </Tooltip>
-                        ) : null}
-                      </>
-                    }
                   />
                 ))}
               </article>

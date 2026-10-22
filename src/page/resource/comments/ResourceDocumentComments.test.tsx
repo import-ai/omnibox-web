@@ -164,6 +164,21 @@ describe('full document comment presentation', () => {
       'resource_comments.edit',
       'resource_comments.delete',
     ]);
+    const toolbar = row.querySelector('.omnibox-comment-thread__toolbar');
+    expect(
+      [...(toolbar?.querySelectorAll('button[aria-label]') ?? [])].map(item =>
+        item.getAttribute('aria-label')
+      )
+    ).toEqual([
+      'resource_comments.copy_thread_link',
+      'resource_comments.resolve_and_hide',
+    ]);
+    expect(
+      button('edit')?.closest('.omnibox-comment-message__meta')
+    ).not.toBeNull();
+    expect(
+      button('delete')?.closest('.omnibox-comment-message__meta')
+    ).not.toBeNull();
     await act(async () => button('resolve_and_hide')?.click());
     expect(value.setThreadResolved).toHaveBeenCalledWith('document', true);
     expect(container.querySelector('.omnibox-comment-reply')).toBeNull();

@@ -1,11 +1,5 @@
 import { Image, Pencil, Trash2, X } from 'lucide-react';
-import {
-  type ReactNode,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -30,7 +24,6 @@ export function ResourceCommentItem({
   thread,
   controller,
   onEditingChange,
-  actions,
 }: {
   comment: ResourceComment;
   threadId: string;
@@ -38,7 +31,6 @@ export function ResourceCommentItem({
   thread?: ResourceCommentThread;
   controller: ResourceCommentsController;
   onEditingChange?: (editing: boolean) => void;
-  actions?: ReactNode;
 }) {
   const { i18n, t } = useTranslation();
   const [editing, setEditing] = useState(false);
@@ -188,11 +180,8 @@ export function ResourceCommentItem({
               ) : null}
             </span>
           </div>
-          {actions ||
-          canEdit ||
-          controller.canDeleteComment(comment, thread) ? (
+          {canEdit || controller.canDeleteComment(comment, thread) ? (
             <div className="omnibox-comment-message__meta">
-              {actions}
               {canEdit && (
                 <Tooltip>
                   <TooltipTrigger asChild>
