@@ -194,7 +194,7 @@ export function useSidebarEvents(namespaceId: string) {
       if (parentId) {
         await handleRefreshResourceChildren(parentId);
       }
-      await locateSidebarResource(targetId);
+      await locateSidebarResource(targetId, { behavior: 'smooth' });
 
       // Smart-folder children keep selection via location.state.sidebarActiveKey.
       // Locate switches to the source resource, so clear that key or the old

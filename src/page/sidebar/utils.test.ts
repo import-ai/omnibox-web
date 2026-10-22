@@ -88,6 +88,35 @@ describe('locateSidebarResource', () => {
     expect(container.scrollTop).toBe(160);
   });
 
+  it('animates the sidebar scroller when locate asks for smooth scrolling', async () => {
+    const frames: FrameRequestCallback[] = [];
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+      frames.push(callback);
+      return frames.length;
+    });
+    mockExpandPathTo.mockResolvedValue(undefined);
+
+    const container = document.createElement('div');
+    container.dataset.sidebar = 'content';
+    Object.defineProperty(container, 'clientHeight', { value: 100 });
+    container.getBoundingClientRect = () => ({ top: 0 }) as DOMRect;
+    const scrollTo = jest.fn();
+    container.scrollTo = scrollTo;
+    const target = document.createElement('div');
+    target.dataset.resourceId = 'target';
+    target.getBoundingClientRect = () => ({ top: 200, height: 20 }) as DOMRect;
+    container.appendChild(target);
+    document.body.appendChild(container);
+
+    await flushLocate(
+      locateSidebarResource('target', { behavior: 'smooth' }),
+      frames
+    );
+
+    expect(scrollTo).toHaveBeenCalledWith({ top: 160, behavior: 'smooth' });
+    expect(container.scrollTop).toBe(0);
+  });
+
   it('skips activate and scroll when the locate is aborted', async () => {
     const frames: FrameRequestCallback[] = [];
     jest.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {

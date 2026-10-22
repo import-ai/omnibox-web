@@ -44,6 +44,8 @@ export function clearSidebarActiveKeyFromState(state: unknown): {
 export type LocateSidebarResourceOptions = {
   signal?: AbortSignal;
   shouldApply?: () => boolean;
+  /** Locate clicks animate. Refresh and route opens stay instant. */
+  behavior?: ScrollBehavior;
 };
 
 function canApplyLocate(options?: LocateSidebarResourceOptions) {
