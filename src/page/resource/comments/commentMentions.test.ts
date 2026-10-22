@@ -7,6 +7,7 @@ import {
   insertUserMention,
   mentionMenuPlacement,
   mentionTrigger,
+  openMentionTrigger,
   splitCommentContent,
   userMentionShortcode,
 } from './commentMentions';
@@ -25,6 +26,17 @@ describe('comment mentions', () => {
     expect(mentionTrigger('神针”@', 4)).toEqual({ start: 3, query: '' });
     expect(mentionTrigger('你好@mz', 5)).toEqual({ start: 2, query: 'mz' });
     expect(mentionTrigger('[@ id="u1" label="A"]', 4)).toBeNull();
+  });
+
+  it('does not reopen the menu on an existing mention', () => {
+    const draft = commentDraftDisplay('[@ id="u1" label="Old"]');
+    const end = draft.display.length;
+    expect(openMentionTrigger(draft.display, end, draft.atoms)).toBeNull();
+    const typing = `${draft.display} @`;
+    expect(openMentionTrigger(typing, typing.length, draft.atoms)).toEqual({
+      start: draft.display.length + 1,
+      query: '',
+    });
   });
 
   it('inserts the document mention shortcode and a trailing space', () => {

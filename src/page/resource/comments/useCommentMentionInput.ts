@@ -16,7 +16,7 @@ import {
   displayOffsetToStorage,
   filterCommentMentionUsers,
   insertUserMention,
-  mentionTrigger,
+  openMentionTrigger,
   storageOffsetToDisplay,
 } from './commentMentions';
 import { useCommentMentionUsers } from './useCommentMentionUsers';
@@ -34,7 +34,7 @@ export function useCommentMentionInput(
   const pendingCaret = useRef<number | null>(null);
   const draft = commentDraftDisplay(value, namesById);
   const safeCaret = Math.min(caret, draft.display.length);
-  const query = mentionTrigger(draft.display, safeCaret);
+  const query = openMentionTrigger(draft.display, safeCaret, draft.atoms);
   const matches = query ? filterCommentMentionUsers(users, query.query) : [];
   const signature = query ? `${query.start}:${query.query}` : null;
   const open = !!query && matches.length > 0 && dismissed !== signature;

@@ -147,6 +147,23 @@ export type CommentDraftAtom = {
   storageEnd: number;
 };
 
+// An existing @name is not a new query. The menu opens only while typing @.
+export function openMentionTrigger(
+  display: string,
+  caret: number,
+  atoms: CommentDraftAtom[]
+) {
+  const trigger = mentionTrigger(display, caret);
+  if (!trigger) {
+    return null;
+  }
+  const onAtom = atoms.some(
+    atom =>
+      trigger.start >= atom.displayStart && trigger.start < atom.displayEnd
+  );
+  return onAtom ? null : trigger;
+}
+
 export function commentDraftDisplay(
   storage: string,
   namesById: Record<string, string> = {}
