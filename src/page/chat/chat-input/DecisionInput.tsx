@@ -126,10 +126,20 @@ function getDecisionStyle(
   );
 }
 
+// The shortcuts act only while the decision card has focus, or nothing does.
+// Keys pressed in the composer next to the card (its text box, send button,
+// menus) belong to the composer.
+export function decisionShortcutsActive(card: HTMLElement | null): boolean {
+  const active = document.activeElement;
+  if (!active || active === document.body) return true;
+  return Boolean(card?.contains(active));
+}
+
 export default function DecisionInput(props: IDecisionInputProps) {
   const { interrupts, approvalMode, loading = false, sendMessage } = props;
   const { t } = useTranslation();
   const submittedRef = useRef(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const autoSubmittedRef = useRef<string | null>(null);
 
   const onSubmit = (decisions: { type: DecisionType }[]) => {
@@ -254,7 +264,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
   // Keyboard navigation — global listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (loading) {
+      if (loading || !decisionShortcutsActive(cardRef.current)) {
         return;
       }
 
@@ -359,7 +369,10 @@ export default function DecisionInput(props: IDecisionInputProps) {
   }, [activeCardIndex]);
 
   return (
-    <Card className="mx-auto w-full max-w-[766px] gap-0 rounded-2xl py-0">
+    <Card
+      ref={cardRef}
+      className="mx-auto w-full max-w-[766px] gap-0 rounded-2xl py-0"
+    >
       <CardHeader className="p-3">
         <CardTitle className="flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2">

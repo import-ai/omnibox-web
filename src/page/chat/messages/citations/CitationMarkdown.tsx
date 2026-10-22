@@ -33,6 +33,7 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
+import { MessageChannelTime } from '@/page/chat/messages/role/MessageChannelTime';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import { CitationContext, MarkdownAnchor } from './CitationMarkdownAnchor';
@@ -69,6 +70,7 @@ interface IProps {
   onPrevious?: () => void;
   onNext?: () => void;
   createdAt?: string;
+  channel?: string;
   isLastMessage: boolean;
   hideActions?: boolean;
   onShare?: (messageId: string) => void;
@@ -90,6 +92,7 @@ export function CitationMarkdown(props: IProps) {
     onPrevious,
     onNext,
     createdAt,
+    channel,
     isLastMessage,
     hideActions = false,
     onShare,
@@ -241,11 +244,11 @@ export function CitationMarkdown(props: IProps) {
                 <TooltipContent>{t('chat.share.action')}</TooltipContent>
               </Tooltip>
             )}
-            {createdAtLabel && (
-              <span className="text-xs text-muted-foreground opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100">
-                {createdAtLabel}
-              </span>
-            )}
+            <MessageChannelTime
+              channel={channel}
+              className="opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100"
+              time={createdAtLabel}
+            />
           </div>
         )}
     </div>

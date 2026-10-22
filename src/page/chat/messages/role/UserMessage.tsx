@@ -24,6 +24,7 @@ import { fetchResourcesByIds } from '@/service/resource';
 import { fetchShareResource } from '@/service/share';
 
 import { getCachedMessageDisplayParts } from '../messageDisplayPartsCache';
+import { MessageChannelTime } from './MessageChannelTime';
 import { UserMessageImages } from './UserMessageImages';
 import {
   buildResourceNameById,
@@ -106,6 +107,8 @@ export function UserMessage(props: IProps) {
   };
 
   const selectedResources = message.attrs?.user_context?.selected_resources;
+  const channel = message.attrs?.user_context?.channel;
+  const isSavedResource = Boolean(message.attrs?.user_context?.saved_resource);
   const createdAt = message.created_at
     ? format(new Date(message.created_at), 'yyyy-MM-dd HH:mm:ss')
     : null;
@@ -372,10 +375,8 @@ export function UserMessage(props: IProps) {
       )}
       {!hideActions && !message.attrs?.pending_query && (
         <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
-          {createdAt && (
-            <span className="text-xs text-muted-foreground">{createdAt}</span>
-          )}
-          {!isEditing && (
+          <MessageChannelTime channel={channel} time={createdAt} />
+          {!isEditing && !isSavedResource && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button

@@ -5,11 +5,28 @@ import {
   ChatResponse,
 } from '@/page/chat/core/types/chatResponse.ts';
 
+// The server may answer an SSE error event with plain text instead of a JSON
+// chunk; show that text as the error rather than failing on JSON.parse.
+export function parseChatResponse(data: string): ChatResponse {
+  try {
+    const parsed: unknown = JSON.parse(data);
+    if (parsed && typeof parsed === 'object' && 'response_type' in parsed) {
+      return parsed as ChatResponse;
+    }
+  } catch {
+    // Not JSON; reported below.
+  }
+  return {
+    response_type: 'error',
+    message: data.trim() || 'Unknown error',
+  } as ChatErrorResponse;
+}
+
 export function messageProcessor(
   messageOperator: MessageOperator,
   data: string
 ) {
-  const chatResponse: ChatResponse = JSON.parse(data);
+  const chatResponse: ChatResponse = parseChatResponse(data);
   // Backend SSE keepalive; carries nothing for the conversation.
   if (chatResponse.response_type === 'ping') return;
   if (chatResponse.response_type === 'bos') {

@@ -144,6 +144,7 @@ export function ConversationFooter({
           approvalModeResetKey={context.conversation.id}
           suppressInitialToolRestore={context.suppressInitialToolRestore}
           sendMessage={context.sendMessage}
+          textWhilePending
           loading={context.loading}
           imageUploadDisabled={imageUploadDisabled}
           proUnsupported={imageUploadDisabled}
