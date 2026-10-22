@@ -10,6 +10,7 @@ import type { useComposerSelection } from './useComposerSelection';
 
 interface UseComposerHandleParams {
   commands: ReturnType<typeof useComposerCommands>;
+  publisher: { publishComposerState: (state: ComposerState) => void };
   composerState: ComposerState;
   onChange: (value: string) => void;
   onSelectedResourcesChange: (value: IResTypeContext[]) => void;
@@ -21,6 +22,7 @@ interface UseComposerHandleParams {
 /** Exposes the composer commands used by the surrounding toolbar. */
 export function useComposerHandle({
   commands,
+  publisher,
   composerState,
   onChange,
   onSelectedResourcesChange,
@@ -43,12 +45,15 @@ export function useComposerHandle({
           composerState.mentions,
           composerState.toolRanges
         ),
+      getState: () => composerState,
+      restore: state => publisher.publishComposerState(state),
       insertResource: commands.insertResource,
       rememberSelection: selection.rememberSelection,
       toggleTool: commands.toggleTool,
     }),
     [
       commands,
+      publisher,
       composerState,
       onChange,
       onSelectedResourcesChange,
