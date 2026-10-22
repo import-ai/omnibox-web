@@ -1,16 +1,20 @@
 import {
   cloneElement,
+  type CompositionEvent,
   type ReactElement,
   type ReactNode,
   type UIEvent,
   useLayoutEffect,
   useRef,
+  useState,
 } from 'react';
 
 import type { CommentDraftAtom } from './commentMentions';
 
 type MentionFieldChild = {
   onScroll?: (event: UIEvent<HTMLTextAreaElement>) => void;
+  onCompositionStart?: (event: CompositionEvent<HTMLTextAreaElement>) => void;
+  onCompositionEnd?: (event: CompositionEvent<HTMLTextAreaElement>) => void;
 };
 
 type FieldProps = {
@@ -22,6 +26,7 @@ type FieldProps = {
 export function CommentMentionField({ display, atoms, children }: FieldProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const mirrorRef = useRef<HTMLDivElement>(null);
+  const [composing, setComposing] = useState(false);
 
   useLayoutEffect(() => {
     const field = rootRef.current;
@@ -75,7 +80,10 @@ export function CommentMentionField({ display, atoms, children }: FieldProps) {
   }
 
   return (
-    <div ref={rootRef} className="omnibox-comment-mention-field">
+    <div
+      ref={rootRef}
+      className={`omnibox-comment-mention-field${composing ? ' is-composing' : ''}`}
+    >
       <div
         ref={mirrorRef}
         className="omnibox-comment-mention-field__mirror"
@@ -84,7 +92,17 @@ export function CommentMentionField({ display, atoms, children }: FieldProps) {
         {pieces}
         {display.endsWith('\n') ? <br /> : null}
       </div>
-      {cloneElement(children, { onScroll })}
+      {cloneElement(children, {
+        onScroll,
+        onCompositionStart: (event: CompositionEvent<HTMLTextAreaElement>) => {
+          setComposing(true);
+          children.props.onCompositionStart?.(event);
+        },
+        onCompositionEnd: (event: CompositionEvent<HTMLTextAreaElement>) => {
+          setComposing(false);
+          children.props.onCompositionEnd?.(event);
+        },
+      })}
     </div>
   );
 }

@@ -99,10 +99,19 @@ export function useCommentMentionInput(
     menu,
     inputProps: {
       onChange: (event: ChangeEvent<HTMLTextAreaElement>) => {
-        track(event.currentTarget);
-        onValueChange(
-          applyCommentDraftChange(value, event.currentTarget.value, namesById)
-        );
+        const element = event.currentTarget;
+        const next = applyCommentDraftChange(value, element.value, namesById);
+        if (
+          next.caret !== null &&
+          next.caret !== element.selectionStart &&
+          !event.nativeEvent.isComposing
+        ) {
+          pendingCaret.current = next.caret;
+          setCaret(next.caret);
+        } else {
+          track(element);
+        }
+        onValueChange(next.value);
       },
       onClick: (event: ReactMouseEvent<HTMLTextAreaElement>) => {
         track(event.currentTarget);

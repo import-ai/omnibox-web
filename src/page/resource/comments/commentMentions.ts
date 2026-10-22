@@ -241,7 +241,7 @@ export function applyCommentDraftChange(
   const draft = commentDraftDisplay(storage, namesById);
   const previous = draft.display;
   if (nextDisplay === previous) {
-    return storage;
+    return { value: storage, caret: null };
   }
   let start = 0;
   while (
@@ -279,9 +279,12 @@ export function applyCommentDraftChange(
   const replacement = nextDisplay.slice(start, nextEnd);
   const storageStart = displayOffsetToStorage(draft, displayStart);
   const storageEnd = displayOffsetToStorage(draft, displayEnd);
-  return (
-    storage.slice(0, storageStart) + replacement + storage.slice(storageEnd)
-  );
+  return {
+    value:
+      storage.slice(0, storageStart) + replacement + storage.slice(storageEnd),
+    // After the removed mention, not where a one-character delete would land.
+    caret: displayStart + replacement.length,
+  };
 }
 
 export function mentionMenuPlacement(

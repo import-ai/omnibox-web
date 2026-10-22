@@ -997,6 +997,15 @@
   overflow-wrap: anywhere;
 }
 
+.omnibox-comment-mention-field.is-composing > textarea {
+  color: hsl(var(--foreground)) !important;
+}
+
+.omnibox-comment-mention-field.is-composing
+  .omnibox-comment-mention-field__mirror {
+  visibility: hidden;
+}
+
 .omnibox-comment-mention-field > textarea::placeholder {
   color: hsl(var(--muted-foreground)) !important;
   opacity: 1;

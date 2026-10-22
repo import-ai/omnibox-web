@@ -94,19 +94,30 @@ describe('comment mentions', () => {
     );
 
     const token = '[@ id="u1" label="Old"]';
-    expect(applyCommentDraftChange(stored, 'Hi @Old there!')).toBe(
-      `Hi ${token} there!`
-    );
-    expect(applyCommentDraftChange(stored, 'Hi @Ol there')).toBe('Hi  there');
-    expect(applyCommentDraftChange(stored, 'Hi @Oldthere')).toBe(
-      'Hi [@ id="u1" label="Old"]there'
-    );
-    expect(applyCommentDraftChange(stored, 'Hi  there')).toBe('Hi  there');
+    expect(applyCommentDraftChange(stored, 'Hi @Old there!')).toEqual({
+      value: `Hi ${token} there!`,
+      caret: 'Hi @Old there!'.length,
+    });
+    expect(applyCommentDraftChange(stored, 'Hi @Ol there')).toEqual({
+      value: 'Hi  there',
+      caret: 'Hi '.length,
+    });
+    expect(applyCommentDraftChange(stored, 'Hi @Oldthere')).toEqual({
+      value: 'Hi [@ id="u1" label="Old"]there',
+      caret: 'Hi @Old'.length,
+    });
+    expect(applyCommentDraftChange(stored, 'Hi  there')).toEqual({
+      value: 'Hi  there',
+      caret: 'Hi '.length,
+    });
     expect(
       applyCommentDraftChange(
         '[@ id="r1" label="Doc" type="resource"]',
         '[@ id="r1" label="Doc" type="resource"]'
       )
-    ).toBe('[@ id="r1" label="Doc" type="resource"]');
+    ).toEqual({
+      value: '[@ id="r1" label="Doc" type="resource"]',
+      caret: null,
+    });
   });
 });
