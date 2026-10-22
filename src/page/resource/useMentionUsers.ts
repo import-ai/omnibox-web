@@ -1,80 +1,72 @@
-import type { OmniboxEditorMentionUser } from '@import-ai/omnibox-editor';
 import { useEffect, useMemo, useState } from 'react';
 
+import useApp from '@/hooks/useApp';
 import type { Member } from '@/interface';
 import { http } from '@/lib/request';
 import {
-  memberDisplayName,
-  memberMentionSubtext,
-} from '@/page/settings/tabs/members/memberDisplay';
-
-function toMentionUsers(members: Member[]): OmniboxEditorMentionUser[] {
-  return members.reduce<OmniboxEditorMentionUser[]>((users, member) => {
-    const id = member.user_id;
-    const name = memberDisplayName(member);
-    if (!id || !name) {
-      return users;
-    }
-
-    users.push({
-      id,
-      name,
-      position: memberMentionSubtext(member),
-    });
-    return users;
-  }, []);
-}
+  NAMESPACE_MEMBERS_REFRESH,
+  toMentionMembersById,
+} from '@/page/resource/mentionCard';
+import {
+  mentionNameMap,
+  mentionUsersFromMembers,
+} from '@/page/resource/mentionUsers';
 
 export function useMentionUsers(namespaceId?: string) {
-  const [mentionUsers, setMentionUsers] = useState<OmniboxEditorMentionUser[]>(
-    []
-  );
+  const app = useApp();
+  const [members, setMembers] = useState<Member[]>([]);
   const [ready, setReady] = useState(!namespaceId);
 
   useEffect(() => {
     if (!namespaceId) {
-      setMentionUsers([]);
+      setMembers([]);
       setReady(true);
       return;
     }
-    const namespace: string = namespaceId;
-
     let ignore = false;
-    setReady(false);
 
-    async function loadMentionUsers() {
-      try {
-        const members = await http.get<Member[]>(
-          `/namespaces/${namespace}/members`,
-          { mute: true }
-        );
-        if (ignore) {
-          return;
-        }
-
-        setMentionUsers(toMentionUsers(Array.isArray(members) ? members : []));
-      } catch {
-        if (!ignore) {
-          setMentionUsers([]);
-        }
-      } finally {
-        if (!ignore) {
-          setReady(true);
-        }
+    let ticket = 0;
+    const load = (initial: boolean) => {
+      const current = ++ticket;
+      if (initial) {
+        setReady(false);
       }
-    }
+      http
+        .get<Member[]>(`/namespaces/${namespaceId}/members`, { mute: true })
+        .then(loadedMembers => {
+          if (ignore || current !== ticket) {
+            return;
+          }
+          setMembers(Array.isArray(loadedMembers) ? loadedMembers : []);
+        })
+        .catch(() => {
+          // A failed refresh must keep the list already on screen.
+        })
+        .finally(() => {
+          if (!ignore && initial && current === ticket) {
+            setReady(true);
+          }
+        });
+    };
 
-    loadMentionUsers();
+    load(true);
+    const unsubscribe = app.on(NAMESPACE_MEMBERS_REFRESH, (nextId: string) => {
+      if (nextId === namespaceId) {
+        load(false);
+      }
+    });
 
     return () => {
       ignore = true;
+      unsubscribe();
     };
-  }, [namespaceId]);
+  }, [app, namespaceId]);
 
-  const namesById = useMemo(
-    () => Object.fromEntries(mentionUsers.map(user => [user.id, user.name])),
-    [mentionUsers]
+  const mentionUsers = useMemo(
+    () => mentionUsersFromMembers(members),
+    [members]
   );
-
-  return { mentionUsers, namesById, ready };
+  const membersById = useMemo(() => toMentionMembersById(members), [members]);
+  const namesById = useMemo(() => mentionNameMap(members), [members]);
+  return { mentionUsers, membersById, namesById, ready };
 }

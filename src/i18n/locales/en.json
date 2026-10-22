@@ -199,6 +199,7 @@
     "save_before_commenting": "Save your content changes before starting a new discussion.",
     "no_resolved_threads": "No resolved comments yet",
     "no_open_threads": "No unresolved comments at the moment",
+    "mention_members": "Mention a member",
     "load_more": "Load more"
   },
   "folder": {
