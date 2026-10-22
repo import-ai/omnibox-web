@@ -17,8 +17,10 @@ import {
   PopoverTrigger,
 } from '@/components/ui/Popover';
 import { Textarea } from '@/components/ui/Textarea';
+import useApp from '@/hooks/useApp';
 import { Member } from '@/interface';
 import { http } from '@/lib/request';
+import { NAMESPACE_MEMBERS_REFRESH } from '@/page/resource/mentionCard';
 
 import {
   MEMBER_NICKNAME_MAX_LENGTH,
@@ -48,6 +50,7 @@ export function focusEditorFieldAtEnd(event: Event) {
 export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
   const { member, namespaceId, canEditNickname, refetch } = props;
   const { t } = useTranslation();
+  const app = useApp();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [nickname, setNickname] = useState(member.nickname || '');
@@ -92,6 +95,7 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
       );
       handlePopoverOpenChange(false);
       refetch();
+      app.fire(NAMESPACE_MEMBERS_REFRESH, namespaceId);
     } finally {
       setSaving(false);
     }
