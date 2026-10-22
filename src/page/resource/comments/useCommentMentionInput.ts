@@ -16,7 +16,7 @@ import {
   displayOffsetToStorage,
   filterCommentMentionUsers,
   insertUserMention,
-  mentionTrigger,
+  openMentionTrigger,
   storageOffsetToDisplay,
 } from './commentMentions';
 import { useCommentMentionUsers } from './useCommentMentionUsers';
@@ -34,7 +34,7 @@ export function useCommentMentionInput(
   const pendingCaret = useRef<number | null>(null);
   const draft = commentDraftDisplay(value, namesById);
   const safeCaret = Math.min(caret, draft.display.length);
-  const query = mentionTrigger(draft.display, safeCaret);
+  const query = openMentionTrigger(draft.display, safeCaret, draft.atoms);
   const matches = query ? filterCommentMentionUsers(users, query.query) : [];
   const signature = query ? `${query.start}:${query.query}` : null;
   const open = !!query && matches.length > 0 && dismissed !== signature;
@@ -95,13 +95,23 @@ export function useCommentMentionInput(
 
   return {
     displayValue: draft.display,
+    atoms: draft.atoms,
     menu,
     inputProps: {
       onChange: (event: ChangeEvent<HTMLTextAreaElement>) => {
-        track(event.currentTarget);
-        onValueChange(
-          applyCommentDraftChange(value, event.currentTarget.value, namesById)
-        );
+        const element = event.currentTarget;
+        const next = applyCommentDraftChange(value, element.value, namesById);
+        if (
+          next.caret !== null &&
+          next.caret !== element.selectionStart &&
+          !event.nativeEvent.isComposing
+        ) {
+          pendingCaret.current = next.caret;
+          setCaret(next.caret);
+        } else {
+          track(element);
+        }
+        onValueChange(next.value);
       },
       onClick: (event: ReactMouseEvent<HTMLTextAreaElement>) => {
         track(event.currentTarget);

@@ -65,6 +65,7 @@ export function ResourceNodeContent({
   onBatchMove,
   onBatchCreate,
   onAddToChat,
+  renderChildren = true,
 }: ResourceNodeContentProps) {
   const { t } = useTranslation();
   const app = useApp();
@@ -436,42 +437,44 @@ export function ResourceNodeContent({
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>
-        <CollapsibleContent>
-          <SidebarMenuSub className="m-0 translate-x-0 gap-0 border-0 p-0">
-            {isExpanded &&
-              node.hasChildren &&
-              node.children.length > 0 &&
-              node.children.map(childId => (
-                <ResourceNode
-                  nodeId={childId}
-                  key={childId}
-                  depth={depth + 1}
-                  hasTeamspace={hasTeamspace}
-                  currentNamespace={currentNamespace}
-                  onBatchDelete={onBatchDelete}
-                  onBatchMove={onBatchMove}
-                  onBatchCreate={onBatchCreate}
-                  onAddToChat={onAddToChat}
-                />
-              ))}
-            {/* A folder the backend fills — a smart folder or a feed — reads as
+        {renderChildren && (
+          <CollapsibleContent>
+            <SidebarMenuSub className="m-0 translate-x-0 gap-0 border-0 p-0">
+              {isExpanded &&
+                node.hasChildren &&
+                node.children.length > 0 &&
+                node.children.map(childId => (
+                  <ResourceNode
+                    nodeId={childId}
+                    key={childId}
+                    depth={depth + 1}
+                    hasTeamspace={hasTeamspace}
+                    currentNamespace={currentNamespace}
+                    onBatchDelete={onBatchDelete}
+                    onBatchMove={onBatchMove}
+                    onBatchCreate={onBatchCreate}
+                    onAddToChat={onAddToChat}
+                  />
+                ))}
+              {/* A folder the backend fills — a smart folder or a feed — reads as
                 broken when it expands to nothing, so it says so. An empty
                 plain folder is the user's own doing and stays silent. */}
-            {isExpanded &&
-              nodeUI?.loaded &&
-              !nodeUI.loading &&
-              isManagedChildrenNode(node) &&
-              (initialSyncLoading || initialSyncStatus === 'failed' ? (
-                <FolderEmptyState
-                  depth={depth + 1}
-                  loading={initialSyncLoading}
-                  failed={initialSyncStatus === 'failed'}
-                />
-              ) : node.children.length === 0 ? (
-                <FolderEmptyState depth={depth + 1} />
-              ) : null)}
-          </SidebarMenuSub>
-        </CollapsibleContent>
+              {isExpanded &&
+                nodeUI?.loaded &&
+                !nodeUI.loading &&
+                isManagedChildrenNode(node) &&
+                (initialSyncLoading || initialSyncStatus === 'failed' ? (
+                  <FolderEmptyState
+                    depth={depth + 1}
+                    loading={initialSyncLoading}
+                    failed={initialSyncStatus === 'failed'}
+                  />
+                ) : node.children.length === 0 ? (
+                  <FolderEmptyState depth={depth + 1} />
+                ) : null)}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        )}
       </Collapsible>
     </SidebarMenuItem>
   );

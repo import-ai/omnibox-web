@@ -147,6 +147,23 @@ export type CommentDraftAtom = {
   storageEnd: number;
 };
 
+// An existing @name is not a new query. The menu opens only while typing @.
+export function openMentionTrigger(
+  display: string,
+  caret: number,
+  atoms: CommentDraftAtom[]
+) {
+  const trigger = mentionTrigger(display, caret);
+  if (!trigger) {
+    return null;
+  }
+  const onAtom = atoms.some(
+    atom =>
+      trigger.start >= atom.displayStart && trigger.start < atom.displayEnd
+  );
+  return onAtom ? null : trigger;
+}
+
 export function commentDraftDisplay(
   storage: string,
   namesById: Record<string, string> = {}
@@ -224,7 +241,7 @@ export function applyCommentDraftChange(
   const draft = commentDraftDisplay(storage, namesById);
   const previous = draft.display;
   if (nextDisplay === previous) {
-    return storage;
+    return { value: storage, caret: null };
   }
   let start = 0;
   while (
@@ -258,15 +275,16 @@ export function applyCommentDraftChange(
       displayEnd = Math.max(displayEnd, atom.displayEnd);
     }
   }
-  const replacement = nextDisplay.slice(
-    displayStart,
-    nextEnd + (displayEnd - previousEnd)
-  );
+  // A touched mention is removed whole. Keep only text the user actually added.
+  const replacement = nextDisplay.slice(start, nextEnd);
   const storageStart = displayOffsetToStorage(draft, displayStart);
   const storageEnd = displayOffsetToStorage(draft, displayEnd);
-  return (
-    storage.slice(0, storageStart) + replacement + storage.slice(storageEnd)
-  );
+  return {
+    value:
+      storage.slice(0, storageStart) + replacement + storage.slice(storageEnd),
+    // After the removed mention, not where a one-character delete would land.
+    caret: displayStart + replacement.length,
+  };
 }
 
 export function mentionMenuPlacement(
