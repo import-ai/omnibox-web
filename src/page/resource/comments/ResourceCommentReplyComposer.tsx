@@ -8,9 +8,11 @@ import { Button } from '@/components/Button';
 import { Textarea } from '@/components/ui/textarea';
 import type { ResourceCommentAttachment } from '@/interface';
 
+import { CommentMentionMenu } from './CommentMentionMenu';
 import { pasteCommentImage } from './pasteCommentImage';
 import { ResourceCommentAvatar } from './ResourceCommentAvatar';
 import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
+import { useCommentMentionInput } from './useCommentMentionInput';
 
 export function ResourceCommentReplyComposer({
   author,
@@ -30,6 +32,7 @@ export function ResourceCommentReplyComposer({
   onUploadImage: (file: File) => Promise<ResourceCommentAttachment>;
 }) {
   const { t } = useTranslation();
+  const mention = useCommentMentionInput(reply, onChange);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [attachmentId, setAttachmentId] = useState<string | null>(null);
   const previewUrlRef = useRef<string | null>(null);
@@ -113,11 +116,14 @@ export function ResourceCommentReplyComposer({
           maxLength={10000}
           placeholder={t('resource_comments.reply_placeholder')}
           rows={1}
-          value={reply}
-          onChange={event => onChange(event.target.value)}
+          value={mention.displayValue}
+          {...mention.inputProps}
           onPaste={event => pasteCommentImage(event, uploadImage)}
           aria-busy={uploading}
           onKeyDown={event => {
+            if (mention.onKeyDown(event)) {
+              return;
+            }
             if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
               return;
             }
@@ -131,6 +137,7 @@ export function ResourceCommentReplyComposer({
             submitDraft();
           }}
         />
+        <CommentMentionMenu spec={mention.menu} />
         {imagePreview ? (
           <div className="omnibox-comment-reply__preview">
             <ResourceCommentDraftImage key={imagePreview} src={imagePreview} />

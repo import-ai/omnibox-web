@@ -20,9 +20,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
+import useApp from '@/hooks/useApp';
 import { Role } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
+import { NAMESPACE_MEMBERS_REFRESH } from '@/page/resource/mentionCard';
 
 // Role hierarchy levels: lower number = higher privilege
 const ROLE_LEVEL: Record<Role, number> = {
@@ -45,6 +47,7 @@ export interface ActionProps {
 }
 
 export default function Action(props: ActionProps) {
+  const app = useApp();
   const {
     id,
     className,
@@ -161,6 +164,7 @@ export default function Action(props: ActionProps) {
     return http.delete(`namespaces/${namespace_id}/members/${id}`).then(() => {
       handleRemoveCancel();
       refetch();
+      app.fire(NAMESPACE_MEMBERS_REFRESH, namespace_id);
       toast.success(t('manage.member_remove_success'), {
         position: 'bottom-right',
       });

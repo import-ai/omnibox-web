@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client';
 
 import { Member } from '@/interface';
 import { http } from '@/lib/request';
+import { NAMESPACE_MEMBERS_REFRESH } from '@/page/resource/mentionCard';
 
 import MemberDisplayEditor, {
   focusEditorFieldAtEnd,
@@ -30,6 +31,12 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('@/lib/request', () => ({
   http: { patch: jest.fn() },
+}));
+
+const fire = jest.fn();
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ fire }),
 }));
 
 jest.mock('@/components/Button', () => ({
@@ -135,6 +142,7 @@ describe('MemberDisplayEditor', () => {
     root = createRoot(container);
     mockPatch.mockReset();
     mockPatch.mockResolvedValue({});
+    fire.mockReset();
   });
 
   afterEach(async () => {
@@ -248,6 +256,7 @@ describe('MemberDisplayEditor', () => {
       '/namespaces/namespace-1/members/user-1/profile',
       { nickname: '荔枝' }
     );
+    expect(fire).toHaveBeenCalledWith(NAMESPACE_MEMBERS_REFRESH, 'namespace-1');
   });
 
   it('places the caret at the end when the editor opens', async () => {

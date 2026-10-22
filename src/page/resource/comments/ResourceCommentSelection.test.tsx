@@ -23,6 +23,10 @@ jest.mock('@import-ai/omnibox-editor', () => ({
   findResourceCommentRange: jest.fn(),
 }));
 jest.mock('@/service/resourceComments', () => ({}));
+jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
+jest.mock('@/hooks/useUser', () => ({
+  USER_UPDATED_EVENT: 'user-data-updated',
+}));
 jest.mock('./commentAnchors', () => ({}));
 jest.mock('./ResourceCommentsContext', () => ({
   useResourceCommentsPanel: jest.fn(),
@@ -196,22 +200,23 @@ describe('comment selection', () => {
     jest
       .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
       .mockImplementation(function (this: HTMLElement) {
+        const card = this.closest<HTMLElement>('[data-thread-id]');
         const index = threads.findIndex(
           thread => thread.id === this.dataset.resourceCommentThread
         );
         const top =
           index >= 0
             ? 100 + index * markerSpacing - source.scrollTop
-            : this.hasAttribute('data-thread-id')
-              ? (parseFloat(this.parentElement?.style.top ?? '0') || 0) -
+            : card
+              ? (parseFloat(card.parentElement?.style.top ?? '0') || 0) -
                 comments.scrollTop +
                 commentShift
               : 0;
         const height =
           index >= 0
             ? 20
-            : this.hasAttribute('data-thread-id')
-              ? 120 + (this.querySelector('textarea') ? 50 : 0)
+            : card
+              ? 120 + (card.querySelector('textarea') ? 50 : 0)
               : 600;
         return {
           x: 0,
