@@ -1042,21 +1042,21 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .omnibox-comment-mention-field > textarea {
   color: transparent !important;
-  caret-color: hsl(var(--foreground));
+  caret-color: var(--foreground);
   background-color: transparent !important;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .omnibox-comment-mention-field.is-composing > textarea {
-  color: hsl(var(--foreground)) !important;
+  color: var(--foreground) !important;
 }
 
 .omnibox-comment-mention-field.is-composing
@@ -1065,7 +1065,7 @@
 }
 
 .omnibox-comment-mention-field > textarea::placeholder {
-  color: hsl(var(--muted-foreground)) !important;
+  color: var(--muted-foreground) !important;
   opacity: 1;
 }
 
