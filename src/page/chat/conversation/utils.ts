@@ -19,10 +19,12 @@ import {
   ToolType,
 } from '@/page/chat/chat-input/types';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
-import { messageProcessor } from '@/page/chat/core/messageProcessor.ts';
+import {
+  messageProcessor,
+  parseChatResponse,
+} from '@/page/chat/core/messageProcessor.ts';
 import {
   ChatDeltaResponse,
-  ChatResponse,
   isTerminalMessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
@@ -191,6 +193,41 @@ export function beginPendingQuery(
   return id;
 }
 
+// What a finished ask left behind, for callers that chain another request
+// after it.
+export interface AskOutcome {
+  // The last assistant or tool message the server created, e.g. the rejected
+  // tool result of a decision turn; the next request continues from it. User
+  // messages never count: a reply under one would reuse it as the query.
+  lastMessageId?: string;
+  errorMessage?: string;
+  // The server refused the request because the branch waits for a tool
+  // decision (reported only when deferPendingInterrupt is set).
+  pendingInterrupt?: { messageId: string; count: number };
+  // The decisions were refused because another client already decided the
+  // interrupt (reported only when reportAlreadyDecided is set).
+  alreadyDecided?: boolean;
+  failed: boolean;
+  // The local pending user message of this request, if one was added.
+  requestId?: string;
+  // The server ID that local message got once accepted.
+  acceptedMessageId?: string;
+}
+
+export interface AskOptions {
+  // Report a pending decision in the outcome instead of showing it as an
+  // error, so the caller can decide it and send the message again.
+  deferPendingInterrupt?: boolean;
+  // Report an interrupt decided elsewhere in the outcome instead of showing
+  // the refusal on the local decision message.
+  reportAlreadyDecided?: boolean;
+  // Ask the server to continue from the newest message below the parent
+  // once any running reply has finished (a new question from the composer).
+  followLatest?: boolean;
+  // The server put the user message under another parent than requested.
+  onReparented?: (parentId: string) => void;
+}
+
 export function ask(
   conversationId: string,
   query: string,
@@ -212,7 +249,8 @@ export function ask(
   images?: ChatImageInput[],
   pendingQueryId?: string,
   edition?: 'basic' | 'pro',
-  level?: string
+  level?: string,
+  options: AskOptions = {}
 ) {
   const chatReq = prepareBody(
     conversationId,
@@ -239,6 +277,9 @@ export function ask(
   if (images?.length) {
     chatReq.images = images;
   }
+  if (options.followLatest) {
+    chatReq.follow_latest = true;
+  }
   let pendingDisplayParts = displayParts?.length ? displayParts : undefined;
   const pendingId =
     pendingQueryId || !messageOperator.isUserMessage?.(parent_message_id)
@@ -250,6 +291,9 @@ export function ask(
             tools: chatReq.tools,
             lang,
             enable_thinking,
+            // Kept on the local message so sending it again keeps the strength.
+            edition,
+            level,
             composer: displayParts
               ? { display_parts: displayParts }
               : undefined,
@@ -264,12 +308,49 @@ export function ask(
   let acceptedId = pendingId ? undefined : parent_message_id;
   let assistantId: string | undefined;
   let streamError = false;
+  const outcome: AskOutcome = { failed: false, requestId: pendingId };
 
   const transport = createStreamTransport(
     url,
     chatReq,
     async data => {
-      const chatResponse = JSON.parse(data) as ChatResponse;
+      const chatResponse = parseChatResponse(data);
+      data = JSON.stringify(chatResponse);
+      if (
+        chatResponse.response_type === 'error' &&
+        chatResponse.code === 'interrupt_already_decided' &&
+        options.reportAlreadyDecided &&
+        !acceptedId
+      ) {
+        outcome.failed = true;
+        outcome.alreadyDecided = true;
+        return;
+      }
+      if (
+        chatResponse.response_type === 'error' &&
+        // Both name a decision to settle before the question can go out: one
+        // still waiting, or one accepted whose resume failed. Either is
+        // resolved by a decision turn under that message.
+        (chatResponse.code === 'pending_interrupt' ||
+          chatResponse.code === 'decision_not_applied') &&
+        chatResponse.message_id &&
+        options.deferPendingInterrupt &&
+        !acceptedId
+      ) {
+        outcome.failed = true;
+        outcome.pendingInterrupt = {
+          messageId: chatResponse.message_id,
+          count: chatResponse.interrupt_count || 1,
+        };
+        return;
+      }
+      if (
+        chatResponse.response_type === 'bos' &&
+        chatResponse.id &&
+        chatResponse.role !== OpenAIMessageRole.USER
+      ) {
+        outcome.lastMessageId = chatResponse.id;
+      }
       if (chatResponse.response_type === 'eos' && !chatResponse.id) {
         chatResponse.id = acceptedId;
         data = JSON.stringify(chatResponse);
@@ -277,6 +358,13 @@ export function ask(
       if (chatResponse.response_type === 'bos') {
         if (chatResponse.role === OpenAIMessageRole.USER) {
           acceptedId = chatResponse.id;
+          outcome.acceptedMessageId = chatResponse.id;
+          if (
+            chatResponse.parentId &&
+            parent_message_id &&
+            chatResponse.parentId !== parent_message_id
+          )
+            options.onReparented?.(chatResponse.parentId);
           // Also reconciles an older backend that does not echo the optional request ID.
           chatResponse.attrs = {
             ...chatResponse.attrs,
@@ -288,6 +376,8 @@ export function ask(
       }
       if (chatResponse.response_type === 'error') {
         streamError = true;
+        outcome.failed = true;
+        outcome.errorMessage = chatResponse.message;
         if (!chatResponse.id && !acceptedId) {
           chatResponse.id = pendingId;
           data = JSON.stringify(chatResponse);
@@ -320,10 +410,14 @@ export function ask(
   );
   return {
     ...transport,
+    outcome,
     start: async () => {
       try {
         await transport.start();
       } catch (error) {
+        outcome.failed = true;
+        outcome.errorMessage ??=
+          error instanceof Error ? error.message : String(error);
         if (!streamError) {
           let id = pendingId;
           if (acceptedId) {

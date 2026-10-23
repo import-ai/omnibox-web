@@ -10,7 +10,7 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-jest.mock('@/components/ui/AlertDialog', () => ({
+jest.mock('@/components/ui/alert-dialog', () => ({
   AlertDialog: ({ open, children }: { open: boolean; children: ReactNode }) =>
     open ? children : null,
   AlertDialogAction: (props: ButtonHTMLAttributes<HTMLButtonElement>) => (

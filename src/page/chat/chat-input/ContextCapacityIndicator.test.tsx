@@ -11,7 +11,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 describe('ContextCapacityIndicator', () => {
-  it('forwards tooltip trigger state to the capacity ring', () => {
+  it('forwards tooltip trigger state to the capacity ring-3', () => {
     const html = renderToStaticMarkup(
       <TooltipProvider>
         <ContextCapacityIndicator

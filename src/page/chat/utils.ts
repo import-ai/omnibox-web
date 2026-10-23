@@ -35,10 +35,6 @@ export function groupItemsByTimestamp(
   i18n: I18nType
 ): [string, Array<ConversationSummary>][] {
   const today = startOfLocalDay(new Date());
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
   const grouped: GroupedItems = {};
   const dayGroups: { key: string; date: Date }[] = [];
@@ -51,18 +47,22 @@ export function groupItemsByTimestamp(
   };
 
   items.forEach(item => {
-    const parsed = item.created_at ? new Date(item.created_at) : new Date(NaN);
+    const timestamp = item.updated_at || item.created_at;
+    const parsed = timestamp ? new Date(timestamp) : new Date(NaN);
     if (Number.isNaN(parsed.getTime())) {
       push(i18n.t('date.earlier'), item);
       return;
     }
 
     const itemDay = startOfLocalDay(parsed);
-    if (itemDay >= today) {
+    const dayDiff = Math.round(
+      (today.getTime() - itemDay.getTime()) / 86400000
+    );
+    if (dayDiff <= 0) {
       push(i18n.t('date.today'), item);
-    } else if (itemDay.getTime() === yesterday.getTime()) {
+    } else if (dayDiff === 1) {
       push(i18n.t('date.yesterday'), item);
-    } else if (itemDay >= sevenDaysAgo && itemDay < yesterday) {
+    } else if (dayDiff > 1 && dayDiff < 7) {
       push(i18n.t('date.last_week'), item);
     } else {
       const dayKey = formatDayLabel(itemDay, i18n);

@@ -1,14 +1,22 @@
 import { useTranslation } from 'react-i18next';
 
+import { Separator } from '@/components/ui/Separator';
+
 export default function About() {
   const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-2 border-b pb-2">
-        <h3 className="text-lg font-semibold">{t('setting.about_title')}</h3>
+    <div>
+      <div className="flex flex-col gap-2.5">
+        <h3 className="text-base font-semibold text-foreground">
+          {t('setting.about_title')}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {t('setting.about_description')}
+        </p>
       </div>
+      <Separator className="my-6" />
       <div className="space-y-4">
         <div className="text-sm text-muted-foreground">
           {t('setting.copyright', { year: currentYear })}

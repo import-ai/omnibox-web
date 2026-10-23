@@ -32,7 +32,7 @@ jest.mock('@/components/tooltip', () => ({
   ),
   TooltipContent: () => null,
 }));
-jest.mock('@/components/ui/Button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     onClick,

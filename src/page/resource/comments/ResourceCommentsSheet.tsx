@@ -4,8 +4,12 @@ import { Check, ListFilter, MessageSquareText, PanelRight } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
+import {
+  IconButton,
+  sidebarToolbarIconButtonClassName,
+} from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +18,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
 import { ResourceCommentComposer } from './ResourceCommentComposer';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
@@ -35,6 +40,7 @@ export function ResourceCommentsSheet({
 }: ResourceCommentsSheetProps) {
   const { t } = useTranslation();
   const panel = useResourceCommentsPanel();
+  const menuTriggerPress = useMenuTriggerPress();
   const isComposerOpen = controller.canComment && !!controller.pendingSelection;
   const close = () => {
     controller.setPanelOpen(false);
@@ -56,33 +62,28 @@ export function ResourceCommentsSheet({
   const content = (
     <>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/60 px-3">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7 shrink-0"
-              aria-label={t('resource_comments.collapse')}
-              onClick={close}
-            >
-              <PanelRight className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('resource_comments.collapse')}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          type="button"
+          size="sm"
+          tone="sidebar"
+          className="shrink-0"
+          label={t('resource_comments.collapse')}
+          onClick={close}
+        >
+          <PanelRight className="size-4" />
+        </IconButton>
         <h2 className="min-w-0 flex-1 truncate text-sm font-medium">
           {t('resource_comments.panel_title', { count: controller.total })}
         </h2>
         <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-7"
+                  className={cn(sidebarToolbarIconButtonClassName, 'size-7')}
                   aria-label={filterLabel}
                 >
                   <ListFilter className="size-4" />
@@ -95,6 +96,7 @@ export function ResourceCommentsSheet({
             align="end"
             className="w-44"
             aria-label={filterLabel}
+            {...menuTriggerPress.contentProps}
           >
             {FILTER_OPTIONS.map(option => {
               const selected = option.value === filter;
@@ -114,7 +116,7 @@ export function ResourceCommentsSheet({
                     {selected && (
                       <Check
                         aria-hidden="true"
-                        className="size-4 text-blue-500"
+                        className="size-4 text-blue-500! [&_path]:text-blue-500!"
                       />
                     )}
                   </span>

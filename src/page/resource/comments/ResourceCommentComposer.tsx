@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { type AutosizeTextAreaRef } from '@/components/autosize-textarea';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 
 import { imageCommentLabel } from './commentQuote';
 import { ResourceCommentInput } from './ResourceCommentInput';

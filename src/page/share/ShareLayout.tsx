@@ -85,11 +85,11 @@ export function ShareLayout(props: IProps) {
             showSidebarTrigger={showSidebar}
             showComments={showComments}
           />
-          <Separator className="bg-[#F2F2F2] dark:bg-[#303132]" />
+          <Separator className="bg-border" />
         </>
       )}
       {isChatActive && showSidebar && (
-        <header className="sticky top-0 z-[30] flex min-h-12 min-w-0 shrink-0 items-center rounded-t-[16px] bg-white px-3 dark:bg-background">
+        <header className="sticky top-0 z-30 flex min-h-12 min-w-0 shrink-0 items-center rounded-t-[16px] bg-background px-3">
           <SidebarTriggerButton collapse />
         </header>
       )}
@@ -147,7 +147,7 @@ export function ShareLayout(props: IProps) {
       )}
       <SidebarInset
         className={cn(
-          'm-[8px] h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-white dark:bg-background md:h-[calc(100svh-16px)]',
+          'm-[8px] h-full min-h-0 min-w-0 overflow-hidden rounded-[16px] bg-background md:h-[calc(100svh-16px)]',
           showResourcePane &&
             compactResourcePane &&
             'resource-detail-view--compact'

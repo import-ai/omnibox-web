@@ -1,11 +1,34 @@
 import { type RefObject, useLayoutEffect, useRef, useState } from 'react';
 
-import {
-  findStickyFolder,
-  STICKY_FOLDER_HEIGHT,
-  type StickyFolderBounds,
-} from '../stickyFolder';
+import { findStickyFolder, type StickyFolderBounds } from '../stickyFolder';
 import { useSidebarStore } from '../store';
+import {
+  getVirtualFolderSpans,
+  getVirtualRowIndex,
+  subscribeVirtualFolderSpans,
+} from '../virtualFolderSpans';
+import { RESOURCE_ROW_HEIGHT } from '../virtualResourceTree';
+
+function scrollVirtualRowIntoView(
+  scroller: HTMLElement,
+  id: string,
+  position: (element: HTMLElement) => number
+) {
+  for (const list of scroller.querySelectorAll<HTMLElement>(
+    '[data-virtual-resource-list]'
+  )) {
+    const listId = list.dataset.virtualResourceList;
+    if (!listId) continue;
+    const index = getVirtualRowIndex(listId, id);
+    if (index === undefined) continue;
+    scroller.scrollTop = Math.max(
+      0,
+      position(list) + index * RESOURCE_ROW_HEIGHT - STICKY_FOLDER_HEIGHT
+    );
+    return true;
+  }
+  return false;
+}
 
 export function useStickyFolder(
   scrollRef: RefObject<HTMLDivElement | null>,
@@ -18,6 +41,7 @@ export function useStickyFolder(
     const scroller = scrollRef.current;
     if (!scroller) return;
     let bounds: StickyFolderBounds[] = [];
+    let rowHeight = 0;
     let dirty = true;
     let frame = 0;
     let pendingAnchor: { id: string; collapse: boolean } | null = null;
@@ -41,25 +65,36 @@ export function useStickyFolder(
         if (row) {
           scroller.scrollTop = Math.max(
             0,
-            position(row) - STICKY_FOLDER_HEIGHT
+            position(row) - row.getBoundingClientRect().height
           );
           locatedId = collapse ? null : id;
           locatedScrollTop = scroller.scrollTop;
           row.querySelector<HTMLButtonElement>('button')?.focus({
             preventScroll: true,
           });
+          pendingAnchor = null;
+        } else {
+          const previousTop = scroller.scrollTop;
+          const revealed = scrollVirtualRowIntoView(scroller, id, position);
+          if (!revealed || scroller.scrollTop === previousTop) {
+            pendingAnchor = null;
+          }
         }
-        pendingAnchor = null;
         dirty = true;
       }
       if (dirty) {
         const state = useSidebarStore.getState();
+        rowHeight =
+          scroller
+            .querySelector<HTMLElement>('[data-resource-row-id]')
+            ?.getBoundingClientRect().height ?? 0;
         bounds = [];
         scroller
           .querySelectorAll<HTMLElement>('[data-resource-tree-id]')
           .forEach(element => {
             const id = element.dataset.resourceTreeId!;
             const node = state.nodes[id];
+            if (element.closest('[data-virtual-resource-list]')) return;
             if (!node || !state.ui[id]?.expanded || !node.hasChildren) return;
             const row = getRow(id);
             if (!row || !row.getClientRects().length) return;
@@ -71,6 +106,21 @@ export function useStickyFolder(
               depth: Number(element.dataset.resourceDepth || 0),
             });
           });
+        scroller
+          .querySelectorAll<HTMLElement>('[data-virtual-resource-list]')
+          .forEach(list => {
+            const listId = list.dataset.virtualResourceList;
+            if (!listId) return;
+            const listTop = position(list);
+            for (const span of getVirtualFolderSpans(listId)) {
+              bounds.push({
+                id: span.id,
+                depth: span.depth,
+                top: listTop + span.start * RESOURCE_ROW_HEIGHT,
+                bottom: listTop + span.end * RESOURCE_ROW_HEIGHT,
+              });
+            }
+          });
         dirty = false;
       }
       if (locatedId && Math.abs(scroller.scrollTop - locatedScrollTop) < 0.5) {
@@ -78,7 +128,7 @@ export function useStickyFolder(
         return;
       }
       locatedId = null;
-      setStickyId(findStickyFolder(bounds, scroller.scrollTop));
+      setStickyId(findStickyFolder(bounds, scroller.scrollTop, rowHeight));
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -98,6 +148,7 @@ export function useStickyFolder(
       invalidate();
     });
     mutations.observe(scroller, { childList: true, subtree: true });
+    const unsubscribeSpans = subscribeVirtualFolderSpans(invalidate);
     const unsubscribe = useSidebarStore.subscribe((state, previous) => {
       if (
         state.nodes !== previous.nodes ||
@@ -118,6 +169,7 @@ export function useStickyFolder(
       mutations.disconnect();
       resize.disconnect();
       unsubscribe();
+      unsubscribeSpans();
       scroller.removeEventListener('scroll', schedule);
       locateRef.current = () => {};
     };

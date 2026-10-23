@@ -11,7 +11,7 @@ export async function copyContentToClipboard(
   t: TranslateCopyContent
 ): Promise<void> {
   if (!markdown) {
-    toast(t('actions.no_content_to_copy'), {
+    toast.error(t('actions.no_content_to_copy'), {
       position: 'bottom-right',
     });
     return;
@@ -39,7 +39,11 @@ export async function copyContentToClipboard(
       },
     });
   }
-  toast(t(ok ? 'actions.copy_content_success' : 'copy.fail'), {
-    position: 'bottom-right',
-  });
+  if (ok) {
+    toast.success(t('actions.copy_content_success'), {
+      position: 'bottom-right',
+    });
+  } else {
+    toast.error(t('copy.fail'), { position: 'bottom-right' });
+  }
 }

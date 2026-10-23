@@ -7,7 +7,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { CaptchaMount } from '@/components/captcha/CaptchaMount';
 import { Input } from '@/components/input';
 import { PhoneNumberInput } from '@/components/phone-input';
@@ -17,6 +17,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from '@/components/ui/Form';
 import { useCaptcha } from '@/hooks/useCaptcha';
@@ -422,7 +423,7 @@ export function LoginForm({
   };
 
   return (
-    <div className="flex flex-col gap-6 pt-10">
+    <div className="flex flex-col gap-6">
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">{t('login.title')}</h1>
         <p className="text-balance text-sm text-muted-foreground">
@@ -430,7 +431,6 @@ export function LoginForm({
         </p>
       </div>
 
-      {children}
       <CaptchaMount captcha={captcha} />
 
       {contactMethod === 'email' && authMethod === 'otp' && (
@@ -445,6 +445,7 @@ export function LoginForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.email')}</FormLabel>
                   <FormControl>
                     <EmailSuggestionInput
                       disabled={isLoading}
@@ -494,6 +495,7 @@ export function LoginForm({
               name="email"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.email_or_username')}</FormLabel>
                   <FormControl>
                     <EmailSuggestionInput
                       disabled={isLoading}
@@ -521,6 +523,7 @@ export function LoginForm({
               name="password"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.password')}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
@@ -562,6 +565,7 @@ export function LoginForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.phone')}</FormLabel>
                   <FormControl>
                     <PhoneNumberInput
                       value={field.value as any}
@@ -602,6 +606,7 @@ export function LoginForm({
               name="phone"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.phone')}</FormLabel>
                   <FormControl>
                     <PhoneNumberInput
                       value={field.value as any}
@@ -620,6 +625,7 @@ export function LoginForm({
               name="password"
               render={({ field }) => (
                 <FormItem>
+                  <FormLabel>{t('form.password')}</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
@@ -648,6 +654,8 @@ export function LoginForm({
           </form>
         </Form>
       )}
+
+      {children}
     </div>
   );
 }

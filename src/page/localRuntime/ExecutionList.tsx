@@ -2,19 +2,20 @@ import { format } from 'date-fns';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/omnibox/Dialog';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/Dialog';
 import { getRelatedTime } from '@/lib/time';
 
 import ExecutionCard from './ExecutionCard';
@@ -76,12 +77,9 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
         <h3 className="text-sm font-semibold text-foreground lg:text-base">
           {t('local_runtime.executions')}
         </h3>
-        <Button
-          onClick={refresh}
-          className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-        >
+        <SettingPageButton onClick={refresh}>
           {t('common.refresh')}
-        </Button>
+        </SettingPageButton>
       </div>
       {error && (
         <p role="alert" className="mb-2 text-sm text-destructive">
@@ -97,7 +95,7 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
       ) : (
         <div className="overflow-hidden rounded-md border border-border">
           <div className="flex h-8 items-center gap-4 border-b border-border bg-background px-4 text-xs font-medium text-muted-foreground lg:h-10 lg:text-sm">
-            <div className="min-w-0 flex-[2]">
+            <div className="min-w-0 flex-2">
               {t('local_runtime.columns.command')}
             </div>
             <div className="min-w-0 flex-1">
@@ -118,7 +116,7 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
                 className="flex h-12 w-full items-center gap-4 border-b border-border px-4 text-left last:border-b-0 hover:bg-muted/50"
                 onClick={() => setSelectedId(e.id)}
               >
-                <code className="min-w-0 flex-[2] truncate font-mono text-xs text-foreground">
+                <code className="min-w-0 flex-2 truncate font-mono text-xs text-foreground">
                   {e.command}
                 </code>
                 <span className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
@@ -155,7 +153,7 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
         open={!!selected}
         onOpenChange={open => !open && setSelectedId(undefined)}
       >
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>{t('local_runtime.detail')}</DialogTitle>
           </DialogHeader>

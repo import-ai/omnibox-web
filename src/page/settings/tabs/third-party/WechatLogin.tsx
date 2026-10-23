@@ -2,29 +2,11 @@ import isMobile from 'ismobilejs';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import { http } from '@/lib/request';
 
 interface IProps {
   onScan: (value: boolean) => void;
-}
-
-function ActionButton({
-  children,
-  onClick,
-}: {
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <Button
-      variant="default"
-      onClick={onClick}
-      className="h-[30px] w-[71px] shrink-0 text-xs font-medium"
-    >
-      {children}
-    </Button>
-  );
 }
 
 export function WechatLogin(props: IProps) {
@@ -35,7 +17,7 @@ export function WechatLogin(props: IProps) {
   const isWeChat = userAgent.includes('micromessenger');
 
   const alertDisableWeChatLogin = () => {
-    toast(t('login.wechat_disabled'), { position: 'bottom-right' });
+    toast.warning(t('login.wechat_disabled'), { position: 'bottom-right' });
   };
 
   const loginWithWeChat = () => {
@@ -55,15 +37,15 @@ export function WechatLogin(props: IProps) {
 
   if (isPhone && !isWeChat) {
     return (
-      <ActionButton onClick={alertDisableWeChatLogin}>
+      <SettingPageButton onClick={alertDisableWeChatLogin}>
         {t('setting.bind_btn')}
-      </ActionButton>
+      </SettingPageButton>
     );
   }
 
   return (
-    <ActionButton onClick={loginWithWeChat}>
+    <SettingPageButton onClick={loginWithWeChat}>
       {t('setting.bind_btn')}
-    </ActionButton>
+    </SettingPageButton>
   );
 }

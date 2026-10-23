@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import type { Option } from '@/components/multiple-selector';
 import MultipleSelector from '@/components/multiple-selector';
 import Actions from '@/components/permission-action/Action';
@@ -253,8 +253,8 @@ export default function InviteForm(props: InviteFormProps) {
   };
 
   return (
-    <div className="mb-4 flex gap-2">
-      <div className="relative flex-1">
+    <div className="mb-4 flex items-center gap-2">
+      <div className="relative min-w-0 flex-1">
         <MultipleSelector
           onChange={handleRecipientChange}
           options={optionsReady ? options : []}
@@ -271,7 +271,7 @@ export default function InviteForm(props: InviteFormProps) {
                 : undefined
           }
           inputProps={{
-            className: 'pr-24 select-text',
+            className: 'pr-28 select-text',
             'aria-label': t('share.permissions.invite_placeholder'),
             onValueChange: handleInputValueChange,
           }}
@@ -300,7 +300,7 @@ export default function InviteForm(props: InviteFormProps) {
               setPermission(value);
               return Promise.resolve();
             }}
-            className="absolute right-[4px] top-[4px] rounded-sm bg-gray-200 p-1 text-sm dark:bg-gray-900"
+            className="absolute top-1/2 right-2 -translate-y-1/2 rounded-sm bg-accent p-1 text-sm text-accent-foreground"
           />
         )}
       </div>
@@ -308,7 +308,7 @@ export default function InviteForm(props: InviteFormProps) {
         loading={loading}
         disabled={!visible || !optionsReady}
         onClick={handleSubmit}
-        className="bg-blue-500 px-6 text-white hover:bg-blue-600 active:bg-blue-700 dark:bg-blue-500 dark:active:bg-blue-700 dark:hover:bg-blue-600"
+        className="px-6"
       >
         {t('share.permissions.invite')}
       </Button>

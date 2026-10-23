@@ -263,8 +263,7 @@ export function ResourceCommentsProvider({
         <div
           className={cn(
             'flex min-h-0 min-w-0 flex-1 flex-col',
-            isShared &&
-              'overflow-hidden rounded-2xl bg-white dark:bg-background'
+            isShared && 'overflow-hidden rounded-2xl bg-background'
           )}
         >
           {children}
@@ -284,7 +283,7 @@ export function ResourceCommentsProvider({
             ref={registerSharedPanelElement}
             aria-hidden={!panelOpen}
             className={cn(
-              'resource-comments-panel absolute inset-y-0 right-0 z-30 flex min-h-0 flex-col overflow-hidden bg-white text-foreground transition-transform ease-linear dark:bg-background',
+              'resource-comments-panel absolute inset-y-0 right-0 z-30 flex min-h-0 flex-col overflow-hidden bg-background text-foreground transition-transform ease-linear',
               layout.mode === 'split'
                 ? 'rounded-2xl'
                 : layout.mode === 'fullscreen'

@@ -36,6 +36,7 @@ import {
   type EditorUpdatePayload,
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
+import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
@@ -113,14 +114,17 @@ export default function Editor(props: IEditorProps) {
   );
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
   const titleRef = useRef<AutosizeTextAreaRef | null>(null);
+  const editorSurfaceRef = useRef<HTMLDivElement>(null);
   useFocusNewFileTitle(titleRef);
   const navigate = useNavigate();
   const loc = useLocation();
   const { app, theme } = useTheme();
   const [title, onTitle] = useState('');
-  const { mentionUsers, namesById, ready } = useMentionUsers(namespaceId);
+  const { mentionUsers, membersById, namesById, ready } =
+    useMentionUsers(namespaceId);
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
+  const applyingMentionLabelsRef = useRef(false);
   const hasCachedContentChange =
     cache?.content !== undefined && cache.content !== (resource.content ?? '');
   const cachedTitle = cache?.title ?? resource.name ?? '';
@@ -134,11 +138,28 @@ export default function Editor(props: IEditorProps) {
     () => cache?.content ?? resource.content ?? '',
     [resource.id]
   );
+  // Names are snapshotted once per document. Later member refreshes must not
+  // rebuild editorContent: the editor package replaces the whole doc on change.
+  const openedNamesRef = useRef<{
+    id: string;
+    names: Record<string, string>;
+  } | null>(null);
+  // True after mention labels are written into the live doc. The open
+  // snapshot is older, and a later render must not put it back into the save.
+  const liveMentionLabelsRef = useRef(false);
+  if (!ready) {
+    openedNamesRef.current = null;
+    liveMentionLabelsRef.current = false;
+  } else if (openedNamesRef.current?.id !== resource.id) {
+    openedNamesRef.current = { id: resource.id, names: namesById };
+    liveMentionLabelsRef.current = false;
+  }
   const resolvedContent = useMemo(
-    () => resolveMentionLabels(initialContent, namesById),
-    [initialContent, namesById]
+    () =>
+      resolveMentionLabels(initialContent, openedNamesRef.current?.names ?? {}),
+    [initialContent, ready, resource.id]
   );
-  if (ready && !dirtyRef.current) {
+  if (ready && !dirtyRef.current && !liveMentionLabelsRef.current) {
     markdownRef.current = resolvedContent;
   }
   const editorContent = useMemo(
@@ -157,6 +178,10 @@ export default function Editor(props: IEditorProps) {
   const handleEditorUpdate = useCallback(
     (payload: EditorUpdatePayload) => {
       const content = serializeResourceEditorContent(payload);
+      if (applyingMentionLabelsRef.current) {
+        markdownRef.current = content;
+        return;
+      }
       if (content !== markdownRef.current) {
         dirtyRef.current = true;
         onContentDirtyChange(content !== (resource.content ?? ''));
@@ -176,6 +201,34 @@ export default function Editor(props: IEditorProps) {
     [registerEditor, registerImagePreview]
   );
 
+  useEffect(() => {
+    const editor = bodyEditorRef.current;
+    if (!ready || !editor || editor.isDestroyed) {
+      return;
+    }
+    const tr = editor.state.tr;
+    let changed = false;
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type.name !== 'mention') {
+        return;
+      }
+      const id = String(node.attrs.id ?? '');
+      const next = namesById[id];
+      if (!next || next === node.attrs.label) {
+        return;
+      }
+      tr.setNodeMarkup(pos, undefined, { ...node.attrs, label: next });
+      changed = true;
+    });
+    if (!changed) {
+      return;
+    }
+    liveMentionLabelsRef.current = true;
+    applyingMentionLabelsRef.current = true;
+    editor.view.dispatch(tr);
+    applyingMentionLabelsRef.current = false;
+  }, [namesById, ready]);
+
   const handleTitleEnter = useCallback(() => {
     if (isFolder) {
       return;
@@ -190,7 +243,7 @@ export default function Editor(props: IEditorProps) {
   }, [isFolder]);
 
   const handleCodeBlockCopy = useCallback(() => {
-    toast(t('actions.copy_content_success'), {
+    toast.success(t('actions.copy_content_success'), {
       position: 'bottom-right',
     });
   }, [t]);
@@ -232,7 +285,7 @@ export default function Editor(props: IEditorProps) {
 
   useEffect(() => {
     onTitle(cachedTitle);
-    if (ready && !dirtyRef.current) {
+    if (ready && !dirtyRef.current && !liveMentionLabelsRef.current) {
       markdownRef.current = resolvedContent;
     }
     onContentDirtyChange(hasCachedContentChange);
@@ -343,7 +396,7 @@ export default function Editor(props: IEditorProps) {
           aria-label={t('resource.title')}
         />
       </div>
-      <div className="resource-editable-editor">
+      <div className="resource-editable-editor" ref={editorSurfaceRef}>
         {editorContent !== null ? (
           <ResourceOmniboxEditor
             key={resource.id}
@@ -372,6 +425,10 @@ export default function Editor(props: IEditorProps) {
           />
         ) : null}
       </div>
+      <MentionHoverCard
+        containerRef={editorSurfaceRef}
+        membersById={membersById}
+      />
     </div>
   );
 }

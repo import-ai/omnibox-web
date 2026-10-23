@@ -23,16 +23,26 @@ jest.mock('./commentAnchors', () => ({}));
 jest.mock('./ResourceCommentsContext', () => ({
   useResourceCommentsPanel: jest.fn(),
 }));
+jest.mock('./useCommentMentionUsers', () => {
+  const users: unknown[] = [];
+  const namesById: Record<string, string> = {};
+  return {
+    useCommentMentionUsers: () => ({ users, namesById, loaded: false }),
+  };
+});
 jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
+}));
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
 }));
 jest.mock('@/lib/request', () => ({ http: { get: jest.fn() } }));
 jest.mock('@/components/attributes', () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock('@/components/button', () =>
-  jest.requireActual('@/components/ui/Button')
+jest.mock('@/components/Button', () =>
+  jest.requireActual('@/components/ui/button')
 );
 jest.mock('@/page/resource/editor', () => ({
   __esModule: true,
@@ -505,10 +515,7 @@ describe('resource comments across view and edit modes', () => {
 
     await act(async () => editorProps().onContentDirtyChange(false));
     expect(editorProps().comments.threads).toBe(visibleThreads);
-    expect(editorProps().comments.commentsConfig.enabled).toBe(false);
-    expect(panel.textContent).toContain(
-      'resource_comments.save_before_commenting'
-    );
+    expect(editorProps().comments.commentsConfig.enabled).toBe(true);
     expect(listResourceCommentThreads).toHaveBeenCalledTimes(2);
   });
 

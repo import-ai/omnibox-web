@@ -13,7 +13,7 @@ jest.mock('react', () => {
   return { ...react, default: react };
 });
 jest.mock('@/components/button', () =>
-  jest.requireActual('@/components/ui/Button')
+  jest.requireActual('@/components/ui/button')
 );
 jest.mock('@/lib/captcha', () => ({}));
 jest.mock('react-i18next', () => ({

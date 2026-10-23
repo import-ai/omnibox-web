@@ -13,7 +13,7 @@ import {
   PencilOff,
   RefreshCw,
   Save,
-  Trash2,
+  Trash,
 } from 'lucide-react';
 // import { Resource } from '@/interface';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -22,10 +22,12 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { useResourceTasks } from '@/components/attributes/resource-tasks/ResourceTasksContext';
+import { Button } from '@/components/Button';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
-import { Button } from '@/components/ui/Button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,9 +51,11 @@ import { downloadFile } from '@/lib/downloadFile';
 import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
+import { cn } from '@/lib/utils';
 import { clearCache } from '@/page/resource/editor/cache';
 import { exportResourceAsPng } from '@/page/resource/exportPng';
 import { getTime, parseImageLinks } from '@/page/resource/utils';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 import { CreateRssFolderPayload } from '@/page/sidebar/components/rss-folder';
 import { CreateRssFolderDialog } from '@/page/sidebar/components/rss-folder/CreateRssFolderDialog';
 import { useRssFolderConfig } from '@/page/sidebar/components/rss-folder/useRssFolderConfig';
@@ -132,6 +136,7 @@ export default function Actions(props: IActionProps) {
   const loc = useLocation();
   const { resource_id: routeResourceId } = useParams();
   const isMobile = useIsMobile();
+  const menuTriggerPress = useMenuTriggerPress();
   const { deleteResource } = useDeleteResource();
   const { config, loading: configLoading } = useConfig();
   const { data: smartFolderEntitlements } = useSmartFolderEntitlements({
@@ -323,9 +328,13 @@ export default function Actions(props: IActionProps) {
           ? `${window.location.origin}/${namespaceId}/${resource.id}`
           : location.href;
       const returnValue = copy(resourceUrl);
-      toast(t(returnValue ? 'actions.copy_link_success' : 'copy.fail'), {
-        position: 'bottom-right',
-      });
+      if (returnValue) {
+        toast.success(t('actions.copy_link_success'), {
+          position: 'bottom-right',
+        });
+      } else {
+        toast.error(t('copy.fail'), { position: 'bottom-right' });
+      }
       setOpen(false);
       return;
     }
@@ -415,7 +424,7 @@ export default function Actions(props: IActionProps) {
           setOpen(false);
         })
         .catch(() => {
-          toast(t('actions.export_png_failed'), {
+          toast.error(t('actions.export_png_failed'), {
             position: 'bottom-right',
           });
         })
@@ -426,7 +435,7 @@ export default function Actions(props: IActionProps) {
     }
     if (id === 'download_as_markdown') {
       if (!resource.content) {
-        toast(t('resource.no_content'), {
+        toast.error(t('resource.no_content'), {
           position: 'bottom-right',
         });
         setOpen(false);
@@ -514,7 +523,7 @@ export default function Actions(props: IActionProps) {
         })
         .catch(error => {
           console.error('Failed to create zip:', error);
-          toast(t('download.failed'), {
+          toast.error(t('download.failed'), {
             position: 'bottom-right',
           });
         })
@@ -583,7 +592,7 @@ export default function Actions(props: IActionProps) {
         );
       })
       .catch(err => {
-        toast(err && err.message ? err.message : err, {
+        toast.error(err && err.message ? err.message : err, {
           position: 'bottom-right',
         });
       })
@@ -631,44 +640,68 @@ export default function Actions(props: IActionProps) {
         >
           {editPage ? (
             <>
-              <Button variant="ghost" size="sm" onClick={handleSave}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSave}
+                className={sidebarToolbarIconButtonClassName}
+              >
                 <Save />
                 {t('header.actions.save')}
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleExitEdit}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleExitEdit}
+                className={sidebarToolbarIconButtonClassName}
+              >
                 <PencilOff />
                 {t('header.actions.discard')}
               </Button>
             </>
           ) : (
-            <>
-              <Button variant="ghost" size="sm" onClick={handleEdit}>
-                <Pencil />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleEdit}
+              className={cn(
+                sidebarToolbarIconButtonClassName,
+                'w-7 px-0 sm:w-auto sm:px-2.5'
+              )}
+            >
+              <Pencil />
+              <span className="sr-only sm:not-sr-only">
                 {t('header.actions.edit')}
-              </Button>
-            </>
+              </span>
+            </Button>
           )}
         </PermissionWrapper>
       )}
       <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7 data-[state=open]:bg-accent"
-          >
-            <MoreHorizontal className="size-4" />
-          </Button>
-        </DropdownMenuTrigger>
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={`${sidebarToolbarIconButtonClassName} size-7`}
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent>{t('common.more_actions')}</TooltipContent>
+        </Tooltip>
         <DropdownMenuContent
           align="end"
-          className="w-48 max-w-[calc(100vw-24px)] sm:w-56 !animate-none !fade-in-0 !fade-out-0 !zoom-in-100 !zoom-out-100 !slide-in-from-top-0 !slide-in-from-bottom-0 !slide-in-from-left-0 !slide-in-from-right-0"
+          className="w-48 max-w-[calc(100vw-24px)] sm:w-56 animate-none! fade-in-0! fade-out-0! zoom-in-100! zoom-out-100! slide-in-from-top-0! slide-in-from-bottom-0! slide-in-from-left-0! slide-in-from-right-0!"
+          {...menuTriggerPress.contentProps}
         >
           <DropdownMenuItem
             className="cursor-pointer gap-2"
             onClick={() => handleAction('copy_link')}
           >
-            <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <Link className="size-4 text-muted-foreground" />
             <span>{t('actions.copy_link')}</span>
           </DropdownMenuItem>
           {canUseFileLikeActions && (
@@ -676,7 +709,7 @@ export default function Actions(props: IActionProps) {
               className="cursor-pointer gap-2"
               onClick={() => handleAction('copy_content')}
             >
-              <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <Files className="size-4 text-muted-foreground" />
               <span>{t('actions.copy_content')}</span>
             </DropdownMenuItem>
           )}
@@ -688,7 +721,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'duplicate' ? (
                 <Spinner />
               ) : (
-                <Copy className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <Copy className="size-4 text-muted-foreground" />
               )}
               <span>{t('actions.duplicate')}</span>
             </DropdownMenuItem>
@@ -696,7 +729,7 @@ export default function Actions(props: IActionProps) {
           {!editPage && canUseFileLikeActions && (
             <DropdownMenuSub>
               <DropdownMenuSubTrigger className="cursor-pointer gap-2">
-                <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <Download className="size-4 text-muted-foreground" />
                 <span>{t('actions.download_as')}</span>
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-40 max-w-[calc(100vw-24px)] sm:w-48">
@@ -705,7 +738,7 @@ export default function Actions(props: IActionProps) {
                     className="cursor-pointer whitespace-normal"
                     onClick={() => handleAction('download')}
                   >
-                    <span className="min-w-0 break-words">
+                    <span className="min-w-0 wrap-break-word">
                       {t('actions.download')}
                     </span>
                   </DropdownMenuItem>
@@ -714,7 +747,7 @@ export default function Actions(props: IActionProps) {
                   className="cursor-pointer whitespace-normal"
                   onClick={() => handleAction('download_as_markdown')}
                 >
-                  <span className="min-w-0 break-words">
+                  <span className="min-w-0 wrap-break-word">
                     {t('actions.download_as_tooltip', { format: 'Markdown' })}
                   </span>
                 </DropdownMenuItem>
@@ -727,7 +760,7 @@ export default function Actions(props: IActionProps) {
                   }}
                 >
                   {loading === 'download_as_png' ? <Spinner /> : null}
-                  <span className="min-w-0 break-words">
+                  <span className="min-w-0 wrap-break-word">
                     {t('actions.download_as_tooltip', { format: 'PNG' })}
                   </span>
                 </DropdownMenuItem>
@@ -746,7 +779,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'retry' || tasksRetrying ? (
                 <Spinner />
               ) : (
-                <RefreshCw className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <RefreshCw className="size-4 text-muted-foreground" />
               )}
               <span>{t('actions.retry')}</span>
             </DropdownMenuItem>
@@ -759,7 +792,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'move_to' ? (
                 <Spinner />
               ) : (
-                <Move className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <Move className="size-4 text-muted-foreground" />
               )}
               <span>{t('actions.move_to')}</span>
             </DropdownMenuItem>
@@ -769,13 +802,14 @@ export default function Actions(props: IActionProps) {
           )}
           {!readOnly && (
             <DropdownMenuItem
-              className="group cursor-pointer gap-2 data-[highlighted]:text-destructive"
+              variant="destructive"
+              className="cursor-pointer gap-2"
               onClick={() => handleAction('move_to_trash')}
             >
               {loading === 'move_to_trash' ? (
                 <Spinner />
               ) : (
-                <Trash2 className="size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]" />
+                <Trash className="size-4" />
               )}
               <span>{t('actions.move_to_trash')}</span>
             </DropdownMenuItem>
@@ -792,7 +826,7 @@ export default function Actions(props: IActionProps) {
                     {loading === 'wide' ? (
                       <Spinner />
                     ) : (
-                      <MoveHorizontal className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                      <MoveHorizontal className="size-4 text-muted-foreground" />
                     )}
                     <span>{t('actions.wide')}</span>
                   </div>
@@ -812,7 +846,7 @@ export default function Actions(props: IActionProps) {
               {loading === 'upload_to_folder' ? (
                 <Spinner />
               ) : (
-                <ArrowUp className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                <ArrowUp className="size-4 text-muted-foreground" />
               )}
               <span>
                 {loading === 'upload_to_folder'

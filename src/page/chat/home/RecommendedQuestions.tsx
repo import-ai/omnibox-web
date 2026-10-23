@@ -128,8 +128,8 @@ export default function RecommendedQuestions({
         disabled={transitionPhase !== 'idle'}
         aria-label={t('chat.home.nextRecommendedQuestion')}
         className={cn(
-          'shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default',
-          compact ? 'ml-2 -mb-4' : '-mb-[26px]'
+          'shrink-0 rounded-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default',
+          compact ? 'ml-2 -mb-4' : 'mb-[-26px]'
         )}
       >
         <HomeMascot blinkSignal={blinkSignal} compact={compact} />
@@ -140,7 +140,7 @@ export default function RecommendedQuestions({
           onClick={handleSelect}
           disabled={!question || transitionPhase !== 'idle'}
           className={cn(
-            'group relative mb-4 flex min-h-12 w-fit min-w-recommended-question max-w-recommended-question items-center rounded-full text-left text-sm font-normal leading-recommended-question text-muted-foreground transition-opacity duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'group relative mb-4 flex min-h-12 w-fit min-w-recommended-question max-w-recommended-question items-center rounded-full text-left text-sm font-normal leading-recommended-question text-muted-foreground transition-opacity duration-150 motion-reduce:transition-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
             compact ? 'pl-7 pr-5 py-3' : 'pl-8 pr-4 py-3',
             !question && 'invisible',
             transitionPhase === 'fadingOut' && 'opacity-0'
@@ -149,7 +149,7 @@ export default function RecommendedQuestions({
           <SpeechBubbleShape compact={compact} />
           <span
             className={cn(
-              'relative z-[1] line-clamp-3 break-all transition-opacity duration-150 motion-reduce:transition-none',
+              'relative z-1 line-clamp-3 break-all transition-opacity duration-150 motion-reduce:transition-none',
               transitionPhase === 'idle' && question && 'group-hover:opacity-80'
             )}
           >

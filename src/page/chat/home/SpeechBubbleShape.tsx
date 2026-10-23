@@ -56,7 +56,7 @@ export default function SpeechBubbleShape({
         <path
           d={path}
           className={cn(
-            'fill-chat-composer stroke-[#E5E5E5] dark:fill-chat-composer-dark dark:stroke-transparent',
+            'fill-chat-composer stroke-border dark:fill-chat-composer-dark dark:stroke-transparent',
             compact && 'opacity-80'
           )}
         />

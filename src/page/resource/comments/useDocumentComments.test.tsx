@@ -12,6 +12,9 @@ import { useResourceComments } from './useResourceComments';
 
 jest.mock('@import-ai/omnibox-editor', () => ({}));
 jest.mock('@/hooks/useUser', () => ({ USER_UPDATED_EVENT: 'user-updated' }));
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
+}));
 jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default', hash: '' }),
 }));

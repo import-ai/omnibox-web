@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
+import { Separator } from '@/components/ui/Separator';
+
 import AutoTag from './AutoTag';
 
 export default function Content() {
@@ -7,10 +9,16 @@ export default function Content() {
 
   return (
     <div className="flex flex-col">
-      <h3 className="text-base font-semibold text-foreground">
-        {t('setting.feature_management')}
-      </h3>
-      <div className="mt-3 flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
+        <h3 className="text-base font-semibold text-foreground">
+          {t('setting.feature_management')}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {t('setting.content_description')}
+        </p>
+      </div>
+      <Separator className="my-6" />
+      <div className="flex flex-col gap-2">
         <AutoTag />
       </div>
     </div>

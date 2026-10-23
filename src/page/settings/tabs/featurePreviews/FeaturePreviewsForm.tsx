@@ -2,6 +2,7 @@ import { PenLine } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { Switch } from '@/components/ui/Switch';
 import useFeaturePreviews, {
@@ -32,12 +33,16 @@ export function FeaturePreviewsForm() {
       <h3 className="text-base font-semibold text-foreground">
         {t('setting.feature_previews')}
       </h3>
+      <p className="mt-2.5 text-sm text-muted-foreground">
+        {t('feature_previews.description')}
+      </p>
+      <Separator className="my-6" />
       {loading ? (
         <div className="mt-3 flex min-h-24 w-full items-center justify-center">
           <Spinner className="size-6 text-muted-foreground" />
         </div>
       ) : (
-        <div className="mt-3 grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+        <div className="grid w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
           <PenLine className="size-4 text-muted-foreground" />
           <span className="min-w-0">
             <span className="block text-sm font-medium leading-5 text-foreground">

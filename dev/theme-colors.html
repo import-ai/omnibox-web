@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>小黑 vs 中性灰 · 颜色变量</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: #f6f6f7;
+        color: #18181b;
+        font:
+          14px/1.5 system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 1600px;
+        margin: auto;
+        padding: 40px 24px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 26px;
+      }
+      p {
+        color: #71717a;
+      }
+      .matches code {
+        display: block;
+        margin: 4px 0;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 16px;
+        margin: 24px 0;
+      }
+      select,
+      input {
+        padding: 8px 12px;
+        border: 1px solid #d4d4d8;
+        border-radius: 8px;
+        font: inherit;
+        background: white;
+        color: #18181b;
+      }
+      select {
+        cursor: pointer;
+      }
+      .table-wrap {
+        min-width: 1100px;
+        border: 1px solid #d4d4d8;
+        border-radius: 12px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        min-width: 1100px;
+      }
+      th,
+      td {
+        padding: 16px;
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid #d4d4d8;
+        overflow-wrap: anywhere;
+      }
+      th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: #eeeeef;
+      }
+      th:first-child {
+        width: 18%;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      code {
+        font:
+          12px/1.5 ui-monospace,
+          monospace;
+      }
+      .sample {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .checker {
+        flex: 0 0 48px;
+        height: 48px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #8888;
+        background: repeating-conic-gradient(#ddd 0% 25%, white 0% 50%) 0 / 12px
+          12px;
+      }
+      .swatch {
+        width: 100%;
+        height: 100%;
+      }
+      .value {
+        display: block;
+        margin-top: 3px;
+        opacity: 0.7;
+      }
+      body.dark {
+        background: #18181b;
+        color: #fafafa;
+        color-scheme: dark;
+      }
+      body.dark th {
+        background: #27272a;
+      }
+      body.dark td,
+      body.dark th,
+      body.dark .table-wrap {
+        border-color: #454548;
+      }
+      body.dark p {
+        color: #a1a1aa;
+      }
+      @media (max-width: 640px) {
+        main {
+          padding: 24px 12px;
+        }
+        th,
+        td {
+          padding: 10px;
+        }
+        .sample {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .checker {
+          flex-basis: auto;
+          width: 40px;
+          height: 40px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>小黑 vs 中性灰</h1>
+      <p>
+        读取当前项目的主题
+        CSS，展示全部语义颜色变量及产品颜色别名。色块叠在各自主题背景上，棋盘格用于辨认透明度；不包含
+        Tailwind 内置色阶。
+      </p>
+      <p id="matching-note">
+        按浏览器解析后的 sRGB 色值和透明度匹配，不以四舍五入后的 HEX
+        判断。列表包含颜色别名，不包含变量自身。
+      </p>
+      <div class="controls">
+        <label
+          >外观
+          <select id="appearance">
+            <option value="light">亮色</option>
+            <option value="dark" selected>暗色</option>
+          </select></label
+        >
+        <label
+          >筛选
+          <input id="filter" type="search" placeholder="例如 muted、sidebar"
+        /></label>
+        <span id="count" aria-live="polite"></span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>颜色变量</th>
+              <th>小黑 · OmniBox</th>
+              <th>小黑相同颜色变量</th>
+              <th>中性灰 · Neutral</th>
+              <th>中性灰相同颜色变量</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </main>
+    <script type="module">
+      import css from '/src/index.css?inline';
+      import source from '/src/index.css?raw';
+      import palettes from '/src/styles/colorThemes.css?raw';
+
+      const declarations = [
+        ...source.matchAll(/(?:^:root|^\.dark)\s*\{([^}]+)\}/gm),
+      ]
+        .map(match => match[1])
+        .join('\n');
+      const aliases = [...source.matchAll(/(--color-[\w-]+):\s*([^;]+);/g)];
+      const names = [
+        ...new Set(
+          [
+            ...declarations.matchAll(/(--[\w-]+):/g),
+            ...palettes.matchAll(/(--[\w-]+):/g),
+          ].map(match => match[1])
+        ),
+      ].filter(name => name !== '--radius');
+      names.push(...aliases.map(match => match[1]));
+      const frames = await Promise.all(
+        ['omnibox', 'neutral'].map(async theme => {
+          const frame = document.createElement('iframe');
+          frame.hidden = true;
+          frame.title = theme;
+          const loaded = new Promise(resolve => (frame.onload = resolve));
+          frame.srcdoc =
+            '<!doctype html><html><head></head><body></body></html>';
+          document.body.append(frame);
+          await loaded;
+          const doc = frame.contentDocument;
+          doc.documentElement.dataset.colorTheme = theme;
+          const style = doc.createElement('style');
+          style.textContent =
+            css + '\n:root {' + aliases.map(match => match[0]).join('\n') + '}';
+          doc.head.append(style);
+          return frame;
+        })
+      );
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 1;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      function hex(color) {
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, 1, 1);
+        const rgba = [...ctx.getImageData(0, 0, 1, 1).data];
+        return (
+          '#' +
+          rgba
+            .slice(0, rgba[3] === 255 ? 3 : 4)
+            .map(n => n.toString(16).padStart(2, '0'))
+            .join('')
+            .toUpperCase()
+        );
+      }
+      const probe = document.createElement('span');
+      probe.hidden = true;
+      document.body.append(probe);
+      function colorKey(value) {
+        if (!value || !CSS.supports('color', value)) return null;
+        probe.style.color = `color(from ${value} srgb r g b / alpha)`;
+        return getComputedStyle(probe).color;
+      }
+      function render() {
+        const dark = document.querySelector('#appearance').value === 'dark';
+        document.body.classList.toggle('dark', dark);
+        const styles = frames.map(frame => {
+          frame.contentDocument.documentElement.classList.toggle('dark', dark);
+          return frame.contentWindow.getComputedStyle(
+            frame.contentDocument.documentElement
+          );
+        });
+        const keysByTheme = styles.map(
+          style =>
+            new Map(
+              names.map(name => [
+                name,
+                colorKey(style.getPropertyValue(name).trim()),
+              ])
+            )
+        );
+        const query = document
+          .querySelector('#filter')
+          .value.trim()
+          .toLowerCase();
+        const visible = names.filter(name => name.includes(query));
+        const rows = document.querySelector('#rows');
+        rows.replaceChildren();
+        for (const name of visible) {
+          const row = rows.insertRow();
+          const label = document.createElement('code');
+          label.textContent = name;
+          row.insertCell().append(label);
+          styles.forEach((style, index) => {
+            const value = style.getPropertyValue(name).trim();
+            const cell = row.insertCell();
+            cell.style.background = style.getPropertyValue('--background');
+            cell.style.color = style.getPropertyValue('--foreground');
+            const sample = document.createElement('div');
+            sample.className = 'sample';
+            const checker = document.createElement('div');
+            checker.className = 'checker';
+            const swatch = document.createElement('div');
+            swatch.className = 'swatch';
+            swatch.style.background = value;
+            checker.append(swatch);
+            const text = document.createElement('div');
+            const code = document.createElement('code');
+            code.textContent =
+              value && CSS.supports('color', value) ? hex(value) : '未定义';
+            const raw = document.createElement('code');
+            raw.className = 'value';
+            raw.textContent = value || '未定义';
+            text.append(code, raw);
+            sample.append(checker, text);
+            cell.append(sample);
+            const matchesCell = row.insertCell();
+            matchesCell.className = 'matches';
+            const keys = keysByTheme[index];
+            const key = keys.get(name);
+            const matches = names.filter(
+              other => other !== name && key !== null && keys.get(other) === key
+            );
+            if (!matches.length) matchesCell.textContent = '无相同颜色变量';
+            matches.forEach(other => {
+              const code = document.createElement('code');
+              code.textContent = other;
+              matchesCell.append(code);
+            });
+          });
+        }
+        document.querySelector('#count').textContent =
+          `${visible.length} / ${names.length} 个变量`;
+      }
+      document.querySelector('#appearance').addEventListener('change', render);
+      document.querySelector('#filter').addEventListener('input', render);
+      render();
+    </script>
+  </body>
+</html>

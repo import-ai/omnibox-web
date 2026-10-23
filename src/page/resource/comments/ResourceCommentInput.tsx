@@ -7,9 +7,12 @@ import {
   type AutosizeTextAreaRef,
 } from '@/components/autosize-textarea';
 
+import { CommentMentionField } from './CommentMentionField';
+import { CommentMentionMenu } from './CommentMentionMenu';
 import { pasteCommentImage } from './pasteCommentImage';
 import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
 import type { useCommentDraft } from './useCommentDraft';
+import { useCommentMentionInput } from './useCommentMentionInput';
 
 export function ResourceCommentInput({
   draft,
@@ -31,35 +34,40 @@ export function ResourceCommentInput({
   onSubmit: () => Promise<unknown>;
 }) {
   const { t } = useTranslation();
+  const mention = useCommentMentionInput(draft.content, draft.setContent);
   return (
     <div
       className={'omnibox-comment-composer__input'}
       data-has-preview={draft.imagePreview ? '' : undefined}
     >
-      <AutosizeTextarea
-        ref={inputRef}
-        className={'border-line'}
-        minHeight={0}
-        maxHeight={160}
-        maxLength={10000}
-        placeholder={t('resource_comments.write_comment')}
-        rows={1}
-        value={draft.content}
-        disabled={disabled}
-        aria-busy={draft.uploading}
-        onChange={event => draft.setContent(event.target.value)}
-        onPaste={event => pasteCommentImage(event, draft.uploadImage)}
-        onKeyDown={event => {
-          if (
-            event.key !== 'Enter' ||
-            event.nativeEvent.isComposing ||
-            event.shiftKey
-          )
-            return;
-          event.preventDefault();
-          if (!event.repeat) onSubmit().catch(() => undefined);
-        }}
-      />
+      <CommentMentionField display={mention.displayValue} atoms={mention.atoms}>
+        <AutosizeTextarea
+          ref={inputRef}
+          className={'border-line'}
+          minHeight={0}
+          maxHeight={160}
+          maxLength={10000}
+          placeholder={t('resource_comments.write_comment')}
+          rows={1}
+          value={mention.displayValue}
+          disabled={disabled}
+          aria-busy={draft.uploading}
+          {...mention.inputProps}
+          onPaste={event => pasteCommentImage(event, draft.uploadImage)}
+          onKeyDown={event => {
+            if (mention.onKeyDown(event)) return;
+            if (
+              event.key !== 'Enter' ||
+              event.nativeEvent.isComposing ||
+              event.shiftKey
+            )
+              return;
+            event.preventDefault();
+            if (!event.repeat) onSubmit().catch(() => undefined);
+          }}
+        />
+      </CommentMentionField>
+      <CommentMentionMenu spec={mention.menu} />
       {draft.imagePreview ? (
         <div className={'omnibox-comment-composer__preview'}>
           <ResourceCommentDraftImage

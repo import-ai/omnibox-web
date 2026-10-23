@@ -2,8 +2,8 @@ import { Check, Link2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
+import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
 import { ResourceCommentInput } from './ResourceCommentInput';
