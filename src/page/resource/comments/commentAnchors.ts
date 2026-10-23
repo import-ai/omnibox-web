@@ -11,6 +11,7 @@ import {
   isImageCommentQuote,
   parseImageCommentQuote,
 } from './commentQuote';
+import { isInlineCommentThread } from './documentCommentThreads';
 import { addImageCommentMark, getImageCommentRange } from './imageCommentMarks';
 
 export type ResourceCommentEditor = OmniboxEditorCommentSelection['editor'];
@@ -50,6 +51,7 @@ export function restoreResourceCommentAnchors(
   threads: ResourceCommentThread[]
 ) {
   for (const thread of threads) {
+    if (!isInlineCommentThread(thread)) continue;
     // Image comments can be marked orphaned after their in-memory anchor is
     // cleared. Put them back when the image is still in the document.
     if (
@@ -135,6 +137,7 @@ export function collectResourceCommentAnchors(
   const orphanedThreadIds: string[] = [];
 
   for (const thread of threads) {
+    if (!isInlineCommentThread(thread)) continue;
     if (thread.anchor.status !== 'active') {
       continue;
     }

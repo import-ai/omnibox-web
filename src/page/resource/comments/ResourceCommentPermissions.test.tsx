@@ -79,20 +79,28 @@ const thread: ResourceCommentThread = {
   updated_at: '2026-09-10T00:00:00Z',
 };
 const threads = [thread];
+const documentThread: ResourceCommentThread = {
+  ...thread,
+  type: 'document',
+  anchor: null,
+};
+const documentThreads = [documentThread];
 
 function Fixture({
   permission,
   namespaceId = 'namespace',
+  document = false,
 }: {
   permission: Permission;
   namespaceId?: string;
+  document?: boolean;
 }) {
   const controller = useResourceComments({
     namespaceId,
     resource: {
       id: 'team-document',
       current_permission: permission,
-      comment_threads: threads,
+      comment_threads: document ? documentThreads : threads,
     },
     enabled: true,
   });
@@ -102,7 +110,7 @@ function Fixture({
       <ResourceCommentThreadItem
         controller={controller}
         mode="all"
-        thread={thread}
+        thread={document ? documentThread : thread}
       />
     </TooltipProvider>
   );
@@ -176,6 +184,18 @@ describe('comment permissions', () => {
     localStorage.removeItem('uid');
     jest.restoreAllMocks();
     jest.clearAllMocks();
+  });
+
+  it('selects document comments without opening a reply input', async () => {
+    await act(async () =>
+      root.render(<Fixture permission="can_comment" document />)
+    );
+    await selectComment();
+    expect(
+      container.querySelector('article')?.hasAttribute('data-selected')
+    ).toBe(true);
+    expect(container.querySelector('.omnibox-comment-reply')).toBeNull();
+    expect(button('edit')).not.toBeNull();
   });
 
   it.each([false, true])(

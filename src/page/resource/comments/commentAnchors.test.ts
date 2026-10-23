@@ -1,4 +1,7 @@
-import type { ResourceCommentThread } from '@/interface';
+import type {
+  ResourceCommentThread,
+  ResourceInlineCommentThread,
+} from '@/interface';
 
 jest.mock('@import-ai/omnibox-editor', () => ({
   findResourceCommentRange: (
@@ -41,8 +44,8 @@ import {
 const RESOURCE_COMMENT_MARK = 'resourceComment';
 
 function makeThread(
-  overrides: Partial<ResourceCommentThread> = {}
-): ResourceCommentThread {
+  overrides: Partial<ResourceInlineCommentThread> = {}
+): ResourceInlineCommentThread {
   return {
     id: 'thread-1',
     quoted_text: 'target',
@@ -62,6 +65,22 @@ function makeThread(
     ...overrides,
   };
 }
+
+it('never restores or collects document threads as body anchors', () => {
+  const documentThread: ResourceCommentThread = {
+    ...makeThread(),
+    type: 'document',
+    anchor: null,
+  };
+  const { editor } = makeEditor('target');
+  expect(() =>
+    restoreResourceCommentAnchors(editor, [documentThread])
+  ).not.toThrow();
+  expect(collectResourceCommentAnchors(editor, [documentThread])).toEqual({
+    comment_anchors: [],
+    orphaned_comment_thread_ids: [],
+  });
+});
 
 function makeEditor(text: string) {
   const commentRanges = new Map<string, { from: number; to: number }>();

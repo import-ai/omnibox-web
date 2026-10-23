@@ -154,6 +154,9 @@
     }
   },
   "resource_comments": {
+    "document_title": "全文评论",
+    "document_quote": "「全文评论」",
+    "resolve_and_hide": "解决并隐藏",
     "expand_content": "展开",
     "collapse_content": "收起",
     "collapse": "收起评论",
@@ -177,6 +180,7 @@
     "content_conflict": "评论期间资源内容已发生变化，请保存或重新加载后重试。",
     "comment": "发表",
     "original_text_removed": "原文已被删除",
+    "comment_unavailable": "该评论不可用，可能已被删除或你已无权访问。",
     "thread_actions": "讨论操作",
     "more_actions": "更多操作",
     "reopen": "重新打开",

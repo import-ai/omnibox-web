@@ -215,6 +215,10 @@
   @apply mx-3 mt-0;
 }
 
+.resource-comments-document-heading {
+  @apply absolute inset-x-3 m-0 border-b border-border pb-2 text-2xl font-semibold text-foreground;
+}
+
 .resource-comments-panel
   .omnibox-comment-thread:is([data-selected], [data-image-highlighted]) {
   @apply border-border bg-popover shadow-lg;
@@ -982,6 +986,41 @@
   @apply block min-h-0 min-w-0 cursor-zoom-in rounded border-0 bg-transparent p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring;
 }
 
+.resource-document-comments {
+  @apply mt-20 shrink-0 pb-40;
+}
+
+.resource-document-comments__boundary {
+  @apply mb-10;
+}
+
+.resource-document-comments__title {
+  @apply mb-4 border-b border-border pb-2 text-2xl font-semibold;
+}
+
+.resource-document-comment {
+  @apply relative rounded-md px-4 py-3 hover:bg-sidebar-accent dark:hover:bg-[#363637];
+}
+
+.resource-document-comment .omnibox-comment-message__meta {
+  @apply flex shrink-0 items-center opacity-0;
+}
+
+.resource-document-comment:hover .omnibox-comment-message__meta,
+.resource-document-comment:focus-within .omnibox-comment-message__meta,
+.resource-document-comment:hover .omnibox-comment-message__action,
+.resource-document-comment:focus-within .omnibox-comment-message__action {
+  @apply opacity-100;
+}
+
+.omnibox-comment-surface.resource-document-comments__composer {
+  @apply static z-auto mt-8 block max-h-none w-full overflow-visible rounded-md border-0 bg-transparent shadow-none;
+}
+
+.resource-document-comments__composer .omnibox-comment-composer {
+  @apply bg-transparent px-0 pt-0;
+}
+
 .omnibox-comment-mention-field {
   position: relative;
   display: block;
@@ -1003,21 +1042,21 @@
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  color: hsl(var(--foreground));
+  color: var(--foreground);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .omnibox-comment-mention-field > textarea {
   color: transparent !important;
-  caret-color: hsl(var(--foreground));
+  caret-color: var(--foreground);
   background-color: transparent !important;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .omnibox-comment-mention-field.is-composing > textarea {
-  color: hsl(var(--foreground)) !important;
+  color: var(--foreground) !important;
 }
 
 .omnibox-comment-mention-field.is-composing
@@ -1026,7 +1065,7 @@
 }
 
 .omnibox-comment-mention-field > textarea::placeholder {
-  color: hsl(var(--muted-foreground)) !important;
+  color: var(--muted-foreground) !important;
   opacity: 1;
 }
 

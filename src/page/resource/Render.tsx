@@ -25,12 +25,14 @@ import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import { ImageCommentButton } from './comments/ImageCommentButton';
 import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
+import { ResourceDocumentComments } from './comments/ResourceDocumentComments';
 import {
   type ResourceCommentsController,
   useResourceComments,
 } from './comments/useResourceComments';
 import { parseScrollToLine } from './scrollToLine';
 import { useResourceImagePreview } from './useResourceImagePreview';
+import { isFolderLikeResourceType } from './useResourcePaneLayout';
 import { embedImage, getReadonlyResourceEditorKey } from './utils';
 
 interface IProps {
@@ -154,7 +156,8 @@ function OmniboxRender(props: OmniboxRenderProps) {
   }, [isScrollLineVisible]);
 
   const editorClassName = cn(
-    'resource-readonly-editor pb-[30vh]',
+    'resource-readonly-editor',
+    props.commentsDisabled && 'pb-[30vh]',
     !isScrollLineVisible && 'resource-readonly-editor--scroll-line-dismissed',
     wide && 'resource-readonly-editor--wide'
   );
@@ -204,7 +207,10 @@ function OmniboxRender(props: OmniboxRenderProps) {
 
 function StandaloneOmniboxRender(props: IProps) {
   const { namespaceId = '', resource } = props;
-  const commentsEnabled = !!namespaceId;
+  const commentsEnabled =
+    !!namespaceId &&
+    !props.commentsDisabled &&
+    !isFolderLikeResourceType(resource.resource_type);
   const comments = useResourceComments({
     namespaceId,
     resource,
@@ -213,7 +219,16 @@ function StandaloneOmniboxRender(props: IProps) {
 
   return (
     <>
-      <OmniboxRender {...props} comments={comments} />
+      <div data-resource-export-content>
+        <OmniboxRender
+          {...props}
+          commentsDisabled={!commentsEnabled}
+          comments={comments}
+        />
+      </div>
+      {commentsEnabled ? (
+        <ResourceDocumentComments controller={comments} wide={props.wide} />
+      ) : null}
       {commentsEnabled ? <ResourceCommentsSheet controller={comments} /> : null}
     </>
   );
