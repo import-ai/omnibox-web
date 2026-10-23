@@ -380,10 +380,16 @@ describe('resource comments across view and edit modes', () => {
       await act(async () => jest.advanceTimersByTime(100));
       expect(cardTop()).toBe(beforeSidebarScroll - 75);
       await act(async () => readonlyComments().selectThread('document'));
+      const beforeResize = cardTop();
+      await act(async () => window.dispatchEvent(new Event('resize')));
+      await act(async () => jest.advanceTimersByTime(100));
+      expect(cardTop()).toBe(beforeResize);
       bodyBottom = 1100;
       await act(async () => window.dispatchEvent(new Event('resize')));
       await act(async () => jest.advanceTimersByTime(100));
-      expect(cardTop()).toBeGreaterThanOrEqual(bodyBottom + 8);
+      expect(cardTop() + commentsScroll.scrollTop).toBeGreaterThanOrEqual(
+        bodyBottom + 8
+      );
       if (!includeInline) {
         bodyBottom = -200;
         await act(async () =>
@@ -395,6 +401,113 @@ describe('resource comments across view and edit modes', () => {
       jest.restoreAllMocks();
     }
   );
+
+  it('keeps the second resolved document card centered after repeated layout updates', async () => {
+    const commentsTop = 80;
+    const focusShift = -140;
+    const listTop = () =>
+      commentsTop -
+      (panel.querySelector<HTMLElement>('[data-comments-scroll]')?.scrollTop ??
+        0) +
+      focusShift;
+    jest
+      .mocked(listResourceCommentThreads)
+      .mockImplementation(async (_namespace, _resource, options) => ({
+        items:
+          options?.view === 'document'
+            ? []
+            : ['document-first', 'document-second'].map((id, index) => ({
+                ...thread,
+                id,
+                type: 'document' as const,
+                anchor: null,
+                resolved: true,
+                created_at: `2026-09-${10 + index}T00:00:00Z`,
+              })),
+        total: 2,
+        offset: 0,
+        limit: 20,
+        has_more: false,
+      }));
+    jest
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const heading = this.hasAttribute('data-document-comments-heading');
+        const top = this.hasAttribute('data-resource-body-end')
+          ? 400
+          : this.classList.contains('resource-comments-anchored-list')
+            ? listTop()
+            : heading
+              ? listTop() + (parseFloat(this.style.top) || 0)
+              : this.hasAttribute('data-thread-id')
+                ? listTop() + parseFloat(this.parentElement?.style.top ?? '0')
+                : this.hasAttribute('data-comments-scroll')
+                  ? commentsTop
+                  : 0;
+        const height = heading
+          ? 41
+          : this.hasAttribute('data-thread-id')
+            ? 120
+            : this.hasAttribute('data-resource-body-end')
+              ? 0
+              : this.hasAttribute('data-comments-scroll')
+                ? 400
+                : 600;
+        return {
+          x: 0,
+          y: top,
+          top,
+          bottom: top + height,
+          left: 0,
+          right: 300,
+          width: 300,
+          height,
+          toJSON: () => ({}),
+        };
+      });
+    await render(false);
+    const boundary = document.createElement('span');
+    boundary.setAttribute('data-resource-body-end', '');
+    source.append(boundary);
+    await act(async () => readonlyComments().setResolved(true));
+    await act(async () => jest.advanceTimersByTime(100));
+    const commentsScroll = panel.querySelector<HTMLElement>(
+      '[data-comments-scroll]'
+    )!;
+    Object.defineProperties(commentsScroll, {
+      clientHeight: { configurable: true, value: 400 },
+      scrollHeight: { configurable: true, value: 1600 },
+      scrollTo: {
+        configurable: true,
+        value: ({ top }: ScrollToOptions) => {
+          commentsScroll.scrollTop = top ?? 0;
+        },
+      },
+    });
+    await act(async () =>
+      readonlyComments().focusThread('document-second', {
+        centerResolvedDocumentComment: true,
+        openReply: false,
+      })
+    );
+    await act(async () => jest.advanceTimersByTime(100));
+    const card = panel.querySelector<HTMLElement>(
+      '[data-thread-id="document-second"]'
+    )!;
+    const center = () => {
+      const bounds = card.getBoundingClientRect();
+      return (bounds.top + bounds.bottom) / 2;
+    };
+    expect(center()).toBe(280);
+    const initialTop = card.parentElement?.style.top;
+    for (let index = 0; index < 3; index += 1) {
+      await act(async () => window.dispatchEvent(new Event('resize')));
+      await act(async () => jest.advanceTimersByTime(100));
+      expect(center()).toBe(280);
+      expect(card.parentElement?.style.top).toBe(initialTop);
+    }
+    jest.restoreAllMocks();
+  });
 
   it.each([
     [false, false],

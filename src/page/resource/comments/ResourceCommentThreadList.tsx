@@ -76,6 +76,8 @@ export function ResourceCommentThreadList({
         commentsScroll
           .querySelector<HTMLElement>('.resource-comments-anchored-list')
           ?.getBoundingClientRect().top ?? commentsRect.top;
+      // Sidebar scrolling must not move the group's position in list coordinates.
+      const listOrigin = listTop + commentsScroll.scrollTop;
       const bodyEnd =
         root.querySelector<HTMLElement>('[data-resource-body-end]') ??
         resourceScroll.querySelector<HTMLElement>('.tiptap');
@@ -92,7 +94,7 @@ export function ResourceCommentThreadList({
       const headingFloor =
         (sourceHeadingRect?.top ??
           bodyEnd?.getBoundingClientRect().bottom ??
-          resourceScroll.getBoundingClientRect().bottom) - listTop;
+          resourceScroll.getBoundingClientRect().bottom) - listOrigin;
       const documentFloor = headingFloor + headingHeight + COMMENT_GAP;
       const markers = new Map<string, HTMLElement>();
       root

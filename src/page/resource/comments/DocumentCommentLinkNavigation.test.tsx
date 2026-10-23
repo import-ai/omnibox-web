@@ -13,6 +13,9 @@ import { useResourceComments } from './useResourceComments';
 
 jest.mock('@import-ai/omnibox-editor', () => ({}));
 jest.mock('@/hooks/useUser', () => ({ USER_UPDATED_EVENT: 'user-updated' }));
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
+}));
 jest.mock('react-router-dom', () => ({ useLocation: jest.fn() }));
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -21,6 +24,13 @@ jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
 jest.mock('./ResourceCommentsContext', () => ({
   useResourceCommentsPanel: jest.fn(),
 }));
+jest.mock('./useCommentMentionUsers', () => {
+  const users: unknown[] = [];
+  const namesById: Record<string, string> = {};
+  return {
+    useCommentMentionUsers: () => ({ users, namesById, loaded: false }),
+  };
+});
 jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
   getResourceCommentThread: jest.fn(),
