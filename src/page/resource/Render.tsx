@@ -19,6 +19,7 @@ import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
   OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
+import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
@@ -86,7 +87,8 @@ function OmniboxRender(props: OmniboxRenderProps) {
   } = props;
   const { i18n, t } = useTranslation();
   const { theme } = useTheme();
-  const { mentionUsers, namesById, ready } = useMentionUsers(namespaceId);
+  const { mentionUsers, membersById, namesById, ready } =
+    useMentionUsers(namespaceId);
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
@@ -105,13 +107,13 @@ function OmniboxRender(props: OmniboxRenderProps) {
   );
   const content = useMemo(
     () => getResourceEditorContent(resource, linkBase, namesById),
-    [linkBase, namesById, resource]
+    [namesById, linkBase, resource]
   );
   const targetScrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;
 
   const handleCodeBlockCopy = useCallback(() => {
-    toast(t('actions.copy_content_success'), {
+    toast.success(t('actions.copy_content_success'), {
       position: 'bottom-right',
     });
   }, [t]);
@@ -198,6 +200,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
         onCodeBlockCopy={handleCodeBlockCopy}
         scrollToLineContent={embedImage(resource)}
       />
+      <MentionHoverCard containerRef={containerRef} membersById={membersById} />
     </div>
   );
 }

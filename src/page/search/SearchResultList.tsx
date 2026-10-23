@@ -2,7 +2,7 @@ import { Loader2 } from 'lucide-react';
 import type { MouseEventHandler, UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import ResourceIcon from '@/assets/icons/ResourceIcon';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import {
   CommandGroup,
   CommandItem,
@@ -60,7 +60,7 @@ function SearchEmptyIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="size-24 shrink-0 text-neutral-300 dark:text-neutral-400"
+      className="size-24 shrink-0 text-muted-foreground"
       viewBox="0 0 96 96"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -107,7 +107,7 @@ function ResourceResultContent({
 }) {
   return (
     <SearchResultContent
-      icon={<ResourceIcon expand={false} resource={resource} />}
+      icon={<ResourceTypeIcon expand={false} resource={resource} />}
       title={title}
       preview={preview}
     />

@@ -1,6 +1,6 @@
 .resource-readonly-editor,
 .resource-editable-editor {
-  --tt-table-scrollbar-thumb-color: hsl(var(--border));
+  --tt-table-scrollbar-thumb-color: var(--border);
 }
 
 .resource-readonly-page-header {
@@ -368,4 +368,73 @@
 .resource-readonly-editor span[data-type='mention'],
 .resource-editable-editor span[data-type='mention'] {
   cursor: pointer;
+}
+
+/* Editor @ menu uses the same popover as comment mentions, not a toolbar pill. */
+[data-selector='tiptap-mention-dropdown-menu'] {
+  width: 16rem;
+  max-width: calc(100vw - 1rem);
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  padding: 0.25rem;
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.1),
+    0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+[data-selector='tiptap-mention-dropdown-menu'] .tiptap-card,
+[data-selector='tiptap-mention-dropdown-menu'] .tiptap-card-body,
+[data-selector='tiptap-mention-dropdown-menu'] .tiptap-card-item-group {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  align-items: stretch;
+}
+
+[data-selector='tiptap-mention-dropdown-menu'] .tiptap-button {
+  height: auto;
+  min-height: 0;
+  width: 100%;
+  justify-content: flex-start;
+  align-items: flex-start;
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  background: transparent;
+  color: inherit;
+  /* Root `button { font: inherit }` beats `.tiptap-button` and uses body 16px. Comment names are text-sm. */
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+}
+
+[data-selector='tiptap-mention-dropdown-menu']
+  .tiptap-button[data-active-state='on'] {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+[data-selector='tiptap-mention-dropdown-menu']
+  .tiptap-button
+  .tiptap-button-text {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.25rem;
+  white-space: normal;
+}
+
+[data-selector='tiptap-mention-dropdown-menu']
+  .tiptap-button
+  .tiptap-button-text
+  + .tiptap-button-text {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1rem;
 }

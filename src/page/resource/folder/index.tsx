@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import ResourceIcon from '@/assets/icons/ResourceIcon';
+import { Button } from '@/components/Button';
 import Loading from '@/components/loading';
-import { Button } from '@/components/ui/Button';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
@@ -363,7 +363,7 @@ export default function Folder(props: IProps) {
                             size="page"
                             fallback={
                               <div className="shrink-0 text-muted-foreground [&>svg]:h-5 [&>svg]:w-5">
-                                <ResourceIcon
+                                <ResourceTypeIcon
                                   expand={false}
                                   resource={iconResource}
                                 />

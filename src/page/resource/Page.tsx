@@ -167,7 +167,7 @@ function PageContent(props: PageContentProps) {
 export default function Page(props: IProps) {
   const { editPage, namespaceId, resource } = props;
   const commentsNamespaceId = props.commentsNamespaceId ?? namespaceId;
-  const [, setContentDirty] = useState(false);
+  const [contentDirty, setContentDirty] = useState(false);
   const commentsEnabled =
     !props.isHistorical &&
     !!commentsNamespaceId &&
@@ -176,8 +176,15 @@ export default function Page(props: IProps) {
     namespaceId: commentsNamespaceId,
     resource,
     enabled: commentsEnabled,
-    // Inline comments still require the saved page; document comments do not.
-    contentDirty: editPage,
+    // Block new anchored comments only while this edit has unsaved changes.
+    contentDirty: editPage && contentDirty,
+    onMentionContent: (content, contentHash) => {
+      props.onResource?.({
+        ...resource,
+        content,
+        content_hash: contentHash,
+      });
+    },
   });
 
   return (

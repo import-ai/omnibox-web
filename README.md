@@ -16,9 +16,9 @@ A modern web application built with React, TypeScript, and Vite, featuring chat 
 
 ## Tech Stack
 
-- **Frontend Framework**: React 18 + TypeScript
+- **Frontend Framework**: React 19 + TypeScript
 - **Build Tool**: Vite
-- **UI Components**: Radix UI + Tailwind CSS
+- **UI Components**: shadcn Radix Nova + Tailwind CSS 4 (Zinc / OKLCH)
 - **Form Handling**: React Hook Form + Zod
 - **Markdown Rendering**: React Markdown with KaTeX and syntax highlighting
 - **State Management**: React Context + Hooks + feature-scoped Zustand stores
@@ -30,7 +30,7 @@ A modern web application built with React, TypeScript, and Vite, featuring chat 
 
 ### Prerequisites
 
-- Node.js >= 18
+- Node.js >= 22.12
 - pnpm >= 10.17.1
 
 ### Installation

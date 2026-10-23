@@ -214,7 +214,7 @@ export function ChooseResourceTree({
         event.stopPropagation();
       }}
       beforeList={<DropdownMenuSeparator />}
-      listClassName="min-h-0 max-h-72 pb-0 pr-1 [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:hsl(var(--border))_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
+      listClassName="min-h-0 max-h-72 pb-0 pr-1 scrollbar-gutter-stable scrollbar-thin [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
       selectedResourceId={resourceId}
       onSelect={onChange}
     />

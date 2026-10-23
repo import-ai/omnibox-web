@@ -16,9 +16,10 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 import { ShareIcon } from '@/assets/icons/ShareIcon';
+import { Button } from '@/components/Button';
 import Copy from '@/components/copy';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme.ts';
 import Save from '@/page/chat/components/SaveMain';
@@ -32,6 +33,7 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
+import { MessageChannelTime } from '@/page/chat/messages/role/MessageChannelTime';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import { CitationContext, MarkdownAnchor } from './CitationMarkdownAnchor';
@@ -68,6 +70,7 @@ interface IProps {
   onPrevious?: () => void;
   onNext?: () => void;
   createdAt?: string;
+  channel?: string;
   isLastMessage: boolean;
   hideActions?: boolean;
   onShare?: (messageId: string) => void;
@@ -89,6 +92,7 @@ export function CitationMarkdown(props: IProps) {
     onPrevious,
     onNext,
     createdAt,
+    channel,
     isLastMessage,
     hideActions = false,
     onShare,
@@ -208,7 +212,7 @@ export function CitationMarkdown(props: IProps) {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="p-0 w-7 h-7"
+                  className={`${sidebarToolbarIconButtonClassName} size-7`}
                   disabled={regenerateDisabled}
                   onClick={() => onRegenerate(messageId)}
                 >
@@ -228,7 +232,7 @@ export function CitationMarkdown(props: IProps) {
                 <TooltipTrigger asChild>
                   <Button
                     aria-label={t('chat.share.action')}
-                    className="h-7 w-7 p-0"
+                    className={`${sidebarToolbarIconButtonClassName} size-7`}
                     onClick={() => onShare(messageId)}
                     size="icon"
                     type="button"
@@ -240,11 +244,11 @@ export function CitationMarkdown(props: IProps) {
                 <TooltipContent>{t('chat.share.action')}</TooltipContent>
               </Tooltip>
             )}
-            {createdAtLabel && (
-              <span className="text-xs text-muted-foreground opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100">
-                {createdAtLabel}
-              </span>
-            )}
+            <MessageChannelTime
+              channel={channel}
+              className="opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100"
+              time={createdAtLabel}
+            />
           </div>
         )}
     </div>

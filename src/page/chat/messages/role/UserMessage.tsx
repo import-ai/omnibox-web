@@ -5,11 +5,12 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { ShareIcon } from '@/assets/icons/ShareIcon';
+import { Button } from '@/components/Button';
 import Copy from '@/components/copy';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { Textarea } from '@/components/ui/Textarea';
+import { Textarea } from '@/components/ui/textarea';
 import type { ResourceMeta } from '@/interface';
 import { cn } from '@/lib/utils';
 import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
@@ -23,6 +24,7 @@ import { fetchResourcesByIds } from '@/service/resource';
 import { fetchShareResource } from '@/service/share';
 
 import { getCachedMessageDisplayParts } from '../messageDisplayPartsCache';
+import { MessageChannelTime } from './MessageChannelTime';
 import { UserMessageImages } from './UserMessageImages';
 import {
   buildResourceNameById,
@@ -105,6 +107,8 @@ export function UserMessage(props: IProps) {
   };
 
   const selectedResources = message.attrs?.user_context?.selected_resources;
+  const channel = message.attrs?.user_context?.channel;
+  const isSavedResource = Boolean(message.attrs?.user_context?.saved_resource);
   const createdAt = message.created_at
     ? format(new Date(message.created_at), 'yyyy-MM-dd HH:mm:ss')
     : null;
@@ -229,7 +233,7 @@ export function UserMessage(props: IProps) {
         <div
           className={cn(
             'relative flex w-fit sm:max-w-[75%] flex-col gap-2 rounded-lg px-3 py-2',
-            'ml-auto bg-secondary text-secondary-foreground dark:bg-[#303030]'
+            'ml-auto bg-secondary text-secondary-foreground dark:bg-card dark:text-card-foreground'
           )}
         >
           {[MessageStatus.PENDING, MessageStatus.STREAMING].includes(
@@ -266,7 +270,7 @@ export function UserMessage(props: IProps) {
             </div>
           ) : displayLines ? (
             displayLines.map((line, idx) => (
-              <span key={idx} className="break-words [overflow-wrap:anywhere]">
+              <span key={idx} className="wrap-break-word wrap-anywhere">
                 {line.map((part, partIndex) => {
                   if (part.type === 'text') return part.text;
                   if (part.type === 'tool') {
@@ -302,7 +306,7 @@ export function UserMessage(props: IProps) {
             ))
           ) : (
             lines.map((line, idx) => (
-              <span key={idx} className="break-words [overflow-wrap:anywhere]">
+              <span key={idx} className="wrap-break-word wrap-anywhere">
                 {splitUserMessageResourceTokens(line, resources).map(
                   (segment, segmentIndex) => {
                     if (segment.type === 'tool') {
@@ -371,16 +375,14 @@ export function UserMessage(props: IProps) {
       )}
       {!hideActions && !message.attrs?.pending_query && (
         <div className="flex items-center gap-1 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0">
-          {createdAt && (
-            <span className="text-xs text-muted-foreground">{createdAt}</span>
-          )}
-          {!isEditing && (
+          <MessageChannelTime channel={channel} time={createdAt} />
+          {!isEditing && !isSavedResource && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="p-0 w-7 h-7"
+                  className={`${sidebarToolbarIconButtonClassName} size-7`}
                   onClick={handleEditClick}
                 >
                   <Pencil className="w-4 h-4" />
@@ -401,7 +403,7 @@ export function UserMessage(props: IProps) {
               <TooltipTrigger asChild>
                 <Button
                   aria-label={t('chat.share.action')}
-                  className="h-7 w-7 p-0"
+                  className={`${sidebarToolbarIconButtonClassName} size-7`}
                   onClick={() => onShare(message.id)}
                   size="icon"
                   type="button"

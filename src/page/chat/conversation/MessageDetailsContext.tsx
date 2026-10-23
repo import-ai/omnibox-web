@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import type { MessageDetail } from '@/page/chat/core/types/conversation';
 
 type Loader = (

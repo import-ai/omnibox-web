@@ -13,6 +13,20 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
+jest.mock('./useCommentMentionUsers', () => ({
+  useCommentMentionUsers: () => ({ users: [], membersById: {} }),
+}));
+jest.mock('@/components/ui/HoverCard', () => {
+  const React = jest.requireActual<typeof import('react')>('react');
+  return {
+    HoverCard: ({ children }: { children?: unknown }) =>
+      React.createElement(React.Fragment, null, children),
+    HoverCardTrigger: ({ children }: { children?: unknown }) =>
+      React.createElement(React.Fragment, null, children),
+    HoverCardContent: ({ children }: { children?: unknown }) =>
+      React.createElement('span', { 'data-hover-card': '' }, children),
+  };
+});
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
@@ -115,6 +129,54 @@ describe('ResourceCommentBody', () => {
     render('');
     expect(toggle()).toBeNull();
     expect(text()).toBeNull();
+  });
+
+  it('shows the live name and hover only while the member is present', () => {
+    const content = 'Hi [@ id="u1" label="Old"]';
+    const renderUsers = (
+      mentionUsers: Array<{ id: string; name: string }>,
+      membersById: Record<string, { id: string; [key: string]: string }> = {}
+    ) => {
+      act(() => {
+        root.render(
+          <ResourceCommentBody
+            content={content}
+            mentionUsers={mentionUsers}
+            membersById={membersById}
+          />
+        );
+      });
+    };
+
+    renderUsers([{ id: 'u1', name: 'New' }], {
+      u1: {
+        id: 'u1',
+        nickname: 'New',
+        username: 'new',
+        email: 'a@b.c',
+        phone: '138',
+        note: 'dev',
+      },
+    });
+    const active = container.querySelector('[data-mention-active]');
+    expect(active?.textContent).toBe('@New');
+    expect(active?.getAttribute('data-type')).toBe('mention');
+    expect(active?.getAttribute('data-id')).toBe('u1');
+
+    renderUsers([]);
+    expect(container.querySelector('[data-mention-active]')).toBeNull();
+    expect(container.querySelector('[data-type="mention"]')).toBeNull();
+    expect(container.querySelector('[data-mention-id="u1"]')?.textContent).toBe(
+      '@Old'
+    );
+
+    renderUsers([{ id: 'u1', name: 'New' }], {
+      u1: { id: 'u1', username: 'new' },
+    });
+    expect(container.querySelector('[data-mention-active]')?.textContent).toBe(
+      '@New'
+    );
+    expect(container.querySelector('[data-type="mention"]')).not.toBeNull();
   });
 
   it('remeasures window resizing when ResizeObserver is unavailable', () => {

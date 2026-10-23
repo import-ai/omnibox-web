@@ -633,7 +633,7 @@ export function BodyForSidebar(props: IProps) {
           : typeof err === 'string'
             ? err
             : t('upload.failed');
-      toast(message, { position: 'bottom-right' });
+      toast.error(message, { position: 'bottom-right' });
     } finally {
       if (globalFileInputRef.current) {
         globalFileInputRef.current.value = '';

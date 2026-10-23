@@ -123,6 +123,7 @@ export function AssistantMessage(props: IProps) {
     message.details_loaded !== undefined &&
     isTerminalMessageStatus(message.status);
   const openAIMessage = message.message;
+  const channel = message.attrs?.user_context?.channel;
 
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
     useMessageSiblings(message.id, messageOperator);
@@ -142,7 +143,7 @@ export function AssistantMessage(props: IProps) {
       >
         <AccordionItem value={'reasoning_' + message.id}>
           <AccordionTrigger>{t('chat.tools.reasoning')}</AccordionTrigger>
-          <AccordionContent className="text-gray-500 dark:text-gray-400">
+          <AccordionContent className="text-muted-foreground">
             <DetailLoadState {...details} retry={loadDetails} />
             {replaceReasoningCiteMarkers(
               openAIMessage.reasoning_content?.trim() || ''
@@ -168,6 +169,7 @@ export function AssistantMessage(props: IProps) {
         currentIndex={currentIndex}
         siblingsLength={siblings.length}
         createdAt={message.created_at}
+        channel={channel}
         onPrevious={handlePrevious}
         onNext={handleNext}
         isLastMessage={isLastMessage}
@@ -283,7 +285,7 @@ export function AssistantMessage(props: IProps) {
               {t('chat.tools.tool_calls')}
             </span>
           </AccordionTrigger>
-          <AccordionContent className="text-gray-500 dark:text-gray-400">
+          <AccordionContent className="text-muted-foreground">
             <DetailLoadState {...details} retry={loadDetails} />
             <ul>
               {toolCalls.map((toolCall, index) => (

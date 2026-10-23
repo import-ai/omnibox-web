@@ -64,6 +64,8 @@ interface MultipleSelectorProps {
   groupBy?: string;
   className?: string;
   badgeClassName?: string;
+  /** Classes for the options list. */
+  listClassName?: string;
   /**
    * First item selected is a default behavior by cmdk. That is why the default is true.
    * This is a workaround solution by add a dummy item.
@@ -208,6 +210,7 @@ const MultipleSelector = React.forwardRef<
       groupBy,
       className,
       badgeClassName,
+      listClassName,
       selectFirstItem = true,
       onCreate,
       creatable = false,
@@ -530,14 +533,19 @@ const MultipleSelector = React.forwardRef<
             inputRef?.current?.focus();
           }}
         >
-          <div className="relative flex flex-wrap gap-1">
+          <div
+            className={cn(
+              'relative flex flex-wrap gap-1',
+              afterAddon && 'pr-11'
+            )}
+          >
             {selected.map(option => {
               return (
                 <Badge
                   key={option.value}
                   className={cn(
-                    'py-1 data-[disabled]:bg-muted-foreground data-[disabled]:text-muted data-[disabled]:hover:bg-muted-foreground',
-                    'data-[fixed]:bg-muted-foreground data-[fixed]:text-muted data-[fixed]:hover:bg-muted-foreground',
+                    'py-1 data-disabled:bg-muted-foreground data-disabled:text-muted data-disabled:hover:bg-muted-foreground',
+                    'data-fixed:bg-muted-foreground data-fixed:text-muted data-fixed:hover:bg-muted-foreground',
                     badgeClassName
                   )}
                   data-fixed={option.fixed}
@@ -547,7 +555,7 @@ const MultipleSelector = React.forwardRef<
                   <button
                     type="button"
                     className={cn(
-                      'ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
+                      'ml-1 rounded-full outline-hidden ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2',
                       (disabled || option.fixed) && 'hidden'
                     )}
                     onKeyDown={e => {
@@ -589,7 +597,7 @@ const MultipleSelector = React.forwardRef<
                       : placeholder
                   }
                   className={cn(
-                    'flex-1 bg-transparent outline-none placeholder:text-muted-foreground',
+                    'flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground',
                     {
                       'w-full': hidePlaceholderWhenSelected,
                       'px-3 py-2': selected.length === 0,
@@ -620,7 +628,7 @@ const MultipleSelector = React.forwardRef<
                     : placeholder
                 }
                 className={cn(
-                  'flex-1 bg-transparent outline-none placeholder:text-muted-foreground',
+                  'flex-1 bg-transparent outline-hidden placeholder:text-muted-foreground',
                   {
                     'w-full': hidePlaceholderWhenSelected,
                     'px-3 py-2': selected.length === 0,
@@ -654,7 +662,10 @@ const MultipleSelector = React.forwardRef<
           {open && (
             <CommandList
               ref={handleListRef}
-              className="absolute top-1 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in"
+              className={cn(
+                'absolute top-1 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-hidden animate-in',
+                listClassName
+              )}
               onMouseLeave={() => {
                 setOnScrollbar(false);
               }}

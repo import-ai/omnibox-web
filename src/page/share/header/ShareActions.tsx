@@ -10,7 +10,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +25,8 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { Switch } from '@/components/ui/Switch';
 import { usePublicSiteOrigin } from '@/hooks/publicSiteContext';
+import { cn } from '@/lib/utils';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
 interface ShareActionsProps {
   resource: {
@@ -44,6 +48,7 @@ export default function ShareActions({
   const { t } = useTranslation();
   const publicSiteOrigin = usePublicSiteOrigin();
   const [open, setOpen] = useState(false);
+  const menuTriggerPress = useMenuTriggerPress();
   const isFolderResource =
     resource.resource_type === 'folder' ||
     resource.resource_type === 'smart_folder';
@@ -53,9 +58,13 @@ export default function ShareActions({
       if (!publicSiteOrigin) return;
       const shareUrl = `${publicSiteOrigin}${location.pathname}${location.search}${location.hash}`;
       const returnValue = copy(shareUrl);
-      toast(t(returnValue ? 'actions.copy_link_success' : 'copy.fail'), {
-        position: 'bottom-right',
-      });
+      if (returnValue) {
+        toast.success(t('actions.copy_link_success'), {
+          position: 'bottom-right',
+        });
+      } else {
+        toast.error(t('copy.fail'), { position: 'bottom-right' });
+      }
       setOpen(false);
       return;
     }
@@ -74,16 +83,20 @@ export default function ShareActions({
           }
         },
       });
-      toast(t(returnValue ? 'actions.copy_content_success' : 'copy.fail'), {
-        position: 'bottom-right',
-      });
+      if (returnValue) {
+        toast.success(t('actions.copy_content_success'), {
+          position: 'bottom-right',
+        });
+      } else {
+        toast.error(t('copy.fail'), { position: 'bottom-right' });
+      }
       setOpen(false);
       return;
     }
 
     if (id === 'download_as_markdown') {
       if (!resource.content) {
-        toast(t('resource.no_content'), {
+        toast.error(t('resource.no_content'), {
           position: 'bottom-right',
         });
         setOpen(false);
@@ -118,22 +131,31 @@ export default function ShareActions({
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 data-[state=open]:bg-accent"
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(sidebarToolbarIconButtonClassName, 'size-7')}
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>{t('common.more_actions')}</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent
+        align="end"
+        className="w-56"
+        {...menuTriggerPress.contentProps}
+      >
         <DropdownMenuItem
           className="cursor-pointer gap-2"
           onClick={() => handleAction('copy_link')}
           disabled={!publicSiteOrigin}
         >
-          <Link className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+          <Link className="size-4 text-muted-foreground" />
           <span>{t('actions.copy_link')}</span>
         </DropdownMenuItem>
         {!publicSiteOrigin && (
@@ -146,14 +168,14 @@ export default function ShareActions({
             className="cursor-pointer gap-2"
             onClick={() => handleAction('copy_content')}
           >
-            <Files className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+            <Files className="size-4 text-muted-foreground" />
             <span>{t('actions.copy_content')}</span>
           </DropdownMenuItem>
         )}
         {!isFolderResource && (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer gap-2">
-              <Download className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+              <Download className="size-4 text-muted-foreground" />
               <span>{t('actions.download_as')}</span>
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent className="w-48">
@@ -176,7 +198,7 @@ export default function ShareActions({
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center gap-2">
-                  <MoveHorizontal className="size-4 text-neutral-500 dark:text-[#a1a1a1]" />
+                  <MoveHorizontal className="size-4 text-muted-foreground" />
                   <span>{t('actions.wide')}</span>
                 </div>
                 <Switch checked={wide} />

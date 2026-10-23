@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 
 interface SmartFolderUnsavedDialogProps {
   open: boolean;
@@ -23,7 +23,7 @@ export function SmartFolderUnsavedDialog(props: SmartFolderUnsavedDialogProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="max-w-[560px]">
+      <AlertDialogContent className="max-w-[560px] sm:max-w-[560px]">
         <AlertDialogHeader>
           <AlertDialogTitle>
             {t('smart_folder.create.unsaved_title')}

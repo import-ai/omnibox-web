@@ -1,6 +1,7 @@
 import { LucideIcon } from 'lucide-react';
 import React from 'react';
 
+import { Input as BaseInput } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -20,10 +21,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <StartIcon size={18} className="text-muted-foreground" />
           </div>
         )}
-        <input
+        <BaseInput
           type={type}
           className={cn(
-            'flex h-9 w-full rounded-md border border-line py-2 px-4 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 shadow-none',
+            'h-9 px-3',
             startIcon ? 'pl-10' : '',
             endIcon ? 'pr-10' : '',
             className

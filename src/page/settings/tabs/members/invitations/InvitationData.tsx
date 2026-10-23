@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { TableCell, TableRow } from '@/components/ui/Table';
 import { Invitation } from '@/interface';
 import { http } from '@/lib/request';

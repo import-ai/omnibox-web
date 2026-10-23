@@ -10,6 +10,8 @@ import Loading from '@/components/loading';
 import { Toaster } from '@/components/ui/Toaster';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme';
+import { resolveColorTheme } from '@/lib/colorThemes';
+import { resolveFont } from '@/lib/fonts';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';
 import { useChatStore } from '@/page/chat/chatStore';
@@ -57,8 +59,16 @@ export default function Layout() {
           i18n.changeLanguage(lang);
         }
       } else if (event.key === 'theme') {
-        const themeInStorage = JSON.parse(event.newValue || '{}');
-        onToggleTheme(themeInStorage.skin);
+        try {
+          const themeInStorage = JSON.parse(event.newValue || '{}');
+          onToggleTheme(
+            themeInStorage?.skin ?? 'system',
+            resolveColorTheme(themeInStorage?.colorTheme),
+            resolveFont(themeInStorage?.font)
+          );
+        } catch {
+          // Ignore malformed preferences from other tabs.
+        }
       } else if (isAuthStorageKey(event.key)) {
         const storedUid = localStorage.getItem('uid');
         if (storedUid !== uid) {
@@ -203,11 +213,19 @@ export default function Layout() {
           }
         }
         const themeValue = response.find(item => item.name === 'theme');
-        if (themeValue) {
-          const theme = themeValue.value;
-          if (theme && theme !== app.getTheme().skin) {
-            onToggleTheme(theme);
-          }
+        const colorThemeValue = response.find(
+          item => item.name === 'color_theme'
+        );
+        const fontValue = response.find(item => item.name === 'font');
+        const font = resolveFont(fontValue?.value);
+        const skin = themeValue?.value || app.getTheme().skin;
+        const colorTheme = resolveColorTheme(colorThemeValue?.value);
+        if (
+          skin !== app.getTheme().skin ||
+          colorTheme !== app.getTheme().colorTheme ||
+          font !== app.getTheme().font
+        ) {
+          onToggleTheme(skin, colorTheme, font);
         }
       });
 

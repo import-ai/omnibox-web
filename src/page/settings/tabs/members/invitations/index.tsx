@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -53,24 +53,26 @@ export function InvitationMain(props: InvitationProps) {
           onFinish={handleFinish}
         />
       </div>
-      <div className="rounded-md border dark:border-neutral-700">
-        <Table rootClassName="max-w-[83vw] sm:w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-2/5">{t('manage.group')}</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {invitations.map(item => (
-              <InvitationData
-                namespaceId={namespaceId}
-                invitation={item}
-                refetch={refetch}
-              />
-            ))}
-          </TableBody>
-        </Table>
+      <div className="rounded-md border border-border">
+        <div className="max-w-[83vw] sm:w-full">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-2/5">{t('manage.group')}</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invitations.map(item => (
+                <InvitationData
+                  namespaceId={namespaceId}
+                  invitation={item}
+                  refetch={refetch}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );

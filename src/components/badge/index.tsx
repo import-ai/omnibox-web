@@ -28,7 +28,7 @@ export default function Badge(props: IProps) {
       {children}
       <div
         className={cn(
-          'absolute right-[-7px] top-[-8px] z-[100] transition-opacity',
+          'absolute right-[-7px] top-[-8px] z-100 transition-opacity',
           className,
           {
             'opacity-0': !open,

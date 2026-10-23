@@ -27,7 +27,7 @@ jest.mock('@/components/invite-dialog', () => ({
   default: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-jest.mock('@/components/button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({ children }: { children: React.ReactNode }) => (
     <button>{children}</button>
   ),

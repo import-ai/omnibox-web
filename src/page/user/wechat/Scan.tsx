@@ -1,7 +1,7 @@
 import { MoveLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 
 import { ScanForm } from './ScanForm';
 

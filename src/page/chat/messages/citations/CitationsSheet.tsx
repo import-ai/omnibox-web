@@ -1,9 +1,9 @@
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { ChevronRight } from 'lucide-react';
+import { VisuallyHidden } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import { Separator } from '@/components/ui/Separator';
 import {
   Sheet,
@@ -75,11 +75,7 @@ export function CitationsSheet(props: IProps) {
       }}
     >
       <SheetTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-[#eaecf3] dark:border-[#4d4e4f] dark:bg-transparent hover:border-[#f7f8fa] dark:hover:border-[#626264] dark:hover:bg-[#404040]"
-        >
+        <Button variant="outline" size="sm">
           {citations.length} {t('chat.citations')}
           {plural} <ChevronRight />
         </Button>
@@ -87,11 +83,11 @@ export function CitationsSheet(props: IProps) {
       <SheetContent className="p-0">
         <SheetHeader className="px-4 py-3">
           <SheetTitle>{t('chat.citations_results')}</SheetTitle>
-          <VisuallyHidden>
+          <VisuallyHidden.Root>
             <SheetDescription></SheetDescription>
-          </VisuallyHidden>
+          </VisuallyHidden.Root>
         </SheetHeader>
-        <Separator className="dark:bg-gray-700" />
+        <Separator />
         <div className="overflow-y-auto h-[calc(100svh-53px)]">
           <DetailLoadState
             {...details}

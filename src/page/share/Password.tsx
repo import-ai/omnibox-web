@@ -3,7 +3,7 @@ import { t } from 'i18next';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import {
   Form,
   FormControl,
@@ -11,7 +11,7 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 
 export interface PasswordProps {
   passwordFailed?: boolean;
@@ -65,7 +65,7 @@ export function Password(props: PasswordProps) {
         />
         <Button
           type="submit"
-          disabled={loading}
+          loading={loading}
           className="w-full disabled:opacity-60"
         >
           {t('shared_resources.submit')}

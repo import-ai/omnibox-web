@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
+import { IconButton } from '@/components/omnibox/IconButton';
 import useApp from '@/hooks/useApp';
 import { http } from '@/lib/request';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
@@ -53,21 +52,18 @@ export default function SaveMain(props: IProps) {
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="p-0 w-7 h-7"
-          disabled={loading}
-          onClick={handleCreate}
-        >
-          {loading ? <Loader2 className="animate-spin" /> : <Save />}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{t('chat.messages.actions.save')}</p>
-      </TooltipContent>
-    </Tooltip>
+    <IconButton
+      size="sm"
+      tone="sidebar"
+      label={t('chat.messages.actions.save')}
+      disabled={loading}
+      onClick={handleCreate}
+    >
+      {loading ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : (
+        <Save className="size-4" />
+      )}
+    </IconButton>
   );
 }

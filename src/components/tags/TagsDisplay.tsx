@@ -20,7 +20,7 @@ export function TagsDisplay(props: IProps) {
   if (data.length <= 0) {
     if (readOnly) {
       return (
-        <span className="text-sm text-neutral-500 dark:text-neutral-400">
+        <span className="text-sm text-muted-foreground">
           {t('resource.attrs.no_tag')}
         </span>
       );
@@ -32,7 +32,7 @@ export function TagsDisplay(props: IProps) {
       >
         <Badge
           variant="outline"
-          className="border-neutral-300 text-neutral-500 font-normal rounded-[8px] px-[8px] py-[2px] dark:border-neutral-500 dark:text-neutral-400"
+          className="border-border text-muted-foreground font-normal rounded-lg px-2 py-0.5"
         >
           {t('resource.attrs.add_tag')}
         </Badge>
@@ -53,7 +53,7 @@ export function TagsDisplay(props: IProps) {
         <Badge
           key={tag.value}
           variant="outline"
-          className="text-sm border-neutral-300 text-neutral-500 font-normal rounded-[8px] px-[8px] py-[1px] dark:border-neutral-500 dark:text-neutral-400"
+          className="text-sm border-border text-muted-foreground font-normal rounded-lg px-2 py-px"
         >
           {tag.label}
         </Badge>
@@ -61,7 +61,7 @@ export function TagsDisplay(props: IProps) {
       {!isExpanded && remainingCount > 0 && (
         <Badge
           variant="outline"
-          className="border-neutral-300 text-neutral-500 font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-[2px] dark:border-neutral-500 dark:text-neutral-400"
+          className="border-border text-muted-foreground font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-0.5"
           onClick={e => {
             e.stopPropagation();
             setIsExpanded(true);
@@ -73,13 +73,13 @@ export function TagsDisplay(props: IProps) {
       {isExpanded && remainingCount > 0 && (
         <Badge
           variant="outline"
-          className="border-neutral-300 text-neutral-500 font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-[2px] dark:border-neutral-500 dark:text-neutral-400"
+          className="border-border text-muted-foreground font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-0.5"
           onClick={e => {
             e.stopPropagation();
             setIsExpanded(false);
           }}
         >
-          <ChevronUp className="size-4 text-neutral-500 dark:text-neutral-400" />
+          <ChevronUp className="size-4 text-muted-foreground" />
         </Badge>
       )}
     </Space>
