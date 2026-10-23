@@ -112,7 +112,8 @@ describe('full document comment presentation', () => {
     expect(container.querySelector('h1')).toBeNull();
     expect(container.querySelector('textarea')).not.toBeNull();
     expect(container.querySelector('button[type=submit]')).toBeNull();
-    expect(container.querySelector('[data-resource-body-end]')).not.toBeNull();
+    const boundary = container.querySelector('[data-resource-body-end]');
+    expect(boundary).not.toBeNull();
   });
   it('reveals draft actions and reuses cancel and publish without focusing on a row click', async () => {
     const value = controller({ documentThreads: [thread] });
@@ -124,6 +125,10 @@ describe('full document comment presentation', () => {
     await render(value);
     expect(container.querySelector('h1')?.textContent).toBe(
       'resource_comments.document_title'
+    );
+    expect(container.querySelector('[data-resource-body-end]')).not.toBeNull();
+    expect(container.querySelector('[data-resource-body-end]')).toBe(
+      container.querySelector('h1')
     );
     expect(container.querySelector('button[type=submit]')).not.toBeNull();
     await act(async () =>
@@ -164,7 +169,7 @@ describe('full document comment presentation', () => {
       'resource_comments.edit',
       'resource_comments.delete',
     ]);
-    const toolbar = row.querySelector('.omnibox-comment-thread__toolbar');
+    const toolbar = row.querySelector('.omnibox-comment-message__meta');
     expect(
       [...(toolbar?.querySelectorAll('button[aria-label]') ?? [])].map(item =>
         item.getAttribute('aria-label')
@@ -172,7 +177,15 @@ describe('full document comment presentation', () => {
     ).toEqual([
       'resource_comments.copy_thread_link',
       'resource_comments.resolve_and_hide',
+      'resource_comments.edit',
+      'resource_comments.delete',
     ]);
+    expect(row.querySelector('.omnibox-comment-thread__toolbar')).toBeNull();
+    expect(
+      [...row.querySelectorAll('button[aria-label]')].every(item =>
+        item.classList.contains('omnibox-comment-message__action')
+      )
+    ).toBe(true);
     expect(
       button('edit')?.closest('.omnibox-comment-message__meta')
     ).not.toBeNull();
@@ -216,7 +229,7 @@ describe('full document comment presentation', () => {
       )
     );
     expect(container.querySelector('q')?.textContent).toBe(
-      'resource_comments.document_title'
+      'resource_comments.document_quote'
     );
     expect(
       container.querySelector('article')?.hasAttribute('data-selected')
