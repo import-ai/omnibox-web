@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 
 import {
+  compareCommentThreads,
   isDocumentCommentThread,
   isInlineCommentThread,
 } from './documentCommentThreads';
@@ -14,7 +15,9 @@ import type { ResourceCommentsController } from './useResourceComments';
 import { useSelectedImageCommentThreads } from './useSelectedImageCommentThreads';
 
 const COMMENT_GAP = 8;
+const DOCUMENT_GROUP_GAP = 16;
 const DEFAULT_COMMENT_HEIGHT = 120;
+const DEFAULT_DOCUMENT_HEADING_HEIGHT = 41;
 
 interface ResourceCommentThreadListProps {
   controller: ResourceCommentsController;
@@ -35,10 +38,16 @@ export function ResourceCommentThreadList({
     controller.threads
   );
   const [positions, setPositions] = useState<Record<string, number>>({});
+  const [documentHeadingTop, setDocumentHeadingTop] = useState<number | null>(
+    null
+  );
   const [contentHeight, setContentHeight] = useState(0);
   const [orderedThreadIds, setOrderedThreadIds] = useState<string[]>([]);
   const navigatingThreadIdRef = useRef(controller.navigatingThreadId);
   navigatingThreadIdRef.current = controller.navigatingThreadId;
+  const hasResolvedDocumentThreads = controller.threads.some(
+    thread => thread.resolved && isDocumentCommentThread(thread)
+  );
 
   useLayoutEffect(() => {
     if (!root || !panelElement || !panelOpen) {
@@ -70,11 +79,21 @@ export function ResourceCommentThreadList({
       const bodyEnd =
         root.querySelector<HTMLElement>('[data-resource-body-end]') ??
         resourceScroll.querySelector<HTMLElement>('.tiptap');
-      const documentFloor =
-        (bodyEnd?.getBoundingClientRect().bottom ??
-          resourceScroll.getBoundingClientRect().bottom) -
-        listTop +
-        COMMENT_GAP;
+      const sourceHeading = resourceScroll.querySelector<HTMLElement>(
+        '.resource-document-comments__title'
+      );
+      const sourceHeadingRect = sourceHeading?.getBoundingClientRect();
+      const headingHeight =
+        commentsScroll
+          .querySelector<HTMLElement>('[data-document-comments-heading]')
+          ?.getBoundingClientRect().height ||
+        sourceHeadingRect?.height ||
+        DEFAULT_DOCUMENT_HEADING_HEIGHT;
+      const headingFloor =
+        (sourceHeadingRect?.top ??
+          bodyEnd?.getBoundingClientRect().bottom ??
+          resourceScroll.getBoundingClientRect().bottom) - listTop;
+      const documentFloor = headingFloor + headingHeight + COMMENT_GAP;
       const markers = new Map<string, HTMLElement>();
       root
         .querySelectorAll<HTMLElement>('[data-resource-comment-thread]')
@@ -116,6 +135,9 @@ export function ResourceCommentThreadList({
             Number(isDocumentCommentThread(left.thread)) -
             Number(isDocumentCommentThread(right.thread));
           if (typeOrder) return typeOrder;
+          if (isDocumentCommentThread(left.thread)) {
+            return compareCommentThreads(left.thread, right.thread);
+          }
           const leftHasMarker = Number.isFinite(left.position);
           const rightHasMarker = Number.isFinite(right.position);
           if (leftHasMarker && rightHasMarker) {
@@ -208,13 +230,22 @@ export function ResourceCommentThreadList({
           }
         }
       }
-      // Inline alignment can shift neighboring cards. Clamp document cards again afterwards.
+      // Keep the document heading and its cards below the final inline card.
       let precedingBottom = -Infinity;
+      let nextHeadingTop = headingFloor;
+      let documentGroupStarted = false;
       anchoredThreads.forEach(({ thread, height }) => {
         if (isDocumentCommentThread(thread)) {
+          if (!documentGroupStarted) {
+            nextHeadingTop = Math.max(
+              headingFloor,
+              precedingBottom + DOCUMENT_GROUP_GAP
+            );
+            documentGroupStarted = true;
+          }
           nextPositions[thread.id] = Math.max(
             nextPositions[thread.id],
-            documentFloor,
+            nextHeadingTop + headingHeight + COMMENT_GAP,
             precedingBottom + COMMENT_GAP
           );
         }
@@ -236,6 +267,7 @@ export function ResourceCommentThreadList({
       setPositions(current =>
         arePositionsEqual(current, nextPositions) ? current : nextPositions
       );
+      setDocumentHeadingTop(documentGroupStarted ? nextHeadingTop : null);
       setContentHeight(current =>
         current === nextHeight ? current : nextHeight
       );
@@ -274,6 +306,10 @@ export function ResourceCommentThreadList({
         resizeObserver.observe(resourceScroll);
       }
       if (commentsScroll) {
+        const documentHeading = commentsScroll.querySelector<HTMLElement>(
+          '[data-document-comments-heading]'
+        );
+        if (documentHeading) resizeObserver.observe(documentHeading);
         commentsScroll
           .querySelectorAll<HTMLElement>('[data-thread-id]')
           .forEach(threadElement => resizeObserver.observe(threadElement));
@@ -319,6 +355,18 @@ export function ResourceCommentThreadList({
         transform: 'translateY(var(--resource-comment-shift, 0px))',
       }}
     >
+      {hasResolvedDocumentThreads ? (
+        <h2
+          data-document-comments-heading
+          className="resource-comments-document-heading"
+          style={{
+            top: documentHeadingTop ?? 0,
+            visibility: documentHeadingTop === null ? 'hidden' : undefined,
+          }}
+        >
+          {t('resource_comments.document_title')}
+        </h2>
+      ) : null}
       {controller.threads.map(thread => (
         <div
           key={thread.id}

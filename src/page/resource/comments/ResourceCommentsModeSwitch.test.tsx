@@ -286,6 +286,13 @@ describe('resource comments across view and edit modes', () => {
     'keeps resolved document cards below the body boundary with inline cards=%s',
     async includeInline => {
       let bodyBottom = 800;
+      const commentsTop = 80;
+      const focusShift = -140;
+      const listTop = () =>
+        commentsTop -
+        (panel.querySelector<HTMLElement>('[data-comments-scroll]')
+          ?.scrollTop ?? 0) +
+        focusShift;
       jest
         .mocked(listResourceCommentThreads)
         .mockImplementation(async (_namespace, _resource, options) => ({
@@ -310,19 +317,31 @@ describe('resource comments across view and edit modes', () => {
       jest
         .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
         .mockImplementation(function (this: HTMLElement) {
+          const isSidebarHeading = this.hasAttribute(
+            'data-document-comments-heading'
+          );
           const top = this.hasAttribute('data-resource-body-end')
             ? bodyBottom
-            : 0;
+            : this.classList.contains('resource-comments-anchored-list')
+              ? listTop()
+              : isSidebarHeading
+                ? listTop() + (parseFloat(this.style.top) || 0)
+                : this.hasAttribute('data-thread-id')
+                  ? listTop() + parseFloat(this.parentElement?.style.top ?? '0')
+                  : this.hasAttribute('data-comments-scroll')
+                    ? commentsTop
+                    : 0;
+          const height = isSidebarHeading ? 41 : 120;
           return {
             x: 0,
             y: top,
             top,
             bottom:
-              top + (this.hasAttribute('data-resource-body-end') ? 0 : 120),
+              top + (this.hasAttribute('data-resource-body-end') ? 0 : height),
             left: 0,
             right: 300,
             width: 300,
-            height: 120,
+            height,
             toJSON: () => ({}),
           };
         });
@@ -335,16 +354,26 @@ describe('resource comments across view and edit modes', () => {
       const wrapper = () =>
         panel.querySelector<HTMLElement>('[data-thread-id="document"]')
           ?.parentElement;
-      expect(parseFloat(wrapper()?.style.top ?? '0')).toBeGreaterThanOrEqual(
-        bodyBottom
+      const cardTop = () =>
+        panel
+          .querySelector<HTMLElement>('[data-thread-id="document"]')
+          ?.getBoundingClientRect().top ?? Number.NaN;
+      expect(cardTop()).toBeGreaterThanOrEqual(bodyBottom + 8);
+      const commentsScroll = panel.querySelector<HTMLElement>(
+        '[data-comments-scroll]'
+      )!;
+      const beforeSidebarScroll = cardTop();
+      commentsScroll.scrollTop = 75;
+      await act(async () =>
+        commentsScroll.dispatchEvent(new Event('scroll', { bubbles: true }))
       );
+      await act(async () => jest.advanceTimersByTime(100));
+      expect(cardTop()).toBe(beforeSidebarScroll - 75);
       await act(async () => readonlyComments().selectThread('document'));
       bodyBottom = 1100;
       await act(async () => window.dispatchEvent(new Event('resize')));
       await act(async () => jest.advanceTimersByTime(100));
-      expect(parseFloat(wrapper()?.style.top ?? '0')).toBeGreaterThanOrEqual(
-        bodyBottom
-      );
+      expect(cardTop()).toBeGreaterThanOrEqual(bodyBottom + 8);
       if (!includeInline) {
         bodyBottom = -200;
         await act(async () =>
@@ -356,6 +385,112 @@ describe('resource comments across view and edit modes', () => {
       jest.restoreAllMocks();
     }
   );
+
+  it.each([
+    [false, false],
+    [false, true],
+    [true, false],
+    [true, true],
+  ])(
+    'labels the resolved document group below inline cards=%s with a footer title=%s',
+    async (includeInline, hasFooterTitle) => {
+      const documentThread = {
+        ...thread,
+        id: 'document',
+        type: 'document' as const,
+        anchor: null,
+        resolved: true,
+      };
+      jest
+        .mocked(listResourceCommentThreads)
+        .mockImplementation(async (_namespace, _resource, options) => ({
+          items:
+            options?.view === 'document'
+              ? hasFooterTitle
+                ? [{ ...documentThread, id: 'unresolved', resolved: false }]
+                : []
+              : [...(includeInline ? [thread] : []), documentThread],
+          total: 2,
+          offset: 0,
+          limit: 20,
+          has_more: false,
+        }));
+      jest
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockImplementation(function (this: HTMLElement) {
+          const isFooterHeading = this.classList.contains(
+            'resource-document-comments__title'
+          );
+          const isSidebarHeading = this.hasAttribute(
+            'data-document-comments-heading'
+          );
+          const top = this.hasAttribute('data-resource-body-end')
+            ? 500
+            : isSidebarHeading
+              ? parseFloat(this.style.top) || 0
+              : this.hasAttribute('data-thread-id')
+                ? parseFloat(this.parentElement?.style.top ?? '0') || 0
+                : this.hasAttribute('data-resource-comment-thread')
+                  ? 600
+                  : 0;
+          const height =
+            isFooterHeading || isSidebarHeading
+              ? 41
+              : this.hasAttribute('data-resource-body-end')
+                ? 0
+                : 120;
+          return {
+            x: 0,
+            y: top,
+            top,
+            bottom: top + height,
+            left: 0,
+            right: 300,
+            width: 300,
+            height,
+            toJSON: () => ({}),
+          };
+        });
+      await render(false);
+      await act(async () => readonlyComments().setResolved(undefined));
+      await act(async () => jest.advanceTimersByTime(100));
+
+      const heading = panel.querySelector<HTMLElement>(
+        '[data-document-comments-heading]'
+      );
+      expect(heading?.textContent).toBe('resource_comments.document_title');
+      const firstCard = panel.querySelector<HTMLElement>(
+        '[data-thread-id="document"]'
+      )!;
+      expect(firstCard.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        (heading?.getBoundingClientRect().bottom ?? Number.NaN) + 8
+      );
+      if (includeInline) {
+        const inline = panel.querySelector<HTMLElement>(
+          '[data-thread-id="thread"]'
+        )!;
+        expect(heading?.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+          inline.getBoundingClientRect().bottom + 16
+        );
+      } else {
+        expect(heading?.getBoundingClientRect().top).toBe(500);
+        if (hasFooterTitle) {
+          expect(heading?.getBoundingClientRect().bottom).toBe(
+            source
+              .querySelector('.resource-document-comments__title')
+              ?.getBoundingClientRect().bottom
+          );
+        }
+      }
+      jest.restoreAllMocks();
+    }
+  );
+
+  it('omits the resolved document heading when the sidebar only has inline cards', async () => {
+    await render(false);
+    expect(panel.querySelector('[data-thread-id="thread"]')).not.toBeNull();
+    expect(panel.querySelector('[data-document-comments-heading]')).toBeNull();
+  });
 
   it('shares the unsaved content state with the persistent comments controller', async () => {
     await render(false);

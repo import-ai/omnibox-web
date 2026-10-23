@@ -177,7 +177,7 @@ export function ResourceCommentThreadItem({
             <span>{t('resource_comments.quote_label')}</span>
             <q>
               {isDocumentCommentThread(thread)
-                ? t('resource_comments.document_title')
+                ? t('resource_comments.document_quote')
                 : imageCommentLabel(
                     thread.id,
                     thread.quoted_text,

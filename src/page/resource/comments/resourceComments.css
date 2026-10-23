@@ -212,6 +212,10 @@
   @apply mx-3 mt-0;
 }
 
+.resource-comments-document-heading {
+  @apply absolute inset-x-3 m-0 border-b border-border pb-2 text-2xl font-semibold text-foreground;
+}
+
 .resource-comments-panel
   .omnibox-comment-thread:is([data-selected], [data-image-highlighted]) {
   @apply border-border bg-white shadow-lg dark:bg-muted;
@@ -964,31 +968,25 @@
 }
 
 .resource-document-comments {
-  @apply mt-12 shrink-0 pb-8;
+  @apply mt-20 shrink-0 pb-40;
 }
 
 .resource-document-comments__boundary {
-  @apply mb-6 border-t border-border;
+  @apply mb-10;
+}
+
+.resource-document-comments__title {
+  @apply mb-4 border-b border-border pb-2 text-2xl font-semibold;
 }
 
 .resource-document-comment {
-  @apply relative rounded-md px-3 py-4 hover:bg-sidebar-accent dark:hover:bg-muted;
+  @apply relative rounded-md px-4 py-3 hover:bg-sidebar-accent dark:hover:bg-[#363637];
 }
 
 .resource-document-comment .omnibox-comment-message__meta {
   @apply flex shrink-0 items-center opacity-0;
 }
 
-.resource-document-comment__toolbar-row {
-  @apply mb-2 flex h-5 justify-end;
-}
-
-.resource-document-comment .omnibox-comment-thread__toolbar {
-  @apply flex opacity-0;
-}
-
-.resource-document-comment:hover .omnibox-comment-thread__toolbar,
-.resource-document-comment:focus-within .omnibox-comment-thread__toolbar,
 .resource-document-comment:hover .omnibox-comment-message__meta,
 .resource-document-comment:focus-within .omnibox-comment-message__meta,
 .resource-document-comment:hover .omnibox-comment-message__action,
@@ -997,7 +995,7 @@
 }
 
 .omnibox-comment-surface.resource-document-comments__composer {
-  @apply static z-auto mt-3 block max-h-none w-full overflow-visible rounded-md border-0 bg-transparent shadow-none;
+  @apply static z-auto mt-8 block max-h-none w-full overflow-visible rounded-md border-0 bg-transparent shadow-none;
 }
 
 .resource-document-comments__composer .omnibox-comment-composer {

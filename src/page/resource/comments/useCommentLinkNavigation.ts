@@ -12,6 +12,7 @@ import { useResourceCommentsPanel } from './ResourceCommentsContext';
 
 export interface CommentFocusOptions {
   align?: 'start';
+  centerResolvedDocumentComment?: boolean;
   openReply?: boolean;
   onLocated?: () => void;
 }
@@ -133,7 +134,10 @@ export function useCommentLinkNavigation({
     if (target.resolved && (!panelElement || !panelOpen)) return;
     // Document navigation selects and scrolls its own row without body alignment or reply focus.
     handledLinkRef.current = linkKey;
-    focusThreadRef.current(targetId, { openReply: false });
+    focusThreadRef.current(targetId, {
+      openReply: false,
+      centerResolvedDocumentComment: target.resolved,
+    });
   }, [
     enabled,
     documentTarget,

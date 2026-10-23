@@ -75,10 +75,20 @@ jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default', hash: '' }),
 }));
 
-function Fixture({ resolved = false }: { resolved?: boolean }) {
+function Fixture({
+  resolved = false,
+  visibleThreads,
+}: {
+  resolved?: boolean;
+  visibleThreads?: ResourceCommentThread[];
+}) {
   const controller = useResourceComments({
     namespaceId: 'namespace',
-    resource: resolved ? resolvedResource : resource,
+    resource: visibleThreads
+      ? { ...resource, comment_threads: visibleThreads }
+      : resolved
+        ? resolvedResource
+        : resource,
     enabled: false,
   });
   const locatePublishedComment = () => {
@@ -90,7 +100,7 @@ function Fixture({ resolved = false }: { resolved?: boolean }) {
       <ResourceCommentThreadList
         controller={{
           ...controller,
-          threads: resolved ? resolvedThreads : threads,
+          threads: visibleThreads ?? (resolved ? resolvedThreads : threads),
           canComment: true,
           canEditComment: () => true,
         }}
@@ -238,6 +248,62 @@ describe('comment selection', () => {
     jest.restoreAllMocks();
     jest.clearAllMocks();
     jest.useRealTimers();
+  });
+
+  it('orders resolved document cards by creation time after reordering and resolving them', async () => {
+    const documentThreads: ResourceCommentThread[] = threads.map(
+      (thread, index) => ({
+        ...thread,
+        type: 'document',
+        anchor: null,
+        quoted_text: '',
+        resolved: true,
+        created_at: `2026-09-${10 + index}T00:00:00Z`,
+        updated_at: `2026-10-${12 - index}T00:00:00Z`,
+      })
+    );
+    source.replaceChildren();
+    await act(async () =>
+      root.render(
+        <Fixture
+          visibleThreads={[
+            documentThreads[2],
+            documentThreads[0],
+            documentThreads[1],
+          ]}
+        />
+      )
+    );
+    await settle();
+
+    const top = (id: string) => parseFloat(position(id) ?? '0');
+    expect(top('a')).toBeLessThan(top('b'));
+    expect(top('b')).toBeLessThan(top('c'));
+
+    await act(async () =>
+      root.render(
+        <Fixture
+          visibleThreads={[
+            documentThreads[1],
+            { ...documentThreads[0], updated_at: '2026-10-22T00:00:00Z' },
+            documentThreads[2],
+          ]}
+        />
+      )
+    );
+    await settle();
+    expect(top('a')).toBeLessThan(top('b'));
+    expect(top('b')).toBeLessThan(top('c'));
+    expect(
+      card('a').querySelector<HTMLButtonElement>(
+        '[aria-label="resource_comments.previous_thread"]'
+      )?.disabled
+    ).toBe(true);
+    expect(
+      card('c').querySelector<HTMLButtonElement>(
+        '[aria-label="resource_comments.next_thread"]'
+      )?.disabled
+    ).toBe(true);
   });
 
   it('selects without scrolling even when the quote is outside the viewport', async () => {

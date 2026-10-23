@@ -207,6 +207,49 @@ describe('document comment permalink', () => {
     expect(shift).not.toHaveBeenCalled();
   });
 
+  it('centers resolved document permalinks in the sidebar without scrolling other ancestors', async () => {
+    jest
+      .mocked(api.getResourceCommentThread)
+      .mockResolvedValue({ ...documentThread, resolved: true });
+    await render();
+
+    const commentsScroll = container.querySelector<HTMLElement>(
+      '[data-comments-scroll]'
+    )!;
+    const scrollTo = jest.fn();
+    Object.defineProperties(commentsScroll, {
+      clientHeight: { configurable: true, value: 400 },
+      scrollHeight: { configurable: true, value: 1200 },
+      scrollTo: { configurable: true, value: scrollTo },
+    });
+    const rect = (top: number, bottom: number) => ({
+      top,
+      bottom,
+      left: 0,
+      right: 300,
+      width: 300,
+      height: bottom - top,
+      x: 0,
+      y: top,
+      toJSON: () => ({}),
+    });
+    const bounds = jest
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this === commentsScroll) return rect(100, 500);
+        if (this.hasAttribute('data-resource-scroll')) return rect(0, 600);
+        if (this.hasAttribute('data-resource-body-end')) return rect(250, 250);
+        if (this.dataset.threadId === 'target') return rect(530, 590);
+        return rect(0, 0);
+      });
+
+    await advance();
+
+    expect(scrollTo).toHaveBeenCalledWith({ top: 260, behavior: 'smooth' });
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    bounds.mockRestore();
+  });
+
   it('does not change the filter when resolving a comment opened through its permalink', async () => {
     await render();
     await advance();
@@ -233,6 +276,15 @@ describe('document comment permalink', () => {
     const source = container.querySelector<HTMLElement>(
       '[data-resource-scroll]'
     )!;
+    const commentsScroll = container.querySelector<HTMLElement>(
+      '[data-comments-scroll]'
+    )!;
+    const scrollTo = jest.fn();
+    Object.defineProperties(commentsScroll, {
+      clientHeight: { configurable: true, value: 400 },
+      scrollHeight: { configurable: true, value: 1200 },
+      scrollTo: { configurable: true, value: scrollTo },
+    });
     let boundaryBottom = -200;
     const rect = (top: number, bottom: number) => ({
       top,
@@ -251,6 +303,15 @@ describe('document comment permalink', () => {
     jest
       .spyOn(boundary, 'getBoundingClientRect')
       .mockImplementation(() => rect(boundaryBottom, boundaryBottom));
+    jest
+      .spyOn(commentsScroll, 'getBoundingClientRect')
+      .mockImplementation(() => rect(100, 500));
+    jest
+      .spyOn(
+        container.querySelector<HTMLElement>('[data-thread-id="target"]')!,
+        'getBoundingClientRect'
+      )
+      .mockImplementation(() => rect(530, 590));
     scrollIntoView.mockImplementation(function (this: HTMLElement) {
       if (this === boundary) boundaryBottom = 300;
     });
@@ -258,8 +319,9 @@ describe('document comment permalink', () => {
     const calls = scrollIntoView.mock.contexts as HTMLElement[];
     expect(calls[0]).toBe(boundary);
     expect(calls.some(element => element.dataset.threadId === 'target')).toBe(
-      true
+      false
     );
+    expect(scrollTo).toHaveBeenCalledWith({ top: 260, behavior: 'smooth' });
     scrollIntoView.mockReset();
   });
 

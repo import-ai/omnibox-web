@@ -117,7 +117,38 @@ export function useCommentNavigation(
                 : element.dataset.documentCommentId) === threadId
           );
           if (card && card.parentElement?.style.visibility !== 'hidden') {
-            card.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+            if (options?.centerResolvedDocumentComment && thread.resolved) {
+              const commentsScroll = panelElement?.querySelector<HTMLElement>(
+                '[data-comments-scroll]'
+              );
+              if (commentsScroll) {
+                const viewport = commentsScroll.getBoundingClientRect();
+                const cardBounds = card.getBoundingClientRect();
+                const maxScroll = Math.max(
+                  0,
+                  commentsScroll.scrollHeight - commentsScroll.clientHeight
+                );
+                const top = Math.min(
+                  maxScroll,
+                  Math.max(
+                    0,
+                    commentsScroll.scrollTop +
+                      (cardBounds.top +
+                        cardBounds.bottom -
+                        viewport.top -
+                        viewport.bottom) /
+                        2
+                  )
+                );
+                if (typeof commentsScroll.scrollTo === 'function') {
+                  commentsScroll.scrollTo({ top, behavior: 'smooth' });
+                } else {
+                  commentsScroll.scrollTop = top;
+                }
+              }
+            } else {
+              card.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+            }
             options?.onLocated?.();
             return;
           }
