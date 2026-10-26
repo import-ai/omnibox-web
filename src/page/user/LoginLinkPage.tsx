@@ -7,53 +7,86 @@ import { http } from '@/lib/request';
 import { setGlobalCredential } from '@/page/user/util';
 
 import {
+  failureKind,
+  isWechatBrowser,
   leaveTo,
+  type LoginLinkFailure,
   PRICING_PATH,
   safeRedirect,
-  takeLoginLinkCode,
+  saveOAuthState,
+  takeOAuthCallback,
 } from './loginLink';
 import WrapperPage from './WrapperPage';
 
-interface RedeemedLoginLink {
+interface WechatOaLogin {
   id: string;
   access_token: string;
   redirect: string;
 }
 
+interface WechatOaAuthorize {
+  auth_url: string;
+  state: string;
+}
+
+const FAILURE_MESSAGES: Record<LoginLinkFailure, string> = {
+  not_wechat: 'login_link.not_wechat',
+  not_bound: 'login_link.not_bound',
+  not_owner: 'login_link.not_owner',
+  failed: 'login_link.failed',
+};
+
 /**
- * One-time purchase login link sent by the WeChat official account. The code
- * is in the hash so it never reaches a server log; it is removed from the
- * address bar before anything else and redeemed with a POST, so prefetching
- * the page does not use it up.
+ * Purchase link sent by the WeChat official account. It carries no secret:
+ * the page runs a silent WeChat OAuth and signs in as whichever account the
+ * WeChat user is bound to now, then goes to that namespace's pricing page.
  */
 export default function LoginLinkPage() {
   const { t } = useTranslation();
-  const [failed, setFailed] = useState(false);
+  const [failure, setFailure] = useState<LoginLinkFailure | null>(null);
   const started = useRef(false);
 
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    const code = takeLoginLinkCode();
-    if (!code) {
-      setFailed(true);
+    const callback = takeOAuthCallback();
+    if (callback) {
+      if (!callback.valid) {
+        setFailure('failed');
+        return;
+      }
+      http
+        .post(
+          '/auth/wechat-oa-login',
+          { code: callback.code, state: callback.state },
+          { mute: true }
+        )
+        .then((result: WechatOaLogin) => {
+          setGlobalCredential(result.id, result.access_token);
+          leaveTo(safeRedirect(result.redirect));
+        })
+        .catch(error => setFailure(failureKind(error)));
+      return;
+    }
+    if (!isWechatBrowser(window.navigator.userAgent)) {
+      setFailure('not_wechat');
       return;
     }
     http
-      .post('/auth/login-links/redeem', { code }, { mute: true })
-      .then((result: RedeemedLoginLink) => {
-        setGlobalCredential(result.id, result.access_token);
-        leaveTo(safeRedirect(result.redirect));
+      .get('/auth/wechat-oa-login/authorize', { mute: true })
+      .then((result: WechatOaAuthorize) => {
+        saveOAuthState(result.state);
+        leaveTo(result.auth_url);
       })
-      .catch(() => setFailed(true));
+      .catch(() => setFailure('failed'));
   }, []);
 
   return (
     <WrapperPage useCard={false}>
-      {failed ? (
+      {failure ? (
         <div className="flex flex-col items-center gap-4 text-center">
           <p className="text-sm text-muted-foreground">
-            {t('login_link.invalid')}
+            {t(FAILURE_MESSAGES[failure])}
           </p>
           <Button asChild>
             <a href={PRICING_PATH}>{t('login_link.go_pricing')}</a>
