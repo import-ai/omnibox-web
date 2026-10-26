@@ -1,9 +1,7 @@
-import { ListChecks, ListVideo, RefreshCw } from 'lucide-react';
+import { ListChecks, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { DoneIcon } from '@/assets/icons/DoneIcon';
-import { ProgressIcon } from '@/assets/icons/ProgressIcon';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/Button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,7 +59,9 @@ export default function ResourceTasks({}: ResourceTasksProps) {
             {t('tasks.related_tasks')}
           </span>
         </div>
-        <span className="text-sm text-red-600">{error}</span>
+        <span role="alert" className="text-sm text-destructive">
+          {error}
+        </span>
       </div>
     );
   }
@@ -96,6 +96,9 @@ export default function ResourceTasks({}: ResourceTasksProps) {
   // Resolved against the full task list so a retry hides the task it replaced
   const failedTasks = getFailedTasks(relevantTasks, tasks);
   const canceledTasks = getCanceledTasks(relevantTasks, tasks);
+  const PendingIcon = getTaskBadgeConfig('pending').icon;
+  const RunningIcon = getTaskBadgeConfig('running').icon;
+  const FinishedIcon = getTaskBadgeConfig('finished').icon;
   const FailedIcon = getTaskBadgeConfig(failedTasks[0]?.status || 'error').icon;
   const CanceledIcon = getTaskBadgeConfig('canceled').icon;
 
@@ -124,9 +127,9 @@ export default function ResourceTasks({}: ResourceTasksProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
-                  className="h-6 gap-0.5 rounded-lg border border-neutral-500 bg-transparent px-2 py-0 text-xs text-neutral-500 focus-visible:outline-none dark:border-neutral-300 dark:text-neutral-300"
+                  className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
-                  <ListVideo />
+                  <PendingIcon className="size-4" />
                   {t('tasks.status_label_pending')}
                 </Button>
               </DropdownMenuTrigger>
@@ -150,9 +153,9 @@ export default function ResourceTasks({}: ResourceTasksProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
-                  className="h-6 gap-0.5 rounded-lg border border-blue-500 bg-transparent px-2 py-0 text-xs text-blue-500 dark:border-blue-400 dark:text-blue-400"
+                  className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
-                  <ProgressIcon />
+                  <RunningIcon className="size-4" />
                   {t('tasks.status_label_running')}
                 </Button>
               </DropdownMenuTrigger>
@@ -176,9 +179,9 @@ export default function ResourceTasks({}: ResourceTasksProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
-                  className="h-6 gap-0.5 rounded-lg border border-green-600 bg-transparent px-2 py-0 text-xs text-green-600 dark:border-green-500 dark:text-green-500"
+                  className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
-                  <DoneIcon />
+                  <FinishedIcon className="size-4" />
                   {t('tasks.status_label_finished')}
                 </Button>
               </DropdownMenuTrigger>
@@ -202,9 +205,9 @@ export default function ResourceTasks({}: ResourceTasksProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
-                  className="h-6 gap-0.5 rounded-lg border border-red-600 bg-transparent px-2 py-0 text-xs text-red-600 dark:border-red-500 dark:text-red-500"
+                  className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
-                  <FailedIcon className="size-3.5" />
+                  <FailedIcon className="size-4" />
                   {t('tasks.status_label_failed')}
                 </Button>
               </DropdownMenuTrigger>
@@ -228,9 +231,9 @@ export default function ResourceTasks({}: ResourceTasksProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="secondary"
-                  className="h-6 gap-0.5 rounded-lg border border-neutral-500 bg-transparent px-2 py-0 text-xs text-neutral-500 focus-visible:outline-none dark:border-neutral-300 dark:text-neutral-300"
+                  className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
-                  <CanceledIcon className="size-3.5" />
+                  <CanceledIcon className="size-4" />
                   {t('tasks.status_label_canceled')}
                 </Button>
               </DropdownMenuTrigger>
@@ -256,7 +259,7 @@ export default function ResourceTasks({}: ResourceTasksProps) {
               onClick={() => {
                 void retry();
               }}
-              className="h-6 gap-0.5 rounded-lg border border-neutral-500 bg-transparent px-2 py-0 text-xs text-neutral-500 dark:border-neutral-300 dark:text-neutral-300"
+              className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
             >
               {retrying ? <Spinner /> : <RefreshCw className="size-3" />}
               {t('common.retry')}

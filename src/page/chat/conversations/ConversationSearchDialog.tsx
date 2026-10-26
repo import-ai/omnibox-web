@@ -198,7 +198,7 @@ export default function ConversationSearchDialog({
       placeholder={t('chat.conversations.search')}
       clearLabel={t('search.clear')}
       closeLabel={t('close')}
-      contentClassName="max-w-[920px]"
+      contentClassName="sm:max-w-[920px]"
     >
       <div className="min-h-0 flex-1">
         <CommandList className={searchResultListClassName}>

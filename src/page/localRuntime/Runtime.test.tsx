@@ -2,7 +2,6 @@
 
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { Simulate } from 'react-dom/test-utils';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { http } from '@/lib/request';
@@ -288,7 +287,11 @@ it('opens uploaded artifacts beside the conversation like chat resource links', 
   expect(link.textContent).toBe('report.txt');
   expect(link.getAttribute('href')).toBe('/namespace-a/file-1');
   expect(link.getAttribute('target')).toBeNull();
-  Simulate.click(link, { button: 0 });
+  await act(async () => {
+    link.dispatchEvent(
+      new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 })
+    );
+  });
   expect(show).toHaveBeenCalledWith(
     'namespace-a',
     'conversation-a',
@@ -345,11 +348,13 @@ it('ignores IME confirmation and saves only a subsequent ordinary Enter', async 
     root.render(<RenameDevice device={device} refresh={() => {}} />)
   );
   const input = container.querySelector('input')!;
-  await act(async () =>
-    Simulate.change(input, {
-      target: { value: 'zhong' },
-    } as unknown as React.ChangeEvent<HTMLInputElement>)
-  );
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value'
+    )!.set!.call(input, 'zhong');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   for (const extra of [{ isComposing: true }, { keyCode: 229 }]) {
     await act(async () =>
       input.dispatchEvent(
@@ -358,11 +363,13 @@ it('ignores IME confirmation and saves only a subsequent ordinary Enter', async 
     );
   }
   expect(mockPatch).not.toHaveBeenCalled();
-  await act(async () =>
-    Simulate.change(input, {
-      target: { value: '中文电脑' },
-    } as unknown as React.ChangeEvent<HTMLInputElement>)
-  );
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      'value'
+    )!.set!.call(input, '中文电脑');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
   await act(async () =>
     input.dispatchEvent(
       new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })
@@ -371,6 +378,21 @@ it('ignores IME confirmation and saves only a subsequent ordinary Enter', async 
   expect(mockPatch).toHaveBeenCalledWith('/local-devices/device-a', {
     name: '中文电脑',
   });
+});
+
+it('shows the unavailable cursor when a device cannot be renamed', async () => {
+  await act(async () =>
+    root.render(
+      <RenameDevice device={{ ...device, online: false }} refresh={() => {}} />
+    )
+  );
+  const rename = container.querySelector(
+    'button[aria-label="local_runtime.rename"]'
+  ) as HTMLButtonElement;
+  expect(rename.disabled).toBe(true);
+  expect(rename.className).toContain('pointer-events-none');
+  expect(rename.className).toContain('opacity-50');
+  expect(rename.parentElement?.className).toContain('cursor-not-allowed');
 });
 
 it('clears the host device identity and ignores requests from the old account', async () => {

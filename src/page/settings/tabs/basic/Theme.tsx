@@ -1,26 +1,76 @@
-import { Check, ChevronDown, SunMoon } from 'lucide-react';
+import { SunMoon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/ui/Button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/DropdownMenu';
+import { Button } from '@/components/Button';
 import useTheme from '@/hooks/useTheme';
 import { http } from '@/lib/request';
+import { cn } from '@/lib/utils';
+
+type ThemeSkin = 'light' | 'system' | 'dark';
+
+function ThemePreview({
+  skin,
+  selected,
+}: {
+  skin: ThemeSkin;
+  selected: boolean;
+}) {
+  const isDark = skin === 'dark';
+  const isSystem = skin === 'system';
+
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        'relative block aspect-[1.35] w-full overflow-hidden rounded-md border p-1 transition-colors',
+        selected ? 'border-ring ring-1 ring-ring' : 'border-border',
+        isDark ? 'bg-neutral-900' : 'bg-white'
+      )}
+    >
+      {isSystem ? (
+        <span className="absolute inset-0 grid grid-cols-2">
+          <span className="bg-white" />
+          <span className="bg-neutral-900" />
+        </span>
+      ) : null}
+      <span
+        className={cn(
+          'absolute inset-2 rounded-[4px] border p-1.5 shadow-sm',
+          isDark
+            ? 'border-neutral-600 bg-neutral-800'
+            : 'border-neutral-100 bg-white'
+        )}
+      >
+        <span
+          className={cn(
+            'mb-1 block h-1 w-1/2 rounded-full',
+            isDark ? 'bg-neutral-400' : 'bg-neutral-300'
+          )}
+        />
+        <span
+          className={cn(
+            'mb-1 block h-1 w-3/4 rounded-full',
+            isDark ? 'bg-neutral-600' : 'bg-neutral-100'
+          )}
+        />
+        <span
+          className={cn(
+            'block h-1 w-2/3 rounded-full',
+            isDark ? 'bg-neutral-600' : 'bg-neutral-100'
+          )}
+        />
+      </span>
+    </span>
+  );
+}
 
 export default function Theme() {
   const { t } = useTranslation();
   const { theme, onToggleTheme } = useTheme();
-  const data: Array<{
-    label: string;
-    value: 'light' | 'system' | 'dark';
-  }> = [
+  const data: Array<{ label: string; value: ThemeSkin }> = [
+    { label: t('manage.theme_system'), value: 'system' },
     { label: t('manage.theme_light'), value: 'light' },
     { label: t('manage.theme_dark'), value: 'dark' },
-    { label: t('manage.theme_system'), value: 'system' },
   ];
   const handleToggleTheme = (skin: 'light' | 'system' | 'dark') => {
     http.post('/user/option', {
@@ -29,44 +79,40 @@ export default function Theme() {
     });
   };
 
-  const selectedLabel =
-    data.find(item => item.value === theme.skin)?.label ||
-    t('setting.select_placeholder');
-
   return (
-    <div className="flex h-10 w-full items-center justify-between gap-2">
-      <div className="flex shrink-0 items-center gap-2">
-        <SunMoon className="size-4 dark:text-neutral-50 lg:size-5" />
-        <span className="whitespace-nowrap text-sm font-semibold text-foreground lg:text-base">
+    <div className="grid w-full grid-cols-[24px_minmax(0,1fr)] sm:grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-2 px-2 py-2">
+      <SunMoon className="size-4 text-muted-foreground" />
+      <span className="min-w-0">
+        <span className="block text-sm font-medium leading-5 text-foreground">
           {t('manage.theme_setting')}
         </span>
-      </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="outline"
-            className="h-8 w-[120px] justify-between rounded-md border-border bg-transparent px-2 font-normal shadow-none lg:h-9 lg:w-[180px] lg:px-3"
-          >
-            <span className="text-xs font-normal text-neutral-950 dark:text-neutral-50 lg:text-sm">
-              {selectedLabel}
-            </span>
-            <ChevronDown className="size-4 text-foreground" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-[120px] dark:bg-neutral-900 lg:w-[180px]">
-          {data.map(item => (
-            <DropdownMenuItem
+        <span className="block whitespace-normal text-xs leading-4 text-muted-foreground">
+          {t('manage.theme_description')}
+        </span>
+      </span>
+      <div className="col-start-2 flex w-[216px] max-w-full gap-2 sm:col-start-auto lg:w-[240px]">
+        {data.map(item => {
+          const selected = item.value === theme.skin;
+          return (
+            <Button
               key={item.value}
-              className="flex justify-between dark:focus:bg-neutral-700"
+              type="button"
+              variant="ghost"
+              aria-pressed={selected}
+              className={cn(
+                'h-auto min-w-0 flex-1 flex-col gap-1 rounded-md p-0 text-xs font-normal hover:bg-transparent!',
+                selected
+                  ? 'cursor-default text-foreground'
+                  : 'cursor-pointer text-muted-foreground hover:text-foreground'
+              )}
               onClick={() => handleToggleTheme(item.value)}
             >
-              {item.label}
-              {item.value === theme.skin && <Check className="size-4" />}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <ThemePreview skin={item.value} selected={selected} />
+              <span>{item.label}</span>
+            </Button>
+          );
+        })}
+      </div>
     </div>
   );
 }

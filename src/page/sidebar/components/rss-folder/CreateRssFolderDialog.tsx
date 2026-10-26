@@ -1,9 +1,10 @@
 import { Plus, X } from 'lucide-react';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import ActionDialog from '@/components/invite-dialog/ActionDialog';
+import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Input } from '@/components/ui/Input';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import { cn } from '@/lib/utils';
@@ -55,7 +56,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
         title={dialogTitle}
         open={open}
         onOpenChange={handleDialogOpenChange}
-        contentClassName="max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl bg-white pt-5 dark:bg-neutral-900 sm:max-w-[650px] sm:px-7 sm:pb-7 sm:pt-5"
+        contentClassName="max-h-[90vh] w-[calc(100vw-32px)] gap-5 overflow-y-auto rounded-xl bg-popover pt-5 sm:max-w-[650px] sm:px-7 sm:pb-7 sm:pt-5"
         titleClassName="text-lg font-semibold leading-7 text-foreground"
         closeClassName="size-6"
         closeWrapperClassName="right-5 top-5"
@@ -124,9 +125,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
           >
             {rows.map((row, index) => (
               <div key={index}>
-                {index > 0 && (
-                  <div className="mb-4 h-px bg-slate-100 dark:bg-neutral-800" />
-                )}
+                {index > 0 && <div className="mb-4 h-px bg-border" />}
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
                   <div className="space-y-1.5">
                     <Label
@@ -198,7 +197,10 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-8 gap-1 px-0 text-sm font-normal hover:bg-transparent"
+                  className={cn(
+                    iconButtonHoverClassName,
+                    'h-8 gap-1 px-0 text-sm font-normal'
+                  )}
                   onClick={addLink}
                   disabled={!canAddLink}
                 >

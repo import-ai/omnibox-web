@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { TooltipProvider } from '@/components/tooltip';
+
 import Apple from '../apple';
 import { Available } from '../available';
 import Email from '../email';
@@ -42,7 +44,7 @@ export default function RegisterPage() {
   }, [navigate, params]);
 
   return (
-    <WrapperPage extra={<MetaPage />} showAppDownload>
+    <WrapperPage layout="split" extra={<MetaPage />} showAppDownload>
       {scan ? (
         <Scan onScan={onScan} />
       ) : (
@@ -51,29 +53,33 @@ export default function RegisterPage() {
             {available => {
               return (
                 <div className="grid gap-6">
-                  <div className="flex flex-col gap-2">
-                    {contactMethod === 'phone' ? (
-                      <Email
-                        onClick={() => setContactMethod('email')}
-                        mode="register"
-                      />
-                    ) : (
-                      <Phone
-                        onClick={() => setContactMethod('phone')}
-                        mode="register"
-                      />
-                    )}
-                    {available.wechat && (
-                      <WeChat onScan={onScan} mode="register" />
-                    )}
-                    {available.google && <Google mode="register" />}
-                    {available.apple && <Apple mode="register" />}
-                  </div>
                   <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                    <span className="bg-white dark:bg-[#171717] text-muted-foreground relative z-10 px-2">
+                    <span className="bg-background text-muted-foreground relative z-10 px-2">
                       {t('login.or_continue')}
                     </span>
                   </div>
+                  <TooltipProvider>
+                    <div className="grid grid-cols-4 gap-2">
+                      {contactMethod === 'phone' ? (
+                        <Email
+                          onClick={() => setContactMethod('email')}
+                          mode="register"
+                          iconOnly
+                        />
+                      ) : (
+                        <Phone
+                          onClick={() => setContactMethod('phone')}
+                          mode="register"
+                          iconOnly
+                        />
+                      )}
+                      {available.wechat && (
+                        <WeChat onScan={onScan} mode="register" iconOnly />
+                      )}
+                      {available.google && <Google mode="register" iconOnly />}
+                      {available.apple && <Apple mode="register" iconOnly />}
+                    </div>
+                  </TooltipProvider>
                 </div>
               );
             }}

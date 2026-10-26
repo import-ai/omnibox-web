@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 
 interface ConfirmPermanentDeleteDialogProps {
   open: boolean;
@@ -47,10 +47,7 @@ export function ConfirmPermanentDeleteDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            onClick={handleConfirm}
-          >
+          <AlertDialogAction variant="destructive" onClick={handleConfirm}>
             {t('delete')}
           </AlertDialogAction>
         </AlertDialogFooter>

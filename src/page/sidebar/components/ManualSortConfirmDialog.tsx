@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/AlertDialog';
+} from '@/components/ui/alert-dialog';
 
 interface ManualSortConfirmDialogProps {
   open: boolean;
@@ -32,7 +32,7 @@ export function ManualSortConfirmDialog({
 
   return (
     <AlertDialog open={open}>
-      <AlertDialogContent className="w-[85%] max-w-sm">
+      <AlertDialogContent className="w-[85%] max-w-sm sm:max-w-sm">
         <AlertDialogHeader>
           <AlertDialogTitle>{t('sidebar.sort.confirm_title')}</AlertDialogTitle>
           <AlertDialogDescription>

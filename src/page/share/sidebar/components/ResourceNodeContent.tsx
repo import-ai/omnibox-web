@@ -2,9 +2,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { Arrow } from '@/assets/icons/Arrow';
+import { Button } from '@/components/Button';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 import {
   Collapsible,
   CollapsibleContent,
@@ -29,9 +29,14 @@ import ResourceNode from './ResourceNode';
 import { ResourceTreeProps } from './ResourceNode';
 
 interface ResourceNodeContentProps extends ResourceTreeProps {
+  depth?: number;
   node: TreeNode;
   nodeId: string;
+  renderChildren?: boolean;
 }
+
+// One nested SidebarMenuSub: mx-3.5 + border-l + px-2.5. mr-0/pr-0 keep the left side.
+const SHARE_SUBMENU_INSET = 25;
 
 export function ResourceNodeContent({
   node,
@@ -42,6 +47,8 @@ export function ResourceNodeContent({
   isResourceActive,
   onAddToContext,
   canBrowseResources,
+  depth = 0,
+  renderChildren = true,
 }: ResourceNodeContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -123,12 +130,29 @@ export function ResourceNodeContent({
             isChatActive={isChatActive}
             onAddToContext={onAddToContext}
           >
-            <div className="group/sidebar-item my-px rounded-md hover:bg-sidebar-accent">
-              <Tooltip delayDuration={0}>
+            <div
+              className="group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent"
+              style={
+                depth > 0
+                  ? { marginLeft: depth * SHARE_SUBMENU_INSET }
+                  : undefined
+              }
+            >
+              {Array.from({ length: depth }, (_, level) => (
+                <span
+                  key={level}
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 w-px bg-sidebar-border"
+                  style={{
+                    left: (level - depth) * SHARE_SUBMENU_INSET + 14,
+                  }}
+                />
+              ))}
+              <Tooltip delayDuration={0} disableHoverableContent>
                 <TooltipTrigger asChild>
                   <SidebarMenuButton
                     asChild
-                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:!pr-[30px] group-has-[[data-sidebar=menu-action]]/menu-item:pr-1 data-[active=true]:bg-[#E2E2E6] data-[active=true]:font-normal dark:data-[active=true]:bg-[#363637]"
+                    className="h-auto gap-1 py-1.5 transition-none group-hover/sidebar-item:pr-[30px]! group-has-data-[sidebar=menu-action]/menu-item:pr-1 data-[active=true]:bg-sidebar-accent data-[active=true]:font-normal"
                     onClick={handleActive}
                     isActive={isActive}
                   >
@@ -143,16 +167,16 @@ export function ResourceNodeContent({
                         (nodeUI?.loading ? (
                           <Button
                             size="icon"
-                            variant="outline"
-                            className="size-5 border-none bg-transparent shadow-none hover:bg-transparent"
+                            variant="ghost"
+                            className="size-5 cursor-pointer border-none bg-transparent shadow-none hover:bg-transparent dark:hover:bg-transparent"
                           >
                             <Spinner />
                           </Button>
                         ) : (
                           <Button
                             size="icon"
-                            variant="outline"
-                            className="size-5 border-none bg-transparent text-neutral-400 shadow-none hover:bg-transparent"
+                            variant="ghost"
+                            className="size-5 cursor-pointer border-none bg-transparent text-muted-foreground shadow-none hover:bg-transparent dark:hover:bg-transparent"
                             onClick={event => {
                               event.preventDefault();
                               event.stopPropagation();
@@ -203,24 +227,26 @@ export function ResourceNodeContent({
             </div>
           </ContextMenuMain>
         </CollapsibleTrigger>
-        <CollapsibleContent>
-          <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
-            {canRenderChildren &&
-              isExpanded &&
-              node.children.map(childId => (
-                <ResourceNode
-                  nodeId={childId}
-                  key={childId}
-                  shareId={shareId}
-                  showChat={showChat}
-                  isChatActive={isChatActive}
-                  isResourceActive={isResourceActive}
-                  onAddToContext={onAddToContext}
-                  canBrowseResources={canBrowseResources}
-                />
-              ))}
-          </SidebarMenuSub>
-        </CollapsibleContent>
+        {renderChildren && (
+          <CollapsibleContent>
+            <SidebarMenuSub className="mr-0 gap-0 py-0 pr-0">
+              {canRenderChildren &&
+                isExpanded &&
+                node.children.map(childId => (
+                  <ResourceNode
+                    nodeId={childId}
+                    key={childId}
+                    shareId={shareId}
+                    showChat={showChat}
+                    isChatActive={isChatActive}
+                    isResourceActive={isResourceActive}
+                    onAddToContext={onAddToContext}
+                    canBrowseResources={canBrowseResources}
+                  />
+                ))}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        )}
       </Collapsible>
     </SidebarMenuItem>
   );

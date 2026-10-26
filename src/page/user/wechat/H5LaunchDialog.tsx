@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/omnibox/Dialog';
 
 interface H5LaunchDialogProps {
   open: boolean;
@@ -22,7 +22,7 @@ export function H5LaunchDialog(props: H5LaunchDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-sm sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{t('login.wechat_h5_title')}</DialogTitle>
           <DialogDescription>

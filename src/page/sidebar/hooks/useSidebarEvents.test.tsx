@@ -67,6 +67,8 @@ jest.mock('@/components/sonner', () => ({
 }));
 jest.mock('@/page/resource/resourceNavigation', () => ({
   navigateToResource: jest.fn(),
+  isReservedWorkspaceSegment: (segment?: string) =>
+    segment === 'chat' || segment === 'invite-referral',
 }));
 jest.mock('@/page/sidebar/components/smart-folder', () => ({
   withSmartFolderChildSidebarAttrs: (resource: unknown) => resource,
@@ -289,7 +291,9 @@ describe('useSidebarEvents delete undo restores the detail page', () => {
       expect.any(Function),
       `/${NAMESPACE_ID}/doc-1`
     );
-    expect(locateSidebarResource).toHaveBeenCalledWith('doc-1');
+    expect(locateSidebarResource).toHaveBeenCalledWith('doc-1', {
+      behavior: 'smooth',
+    });
   });
 
   it('opens the restored resource even if another page was showing', async () => {
@@ -309,7 +313,9 @@ describe('useSidebarEvents delete undo restores the detail page', () => {
       expect.any(Function),
       `/${NAMESPACE_ID}/doc-1`
     );
-    expect(locateSidebarResource).toHaveBeenCalledWith('doc-1');
+    expect(locateSidebarResource).toHaveBeenCalledWith('doc-1', {
+      behavior: 'smooth',
+    });
   });
 
   it('navigates back from chat after deleting the last visible resource', async () => {
@@ -329,6 +335,8 @@ describe('useSidebarEvents delete undo restores the detail page', () => {
       expect.any(Function),
       `/${NAMESPACE_ID}/doc-1`
     );
-    expect(locateSidebarResource).toHaveBeenCalledWith('doc-1');
+    expect(locateSidebarResource).toHaveBeenCalledWith('doc-1', {
+      behavior: 'smooth',
+    });
   });
 });

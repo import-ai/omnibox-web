@@ -26,18 +26,21 @@ export default function ShareTabs(props: ShareTabsProps) {
 
   return (
     <Tabs defaultValue={showPermissions ? 'permissions' : 'share'}>
-      <TabsList className="w-full justify-start h-11 border-b rounded-none px-5">
+      <TabsList
+        variant="line"
+        className="w-full justify-start border-b border-border px-4 group-data-horizontal/tabs:h-11"
+      >
         {showPermissions && (
           <TabsTrigger
             value="permissions"
-            className="flex-1 h-11 max-w-[80px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
+            className="h-full max-w-24 px-4 group-data-horizontal/tabs:after:bottom-[-3px]"
           >
             {t('share.permissions.title')}
           </TabsTrigger>
         )}
         <TabsTrigger
           value="share"
-          className="flex-1 h-11 max-w-[80px] data-[state=active]:border-b-2 data-[state=active]:border-black data-[state=active]:rounded-none data-[state=active]:shadow-none data-[state=active]:bg-transparent"
+          className="h-full max-w-24 px-4 group-data-horizontal/tabs:after:bottom-[-3px]"
         >
           {t('share.share.title')}
         </TabsTrigger>

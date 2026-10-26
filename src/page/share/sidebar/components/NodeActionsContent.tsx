@@ -1,6 +1,7 @@
 import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,7 @@ import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils';
 import type { UseNodeActionsReturn } from '@/page/share/sidebar/hooks/useNodeActions';
 import { useNodeMenu } from '@/page/share/sidebar/hooks/useNodeMenu';
+import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
 import { menuIconClass, menuItemClass } from './shared';
 
@@ -23,25 +25,35 @@ interface NodeActionsContentProps {
 export function NodeActionsContent({ actions }: NodeActionsContentProps) {
   const isTouch = useIsTouch();
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuTriggerPress = useMenuTriggerPress();
 
   const menuItems = useNodeMenu(actions);
 
   return (
     <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
         <SidebarMenuAction
           asChild
           className={cn(
-            'right-2 size-4 cursor-pointer !text-neutral-400 hover:bg-transparent hover:!text-sidebar-foreground focus-visible:outline-none focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
+            sidebarToolbarIconButtonClassName,
+            'right-2 size-4 cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent peer-data-[size=default]/menu-button:top-2',
             isTouch
               ? 'pointer-events-auto opacity-100'
               : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'
           )}
         >
-          <MoreHorizontal className="cursor-pointer focus-visible:outline-none focus-visible:ring-transparent" />
+          <button type="button">
+            <MoreHorizontal />
+          </button>
         </SidebarMenuAction>
       </DropdownMenuTrigger>
-      <DropdownMenuContent side="right" align="start" sideOffset={10}>
+      <DropdownMenuContent
+        side="right"
+        align="start"
+        sideOffset={10}
+        className="w-auto! min-w-36"
+        {...menuTriggerPress.contentProps}
+      >
         {menuItems.map(item => {
           if (item.separator) {
             return <DropdownMenuSeparator key={item.key} />;
@@ -51,23 +63,12 @@ export function NodeActionsContent({ actions }: NodeActionsContentProps) {
           return (
             <DropdownMenuItem
               key={item.key}
-              className={
-                item.destructive
-                  ? 'group cursor-pointer gap-2 data-[highlighted]:text-destructive'
-                  : menuItemClass
-              }
+              variant={item.destructive ? 'destructive' : 'default'}
+              className={menuItemClass}
               onClick={item.onClick}
               onSelect={item.onSelect}
             >
-              {Icon && (
-                <Icon
-                  className={
-                    item.destructive
-                      ? 'size-4 text-neutral-500 group-hover:text-destructive dark:text-[#a1a1a1]'
-                      : menuIconClass
-                  }
-                />
-              )}
+              {Icon && <Icon className={menuIconClass} />}
               {item.label}
             </DropdownMenuItem>
           );

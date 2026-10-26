@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/Select';
+} from '@/components/omnibox/Select';
 import { ShareType, shareTypeToString } from '@/interface';
 
 export interface ShareTypeProps {

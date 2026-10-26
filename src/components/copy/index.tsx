@@ -3,8 +3,9 @@ import { Check, Copy } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
-import { Button } from '@/components/ui/Button';
 
 interface IProps {
   content: string;
@@ -43,14 +44,18 @@ export default function CopyMain(props: IProps) {
     <Tooltip>
       <TooltipTrigger asChild>
         {copied ? (
-          <Button size="icon" variant="ghost" className="p-0 w-7 h-7">
+          <Button
+            size="icon"
+            variant="ghost"
+            className={`${sidebarToolbarIconButtonClassName} size-7`}
+          >
             <Check />
           </Button>
         ) : (
           <Button
             size="icon"
             variant="ghost"
-            className="p-0 w-7 h-7"
+            className={`${sidebarToolbarIconButtonClassName} size-7`}
             onClick={handleCopy}
           >
             <Copy />

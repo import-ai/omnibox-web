@@ -1,20 +1,29 @@
 import Hook from '@/hooks/hook.class';
 import { Theme } from '@/interface';
+import { resolveColorTheme } from '@/lib/colorThemes';
+import { fonts, resolveFont } from '@/lib/fonts';
 
 const defaultTheme: Theme = {
+  colorTheme: 'omnibox',
+  font: 'system',
   skin: 'system',
   content: 'light',
   code: 'github',
 };
 
 export default class App extends Hook {
-  public theme = defaultTheme;
+  public theme = { ...defaultTheme };
 
   constructor() {
     super();
     const cache = localStorage.getItem('theme');
     if (cache) {
-      this.theme = JSON.parse(cache);
+      try {
+        const stored: Theme = JSON.parse(cache);
+        this.theme = { ...defaultTheme, ...stored };
+      } catch {
+        // Ignore invalid cached preferences and use the defaults.
+      }
     }
     this.applyTheme(this.theme.skin);
 
@@ -29,6 +38,14 @@ export default class App extends Hook {
   }
 
   applyTheme(skin: 'light' | 'system' | 'dark') {
+    this.theme.font = resolveFont(this.theme.font);
+    document.documentElement.style.setProperty(
+      '--app-font',
+      fonts.find(font => font.name === this.theme.font)!.family
+    );
+    document.documentElement.dataset.font = this.theme.font;
+    this.theme.colorTheme = resolveColorTheme(this.theme.colorTheme);
+    document.documentElement.dataset.colorTheme = this.theme.colorTheme;
     let state = skin;
     if (skin === 'system') {
       state = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -58,7 +75,15 @@ export default class App extends Hook {
     return this.theme;
   }
 
-  toggleTheme(skin?: 'light' | 'system' | 'dark'): Theme {
+  toggleTheme(
+    skin?: 'light' | 'system' | 'dark',
+    colorTheme?: string,
+    font?: string
+  ): Theme {
+    if (font !== undefined) this.theme.font = resolveFont(font);
+    if (colorTheme !== undefined) {
+      this.theme.colorTheme = resolveColorTheme(colorTheme);
+    }
     let skinArgs: 'light' | 'system' | 'dark' = 'light';
     if (skin) {
       skinArgs = skin;

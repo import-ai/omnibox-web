@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/Dialog';
+} from '@/components/ui/dialog';
 import useApplications from '@/hooks/useApplications';
 import useUser from '@/hooks/useUser';
 import PhoneValidate from '@/page/settings/tabs/account/PhoneValidate';

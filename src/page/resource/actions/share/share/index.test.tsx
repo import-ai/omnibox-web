@@ -18,7 +18,12 @@ jest.mock('react-i18next', () => ({
   Trans: ({ i18nKey }: { i18nKey: string }) => i18nKey,
   useTranslation: () => ({ t: (key: string) => key }),
 }));
-jest.mock('sonner', () => ({ toast: jest.fn() }));
+jest.mock('sonner', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
+}));
 jest.mock('@/lib/request', () => ({
   http: {
     get: (...args: unknown[]) => mockGet(...args),
@@ -41,7 +46,7 @@ jest.mock('@/components/tooltip', () => ({
   TooltipProvider: ({ children }: { children?: ReactNode }) => children,
   TooltipTrigger: ({ children }: { children?: ReactNode }) => children,
 }));
-jest.mock('@/components/ui/Button', () => ({
+jest.mock('@/components/Button', () => ({
   Button: ({
     children,
     disabled,
@@ -162,7 +167,13 @@ describe('ShareTabContent', () => {
     const input = container.querySelector<HTMLInputElement>(
       '[data-testid="share-url"]'
     )!;
-    return { input, copyButton: input.nextElementSibling as HTMLButtonElement };
+    const sibling = input.nextElementSibling;
+    const copyButton = (
+      sibling instanceof HTMLButtonElement
+        ? sibling
+        : sibling?.querySelector('button')
+    ) as HTMLButtonElement;
+    return { input, copyButton };
   };
 
   it.each([
@@ -340,6 +351,10 @@ describe('ShareTabContent', () => {
     ) as HTMLButtonElement;
     expect(shareSwitch.disabled).toBe(false);
     expect(shareSwitch.getAttribute('aria-checked')).toBe('false');
+    const copyButton = container.querySelector(
+      '.cursor-not-allowed button'
+    ) as HTMLButtonElement;
+    expect(copyButton.disabled).toBe(true);
   });
 
   it('disables sharing while the folder setting is normalized', async () => {

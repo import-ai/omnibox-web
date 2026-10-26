@@ -2,6 +2,14 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SearchField } from '@/components/search/SearchField';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/Table';
 import { Group, Member } from '@/interface';
 
 import CreateGroup from './CreateGroup';
@@ -32,7 +40,7 @@ export default function GroupMain(props: GroupProps) {
     refetch();
   };
   const handleToggle = (open: boolean) => {
-    onEdit({ open });
+    onEdit(current => (open ? { ...current, open } : { open }));
   };
   const handleEdit = (id: string, title: string) => {
     onEdit({
@@ -50,8 +58,7 @@ export default function GroupMain(props: GroupProps) {
           onValueChange={onSearch}
           placeholder={t('manage.search')}
           clearLabel={t('search.clear')}
-          containerClassName="h-7 min-h-7 w-[150px] rounded-md border-border lg:h-9 lg:min-h-9 lg:w-[435px]"
-          inputClassName="h-7 lg:h-9"
+          containerClassName="w-full max-w-sm min-w-0 flex-1"
         />
         <CreateGroup
           data={edit}
@@ -59,33 +66,43 @@ export default function GroupMain(props: GroupProps) {
           onToggle={handleToggle}
         />
       </div>
-      <div className="max-w-[83vw] overflow-auto sm:max-w-full">
-        <div className="min-w-[320px]">
-          <div className="sticky top-0 z-10 flex w-full border-b border-border bg-background">
-            <div className="flex h-8 w-[100px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[210px] lg:text-base">
-              {t('manage.group')}
-            </div>
-            <div className="flex h-8 w-[90px] items-center whitespace-nowrap px-2 text-sm font-medium text-foreground lg:h-10 lg:w-[115px] lg:text-base">
-              {t('manage.member')}
-            </div>
-            <div className="flex h-8 w-[60px] items-center justify-center whitespace-nowrap text-sm font-medium text-foreground lg:h-10 lg:w-[127px] lg:text-base">
-              {t('manage.invite_link')}
-            </div>
-            <div className="flex h-8 flex-1 items-center px-2 lg:h-10"></div>
-          </div>
-          <div className="w-full text-sm">
-            {data.map(item => (
-              <GroupData
-                key={item.id}
-                {...item}
-                member={member}
-                refetch={refetch}
-                onEdit={handleEdit}
-                namespace_id={namespace_id}
-              />
-            ))}
-          </div>
-        </div>
+      <div className="overflow-hidden rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('manage.group')}</TableHead>
+              <TableHead>{t('manage.member')}</TableHead>
+              <TableHead className="text-center">
+                {t('manage.invite_link')}
+              </TableHead>
+              <TableHead className="text-right">
+                {t('common.actions')}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          {data.map(item => (
+            <GroupData
+              key={item.id}
+              {...item}
+              member={member}
+              refetch={refetch}
+              onEdit={handleEdit}
+              namespace_id={namespace_id}
+            />
+          ))}
+          <TableBody>
+            {data.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  {t('manage.no_results')}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { Button } from '@/components/button';
+import { Button } from '@/components/Button';
 import { http } from '@/lib/request';
 import { removeGlobalCredential } from '@/page/user/util';
 
@@ -31,7 +31,7 @@ export function Logout() {
       variant="ghost"
       loading={loading}
       onClick={handleLogout}
-      className="w-full gap-1 justify-start text-muted-foreground px-2"
+      className="h-8 w-full gap-1 justify-start px-2 text-muted-foreground"
     >
       <SquareArrowRightExit className="size-4" />
       {t('login.logout')}

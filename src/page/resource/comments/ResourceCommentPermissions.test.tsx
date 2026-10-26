@@ -25,8 +25,8 @@ jest.mock('@import-ai/omnibox-editor', () => ({}));
 jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default', hash: '' }),
 }));
-jest.mock('@/components/button', () =>
-  jest.requireActual('@/components/ui/Button')
+jest.mock('@/components/Button', () =>
+  jest.requireActual('@/components/ui/button')
 );
 jest.mock('@/service/resourceComments', () => ({
   createResourceComment: jest.fn(),

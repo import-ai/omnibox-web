@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { TooltipProvider } from '@/components/tooltip';
 import { Spinner } from '@/components/ui/Spinner';
 import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 
@@ -70,7 +71,7 @@ export default function LoginPage() {
   }
 
   return (
-    <WrapperPage extra={<MetaPage />} showAppDownload>
+    <WrapperPage layout="split" extra={<MetaPage />} showAppDownload>
       {scan ? (
         <Scan onScan={onScan} />
       ) : (
@@ -83,27 +84,31 @@ export default function LoginPage() {
             {available => {
               return (
                 <div className="grid gap-6">
-                  <div className="flex flex-col gap-2">
-                    {contactMethod === 'phone' ? (
-                      <Email
-                        onClick={() => setContactMethod('email')}
-                        mode="login"
-                      />
-                    ) : (
-                      <Phone
-                        onClick={() => setContactMethod('phone')}
-                        mode="login"
-                      />
-                    )}
-                    {available.wechat && <WeChat onScan={onScan} />}
-                    {available.google && <Google />}
-                    {available.apple && <Apple />}
-                  </div>
                   <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                    <span className="bg-white dark:bg-[#171717] text-muted-foreground relative z-10 px-2">
+                    <span className="bg-background text-muted-foreground relative z-10 px-2">
                       {t('login.or_continue')}
                     </span>
                   </div>
+                  <TooltipProvider>
+                    <div className="grid grid-cols-4 gap-2">
+                      {contactMethod === 'phone' ? (
+                        <Email
+                          onClick={() => setContactMethod('email')}
+                          mode="login"
+                          iconOnly
+                        />
+                      ) : (
+                        <Phone
+                          onClick={() => setContactMethod('phone')}
+                          mode="login"
+                          iconOnly
+                        />
+                      )}
+                      {available.wechat && <WeChat onScan={onScan} iconOnly />}
+                      {available.google && <Google iconOnly />}
+                      {available.apple && <Apple iconOnly />}
+                    </div>
+                  </TooltipProvider>
                 </div>
               );
             }}

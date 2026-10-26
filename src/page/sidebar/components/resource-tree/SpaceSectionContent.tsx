@@ -5,12 +5,14 @@ import {
   FolderPlus,
   MoreHorizontal,
 } from 'lucide-react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
 import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import { ContextMenuContent } from '@/components/ContextMenuContent';
+import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
   Tooltip,
   TooltipContent,
@@ -51,16 +53,23 @@ import {
 } from '@/page/sidebar/rssFolderQuota';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { isManagedChildrenNode } from '@/page/sidebar/store/utils';
 import {
   locateSidebarResource,
   triggerGlobalFileUpload,
 } from '@/page/sidebar/utils';
+import { flattenExpandedResources } from '@/page/sidebar/virtualResourceTree';
 import type { ResourceSortOptions } from '@/service/resource';
 
 import { DisabledMenuTooltip } from './DisabledMenuTooltip';
+import { useMenuTriggerPress } from './menuTriggerPress';
 import ResourceNode from './ResourceNode';
 import { ResourceSortMenu } from './ResourceSortMenu';
 import { menuIconClass, menuItemClass } from './shared';
+import {
+  VirtualEmptyFolderRow,
+  VirtualResourceRows,
+} from './VirtualResourceRows';
 
 interface SpaceSectionContentProps {
   rootNode: TreeNode;
@@ -106,8 +115,28 @@ export function SpaceSectionContent({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isTouch = useIsTouch();
+  const menuTriggerPress = useMenuTriggerPress();
 
   const upload = useSidebarStore(s => s.dialogs.upload[rootId]);
+  const nodes = useSidebarStore(s => s.nodes);
+  const nodeUI = useSidebarStore(s => s.ui);
+  const activeId = useSidebarStore(s => s.activeId);
+  const rows = useMemo(
+    () =>
+      flattenExpandedResources(
+        rootNode.children,
+        nodes,
+        id => nodeUI[id]?.expanded === true,
+        id => {
+          const node = nodes[id];
+          const ui = nodeUI[id];
+          return (
+            !!node && !!ui?.loaded && !ui.loading && isManagedChildrenNode(node)
+          );
+        }
+      ),
+    [nodeUI, nodes, rootNode.children]
+  );
 
   const handleCreateFolder = () => {
     useSidebarStore.getState().openCreateFolderDialog(rootId);
@@ -176,33 +205,33 @@ export function SpaceSectionContent({
   return (
     <SidebarGroup
       ref={dropRef}
-      className={cn('pr-0', {
+      className={cn('md:pr-0', {
         'bg-sidebar-border text-sidebar-accent-foreground':
           isFileDragOver || (canDrop && isOver),
       })}
     >
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <SidebarMenuButton className="group/sidebar-header h-8 pb-px pt-0">
+          <SidebarMenuButton className="group/sidebar-header h-(--sidebar-row-height) py-0">
             <div className="relative size-full">
               <SidebarGroupLabel
                 onClick={handleHeaderToggle}
-                className="mr-4 flex h-full items-center gap-1 font-normal leading-8 text-neutral-400"
+                className="mr-4 flex h-full cursor-pointer items-center gap-1 font-normal leading-none text-muted-foreground"
               >
                 {spaceType ? t(spaceType) : ''}
                 <ChevronRight
                   className={cn(
-                    '!size-3 shrink-0 dark:text-neutral-500 text-neutral-300 transition-transform',
+                    'size-3! shrink-0 text-muted-foreground transition-transform',
                     isOpen && 'rotate-90'
                   )}
                 />
               </SidebarGroupLabel>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
                   {upload !== undefined ? (
                     <SidebarMenuAction
                       asChild
-                      className="pointer-events-none right-0 top-px my-1.5 size-4 text-neutral-400 focus-visible:outline-none focus-visible:ring-transparent group-hover/sidebar-header:pointer-events-auto"
+                      className="pointer-events-none right-0 top-1/2 -translate-y-1/2 size-4 text-muted-foreground focus-visible:outline-hidden focus-visible:ring-transparent group-hover/sidebar-header:pointer-events-auto"
                     >
                       <span>
                         {upload ? (
@@ -227,17 +256,26 @@ export function SpaceSectionContent({
                     <SidebarMenuAction
                       asChild
                       className={cn(
-                        'right-0 top-0.5 my-1.5 size-4 text-neutral-400 hover:bg-transparent focus-visible:outline-none focus-visible:ring-transparent',
+                        sidebarToolbarIconButtonClassName,
+                        'right-0 top-1/2 size-4 -translate-y-1/2 cursor-pointer focus-visible:outline-hidden focus-visible:ring-transparent active:translate-y-[calc(-50%+1px)] select-none',
                         isTouch
                           ? 'pointer-events-auto opacity-100'
                           : 'pointer-events-none opacity-0 group-hover/sidebar-header:pointer-events-auto group-hover/sidebar-header:opacity-100'
                       )}
                     >
-                      <MoreHorizontal className="rounded-sm hover:bg-[#DFDFE3] focus-visible:outline-none focus-visible:ring-transparent" />
+                      <button type="button">
+                        <MoreHorizontal />
+                      </button>
                     </SidebarMenuAction>
                   )}
                 </DropdownMenuTrigger>
-                <DropdownMenuContent side="right" sideOffset={10} align="start">
+                <DropdownMenuContent
+                  side="right"
+                  sideOffset={10}
+                  align="start"
+                  className="w-auto! min-w-36"
+                  {...menuTriggerPress.contentProps}
+                >
                   <DropdownMenuItem
                     className={menuItemClass}
                     onClick={handleCreateFile}
@@ -384,18 +422,28 @@ export function SpaceSectionContent({
         <SidebarGroupContent>
           <SidebarMenu className="gap-0.5">
             {rootNode.children.length > 0 ? (
-              rootNode.children.map(childId => (
-                <ResourceNode
-                  nodeId={childId}
-                  key={childId}
-                  hasTeamspace={hasTeamspace}
-                  currentNamespace={currentNamespace}
-                  onBatchDelete={onBatchDelete}
-                  onBatchMove={onBatchMove}
-                  onBatchCreate={onBatchCreate}
-                  onAddToChat={onAddToChat}
-                />
-              ))
+              <VirtualResourceRows
+                listId={rootId}
+                publishSpans
+                revealId={activeId}
+                rows={rows}
+                renderEmpty={({ depth, parentId }) => (
+                  <VirtualEmptyFolderRow depth={depth} parentId={parentId} />
+                )}
+                renderNode={({ depth, id }) => (
+                  <ResourceNode
+                    nodeId={id}
+                    depth={depth}
+                    renderChildren={false}
+                    hasTeamspace={hasTeamspace}
+                    currentNamespace={currentNamespace}
+                    onBatchDelete={onBatchDelete}
+                    onBatchMove={onBatchMove}
+                    onBatchCreate={onBatchCreate}
+                    onAddToChat={onAddToChat}
+                  />
+                )}
+              />
             ) : (
               <SidebarMenuItem>
                 <div className="my-px flex h-8 cursor-not-allowed items-center pl-7 pr-2 text-sm text-muted-foreground">

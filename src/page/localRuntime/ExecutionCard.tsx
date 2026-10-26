@@ -3,8 +3,8 @@ import { ChevronDown, Paperclip } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import { Alert, AlertTitle } from '@/components/ui/Alert';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
