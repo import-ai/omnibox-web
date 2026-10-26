@@ -535,4 +535,131 @@ describe('document comment permalink', () => {
     expect(controller.documentThreads).toHaveLength(0);
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
+
+  it.each([
+    { resolved: false, status: 404 },
+    { resolved: true, status: 404 },
+    { resolved: false, status: 403 },
+    { resolved: true, status: 403 },
+  ])(
+    'removes cached targets after HTTP $status (resolved=$resolved)',
+    async ({ resolved, status }) => {
+      const target = { ...documentThread, resolved };
+      let unavailable = false;
+      jest.mocked(api.getResourceCommentThread).mockResolvedValueOnce(target);
+      jest
+        .mocked(api.listResourceCommentThreads)
+        .mockImplementation(async (_namespace, _resource, options) => {
+          const matches =
+            options?.view === 'document'
+              ? !resolved
+              : resolved && options?.resolved !== false;
+          const items = !unavailable && matches ? [target] : [];
+          return {
+            items,
+            total: items.length,
+            offset: 0,
+            limit: 20,
+            has_more: false,
+          };
+        });
+      await render();
+      await advance();
+      expect(controller.activeThreadId).toBe('target');
+      expect(
+        resolved ? controller.threads : controller.documentThreads
+      ).toHaveLength(1);
+
+      unavailable = true;
+      jest.mocked(api.getResourceCommentThread).mockRejectedValueOnce(
+        Object.assign(new Error('Unavailable'), {
+          isAxiosError: true,
+          response: { status },
+        })
+      );
+      jest.mocked(useLocation).mockReturnValue({
+        ...useLocation(),
+        key: 'unavailable-link',
+      });
+      await render();
+      await advance();
+      expect(api.getResourceCommentThread).toHaveBeenCalledTimes(2);
+      expect(toast.error).toHaveBeenCalledWith(
+        'resource_comments.comment_unavailable'
+      );
+      expect(controller.documentThreads).toHaveLength(0);
+      expect(controller.threads).toHaveLength(0);
+      expect(controller.activeThreadId).toBeNull();
+      expect(controller.activeThread).toBeNull();
+      expect(controller.documentTotal).toBe(0);
+      expect(controller.total).toBe(0);
+      await act(async () => controller.loadMoreDocumentThreads());
+      await act(async () => controller.loadMore());
+      expect(controller.documentThreads).toHaveLength(0);
+      expect(controller.threads).toHaveLength(0);
+    }
+  );
+
+  it.each([undefined, 500])(
+    'retains cached comments when a lookup fails transiently (status=%s)',
+    async status => {
+      await render();
+      await advance();
+      jest.mocked(api.getResourceCommentThread).mockRejectedValueOnce(
+        status === undefined
+          ? new Error('Network unavailable')
+          : Object.assign(new Error('Server error'), {
+              isAxiosError: true,
+              response: { status },
+            })
+      );
+      jest.mocked(useLocation).mockReturnValue({
+        ...useLocation(),
+        key: 'transient-link',
+      });
+      await render();
+      await advance();
+      expect(controller.documentThreads.map(thread => thread.id)).toEqual([
+        'target',
+      ]);
+      expect(controller.activeThreadId).toBe('target');
+    }
+  );
+
+  it('ignores an unavailable lookup superseded by a successful edit', async () => {
+    await render();
+    await advance();
+    let rejectLookup!: (reason: unknown) => void;
+    jest.mocked(api.getResourceCommentThread).mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectLookup = reject;
+        })
+    );
+    jest.mocked(useLocation).mockReturnValue({
+      ...useLocation(),
+      key: 'slow-unavailable-link',
+    });
+    await render();
+    jest.mocked(api.updateResourceComment).mockResolvedValue({
+      ...documentThread,
+      comments: [{ ...documentThread.comments[0], content: 'Edited comment' }],
+    });
+    await act(async () =>
+      controller.editComment('target', 'comment', 'Edited comment')
+    );
+    await act(async () =>
+      rejectLookup(
+        Object.assign(new Error('Stale lookup'), {
+          isAxiosError: true,
+          response: { status: 404 },
+        })
+      )
+    );
+    await advance();
+    expect(controller.documentThreads[0].comments[0].content).toBe(
+      'Edited comment'
+    );
+    expect(toast.error).not.toHaveBeenCalled();
+  });
 });
