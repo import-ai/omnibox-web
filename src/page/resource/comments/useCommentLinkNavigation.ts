@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation } from 'react-router-dom';
@@ -27,6 +28,7 @@ interface UseCommentLinkNavigationOptions {
     thread: ResourceCommentThread,
     requestVersion: number
   ) => ResourceCommentThread | null;
+  onUnavailable?: (threadId: string, requestVersion: number) => void;
   editorReady: boolean;
   activeThreadId: string | null;
   threads: ResourceCommentThread[];
@@ -40,6 +42,7 @@ export function useCommentLinkNavigation({
   resourceId,
   namespaceId,
   onTarget,
+  onUnavailable,
   getTargetVersion,
   editorReady,
   activeThreadId,
@@ -55,6 +58,8 @@ export function useCommentLinkNavigation({
   focusThreadRef.current = focusThread;
   const onTargetRef = useRef(onTarget);
   onTargetRef.current = onTarget;
+  const onUnavailableRef = useRef(onUnavailable);
+  onUnavailableRef.current = onUnavailable;
   const getTargetVersionRef = useRef(getTargetVersion);
   getTargetVersionRef.current = getTargetVersion;
   const translateRef = useRef(t);
@@ -93,8 +98,18 @@ export function useCommentLinkNavigation({
           : thread;
         setLookup({ key: requestKey, thread: accepted });
       })
-      .catch(() => {
-        if (canceled) return;
+      .catch(error => {
+        if (
+          canceled ||
+          (getTargetVersionRef.current?.(threadId) ?? 0) !== requestVersion
+        )
+          return;
+        if (
+          axios.isAxiosError(error) &&
+          (error.response?.status === 403 || error.response?.status === 404)
+        ) {
+          onUnavailableRef.current?.(threadId, requestVersion);
+        }
         setLookup({ key: requestKey, thread: null });
         toast.error(
           translateRef.current('resource_comments.comment_unavailable')

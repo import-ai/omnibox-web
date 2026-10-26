@@ -310,6 +310,36 @@ export function useResourceComments({
     [cancelNavigation]
   );
 
+  const removeThreadLocally = useCallback(
+    (threadId: string) => {
+      localThreadVersionsRef.current.set(
+        threadId,
+        (localThreadVersionsRef.current.get(threadId) ?? 0) + 1
+      );
+      const previous = knownThreadsRef.current.find(
+        thread => thread.id === threadId
+      );
+      knownThreadsRef.current = knownThreadsRef.current.filter(
+        thread => thread.id !== threadId
+      );
+      setKnownThreads(knownThreadsRef.current);
+      sidebar.remove(threadId, previous);
+      documentComments.remove(threadId, previous);
+      setActiveThreadId(current => (current === threadId ? null : current));
+      const editor = editorRef.current;
+      if (
+        previous &&
+        isInlineCommentThread(previous) &&
+        editor &&
+        !editor.isDestroyed
+      ) {
+        editor.commands.removeResourceComment(threadId);
+        removeImageCommentMark(editor, threadId);
+      }
+    },
+    [sidebar.remove, documentComments.remove]
+  );
+
   const commentsConfig = useMemo<OmniboxEditorCommentsConfig>(
     () => ({
       enabled: canComment && !contentDirty,
@@ -370,6 +400,16 @@ export function useResourceComments({
         void documentComments.load().catch(() => undefined);
       }
       return thread;
+    },
+    onUnavailable: (threadId, requestVersion) => {
+      if (
+        (localThreadVersionsRef.current.get(threadId) ?? 0) !== requestVersion
+      )
+        return;
+      removeThreadLocally(threadId);
+      // Reload authoritative totals after a remote deletion or permission change.
+      void sidebar.load().catch(() => undefined);
+      void documentComments.load().catch(() => undefined);
     },
     openThread,
     focusThread,
@@ -454,36 +494,6 @@ export function useResourceComments({
       documentComments.put(updated, previous);
     },
     [mergeKnownThreads, sidebar.put, documentComments.put]
-  );
-
-  const removeThreadLocally = useCallback(
-    (threadId: string) => {
-      localThreadVersionsRef.current.set(
-        threadId,
-        (localThreadVersionsRef.current.get(threadId) ?? 0) + 1
-      );
-      const previous = knownThreadsRef.current.find(
-        thread => thread.id === threadId
-      );
-      knownThreadsRef.current = knownThreadsRef.current.filter(
-        thread => thread.id !== threadId
-      );
-      setKnownThreads(knownThreadsRef.current);
-      sidebar.remove(threadId, previous);
-      documentComments.remove(threadId, previous);
-      setActiveThreadId(current => (current === threadId ? null : current));
-      const editor = editorRef.current;
-      if (
-        previous &&
-        isInlineCommentThread(previous) &&
-        editor &&
-        !editor.isDestroyed
-      ) {
-        editor.commands.removeResourceComment(threadId);
-        removeImageCommentMark(editor, threadId);
-      }
-    },
-    [sidebar.remove, documentComments.remove]
   );
 
   const canEditComment = (comment: ResourceComment) =>
