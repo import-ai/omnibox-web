@@ -30,9 +30,14 @@ import { CreateSmartFolderDialog } from '@/page/sidebar/components/smart-folder/
 import { SmartFolderTrashConfirmDialog } from '@/page/sidebar/components/smart-folder/SmartFolderTrashConfirmDialog';
 import { syncSmartFolderUpdate } from '@/page/sidebar/components/smart-folder/smartFolderUpdate';
 import type { ResourceSortOptions } from '@/service/resource';
-import { fetchChildren, initializeManualSort } from '@/service/resource';
+import {
+  fetchChildren,
+  fetchResource,
+  initializeManualSort,
+} from '@/service/resource';
 import { updateResourceSortPreference } from '@/service/resourceSortPreference';
 
+import { AddLinkDialog } from './components/AddLinkDialog';
 import { BatchCreateDialog } from './components/BatchCreateDialog';
 import BatchDeleteDialog from './components/BatchDeleteDialog';
 import BatchMoveDialog from './components/BatchMoveDialog';
@@ -171,6 +176,7 @@ export function BodyForSidebar(props: IProps) {
   const createFolderTargetId = useSidebarStore(
     s => s.dialogs.createFolderTargetId
   );
+  const createLinkTargetId = useSidebarStore(s => s.dialogs.createLinkTargetId);
   const createRssFolderTargetId = useSidebarStore(
     s => s.dialogs.createRssFolderTargetId
   );
@@ -805,6 +811,38 @@ export function BodyForSidebar(props: IProps) {
             state: { fromSidebar: true },
           });
           await locateSidebarResource(id);
+        }}
+      />
+      <AddLinkDialog
+        open={!!createLinkTargetId}
+        onOpenChange={open => {
+          if (!open) {
+            useSidebarStore.getState().closeCreateLinkDialog();
+          }
+        }}
+        onConfirm={async url => {
+          if (!createLinkTargetId) {
+            return;
+          }
+          const response = await http.post<{
+            resource_id?: string;
+            resourceId?: string;
+          }>(`/namespaces/${namespaceId}/wizard/collect/url`, {
+            url,
+            parentId: createLinkTargetId,
+          });
+          const resourceId = response.resource_id || response.resourceId;
+          if (!resourceId) {
+            throw new Error('missing resource');
+          }
+          const resource = await fetchResource(namespaceId, resourceId);
+          const store = useSidebarStore.getState();
+          await store.restore(resource);
+          store.closeCreateLinkDialog();
+          navigateToResource(navigate, `/${namespaceId}/${resourceId}`, {
+            state: { fromSidebar: true },
+          });
+          await locateSidebarResource(resourceId);
         }}
       />
       <BatchCreateDialog
