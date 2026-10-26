@@ -6,12 +6,19 @@ import { createRoot, type Root } from 'react-dom/client';
 import { TooltipProvider } from '@/components/tooltip';
 import { USER_UPDATED_EVENT } from '@/hooks/useUser';
 import type { Resource, ResourceCommentThread } from '@/interface';
+import { http } from '@/lib/request';
 import Editor from '@/page/resource/editor';
 import Page from '@/page/resource/Page';
 import Render from '@/page/resource/Render';
 import { listResourceCommentThreads } from '@/service/resourceComments';
 
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
+
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => mockApp,
+}));
+const mockApp = { on: () => () => undefined };
 
 jest.mock('react', () => {
   const react = jest.requireActual<typeof import('react')>('react');
@@ -27,7 +34,12 @@ jest.mock('./useCommentMentionUsers', () => {
   const users: unknown[] = [];
   const namesById: Record<string, string> = {};
   return {
-    useCommentMentionUsers: () => ({ users, namesById, loaded: false }),
+    useCommentMentionUsers: () => ({
+      users,
+      namesById,
+      membersById: {},
+      loaded: false,
+    }),
   };
 });
 jest.mock('@/service/resourceComments', () => ({
@@ -185,7 +197,7 @@ describe('resource comments across view and edit modes', () => {
     localStorage.clear();
   });
 
-  it('refreshes the current author in the open sidebar without losing selection or refetching', async () => {
+  it('refetches namespace identities on a username event without losing selection', async () => {
     localStorage.setItem('uid', 'author');
     const commentedThread: ResourceCommentThread = {
       ...thread,
@@ -219,6 +231,28 @@ describe('resource comments across view and edit modes', () => {
       .length;
     expect(panel.textContent).toContain('Old name');
 
+    jest
+      .mocked(http.get)
+      .mockResolvedValue({ ...resource, mention_display_names: {} });
+    const renamedThread = {
+      ...commentedThread,
+      creator: { ...commentedThread.creator, display_name: 'New name' },
+      comments: commentedThread.comments.map(comment =>
+        comment.author.id === 'author'
+          ? {
+              ...comment,
+              author: { ...comment.author, display_name: 'New name' },
+            }
+          : comment
+      ),
+    };
+    jest.mocked(listResourceCommentThreads).mockResolvedValue({
+      items: [renamedThread],
+      total: 1,
+      has_more: false,
+      offset: 0,
+      limit: 20,
+    });
     await act(async () => {
       window.dispatchEvent(
         new CustomEvent(USER_UPDATED_EVENT, {
@@ -230,10 +264,12 @@ describe('resource comments across view and edit modes', () => {
     expect(panel.textContent).not.toContain('Old name');
     expect(panel.textContent).toContain('New name');
     expect(panel.textContent).toContain('Other name');
-    expect(readonlyComments().activeThread?.creator.username).toBe('New name');
+    expect(readonlyComments().activeThread?.creator.display_name).toBe(
+      'New name'
+    );
     expect(readonlyComments().activeThreadId).toBe(thread.id);
     expect(panel.querySelector('[data-thread-id="thread"]')).toBe(card);
-    expect(listResourceCommentThreads).toHaveBeenCalledTimes(requestCount);
+    expect(listResourceCommentThreads).toHaveBeenCalledTimes(requestCount + 2);
 
     const renamedThreads = readonlyComments().threads;
     const renamedActiveThread = readonlyComments().activeThread;
@@ -244,12 +280,6 @@ describe('resource comments across view and edit modes', () => {
     expect(readonlyComments().threads).toBe(renamedThreads);
     await act(async () => readonlyComments().selectThread(thread.id));
     expect(readonlyComments().threads).toBe(renamedThreads);
-    await render(false, {
-      ...resource,
-      comment_threads: [{ ...commentedThread }],
-    });
-    expect(panel.textContent).not.toContain('Old name');
-    expect(panel.textContent).toContain('New name');
     expect(commentedThread.comments[0].author.username).toBe('Old name');
 
     await act(async () => {
@@ -258,6 +288,63 @@ describe('resource comments across view and edit modes', () => {
       );
     });
     expect(panel.textContent).toContain('New name');
+  });
+
+  it('keeps a frozen author and preserves the draft baseline during identity refresh', async () => {
+    localStorage.setItem('uid', 'author');
+    const frozenThread: ResourceCommentThread = {
+      ...thread,
+      creator: { id: 'author', username: 'Frozen', display_name: 'Frozen' },
+      comments: [
+        {
+          id: 'frozen-comment',
+          content: '[@ id="gone" label="Old"]',
+          author: { id: 'author', username: 'Frozen', display_name: 'Frozen' },
+          created_at: thread.created_at,
+          updated_at: thread.updated_at,
+        },
+      ],
+      mention_display_names: { gone: 'Final（account）' },
+    };
+    jest.mocked(listResourceCommentThreads).mockResolvedValue({
+      items: [frozenThread],
+      total: 1,
+      offset: 0,
+      limit: 20,
+      has_more: false,
+    });
+    const editable = {
+      ...resource,
+      current_permission: 'can_edit' as const,
+      comment_threads: [frozenThread],
+    };
+    await render(true, editable);
+    await act(async () => {
+      editorProps().onContentDirtyChange(true);
+    });
+    jest.mocked(http.get).mockResolvedValue({
+      ...editable,
+      content: 'Concurrent body',
+      content_hash: 'concurrent-hash',
+      mention_display_names: { gone: 'Final（account）' },
+    });
+    await act(async () => {
+      window.dispatchEvent(
+        new CustomEvent(USER_UPDATED_EVENT, {
+          detail: { username: 'New global name' },
+        })
+      );
+    });
+    expect(editorProps().resource.content).toBe('Quoted text');
+    expect(editorProps().resource.content_hash).toBe('hash');
+    expect(editorProps().comments.contentDirty).toBe(true);
+    expect(
+      editorProps().comments.threads[0].comments[0].author.display_name
+    ).toBe('Frozen');
+    expect(editorProps().comments.threads[0].comments[0].content).toContain(
+      'Final（account）'
+    );
+    expect(onResource).not.toHaveBeenCalled();
   });
 
   it('preserves the sidebar, selection, filter and scroll position without refetching', async () => {

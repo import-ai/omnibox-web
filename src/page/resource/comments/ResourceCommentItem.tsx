@@ -56,7 +56,10 @@ export function ResourceCommentItem({
     textAreaRef: editInputRef,
     triggerAutoSize: `${editing}:${content}:${editImages.length}`,
   });
-  const author = comment.author.username || t('resource_comments.deleted_user');
+  const author =
+    comment.author.display_name ||
+    comment.author.username ||
+    t('resource_comments.deleted_user');
 
   const canEdit = !threadResolved && controller.canEditComment(comment);
   const uploading = editImages.some(image => !image.id);

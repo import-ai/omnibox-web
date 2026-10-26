@@ -120,8 +120,20 @@ export default function Editor(props: IEditorProps) {
   const loc = useLocation();
   const { app, theme } = useTheme();
   const [title, onTitle] = useState('');
-  const { mentionUsers, membersById, namesById, ready } =
-    useMentionUsers(namespaceId);
+  const {
+    mentionUsers,
+    membersById,
+    namesById: activeNames,
+    ready,
+  } = useMentionUsers(namespaceId);
+  const namesById = useMemo(
+    () => ({
+      ...resource.mention_display_names,
+      ...comments.mentionDisplayNames,
+      ...activeNames,
+    }),
+    [resource.mention_display_names, comments.mentionDisplayNames, activeNames]
+  );
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const applyingMentionLabelsRef = useRef(false);
@@ -225,6 +237,7 @@ export default function Editor(props: IEditorProps) {
     }
     liveMentionLabelsRef.current = true;
     applyingMentionLabelsRef.current = true;
+    tr.setMeta('addToHistory', false);
     editor.view.dispatch(tr);
     applyingMentionLabelsRef.current = false;
   }, [namesById, ready]);

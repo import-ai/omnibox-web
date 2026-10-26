@@ -9,11 +9,9 @@ import { USER_UPDATED_EVENT } from '@/hooks/useUser';
 import type {
   Permission,
   ResourceComment,
-  ResourceCommentAuthor,
   ResourceCommentThread,
 } from '@/interface';
 import { rewriteThreadMentionLabels } from '@/page/resource/mentionLabels';
-import { syncCommentMentionLabels } from '@/page/resource/mentionLabelSync';
 
 import {
   collectResourceCommentAnchors,
@@ -56,6 +54,7 @@ interface CommentableResource {
   id: string;
   content?: string;
   content_hash?: string;
+  mention_display_names?: Record<string, string>;
   comment_threads?: ResourceCommentThread[];
   current_permission?: Permission;
 }
@@ -65,7 +64,6 @@ interface UseResourceCommentsOptions {
   resource: CommentableResource;
   enabled: boolean;
   contentDirty?: boolean;
-  onMentionContent?: (content: string, contentHash: string) => void;
 }
 
 export function useResourceComments({
@@ -73,7 +71,6 @@ export function useResourceComments({
   resource,
   enabled,
   contentDirty = false,
-  onMentionContent,
 }: UseResourceCommentsOptions) {
   const resourceRef = useRef(resource);
   resourceRef.current = resource;
@@ -86,8 +83,6 @@ export function useResourceComments({
     };
   }
   const generation = lifecycleRef.current.generation;
-  const onMentionContentRef = useRef(onMentionContent);
-  onMentionContentRef.current = onMentionContent;
   const editorRef = useRef<ResourceCommentEditor | null>(null);
   const [registeredEditor, setRegisteredEditor] =
     useState<ResourceCommentEditor | null>(null);
@@ -110,17 +105,32 @@ export function useResourceComments({
     useState<OmniboxEditorCommentSelection | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const panel = useResourceCommentsPanel();
-  const { namesById: mentionNames, loaded: mentionNamesLoaded } =
-    useCommentMentionUsers();
-  const mentionNamesKey = JSON.stringify(mentionNames);
+  const { namesById: activeMentionNames } = useCommentMentionUsers();
+  const [identityData, setIdentityData] = useState<{
+    key: string;
+    names: Record<string, string>;
+  }>({ key: lifecycleKey, names: {} });
+  const mentionNames = useMemo(
+    () => ({
+      ...resource.mention_display_names,
+      ...(identityData.key === lifecycleKey ? identityData.names : {}),
+      ...activeMentionNames,
+    }),
+    [
+      resource.mention_display_names,
+      identityData,
+      lifecycleKey,
+      activeMentionNames,
+    ]
+  );
+  const mentionNamesKey = JSON.stringify(activeMentionNames);
+  const previousIdentityKey = useRef(`${lifecycleKey}:${mentionNamesKey}`);
   const [fallbackPanelOpen, setFallbackPanelOpen] = useState(false);
   const panelOpen = panel?.panelOpen ?? fallbackPanelOpen;
   const setPanelOpen = panel?.setPanelOpen ?? setFallbackPanelOpen;
   const [resolved, setResolved] = useState<boolean | undefined>(false);
   const [submitting, setSubmitting] = useState(false);
   const [createConflict, setCreateConflict] = useState(false);
-  const [updatedAuthor, setUpdatedAuthor] =
-    useState<ResourceCommentAuthor | null>(null);
 
   anchorThreadsRef.current = anchorThreads;
   const restoreEditorComments = useCallback(() => {
@@ -148,50 +158,31 @@ export function useResourceComments({
 
   const withUpdatedAuthor = useCallback(
     (thread: ResourceCommentThread) => {
-      const [withCurrentMentionLabels] = rewriteThreadMentionLabels(
-        [thread],
-        mentionNames
-      );
-      const currentThread = withCurrentMentionLabels ?? thread;
-      if (!updatedAuthor || updatedAuthor.id !== currentUserId) {
-        return currentThread;
-      }
+      const names = {
+        ...mentionNames,
+        ...thread.mention_display_names,
+        ...activeMentionNames,
+      };
+      const [currentThread] = rewriteThreadMentionLabels([thread], names);
+      const author = (identity: ResourceCommentThread['creator']) => {
+        const activeName = identity.id
+          ? activeMentionNames[identity.id]
+          : undefined;
+        return activeName
+          ? { ...identity, display_name: activeName }
+          : identity;
+      };
       return {
         ...currentThread,
-        creator:
-          currentThread.creator.id === updatedAuthor.id
-            ? updatedAuthor
-            : currentThread.creator,
-        comments: currentThread.comments.map(comment =>
-          comment.author.id === updatedAuthor.id
-            ? { ...comment, author: updatedAuthor }
-            : comment
-        ),
+        creator: author(currentThread.creator),
+        comments: currentThread.comments.map(comment => ({
+          ...comment,
+          author: author(comment.author),
+        })),
       };
     },
-    [currentUserId, mentionNames, updatedAuthor]
+    [activeMentionNames, mentionNames]
   );
-
-  useEffect(() => {
-    const handleUserUpdate = (event: Event) => {
-      if (!(event instanceof CustomEvent) || !currentUserId) {
-        return;
-      }
-      const detail: unknown = event.detail;
-      if (
-        typeof detail === 'object' &&
-        detail !== null &&
-        'username' in detail &&
-        typeof detail.username === 'string'
-      ) {
-        setUpdatedAuthor({ id: currentUserId, username: detail.username });
-      }
-    };
-    window.addEventListener(USER_UPDATED_EVENT, handleUserUpdate);
-    return () => {
-      window.removeEventListener(USER_UPDATED_EVENT, handleUserUpdate);
-    };
-  }, [currentUserId]);
 
   const mergeKnownThreads = useCallback((incoming: ResourceCommentThread[]) => {
     knownThreadsRef.current = mergeCommentThreads(
@@ -562,11 +553,8 @@ export function useResourceComments({
     [activeAnchorThread, withUpdatedAuthor]
   );
   const authorThreads = useMemo(
-    () =>
-      updatedAuthor?.id === currentUserId
-        ? sidebar.threads.map(withUpdatedAuthor)
-        : sidebar.threads,
-    [currentUserId, sidebar.threads, updatedAuthor, withUpdatedAuthor]
+    () => sidebar.threads.map(withUpdatedAuthor),
+    [sidebar.threads, withUpdatedAuthor]
   );
   const visibleThreads = useMemo(
     () =>
@@ -588,40 +576,55 @@ export function useResourceComments({
   });
 
   useEffect(() => {
-    if (!enabled || !mentionNamesLoaded || mentionNamesKey === '{}') {
-      return;
-    }
-    if (namespaceId.startsWith('share:')) {
-      return;
-    }
-    let ignore = false;
-    syncCommentMentionLabels(namespaceId, resource.id)
-      .then(result => {
-        if (ignore) {
-          return;
-        }
-        const names = JSON.parse(mentionNamesKey) as Record<string, string>;
-        const rewrittenThreads = rewriteThreadMentionLabels(
-          knownThreadsRef.current,
-          names
-        );
-        knownThreadsRef.current = rewrittenThreads;
-        setKnownThreads(rewrittenThreads);
-        if (
-          result.content &&
-          result.content_hash &&
-          result.content !== resourceRef.current.content
-        ) {
-          onMentionContentRef.current?.(result.content, result.content_hash);
-        }
-      })
-      .catch(() => undefined);
-    return () => {
-      ignore = true;
+    if (!enabled) return;
+    let ticket = 0;
+    let disposed = false;
+    const refresh = () => {
+      const current = ++ticket;
+      const path = namespaceId.startsWith('share:')
+        ? `/shares/${namespaceId.slice(6)}/resources/${resource.id}`
+        : `/namespaces/${namespaceId}/resources/${resource.id}`;
+      void import('@/lib/request')
+        .then(({ http }) => http.get<CommentableResource>(path, { mute: true }))
+        .then(next => {
+          if (disposed || current !== ticket) return;
+          setIdentityData({
+            key: lifecycleKey,
+            names: next.mention_display_names ?? {},
+          });
+          // Only refresh identity metadata; never replace body/hash or the user's draft.
+          void sidebar.load().catch(() => undefined);
+          void documentComments.load().catch(() => undefined);
+        })
+        .catch(() => undefined);
     };
-  }, [enabled, mentionNamesKey, mentionNamesLoaded, namespaceId, resource.id]);
+    const identityKey = `${lifecycleKey}:${mentionNamesKey}`;
+    if (previousIdentityKey.current !== identityKey) {
+      const sameResource = previousIdentityKey.current.startsWith(
+        `${lifecycleKey}:`
+      );
+      previousIdentityKey.current = identityKey;
+      if (sameResource) refresh();
+    }
+    window.addEventListener(USER_UPDATED_EVENT, refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      disposed = true;
+      window.removeEventListener(USER_UPDATED_EVENT, refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [
+    mentionNamesKey,
+    enabled,
+    lifecycleKey,
+    namespaceId,
+    resource.id,
+    sidebar.load,
+    documentComments.load,
+  ]);
 
   return {
+    mentionDisplayNames: mentionNames,
     activeThread,
     activeThreadId,
     canComment,
