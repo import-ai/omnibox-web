@@ -20,6 +20,10 @@ import { UpgradeButton } from '@/page/sidebar/components/namespace-switcher/Upgr
 
 import { SettingsExtensionsContext } from './settingsExtensionsContext';
 
+// An inset ring stays visible inside the nav's scroll box, which clips anything drawn outside.
+const navItemFocus =
+  'outline-hidden ring-sidebar-ring focus-visible:ring-2 focus-visible:ring-inset';
+
 interface SettingsSidebarProps {
   value: string;
   onChange: (value: string) => void;
@@ -155,6 +159,7 @@ export function SettingsSidebar({
                 aria-current={value === 'profile' ? 'page' : undefined}
                 className={cn(
                   'flex h-[30px] w-auto items-center gap-2 rounded px-2.5 py-1 text-left lg:w-full lg:gap-3',
+                  navItemFocus,
                   value === 'profile'
                     ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'hover:bg-sidebar-accent/60'
@@ -181,6 +186,7 @@ export function SettingsSidebar({
                     aria-current={isSelected ? 'page' : undefined}
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
+                      navItemFocus,
                       isSelected
                         ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                         : 'hover:bg-sidebar-accent/60'
@@ -227,6 +233,7 @@ export function SettingsSidebar({
                     aria-current={isSelected ? 'page' : undefined}
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
+                      navItemFocus,
                       isSelected
                         ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                         : 'hover:bg-sidebar-accent/60'
@@ -263,6 +270,7 @@ export function SettingsSidebar({
               aria-current={value === aboutItem.value ? 'page' : undefined}
               className={cn(
                 'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
+                navItemFocus,
                 value === aboutItem.value
                   ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                   : 'hover:bg-sidebar-accent/60'
