@@ -139,7 +139,7 @@ export function SettingsSidebar({
 
   return (
     <div className="relative h-auto w-full shrink-0 overflow-y-auto rounded-t-xl bg-sidebar lg:h-full lg:w-[247px] lg:overflow-visible lg:rounded-l-xl lg:rounded-tr-none">
-      <div className="flex flex-col gap-1 p-2 lg:absolute lg:inset-2 lg:w-[231px] lg:justify-between lg:gap-5 lg:p-0">
+      <div className="flex flex-col gap-1 p-2 lg:absolute lg:inset-2 lg:w-[231px] lg:justify-between lg:gap-5 lg:overflow-y-auto lg:overscroll-contain lg:p-0">
         <div className="flex flex-col gap-1 lg:gap-5">
           {/* Account Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
@@ -152,6 +152,7 @@ export function SettingsSidebar({
             <div className="flex w-full flex-row flex-wrap gap-1 lg:flex-col lg:gap-0.5">
               <button
                 onClick={() => onChange('profile')}
+                aria-current={value === 'profile' ? 'page' : undefined}
                 className={cn(
                   'flex h-[30px] w-auto items-center gap-2 rounded px-2.5 py-1 text-left lg:w-full lg:gap-3',
                   value === 'profile'
@@ -177,6 +178,7 @@ export function SettingsSidebar({
                   <button
                     key={item.value}
                     onClick={() => onChange(item.value)}
+                    aria-current={isSelected ? 'page' : undefined}
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
@@ -222,6 +224,7 @@ export function SettingsSidebar({
                   <button
                     key={item.value}
                     onClick={() => onChange(item.value)}
+                    aria-current={isSelected ? 'page' : undefined}
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                       isSelected
@@ -257,6 +260,7 @@ export function SettingsSidebar({
             {config.commercial && <UpgradeButton />}
             <button
               onClick={() => onChange(aboutItem.value)}
+              aria-current={value === aboutItem.value ? 'page' : undefined}
               className={cn(
                 'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
                 value === aboutItem.value
