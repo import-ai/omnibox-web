@@ -33,6 +33,7 @@ const FAILURE_MESSAGES: Record<LoginLinkFailure, string> = {
   not_wechat: 'login_link.not_wechat',
   not_bound: 'login_link.not_bound',
   not_owner: 'login_link.not_owner',
+  too_frequent: 'login_link.too_frequent',
   failed: 'login_link.failed',
 };
 

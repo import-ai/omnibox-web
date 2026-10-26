@@ -2,7 +2,7 @@ export const PRICING_PATH = '/zh-cn/pricing';
 export const OAUTH_STATE_KEY = 'wechat_oa_login_state';
 
 export type LoginLinkFailure =
-  'not_wechat' | 'not_bound' | 'not_owner' | 'failed';
+  'not_wechat' | 'not_bound' | 'not_owner' | 'too_frequent' | 'failed';
 
 export interface OAuthCallback {
   code: string;
@@ -20,8 +20,9 @@ export function safeRedirect(redirect: unknown): string {
     : PRICING_PATH;
 }
 
+/** WeChat itself; WeCom also says MicroMessenger but cannot run the OAuth. */
 export function isWechatBrowser(userAgent: string): boolean {
-  return /MicroMessenger/i.test(userAgent);
+  return /MicroMessenger/i.test(userAgent) && !/wxwork/i.test(userAgent);
 }
 
 export function saveOAuthState(state: string) {
@@ -65,8 +66,11 @@ export function takeOAuthCallback(): OAuthCallback | null {
 }
 
 export function failureKind(error: unknown): LoginLinkFailure {
-  const code = (error as { response?: { data?: { code?: unknown } } })?.response
-    ?.data?.code;
+  const response = (
+    error as { response?: { status?: unknown; data?: { code?: unknown } } }
+  )?.response;
+  if (response?.status === 429) return 'too_frequent';
+  const code = response?.data?.code;
   switch (typeof code === 'string' ? code.toLowerCase() : '') {
     case 'wechat_oa_not_bound':
       return 'not_bound';

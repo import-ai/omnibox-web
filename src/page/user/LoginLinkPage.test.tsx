@@ -51,8 +51,10 @@ function setUserAgent(userAgent: string) {
   });
 }
 
-function apiError(code: string) {
-  return Object.assign(new Error(code), { response: { data: { code } } });
+function apiError(code: string, status = 400) {
+  return Object.assign(new Error(code), {
+    response: { status, data: { code } },
+  });
 }
 
 describe('LoginLinkPage', () => {
@@ -169,9 +171,36 @@ describe('LoginLinkPage', () => {
     expect(leaveTo).not.toHaveBeenCalled();
   });
 
+  it('asks to retry later when the login is rate limited', async () => {
+    window.sessionStorage.setItem(OAUTH_STATE_KEY, 'state-1');
+    window.history.replaceState(
+      null,
+      '',
+      '/user/auth/login-link?code=wx-code&state=state-1'
+    );
+    post.mockRejectedValue(apiError('wechat_oa_login_too_frequent', 429));
+
+    await act(async () => root.render(<LoginLinkPage />));
+
+    expect(container.textContent).toContain('login_link.too_frequent');
+    expect(container.querySelector('a')?.getAttribute('href')).toBe(
+      '/zh-cn/pricing'
+    );
+    expect(setGlobalCredential).not.toHaveBeenCalled();
+  });
+
+  it('maps any HTTP 429 to the rate limit failure', () => {
+    expect(failureKind(apiError('', 429))).toBe('too_frequent');
+  });
+
   it('recognises the WeChat browser', () => {
     expect(isWechatBrowser(WECHAT_UA)).toBe(true);
     expect(isWechatBrowser('Mozilla/5.0 Chrome/120')).toBe(false);
+    expect(
+      isWechatBrowser(
+        'Mozilla/5.0 (iPhone) AppleWebKit/605.1.15 MicroMessenger/8.0.50 wxwork/4.1.30'
+      )
+    ).toBe(false);
   });
 
   it('maps unknown errors to the generic failure', () => {

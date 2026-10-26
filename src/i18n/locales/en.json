@@ -1744,6 +1744,7 @@
     "not_wechat": "Open the link the OmniBox official account sent you in WeChat.",
     "not_bound": "This WeChat account is not bound to OmniBox yet. Bind the WeChat AI Assistant in OmniBox Settings -> Applications first.",
     "not_owner": "Only the namespace owner can subscribe.",
+    "too_frequent": "Too many attempts. Please try again later.",
     "failed": "Could not open the page. Go back to the OmniBox official account and tap the link again.",
     "go_pricing": "Go to pricing"
   }

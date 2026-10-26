@@ -1746,6 +1746,7 @@
     "not_wechat": "请在微信中打开公众号「小黑 OmniBox」发给你的链接",
     "not_bound": "当前微信还没有绑定 OmniBox，请先在 OmniBox 设置->应用管理绑定「微信 AI 对话助手」",
     "not_owner": "只有空间所有者可以开通",
+    "too_frequent": "操作太频繁，请稍后再试",
     "failed": "打开失败，请回到公众号「小黑 OmniBox」重新点击链接",
     "go_pricing": "前往开通页"
   }
