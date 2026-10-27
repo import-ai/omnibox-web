@@ -38,7 +38,7 @@ import {
 import {
   useIsSelected,
   useNodeIsDimmedBySelection,
-  useNodeIsFullySelected,
+  useNodeSelectionState,
   useSelectionState,
   useSidebarStore,
 } from '@/page/sidebar/store';
@@ -81,7 +81,8 @@ export function ResourceNodeContent({
   const renamingId = useSidebarStore(s => s.renamingId);
   const { selectionMode, lastSelectedId, selectedIds } = useSelectionState();
   const isSelected = useIsSelected(nodeId);
-  const isFullySelected = useNodeIsFullySelected(nodeId);
+  const checkedState = useNodeSelectionState(nodeId);
+  const isFullySelected = checkedState === true;
   const isDimmedBySelection = useNodeIsDimmedBySelection(nodeId);
 
   const clickTimeoutRef = useRef<number | null>(null);
@@ -320,7 +321,7 @@ export function ResourceNodeContent({
                   onClick={handleSelectionChange}
                   muted={isDimmedBySelection}
                   aria-label={t('batch.multi_select')}
-                  checked={isFullySelected}
+                  checked={checkedState}
                 />
               )}
               <Tooltip delayDuration={0} disableHoverableContent>
