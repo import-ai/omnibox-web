@@ -4,7 +4,10 @@ import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
 import { http } from '@/lib/request';
-import { fetchRootResources } from '@/service/resource';
+import {
+  fetchRootResources,
+  type RootResourcesResponse,
+} from '@/service/resource';
 
 import { AddLinkPanel } from './AddLinkPanel';
 
@@ -47,12 +50,14 @@ jest.mock('@/service/resource', () => ({
   fetchRootResources: jest.fn(),
 }));
 
-function rootResponse(id: string) {
+function rootResponse(id: string): RootResourcesResponse {
   return {
     private: {
       id,
-      parent_id: null,
-      resource_type: 'folder' as const,
+      parent_id: '',
+      resource_type: 'folder',
+      has_children: false,
+      space_type: 'private',
       attrs: {},
     },
   };

@@ -219,6 +219,7 @@
       "placeholder": "请输入或粘贴链接"
     },
     "rss_folder_unsupported": "订阅文件夹不支持该操作",
+    "rss_item_unsupported": "订阅内容不支持该操作",
     "smart_folder_unsupported": "智能文件夹不支持该操作"
   },
   "error": {

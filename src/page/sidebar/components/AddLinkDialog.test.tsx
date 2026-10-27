@@ -109,7 +109,9 @@ describe('AddLinkDialog', () => {
 
     expect(saveButton.disabled).toBe(true);
     expect(saveButton.parentElement?.className).toContain('cursor-not-allowed');
-    expect(container.querySelector('button[aria-label="delete"]')).toBeNull();
+    expect(
+      container.querySelector('button[aria-label="search.clear"]')
+    ).toBeNull();
   });
 
   it('shows a delete control and closes without a prompt when cancelled', async () => {
@@ -134,7 +136,9 @@ describe('AddLinkDialog', () => {
 
     await act(async () => input.focus());
 
-    const clearButton = container.querySelector('button[aria-label="delete"]');
+    const clearButton = container.querySelector(
+      'button[aria-label="search.clear"]'
+    );
     expect(clearButton).not.toBeNull();
 
     await act(async () => (clearButton as HTMLButtonElement).click());

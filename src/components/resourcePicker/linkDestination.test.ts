@@ -32,6 +32,24 @@ describe('withLinkDestinationAvailability', () => {
     });
   });
 
+  it('disables rss items and other read-only resources', () => {
+    expect(
+      withLinkDestinationAvailability(resource('rss_item'), t)
+    ).toMatchObject({
+      disabled: true,
+      disabledTooltip: 'link.rss_item_unsupported',
+    });
+    expect(
+      withLinkDestinationAvailability(
+        { ...resource('doc'), read_only: true },
+        t
+      )
+    ).toMatchObject({
+      disabled: true,
+      disabledTooltip: 'resource.read_only_target',
+    });
+  });
+
   it('leaves ordinary folders selectable and still disables nested managed folders', () => {
     const folder = withLinkDestinationAvailability(
       resource('folder', [resource('rss_folder'), resource('file')]),

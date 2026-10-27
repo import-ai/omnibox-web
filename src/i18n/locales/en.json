@@ -219,6 +219,7 @@
       "placeholder": "Enter or paste a link"
     },
     "rss_folder_unsupported": "RSS folders do not support this action.",
+    "rss_item_unsupported": "RSS items do not support this action.",
     "smart_folder_unsupported": "Smart folders do not support this action."
   },
   "error": {
