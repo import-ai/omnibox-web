@@ -22,17 +22,34 @@ import {
 import { useResourceComments } from './useResourceComments';
 
 jest.mock('react-router-dom', () => ({ useLocation: jest.fn() }));
+jest.mock('react-i18next', () => {
+  const t = (key: string) => key;
+  return { useTranslation: () => ({ t }) };
+});
 jest.mock('./ResourceCommentsContext', () => ({
   useResourceCommentsPanel: jest.fn(),
 }));
 jest.mock('@import-ai/omnibox-editor', () => ({}));
 jest.mock('./commentAnchors', () => ({}));
+jest.mock('./useCommentMentionUsers', () => {
+  const users: unknown[] = [];
+  const namesById = {};
+  return {
+    useCommentMentionUsers: () => ({ users, namesById, loaded: false }),
+  };
+});
 jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
   getResourceCommentThread: jest.fn(),
 }));
 jest.mock('@/hooks/useUser', () => ({
   USER_UPDATED_EVENT: 'user-updated',
+}));
+jest.mock('@/lib/request', () => ({
+  http: {
+    get: jest.fn().mockResolvedValue([]),
+    post: jest.fn().mockResolvedValue({ updated: 0 }),
+  },
 }));
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
