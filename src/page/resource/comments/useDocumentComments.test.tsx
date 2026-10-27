@@ -3,7 +3,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
-import type { ResourceCommentThread } from '@/interface';
+import type { Permission, ResourceCommentThread } from '@/interface';
 import * as api from '@/service/resourceComments';
 
 import type { ResourceCommentEditor } from './commentAnchors';
@@ -11,6 +11,9 @@ import { createAnchoredCommentThread } from './createAnchoredCommentThread';
 import { useResourceComments } from './useResourceComments';
 
 jest.mock('@import-ai/omnibox-editor', () => ({}));
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
 jest.mock('@/hooks/useUser', () => ({ USER_UPDATED_EVENT: 'user-updated' }));
 jest.mock('@/page/resource/mentionLabelSync', () => ({
   syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
@@ -88,7 +91,7 @@ function Fixture({
 }: {
   resourceId?: string;
   dirty?: boolean;
-  permission?: 'can_view' | 'can_comment' | 'can_edit';
+  permission?: Permission;
   namespaceId?: string;
   contentHash?: string;
 }) {
@@ -473,22 +476,130 @@ describe('document comment controller', () => {
     expect(controller.submitting).toBe(false);
   });
 
-  it('allows viewing but gates all writes, with author-only document deletion', async () => {
+  describe.each(['inline', 'document'] as const)('%s permissions', type => {
+    const roles: {
+      permission: Permission;
+      writes: boolean;
+      moderates: boolean;
+    }[] = [
+      { permission: 'no_access', writes: false, moderates: false },
+      { permission: 'can_view', writes: false, moderates: false },
+      { permission: 'can_comment', writes: true, moderates: false },
+      { permission: 'can_edit', writes: true, moderates: true },
+      { permission: 'full_access', writes: true, moderates: true },
+    ];
+    describe.each(roles)('$permission', ({ permission, writes, moderates }) => {
+      it.each([
+        { own: true, resolved: false },
+        { own: false, resolved: false },
+        { own: true, resolved: true },
+        { own: false, resolved: true },
+      ])(
+        'gates mutations for own=$own resolved=$resolved',
+        async ({ own, resolved }) => {
+          const item = thread('target', type, resolved);
+          if (!own) {
+            item.creator = { id: 'other', username: 'Other' };
+            item.comments[0].author = item.creator;
+          }
+          jest.mocked(api.listResourceCommentThreads).mockResolvedValue({
+            items: [item],
+            total: 1,
+            offset: 0,
+            limit: 20,
+            has_more: false,
+          });
+          jest.mocked(api.updateResourceComment).mockResolvedValue(item);
+          jest.mocked(api.updateResourceCommentThread).mockResolvedValue(item);
+          jest.mocked(api.deleteResourceComment).mockResolvedValue(item);
+          await render({ permission });
+          const canDelete = writes && (own || moderates);
+          expect(controller.canDeleteComment(item.comments[0])).toBe(canDelete);
+          expect(controller.canDeleteThread(item)).toBe(canDelete);
+          expect(controller.canEditComment(item.comments[0])).toBe(
+            writes && own
+          );
+          expect(controller.canModerateThread(item)).toBe(canDelete);
+          await act(async () => {
+            await controller.editComment(
+              item.id,
+              item.comments[0].id,
+              'Edited',
+              ['image']
+            );
+          });
+          expect(api.updateResourceComment).toHaveBeenCalledTimes(
+            writes && own && !resolved ? 1 : 0
+          );
+          await act(async () => {
+            await controller.setThreadResolved(item.id, !resolved);
+          });
+          expect(api.updateResourceCommentThread).toHaveBeenCalledTimes(
+            canDelete ? 1 : 0
+          );
+          await act(async () => {
+            await controller.removeComment(item.id, item.comments[0].id);
+          });
+          expect(api.deleteResourceComment).toHaveBeenCalledTimes(
+            canDelete ? 1 : 0
+          );
+          await act(async () => controller.removeThread(item.id));
+          expect(api.deleteResourceCommentThread).toHaveBeenCalledTimes(
+            canDelete ? 1 : 0
+          );
+        }
+      );
+    });
+
+    it('blocks a stale edit after resolution and permits it after reopening', async () => {
+      const item = thread('target', type);
+      jest.mocked(api.listResourceCommentThreads).mockResolvedValue({
+        items: [item],
+        total: 1,
+        offset: 0,
+        limit: 20,
+        has_more: false,
+      });
+      jest
+        .mocked(api.updateResourceCommentThread)
+        .mockResolvedValueOnce({ ...item, resolved: true })
+        .mockResolvedValueOnce(item);
+      jest.mocked(api.updateResourceComment).mockResolvedValue(item);
+      await render();
+      await act(async () => controller.setThreadResolved(item.id, true));
+      await act(async () =>
+        controller.editComment(item.id, item.comments[0].id, 'Blocked')
+      );
+      expect(api.updateResourceComment).not.toHaveBeenCalled();
+      await act(async () => controller.setThreadResolved(item.id, false));
+      await act(async () =>
+        controller.editComment(item.id, item.comments[0].id, 'Allowed')
+      );
+      expect(api.updateResourceComment).toHaveBeenCalledWith(
+        'namespace',
+        'resource',
+        item.id,
+        item.comments[0].id,
+        { content: 'Allowed', attachment_ids: [] }
+      );
+    });
+  });
+
+  it('allows viewing but gates all writes, with shared author/editor deletion', async () => {
     await render({ permission: 'can_edit', dirty: true });
     const doc = thread('other', 'document');
     const other = {
       ...doc.comments[0],
       author: { id: 'other', username: 'Other' },
     };
-    expect(controller.canDeleteComment(other, doc)).toBe(false);
-    expect(controller.canDeleteComment(other, thread('inline'))).toBe(true);
+    expect(controller.canDeleteComment(other)).toBe(true);
     expect(controller.canModerateThread(doc)).toBe(true);
     await render({ permission: 'can_view' });
     expect(controller.canComment).toBe(false);
     expect(await controller.createDocumentThread('No')).toBe(false);
     await render({ namespaceId: 'share:shared' });
     expect(controller.canComment).toBe(false);
-    expect(controller.canDeleteComment(doc.comments[0], doc)).toBe(false);
+    expect(controller.canDeleteComment(doc.comments[0])).toBe(false);
     await act(async () => {
       await controller.setThreadResolved('doc', true);
       await controller.removeThread('doc');

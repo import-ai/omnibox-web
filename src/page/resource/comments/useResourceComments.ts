@@ -498,27 +498,12 @@ export function useResourceComments({
 
   const canEditComment = (comment: ResourceComment) =>
     canComment && isCommentAuthor(comment.author.id);
-  const canDeleteComment = (
-    comment: ResourceComment,
-    thread?: ResourceCommentThread
-  ) => {
-    const owner =
-      thread ??
-      knownThreadsRef.current.find(item =>
-        item.comments.some(candidate => candidate.id === comment.id)
-      );
-    return (
-      canComment &&
-      (isCommentAuthor(comment.author.id) ||
-        (!(owner && isDocumentCommentThread(owner)) && canEditResource))
-    );
-  };
+  const canDeleteComment = (comment: ResourceComment) =>
+    canComment && (isCommentAuthor(comment.author.id) || canEditResource);
   const canModerateThread = (thread: ResourceCommentThread) =>
     canComment && (canEditResource || isCommentAuthor(thread.creator.id));
   const canDeleteThread = (thread: ResourceCommentThread) =>
-    canComment &&
-    (isCommentAuthor(thread.creator.id) ||
-      (isInlineCommentThread(thread) && canEditResource));
+    canComment && (isCommentAuthor(thread.creator.id) || canEditResource);
 
   const {
     reply,

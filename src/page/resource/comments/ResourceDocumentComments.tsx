@@ -60,7 +60,6 @@ export function ResourceDocumentComments({
                     comment={comment}
                     threadId={thread.id}
                     threadResolved={false}
-                    thread={thread}
                     controller={controller}
                     leadingActions={
                       index === 0 ? (
