@@ -19,10 +19,11 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
-import type { Resource, ResourceMeta } from '@/interface';
+import type { PathItem, Resource, ResourceMeta } from '@/interface';
 import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
-import { fetchRootResources } from '@/service/resource';
+import { useSidebarStore } from '@/page/sidebar/store';
+import { fetchResource, fetchRootResources } from '@/service/resource';
 
 import { prepareCollectUrl } from './addLink';
 
@@ -43,6 +44,8 @@ export function AddLinkPanel({
   const [invalid, setInvalid] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [destination, setDestination] = useState<ResourceMeta | null>(null);
+  const [destinationPath, setDestinationPath] = useState<PathItem[]>();
+  const destinationRequestRef = useRef(0);
   const [focused, setFocused] = useState(true);
   const [hovered, setHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -70,6 +73,7 @@ export function AddLinkPanel({
         if (!active || !root?.id) {
           return;
         }
+        destinationRequestRef.current += 1;
         setDestination({
           id: root.id,
           name: t('private'),
@@ -77,6 +81,7 @@ export function AddLinkPanel({
           resource_type: root.resource_type,
           attrs: root.attrs,
         });
+        setDestinationPath([{ id: root.id, name: t('private') }]);
       })
       .catch(() => undefined);
     return () => {
@@ -115,6 +120,17 @@ export function AddLinkPanel({
         setSaving(false);
         return;
       }
+      try {
+        const resource = await fetchResource(namespaceId, resourceId);
+        if (!panelActiveRef.current) return;
+        await useSidebarStore.getState().restore({
+          ...resource,
+          name: resource.name?.trim() || prepared.url,
+        });
+      } catch {
+        // The resource page places the row once its own fetch succeeds.
+      }
+      if (!panelActiveRef.current) return;
       onSaved(resourceId);
     } catch {
       if (!panelActiveRef.current) return;
@@ -123,8 +139,27 @@ export function AddLinkPanel({
   };
 
   const selectDestination = (resource: ResourcePickerResource) => {
+    const request = ++destinationRequestRef.current;
     setDestination(resource);
     setPickerOpen(false);
+    if (resource.parent_id == null) {
+      setDestinationPath([
+        { id: resource.id, name: resource.name || t('untitled') },
+      ]);
+      return;
+    }
+    setDestinationPath(undefined);
+    fetchResource(namespaceId, resource.id)
+      .then(loaded => {
+        if (
+          !panelActiveRef.current ||
+          destinationRequestRef.current !== request
+        ) {
+          return;
+        }
+        setDestinationPath(loaded.path);
+      })
+      .catch(() => undefined);
   };
 
   return (
@@ -264,6 +299,8 @@ export function AddLinkPanel({
           <WorkspaceResourcePicker
             namespaceId={namespaceId}
             linkDestination
+            selectedResourceId={destination?.id}
+            selectedResourcePath={destinationPath}
             onSelect={selectDestination}
           />
         </DialogContent>

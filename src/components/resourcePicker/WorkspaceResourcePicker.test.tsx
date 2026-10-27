@@ -177,6 +177,28 @@ describe('WorkspaceResourcePicker', () => {
     expect(rowFor('An article')).toBeDefined();
   });
 
+  it('marks the resource already chosen as the save location', async () => {
+    Element.prototype.scrollIntoView = jest.fn();
+    await act(async () => {
+      root.render(
+        (
+          <TooltipProvider>
+            <WorkspaceResourcePicker
+              namespaceId="namespace-id"
+              selectedResourceId="private-root"
+              selectedResourcePath={[{ id: 'private-root', name: 'private' }]}
+              onSelect={onSelect}
+            />
+          </TooltipProvider>
+        ) as ReactNode
+      );
+    });
+
+    const selected = container.querySelector('button[aria-pressed="true"]');
+    expect(selected?.textContent).toContain('private');
+    expect(rowFor(rssFolder.name)?.getAttribute('aria-pressed')).toBe('false');
+  });
+
   it('greys out rss and smart folders when choosing where to save a link', async () => {
     await act(async () => {
       root.render(

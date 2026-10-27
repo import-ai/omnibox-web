@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { SpaceType } from '@/interface';
+import type { PathItem, SpaceType } from '@/interface';
 import { useSidebarStore } from '@/page/sidebar/store';
 import {
   fetchChildren,
@@ -12,6 +12,7 @@ import { rssTreeChildrenParams } from '@/service/resourceSort';
 
 import { withLinkDestinationAvailability } from './linkDestination';
 import { ResourcePicker } from './ResourcePicker';
+import { getInitialRootExpansionIds } from './resourcePickerState';
 import type { ResourcePickerResource } from './resourcePickerTypes';
 import {
   fetchSortedWorkspaceRootResources,
@@ -43,11 +44,15 @@ export function WorkspaceResourcePicker({
   namespaceId,
   onSelect,
   linkDestination = false,
+  selectedResourceId,
+  selectedResourcePath,
 }: {
   namespaceId: string;
   onSelect: (resource: ResourcePickerResource) => void;
   /** Grey out folders that cannot store a newly saved link. */
   linkDestination?: boolean;
+  selectedResourceId?: string;
+  selectedResourcePath?: PathItem[];
 }) {
   const { t } = useTranslation();
   const [loadFailed, setLoadFailed] = useState(false);
@@ -119,6 +124,27 @@ export function WorkspaceResourcePicker({
     [namespaceId, present]
   );
 
+  const defaultExpandedRootIds = useMemo(
+    () =>
+      selectedResourceId
+        ? getInitialRootExpansionIds(
+            roots,
+            selectedResourceId,
+            selectedResourcePath
+          )
+        : undefined,
+    [roots, selectedResourceId, selectedResourcePath]
+  );
+  const defaultExpandedIds = useMemo(
+    () =>
+      selectedResourceId
+        ? (selectedResourcePath ?? [])
+            .map(item => item.id)
+            .filter(id => id !== selectedResourceId)
+        : undefined,
+    [selectedResourceId, selectedResourcePath]
+  );
+
   return (
     <ResourcePicker
       enableManagedFolders
@@ -127,6 +153,9 @@ export function WorkspaceResourcePicker({
       roots={roots}
       loadChildren={loadChildren}
       searchResources={searchResources}
+      selectedResourceId={selectedResourceId}
+      defaultExpandedIds={defaultExpandedIds}
+      defaultExpandedRootIds={defaultExpandedRootIds}
       onSelect={onSelect}
     />
   );

@@ -4,7 +4,9 @@ import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
 import { http } from '@/lib/request';
+import { useSidebarStore } from '@/page/sidebar/store';
 import {
+  fetchResource,
   fetchRootResources,
   type RootResourcesResponse,
 } from '@/service/resource';
@@ -24,8 +26,19 @@ jest.mock('sonner', () => ({
   toast: { error: jest.fn() },
 }));
 
+let pickerProps: {
+  selectedResourceId?: string;
+  selectedResourcePath?: { id: string }[];
+} = {};
+
 jest.mock('@/components/resourcePicker', () => ({
-  WorkspaceResourcePicker: () => null,
+  WorkspaceResourcePicker: (props: {
+    selectedResourceId?: string;
+    selectedResourcePath?: { id: string }[];
+  }) => {
+    pickerProps = props;
+    return null;
+  },
 }));
 
 jest.mock('@/components/ui/dialog', () => ({
@@ -46,8 +59,15 @@ jest.mock('@/lib/request', () => ({
   http: { post: jest.fn() },
 }));
 
+jest.mock('@/page/sidebar/store', () => ({
+  useSidebarStore: {
+    getState: jest.fn(),
+  },
+}));
+
 jest.mock('@/service/resource', () => ({
   fetchRootResources: jest.fn(),
+  fetchResource: jest.fn(),
 }));
 
 function rootResponse(id: string): RootResourcesResponse {
@@ -84,7 +104,11 @@ describe('AddLinkPanel', () => {
   let root: Root;
 
   beforeEach(() => {
+    pickerProps = {};
     jest.clearAllMocks();
+    jest.mocked(useSidebarStore.getState).mockReturnValue({
+      restore: jest.fn().mockResolvedValue('link-1'),
+    } as unknown as ReturnType<typeof useSidebarStore.getState>);
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -133,6 +157,15 @@ describe('AddLinkPanel', () => {
     const enabledSave = buttonByText(container, 'chat.home.upload.save');
     expect(enabledSave?.disabled).toBe(false);
     jest.mocked(http.post).mockResolvedValue({ resource_id: 'link-1' });
+    jest.mocked(fetchResource).mockResolvedValue({
+      id: 'link-1',
+      parent_id: 'root-b',
+      name: '',
+      resource_type: 'link',
+      has_children: false,
+      space_type: 'private',
+      attrs: { url: 'https://example.com/article' },
+    });
     await act(async () => {
       enabledSave?.click();
     });
@@ -145,6 +178,18 @@ describe('AddLinkPanel', () => {
       }
     );
     expect(onSaved).toHaveBeenCalledWith('link-1');
+    const restore = useSidebarStore.getState().restore;
+    expect(restore).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'link-1',
+        name: 'https://example.com/article',
+        parent_id: 'root-b',
+      })
+    );
+    expect(pickerProps.selectedResourceId).toBe('root-b');
+    expect(pickerProps.selectedResourcePath).toEqual([
+      { id: 'root-b', name: 'private' },
+    ]);
   });
 
   it('ignores cancel while saving and does not navigate after the panel is gone', async () => {

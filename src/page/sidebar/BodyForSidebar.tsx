@@ -837,7 +837,10 @@ export function BodyForSidebar(props: IProps) {
           }
           const resource = await fetchResource(namespaceId, resourceId);
           const store = useSidebarStore.getState();
-          await store.restore(resource);
+          await store.restore({
+            ...resource,
+            name: resource.name?.trim() || url,
+          });
           store.closeCreateLinkDialog();
           navigateToResource(navigate, `/${namespaceId}/${resourceId}`, {
             state: { fromSidebar: true },
