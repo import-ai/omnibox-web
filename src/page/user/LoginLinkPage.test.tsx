@@ -82,7 +82,7 @@ describe('LoginLinkPage', () => {
 
     await act(async () => root.render(<LoginLinkPage />));
 
-    expect(get).toHaveBeenCalledWith('/auth/wechat-oa-login/authorize', {
+    expect(get).toHaveBeenCalledWith('/wechat-oa/login/authorize', {
       mute: true,
     });
     expect(window.sessionStorage.getItem(OAUTH_STATE_KEY)).toBe('state-1');
@@ -124,7 +124,7 @@ describe('LoginLinkPage', () => {
     expect(window.location.search).toBe('');
     expect(window.sessionStorage.getItem(OAUTH_STATE_KEY)).toBeNull();
     expect(post).toHaveBeenCalledWith(
-      '/auth/wechat-oa-login',
+      '/wechat-oa/login',
       { code: 'wx-code', state: 'state-1' },
       { mute: true }
     );

@@ -58,7 +58,7 @@ export default function LoginLinkPage() {
       }
       http
         .post(
-          '/auth/wechat-oa-login',
+          '/wechat-oa/login',
           { code: callback.code, state: callback.state },
           { mute: true }
         )
@@ -74,7 +74,7 @@ export default function LoginLinkPage() {
       return;
     }
     http
-      .get('/auth/wechat-oa-login/authorize', { mute: true })
+      .get('/wechat-oa/login/authorize', { mute: true })
       .then((result: WechatOaAuthorize) => {
         saveOAuthState(result.state);
         leaveTo(result.auth_url);
