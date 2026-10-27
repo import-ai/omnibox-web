@@ -158,12 +158,13 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         setQrcodeContent(result.qrcodeContent);
         setCurrentBindingApplication(result.application);
         setQrBindDialogOpen(true);
-        toast.success(
+        showToast(
           t(
             result.resumed
               ? 'applications.bind.continue'
               : 'applications.bind.initiated'
-          )
+          ),
+          'success'
         );
         return;
       }
