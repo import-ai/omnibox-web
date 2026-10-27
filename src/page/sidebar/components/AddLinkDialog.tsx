@@ -1,4 +1,3 @@
-import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -11,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { prepareCollectUrl } from '@/page/chat/home/addLink';
@@ -127,7 +127,7 @@ export function AddLinkDialog({
               placeholder={t('link.create_dialog.placeholder')}
               className={cn(
                 'border-line whitespace-nowrap shadow-none focus-visible:border-line focus-visible:ring-0 autofill:shadow-[inset_0_0_0_1000px_var(--background)] autofill:[-webkit-text-fill-color:var(--foreground)]',
-                url.length > 0 && 'pr-9'
+                url.length > 0 && 'pr-16'
               )}
               style={{
                 overflow: 'hidden',
@@ -143,15 +143,16 @@ export function AddLinkDialog({
             />
             {url.length > 0 && (
               <span className="absolute inset-y-0 right-2 flex items-center">
-                <button
+                <Button
                   type="button"
-                  aria-label={t('delete')}
-                  className="inline-flex size-4 items-center justify-center text-muted-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                  variant="ghost"
+                  aria-label={t('search.clear')}
+                  className={searchFieldClearButtonClassName}
                   disabled={submitting}
                   onClick={handleClear}
                 >
-                  <X className="size-4" />
-                </button>
+                  {t('search.clear')}
+                </Button>
               </span>
             )}
           </div>

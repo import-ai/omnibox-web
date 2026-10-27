@@ -10,6 +10,7 @@ import {
 } from '@/service/resource';
 import { rssTreeChildrenParams } from '@/service/resourceSort';
 
+import { withLinkDestinationAvailability } from './linkDestination';
 import { ResourcePicker } from './ResourcePicker';
 import type { ResourcePickerResource } from './resourcePickerTypes';
 import {
@@ -41,9 +42,12 @@ function workspaceRootsToPickerResources(
 export function WorkspaceResourcePicker({
   namespaceId,
   onSelect,
+  linkDestination = false,
 }: {
   namespaceId: string;
   onSelect: (resource: ResourcePickerResource) => void;
+  /** Grey out folders that cannot store a newly saved link. */
+  linkDestination?: boolean;
 }) {
   const { t } = useTranslation();
   const [loadFailed, setLoadFailed] = useState(false);
@@ -59,7 +63,13 @@ export function WorkspaceResourcePicker({
     setLoading(true);
     fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
       .then(response => {
-        if (!cancelled) setRoots(workspaceRootsToPickerResources(response, t));
+        if (cancelled) return;
+        const roots = workspaceRootsToPickerResources(response, t);
+        setRoots(
+          linkDestination
+            ? roots.map(root => withLinkDestinationAvailability(root, t))
+            : roots
+        );
       })
       .catch(error => {
         if (!cancelled) {
@@ -74,8 +84,13 @@ export function WorkspaceResourcePicker({
     return () => {
       cancelled = true;
     };
-  }, [namespaceId, resourceSorts, t]);
+  }, [linkDestination, namespaceId, resourceSorts, t]);
 
+  const present = useCallback(
+    (resource: ResourcePickerResource) =>
+      linkDestination ? withLinkDestinationAvailability(resource, t) : resource,
+    [linkDestination, t]
+  );
   const loadChildren = useCallback(
     (resource: ResourcePickerResource) => {
       const spaceType = resource.picker_space_type ?? 'private';
@@ -89,14 +104,19 @@ export function WorkspaceResourcePicker({
               { params: rssTreeChildrenParams(resource.resource_type) }
             )
       ).then(resources =>
-        resources.map(child => setWorkspacePickerSpace(child, spaceType))
+        resources.map(child =>
+          present(setWorkspacePickerSpace(child, spaceType))
+        )
       );
     },
-    [namespaceId, resourceSorts]
+    [namespaceId, present, resourceSorts]
   );
   const searchResources = useCallback(
-    (query: string) => searchWorkspaceResources(namespaceId, query),
-    [namespaceId]
+    (query: string) =>
+      searchWorkspaceResources(namespaceId, query).then(resources =>
+        resources.map(present)
+      ),
+    [namespaceId, present]
   );
 
   return (

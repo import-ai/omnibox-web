@@ -216,8 +216,10 @@
   "link": {
     "create_dialog": {
       "title": "添加链接",
-      "placeholder": "请输入链接"
-    }
+      "placeholder": "请输入或粘贴链接"
+    },
+    "rss_folder_unsupported": "订阅文件夹不支持该操作",
+    "smart_folder_unsupported": "智能文件夹不支持该操作"
   },
   "error": {
     "title": "404 页面未找到",
@@ -1003,7 +1005,6 @@
         "link": "添加链接",
         "link_tooltip": "抖音/B站/小红书等，一键保存",
         "link_placeholder": "添加链接",
-        "clear": "清除",
         "save_to": "保存至",
         "save": "保存",
         "invalid_link": "请添加正确的链接",

@@ -216,8 +216,10 @@
   "link": {
     "create_dialog": {
       "title": "Add Link",
-      "placeholder": "Enter a link"
-    }
+      "placeholder": "Enter or paste a link"
+    },
+    "rss_folder_unsupported": "RSS folders do not support this action.",
+    "smart_folder_unsupported": "Smart folders do not support this action."
   },
   "error": {
     "title": "404 Not Found",
@@ -1002,7 +1004,6 @@
         "link": "Add link",
         "link_tooltip": "Save webpage or video from link.",
         "link_placeholder": "Add link",
-        "clear": "Clear",
         "save_to": "Save to",
         "save": "Save",
         "invalid_link": "Please add a valid link",

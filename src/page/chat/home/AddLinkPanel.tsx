@@ -1,4 +1,4 @@
-import { ChevronDown, X } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import {
   WorkspaceResourcePicker,
 } from '@/components/resourcePicker';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
+import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
 import {
   Dialog,
   DialogContent,
@@ -45,7 +46,15 @@ export function AddLinkPanel({
   const [focused, setFocused] = useState(true);
   const [hovered, setHovered] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const panelActiveRef = useRef(true);
   const showEllipsis = url.length > 0 && !focused && !hovered;
+
+  useEffect(() => {
+    panelActiveRef.current = true;
+    return () => {
+      panelActiveRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (showEllipsis) {
@@ -100,6 +109,7 @@ export function AddLinkPanel({
         url: prepared.url,
         parentId: destination.id,
       });
+      if (!panelActiveRef.current) return;
       const resourceId = response.resource_id || response.resourceId;
       if (!resourceId) {
         setSaving(false);
@@ -107,6 +117,7 @@ export function AddLinkPanel({
       }
       onSaved(resourceId);
     } catch {
+      if (!panelActiveRef.current) return;
       setSaving(false);
     }
   };
@@ -121,7 +132,7 @@ export function AddLinkPanel({
       <div
         className="flex flex-1 flex-col gap-4"
         onKeyDown={event => {
-          if (event.key === 'Escape' && !pickerOpen) {
+          if (event.key === 'Escape' && !pickerOpen && !saving) {
             event.stopPropagation();
             onCancel();
           }
@@ -141,11 +152,12 @@ export function AddLinkPanel({
             autoCorrect="off"
             spellCheck={false}
             value={url}
+            disabled={saving}
             aria-invalid={invalid || undefined}
             placeholder={t('chat.home.upload.link_placeholder')}
             className={cn(
               'border-line h-9 whitespace-nowrap shadow-none focus-visible:border-line focus-visible:ring-0 autofill:shadow-[inset_0_0_0_1000px_var(--background)] autofill:[-webkit-text-fill-color:var(--foreground)]',
-              url.length > 0 && 'pr-[41px]'
+              url.length > 0 && 'pr-16'
             )}
             style={{
               overflow: 'hidden',
@@ -168,19 +180,21 @@ export function AddLinkPanel({
             }}
           />
           {url.length > 0 && (
-            <span className="absolute inset-y-0 right-[13px] flex items-center">
-              <button
+            <span className="absolute inset-y-0 right-2 flex items-center">
+              <Button
                 type="button"
-                aria-label={t('chat.home.upload.clear')}
-                className="inline-flex size-4 items-center justify-center text-muted-foreground hover:text-foreground"
+                variant="ghost"
+                aria-label={t('search.clear')}
+                className={searchFieldClearButtonClassName}
+                disabled={saving}
                 onClick={() => {
                   setUrl('');
                   setInvalid(false);
                   inputRef.current?.focus();
                 }}
               >
-                <X className="size-4" />
-              </button>
+                {t('search.clear')}
+              </Button>
             </span>
           )}
         </div>
@@ -192,6 +206,7 @@ export function AddLinkPanel({
             type="button"
             variant="outline"
             className="h-9 w-full justify-start gap-2 pr-2 pl-3 font-normal"
+            disabled={saving}
             onClick={() => setPickerOpen(true)}
           >
             {destination && (
@@ -209,14 +224,17 @@ export function AddLinkPanel({
           </Button>
         </div>
         <div className="flex gap-5">
-          <Button
-            type="button"
-            variant="outline"
-            className="h-8 flex-1"
-            onClick={onCancel}
-          >
-            {t('cancel')}
-          </Button>
+          <span className={cn('flex flex-1', saving && 'cursor-not-allowed')}>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 w-full"
+              disabled={saving}
+              onClick={onCancel}
+            >
+              {t('cancel')}
+            </Button>
+          </span>
           <span
             className={cn(
               'flex flex-1',
@@ -245,6 +263,7 @@ export function AddLinkPanel({
           </DialogHeader>
           <WorkspaceResourcePicker
             namespaceId={namespaceId}
+            linkDestination
             onSelect={selectDestination}
           />
         </DialogContent>

@@ -140,6 +140,7 @@ export default function FeatureCards() {
         <CardContent className="flex flex-1 flex-col gap-2">
           {linkMode && namespaceId ? (
             <AddLinkPanel
+              key={namespaceId}
               namespaceId={namespaceId}
               onCancel={() => {
                 setActionsEntering(true);

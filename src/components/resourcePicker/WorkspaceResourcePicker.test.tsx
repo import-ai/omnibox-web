@@ -4,6 +4,8 @@ import { act, type ReactNode } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { TooltipProvider } from '@/components/tooltip';
+
 import { WorkspaceResourcePicker } from './WorkspaceResourcePicker';
 
 (
@@ -170,6 +172,36 @@ describe('WorkspaceResourcePicker', () => {
 
     expect(fetchChildren).toHaveBeenCalled();
     expect(rowFor('An article')).toBeDefined();
+  });
+
+  it('greys out rss and smart folders when choosing where to save a link', async () => {
+    await act(async () => {
+      root.render(
+        (
+          <TooltipProvider>
+            <WorkspaceResourcePicker
+              namespaceId="namespace-id"
+              linkDestination
+              onSelect={onSelect}
+            />
+          </TooltipProvider>
+        ) as ReactNode
+      );
+    });
+
+    for (const folder of [rssFolder, smartFolder]) {
+      const row = rowFor(folder.name);
+      expect(row).toBeDefined();
+      expect(row!.disabled).toBe(true);
+
+      await act(async () => {
+        row!.click();
+      });
+    }
+
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(expandFor(rssFolder.name)).toBeNull();
+    expect(expandFor(smartFolder.name)).toBeNull();
   });
 
   it('shows folder results from a smart folder without an expand button', async () => {
