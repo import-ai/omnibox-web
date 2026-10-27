@@ -20,6 +20,13 @@ const mockFire = jest.fn();
 const mockCollapse = jest.fn();
 const mockExpand = jest.fn();
 let mockIsInsideDrop = false;
+let mockSelectionMode = false;
+let mockCheckedState: boolean | 'indeterminate' = false;
+
+jest.mock('react', () => {
+  const react = jest.requireActual<typeof import('react')>('react');
+  return { ...react, default: react };
+});
 
 jest.mock('@/lib/request', () => ({
   http: { get: jest.fn() },
@@ -38,9 +45,6 @@ jest.mock('@/hooks/useMobile', () => ({
 jest.mock('@/hooks/useApp', () => ({
   __esModule: true,
   default: () => ({ fire: mockFire }),
-}));
-jest.mock('@/components/Checkbox', () => ({
-  Checkbox: () => null,
 }));
 jest.mock('@/components/ResourceTypeIcon', () => ({
   __esModule: true,
@@ -136,12 +140,12 @@ jest.mock('@/page/sidebar/store', () => ({
     { getState: () => mockSidebarState }
   ),
   useSelectionState: () => ({
-    selectionMode: false,
+    selectionMode: mockSelectionMode,
     lastSelectedId: null,
     selectedIds: {},
   }),
   useIsSelected: () => false,
-  useNodeIsFullySelected: () => false,
+  useNodeSelectionState: () => mockCheckedState,
   useNodeIsDimmedBySelection: () => false,
 }));
 
@@ -198,6 +202,8 @@ describe('ResourceNodeContent', () => {
     mockCollapse.mockReset();
     mockExpand.mockReset();
     mockIsInsideDrop = false;
+    mockSelectionMode = false;
+    mockCheckedState = false;
     mockSidebarState.nodes = {
       [FOLDER_ID]: { id: FOLDER_ID, resourceType: 'rss_folder' },
       [SMART_FOLDER_ID]: { id: SMART_FOLDER_ID, resourceType: 'smart_folder' },
@@ -234,6 +240,28 @@ describe('ResourceNodeContent', () => {
       );
     });
   }
+
+  it('renders a mixed checkbox for a folder with selected descendants', async () => {
+    mockSelectionMode = true;
+    mockCheckedState = 'indeterminate';
+    const folder = {
+      ...itemNode('folder', {}),
+      resourceType: 'folder',
+      readOnly: false,
+    } as TreeNode;
+
+    await renderNodes([folder]);
+
+    const checkbox = container.querySelector('[role="checkbox"]');
+    expect(checkbox?.getAttribute('aria-checked')).toBe('mixed');
+    expect(checkbox?.getAttribute('data-state')).toBe('indeterminate');
+    expect(checkbox?.querySelector('svg.lucide-minus')).not.toBeNull();
+    expect(
+      container
+        .querySelector('[data-resource-row-id="folder"]')
+        ?.classList.contains('bg-sidebar-accent')
+    ).toBe(false);
+  });
 
   describe('drag target styling', () => {
     it('outlines a resource when the drag target is inside it', async () => {
