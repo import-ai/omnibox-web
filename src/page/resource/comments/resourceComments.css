@@ -82,10 +82,6 @@
   white-space: nowrap;
 }
 
-.dark .omnibox-comment-surface .omnibox-comment-composer q {
-  background: var(--muted);
-}
-
 .omnibox-comment-surface .omnibox-comment-composer textarea {
   margin: 0;
   resize: none;
