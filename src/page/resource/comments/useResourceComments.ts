@@ -5,7 +5,6 @@ import {
 import axios from 'axios';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { USER_UPDATED_EVENT } from '@/hooks/useUser';
 import type {
   Permission,
   ResourceComment,
@@ -35,6 +34,7 @@ import {
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentDraftHighlight } from './useCommentDraftHighlight';
 import { useCommentHighlight } from './useCommentHighlight';
+import { useCommentIdentityRefresh } from './useCommentIdentityRefresh';
 import { useCommentLinkNavigation } from './useCommentLinkNavigation';
 import { useCommentMentionUsers } from './useCommentMentionUsers';
 import { useCommentMutations } from './useCommentMutations';
@@ -97,34 +97,27 @@ export function useResourceComments({
   const [knownThreads, setKnownThreads] = useState<ResourceCommentThread[]>(
     resource.comment_threads ?? []
   );
-  const anchorThreads = useMemo(
-    () => knownThreads.filter(isInlineCommentThread),
-    [knownThreads]
-  );
   const [pendingSelection, setPendingSelection] =
     useState<OmniboxEditorCommentSelection | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const panel = useResourceCommentsPanel();
   const { namesById: activeMentionNames } = useCommentMentionUsers();
-  const [identityData, setIdentityData] = useState<{
-    key: string;
-    names: Record<string, string>;
-  }>({ key: lifecycleKey, names: {} });
+  const { names: identityNames, withIdentity } = useCommentIdentityRefresh({
+    namespaceId,
+    resourceId: resource.id,
+    enabled,
+    threads: knownThreads,
+    localVersions: localThreadVersionsRef,
+    memberNamesKey: JSON.stringify(activeMentionNames),
+  });
   const mentionNames = useMemo(
     () => ({
       ...resource.mention_display_names,
-      ...(identityData.key === lifecycleKey ? identityData.names : {}),
+      ...identityNames,
       ...activeMentionNames,
     }),
-    [
-      resource.mention_display_names,
-      identityData,
-      lifecycleKey,
-      activeMentionNames,
-    ]
+    [resource.mention_display_names, identityNames, activeMentionNames]
   );
-  const mentionNamesKey = JSON.stringify(activeMentionNames);
-  const previousIdentityKey = useRef(`${lifecycleKey}:${mentionNamesKey}`);
   const [fallbackPanelOpen, setFallbackPanelOpen] = useState(false);
   const panelOpen = panel?.panelOpen ?? fallbackPanelOpen;
   const setPanelOpen = panel?.setPanelOpen ?? setFallbackPanelOpen;
@@ -132,7 +125,6 @@ export function useResourceComments({
   const [submitting, setSubmitting] = useState(false);
   const [createConflict, setCreateConflict] = useState(false);
 
-  anchorThreadsRef.current = anchorThreads;
   const restoreEditorComments = useCallback(() => {
     const editor = editorRef.current;
     if (!editor || editor.isDestroyed) {
@@ -140,11 +132,6 @@ export function useResourceComments({
     }
     restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
-  useCommentDraftHighlight(
-    registeredEditor,
-    pendingSelection,
-    restoreEditorComments
-  );
 
   const isShared = namespaceId.startsWith('share:');
   const permission = resource.current_permission ?? 'can_view';
@@ -158,6 +145,7 @@ export function useResourceComments({
 
   const withUpdatedAuthor = useCallback(
     (thread: ResourceCommentThread) => {
+      thread = withIdentity(thread);
       const names = {
         ...mentionNames,
         ...thread.mention_display_names,
@@ -181,7 +169,18 @@ export function useResourceComments({
         })),
       };
     },
-    [activeMentionNames, mentionNames]
+    [activeMentionNames, mentionNames, withIdentity]
+  );
+
+  const anchorThreads = useMemo(
+    () => knownThreads.filter(isInlineCommentThread).map(withUpdatedAuthor),
+    [knownThreads, withUpdatedAuthor]
+  );
+  anchorThreadsRef.current = anchorThreads;
+  useCommentDraftHighlight(
+    registeredEditor,
+    pendingSelection,
+    restoreEditorComments
   );
 
   const mergeKnownThreads = useCallback((incoming: ResourceCommentThread[]) => {
@@ -574,54 +573,6 @@ export function useResourceComments({
         : null,
     resolved: activeThread?.resolved ?? false,
   });
-
-  useEffect(() => {
-    if (!enabled) return;
-    let ticket = 0;
-    let disposed = false;
-    const refresh = () => {
-      const current = ++ticket;
-      const path = namespaceId.startsWith('share:')
-        ? `/shares/${namespaceId.slice(6)}/resources/${resource.id}`
-        : `/namespaces/${namespaceId}/resources/${resource.id}`;
-      void import('@/lib/request')
-        .then(({ http }) => http.get<CommentableResource>(path, { mute: true }))
-        .then(next => {
-          if (disposed || current !== ticket) return;
-          setIdentityData({
-            key: lifecycleKey,
-            names: next.mention_display_names ?? {},
-          });
-          // Only refresh identity metadata; never replace body/hash or the user's draft.
-          void sidebar.load().catch(() => undefined);
-          void documentComments.load().catch(() => undefined);
-        })
-        .catch(() => undefined);
-    };
-    const identityKey = `${lifecycleKey}:${mentionNamesKey}`;
-    if (previousIdentityKey.current !== identityKey) {
-      const sameResource = previousIdentityKey.current.startsWith(
-        `${lifecycleKey}:`
-      );
-      previousIdentityKey.current = identityKey;
-      if (sameResource) refresh();
-    }
-    window.addEventListener(USER_UPDATED_EVENT, refresh);
-    window.addEventListener('focus', refresh);
-    return () => {
-      disposed = true;
-      window.removeEventListener(USER_UPDATED_EVENT, refresh);
-      window.removeEventListener('focus', refresh);
-    };
-  }, [
-    mentionNamesKey,
-    enabled,
-    lifecycleKey,
-    namespaceId,
-    resource.id,
-    sidebar.load,
-    documentComments.load,
-  ]);
 
   return {
     mentionDisplayNames: mentionNames,
