@@ -7,6 +7,8 @@ import { http } from '@/lib/request';
 
 import { useCommentMentionUsers } from './useCommentMentionUsers';
 
+Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+
 const listeners = new Set<(id: string) => void>();
 const app = {
   on: (_event: string, callback: (id: string) => void) => {
@@ -30,8 +32,8 @@ jest.mock('./ResourceCommentsContext', () => ({
 }));
 
 function Probe() {
-  useCommentMentionUsers();
-  return null;
+  const directory = useCommentMentionUsers();
+  return <span>{directory.users.map(user => user.name).join()}</span>;
 }
 
 describe('useCommentMentionUsers', () => {
@@ -62,6 +64,36 @@ describe('useCommentMentionUsers', () => {
       );
     });
     expect(http.get).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the newest invalidation when a prior refresh is still pending', async () => {
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    let stale!: (value: unknown) => void;
+    jest.mocked(http.get).mockReturnValueOnce(
+      new Promise(resolve => {
+        stale = resolve;
+      })
+    );
+    await act(async () => {
+      listeners.forEach(listener => listener('ns'));
+    });
+    jest
+      .mocked(http.get)
+      .mockResolvedValueOnce([
+        { user_id: 'u1', username: 'Newest', nickname: null },
+      ]);
+    await act(async () => {
+      listeners.forEach(listener => listener('ns'));
+    });
+    expect(http.get).toHaveBeenCalledTimes(3);
+    expect(container.textContent).toContain('Newest');
+    await act(async () => {
+      stale([{ user_id: 'u1', username: 'Stale' }]);
+    });
+    expect(container.textContent).toContain('Newest');
+    expect(container.textContent).not.toContain('Stale');
   });
 
   it('loads members again the next time the comment UI mounts', async () => {

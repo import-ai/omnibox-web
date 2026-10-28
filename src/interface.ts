@@ -108,6 +108,7 @@ export interface PathItem {
 }
 
 export interface SharedResource extends ResourceMeta {
+  mention_display_names?: Record<string, string>;
   content: string;
   attrs?: Record<string, any>;
   tags?: TagDto[];
@@ -119,6 +120,7 @@ export type ResourceCommentAnchorStatus = 'active' | 'orphaned';
 export interface ResourceCommentAuthor {
   id: string | null;
   username: string | null;
+  display_name?: string | null;
 }
 
 export interface ResourceCommentAttachment {
@@ -138,9 +140,20 @@ export interface ResourceComment {
   updated_at: string;
 }
 
-export interface ResourceCommentThread {
+interface ResourceCommentThreadBase {
+  mention_display_names?: Record<string, string>;
   id: string;
   quoted_text: string;
+  resolved: boolean;
+  creator: ResourceCommentAuthor;
+  comments: ResourceComment[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ResourceInlineCommentThread extends ResourceCommentThreadBase {
+  // Older inline responses and fixtures omit the discriminator.
+  type?: 'inline';
   anchor: {
     from: number;
     to: number;
@@ -149,12 +162,15 @@ export interface ResourceCommentThread {
     content_hash: string;
     status: ResourceCommentAnchorStatus;
   };
-  resolved: boolean;
-  creator: ResourceCommentAuthor;
-  comments: ResourceComment[];
-  created_at: string;
-  updated_at: string;
 }
+
+export interface ResourceDocumentCommentThread extends ResourceCommentThreadBase {
+  type: 'document';
+  anchor: null;
+}
+
+export type ResourceCommentThread =
+  ResourceInlineCommentThread | ResourceDocumentCommentThread;
 
 export interface Resource extends IBase {
   id: string;
@@ -178,6 +194,7 @@ export interface Resource extends IBase {
   name?: string;
   content?: string;
   content_hash?: string;
+  mention_display_names?: Record<string, string>;
   comment_threads?: ResourceCommentThread[];
 
   tags?: TagDto[];
