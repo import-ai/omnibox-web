@@ -282,6 +282,64 @@ describe('Attributes', () => {
     });
     expect(document.body.textContent).toContain('鲍勃');
     expect(document.body.textContent).toContain('b@qq.com');
+    expect(collaborators?.textContent).toContain('鲍勃（bob）');
+    (
+      globalThis as { __mentionMembers?: Record<string, unknown> }
+    ).__mentionMembers = undefined;
+  });
+
+  it('replaces a stale attribute name when the member list refreshes', async () => {
+    (
+      globalThis as { __mentionMembers?: Record<string, unknown> }
+    ).__mentionMembers = {
+      'user-b': {
+        id: 'user-b',
+        username: 'bob',
+        nickname: '新名',
+        email: 'b@qq.com',
+      },
+    };
+    await act(async () => {
+      root.render(
+        <Attributes
+          namespaceId="namespace-1"
+          resource={
+            {
+              id: 'doc-1',
+              name: 'Notes',
+              parent_id: 'team-root',
+              resource_type: 'doc',
+              space_type: 'teamspace',
+              has_children: false,
+              creator: {
+                label: '旧创建者（hewen）',
+                initial: '旧',
+                tone: '0',
+                interactive: true,
+                user_id: 'user-a',
+              },
+              collaborators: [
+                {
+                  label: '旧名（bob）',
+                  initial: '旧',
+                  tone: '2',
+                  interactive: true,
+                  user_id: 'user-b',
+                },
+              ],
+            } as unknown as Resource
+          }
+        />
+      );
+    });
+
+    const collaborators = container.querySelector(
+      '[data-testid="resource-collaborators"]'
+    );
+    const creator = container.querySelector('[data-testid="resource-creator"]');
+    expect(collaborators?.textContent).toContain('新名（bob）');
+    expect(collaborators?.textContent).not.toContain('旧名（bob）');
+    expect(creator?.textContent).toContain('旧创建者（hewen）');
     (
       globalThis as { __mentionMembers?: Record<string, unknown> }
     ).__mentionMembers = undefined;

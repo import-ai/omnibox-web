@@ -5,10 +5,15 @@ import { useTranslation } from 'react-i18next';
 import { ATTRIBUTE_STYLES } from '@/components/attributes/constants';
 import { Avatar, AvatarFallback } from '@/components/ui/Avatar';
 import type { ResourceContributor } from '@/interface';
+import type { MentionCardMember } from '@/page/resource/mentionCard';
 import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
-import { truncateContributorLabel } from './resourcePeople';
+import {
+  contributorInitial,
+  liveContributorLabel,
+  truncateContributorLabel,
+} from './resourcePeople';
 
 function ContributorAvatar({ person }: { person: ResourceContributor }) {
   return (
@@ -18,17 +23,39 @@ function ContributorAvatar({ person }: { person: ResourceContributor }) {
   );
 }
 
-function ContributorIdentity({ person }: { person: ResourceContributor }) {
-  const hoverable = Boolean(person.interactive && person.user_id);
+function displayedContributor(
+  person: ResourceContributor,
+  member?: MentionCardMember
+): ResourceContributor {
+  if (!person.interactive || !member) {
+    return person;
+  }
+  const label = liveContributorLabel(person.label, member);
+  return {
+    ...person,
+    label,
+    initial: contributorInitial(label),
+  };
+}
+
+function ContributorIdentity({
+  person,
+  member,
+}: {
+  person: ResourceContributor;
+  member?: MentionCardMember;
+}) {
+  const shown = displayedContributor(person, member);
+  const hoverable = Boolean(shown.interactive && shown.user_id && member);
   return (
     <span
       className="inline-flex min-w-0 items-center gap-1"
       data-type={hoverable ? 'mention' : undefined}
-      data-id={hoverable ? person.user_id : undefined}
+      data-id={hoverable ? shown.user_id : undefined}
     >
-      <ContributorAvatar person={person} />
+      <ContributorAvatar person={shown} />
       <span className="whitespace-nowrap">
-        {truncateContributorLabel(person.label)}
+        {truncateContributorLabel(shown.label)}
       </span>
     </span>
   );
@@ -37,9 +64,11 @@ function ContributorIdentity({ person }: { person: ResourceContributor }) {
 function PeopleRow({
   kind,
   people,
+  membersById,
 }: {
   kind: 'creator' | 'collaborators';
   people: ResourceContributor[];
+  membersById: Record<string, MentionCardMember>;
 }) {
   const { t } = useTranslation();
   if (people.length === 0) {
@@ -74,7 +103,10 @@ function PeopleRow({
             key={`${person.user_id ?? person.label}-${index}`}
             className="inline-flex items-center"
           >
-            <ContributorIdentity person={person} />
+            <ContributorIdentity
+              person={person}
+              member={person.user_id ? membersById[person.user_id] : undefined}
+            />
             {index < people.length - 1 && <span>{separator}</span>}
           </span>
         ))}
@@ -102,9 +134,19 @@ export function ResourceContributors({
 
   return (
     <div ref={rootRef} className="space-y-2">
-      {creator ? <PeopleRow kind="creator" people={[creator]} /> : null}
+      {creator ? (
+        <PeopleRow
+          kind="creator"
+          people={[creator]}
+          membersById={membersById}
+        />
+      ) : null}
       {collaborators?.length ? (
-        <PeopleRow kind="collaborators" people={collaborators} />
+        <PeopleRow
+          kind="collaborators"
+          people={collaborators}
+          membersById={membersById}
+        />
       ) : null}
       {canHover ? (
         <MentionHoverCard containerRef={rootRef} membersById={membersById} />
