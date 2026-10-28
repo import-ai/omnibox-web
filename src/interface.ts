@@ -85,6 +85,14 @@ export interface TagDto {
 }
 
 export type SpaceType = 'private' | 'teamspace';
+
+export interface ResourceContributor {
+  label: string;
+  initial: string;
+  tone: string;
+  interactive: boolean;
+  user_id?: string;
+}
 export type ResourceType =
   | 'doc'
   | 'file'
@@ -179,6 +187,8 @@ export interface Resource extends IBase {
 
   path?: PathItem[];
   manual_sort_initialized_at?: string | null;
+  creator?: ResourceContributor | null;
+  collaborators?: ResourceContributor[];
 }
 
 export interface IResourceData extends Resource {

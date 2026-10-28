@@ -150,6 +150,9 @@
       "url": "URL",
       "author": "Author",
       "created": "Created",
+      "creator": "Creator",
+      "collaborators": "Collaborators",
+      "contributor_separator": ", ",
       "filename": "File"
     }
   },
