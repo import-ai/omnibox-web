@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import type { SpaceType } from '@/interface';
 
 import { buildActions } from './actions';
+import { createNodeSelectionStateSelector } from './selectionState';
 import type { SidebarStore, TreeNode } from './types';
 import { initialState } from './types';
 import {
@@ -124,6 +125,12 @@ export function useNodeIsFullySelected(id: string): boolean {
   return useSidebarStore(state =>
     isNodeFullySelected(state.nodes, state.selectedIds, id)
   );
+}
+
+const selectNodeSelectionState = createNodeSelectionStateSelector();
+
+export function useNodeSelectionState(id: string): boolean | 'indeterminate' {
+  return useSidebarStore(state => selectNodeSelectionState(state, id));
 }
 
 export function useNodeIsDimmedBySelection(id: string): boolean {

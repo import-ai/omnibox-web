@@ -13,6 +13,7 @@ import { isFolderLikeResourceType } from '@/page/resource/useResourcePaneLayout'
 import { RSS_ITEM_SORT } from '@/service/resourceSort';
 
 import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
+import { ResourceDocumentComments } from './comments/ResourceDocumentComments';
 import {
   type ResourceCommentsController,
   useResourceComments,
@@ -177,13 +178,6 @@ export default function Page(props: IProps) {
     enabled: commentsEnabled,
     // Block new anchored comments only while this edit has unsaved changes.
     contentDirty: editPage && contentDirty,
-    onMentionContent: (content, contentHash) => {
-      props.onResource?.({
-        ...resource,
-        content,
-        content_hash: contentHash,
-      });
-    },
   });
 
   return (
@@ -193,6 +187,9 @@ export default function Page(props: IProps) {
         comments={comments}
         onContentDirtyChange={setContentDirty}
       />
+      {commentsEnabled ? (
+        <ResourceDocumentComments controller={comments} wide={props.wide} />
+      ) : null}
       {commentsEnabled ? <ResourceCommentsSheet controller={comments} /> : null}
     </>
   );

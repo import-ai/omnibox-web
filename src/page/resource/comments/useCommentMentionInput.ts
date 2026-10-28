@@ -104,7 +104,7 @@ export function useCommentMentionInput(
         if (
           next.caret !== null &&
           next.caret !== element.selectionStart &&
-          !event.nativeEvent.isComposing
+          !('isComposing' in event.nativeEvent && event.nativeEvent.isComposing)
         ) {
           pendingCaret.current = next.caret;
           setCaret(next.caret);

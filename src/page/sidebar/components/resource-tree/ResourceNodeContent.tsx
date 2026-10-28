@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -38,7 +38,7 @@ import {
 import {
   useIsSelected,
   useNodeIsDimmedBySelection,
-  useNodeIsFullySelected,
+  useNodeSelectionState,
   useSelectionState,
   useSidebarStore,
 } from '@/page/sidebar/store';
@@ -79,12 +79,25 @@ export function ResourceNodeContent({
   const nodeUI = useSidebarStore(s => s.ui[nodeId]);
   const activeId = useSidebarStore(s => s.activeId);
   const renamingId = useSidebarStore(s => s.renamingId);
-  const { selectionMode, lastSelectedId, selectedIds } = useSelectionState();
+  const { selectionMode, selectedIds } = useSelectionState();
   const isSelected = useIsSelected(nodeId);
-  const isFullySelected = useNodeIsFullySelected(nodeId);
+  const checkedState = useNodeSelectionState(nodeId);
+  const isFullySelected = checkedState === true;
   const isDimmedBySelection = useNodeIsDimmedBySelection(nodeId);
 
   const clickTimeoutRef = useRef<number | null>(null);
+  const clearPendingClick = useCallback(() => {
+    if (clickTimeoutRef.current !== null) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => {
+    clearPendingClick();
+    return clearPendingClick;
+  }, [clearPendingClick, selectionMode]);
+
   // The config endpoint only exists for an rss folder, and a row's parent is
   // not always the feed folder the item lives in: a smart folder collecting rss
   // items re-parents them to itself. Asking that folder for a feed config 404s,
@@ -236,14 +249,14 @@ export function ResourceNodeContent({
   };
 
   const handleClick = () => {
-    if (isEditing) return;
+    if (isEditing || useSidebarStore.getState().selectionMode) return;
     if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
+      clearPendingClick();
       return;
     }
     clickTimeoutRef.current = window.setTimeout(() => {
       clickTimeoutRef.current = null;
+      if (useSidebarStore.getState().selectionMode) return;
       handleActive();
     }, CLICK_DEBOUNCE_DELAY);
   };
@@ -252,22 +265,20 @@ export function ResourceNodeContent({
     e.preventDefault();
     e.stopPropagation();
     if (selectionMode || node.readOnly) return;
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-    }
+    clearPendingClick();
     startRename();
   };
 
   const handleSelectionChange = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-    useSidebarStore
-      .getState()
-      .toggleSelection(
-        nodeId,
-        event.shiftKey ? lastSelectedId || undefined : undefined
-      );
+    if (isEditing || !isSelectable) return;
+    clearPendingClick();
+    const state = useSidebarStore.getState();
+    state.toggleSelection(
+      nodeId,
+      event.shiftKey ? state.lastSelectedId || undefined : undefined
+    );
   };
 
   const upload = useSidebarStore(s => s.dialogs.upload[nodeId]);
@@ -300,6 +311,7 @@ export function ResourceNodeContent({
               data-resource-id={nodeId}
               data-resource-drop-id={nodeId}
               data-resource-row-id={nodeId}
+              onClick={selectionMode ? handleSelectionChange : undefined}
               className={cn(
                 'group/sidebar-item relative my-px rounded-md hover:bg-sidebar-accent',
                 'flex items-center',
@@ -320,7 +332,7 @@ export function ResourceNodeContent({
                   onClick={handleSelectionChange}
                   muted={isDimmedBySelection}
                   aria-label={t('batch.multi_select')}
-                  checked={isFullySelected}
+                  checked={checkedState}
                 />
               )}
               <Tooltip delayDuration={0} disableHoverableContent>
