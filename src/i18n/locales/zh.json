@@ -150,6 +150,9 @@
       "url": "地址",
       "author": "作者",
       "created": "创建时间",
+      "creator": "创建者",
+      "collaborators": "协作者",
+      "contributor_separator": "、",
       "filename": "文件"
     }
   },
