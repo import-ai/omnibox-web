@@ -25,13 +25,20 @@ jest.mock('./ResourceCommentsContext', () => ({
 jest.mock('./useCommentDraftPosition', () => ({
   useCommentDraftPosition: jest.fn(() => 0),
 }));
-jest.mock('@/page/resource/mentionLabelSync', () => ({
-  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
-}));
+jest.mock('./useCommentMentionUsers', () => {
+  const users: unknown[] = [];
+  const namesById: Record<string, string> = {};
+  return {
+    useCommentMentionUsers: () => ({ users, namesById, loaded: false }),
+  };
+});
 jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default', hash: '' }),
 }));
 jest.mock('@/service/resourceComments', () => ({}));
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
+}));
 jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
 jest.mock('@/hooks/useUser', () => ({
   USER_UPDATED_EVENT: 'user-data-updated',

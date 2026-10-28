@@ -1,12 +1,18 @@
 import type { ResourceCommentThread } from '@/interface';
 import { listResourceCommentThreads } from '@/service/resourceComments';
 
+import {
+  matchesCommentView,
+  mergeCommentThreads,
+} from './documentCommentThreads';
+
 export const COMMENT_REFRESH_PAGE_SIZE = 100;
 
 export async function fetchAllResourceCommentThreads(
   namespaceId: string,
   resourceId: string,
-  resolved: boolean | undefined
+  resolved: boolean | undefined,
+  view: 'inline' | 'sidebar' | 'document' = 'sidebar'
 ) {
   const threads: ResourceCommentThread[] = [];
   let offset = 0;
@@ -15,6 +21,7 @@ export async function fetchAllResourceCommentThreads(
       offset,
       limit: COMMENT_REFRESH_PAGE_SIZE,
       resolved,
+      view,
     });
     threads.push(...page.items);
     if (!page.has_more || page.items.length === 0) {
@@ -40,4 +47,20 @@ export function replaceThreadsForFilter(
     thread => thread.resolved !== resolved && !incomingIds.has(thread.id)
   );
   return [...kept, ...incoming];
+}
+
+// Replace the sidebar view for this filter and keep threads that belong
+// elsewhere, including unresolved full-document comments.
+export function replaceSidebarThreads(
+  current: ResourceCommentThread[],
+  incoming: ResourceCommentThread[],
+  resolved: boolean | undefined
+) {
+  const incomingIds = new Set(incoming.map(thread => thread.id));
+  const kept = current.filter(
+    thread =>
+      !matchesCommentView(thread, 'sidebar', resolved) &&
+      !incomingIds.has(thread.id)
+  );
+  return mergeCommentThreads(kept, incoming, true);
 }

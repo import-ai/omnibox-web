@@ -41,13 +41,23 @@ describe('fetchAllResourceCommentThreads', () => {
       1,
       'namespace',
       'resource',
-      { offset: 0, limit: COMMENT_REFRESH_PAGE_SIZE, resolved: false }
+      {
+        offset: 0,
+        limit: COMMENT_REFRESH_PAGE_SIZE,
+        resolved: false,
+        view: 'sidebar',
+      }
     );
     expect(listResourceCommentThreads).toHaveBeenNthCalledWith(
       2,
       'namespace',
       'resource',
-      { offset: 1, limit: COMMENT_REFRESH_PAGE_SIZE, resolved: false }
+      {
+        offset: 1,
+        limit: COMMENT_REFRESH_PAGE_SIZE,
+        resolved: false,
+        view: 'sidebar',
+      }
     );
   });
 });

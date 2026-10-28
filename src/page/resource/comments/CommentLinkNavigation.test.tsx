@@ -1,11 +1,23 @@
 /** @jest-environment jsdom */
 
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => mockApp,
+}));
+const mockApp = { on: () => () => undefined };
+
 import { act, useCallback, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useLocation } from 'react-router-dom';
 
-import type { ResourceCommentThread } from '@/interface';
-import { listResourceCommentThreads } from '@/service/resourceComments';
+import type {
+  ResourceCommentThread,
+  ResourceInlineCommentThread,
+} from '@/interface';
+import {
+  getResourceCommentThread,
+  listResourceCommentThreads,
+} from '@/service/resourceComments';
 
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentHighlight } from './useCommentHighlight';
@@ -16,13 +28,25 @@ import {
 import { useResourceComments } from './useResourceComments';
 
 jest.mock('react-router-dom', () => ({ useLocation: jest.fn() }));
+jest.mock('react-i18next', () => {
+  const t = (key: string) => key;
+  return { useTranslation: () => ({ t }) };
+});
 jest.mock('./ResourceCommentsContext', () => ({
   useResourceCommentsPanel: jest.fn(),
 }));
 jest.mock('@import-ai/omnibox-editor', () => ({}));
 jest.mock('./commentAnchors', () => ({}));
+jest.mock('./useCommentMentionUsers', () => {
+  const users: unknown[] = [];
+  const namesById = {};
+  return {
+    useCommentMentionUsers: () => ({ users, namesById, loaded: false }),
+  };
+});
 jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
+  getResourceCommentThread: jest.fn(),
 }));
 jest.mock('@/page/resource/mentionLabelSync', () => ({
   syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
@@ -34,9 +58,15 @@ jest.mock('@/hooks/useApp', () => ({
 jest.mock('@/hooks/useUser', () => ({
   USER_UPDATED_EVENT: 'user-updated',
 }));
+jest.mock('@/lib/request', () => ({
+  http: {
+    get: jest.fn().mockResolvedValue([]),
+    post: jest.fn().mockResolvedValue({ updated: 0 }),
+  },
+}));
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
-const threads: ResourceCommentThread[] = ['first', 'target'].map(id => ({
+const threads: ResourceInlineCommentThread[] = ['first', 'target'].map(id => ({
   id,
   quoted_text: id,
   creator: { id: 'author', username: 'Author' },
@@ -126,7 +156,11 @@ function PaginatedFixture() {
     enabled: true,
   });
   return (
-    <output>{controller.threads.map(thread => thread.id).join(',')}</output>
+    <>
+      <output>{controller.threads.map(thread => thread.id).join(',')}</output>
+      <button onClick={controller.loadMore}>More</button>
+      <button onClick={() => controller.setResolved(false)}>Open</button>
+    </>
   );
 }
 
@@ -222,6 +256,7 @@ describe('comment link navigation', () => {
       offset: 0,
       limit: 20,
     });
+    jest.mocked(getResourceCommentThread).mockResolvedValue(threads[1]);
   });
 
   afterEach(async () => {
@@ -379,19 +414,24 @@ describe('comment link navigation', () => {
     expect(highlightedQuotes()).toHaveLength(1);
   });
 
-  it('shows every loaded discussion without requesting another comment page', async () => {
+  it('keeps a target outside the first page visible without skipping pagination items', async () => {
     await act(async () => root.render(<PaginatedFixture />));
-    expect(container.querySelector('output')?.textContent).toContain('first');
     expect(container.querySelector('output')?.textContent).toContain('target');
-    expect(listResourceCommentThreads).not.toHaveBeenCalled();
+    await act(async () => container.querySelector('button')?.click());
+    expect(listResourceCommentThreads).toHaveBeenLastCalledWith(
+      'namespace',
+      'resource',
+      { view: 'sidebar', offset: 1, limit: 20, resolved: false }
+    );
+    await act(async () => container.querySelectorAll('button')[1].click());
+    expect(container.querySelector('output')?.textContent).toContain('target');
   });
 
-  it('opens a resource with no comments on all comments', async () => {
+  it('opens a resource with no inline comments on unresolved comments', async () => {
     await act(async () =>
       root.render(<FilterFixture resourceId="empty" commentThreads={[]} />)
     );
-    expect(container.querySelector('output')?.textContent).toBe('undefined');
-    expect(listResourceCommentThreads).not.toHaveBeenCalled();
+    expect(container.querySelector('output')?.textContent).toBe('false');
   });
 
   it('keeps unresolved selected when every existing comment is resolved', async () => {
@@ -408,6 +448,5 @@ describe('comment link navigation', () => {
       )
     );
     expect(container.querySelector('output')?.textContent).toBe('false');
-    expect(listResourceCommentThreads).not.toHaveBeenCalled();
   });
 });

@@ -215,10 +215,10 @@ describe('ShareLayout', () => {
   });
 
   it.each(['', ' \n\t '])(
-    'hides comments for empty content %j',
+    'supports document comments for empty content %j',
     async content => {
       await render(false, false, { ...documentResource, content });
-      expect(container.querySelector('header button')).toBeNull();
+      expect(container.querySelector('header button')).not.toBeNull();
     }
   );
 

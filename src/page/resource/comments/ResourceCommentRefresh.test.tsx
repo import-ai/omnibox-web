@@ -31,7 +31,24 @@ jest.mock('@/hooks/useUser', () => ({
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 function thread(id: string, resolved = false): ResourceCommentThread {
-  return { id, resolved } as ResourceCommentThread;
+  return {
+    id,
+    resolved,
+    type: 'inline',
+    quoted_text: id,
+    anchor: {
+      from: 1,
+      to: 2,
+      prefix: '',
+      suffix: '',
+      content_hash: 'hash',
+      status: 'active',
+    },
+    creator: { id: 'author', username: 'Author' },
+    comments: [],
+    created_at: '2026-09-10T00:00:00Z',
+    updated_at: '2026-09-10T00:00:00Z',
+  } as ResourceCommentThread;
 }
 
 function resource(
@@ -91,20 +108,23 @@ describe('comment list refresh', () => {
     let finishStale: ((value: ReturnType<typeof page>) => void) | undefined;
     jest
       .mocked(listResourceCommentThreads)
-      .mockImplementationOnce(
-        () =>
-          new Promise(resolve => {
+      .mockImplementation(async (_namespace, _resource, options) => {
+        if (options?.view !== 'sidebar') return page([]);
+        if (options.limit === 100 && options.resolved !== true) {
+          return new Promise(resolve => {
             finishStale = resolve;
-          })
-      )
-      .mockResolvedValueOnce(page([thread('fresh', true)]));
+          });
+        }
+        if (options.resolved === true) return page([thread('fresh', true)]);
+        return page([thread('local')]);
+      });
 
     await act(async () => {
       root.render(
         <Harness current={resource('resource', [thread('local')])} />
       );
     });
-    expect(listResourceCommentThreads).not.toHaveBeenCalled();
+    expect(ids()).toBe('local');
 
     await act(async () => {
       api.current?.setPanelOpen(true);
@@ -123,14 +143,19 @@ describe('comment list refresh', () => {
     expect(listResourceCommentThreads).toHaveBeenLastCalledWith(
       'namespace',
       'resource',
-      { offset: 0, limit: 100, resolved: true }
+      { offset: 0, limit: 100, resolved: true, view: 'sidebar' }
     );
   });
 
   it('keeps the previous discussions when the refresh fails', async () => {
     jest
       .mocked(listResourceCommentThreads)
-      .mockRejectedValueOnce(new Error('offline'));
+      .mockImplementation(async (_namespace, _resource, options) => {
+        if (options?.view === 'sidebar' && options.limit === 100) {
+          throw new Error('offline');
+        }
+        return page([thread('local')]);
+      });
     await act(async () => {
       root.render(
         <Harness current={resource('resource', [thread('local')])} />
@@ -157,7 +182,11 @@ describe('comment list refresh', () => {
     await act(async () => {
       await Promise.resolve();
     });
-    const calls = jest.mocked(listResourceCommentThreads).mock.calls.length;
+    const sidebarCalls = () =>
+      jest
+        .mocked(listResourceCommentThreads)
+        .mock.calls.filter(call => call[2]?.view === 'sidebar').length;
+    const calls = sidebarCalls();
 
     await act(async () => {
       root.render(<Harness current={resource('second', [thread('two')])} />);
@@ -167,7 +196,7 @@ describe('comment list refresh', () => {
     });
 
     expect(ids()).toBe('two');
-    expect(listResourceCommentThreads).toHaveBeenCalledTimes(calls);
+    expect(sidebarCalls()).toBe(calls);
   });
 
   it('loads again when the panel is reopened', async () => {
@@ -192,6 +221,10 @@ describe('comment list refresh', () => {
       await Promise.resolve();
     });
 
-    expect(listResourceCommentThreads).toHaveBeenCalledTimes(1);
+    expect(
+      jest
+        .mocked(listResourceCommentThreads)
+        .mock.calls.filter(call => call[2]?.view === 'sidebar')
+    ).toHaveLength(1);
   });
 });
