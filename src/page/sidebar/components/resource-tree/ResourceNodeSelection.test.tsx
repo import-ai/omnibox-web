@@ -71,9 +71,13 @@ jest.mock('@/page/sidebar/store', () => {
   const { buildBatchActions } = jest.requireActual<
     typeof import('@/page/sidebar/store/actions/batch')
   >('@/page/sidebar/store/actions/batch');
-  const { isNodeFullySelected, isNodeDimmedBySelection } = jest.requireActual<
+  const { isNodeDimmedBySelection } = jest.requireActual<
     typeof import('@/page/sidebar/store/utils')
   >('@/page/sidebar/store/utils');
+  const { createNodeSelectionStateSelector } = jest.requireActual<
+    typeof import('@/page/sidebar/store/selectionState')
+  >('@/page/sidebar/store/selectionState');
+  const selectNodeSelectionState = createNodeSelectionStateSelector();
   const store = create<SidebarStore>()(
     immer(
       (set, get) =>
@@ -104,8 +108,8 @@ jest.mock('@/page/sidebar/store', () => {
       lastSelectedId: store(state => state.lastSelectedId),
     }),
     useIsSelected: (id: string) => store(state => !!state.selectedIds[id]),
-    useNodeIsFullySelected: (id: string) =>
-      store(state => isNodeFullySelected(state.nodes, state.selectedIds, id)),
+    useNodeSelectionState: (id: string) =>
+      store(state => selectNodeSelectionState(state, id)),
     useNodeIsDimmedBySelection: (id: string) =>
       store(state =>
         isNodeDimmedBySelection(state.nodes, state.selectedIds, id)

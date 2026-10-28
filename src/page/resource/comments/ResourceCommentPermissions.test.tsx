@@ -12,6 +12,7 @@ import {
 } from '@/service/resourceComments';
 
 import { ResourceCommentThreadItem } from './ResourceCommentThreadItem';
+import { ResourceDocumentComments } from './ResourceDocumentComments';
 import { useResourceComments } from './useResourceComments';
 
 jest.mock('react', () => {
@@ -34,6 +35,9 @@ jest.mock('@/service/resourceComments', () => ({
   uploadResourceCommentAttachment: jest.fn(),
 }));
 jest.mock('./commentAnchors', () => ({}));
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
+}));
 jest.mock('./ResourceCommentsContext', () => ({
   useResourceCommentsPanel: () => null,
 }));
@@ -79,31 +83,59 @@ const thread: ResourceCommentThread = {
   updated_at: '2026-09-10T00:00:00Z',
 };
 const threads = [thread];
+const documentThread: ResourceCommentThread = {
+  ...thread,
+  type: 'document',
+  anchor: null,
+};
+const documentThreads = [documentThread];
+const resolvedDocumentThread = { ...documentThread, resolved: true };
+const resolvedDocumentThreads = [resolvedDocumentThread];
 
 function Fixture({
   permission,
   namespaceId = 'namespace',
+  document = false,
+  placement = 'sidebar',
+  resolved = false,
 }: {
   permission: Permission;
   namespaceId?: string;
+  document?: boolean;
+  placement?: 'sidebar' | 'footer';
+  resolved?: boolean;
 }) {
   const controller = useResourceComments({
     namespaceId,
     resource: {
       id: 'team-document',
       current_permission: permission,
-      comment_threads: threads,
+      comment_threads: document
+        ? resolved
+          ? resolvedDocumentThreads
+          : documentThreads
+        : threads,
     },
     enabled: true,
   });
   return (
     <TooltipProvider>
       <output data-can-create={controller.commentsConfig.enabled} />
-      <ResourceCommentThreadItem
-        controller={controller}
-        mode="all"
-        thread={thread}
-      />
+      {placement === 'footer' ? (
+        <ResourceDocumentComments controller={controller} />
+      ) : (
+        <ResourceCommentThreadItem
+          controller={controller}
+          mode="all"
+          thread={
+            document
+              ? resolved
+                ? resolvedDocumentThread
+                : documentThread
+              : thread
+          }
+        />
+      )}
     </TooltipProvider>
   );
 }
@@ -176,6 +208,56 @@ describe('comment permissions', () => {
     localStorage.removeItem('uid');
     jest.restoreAllMocks();
     jest.clearAllMocks();
+  });
+
+  describe.each(['footer', 'sidebar'] as const)(
+    '%s document actions',
+    placement => {
+      it.each([
+        { permission: 'no_access' as const, canDelete: false },
+        { permission: 'can_view' as const, canDelete: false },
+        { permission: 'can_comment' as const, canDelete: false },
+        { permission: 'can_edit' as const, canDelete: true },
+        { permission: 'full_access' as const, canDelete: true },
+      ])(
+        'shows delete but never edit for another author with $permission',
+        async ({ permission, canDelete }) => {
+          localStorage.setItem('uid', 'other');
+          jest.mocked(listResourceCommentThreads).mockResolvedValue({
+            items: documentThreads,
+            total: 1,
+            offset: 0,
+            limit: 20,
+            has_more: false,
+          });
+          await act(async () =>
+            root.render(
+              <Fixture
+                permission={permission}
+                document
+                placement={placement}
+                resolved={placement === 'sidebar'}
+              />
+            )
+          );
+          expect(Boolean(button('delete'))).toBe(canDelete);
+          expect(button('edit')).toBeNull();
+          expect(container.querySelector('.omnibox-comment-reply')).toBeNull();
+        }
+      );
+    }
+  );
+
+  it('selects document comments without opening a reply input', async () => {
+    await act(async () =>
+      root.render(<Fixture permission="can_comment" document />)
+    );
+    await selectComment();
+    expect(
+      container.querySelector('article')?.hasAttribute('data-selected')
+    ).toBe(true);
+    expect(container.querySelector('.omnibox-comment-reply')).toBeNull();
+    expect(button('edit')).not.toBeNull();
   });
 
   it.each([false, true])(
