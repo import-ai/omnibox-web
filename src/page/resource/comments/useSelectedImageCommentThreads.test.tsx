@@ -4,6 +4,8 @@ import { Editor, Node } from '@tiptap/core';
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import type { ResourceCommentThread } from '@/interface';
+
 import {
   addImageCommentMark,
   removeImageCommentMark,
@@ -12,8 +14,14 @@ import { useSelectedImageCommentThreads } from './useSelectedImageCommentThreads
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
-function Fixture({ editor }: { editor: Editor | null }) {
-  const ids = useSelectedImageCommentThreads(editor);
+function Fixture({
+  editor,
+  threads,
+}: {
+  editor: Editor | null;
+  threads?: ResourceCommentThread[];
+}) {
+  const ids = useSelectedImageCommentThreads(editor, threads);
   return <output>{ids.join(' ')}</output>;
 }
 
@@ -97,6 +105,27 @@ describe('selected image comment threads', () => {
       editor.commands.setTextSelection(1);
     });
     expect(container.textContent).toBe('');
+  });
+
+  it('excludes document comments even if a stale image marker contains their ID', async () => {
+    const threads: ResourceCommentThread[] = [
+      {
+        id: 'first',
+        type: 'document',
+        anchor: null,
+        quoted_text: '',
+        resolved: false,
+        creator: { id: 'author', username: 'Author' },
+        comments: [],
+        created_at: '',
+        updated_at: '',
+      },
+    ];
+    await act(async () =>
+      root.render(<Fixture editor={editor} threads={threads} />)
+    );
+    await act(async () => editor.commands.setNodeSelection(2));
+    expect(container.textContent).toBe('second');
   });
 
   it('updates added and removed threads without changing the selected image', async () => {
