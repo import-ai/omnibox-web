@@ -54,6 +54,26 @@ describe('useMentionUsers', () => {
     container.remove();
   });
 
+  it('finishes initial loading when a refresh supersedes the initial request', async () => {
+    let finishInitial!: (value: never[]) => void;
+    jest.mocked(http.get).mockReturnValueOnce(
+      new Promise(resolve => {
+        finishInitial = resolve;
+      })
+    );
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    await act(async () => {
+      listeners.forEach(listener => listener('ns'));
+    });
+    expect(readyStates.at(-1)).toBe(true);
+    await act(async () => {
+      finishInitial([]);
+    });
+    expect(readyStates.at(-1)).toBe(true);
+  });
+
   it('reloads after a profile save without unloading the document', async () => {
     await act(async () => {
       root.render(<Probe />);

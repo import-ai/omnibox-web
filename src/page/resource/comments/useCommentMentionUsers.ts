@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import useApp from '@/hooks/useApp';
+import { USER_UPDATED_EVENT } from '@/hooks/userEvents';
 import type { Member } from '@/interface';
 import {
   NAMESPACE_MEMBERS_REFRESH,
@@ -29,7 +30,7 @@ const listeners = new Map<string, Set<Listener>>();
 
 function loadMembers(namespaceId: string, refresh = false) {
   const current = inflight.get(namespaceId);
-  if (current && (!refresh || current.refresh)) {
+  if (current && !refresh) {
     return current.promise;
   }
   const ticket = (generation.get(namespaceId) ?? 0) + 1;
@@ -54,6 +55,18 @@ function loadMembers(namespaceId: string, refresh = false) {
       }
     });
   inflight.set(namespaceId, { ticket, promise, refresh });
+  return promise;
+}
+
+const pendingRefreshes = new Map<string, Promise<Member[] | null>>();
+function refreshMembers(namespaceId: string) {
+  const pending = pendingRefreshes.get(namespaceId);
+  if (pending) return pending;
+  const promise = Promise.resolve().then(() => {
+    pendingRefreshes.delete(namespaceId);
+    return loadMembers(namespaceId, true);
+  });
+  pendingRefreshes.set(namespaceId, promise);
   return promise;
 }
 
@@ -96,12 +109,22 @@ export function useCommentMentionUsers() {
     if (!id) {
       return;
     }
-    return app.on(NAMESPACE_MEMBERS_REFRESH, (nextId: string) => {
+    const unsubscribe = app.on(NAMESPACE_MEMBERS_REFRESH, (nextId: string) => {
       if (nextId !== id) {
         return;
       }
-      loadMembers(id, true).catch(() => undefined);
+      refreshMembers(id).catch(() => undefined);
     });
+    const refresh = () => {
+      void refreshMembers(id).catch(() => undefined);
+    };
+    window.addEventListener(USER_UPDATED_EVENT, refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      unsubscribe();
+      window.removeEventListener(USER_UPDATED_EVENT, refresh);
+      window.removeEventListener('focus', refresh);
+    };
   }, [app, id]);
 
   const users = useMemo(() => mentionUsersFromMembers(members), [members]);

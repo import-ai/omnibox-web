@@ -27,7 +27,8 @@ export interface ResourceCommentAttachmentUpload {
   size: number;
 }
 
-export interface CreateResourceCommentThreadPayload {
+interface CreateResourceInlineCommentThreadPayload {
+  type?: 'inline';
   quoted_text: string;
   anchor_from: number;
   anchor_to: number;
@@ -37,6 +38,10 @@ export interface CreateResourceCommentThreadPayload {
   content?: string;
   attachment_ids?: string[];
 }
+
+export type CreateResourceCommentThreadPayload =
+  | CreateResourceInlineCommentThreadPayload
+  | ({ type: 'document' } & CreateResourceCommentPayload);
 
 export interface CreateResourceCommentPayload {
   content?: string;
@@ -59,7 +64,12 @@ function threadsUrl(namespaceId: string, resourceId: string) {
 export function listResourceCommentThreads(
   namespaceId: string,
   resourceId: string,
-  options: { offset?: number; limit?: number; resolved?: boolean } = {}
+  options: {
+    offset?: number;
+    limit?: number;
+    resolved?: boolean;
+    view?: 'inline' | 'sidebar' | 'document';
+  } = {}
 ) {
   return http.get<ResourceCommentThreadList>(
     threadsUrl(namespaceId, resourceId),
@@ -67,12 +77,24 @@ export function listResourceCommentThreads(
       params: {
         offset: options.offset ?? 0,
         limit: options.limit ?? 20,
+        ...(options.view ? { view: options.view } : {}),
         ...(options.resolved === undefined
           ? {}
           : { resolved: String(options.resolved) }),
       },
     }
   ) as Promise<ResourceCommentThreadList>;
+}
+
+export function getResourceCommentThread(
+  namespaceId: string,
+  resourceId: string,
+  threadId: string
+) {
+  return http.get<ResourceCommentThread>(
+    `${threadsUrl(namespaceId, resourceId)}/${threadId}`,
+    { mute: true }
+  ) as Promise<ResourceCommentThread>;
 }
 
 export function createResourceCommentThread(

@@ -19,18 +19,21 @@ import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
   OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
+import { normalizeResourceEditorContent } from '@/page/resource/editor/normalizeResourceEditorContent';
 import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
 
 import { ImageCommentButton } from './comments/ImageCommentButton';
 import { ResourceCommentsSheet } from './comments/ResourceCommentsSheet';
+import { ResourceDocumentComments } from './comments/ResourceDocumentComments';
 import {
   type ResourceCommentsController,
   useResourceComments,
 } from './comments/useResourceComments';
 import { parseScrollToLine } from './scrollToLine';
 import { useResourceImagePreview } from './useResourceImagePreview';
+import { isFolderLikeResourceType } from './useResourcePaneLayout';
 import { embedImage, getReadonlyResourceEditorKey } from './utils';
 
 interface IProps {
@@ -62,9 +65,10 @@ function getResourceEditorContent(
   linkBase?: string,
   namesById: Record<string, string> = {}
 ): TiptapJsonContent {
-  return contentToTiptapJson(
-    resolveMentionLabels(embedImage(resource), namesById),
-    { linkBase }
+  return normalizeResourceEditorContent(
+    contentToTiptapJson(resolveMentionLabels(embedImage(resource), namesById), {
+      linkBase,
+    })
   );
 }
 
@@ -85,8 +89,20 @@ function OmniboxRender(props: OmniboxRenderProps) {
   } = props;
   const { i18n, t } = useTranslation();
   const { theme } = useTheme();
-  const { mentionUsers, membersById, namesById, ready } =
-    useMentionUsers(namespaceId);
+  const {
+    mentionUsers,
+    membersById,
+    namesById: activeNames,
+    ready,
+  } = useMentionUsers(namespaceId);
+  const namesById = useMemo(
+    () => ({
+      ...resource.mention_display_names,
+      ...comments.mentionDisplayNames,
+      ...activeNames,
+    }),
+    [resource.mention_display_names, comments.mentionDisplayNames, activeNames]
+  );
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');
@@ -154,7 +170,8 @@ function OmniboxRender(props: OmniboxRenderProps) {
   }, [isScrollLineVisible]);
 
   const editorClassName = cn(
-    'resource-readonly-editor pb-[30vh]',
+    'resource-readonly-editor',
+    props.commentsDisabled && 'pb-[30vh]',
     !isScrollLineVisible && 'resource-readonly-editor--scroll-line-dismissed',
     wide && 'resource-readonly-editor--wide'
   );
@@ -204,7 +221,10 @@ function OmniboxRender(props: OmniboxRenderProps) {
 
 function StandaloneOmniboxRender(props: IProps) {
   const { namespaceId = '', resource } = props;
-  const commentsEnabled = !!namespaceId;
+  const commentsEnabled =
+    !!namespaceId &&
+    !props.commentsDisabled &&
+    !isFolderLikeResourceType(resource.resource_type);
   const comments = useResourceComments({
     namespaceId,
     resource,
@@ -213,7 +233,16 @@ function StandaloneOmniboxRender(props: IProps) {
 
   return (
     <>
-      <OmniboxRender {...props} comments={comments} />
+      <div data-resource-export-content>
+        <OmniboxRender
+          {...props}
+          commentsDisabled={!commentsEnabled}
+          comments={comments}
+        />
+      </div>
+      {commentsEnabled ? (
+        <ResourceDocumentComments controller={comments} wide={props.wide} />
+      ) : null}
       {commentsEnabled ? <ResourceCommentsSheet controller={comments} /> : null}
     </>
   );

@@ -150,10 +150,16 @@
       "url": "URL",
       "author": "Author",
       "created": "Created",
+      "creator": "Creator",
+      "collaborators": "Collaborators",
+      "contributor_separator": ", ",
       "filename": "File"
     }
   },
   "resource_comments": {
+    "document_title": "Document comments",
+    "document_quote": "Document comments",
+    "resolve_and_hide": "Resolve and hide",
     "expand_content": "Expand",
     "collapse_content": "Collapse",
     "collapse": "Collapse comments",
@@ -177,6 +183,7 @@
     "content_conflict": "This resource changed while you were commenting. Save or reload it, then try again.",
     "comment": "Publish",
     "original_text_removed": "The original text was removed",
+    "comment_unavailable": "This comment is unavailable. It may have been deleted or you may no longer have access.",
     "thread_actions": "Discussion actions",
     "more_actions": "More actions",
     "reopen": "Reopen",

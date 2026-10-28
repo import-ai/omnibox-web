@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import useApp from '@/hooks/useApp';
+import { USER_UPDATED_EVENT } from '@/hooks/userEvents';
 import type { Member } from '@/interface';
 import { http } from '@/lib/request';
 import {
@@ -18,7 +19,7 @@ export function useMentionUsers(namespaceId?: string) {
   const [ready, setReady] = useState(!namespaceId);
 
   useEffect(() => {
-    if (!namespaceId) {
+    if (!namespaceId || namespaceId.startsWith('share:')) {
       setMembers([]);
       setReady(true);
       return;
@@ -43,7 +44,7 @@ export function useMentionUsers(namespaceId?: string) {
           // A failed refresh must keep the list already on screen.
         })
         .finally(() => {
-          if (!ignore && initial && current === ticket) {
+          if (!ignore && current === ticket) {
             setReady(true);
           }
         });
@@ -56,7 +57,12 @@ export function useMentionUsers(namespaceId?: string) {
       }
     });
 
+    const refresh = () => load(false);
+    window.addEventListener(USER_UPDATED_EVENT, refresh);
+    window.addEventListener('focus', refresh);
     return () => {
+      window.removeEventListener(USER_UPDATED_EVENT, refresh);
+      window.removeEventListener('focus', refresh);
       ignore = true;
       unsubscribe();
     };
