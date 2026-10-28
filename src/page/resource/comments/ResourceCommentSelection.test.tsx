@@ -72,7 +72,13 @@ const threads: ResourceCommentThread[] = ['a', 'b', 'c'].map(id => ({
 const resource = { id: 'resource', comment_threads: threads };
 const resolvedThreads = threads.map(thread => ({ ...thread, resolved: true }));
 const resolvedResource = { id: 'resource', comment_threads: resolvedThreads };
-const loadMore = jest.fn();
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
+}));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ on: () => () => undefined }),
+}));
 jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default', hash: '' }),
 }));
@@ -96,7 +102,6 @@ function Fixture({ resolved = false }: { resolved?: boolean }) {
           canComment: true,
           canEditComment: () => true,
         }}
-        loadMore={loadMore}
       />
     </TooltipProvider>
   );

@@ -24,6 +24,13 @@ jest.mock('./commentAnchors', () => ({}));
 jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
 }));
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
+}));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ on: () => () => undefined }),
+}));
 jest.mock('@/hooks/useUser', () => ({
   USER_UPDATED_EVENT: 'user-updated',
 }));
@@ -119,11 +126,7 @@ function PaginatedFixture() {
     enabled: true,
   });
   return (
-    <>
-      <output>{controller.threads.map(thread => thread.id).join(',')}</output>
-      <button onClick={controller.loadMore}>More</button>
-      <button onClick={() => controller.setResolved(false)}>Open</button>
-    </>
+    <output>{controller.threads.map(thread => thread.id).join(',')}</output>
   );
 }
 
@@ -134,12 +137,12 @@ function FilterFixture({
   resourceId: string;
   commentThreads: ResourceCommentThread[];
 }) {
-  useResourceComments({
+  const controller = useResourceComments({
     namespaceId: 'namespace',
     resource: { id: resourceId, comment_threads: commentThreads },
     enabled: true,
   });
-  return null;
+  return <output>{String(controller.resolved)}</output>;
 }
 
 describe('comment link navigation', () => {
@@ -376,31 +379,23 @@ describe('comment link navigation', () => {
     expect(highlightedQuotes()).toHaveLength(1);
   });
 
-  it('keeps a target outside the first page visible without skipping pagination items', async () => {
+  it('shows every loaded discussion without requesting another comment page', async () => {
     await act(async () => root.render(<PaginatedFixture />));
+    expect(container.querySelector('output')?.textContent).toContain('first');
     expect(container.querySelector('output')?.textContent).toContain('target');
-    await act(async () => container.querySelector('button')?.click());
-    expect(listResourceCommentThreads).toHaveBeenLastCalledWith(
-      'namespace',
-      'resource',
-      { offset: 1, limit: 20, resolved: false }
-    );
-    await act(async () => container.querySelectorAll('button')[1].click());
-    expect(container.querySelector('output')?.textContent).toContain('target');
+    expect(listResourceCommentThreads).not.toHaveBeenCalled();
   });
 
   it('opens a resource with no comments on all comments', async () => {
     await act(async () =>
       root.render(<FilterFixture resourceId="empty" commentThreads={[]} />)
     );
-    expect(listResourceCommentThreads).toHaveBeenCalledWith(
-      'namespace',
-      'empty',
-      { offset: 0, limit: 20, resolved: undefined }
-    );
+    expect(container.querySelector('output')?.textContent).toBe('undefined');
+    expect(listResourceCommentThreads).not.toHaveBeenCalled();
   });
 
   it('keeps unresolved selected when every existing comment is resolved', async () => {
+    navigate('');
     await act(async () =>
       root.render(
         <FilterFixture
@@ -412,10 +407,7 @@ describe('comment link navigation', () => {
         />
       )
     );
-    expect(listResourceCommentThreads).toHaveBeenCalledWith(
-      'namespace',
-      'resolved-only',
-      { offset: 0, limit: 20, resolved: false }
-    );
+    expect(container.querySelector('output')?.textContent).toBe('false');
+    expect(listResourceCommentThreads).not.toHaveBeenCalled();
   });
 });

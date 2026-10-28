@@ -25,6 +25,9 @@ jest.mock('./ResourceCommentsContext', () => ({
 jest.mock('./useCommentDraftPosition', () => ({
   useCommentDraftPosition: jest.fn(() => 0),
 }));
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
+}));
 jest.mock('react-router-dom', () => ({
   useLocation: () => ({ key: 'default', hash: '' }),
 }));

@@ -27,6 +27,10 @@ jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
 }));
 jest.mock('@/lib/request', () => ({ http: { get: jest.fn() } }));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ on: () => () => undefined }),
+}));
 jest.mock('@/components/attributes', () => ({
   __esModule: true,
   default: () => null,
@@ -292,7 +296,7 @@ describe('resource comments across view and edit modes', () => {
     expect(panel.textContent).not.toContain(
       'resource_comments.save_before_commenting'
     );
-    expect(listResourceCommentThreads).toHaveBeenCalledTimes(1);
+    expect(listResourceCommentThreads).not.toHaveBeenCalled();
   });
 
   it.each([undefined, false])(
@@ -325,27 +329,12 @@ describe('resource comments across view and edit modes', () => {
     }
   );
 
-  it('accepts an in-flight comment list when the same resource receives a new snapshot', async () => {
-    let finishLoading: (() => void) | undefined;
-    jest.mocked(listResourceCommentThreads).mockImplementationOnce(
-      () =>
-        new Promise(resolve => {
-          finishLoading = () =>
-            resolve({
-              items: [thread],
-              total: 1,
-              has_more: false,
-              offset: 0,
-              limit: 20,
-            });
-        })
-    );
-    await render(false);
+  it('shows discussions from the resource without a comment list request', async () => {
     await render(false, { ...resource, comment_threads: [{ ...thread }] });
-    await act(async () => finishLoading?.());
 
     expect(readonlyComments().threads).toEqual([thread]);
     expect(readonlyComments().loading).toBe(false);
+    expect(listResourceCommentThreads).not.toHaveBeenCalled();
     expect(panel.querySelector('[data-thread-id="thread"]')).not.toBeNull();
   });
   it('disables comments and hides live threads while previewing history', async () => {

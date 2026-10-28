@@ -34,6 +34,9 @@ jest.mock('@/service/resourceComments', () => ({
   uploadResourceCommentAttachment: jest.fn(),
 }));
 jest.mock('./commentAnchors', () => ({}));
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
+}));
 jest.mock('./ResourceCommentsContext', () => ({
   useResourceCommentsPanel: () => null,
 }));

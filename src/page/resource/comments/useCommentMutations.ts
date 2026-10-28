@@ -26,8 +26,6 @@ interface UseCommentMutationsOptions {
   removeThreadLocally: (threadId: string) => void;
   setSubmitting: Dispatch<SetStateAction<boolean>>;
   setActiveThreadId: Dispatch<SetStateAction<string | null>>;
-  setTotal: Dispatch<SetStateAction<number>>;
-  resolved: boolean | undefined;
 }
 export function useCommentMutations({
   namespaceId,
@@ -38,8 +36,6 @@ export function useCommentMutations({
   removeThreadLocally,
   setSubmitting,
   setActiveThreadId,
-  setTotal,
-  resolved,
 }: UseCommentMutationsOptions) {
   const mutateThread = useCallback(
     async (
@@ -162,9 +158,6 @@ export function useCommentMutations({
           nextResolved
         );
         applyThreadUpdate(updated);
-        if (resolved !== undefined) {
-          setTotal(current => Math.max(0, current - 1));
-        }
         const editor = editorRef.current;
         if (editor && !editor.isDestroyed) {
           editor.commands.setResourceCommentResolved(threadId, nextResolved);
@@ -174,15 +167,7 @@ export function useCommentMutations({
         setSubmitting(false);
       }
     },
-    [
-      applyThreadUpdate,
-      namespaceId,
-      resolved,
-      resourceId,
-      editorRef,
-      setSubmitting,
-      setTotal,
-    ]
+    [applyThreadUpdate, namespaceId, resourceId, editorRef, setSubmitting]
   );
 
   return {

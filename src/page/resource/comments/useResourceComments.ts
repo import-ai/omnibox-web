@@ -14,7 +14,6 @@ import type {
 } from '@/interface';
 import { rewriteThreadMentionLabels } from '@/page/resource/mentionLabels';
 import { syncCommentMentionLabels } from '@/page/resource/mentionLabelSync';
-import { listResourceCommentThreads } from '@/service/resourceComments';
 
 import {
   collectResourceCommentAnchors,
@@ -36,8 +35,6 @@ import { useCommentLinkNavigation } from './useCommentLinkNavigation';
 import { useCommentMentionUsers } from './useCommentMentionUsers';
 import { useCommentMutations } from './useCommentMutations';
 import { useCommentNavigation } from './useCommentNavigation';
-
-const PAGE_SIZE = 20;
 
 function defaultResolved(
   threads: ResourceCommentThread[] | undefined
@@ -83,15 +80,12 @@ export function useResourceComments({
   const [registeredEditor, setRegisteredEditor] =
     useState<ResourceCommentEditor | null>(null);
   editorRef.current = registeredEditor;
-  const threadsRef = useRef<ResourceCommentThread[]>([]);
   const anchorThreadsRef = useRef<ResourceCommentThread[]>(
     resource.comment_threads ?? []
   );
-  const requestIdRef = useRef(0);
   const [anchorThreads, setAnchorThreads] = useState<ResourceCommentThread[]>(
     resource.comment_threads ?? []
   );
-  const [threads, setThreads] = useState<ResourceCommentThread[]>([]);
   const [pendingSelection, setPendingSelection] =
     useState<OmniboxEditorCommentSelection | null>(null);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
@@ -105,11 +99,7 @@ export function useResourceComments({
   const [resolved, setResolved] = useState<boolean | undefined>(() =>
     defaultResolved(resource.comment_threads)
   );
-  const [loading, setLoading] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [total, setTotal] = useState(0);
   const [createConflict, setCreateConflict] = useState(false);
   const [updatedAuthor, setUpdatedAuthor] =
     useState<ResourceCommentAuthor | null>(null);
@@ -193,48 +183,18 @@ export function useResourceComments({
     );
   }, []);
 
-  const loadThreads = useCallback(
-    async (append = false) => {
-      const requestId = ++requestIdRef.current;
-      append ? setLoadingMore(true) : setLoading(true);
-      try {
-        const offset = append ? threadsRef.current.length : 0;
-        const response = await listResourceCommentThreads(
-          namespaceId,
-          resource.id,
-          { offset, limit: PAGE_SIZE, resolved }
-        );
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-        setThreads(current =>
-          append ? mergeThreads(current, response.items) : response.items
-        );
-        setTotal(response.total);
-        setHasMore(response.has_more);
-        mergeAnchorThreads(response.items);
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setLoading(false);
-          setLoadingMore(false);
-        }
-      }
-    },
-    [mergeAnchorThreads, namespaceId, resolved, resource.id]
-  );
-
-  threadsRef.current = threads;
-
+  // The panel no longer calls GET .../comment-threads. Discussions come from
+  // `comment_threads` on the resource detail response, which already includes
+  // every thread when the document is loaded. Changes other people make after
+  // that response are not fetched until the resource detail is loaded again.
+  // Keeping the separate list request may still be the better way to refresh
+  // those updates; this removal is intentional for now and not settled.
   useEffect(() => {
     setAnchorThreads(resourceRef.current.comment_threads ?? []);
-    setThreads([]);
     setPendingSelection(null);
     setActiveThreadId(null);
     setResolved(defaultResolved(resourceRef.current.comment_threads));
-    setTotal(0);
-    setHasMore(false);
     setCreateConflict(false);
-    requestIdRef.current += 1;
   }, [namespaceId, resource.id]);
 
   useEffect(() => {
@@ -243,18 +203,7 @@ export function useResourceComments({
       return;
     }
     mergeAnchorThreads(incoming);
-    const updatedThreads = new Map(incoming.map(thread => [thread.id, thread]));
-    setThreads(current =>
-      current.map(thread => updatedThreads.get(thread.id) ?? thread)
-    );
   }, [mergeAnchorThreads, resource.comment_threads, resource.id]);
-
-  useEffect(() => {
-    if (!enabled) {
-      return;
-    }
-    loadThreads().catch(() => undefined);
-  }, [enabled, loadThreads]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -336,7 +285,7 @@ export function useResourceComments({
 
   useCommentLinkNavigation({
     enabled,
-    loading,
+    loading: false,
     resourceId: resource.id,
     editorReady: !!registeredEditor && !registeredEditor.isDestroyed,
     activeThreadId,
@@ -370,14 +319,7 @@ export function useResourceComments({
           attachmentIds,
         });
         mergeAnchorThreads([response.thread]);
-        const switchingFilter = resolved !== false;
         setResolved(false);
-        if (switchingFilter) {
-          setThreads([response.thread]);
-        } else {
-          setThreads(current => mergeThreads(current, [response.thread]));
-          setTotal(current => current + (response.thread_created ? 1 : 0));
-        }
         setPendingSelection(null);
         requestAnimationFrame(() => {
           focusThread(response.thread.id, { openReply: false });
@@ -401,7 +343,6 @@ export function useResourceComments({
       mergeAnchorThreads,
       namespaceId,
       pendingSelection,
-      resolved,
       resource.id,
     ]
   );
@@ -409,21 +350,13 @@ export function useResourceComments({
   const applyThreadUpdate = useCallback(
     (updated: ResourceCommentThread) => {
       mergeAnchorThreads([updated]);
-      setThreads(current => {
-        if (resolved !== undefined && updated.resolved !== resolved) {
-          return current.filter(thread => thread.id !== updated.id);
-        }
-        return mergeThreads(current, [updated]);
-      });
     },
-    [mergeAnchorThreads, resolved]
+    [mergeAnchorThreads]
   );
 
   const removeThreadLocally = useCallback(
     (threadId: string) => {
       removeAnchorThread(threadId);
-      setThreads(current => current.filter(thread => thread.id !== threadId));
-      setTotal(current => Math.max(0, current - 1));
       setActiveThreadId(current => (current === threadId ? null : current));
       const editor = editorRef.current;
       if (editor && !editor.isDestroyed) {
@@ -450,8 +383,6 @@ export function useResourceComments({
     removeThreadLocally,
     setSubmitting,
     setActiveThreadId,
-    setTotal,
-    resolved,
   });
 
   const getAnchorSync = useCallback((): ResourceCommentAnchorSync => {
@@ -472,12 +403,18 @@ export function useResourceComments({
     () => (activeAnchorThread ? withUpdatedAuthor(activeAnchorThread) : null),
     [activeAnchorThread, withUpdatedAuthor]
   );
+  const filteredThreads = useMemo(() => {
+    if (resolved === undefined) {
+      return anchorThreads;
+    }
+    return anchorThreads.filter(thread => thread.resolved === resolved);
+  }, [anchorThreads, resolved]);
   const authorThreads = useMemo(
     () =>
       updatedAuthor?.id === currentUserId
-        ? threads.map(withUpdatedAuthor)
-        : threads,
-    [currentUserId, threads, updatedAuthor, withUpdatedAuthor]
+        ? filteredThreads.map(withUpdatedAuthor)
+        : filteredThreads,
+    [currentUserId, filteredThreads, updatedAuthor, withUpdatedAuthor]
   );
   const visibleThreads = useMemo(
     () =>
@@ -509,7 +446,6 @@ export function useResourceComments({
           return;
         }
         const names = JSON.parse(mentionNamesKey) as Record<string, string>;
-        setThreads(current => rewriteThreadMentionLabels(current, names));
         setAnchorThreads(current => rewriteThreadMentionLabels(current, names));
         if (
           result.content &&
@@ -544,10 +480,7 @@ export function useResourceComments({
     editComment,
     uploadCommentImage,
     getAnchorSync,
-    hasMore,
-    loading,
-    loadingMore,
-    loadMore: () => loadThreads(true),
+    loading: false,
     openThread,
     focusThread,
     selectThread,
@@ -567,8 +500,9 @@ export function useResourceComments({
     setResolved,
     setThreadResolved,
     submitting,
+    resourceId: resource.id,
     threads: visibleThreads,
-    total,
+    total: visibleThreads.length,
   };
 }
 

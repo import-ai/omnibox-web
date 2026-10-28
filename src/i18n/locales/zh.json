@@ -200,7 +200,8 @@
     "no_resolved_threads": "暂无已解决的评论",
     "no_open_threads": "暂无未解决的评论",
     "mention_members": "提及成员",
-    "load_more": "加载更多"
+    "load_more": "加载更多",
+    "jump_to_first": "跳转至首条评论"
   },
   "folder": {
     "create_dialog": {

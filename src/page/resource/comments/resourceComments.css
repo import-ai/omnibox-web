@@ -412,6 +412,39 @@
   overflow-anchor: none;
 }
 
+.resource-comments-jump {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  max-width: calc(100% - 32px);
+  padding: 0 14px;
+  transform: translateX(-50%);
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 20px;
+  white-space: nowrap;
+  box-shadow: 0 10px 12px -8px rgb(0 0 0 / 40%);
+}
+
+.dark .resource-comments-jump {
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+.resource-comments-jump svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+
 .resource-comments-panel .omnibox-comment-thread__quote {
   @apply mb-3 min-w-0 flex-1 rounded-none border-l-2 border-muted-foreground/40 bg-transparent px-2 py-0 text-left;
 }
