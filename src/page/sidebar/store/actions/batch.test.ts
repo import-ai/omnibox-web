@@ -5,6 +5,8 @@ jest.mock('@/service/resource', () => ({
   fetchChildren: jest.fn(),
 }));
 
+import { produce } from 'immer';
+
 import type { Resource, ResourceType, SpaceType } from '@/interface';
 import {
   batchCreateFolderFromResources,
@@ -12,8 +14,10 @@ import {
   fetchChildren,
 } from '@/service/resource';
 
+import { createNodeSelectionStateSelector } from '../selectionState';
 import type { SidebarStore, TreeNode } from '../types';
 import { initialDialogsState } from '../types';
+import { calculateSelectedCount, getTopLevelSelectedIds } from '../utils';
 import { buildBatchActions } from './batch';
 
 const mockedBatchMoveResources = jest.mocked(batchMoveResources);
@@ -85,6 +89,106 @@ function actionsFor(state: SidebarStore) {
 
 beforeEach(() => {
   jest.clearAllMocks();
+});
+
+describe('partial folder selection', () => {
+  function setup() {
+    let state = createStore({
+      private: node('private', null, ['folder', 'other']),
+      folder: node('folder', 'private', ['nested', 'sibling']),
+      nested: node('nested', 'folder', ['leaf']),
+      leaf: node('leaf', 'nested', [], 'doc'),
+      sibling: node('sibling', 'folder', [], 'doc'),
+      other: node('other', 'private', [], 'doc'),
+    });
+    state.selectionMode = true;
+    state.spaceExpanded = { private: true, teamspace: true };
+    state.ui = {
+      folder: { expanded: true, loaded: true, loading: false },
+      nested: { expanded: true, loaded: true, loading: false },
+    };
+    const actions = buildBatchActions(
+      update => {
+        state = produce(state, update);
+      },
+      () => state
+    );
+    const select = createNodeSelectionStateSelector();
+    return {
+      actions,
+      getState: () => state,
+      checked: (id: string) => select(state, id),
+    };
+  }
+
+  it('selects a mixed folder as one batch target and clears it on the next click', () => {
+    const { actions, getState, checked } = setup();
+    actions.toggleSelection('leaf');
+    expect(checked('folder')).toBe('indeterminate');
+    expect(checked('nested')).toBe(true);
+    expect(
+      calculateSelectedCount(getState().nodes, getState().selectedIds)
+    ).toBe(1);
+    expect(
+      getTopLevelSelectedIds(
+        getState().nodes,
+        Object.keys(getState().selectedIds)
+      )
+    ).toEqual(['leaf']);
+
+    actions.toggleSelection('folder');
+    expect(checked('folder')).toBe(true);
+    expect(checked('leaf')).toBe(true);
+    expect(getState().selectedIds).toEqual({ folder: true });
+
+    actions.toggleSelection('folder');
+    expect(checked('folder')).toBe(false);
+    expect(checked('nested')).toBe(false);
+    expect(getState().selectedIds).toEqual({});
+  });
+
+  it('clears a derived full selection when its folder checkbox is clicked', () => {
+    const { actions, getState, checked } = setup();
+    actions.toggleSelection('leaf');
+    expect(checked('nested')).toBe(true);
+    actions.toggleSelection('nested');
+    expect(checked('nested')).toBe(false);
+    expect(getState().selectedIds).toEqual({});
+
+    actions.toggleSelection('leaf');
+    actions.toggleSelection('sibling');
+    expect(checked('folder')).toBe(true);
+    expect(
+      calculateSelectedCount(getState().nodes, getState().selectedIds)
+    ).toBe(2);
+    actions.toggleSelection('folder');
+    expect(checked('folder')).toBe(false);
+    expect(getState().selectedIds).toEqual({});
+  });
+
+  it('marks ancestors mixed after excluding a descendant from a selected folder', () => {
+    const { actions, getState, checked } = setup();
+    actions.toggleSelection('folder');
+    actions.toggleSelection('leaf');
+    expect(checked('leaf')).toBe(false);
+    expect(checked('nested')).toBe(false);
+    expect(checked('folder')).toBe('indeterminate');
+    expect(getState().selectedIds).toEqual({ sibling: true });
+    actions.toggleSelection('sibling');
+    expect(checked('folder')).toBe(false);
+  });
+
+  it('keeps range selection and clear-selection behavior', () => {
+    const { actions, getState, checked } = setup();
+    actions.toggleSelection('leaf');
+    actions.toggleSelection('sibling', 'leaf');
+    expect(checked('folder')).toBe(true);
+    expect(checked('other')).toBe(false);
+    expect(getState().selectedIds).toEqual({ leaf: true, sibling: true });
+    actions.clearSelection();
+    expect(checked('folder')).toBe(false);
+    expect(checked('nested')).toBe(false);
+  });
 });
 
 it('clears selected resources and exits multi-select mode', () => {
