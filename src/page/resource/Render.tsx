@@ -19,6 +19,7 @@ import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
   OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
+import { normalizeResourceEditorContent } from '@/page/resource/editor/normalizeResourceEditorContent';
 import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
@@ -64,9 +65,10 @@ function getResourceEditorContent(
   linkBase?: string,
   namesById: Record<string, string> = {}
 ): TiptapJsonContent {
-  return contentToTiptapJson(
-    resolveMentionLabels(embedImage(resource), namesById),
-    { linkBase }
+  return normalizeResourceEditorContent(
+    contentToTiptapJson(resolveMentionLabels(embedImage(resource), namesById), {
+      linkBase,
+    })
   );
 }
 

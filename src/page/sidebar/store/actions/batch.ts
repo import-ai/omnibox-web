@@ -7,6 +7,7 @@ import {
 } from '@/service/resource';
 
 import { refreshSortedChildren } from '../refreshSortedChildren';
+import { createNodeSelectionStateSelector } from '../selectionState';
 import type {
   BatchOperationResult,
   SidebarGet,
@@ -31,6 +32,7 @@ import {
 } from '../utils';
 
 export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
+  const selectNodeSelectionState = createNodeSelectionStateSelector();
   const finishBatchSelection = (s: SidebarStore) => {
     s.selectionMode = Object.keys(s.selectedIds).length > 0;
     if (!s.selectionMode) {
@@ -49,6 +51,8 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
 
   return {
     toggleSelection: (id: string, rangeStartId?: string) => {
+      const fullySelected =
+        !rangeStartId && selectNodeSelectionState(get(), id) === true;
       set(s => {
         const targetIds = rangeStartId
           ? getIdsInVisibleRange(s, rangeStartId, id)
@@ -59,7 +63,7 @@ export function buildBatchActions(set: SidebarSet, get: SidebarGet) {
             continue;
           }
 
-          const selected = Boolean(s.selectedIds[targetId]);
+          const selected = Boolean(s.selectedIds[targetId]) || fullySelected;
           const selectedAncestorId = getSelectedAncestorId(
             s.nodes,
             s.selectedIds,

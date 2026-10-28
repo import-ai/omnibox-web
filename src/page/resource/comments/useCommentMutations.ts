@@ -31,10 +31,7 @@ interface UseCommentMutationsOptions {
   setActiveThreadId: Dispatch<SetStateAction<string | null>>;
   canComment: boolean;
   canEditComment: (comment: ResourceComment) => boolean;
-  canDeleteComment: (
-    comment: ResourceComment,
-    thread?: ResourceCommentThread
-  ) => boolean;
+  canDeleteComment: (comment: ResourceComment) => boolean;
   canModerateThread: (thread: ResourceCommentThread) => boolean;
   canDeleteThread: (thread: ResourceCommentThread) => boolean;
 }
@@ -148,12 +145,7 @@ export function useCommentMutations({
         item => item.id === threadId
       );
       const comment = thread?.comments.find(item => item.id === commentId);
-      if (
-        !thread ||
-        !comment ||
-        !canEditComment(comment) ||
-        (isInlineCommentThread(thread) && thread.resolved)
-      ) {
+      if (!thread || !comment || !canEditComment(comment) || thread.resolved) {
         return;
       }
       const trimmed = content.trim();
@@ -175,7 +167,7 @@ export function useCommentMutations({
         item => item.id === threadId
       );
       const comment = thread?.comments.find(item => item.id === commentId);
-      if (!thread || !comment || !canDeleteComment(comment, thread)) return;
+      if (!thread || !comment || !canDeleteComment(comment)) return;
       beginMutation();
       try {
         const updated = await deleteResourceComment(

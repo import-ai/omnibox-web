@@ -303,7 +303,6 @@ export function ResourceCommentThreadItem({
             comment={comment}
             threadId={thread.id}
             threadResolved={thread.resolved}
-            thread={thread}
             controller={controller}
             onEditingChange={editing =>
               setEditingCommentId(editing ? comment.id : null)

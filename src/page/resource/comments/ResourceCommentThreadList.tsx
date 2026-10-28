@@ -56,6 +56,7 @@ export function ResourceCommentThreadList({
 
     let frame = 0;
     const previousMarkerPositions = new Map<string, number>();
+    const observedContent = new Set<Element>();
     const schedule = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(update);
@@ -70,6 +71,25 @@ export function ResourceCommentThreadList({
       if (!resourceScroll || !commentsScroll) {
         return;
       }
+
+      // The scroll viewport stays fixed while editor/media content loads.
+      const contentElements = new Set(
+        resourceScroll.querySelectorAll(
+          '[data-resource-export-content], .tiptap'
+        )
+      );
+      observedContent.forEach(element => {
+        if (!contentElements.has(element)) {
+          resizeObserver?.unobserve(element);
+          observedContent.delete(element);
+        }
+      });
+      contentElements.forEach(element => {
+        if (!observedContent.has(element)) {
+          resizeObserver?.observe(element);
+          observedContent.add(element);
+        }
+      });
 
       const commentsRect = commentsScroll.getBoundingClientRect();
       const listTop =
@@ -192,7 +212,7 @@ export function ResourceCommentThreadList({
       if (
         selected &&
         isInlineCommentThread(selected.thread) &&
-        previousMarkerPositions.has(selected.thread.id)
+        Number.isFinite(previousMarkerPositions.get(selected.thread.id))
       ) {
         const element = threadElements.get(selected.thread.id);
         const wrapper = element?.parentElement;
@@ -329,6 +349,11 @@ export function ResourceCommentThreadList({
       mutationObserver.observe(resourceScroll, {
         childList: true,
         subtree: true,
+        attributes: true,
+        attributeFilter: [
+          'data-resource-comment-thread',
+          'data-resource-comment-threads',
+        ],
       });
     }
     if (mutationObserver && commentsScroll) {

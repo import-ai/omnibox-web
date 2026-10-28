@@ -13,7 +13,7 @@ import { useAutosizeTextArea } from '@/components/autosize-textarea';
 import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Textarea } from '@/components/ui/textarea';
-import type { ResourceComment, ResourceCommentThread } from '@/interface';
+import type { ResourceComment } from '@/interface';
 
 import { CommentMentionField } from './CommentMentionField';
 import { CommentMentionMenu } from './CommentMentionMenu';
@@ -30,7 +30,6 @@ export function ResourceCommentItem({
   comment,
   threadId,
   threadResolved,
-  thread,
   controller,
   onEditingChange,
   leadingActions,
@@ -38,7 +37,6 @@ export function ResourceCommentItem({
   comment: ResourceComment;
   threadId: string;
   threadResolved: boolean;
-  thread?: ResourceCommentThread;
   controller: ResourceCommentsController;
   onEditingChange?: (editing: boolean) => void;
   leadingActions?: ReactNode;
@@ -195,9 +193,7 @@ export function ResourceCommentItem({
               ) : null}
             </span>
           </div>
-          {leadingActions ||
-          canEdit ||
-          controller.canDeleteComment(comment, thread) ? (
+          {leadingActions || canEdit || controller.canDeleteComment(comment) ? (
             <div className="omnibox-comment-message__meta">
               {leadingActions}
               {canEdit && (
@@ -219,7 +215,7 @@ export function ResourceCommentItem({
                   <TooltipContent>{t('resource_comments.edit')}</TooltipContent>
                 </Tooltip>
               )}
-              {controller.canDeleteComment(comment, thread) && (
+              {controller.canDeleteComment(comment) && (
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button

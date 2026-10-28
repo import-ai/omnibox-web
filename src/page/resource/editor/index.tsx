@@ -2,6 +2,7 @@ import '@import-ai/omnibox-editor/style.css';
 import '../resourceEditor.css';
 
 import {
+  contentToTiptapJson,
   OmniboxEditor,
   type OmniboxEditorCommentSelection,
   type TiptapJsonContent,
@@ -36,6 +37,7 @@ import {
   type EditorUpdatePayload,
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
+import { normalizeResourceEditorContent } from '@/page/resource/editor/normalizeResourceEditorContent';
 import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
@@ -175,8 +177,13 @@ export default function Editor(props: IEditorProps) {
     markdownRef.current = resolvedContent;
   }
   const editorContent = useMemo(
-    () => (isFolder || !ready ? null : resolvedContent),
-    [isFolder, ready, resolvedContent]
+    () =>
+      isFolder || !ready
+        ? null
+        : normalizeResourceEditorContent(
+            contentToTiptapJson(resolvedContent, { linkBase })
+          ),
+    [isFolder, ready, resolvedContent, linkBase]
   );
   const { commentsConfig, getAnchorSync, registerEditor } = comments;
 
