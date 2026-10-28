@@ -28,6 +28,49 @@ import { getTime } from '@/page/resource/utils';
 
 import { AddLinkPanel } from './AddLinkPanel';
 
+/** English “Extension” label, used as the shared width for both languages. */
+const importActionWidthLabel = 'Extension';
+
+function ImportActionButton({
+  tooltip,
+  tooltipDelay,
+  children,
+  ...props
+}: React.ComponentProps<typeof Button> & {
+  tooltip: React.ReactNode;
+  tooltipDelay?: number;
+}) {
+  return (
+    <div className="relative">
+      <Button
+        type="button"
+        aria-hidden
+        tabIndex={-1}
+        variant="outline"
+        size="sm"
+        className="pointer-events-none invisible"
+      >
+        <ExtensionIcon />
+        {importActionWidthLabel}
+      </Button>
+      <Tooltip delayDuration={tooltipDelay}>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            {...props}
+            className="absolute inset-0"
+          >
+            {children}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{tooltip}</TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
 export default function FeatureCards() {
   const { t, i18n } = useTranslation();
   const app = useApp();
@@ -177,88 +220,44 @@ export default function FeatureCards() {
                 onAnimationEnd={() => setActionsEntering(false)}
               >
                 {uploading ? (
-                  <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="min-w-24"
-                        disabled
-                      >
-                        <Spinner className="text-red-500" />
-                        {t('chat.home.upload.local')}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {progress || t('chat.home.upload.local_tooltip')}
-                    </TooltipContent>
-                  </Tooltip>
+                  <ImportActionButton
+                    tooltip={progress || t('chat.home.upload.local_tooltip')}
+                    tooltipDelay={0}
+                    disabled
+                  >
+                    <Spinner className="text-red-500" />
+                    {t('chat.home.upload.local')}
+                  </ImportActionButton>
                 ) : (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="min-w-24"
-                        onClick={() => openFilePicker(fileInputRef.current)}
-                      >
-                        <FileUp className="size-4 text-red-500" />
-                        {t('chat.home.upload.local')}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      {t('chat.home.upload.local_tooltip')}
-                    </TooltipContent>
-                  </Tooltip>
+                  <ImportActionButton
+                    tooltip={t('chat.home.upload.local_tooltip')}
+                    onClick={() => openFilePicker(fileInputRef.current)}
+                  >
+                    <FileUp className="size-4 text-red-500" />
+                    {t('chat.home.upload.local')}
+                  </ImportActionButton>
                 )}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-w-24"
-                      onClick={() => setLinkMode(true)}
-                    >
-                      <Link className="size-4 text-blue-500" />
-                      {t('chat.home.upload.link')}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {t('chat.home.upload.link_tooltip')}
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-w-24"
-                      onClick={handleWeChatClick}
-                    >
-                      <MessageCircle className="size-4 text-green-500" />
-                      {t('chat.home.upload.wechat')}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {t('chat.home.upload.wechat_tooltip')}
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-w-24"
-                      onClick={handleBrowserClick}
-                    >
-                      <ExtensionIcon />
-                      {t('chat.home.upload.browser')}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {t('chat.home.upload.browser_tooltip')}
-                  </TooltipContent>
-                </Tooltip>
+                <ImportActionButton
+                  tooltip={t('chat.home.upload.link_tooltip')}
+                  onClick={() => setLinkMode(true)}
+                >
+                  <Link className="size-4 text-blue-500" />
+                  {t('chat.home.upload.link')}
+                </ImportActionButton>
+                <ImportActionButton
+                  tooltip={t('chat.home.upload.wechat_tooltip')}
+                  onClick={handleWeChatClick}
+                >
+                  <MessageCircle className="size-4 text-green-500" />
+                  {t('chat.home.upload.wechat')}
+                </ImportActionButton>
+                <ImportActionButton
+                  tooltip={t('chat.home.upload.browser_tooltip')}
+                  onClick={handleBrowserClick}
+                >
+                  <ExtensionIcon />
+                  {t('chat.home.upload.browser')}
+                </ImportActionButton>
               </div>
             </TooltipProvider>
           )}
