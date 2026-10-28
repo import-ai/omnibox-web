@@ -103,6 +103,9 @@ export function restoreResourceCommentAnchors(
       });
     }
   }
+  if (!editor.isDestroyed && editor.view?.dom) {
+    editor.view.dom.setAttribute('data-comment-anchors-ready', 'true');
+  }
 }
 
 function getCommentAuthorLabel(thread: ResourceCommentThread) {

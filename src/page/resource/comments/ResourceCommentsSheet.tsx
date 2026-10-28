@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
+import { Spinner } from '@/components/ui/Spinner';
 import { cn } from '@/lib/utils';
 import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
@@ -139,7 +140,11 @@ export function ResourceCommentsSheet({
           data-comments-scroll
           className="h-full overflow-y-auto overscroll-contain"
         >
-          {controller.threads.length === 0 ? (
+          {controller.loading ? (
+            <div className="flex h-40 items-center justify-center">
+              <Spinner />
+            </div>
+          ) : controller.threads.length === 0 ? (
             !isComposerOpen && (
               <div className="flex h-40 flex-col items-center justify-center px-6 text-center text-sm text-muted-foreground">
                 <MessageSquareText className="mb-3 size-6" />

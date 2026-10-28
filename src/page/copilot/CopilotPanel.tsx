@@ -19,7 +19,10 @@ import ConversationSearchDialog from '@/page/chat/conversations/ConversationSear
 import Actions from '@/page/chat/header/Actions';
 import Title from '@/page/chat/header/title';
 import { useChatTitle } from '@/page/chat/header/useChatTitle';
-import { useResourceCommentsPanel } from '@/page/resource/comments/ResourceCommentsContext';
+import {
+  CommentPanelLoadingPlaceholder,
+  useResourceCommentsPanel,
+} from '@/page/resource/comments/ResourceCommentsContext';
 import ResourceHistoryPanel from '@/page/resource/history/ResourceHistoryPanel';
 
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
@@ -55,7 +58,9 @@ function CopilotPanelContent({ namespaceId }: { namespaceId: string }) {
       <div
         ref={commentsPanel.setPanelElement}
         className="resource-comments-panel relative flex h-full min-h-0 flex-col bg-background text-foreground"
-      />
+      >
+        <CommentPanelLoadingPlaceholder />
+      </div>
     );
   }
 

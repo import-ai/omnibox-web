@@ -13,7 +13,7 @@ import { useSelectedImageCommentThreads } from './useSelectedImageCommentThreads
 const COMMENT_GAP = 8;
 const DEFAULT_COMMENT_HEIGHT = 120;
 // Local window only. "Load more" reveals the next document-ordered slice
-// already held from the resource detail. It does not call the comment list API.
+// already held in memory. It does not call the comment list API.
 const VISIBLE_PAGE_SIZE = 20;
 
 interface ResourceCommentThreadListProps {
@@ -40,6 +40,7 @@ export function ResourceCommentThreadList({
   const navigatingThreadIdRef = useRef(controller.navigatingThreadId);
   const onDocumentOrderRef = useRef(onDocumentOrder);
   const reportedOrderRef = useRef<string[]>([]);
+  const orphanLayoutAllowedRef = useRef(false);
   navigatingThreadIdRef.current = controller.navigatingThreadId;
   onDocumentOrderRef.current = onDocumentOrder;
 
@@ -126,6 +127,28 @@ export function ResourceCommentThreadList({
 
       const documentOrder = anchoredThreads;
       const layoutThreads = documentOrder.slice(0, visibleCount);
+      const hasMeasuredMarker = layoutThreads.some(item =>
+        Number.isFinite(item.position)
+      );
+      // Before anchors exist, a missing marker is not an orphan: stacking those
+      // cards at the top makes them flash there and then jump beside the text.
+      if (controller.threads.length > 0 && !hasMeasuredMarker) {
+        const anchorsReady = Boolean(
+          root.querySelector('[data-comment-anchors-ready]')
+        );
+        if (!anchorsReady || !orphanLayoutAllowedRef.current) {
+          orphanLayoutAllowedRef.current = anchorsReady;
+          setPositions(current =>
+            Object.keys(current).length === 0 ? current : {}
+          );
+          if (anchorsReady) {
+            schedule();
+          }
+          return;
+        }
+      } else {
+        orphanLayoutAllowedRef.current = false;
+      }
       const nextPositions: Record<string, number> = {};
       let previousBottom = -Infinity;
       layoutThreads.forEach(({ thread, position, height }) => {
@@ -257,6 +280,8 @@ export function ResourceCommentThreadList({
         : new MutationObserver(schedule);
     if (mutationObserver && resourceScroll) {
       mutationObserver.observe(resourceScroll, {
+        attributes: true,
+        attributeFilter: ['data-comment-anchors-ready'],
         childList: true,
         subtree: true,
       });
@@ -291,8 +316,13 @@ export function ResourceCommentThreadList({
     }
   }, [activeThreadId, orderedThreadIds, visibleCount]);
   useEffect(() => {
+    orphanLayoutAllowedRef.current = false;
+    setPositions({});
+    setOrderedThreadIds([]);
+  }, [controller.resourceId]);
+  useEffect(() => {
     setVisibleCount(VISIBLE_PAGE_SIZE);
-  }, [controller.resourceId, resolvedFilter]);
+  }, [controller.commentRefreshEpoch, controller.resourceId, resolvedFilter]);
 
   const threadsById = new Map(
     controller.threads.map(thread => [thread.id, thread])

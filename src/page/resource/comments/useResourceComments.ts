@@ -23,6 +23,10 @@ import {
 } from './commentAnchors';
 import { createAnchoredCommentThread } from './createAnchoredCommentThread';
 import {
+  fetchAllResourceCommentThreads,
+  replaceThreadsForFilter,
+} from './fetchCommentThreads';
+import {
   installImageCommentPlugin,
   removeImageCommentMark,
   setActiveImageThreadId,
@@ -99,6 +103,14 @@ export function useResourceComments({
   const [resolved, setResolved] = useState<boolean | undefined>(() =>
     defaultResolved(resource.comment_threads)
   );
+  const [commentRefreshEpoch, setCommentRefreshEpoch] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const requestSerialRef = useRef(0);
+  const panelStateRef = useRef({ open: panelOpen, resolved });
+  // The filter applied while switching documents. The following resolved
+  // update must not start a list refresh; the resource detail already has
+  // every thread.
+  const resourceSwitchResolvedRef = useRef<boolean | undefined | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [createConflict, setCreateConflict] = useState(false);
   const [updatedAuthor, setUpdatedAuthor] =
@@ -183,17 +195,23 @@ export function useResourceComments({
     );
   }, []);
 
-  // The panel no longer calls GET .../comment-threads. Discussions come from
-  // `comment_threads` on the resource detail response, which already includes
-  // every thread when the document is loaded. Changes other people make after
-  // that response are not fetched until the resource detail is loaded again.
-  // Keeping the separate list request may still be the better way to refresh
-  // those updates; this removal is intentional for now and not settled.
+  // Switching resources redraws from `comment_threads` on the resource detail
+  // and does not call the comment list. Opening the panel or changing the
+  // filter loads every thread for that filter, 100 at a time. A later resource
+  // payload, such as a document save, still merges in.
   useEffect(() => {
+    requestSerialRef.current += 1;
+    setLoading(false);
+    const editor = editorRef.current;
+    if (editor && !editor.isDestroyed && editor.view?.dom) {
+      editor.view.dom.removeAttribute('data-comment-anchors-ready');
+    }
+    const nextResolved = defaultResolved(resourceRef.current.comment_threads);
+    resourceSwitchResolvedRef.current = nextResolved;
     setAnchorThreads(resourceRef.current.comment_threads ?? []);
     setPendingSelection(null);
     setActiveThreadId(null);
-    setResolved(defaultResolved(resourceRef.current.comment_threads));
+    setResolved(nextResolved);
     setCreateConflict(false);
   }, [namespaceId, resource.id]);
 
@@ -204,6 +222,53 @@ export function useResourceComments({
     }
     mergeAnchorThreads(incoming);
   }, [mergeAnchorThreads, resource.comment_threads, resource.id]);
+
+  useEffect(() => {
+    const previous = panelStateRef.current;
+    const reopened = panelOpen && !previous.open;
+    const filterChanged = previous.resolved !== resolved;
+    const switchedWithResource =
+      resourceSwitchResolvedRef.current !== null &&
+      resolved === resourceSwitchResolvedRef.current;
+    if (switchedWithResource) {
+      resourceSwitchResolvedRef.current = null;
+    }
+    panelStateRef.current = { open: panelOpen, resolved };
+    if (
+      !enabled ||
+      !panelOpen ||
+      (switchedWithResource && !reopened) ||
+      (!reopened && !filterChanged)
+    ) {
+      return;
+    }
+    const serial = ++requestSerialRef.current;
+    const resourceId = resource.id;
+    const filter = resolved;
+    // Hide the current discussions behind the spinner. Keep them in memory so
+    // a failed refresh can show them again.
+    setLoading(true);
+    fetchAllResourceCommentThreads(namespaceId, resourceId, filter)
+      .then(incoming => {
+        if (
+          serial !== requestSerialRef.current ||
+          resourceRef.current.id !== resourceId
+        ) {
+          return;
+        }
+        setAnchorThreads(current =>
+          replaceThreadsForFilter(current, incoming, filter)
+        );
+        setCommentRefreshEpoch(epoch => epoch + 1);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (serial !== requestSerialRef.current) {
+          return;
+        }
+        setLoading(false);
+      });
+  }, [enabled, namespaceId, panelOpen, resolved, resource.id]);
 
   useEffect(() => {
     const editor = editorRef.current;
@@ -285,7 +350,7 @@ export function useResourceComments({
 
   useCommentLinkNavigation({
     enabled,
-    loading: false,
+    loading,
     resourceId: resource.id,
     editorReady: !!registeredEditor && !registeredEditor.isDestroyed,
     activeThreadId,
@@ -474,13 +539,14 @@ export function useResourceComments({
     commentsConfig,
     contentDirty,
     editor: registeredEditor,
+    commentRefreshEpoch,
     createConflict,
     createThread,
     currentUserId,
     editComment,
     uploadCommentImage,
     getAnchorSync,
-    loading: false,
+    loading,
     openThread,
     focusThread,
     selectThread,
