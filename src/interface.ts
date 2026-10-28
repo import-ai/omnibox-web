@@ -100,6 +100,7 @@ export interface PathItem {
 }
 
 export interface SharedResource extends ResourceMeta {
+  mention_display_names?: Record<string, string>;
   content: string;
   attrs?: Record<string, any>;
   tags?: TagDto[];
@@ -111,6 +112,7 @@ export type ResourceCommentAnchorStatus = 'active' | 'orphaned';
 export interface ResourceCommentAuthor {
   id: string | null;
   username: string | null;
+  display_name?: string | null;
 }
 
 export interface ResourceCommentAttachment {
@@ -131,6 +133,7 @@ export interface ResourceComment {
 }
 
 interface ResourceCommentThreadBase {
+  mention_display_names?: Record<string, string>;
   id: string;
   quoted_text: string;
   resolved: boolean;
@@ -183,6 +186,7 @@ export interface Resource extends IBase {
   name?: string;
   content?: string;
   content_hash?: string;
+  mention_display_names?: Record<string, string>;
   comment_threads?: ResourceCommentThread[];
 
   tags?: TagDto[];

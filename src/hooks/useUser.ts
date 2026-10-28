@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import { User } from '@/interface';
 import { http } from '@/lib/request';
 
+import { USER_UPDATED_EVENT } from './userEvents';
+
 // Custom event name for user data updates
-export const USER_UPDATED_EVENT = 'user-data-updated';
+export { USER_UPDATED_EVENT } from './userEvents';
 
 export default function useUser() {
   const uid = localStorage.getItem('uid');

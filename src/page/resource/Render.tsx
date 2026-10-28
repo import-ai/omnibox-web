@@ -89,8 +89,20 @@ function OmniboxRender(props: OmniboxRenderProps) {
   } = props;
   const { i18n, t } = useTranslation();
   const { theme } = useTheme();
-  const { mentionUsers, membersById, namesById, ready } =
-    useMentionUsers(namespaceId);
+  const {
+    mentionUsers,
+    membersById,
+    namesById: activeNames,
+    ready,
+  } = useMentionUsers(namespaceId);
+  const namesById = useMemo(
+    () => ({
+      ...resource.mention_display_names,
+      ...comments.mentionDisplayNames,
+      ...activeNames,
+    }),
+    [resource.mention_display_names, comments.mentionDisplayNames, activeNames]
+  );
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const search = searchParams.get('query');

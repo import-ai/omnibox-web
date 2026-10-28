@@ -88,11 +88,20 @@ function makeEditor(text: string) {
     isText: true,
     text,
     nodeSize: text.length,
-    marks: [] as Array<{ type: { name: string }; attrs: { threadId: string } }>,
+    marks: [] as Array<{
+      type: { name: string; create?: (attrs: unknown) => unknown };
+      attrs: { threadId: string };
+    }>,
   };
   const editor = {
     isDestroyed: false,
+    view: { dispatch: jest.fn() },
     state: {
+      tr: {
+        removeMark: jest.fn().mockReturnThis(),
+        addMark: jest.fn().mockReturnThis(),
+        setMeta: jest.fn().mockReturnThis(),
+      },
       doc: {
         content: { size: text.length + 2 },
         nodeAt: () => null,
@@ -113,7 +122,10 @@ function makeEditor(text: string) {
                 nodeSize: range.to - range.from,
                 marks: [
                   {
-                    type: { name: RESOURCE_COMMENT_MARK },
+                    type: {
+                      name: RESOURCE_COMMENT_MARK,
+                      create: (attrs: unknown) => ({ attrs }),
+                    },
                     attrs: { threadId },
                   },
                 ],
@@ -498,4 +510,42 @@ describe('image resource comment anchors', () => {
 
     expect(imageCommentRanges.get('thread-1')).toEqual({ from: 8, to: 10 });
   });
+});
+
+it('refreshes existing anchor initials from the resolved display name without adding undo history', () => {
+  const { editor } = makeEditor('target');
+  const thread = makeThread({
+    creator: {
+      id: 'user-1',
+      username: 'User',
+      display_name: 'Nickname（User）',
+    },
+  });
+  const markType = {
+    name: RESOURCE_COMMENT_MARK,
+    create: jest.fn(attrs => ({ attrs })),
+  };
+  const mark = { type: markType, attrs: { threadId: thread.id, label: 'U' } };
+  const tr = {
+    removeMark: jest.fn().mockReturnThis(),
+    addMark: jest.fn().mockReturnThis(),
+    setMeta: jest.fn().mockReturnThis(),
+  };
+  const dispatch = jest.fn();
+  Object.assign(editor.state, { tr });
+  Object.assign(editor, { view: { dispatch } });
+  editor.state.doc.descendants = callback => {
+    callback(
+      { isText: true, marks: [mark], nodeSize: 6 } as never,
+      1,
+      null as never,
+      0
+    );
+  };
+  restoreResourceCommentAnchors(editor, [thread]);
+  expect(markType.create).toHaveBeenCalledWith(
+    expect.objectContaining({ label: 'N' })
+  );
+  expect(tr.setMeta).toHaveBeenCalledWith('addToHistory', false);
+  expect(dispatch).toHaveBeenCalledWith(tr);
 });

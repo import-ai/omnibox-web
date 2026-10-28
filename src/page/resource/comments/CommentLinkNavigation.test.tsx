@@ -1,5 +1,11 @@
 /** @jest-environment jsdom */
 
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => mockApp,
+}));
+const mockApp = { on: () => () => undefined };
+
 import { act, useCallback, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useLocation } from 'react-router-dom';

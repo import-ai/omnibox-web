@@ -38,7 +38,9 @@ export function ResourceCommentThreadItem({
   const setActiveThreadId = controller.setActiveThreadId;
   const currentAuthor = thread.comments.find(
     comment => comment.author.id === controller.currentUserId
-  )?.author.username;
+  )?.author;
+  const currentAuthorName =
+    currentAuthor?.display_name || currentAuthor?.username;
 
   useEffect(() => {
     if (!active) {
@@ -311,7 +313,7 @@ export function ResourceCommentThreadItem({
 
       {mode === 'thread' && !thread.resolved && controller.canComment ? (
         <ResourceCommentReplyComposer
-          author={currentAuthor}
+          author={currentAuthorName}
           reply={reply}
           submitting={controller.submitting}
           onCancel={closeReply}
@@ -330,7 +332,7 @@ export function ResourceCommentThreadItem({
         <div className="omnibox-comment-reply-reveal">
           <div className="omnibox-comment-reply-reveal__content">
             <ResourceCommentReplyComposer
-              author={currentAuthor}
+              author={currentAuthorName}
               reply={reply}
               submitting={controller.submitting}
               onCancel={closeReply}
