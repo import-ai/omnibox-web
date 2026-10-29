@@ -4,7 +4,10 @@ import { createRoot, type Root } from 'react-dom/client';
 
 import { track } from '@/lib/sendTrackEvent';
 
-import { useInviteReferralEntryExposure } from './useInviteReferralEntryExposure';
+import {
+  inviteEntryOnScreen,
+  useInviteReferralEntryExposure,
+} from './useInviteReferralEntryExposure';
 
 jest.mock('@/lib/sendTrackEvent', () => ({ track: jest.fn() }));
 
@@ -207,4 +210,81 @@ test('defers route exposures while the sidebar is closed or the entry is offscre
   expect(mockedTrack).toHaveBeenCalledTimes(2);
   intersect(true);
   expect(mockedTrack).toHaveBeenCalledTimes(3);
+});
+
+function box(
+  left: number,
+  top: number,
+  width: number,
+  height: number
+): DOMRect {
+  return {
+    x: left,
+    y: top,
+    left,
+    top,
+    width,
+    height,
+    right: left + width,
+    bottom: top + height,
+    toJSON: () => ({}),
+  } as DOMRect;
+}
+
+test('classifies viewport intersection without treating an unmeasured box as hidden', () => {
+  const viewport = { width: 1440, height: 900 };
+  expect(inviteEntryOnScreen(box(0, 0, 0, 0), viewport)).toBeNull();
+  expect(inviteEntryOnScreen(box(16, 100, 64, 20), viewport)).toBe(true);
+  expect(inviteEntryOnScreen(box(-200, 100, 64, 20), viewport)).toBe(false);
+  expect(inviteEntryOnScreen(box(16, 100, 64, 0), viewport)).toBe(false);
+  expect(
+    inviteEntryOnScreen(box(16, 100, 64, 20), { width: 0, height: 0 })
+  ).toBeNull();
+});
+
+test('counts load, sidebar reopen, and a return from another page from layout', () => {
+  const rect = box(16, 100, 64, 20);
+  const original = HTMLElement.prototype.getBoundingClientRect;
+  HTMLElement.prototype.getBoundingClientRect = () => rect;
+  try {
+    act(() => root.render(<Entry />));
+    expect(mockedTrack).toHaveBeenCalledTimes(1);
+
+    act(() => root.render(<Entry enabled={false} />));
+    Object.assign(rect, box(-220, 100, 64, 20));
+    act(() => root.render(<Entry />));
+    expect(mockedTrack).toHaveBeenCalledTimes(1);
+    Object.assign(rect, box(16, 100, 64, 20));
+    act(() => document.dispatchEvent(new Event('transitionend')));
+    expect(mockedTrack).toHaveBeenCalledTimes(2);
+    act(() => document.dispatchEvent(new Event('transitionend')));
+    expect(mockedTrack).toHaveBeenCalledTimes(2);
+
+    act(() =>
+      root.render(<Entry enabled={false} pathname="/namespace/other" />)
+    );
+    expect(mockedTrack).toHaveBeenCalledTimes(2);
+    act(() => root.render(<Entry />));
+    expect(mockedTrack).toHaveBeenCalledTimes(3);
+
+    act(() => {
+      visibility = 'hidden';
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(mockedTrack).toHaveBeenCalledTimes(3);
+    act(() => {
+      visibility = 'visible';
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    expect(mockedTrack).toHaveBeenCalledTimes(4);
+
+    const restored = new Event('pageshow');
+    Object.defineProperty(restored, 'persisted', { value: true });
+    act(() => window.dispatchEvent(restored));
+    expect(mockedTrack).toHaveBeenCalledTimes(5);
+    act(() => window.dispatchEvent(new Event('pageshow')));
+    expect(mockedTrack).toHaveBeenCalledTimes(5);
+  } finally {
+    HTMLElement.prototype.getBoundingClientRect = original;
+  }
 });
