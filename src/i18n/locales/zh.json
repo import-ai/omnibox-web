@@ -37,7 +37,7 @@
     "notification_type": "通知类型",
     "created_at": "创建时间",
     "tags": {
-      "wechat_bot": "微信助手",
+      "wechat_bot": "微信收藏助手",
       "community": "黑友社区",
       "system": "系统通知",
       "marketing": "营销活动",
@@ -629,16 +629,18 @@
     "description": "管理你的应用集成和绑定",
     "empty": "暂无应用",
     "app_names": {
-      "wechat_bot": "微信助手",
+      "wechat_bot": "微信收藏助手",
       "qq_bot": "QQ 助手",
       "telegram_bot": "Telegram 助手",
-      "wechat_clawbot": "微信 ClawBot"
+      "wechat_clawbot": "微信 ClawBot",
+      "wechat_oa_bot": "微信 AI 对话助手"
     },
     "scan_via": {
       "wechat_bot": "微信",
       "qq_bot": "QQ",
       "telegram_bot": "Telegram",
-      "wechat_clawbot": "微信"
+      "wechat_clawbot": "微信",
+      "wechat_oa_bot": "微信"
     },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
@@ -648,7 +650,8 @@
     },
     "already_bound": {
       "title": "已绑定",
-      "description": "您已成功绑定 {{ platform_name }}，您可以扫描下方二维码添加助手。"
+      "description": "您已成功绑定 {{ platform_name }}，您可以扫描下方二维码添加助手。",
+      "description_no_qr": "您已成功绑定 {{ platform_name }}。"
     },
     "bind": {
       "button": "绑定",
@@ -679,6 +682,7 @@
       }
     },
     "qr_bind": {
+      "title": "绑定 {{ app_name }}",
       "description": "使用 {{ platform_name }} 扫描二维码完成绑定",
       "step1": "使用 {{ platform_name }} 扫描二维码",
       "instruction": "打开 {{ platform_name }} 并扫描上方二维码以绑定您的账户"
@@ -1018,7 +1022,7 @@
         "save": "保存",
         "invalid_link": "请添加正确的链接",
         "self_link": "不能保存小黑 OmniBox 链接",
-        "wechat": "微信助手",
+        "wechat": "微信收藏助手",
         "wechat_tooltip": "在微信中和“小黑”聊天",
         "browser": "安装插件",
         "browser_tooltip": "网页正文一键剪藏"
@@ -1762,5 +1766,13 @@
       "timed_out": "已超时",
       "unknown": "状态未知"
     }
+  },
+  "login_link": {
+    "not_wechat": "请在微信中打开公众号「小黑 OmniBox」发给你的链接",
+    "not_bound": "当前微信还没有绑定 OmniBox，请先在 OmniBox 设置->应用管理绑定「微信 AI 对话助手」",
+    "not_owner": "只有空间所有者可以开通",
+    "too_frequent": "操作太频繁，请稍后再试",
+    "failed": "打开失败，请回到公众号「小黑 OmniBox」重新点击链接",
+    "go_pricing": "前往开通页"
   }
 }

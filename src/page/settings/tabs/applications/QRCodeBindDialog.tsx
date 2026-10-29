@@ -41,6 +41,9 @@ export function QRCodeBindDialog({
   const platformName = t(`applications.scan_via.${appId}`, {
     defaultValue: appId,
   });
+  const appName = t(`applications.app_names.${appId}`, {
+    defaultValue: appId,
+  });
   const qrCodeDataUrl = useQrCode(qrcodeContent, open);
 
   const stopPolling = useCallback(() => {
@@ -103,7 +106,9 @@ export function QRCodeBindDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-md sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t('applications.bind.title')}</DialogTitle>
+          <DialogTitle>
+            {t('applications.qr_bind.title', { app_name: appName })}
+          </DialogTitle>
           <DialogDescription>
             {t('applications.qr_bind.description', {
               platform_name: platformName,
