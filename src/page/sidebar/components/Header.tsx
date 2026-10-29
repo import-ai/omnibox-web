@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/Sidebar';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils';
+import { trackInviteReferralHomeEntryClick } from '@/page/inviteReferral/tracking';
 
 interface IProps {
   onActiveKey: (activeKey: string) => void;
@@ -46,6 +47,7 @@ export function Header(props: IProps) {
   };
 
   const onInviteReferral = () => {
+    trackInviteReferralHomeEntryClick();
     onActiveKey('invite-referral');
   };
 
