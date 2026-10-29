@@ -33,7 +33,10 @@ export function trackInviteReferralTaskClick(
 }
 
 export function trackInviteReferralInviteNowClick() {
-  void track('invite_referral_invite_now_click', { platform });
+  void track('invite_referral_invite_now_click', {
+    placement: 'page',
+    platform,
+  });
 }
 
 export function trackInviteReferralShareCopyClick(target: 'code' | 'link') {
