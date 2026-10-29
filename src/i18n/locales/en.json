@@ -151,6 +151,9 @@
       "url": "URL",
       "author": "Author",
       "created": "Created",
+      "creator": "Creator",
+      "collaborators": "Collaborators",
+      "contributor_separator": ", ",
       "filename": "File"
     }
   },
@@ -218,6 +221,15 @@
       "submit": "Save"
     }
   },
+  "link": {
+    "create_dialog": {
+      "title": "Add Link",
+      "placeholder": "Enter or paste a link"
+    },
+    "rss_folder_unsupported": "RSS folders do not support this action.",
+    "rss_item_unsupported": "RSS items do not support this action.",
+    "smart_folder_unsupported": "Smart folders do not support this action."
+  },
   "error": {
     "title": "404 Not Found",
     "unexpected_title": "Unable to load this page",
@@ -250,6 +262,7 @@
     "create_folder": "Create Folder",
     "create_rss_folder": "Create RSS Folder",
     "upload_file": "Upload File",
+    "add_link": "Add Link",
     "download_as": "Download",
     "download_as_tooltip": "Download as {{ format }} format",
     "export_png_failed": "Failed to export PNG, please try again later",
@@ -997,6 +1010,13 @@
         "description": "Supports docs, webpage, audio, video and more",
         "local": "Upload",
         "local_tooltip": "Try dragging local files to the sidebar",
+        "link": "Add link",
+        "link_tooltip": "Save webpage or video from link.",
+        "link_placeholder": "Add link",
+        "save_to": "Save to",
+        "save": "Save",
+        "invalid_link": "Please add a valid link",
+        "self_link": "Cannot save OmniBox links",
         "wechat": "WeChat",
         "wechat_tooltip": "Chat with OmniBox AI in WeChat",
         "browser": "Extension",

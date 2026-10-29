@@ -3,10 +3,15 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { placeLoadingLinkInSidebar } from '@/page/sidebar/placeLoadingLink';
+
 import ResourcePage from '.';
 
 const mockUseResource = jest.fn();
 
+jest.mock('@/page/sidebar/placeLoadingLink', () => ({
+  placeLoadingLinkInSidebar: jest.fn(),
+}));
 jest.mock('@/hooks/userResource', () => ({
   __esModule: true,
   default: () => mockUseResource(),
@@ -54,5 +59,6 @@ describe('ResourcePage', () => {
       '[data-testid="resource-detail-view"]'
     );
     expect(view?.getAttribute('data-resource-id')).toBe('resource-a');
+    expect(placeLoadingLinkInSidebar).toHaveBeenCalledWith('namespace-a', null);
   });
 });

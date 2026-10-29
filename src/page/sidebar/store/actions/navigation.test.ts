@@ -94,4 +94,68 @@ describe('sidebar navigation actions', () => {
       loaded: true,
     });
   });
+
+  it('keeps the saved link name while the destination is still loading', async () => {
+    let finishLoading: (children: Resource[]) => void = () => undefined;
+    mockFetchChildren.mockReturnValue(
+      new Promise<Resource[]>(resolve => {
+        finishLoading = resolve;
+      })
+    );
+    useSidebarStore.setState({
+      nodes: {
+        [FOLDER_ID]: { ...folderNode(), resourceType: 'folder' },
+      },
+      ui: {
+        [FOLDER_ID]: { expanded: false, loading: false, loaded: false },
+      },
+      rootIds: { private: FOLDER_ID, teamspace: '' },
+    });
+
+    const loading = useSidebarStore.getState().expand(FOLDER_ID);
+    await useSidebarStore.getState().restore({
+      id: 'link-1',
+      parent_id: FOLDER_ID,
+      name: '',
+      resource_type: 'link',
+      space_type: 'private',
+      has_children: false,
+      attrs: { url: 'https://v.douyin.com/1vtkpRm_WQU/' },
+    } as Resource);
+
+    expect(useSidebarStore.getState().nodes['link-1']?.name).toBe(
+      'https://v.douyin.com/1vtkpRm_WQU/'
+    );
+    expect(useSidebarStore.getState().nodes[FOLDER_ID].children).toContain(
+      'link-1'
+    );
+    expect(mockFetchChildren).toHaveBeenCalledTimes(1);
+
+    useSidebarStore.getState().refreshChildren(FOLDER_ID, []);
+    expect(useSidebarStore.getState().nodes['link-1']?.name).toBe(
+      'https://v.douyin.com/1vtkpRm_WQU/'
+    );
+    expect(useSidebarStore.getState().nodes[FOLDER_ID].children).toContain(
+      'link-1'
+    );
+
+    finishLoading([
+      {
+        id: 'link-1',
+        parent_id: FOLDER_ID,
+        name: '',
+        resource_type: 'link',
+        has_children: false,
+        attrs: { url: 'https://v.douyin.com/1vtkpRm_WQU/' },
+      } as Resource,
+    ]);
+    await loading;
+
+    expect(useSidebarStore.getState().nodes['link-1']?.name).toBe(
+      'https://v.douyin.com/1vtkpRm_WQU/'
+    );
+    expect(useSidebarStore.getState().nodes[FOLDER_ID].children).toEqual([
+      'link-1',
+    ]);
+  });
 });
