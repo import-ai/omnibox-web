@@ -42,7 +42,8 @@
       "system": "System",
       "marketing": "Campaign",
       "changelog": "Changelog",
-      "survey": "Survey"
+      "survey": "Survey",
+      "activity_reward": "Bonus"
     }
   },
   "welcome": {
