@@ -27,6 +27,18 @@ export function buildActions(set: SidebarSet, get: SidebarGet): SidebarActions {
       });
     },
 
+    openCreateLinkDialog: (parentId: string) => {
+      set(s => {
+        s.dialogs.createLinkTargetId = parentId;
+      });
+    },
+
+    closeCreateLinkDialog: () => {
+      set(s => {
+        s.dialogs.createLinkTargetId = null;
+      });
+    },
+
     openCreateRssFolderDialog: (parentId: string) => {
       set(s => {
         s.dialogs.createRssFolderTargetId = parentId;
