@@ -9,6 +9,10 @@ import type { InviteOverview, InviteTask } from '@/service/inviteReferral';
 
 import { InviteNote } from './InviteNote';
 import { InviteRuleArrow } from './InviteRuleArrow';
+import {
+  trackInviteReferralInviteNowClick,
+  trackInviteReferralTaskClick,
+} from './tracking';
 
 const RULE_STEPS = [
   { key: 'copy', Icon: Link },
@@ -60,7 +64,9 @@ function NewcomerTasks({
           const locked =
             !completed && task.task_code !== 'phone_bound' && !phoneBound;
           const wechatBusy =
-            wechatBinding && task.action === 'wechat_assistant_binding';
+            wechatBinding &&
+            (task.action === 'wechat_assistant_binding' ||
+              task.action === 'wechat_oa_binding');
           return (
             <div key={task.task_code}>
               {index > 0 ? <div className="mx-4 h-px bg-border" /> : null}
@@ -96,6 +102,10 @@ function NewcomerTasks({
                   )}
                   disabled={completed || wechatBusy}
                   onClick={() => {
+                    trackInviteReferralTaskClick(
+                      tasks.audience,
+                      task.task_code
+                    );
                     if (locked) {
                       toast.warning(t('inviteReferral.tasks.phoneRequired'), {
                         position: 'bottom-right',
@@ -228,7 +238,10 @@ export function InviteActivityPanel({
           <Button
             type="button"
             className="mt-3 h-12 w-full text-base shadow-none"
-            onClick={onInvite}
+            onClick={() => {
+              trackInviteReferralInviteNowClick();
+              onInvite();
+            }}
           >
             {t('inviteReferral.inviteNow')}
           </Button>
