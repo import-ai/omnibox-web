@@ -2,6 +2,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 
 import { Header } from './Header';
 
+jest.mock('@/lib/sendTrackEvent', () => ({ track: jest.fn() }));
+
 const useTranslationMock = jest.fn();
 let mockConversationId: string | undefined;
 

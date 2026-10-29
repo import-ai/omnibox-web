@@ -30,6 +30,7 @@ import {
   hasInvitePhoneBinding,
   isActivationEntry,
 } from './registration';
+import { trackInviteReferralPageView } from './tracking';
 import { useInviteSinglePage } from './useInviteSinglePage';
 
 export function InviteReferralContent() {
@@ -71,6 +72,13 @@ export function InviteReferralContent() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const trackedPageView = useRef(false);
+  useEffect(() => {
+    if (trackedPageView.current) return;
+    trackedPageView.current = true;
+    trackInviteReferralPageView(searchParams.get('entry'));
+  }, [searchParams]);
 
   useEffect(() => {
     return app.on('close_settings', () => {
