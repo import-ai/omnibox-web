@@ -10,6 +10,13 @@ export const notificationMetaColumnClassName =
 
 export const NOTIFICATION_POLL_INTERVAL_MS = 10_000;
 
+/** Activity rewards use the same detail as a changelog. */
+export function isCampaignRewardNotification(
+  item: Pick<NotificationItem, 'notification_type' | 'tags'>
+) {
+  return item.tags.includes('activity_reward');
+}
+
 export function mergeNotificationDetail(
   detail: NotificationDetail,
   item: NotificationItem

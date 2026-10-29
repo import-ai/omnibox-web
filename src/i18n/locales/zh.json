@@ -42,7 +42,8 @@
       "system": "系统通知",
       "marketing": "营销活动",
       "changelog": "更新日志",
-      "survey": "问卷调研"
+      "survey": "问卷调研",
+      "activity_reward": "活动奖励"
     }
   },
   "welcome": {
@@ -150,6 +151,9 @@
       "url": "地址",
       "author": "作者",
       "created": "创建时间",
+      "creator": "创建者",
+      "collaborators": "协作者",
+      "contributor_separator": "、",
       "filename": "文件"
     }
   },
@@ -217,6 +221,15 @@
       "submit": "保存"
     }
   },
+  "link": {
+    "create_dialog": {
+      "title": "添加链接",
+      "placeholder": "请输入或粘贴链接"
+    },
+    "rss_folder_unsupported": "订阅文件夹不支持该操作",
+    "rss_item_unsupported": "订阅内容不支持该操作",
+    "smart_folder_unsupported": "智能文件夹不支持该操作"
+  },
   "error": {
     "title": "404 页面未找到",
     "unexpected_title": "页面暂时无法加载",
@@ -249,6 +262,7 @@
     "create_folder": "创建文件夹",
     "create_rss_folder": "创建订阅文件夹",
     "upload_file": "上传文件",
+    "add_link": "添加链接",
     "download_as": "下载",
     "download_as_tooltip": "{{ format }} 格式",
     "export_png_failed": "导出 PNG 失败，请稍后重试",
@@ -1001,6 +1015,13 @@
         "description": "支持文档、网页、音频和视频等多种类型",
         "local": "本地上传",
         "local_tooltip": "试着将本地的文件拖拽到侧边栏试试吧",
+        "link": "添加链接",
+        "link_tooltip": "抖音/B站/小红书等，一键保存",
+        "link_placeholder": "添加链接",
+        "save_to": "保存至",
+        "save": "保存",
+        "invalid_link": "请添加正确的链接",
+        "self_link": "不能保存小黑 OmniBox 链接",
         "wechat": "微信收藏助手",
         "wechat_tooltip": "在微信中和“小黑”聊天",
         "browser": "安装插件",

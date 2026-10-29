@@ -10,6 +10,7 @@
 @plugin '@tailwindcss/typography';
 @custom-variant dark (&:is(.dark *));
 @custom-variant standalone (@media (display-mode: standalone));
+@custom-variant autofill (&:-webkit-autofill);
 
 @theme inline {
   --font-sans: var(--app-font, ui-sans-serif, system-ui, sans-serif);
@@ -423,6 +424,17 @@ body::before {
 @keyframes marker-shimmer {
   to {
     background-position: -200% 0;
+  }
+}
+
+@keyframes upload-actions-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
