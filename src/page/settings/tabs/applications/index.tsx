@@ -27,6 +27,7 @@ import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
 import { beginCodeBind } from './beginCodeBind';
+import { beginQrCodeBind, WECHAT_OA_APP_ID } from './beginQrCodeBind';
 import { BindDialog } from './BindDialog';
 import { QRCodeBindDialog } from './QRCodeBindDialog';
 
@@ -45,7 +46,8 @@ function validateAppId(appId: string): void {
     appId !== 'wechat_bot' &&
     appId !== 'qq_bot' &&
     appId !== 'telegram_bot' &&
-    appId !== 'wechat_clawbot'
+    appId !== 'wechat_clawbot' &&
+    appId !== WECHAT_OA_APP_ID
   ) {
     throw new Error(`Unsupported application type: ${appId}`);
   }
@@ -82,6 +84,11 @@ function getApplicationState(application: Application): ApplicationState {
 // Check if app uses QR code binding (wechat_clawbot)
 function isQRCodeBinding(appId: string): boolean {
   return appId === 'wechat_clawbot';
+}
+
+// Apps without a docs page
+function hasDocs(appId: string): boolean {
+  return appId !== 'telegram_bot' && appId !== WECHAT_OA_APP_ID;
 }
 
 interface ApplicationsFormProps {
@@ -135,6 +142,30 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
       const state = getApplicationState(application);
       if (state === 'bound') {
         setAlreadyBoundDialogOpen(true);
+        return;
+      }
+
+      if (application.app_id === WECHAT_OA_APP_ID) {
+        const result = await beginQrCodeBind(
+          application,
+          bindApplication,
+          unbindApplication
+        );
+        if (result.status === 'already_bound') {
+          setAlreadyBoundDialogOpen(true);
+          return;
+        }
+        setQrcodeContent(result.qrcodeContent);
+        setCurrentBindingApplication(result.application);
+        setQrBindDialogOpen(true);
+        showToast(
+          t(
+            result.resumed
+              ? 'applications.bind.continue'
+              : 'applications.bind.initiated'
+          ),
+          'success'
+        );
         return;
       }
 
@@ -309,7 +340,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
                     <span className="text-sm font-medium leading-5 text-foreground">
                       {appDisplayName}
                     </span>
-                    {!hasError && application.app_id !== 'telegram_bot' && (
+                    {!hasError && hasDocs(application.app_id) && (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
