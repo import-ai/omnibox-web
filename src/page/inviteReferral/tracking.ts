@@ -17,6 +17,10 @@ export function trackInviteReferralPageView(entry: string | null) {
   });
 }
 
+export function trackInviteReferralHomeEntryView() {
+  void track('invite_referral_home_entry_view', { platform });
+}
+
 export function trackInviteReferralHomeEntryClick() {
   void track('invite_referral_home_entry_click', { platform });
 }

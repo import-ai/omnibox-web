@@ -4,6 +4,7 @@ import {
   inviteReferralPageEntry,
   inviteReferralTaskModule,
   trackInviteReferralHomeEntryClick,
+  trackInviteReferralHomeEntryView,
   trackInviteReferralInviteNowClick,
   trackInviteReferralPageView,
   trackInviteReferralShareCloseClick,
@@ -76,4 +77,12 @@ test('emits distinct click events for the home entry, tasks, invite, copy, and c
     ['invite_referral_share_copy_click', { platform: 'web', target: 'link' }],
     ['invite_referral_share_close_click', { platform: 'web' }],
   ]);
+});
+
+test('emits an entry impression separately from a page view or click', () => {
+  trackInviteReferralHomeEntryView();
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  expect(mockedTrack).toHaveBeenCalledWith('invite_referral_home_entry_view', {
+    platform: 'web',
+  });
 });
