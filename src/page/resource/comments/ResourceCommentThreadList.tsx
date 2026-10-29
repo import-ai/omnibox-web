@@ -1,7 +1,8 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import type { ResourceCommentThread } from '@/interface';
 
 import {
   compareCommentThreads,
@@ -17,16 +18,19 @@ import { useSelectedImageCommentThreads } from './useSelectedImageCommentThreads
 const COMMENT_GAP = 8;
 const DOCUMENT_GROUP_GAP = 16;
 const DEFAULT_COMMENT_HEIGHT = 120;
+// Local window only. "Load more" reveals the next document-ordered slice
+// already held in memory. It does not call the comment list API.
+const VISIBLE_PAGE_SIZE = 20;
 const DEFAULT_DOCUMENT_HEADING_HEIGHT = 41;
 
 interface ResourceCommentThreadListProps {
   controller: ResourceCommentsController;
-  loadMore: () => void;
+  onDocumentOrder?: (threadIds: string[]) => void;
 }
 
 export function ResourceCommentThreadList({
   controller,
-  loadMore,
+  onDocumentOrder,
 }: ResourceCommentThreadListProps) {
   const { t } = useTranslation();
   const panel = useResourceCommentsPanel();
@@ -43,8 +47,13 @@ export function ResourceCommentThreadList({
   );
   const [contentHeight, setContentHeight] = useState(0);
   const [orderedThreadIds, setOrderedThreadIds] = useState<string[]>([]);
+  const [visibleCount, setVisibleCount] = useState(VISIBLE_PAGE_SIZE);
   const navigatingThreadIdRef = useRef(controller.navigatingThreadId);
+  const onDocumentOrderRef = useRef(onDocumentOrder);
+  const reportedOrderRef = useRef<string[]>([]);
+  const orphanLayoutAllowedRef = useRef(false);
   navigatingThreadIdRef.current = controller.navigatingThreadId;
+  onDocumentOrderRef.current = onDocumentOrder;
   const hasResolvedDocumentThreads = controller.threads.some(
     thread => thread.resolved && isDocumentCommentThread(thread)
   );
@@ -183,9 +192,45 @@ export function ResourceCommentThreadList({
           return left.index - right.index;
         });
 
+      const documentOrder = anchoredThreads;
+      const inlineThreads = documentOrder.filter(
+        item => !isDocumentCommentThread(item.thread)
+      );
+      const documentThreads = documentOrder.filter(item =>
+        isDocumentCommentThread(item.thread)
+      );
+      const layoutThreads = [
+        ...inlineThreads.slice(0, visibleCount),
+        ...documentThreads,
+      ];
+      const inlineInLayout = layoutThreads.filter(
+        item => !isDocumentCommentThread(item.thread)
+      );
+      const hasMeasuredMarker = inlineInLayout.some(item =>
+        Number.isFinite(item.position)
+      );
+      // Before anchors exist, a missing marker is not an orphan: stacking those
+      // cards at the top makes them flash there and then jump beside the text.
+      if (inlineInLayout.length > 0 && !hasMeasuredMarker) {
+        const anchorsReady = Boolean(
+          root.querySelector('[data-comment-anchors-ready]')
+        );
+        if (!anchorsReady || !orphanLayoutAllowedRef.current) {
+          orphanLayoutAllowedRef.current = anchorsReady;
+          setPositions(current =>
+            Object.keys(current).length === 0 ? current : {}
+          );
+          if (anchorsReady) {
+            schedule();
+          }
+          return;
+        }
+      } else {
+        orphanLayoutAllowedRef.current = false;
+      }
       const nextPositions: Record<string, number> = {};
       let previousBottom = -Infinity;
-      anchoredThreads.forEach(({ thread, position, height }) => {
+      layoutThreads.forEach(({ thread, position, height }) => {
         const preferredPosition = isDocumentCommentThread(thread)
           ? documentFloor
           : Number.isFinite(position)
@@ -205,10 +250,10 @@ export function ResourceCommentThreadList({
       });
 
       // Keep the selected card in place when nearby reply composers resize.
-      const selectedIndex = anchoredThreads.findIndex(({ thread }) =>
+      const selectedIndex = layoutThreads.findIndex(({ thread }) =>
         threadElements.get(thread.id)?.hasAttribute('data-selected')
       );
-      const selected = anchoredThreads[selectedIndex];
+      const selected = layoutThreads[selectedIndex];
       if (
         selected &&
         isInlineCommentThread(selected.thread) &&
@@ -229,8 +274,8 @@ export function ResourceCommentThreadList({
           nextPositions[selected.thread.id] =
             parseFloat(wrapper.style.top) + markerDelta;
           for (let index = selectedIndex - 1; index >= 0; index -= 1) {
-            const { thread, height, position } = anchoredThreads[index];
-            const next = anchoredThreads[index + 1];
+            const { thread, height, position } = layoutThreads[index];
+            const next = layoutThreads[index + 1];
             const gap =
               Number.isFinite(position) && Number.isFinite(next.position)
                 ? Math.max(COMMENT_GAP, next.position - position - height)
@@ -240,11 +285,11 @@ export function ResourceCommentThreadList({
           }
           for (
             let index = selectedIndex + 1;
-            index < anchoredThreads.length;
+            index < layoutThreads.length;
             index += 1
           ) {
-            const { thread } = anchoredThreads[index];
-            const previous = anchoredThreads[index - 1];
+            const { thread } = layoutThreads[index];
+            const previous = layoutThreads[index - 1];
             nextPositions[thread.id] = Math.max(
               nextPositions[thread.id],
               nextPositions[previous.thread.id] + previous.height + COMMENT_GAP
@@ -256,7 +301,7 @@ export function ResourceCommentThreadList({
       let precedingBottom = -Infinity;
       let nextHeadingTop = headingFloor;
       let documentGroupStarted = false;
-      anchoredThreads.forEach(({ thread, height }) => {
+      layoutThreads.forEach(({ thread, height }) => {
         if (isDocumentCommentThread(thread)) {
           if (!documentGroupStarted) {
             nextHeadingTop = Math.max(
@@ -273,12 +318,12 @@ export function ResourceCommentThreadList({
         }
         precedingBottom = nextPositions[thread.id] + height;
       });
-      anchoredThreads.forEach(({ thread, position }) => {
+      layoutThreads.forEach(({ thread, position }) => {
         previousMarkerPositions.set(thread.id, position);
       });
       const lastBottom = Math.max(
         0,
-        ...anchoredThreads.map(
+        ...layoutThreads.map(
           ({ thread, height }) => nextPositions[thread.id] + height
         )
       );
@@ -293,10 +338,14 @@ export function ResourceCommentThreadList({
       setContentHeight(current =>
         current === nextHeight ? current : nextHeight
       );
-      const nextOrderedIds = anchoredThreads.map(({ thread }) => thread.id);
+      const nextOrderedIds = documentOrder.map(({ thread }) => thread.id);
       setOrderedThreadIds(current =>
         areIdsEqual(current, nextOrderedIds) ? current : nextOrderedIds
       );
+      if (!areIdsEqual(reportedOrderRef.current, nextOrderedIds)) {
+        reportedOrderRef.current = nextOrderedIds;
+        onDocumentOrderRef.current?.(nextOrderedIds);
+      }
     };
 
     const onRootScroll = (event: Event) => {
@@ -347,6 +396,8 @@ export function ResourceCommentThreadList({
         attributeFilter: ['style'],
       });
       mutationObserver.observe(resourceScroll, {
+        attributes: true,
+        attributeFilter: ['data-comment-anchors-ready'],
         childList: true,
         subtree: true,
         attributes: true,
@@ -372,7 +423,46 @@ export function ResourceCommentThreadList({
       resizeObserver?.disconnect();
       mutationObserver?.disconnect();
     };
-  }, [controller.threads, panelOpen, panelElement, root]);
+  }, [controller.threads, panelOpen, panelElement, root, visibleCount]);
+
+  const resolvedFilter = controller.resolved;
+  const activeThreadId = controller.activeThreadId;
+  useEffect(() => {
+    if (!activeThreadId) {
+      return;
+    }
+    const index = orderedThreadIds.indexOf(activeThreadId);
+    if (index >= visibleCount) {
+      setVisibleCount(index + 1);
+    }
+  }, [activeThreadId, orderedThreadIds, visibleCount]);
+  useEffect(() => {
+    orphanLayoutAllowedRef.current = false;
+    setPositions({});
+    setOrderedThreadIds([]);
+  }, [controller.resourceId]);
+  useEffect(() => {
+    setVisibleCount(VISIBLE_PAGE_SIZE);
+  }, [controller.commentRefreshEpoch, controller.resourceId, resolvedFilter]);
+
+  const threadsById = new Map(
+    controller.threads.map(thread => [thread.id, thread])
+  );
+  // A server page is already windowed. The local 20-row window applies only
+  // after a full refresh has every sidebar thread in memory.
+  const serverPaged = !!controller.hasMore;
+  const renderLimit = serverPaged ? controller.threads.length : visibleCount;
+  const renderedThreads: ResourceCommentThread[] =
+    orderedThreadIds.length > 0
+      ? orderedThreadIds.slice(0, renderLimit).flatMap(threadId => {
+          const thread = threadsById.get(threadId);
+          return thread ? [thread] : [];
+        })
+      : controller.threads.slice(0, renderLimit);
+  const inlineThreadCount = controller.threads.filter(
+    thread => !isDocumentCommentThread(thread)
+  ).length;
+  const hasMore = serverPaged || inlineThreadCount > visibleCount;
 
   return (
     <div
@@ -394,7 +484,7 @@ export function ResourceCommentThreadList({
           {t('resource_comments.document_title')}
         </h2>
       ) : null}
-      {controller.threads.map(thread => (
+      {renderedThreads.map(thread => (
         <div
           key={thread.id}
           className="absolute inset-x-0"
@@ -413,7 +503,7 @@ export function ResourceCommentThreadList({
           />
         </div>
       ))}
-      {controller.hasMore && (
+      {hasMore && (
         <div
           className="absolute inset-x-0 p-4"
           style={{ top: Math.max(0, contentHeight - 80) }}
@@ -422,8 +512,13 @@ export function ResourceCommentThreadList({
             type="button"
             variant="outline"
             className="w-full"
-            disabled={controller.loadingMore}
-            onClick={loadMore}
+            onClick={() => {
+              if (serverPaged) {
+                void controller.loadMore();
+                return;
+              }
+              setVisibleCount(current => current + VISIBLE_PAGE_SIZE);
+            }}
           >
             {t('resource_comments.load_more')}
           </Button>

@@ -207,7 +207,8 @@
     "no_resolved_threads": "No resolved comments yet",
     "no_open_threads": "No unresolved comments at the moment",
     "mention_members": "Mention a member",
-    "load_more": "Load more"
+    "load_more": "Load more",
+    "jump_to_first": "Jump to first comment"
   },
   "folder": {
     "create_dialog": {

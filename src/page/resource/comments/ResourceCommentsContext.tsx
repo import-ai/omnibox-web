@@ -8,6 +8,7 @@ import {
   useState,
 } from 'react';
 
+import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { cn } from '@/lib/utils';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
@@ -18,6 +19,43 @@ import {
 
 const COMMENTS_PANEL_STORAGE_KEY = 'resource-comments-panel';
 const COMMENTS_PANEL_GAP = 8;
+
+export function CommentPanelLoadingPlaceholder() {
+  const placeholderRef = useRef<HTMLDivElement>(null);
+  const [covered, setCovered] = useState(false);
+
+  useEffect(() => {
+    const parent = placeholderRef.current?.parentElement;
+    if (!parent) {
+      return;
+    }
+    const update = () => {
+      setCovered(
+        Array.from(parent.children).some(
+          child =>
+            child !== placeholderRef.current &&
+            !child.classList.contains('resource-comments-panel-placeholder')
+        )
+      );
+    };
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(parent, { childList: true });
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={placeholderRef}
+      className={cn(
+        'resource-comments-panel-placeholder flex h-full items-center justify-center',
+        covered && 'hidden'
+      )}
+    >
+      <Spinner />
+    </div>
+  );
+}
 
 function readStoredPanelOpen(namespaceId: string) {
   if (typeof sessionStorage === 'undefined') {
@@ -298,7 +336,9 @@ export function ResourceCommentsProvider({
                 layout.mode === 'fullscreen' ? undefined : layout.panelWidth,
               transitionDuration: `${COPILOT_PANEL_TRANSITION_MS}ms`,
             }}
-          />
+          >
+            <CommentPanelLoadingPlaceholder />
+          </div>
         )}
       </div>
     </CommentsContext.Provider>

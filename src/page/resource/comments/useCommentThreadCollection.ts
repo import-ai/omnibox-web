@@ -22,6 +22,7 @@ export function useCommentThreadCollection({
   namespaceId,
   resourceId,
   enabled,
+  autoLoad = true,
   view,
   resolved,
   onThreads,
@@ -29,6 +30,9 @@ export function useCommentThreadCollection({
   namespaceId: string;
   resourceId: string;
   enabled: boolean;
+  // Sidebar turns this off while a full refresh, or a resource switch, owns
+  // the page. Document comments keep the default and load themselves.
+  autoLoad?: boolean;
   view: 'sidebar' | 'document';
   resolved: boolean | undefined;
   onThreads: (threads: ResourceCommentThread[]) => void;
@@ -111,6 +115,7 @@ export function useCommentThreadCollection({
   );
 
   useEffect(() => {
+    if (!autoLoad) return;
     requestRef.current += 1;
     localThreadsRef.current.clear();
     setPage(emptyPage());
@@ -119,8 +124,30 @@ export function useCommentThreadCollection({
     if (enabled) void load().catch(() => undefined);
     return () => {
       requestRef.current += 1;
+      // The request that just started is stale. Don't leave its spinner up
+      // when a full refresh takes over the same collection.
+      setLoading(false);
+      setLoadingMore(false);
     };
-  }, [enabled, load]);
+  }, [autoLoad, enabled, load]);
+
+  const replace = useCallback(
+    (items: ResourceCommentThread[], total: number, hasMore: boolean) => {
+      requestRef.current += 1;
+      localThreadsRef.current.clear();
+      const visible = mergeCommentThreads([], items, view === 'sidebar');
+      setPage({
+        items: visible,
+        total,
+        offset: visible.length,
+        hasMore,
+        cursorEnd: visible[visible.length - 1] ?? null,
+      });
+      setLoading(false);
+      setLoadingMore(false);
+    },
+    [view]
+  );
 
   const put = useCallback(
     (
@@ -207,5 +234,6 @@ export function useCommentThreadCollection({
     load,
     put,
     remove,
+    replace,
   };
 }

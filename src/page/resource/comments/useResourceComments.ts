@@ -25,6 +25,7 @@ import {
   matchesCommentView,
   mergeCommentThreads,
 } from './documentCommentThreads';
+import { fetchAllResourceCommentThreads } from './fetchCommentThreads';
 import {
   installImageCommentPlugin,
   removeImageCommentMark,
@@ -122,6 +123,35 @@ export function useResourceComments({
   const panelOpen = panel?.panelOpen ?? fallbackPanelOpen;
   const setPanelOpen = panel?.setPanelOpen ?? setFallbackPanelOpen;
   const [resolved, setResolved] = useState<boolean | undefined>(false);
+  const [commentRefreshEpoch, setCommentRefreshEpoch] = useState(0);
+  const [refreshLoading, setRefreshLoading] = useState(false);
+  const requestSerialRef = useRef(0);
+  const panelStateRef = useRef({ open: panelOpen, resolved });
+  // Filter value applied by a resource switch. That update must not start a
+  // sidebar refresh; the resource detail already includes every thread.
+  const resourceSwitchResolvedRef = useRef<boolean | undefined | null>(null);
+  const sidebarResourceKeyRef = useRef(`${namespaceId}:${resource.id}`);
+  const blockSidebarAutoLoadRef = useRef(false);
+  const resourceKey = `${namespaceId}:${resource.id}`;
+  if (sidebarResourceKeyRef.current !== resourceKey) {
+    sidebarResourceKeyRef.current = resourceKey;
+    blockSidebarAutoLoadRef.current = true;
+  }
+  const panelSnapshot = panelStateRef.current;
+  const openingPanel = panelOpen && !panelSnapshot.open;
+  const filterChanged = panelSnapshot.resolved !== resolved;
+  const switchedWithResource =
+    resourceSwitchResolvedRef.current !== null &&
+    resolved === resourceSwitchResolvedRef.current;
+  // A full sidebar refresh replaces the paged collection for this render, so
+  // the collection must not start its own 20-row request in the same commit.
+  if (
+    enabled &&
+    panelOpen &&
+    (openingPanel || (filterChanged && !switchedWithResource))
+  ) {
+    blockSidebarAutoLoadRef.current = true;
+  }
   const [submitting, setSubmitting] = useState(false);
   const [createConflict, setCreateConflict] = useState(false);
 
@@ -195,6 +225,7 @@ export function useResourceComments({
     namespaceId,
     resourceId: resource.id,
     enabled,
+    autoLoad: !blockSidebarAutoLoadRef.current,
     view: 'sidebar',
     resolved,
     onThreads: mergeKnownThreads,
@@ -216,14 +247,30 @@ export function useResourceComments({
   });
 
   useEffect(() => {
+    requestSerialRef.current += 1;
+    setRefreshLoading(false);
+    const editor = editorRef.current;
+    if (editor && !editor.isDestroyed && editor.view?.dom) {
+      editor.view.dom.removeAttribute('data-comment-anchors-ready');
+    }
     localThreadVersionsRef.current.clear();
-    knownThreadsRef.current = resourceRef.current.comment_threads ?? [];
-    setKnownThreads(knownThreadsRef.current);
+    const embedded = resourceRef.current.comment_threads ?? [];
+    knownThreadsRef.current = embedded;
+    setKnownThreads(embedded);
     setPendingSelection(null);
     setActiveThreadId(null);
+    resourceSwitchResolvedRef.current = false;
     setResolved(false);
     setCreateConflict(false);
-  }, [namespaceId, resource.id]);
+    // The first visit still uses the paged sidebar collection. Later resources
+    // redraw from the detail payload and do not request the comment list.
+    if (blockSidebarAutoLoadRef.current) {
+      const seeded = embedded.filter(thread =>
+        matchesCommentView(thread, 'sidebar', false)
+      );
+      sidebar.replace(seeded, seeded.length, false);
+    }
+  }, [namespaceId, resource.id, sidebar.replace]);
 
   useEffect(() => {
     const incoming = resource.comment_threads;
@@ -246,6 +293,62 @@ export function useResourceComments({
     resource.id,
     sidebar.put,
     documentComments.put,
+  ]);
+
+  useEffect(() => {
+    const previous = panelStateRef.current;
+    const reopened = panelOpen && !previous.open;
+    const filterChanged = previous.resolved !== resolved;
+    const switchedWithResource =
+      resourceSwitchResolvedRef.current !== null &&
+      resolved === resourceSwitchResolvedRef.current;
+    if (switchedWithResource) {
+      resourceSwitchResolvedRef.current = null;
+    }
+    panelStateRef.current = { open: panelOpen, resolved };
+    if (
+      !enabled ||
+      !panelOpen ||
+      (switchedWithResource && !reopened) ||
+      (!reopened && !filterChanged)
+    ) {
+      return;
+    }
+    const serial = ++requestSerialRef.current;
+    const resourceId = resource.id;
+    const filter = resolved;
+    // Hide the current sidebar cards behind the spinner. Keep them in memory
+    // so a failed refresh can show them again.
+    setRefreshLoading(true);
+    fetchAllResourceCommentThreads(namespaceId, resourceId, filter, 'sidebar')
+      .then(incoming => {
+        if (
+          serial !== requestSerialRef.current ||
+          resourceRef.current.id !== resourceId
+        ) {
+          return;
+        }
+        // Keep document threads already stored on the resource. The sidebar
+        // page is the filtered snapshot the panel renders.
+        mergeKnownThreads(incoming);
+        sidebar.replace(incoming, incoming.length, false);
+        setCommentRefreshEpoch(epoch => epoch + 1);
+        setRefreshLoading(false);
+      })
+      .catch(() => {
+        if (serial !== requestSerialRef.current) {
+          return;
+        }
+        setRefreshLoading(false);
+      });
+  }, [
+    enabled,
+    namespaceId,
+    panelOpen,
+    resolved,
+    resource.id,
+    mergeKnownThreads,
+    sidebar.replace,
   ]);
 
   useEffect(() => {
@@ -364,7 +467,7 @@ export function useResourceComments({
 
   useCommentLinkNavigation({
     enabled,
-    loading: sidebar.loading,
+    loading: refreshLoading || sidebar.loading,
     namespaceId,
     resourceId: resource.id,
     editorReady: !!registeredEditor && !registeredEditor.isDestroyed,
@@ -571,6 +674,7 @@ export function useResourceComments({
     commentsConfig,
     contentDirty,
     editor: registeredEditor,
+    commentRefreshEpoch,
     createConflict,
     createThread,
     currentUserId,
@@ -578,7 +682,7 @@ export function useResourceComments({
     uploadCommentImage,
     getAnchorSync,
     hasMore: sidebar.hasMore,
-    loading: sidebar.loading,
+    loading: refreshLoading || sidebar.loading,
     loadingMore: sidebar.loadingMore,
     loadMore: () => sidebar.load(true),
     documentThreads: documentComments.threads.map(withUpdatedAuthor),
@@ -610,6 +714,7 @@ export function useResourceComments({
     setResolved,
     setThreadResolved,
     submitting,
+    resourceId: resource.id,
     threads: visibleThreads,
     total: sidebar.total,
   };

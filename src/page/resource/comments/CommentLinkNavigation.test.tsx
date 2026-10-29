@@ -48,6 +48,13 @@ jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
   getResourceCommentThread: jest.fn(),
 }));
+jest.mock('@/page/resource/mentionLabelSync', () => ({
+  syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
+}));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ on: () => () => undefined }),
+}));
 jest.mock('@/hooks/useUser', () => ({
   USER_UPDATED_EVENT: 'user-updated',
 }));
@@ -164,12 +171,12 @@ function FilterFixture({
   resourceId: string;
   commentThreads: ResourceCommentThread[];
 }) {
-  useResourceComments({
+  const controller = useResourceComments({
     namespaceId: 'namespace',
     resource: { id: resourceId, comment_threads: commentThreads },
     enabled: true,
   });
-  return null;
+  return <output>{String(controller.resolved)}</output>;
 }
 
 describe('comment link navigation', () => {
@@ -424,14 +431,11 @@ describe('comment link navigation', () => {
     await act(async () =>
       root.render(<FilterFixture resourceId="empty" commentThreads={[]} />)
     );
-    expect(listResourceCommentThreads).toHaveBeenCalledWith(
-      'namespace',
-      'empty',
-      { view: 'sidebar', offset: 0, limit: 20, resolved: false }
-    );
+    expect(container.querySelector('output')?.textContent).toBe('false');
   });
 
   it('keeps unresolved selected when every existing comment is resolved', async () => {
+    navigate('');
     await act(async () =>
       root.render(
         <FilterFixture
@@ -443,10 +447,6 @@ describe('comment link navigation', () => {
         />
       )
     );
-    expect(listResourceCommentThreads).toHaveBeenCalledWith(
-      'namespace',
-      'resolved-only',
-      { view: 'sidebar', offset: 0, limit: 20, resolved: false }
-    );
+    expect(container.querySelector('output')?.textContent).toBe('false');
   });
 });

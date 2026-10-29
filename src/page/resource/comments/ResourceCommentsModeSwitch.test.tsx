@@ -57,6 +57,10 @@ jest.mock('@/page/resource/mentionLabelSync', () => ({
   syncCommentMentionLabels: jest.fn().mockResolvedValue({}),
 }));
 jest.mock('@/lib/request', () => ({ http: { get: jest.fn() } }));
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ on: () => () => undefined }),
+}));
 jest.mock('@/components/attributes', () => ({
   __esModule: true,
   default: () => null,
@@ -918,7 +922,9 @@ describe('resource comments across view and edit modes', () => {
     await act(async () => editorProps().onContentDirtyChange(false));
     expect(editorProps().comments.threads).toBe(visibleThreads);
     expect(editorProps().comments.commentsConfig.enabled).toBe(true);
-    expect(listResourceCommentThreads).toHaveBeenCalledTimes(2);
+    expect(panel.textContent).not.toContain(
+      'resource_comments.save_before_commenting'
+    );
   });
 
   it.each([undefined, false])(

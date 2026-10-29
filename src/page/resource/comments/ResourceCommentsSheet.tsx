@@ -1,6 +1,7 @@
 import './resourceComments.css';
 
 import { Check, ListFilter, MessageSquareText, PanelRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -21,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
 import { ResourceCommentComposer } from './ResourceCommentComposer';
+import { ResourceCommentJumpButton } from './ResourceCommentJumpButton';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { ResourceCommentThreadList } from './ResourceCommentThreadList';
 import type { ResourceCommentsController } from './useResourceComments';
@@ -42,13 +44,15 @@ export function ResourceCommentsSheet({
   const panel = useResourceCommentsPanel();
   const menuTriggerPress = useMenuTriggerPress();
   const isComposerOpen = controller.canComment && !!controller.pendingSelection;
+  const [documentOrder, setDocumentOrder] = useState<string[]>([]);
+  useEffect(() => {
+    setDocumentOrder([]);
+  }, [controller.resourceId]);
   const close = () => {
     controller.setPanelOpen(false);
     controller.setActiveThreadId(null);
   };
-  const loadMore = () => {
-    controller.loadMore().catch(() => undefined);
-  };
+  const firstThreadId = documentOrder[0] ?? null;
   const filter =
     controller.resolved === undefined
       ? 'all'
@@ -131,33 +135,44 @@ export function ResourceCommentsSheet({
           {t('resource_comments.save_before_commenting')}
         </p>
       )}
-      <div
-        data-comments-scroll
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
-      >
-        {controller.loading && controller.threads.length === 0 ? (
-          <div className="flex h-40 items-center justify-center">
-            <Spinner />
-          </div>
-        ) : controller.threads.length === 0 ? (
-          !isComposerOpen && (
-            <div className="flex h-40 flex-col items-center justify-center px-6 text-center text-sm text-muted-foreground">
-              <MessageSquareText className="mb-3 size-6" />
-              {t(
-                controller.resolved === undefined
-                  ? 'resource_comments.no_threads'
-                  : controller.resolved
-                    ? 'resource_comments.no_resolved_threads'
-                    : 'resource_comments.no_open_threads'
-              )}
+      <div className="relative min-h-0 flex-1">
+        <div
+          data-comments-scroll
+          className="h-full overflow-y-auto overscroll-contain"
+        >
+          {controller.loading ? (
+            <div className="flex h-40 items-center justify-center">
+              <Spinner />
             </div>
-          )
-        ) : (
-          <ResourceCommentThreadList
-            controller={controller}
-            loadMore={loadMore}
-          />
-        )}
+          ) : controller.threads.length === 0 ? (
+            !isComposerOpen && (
+              <div className="flex h-40 flex-col items-center justify-center px-6 text-center text-sm text-muted-foreground">
+                <MessageSquareText className="mb-3 size-6" />
+                {t(
+                  controller.resolved === undefined
+                    ? 'resource_comments.no_threads'
+                    : controller.resolved
+                      ? 'resource_comments.no_resolved_threads'
+                      : 'resource_comments.no_open_threads'
+                )}
+              </div>
+            )
+          ) : (
+            <ResourceCommentThreadList
+              controller={controller}
+              onDocumentOrder={setDocumentOrder}
+            />
+          )}
+        </div>
+        <ResourceCommentJumpButton
+          firstThreadId={controller.threads.length === 0 ? null : firstThreadId}
+          onJump={threadId =>
+            controller.focusThread(threadId, {
+              align: 'start',
+              openReply: false,
+            })
+          }
+        />
       </div>
       <ResourceCommentComposer controller={controller} />
     </>
