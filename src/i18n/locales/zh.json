@@ -37,7 +37,7 @@
     "notification_type": "通知类型",
     "created_at": "创建时间",
     "tags": {
-      "wechat_bot": "微信助手",
+      "wechat_bot": "微信收藏",
       "community": "黑友社区",
       "system": "系统通知",
       "marketing": "营销活动",
@@ -615,7 +615,7 @@
     "description": "管理你的应用集成和绑定",
     "empty": "暂无应用",
     "app_names": {
-      "wechat_bot": "微信助手",
+      "wechat_bot": "微信收藏助手",
       "qq_bot": "QQ 助手",
       "telegram_bot": "Telegram 助手",
       "wechat_clawbot": "微信 ClawBot"
@@ -997,7 +997,7 @@
         "description": "支持文档、网页、音频和视频等多种类型",
         "local": "本地上传",
         "local_tooltip": "试着将本地的文件拖拽到侧边栏试试吧",
-        "wechat": "微信助手",
+        "wechat": "微信收藏助手",
         "wechat_tooltip": "在微信中和“小黑”聊天",
         "browser": "安装插件",
         "browser_tooltip": "网页正文一键剪藏"
