@@ -34,10 +34,11 @@ interface IProps {
 export function Header(props: IProps) {
   const { onActiveKey } = props;
   const { isMobile, open, openMobile } = useSidebar();
-  const inviteEntryRef = useInviteReferralEntryExposure(
-    isMobile ? openMobile : open
-  );
   const pathname = useLocation().pathname;
+  const inviteEntryRef = useInviteReferralEntryExposure(
+    isMobile ? openMobile : open,
+    pathname
+  );
   const { conversation_id: conversationId } = useParams();
   const isChatActive = pathname.includes('/chat') && !conversationId;
   const inviteActive = pathname.includes('/invite-referral');

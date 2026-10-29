@@ -15,8 +15,14 @@ let root: Root;
 let visibility: DocumentVisibilityState;
 const mockedTrack = jest.mocked(track);
 
-function Entry({ enabled = true }: { enabled?: boolean }) {
-  const ref = useInviteReferralEntryExposure(enabled);
+function Entry({
+  enabled = true,
+  pathname = '/namespace/chat',
+}: {
+  enabled?: boolean;
+  pathname?: string;
+}) {
+  const ref = useInviteReferralEntryExposure(enabled, pathname);
   return <div ref={ref} />;
 }
 
@@ -137,4 +143,68 @@ test('cleans up observers and visibility listeners across Strict Mode setup', ()
   setVisibility('visible');
   expect(mockedTrack).toHaveBeenCalledTimes(1);
   expect(disconnect).toHaveBeenCalledTimes(2);
+});
+
+test('counts each pathname transition and return without counting same-page renders', () => {
+  act(() => root.render(<Entry />));
+  intersect(true);
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  const staleCallback = callback;
+  act(() => root.render(<Entry pathname="/namespace/invite-referral" />));
+  act(() =>
+    staleCallback(
+      [
+        {
+          target: container.firstElementChild,
+          isIntersecting: true,
+          intersectionRatio: 1,
+        } as IntersectionObserverEntry,
+      ],
+      {} as IntersectionObserver
+    )
+  );
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  intersect(true);
+  intersect(true);
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+  act(() => root.render(<Entry />));
+  intersect(true);
+  expect(mockedTrack).toHaveBeenCalledTimes(3);
+  act(() => root.render(<Entry />));
+  intersect(true);
+  expect(mockedTrack).toHaveBeenCalledTimes(3);
+});
+
+test('defers route exposures until a hidden tab becomes visible', () => {
+  act(() => root.render(<Entry />));
+  intersect(true);
+  setVisibility('hidden');
+  act(() => root.render(<Entry pathname="/namespace/invite-referral" />));
+  intersect(true);
+  act(() => root.render(<Entry />));
+  intersect(true);
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  setVisibility('visible');
+  setVisibility('visible');
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+});
+
+test('defers route exposures while the sidebar is closed or the entry is offscreen', () => {
+  act(() => root.render(<Entry />));
+  intersect(true);
+  act(() =>
+    root.render(<Entry enabled={false} pathname="/namespace/invite-referral" />)
+  );
+  act(() => root.render(<Entry enabled={false} />));
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  act(() => root.render(<Entry />));
+  intersect(false);
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  intersect(true);
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+  act(() => root.render(<Entry pathname="/namespace/invite-referral" />));
+  intersect(false);
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+  intersect(true);
+  expect(mockedTrack).toHaveBeenCalledTimes(3);
 });

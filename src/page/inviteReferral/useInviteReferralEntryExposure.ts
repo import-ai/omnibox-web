@@ -2,11 +2,19 @@ import { useEffect, useRef } from 'react';
 
 import { trackInviteReferralHomeEntryView } from './tracking';
 
-export function useInviteReferralEntryExposure(enabled: boolean) {
+export function useInviteReferralEntryExposure(
+  enabled: boolean,
+  pathname: string
+) {
   const entryRef = useRef<HTMLDivElement>(null);
   const wasVisible = useRef(false);
+  const previousPathname = useRef(pathname);
 
   useEffect(() => {
+    if (previousPathname.current !== pathname) {
+      previousPathname.current = pathname;
+      wasVisible.current = false;
+    }
     if (!enabled) {
       wasVisible.current = false;
       return;
@@ -34,7 +42,7 @@ export function useInviteReferralEntryExposure(enabled: boolean) {
       observer.disconnect();
       document.removeEventListener('visibilitychange', update);
     };
-  }, [enabled]);
+  }, [enabled, pathname]);
 
   return entryRef;
 }
