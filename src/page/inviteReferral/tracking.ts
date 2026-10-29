@@ -41,8 +41,5 @@ export function trackInviteReferralShareCopyClick(target: 'code' | 'link') {
 }
 
 export function trackInviteReferralShareCloseClick() {
-  void track('invite_referral_share_close_click', {
-    platform,
-    via: 'button',
-  });
+  void track('invite_referral_share_close_click', { platform });
 }

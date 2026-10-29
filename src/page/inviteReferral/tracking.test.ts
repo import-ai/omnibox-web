@@ -71,6 +71,6 @@ test('emits distinct click events for the home entry, tasks, invite, copy, and c
     ['invite_referral_invite_now_click', { platform: 'web' }],
     ['invite_referral_share_copy_click', { platform: 'web', target: 'code' }],
     ['invite_referral_share_copy_click', { platform: 'web', target: 'link' }],
-    ['invite_referral_share_close_click', { platform: 'web', via: 'button' }],
+    ['invite_referral_share_close_click', { platform: 'web' }],
   ]);
 });

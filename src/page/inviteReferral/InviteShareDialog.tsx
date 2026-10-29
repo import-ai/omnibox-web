@@ -1,5 +1,4 @@
 import copy from 'copy-to-clipboard';
-import { XIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -7,13 +6,11 @@ import { Button } from '@/components/Button';
 import { Input } from '@/components/input';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
-import { Button as DialogIconButton } from '@/components/ui/button';
 
 import { buildLocalizedInviteUrl } from './inviteUrl';
 import {
@@ -62,23 +59,17 @@ export function InviteShareDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={nextOpen => {
+        if (!nextOpen) trackInviteReferralShareCloseClick();
+        onOpenChange(nextOpen);
+      }}
+    >
       <DialogContent
         className="w-[510px] max-w-[calc(100vw-32px)] sm:max-w-[calc(100vw-32px)] gap-5 rounded-xl p-6 sm:p-8"
         onOpenAutoFocus={event => event.preventDefault()}
-        showCloseButton={false}
       >
-        <DialogClose asChild>
-          <DialogIconButton
-            variant="ghost"
-            className="absolute top-4 right-4"
-            size="icon-sm"
-            onClick={trackInviteReferralShareCloseClick}
-          >
-            <XIcon />
-            <span className="sr-only">{t('inviteReferral.common.close')}</span>
-          </DialogIconButton>
-        </DialogClose>
         <DialogHeader className="space-y-0 text-left">
           <DialogTitle className="text-base font-medium">
             {t('inviteReferral.share.dialogTitle')}
