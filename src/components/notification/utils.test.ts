@@ -17,6 +17,18 @@ describe('mergeNotificationDetail', () => {
 });
 
 describe('isCampaignRewardNotification', () => {
+  it('does not change the detail renderer for unrelated activity notices', () => {
+    expect(
+      isCampaignRewardNotification({
+        notification_type: 'activity',
+        tags: ['marketing'],
+      })
+    ).toBe(false);
+    expect(
+      isCampaignRewardNotification({ notification_type: 'activity', tags: [] })
+    ).toBe(false);
+  });
+
   it('treats an activity reward like a changelog detail', () => {
     expect(
       isCampaignRewardNotification({

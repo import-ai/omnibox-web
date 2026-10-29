@@ -14,10 +14,7 @@ export const NOTIFICATION_POLL_INTERVAL_MS = 10_000;
 export function isCampaignRewardNotification(
   item: Pick<NotificationItem, 'notification_type' | 'tags'>
 ) {
-  return (
-    item.notification_type === 'activity' ||
-    item.tags.includes('activity_reward')
-  );
+  return item.tags.includes('activity_reward');
 }
 
 export function mergeNotificationDetail(
