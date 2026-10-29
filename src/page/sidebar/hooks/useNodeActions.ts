@@ -40,6 +40,8 @@ export interface UseNodeActionsReturn {
   handleCreateFile: () => void;
   /** Opens the create-folder dialog */
   handleCreateFolderWithDialog: () => void;
+  /** Opens the add-link dialog under this node */
+  handleCreateLinkWithDialog: () => void;
   /** Opens the create-subscription-folder dialog under this node */
   handleCreateRssFolder: () => void;
   handleEdit: () => void;
@@ -130,6 +132,14 @@ export function useNodeActions(
     }
 
     useSidebarStore.getState().openCreateFolderDialog(nodeId);
+  };
+
+  const handleCreateLinkWithDialog = () => {
+    if (hasManagedChildren || isSmartFolderChild) {
+      return;
+    }
+
+    useSidebarStore.getState().openCreateLinkDialog(nodeId);
   };
 
   const handleCreateRssFolder = () => {
@@ -308,6 +318,7 @@ export function useNodeActions(
     setFolderEditOpen,
     handleCreateFile,
     handleCreateFolderWithDialog,
+    handleCreateLinkWithDialog,
     handleCreateRssFolder,
     handleEdit,
     handleRenameFolder,
