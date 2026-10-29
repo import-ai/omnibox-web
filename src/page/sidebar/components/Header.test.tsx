@@ -44,6 +44,7 @@ jest.mock('@/assets/icons/ChatIcon', () => ({
 }));
 
 jest.mock('@/components/ui/Sidebar', () => ({
+  useSidebar: () => ({ isMobile: false, open: true, openMobile: false }),
   SidebarMenu: ({ children }: React.PropsWithChildren) => <nav>{children}</nav>,
   SidebarMenuItem: ({ children }: React.PropsWithChildren) => (
     <div>{children}</div>
