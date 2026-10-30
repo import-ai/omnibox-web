@@ -48,7 +48,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
           },
           action: (
             <a
-              href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
+              href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing?tab=purchase_space`}
               target="_blank"
               rel="noopener noreferrer"
               className="toast-button"
