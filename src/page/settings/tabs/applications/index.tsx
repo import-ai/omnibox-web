@@ -27,7 +27,11 @@ import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
 import { beginCodeBind } from './beginCodeBind';
-import { beginQrCodeBind, WECHAT_OA_APP_ID } from './beginQrCodeBind';
+import {
+  beginQrCodeBind,
+  isQrCodeExpired,
+  WECHAT_OA_APP_ID,
+} from './beginQrCodeBind';
 import { BindDialog } from './BindDialog';
 import { QRCodeBindDialog } from './QRCodeBindDialog';
 
@@ -132,8 +136,13 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
 
   // Track if autoAction has been processed to prevent re-triggering
   const autoActionProcessedRef = useRef(false);
+  const bindRequestSequenceRef = useRef(0);
 
   const handleBind = async (application: Application) => {
+    const bindRequestSequence = ++bindRequestSequenceRef.current;
+    const isCurrentBindRequest = () =>
+      bindRequestSequence === bindRequestSequenceRef.current;
+
     try {
       setBindingLoading(true);
       setCurrentAppId(application.app_id);
@@ -146,18 +155,34 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
       }
 
       if (application.app_id === WECHAT_OA_APP_ID) {
+        const existingQrCode = application.attrs?.qrcode_content;
+        const canResumeExistingBinding =
+          Boolean(existingQrCode) && !isQrCodeExpired(application.attrs);
+        setQrcodeContent(
+          canResumeExistingBinding ? (existingQrCode ?? '') : ''
+        );
+        setCurrentBindingApplication(
+          canResumeExistingBinding ? application : null
+        );
+        setQrBindDialogOpen(true);
+
         const result = await beginQrCodeBind(
           application,
           bindApplication,
           unbindApplication
         );
+        if (!isCurrentBindRequest()) {
+          return;
+        }
         if (result.status === 'already_bound') {
+          setQrBindDialogOpen(false);
+          setQrcodeContent('');
+          setCurrentBindingApplication(null);
           setAlreadyBoundDialogOpen(true);
           return;
         }
         setQrcodeContent(result.qrcodeContent);
         setCurrentBindingApplication(result.application);
-        setQrBindDialogOpen(true);
         showToast(
           t(
             result.resumed
@@ -184,6 +209,9 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         } else {
           // Start new binding process
           const response = await bindApplication(application.app_id);
+          if (!isCurrentBindRequest()) {
+            return;
+          }
           setQrcodeContent(response.attrs?.qrcode_content || '');
           setCurrentBindingApplication(response);
           setQrBindDialogOpen(true);
@@ -194,6 +222,9 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
 
       // Handle code-based binding (wechat_bot, qq_bot)
       const result = await beginCodeBind(application, bindApplication);
+      if (!isCurrentBindRequest()) {
+        return;
+      }
       if (result.status === 'already_bound') {
         setAlreadyBoundDialogOpen(true);
         return;
@@ -210,9 +241,19 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         'success'
       );
     } catch {
+      if (!isCurrentBindRequest()) {
+        return;
+      }
+      if (application.app_id === WECHAT_OA_APP_ID) {
+        setQrBindDialogOpen(false);
+        setQrcodeContent('');
+        setCurrentBindingApplication(null);
+      }
       showToast(t('applications.bind.error'), 'error');
     } finally {
-      setBindingLoading(false);
+      if (isCurrentBindRequest()) {
+        setBindingLoading(false);
+      }
     }
   };
 
@@ -452,7 +493,13 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
 
       <QRCodeBindDialog
         open={qrBindDialogOpen}
-        onOpenChange={setQrBindDialogOpen}
+        onOpenChange={open => {
+          setQrBindDialogOpen(open);
+          if (!open) {
+            bindRequestSequenceRef.current += 1;
+            setBindingLoading(false);
+          }
+        }}
         qrcodeContent={qrcodeContent}
         applicationId={currentBindingApplication?.id || ''}
         appId={currentAppId}
