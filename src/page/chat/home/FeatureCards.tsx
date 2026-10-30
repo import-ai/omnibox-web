@@ -160,6 +160,10 @@ export default function FeatureCards() {
   const handleWeChatClick = () => {
     app.fire('open_settings', {
       tab: 'applications',
+      autoAction: {
+        type: 'bind',
+        appId: 'wechat_oa_bot',
+      },
     });
   };
 

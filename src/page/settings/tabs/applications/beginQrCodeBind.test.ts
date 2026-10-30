@@ -102,7 +102,9 @@ describe('beginQrCodeBind', () => {
       application: created,
       resumed: false,
     });
-    expect(unbindApplication).toHaveBeenCalledWith('app-1');
+    expect(unbindApplication).toHaveBeenCalledWith('app-1', {
+      showLoading: false,
+    });
     expect(bindApplication).toHaveBeenCalledWith('wechat_oa_bot');
   });
 
