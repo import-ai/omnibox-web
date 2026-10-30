@@ -37,12 +37,13 @@
     "notification_type": "通知类型",
     "created_at": "创建时间",
     "tags": {
-      "wechat_bot": "微信助手",
+      "wechat_bot": "微信收藏",
       "community": "黑友社区",
       "system": "系统通知",
       "marketing": "营销活动",
       "changelog": "更新日志",
-      "survey": "问卷调研"
+      "survey": "问卷调研",
+      "activity_reward": "活动奖励"
     }
   },
   "welcome": {
@@ -150,6 +151,9 @@
       "url": "地址",
       "author": "作者",
       "created": "创建时间",
+      "creator": "创建者",
+      "collaborators": "协作者",
+      "contributor_separator": "、",
       "filename": "文件"
     }
   },
@@ -217,6 +221,15 @@
       "submit": "保存"
     }
   },
+  "link": {
+    "create_dialog": {
+      "title": "添加链接",
+      "placeholder": "请输入或粘贴链接"
+    },
+    "rss_folder_unsupported": "订阅文件夹不支持该操作",
+    "rss_item_unsupported": "订阅内容不支持该操作",
+    "smart_folder_unsupported": "智能文件夹不支持该操作"
+  },
   "error": {
     "title": "404 页面未找到",
     "unexpected_title": "页面暂时无法加载",
@@ -249,6 +262,7 @@
     "create_folder": "创建文件夹",
     "create_rss_folder": "创建订阅文件夹",
     "upload_file": "上传文件",
+    "add_link": "添加链接",
     "download_as": "下载",
     "download_as_tooltip": "{{ format }} 格式",
     "export_png_failed": "导出 PNG 失败，请稍后重试",
@@ -615,16 +629,18 @@
     "description": "管理你的应用集成和绑定",
     "empty": "暂无应用",
     "app_names": {
-      "wechat_bot": "微信助手",
+      "wechat_bot": "微信收藏助手",
       "qq_bot": "QQ 助手",
       "telegram_bot": "Telegram 助手",
-      "wechat_clawbot": "微信 ClawBot"
+      "wechat_clawbot": "微信 ClawBot",
+      "wechat_oa_bot": "微信 AI 对话助手"
     },
     "scan_via": {
       "wechat_bot": "微信",
       "qq_bot": "QQ",
       "telegram_bot": "Telegram",
-      "wechat_clawbot": "微信"
+      "wechat_clawbot": "微信",
+      "wechat_oa_bot": "微信"
     },
     "unsupported_app": "不支持的应用类型：{{ app_id }}",
     "status": {
@@ -634,7 +650,8 @@
     },
     "already_bound": {
       "title": "已绑定",
-      "description": "您已成功绑定 {{ platform_name }}，您可以扫描下方二维码添加助手。"
+      "description": "您已成功绑定 {{ platform_name }}，您可以扫描下方二维码添加助手。",
+      "description_no_qr": "您已成功绑定 {{ platform_name }}。"
     },
     "bind": {
       "button": "绑定",
@@ -665,6 +682,7 @@
       }
     },
     "qr_bind": {
+      "title": "绑定 {{ app_name }}",
       "description": "使用 {{ platform_name }} 扫描二维码完成绑定",
       "step1": "使用 {{ platform_name }} 扫描二维码",
       "instruction": "打开 {{ platform_name }} 并扫描上方二维码以绑定您的账户"
@@ -997,7 +1015,14 @@
         "description": "支持文档、网页、音频和视频等多种类型",
         "local": "本地上传",
         "local_tooltip": "试着将本地的文件拖拽到侧边栏试试吧",
-        "wechat": "微信助手",
+        "link": "添加链接",
+        "link_tooltip": "抖音/B站/小红书等，一键保存",
+        "link_placeholder": "添加链接",
+        "save_to": "保存至",
+        "save": "保存",
+        "invalid_link": "请添加正确的链接",
+        "self_link": "不能保存小黑 OmniBox 链接",
+        "wechat": "微信收藏助手",
         "wechat_tooltip": "在微信中和“小黑”聊天",
         "browser": "安装插件",
         "browser_tooltip": "网页正文一键剪藏"
@@ -1743,5 +1768,13 @@
       "unknown": "状态未知",
       "offline": "设备不可用"
     }
+  },
+  "login_link": {
+    "not_wechat": "请在微信中打开公众号「小黑 OmniBox」发给你的链接",
+    "not_bound": "当前微信还没有绑定 OmniBox，请先在 OmniBox 设置->应用管理绑定「微信 AI 对话助手」",
+    "not_owner": "只有空间所有者可以开通",
+    "too_frequent": "操作太频繁，请稍后再试",
+    "failed": "打开失败，请回到公众号「小黑 OmniBox」重新点击链接",
+    "go_pricing": "前往开通页"
   }
 }

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ChevronRight, FileUp, MessageCircle } from 'lucide-react';
+import { ChevronRight, FileUp, Link, MessageCircle } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -22,8 +22,54 @@ import { IResourceData, Resource, ResourceMeta } from '@/interface';
 import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
+import { cn } from '@/lib/utils';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { getTime } from '@/page/resource/utils';
+
+import { AddLinkPanel } from './AddLinkPanel';
+
+/** English “Extension” label, used as the shared width for both languages. */
+const importActionWidthLabel = 'Extension';
+
+function ImportActionButton({
+  tooltip,
+  tooltipDelay,
+  children,
+  ...props
+}: React.ComponentProps<typeof Button> & {
+  tooltip: React.ReactNode;
+  tooltipDelay?: number;
+}) {
+  return (
+    <div className="relative">
+      <Button
+        type="button"
+        aria-hidden
+        tabIndex={-1}
+        variant="outline"
+        size="sm"
+        className="pointer-events-none invisible"
+      >
+        <ExtensionIcon />
+        {importActionWidthLabel}
+      </Button>
+      <Tooltip delayDuration={tooltipDelay}>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            {...props}
+            className="absolute inset-0"
+          >
+            {children}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{tooltip}</TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
 
 export default function FeatureCards() {
   const { t, i18n } = useTranslation();
@@ -33,6 +79,8 @@ export default function FeatureCards() {
   const { namespace_id: namespaceId } = useParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [linkMode, setLinkMode] = useState(false);
+  const [actionsEntering, setActionsEntering] = useState(false);
   const [recent, setRecent] = useState<ResourceMeta[]>([]);
 
   useEffect(() => {
@@ -127,16 +175,32 @@ export default function FeatureCards() {
     <div className="grid grid-cols-1 gap-4 @2xl:grid-cols-2">
       {/* Upload Files Card */}
       <Card className="min-w-0 gap-4 [--card-spacing:--spacing(5)]">
-        <CardHeader>
-          <CardTitle>{t('chat.home.upload.title')}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-1 flex-col gap-4">
-          <div className="space-y-1">
-            <p className="font-medium">{t('chat.home.upload.subtitle')}</p>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {t('chat.home.upload.description')}
-            </p>
-          </div>
+        {!(linkMode && namespaceId) && (
+          <CardHeader>
+            <CardTitle>{t('chat.home.upload.title')}</CardTitle>
+          </CardHeader>
+        )}
+        <CardContent className="flex flex-1 flex-col gap-2">
+          {linkMode && namespaceId ? (
+            <AddLinkPanel
+              key={namespaceId}
+              namespaceId={namespaceId}
+              onCancel={() => {
+                setActionsEntering(true);
+                setLinkMode(false);
+              }}
+              onSaved={resourceId =>
+                navigateToResource(navigate, `/${namespaceId}/${resourceId}`)
+              }
+            />
+          ) : (
+            <div className="space-y-1">
+              <p className="font-medium">{t('chat.home.upload.subtitle')}</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {t('chat.home.upload.description')}
+              </p>
+            </div>
+          )}
           <input
             type="file"
             multiple
@@ -145,77 +209,58 @@ export default function FeatureCards() {
             ref={fileInputRef}
             style={{ display: 'none' }}
           />
-          <TooltipProvider>
-            <div className="mt-auto flex flex-wrap gap-2">
-              {uploading ? (
-                <Tooltip delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-w-24"
-                      disabled
-                    >
-                      <Spinner className="text-red-500" />
-                      {t('chat.home.upload.local')}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {progress || t('chat.home.upload.local_tooltip')}
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="min-w-24"
-                      onClick={() => openFilePicker(fileInputRef.current)}
-                    >
-                      <FileUp className="size-4 text-red-500" />
-                      {t('chat.home.upload.local')}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {t('chat.home.upload.local_tooltip')}
-                  </TooltipContent>
-                </Tooltip>
-              )}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="min-w-24"
-                    onClick={handleWeChatClick}
+          {!(linkMode && namespaceId) && (
+            <TooltipProvider>
+              <div
+                className={cn(
+                  'mt-auto grid w-fit grid-cols-2 justify-items-start gap-2',
+                  actionsEntering &&
+                    'motion-safe:animate-[upload-actions-in_200ms_ease_both]'
+                )}
+                onAnimationEnd={() => setActionsEntering(false)}
+              >
+                {uploading ? (
+                  <ImportActionButton
+                    tooltip={progress || t('chat.home.upload.local_tooltip')}
+                    tooltipDelay={0}
+                    disabled
                   >
-                    <MessageCircle className="size-4 text-green-500" />
-                    {t('chat.home.upload.wechat')}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {t('chat.home.upload.wechat_tooltip')}
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="min-w-24"
-                    onClick={handleBrowserClick}
+                    <Spinner className="text-red-500" />
+                    {t('chat.home.upload.local')}
+                  </ImportActionButton>
+                ) : (
+                  <ImportActionButton
+                    tooltip={t('chat.home.upload.local_tooltip')}
+                    onClick={() => openFilePicker(fileInputRef.current)}
                   >
-                    <ExtensionIcon />
-                    {t('chat.home.upload.browser')}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {t('chat.home.upload.browser_tooltip')}
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </TooltipProvider>
+                    <FileUp className="size-4 text-red-500" />
+                    {t('chat.home.upload.local')}
+                  </ImportActionButton>
+                )}
+                <ImportActionButton
+                  tooltip={t('chat.home.upload.link_tooltip')}
+                  onClick={() => setLinkMode(true)}
+                >
+                  <Link className="size-4 text-blue-500" />
+                  {t('chat.home.upload.link')}
+                </ImportActionButton>
+                <ImportActionButton
+                  tooltip={t('chat.home.upload.wechat_tooltip')}
+                  onClick={handleWeChatClick}
+                >
+                  <MessageCircle className="size-4 text-green-500" />
+                  {t('chat.home.upload.wechat')}
+                </ImportActionButton>
+                <ImportActionButton
+                  tooltip={t('chat.home.upload.browser_tooltip')}
+                  onClick={handleBrowserClick}
+                >
+                  <ExtensionIcon />
+                  {t('chat.home.upload.browser')}
+                </ImportActionButton>
+              </div>
+            </TooltipProvider>
+          )}
         </CardContent>
       </Card>
 

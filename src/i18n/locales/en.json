@@ -37,12 +37,13 @@
     "notification_type": "Tags",
     "created_at": "Created at",
     "tags": {
-      "wechat_bot": "WeChat Assistant",
+      "wechat_bot": "WeChat Collection",
       "community": "Community",
       "system": "System",
       "marketing": "Campaign",
       "changelog": "Changelog",
-      "survey": "Survey"
+      "survey": "Survey",
+      "activity_reward": "Bonus"
     }
   },
   "welcome": {
@@ -150,6 +151,9 @@
       "url": "URL",
       "author": "Author",
       "created": "Created",
+      "creator": "Creator",
+      "collaborators": "Collaborators",
+      "contributor_separator": ", ",
       "filename": "File"
     }
   },
@@ -217,6 +221,15 @@
       "submit": "Save"
     }
   },
+  "link": {
+    "create_dialog": {
+      "title": "Add Link",
+      "placeholder": "Enter or paste a link"
+    },
+    "rss_folder_unsupported": "RSS folders do not support this action.",
+    "rss_item_unsupported": "RSS items do not support this action.",
+    "smart_folder_unsupported": "Smart folders do not support this action."
+  },
   "error": {
     "title": "404 Not Found",
     "unexpected_title": "Unable to load this page",
@@ -249,6 +262,7 @@
     "create_folder": "Create Folder",
     "create_rss_folder": "Create RSS Folder",
     "upload_file": "Upload File",
+    "add_link": "Add Link",
     "download_as": "Download",
     "download_as_tooltip": "Download as {{ format }} format",
     "export_png_failed": "Failed to export PNG, please try again later",
@@ -614,16 +628,18 @@
     "description": "Manage your application integrations and bindings",
     "empty": "No applications found",
     "app_names": {
-      "wechat_bot": "WeChat Assistant",
+      "wechat_bot": "WeChat Collection Assistant",
       "qq_bot": "QQ Assistant",
       "telegram_bot": "Telegram Assistant",
-      "wechat_clawbot": "WeChat ClawBot"
+      "wechat_clawbot": "WeChat ClawBot",
+      "wechat_oa_bot": "WeChat AI Assistant"
     },
     "scan_via": {
       "wechat_bot": "WeChat",
       "qq_bot": "QQ",
       "telegram_bot": "Telegram",
-      "wechat_clawbot": "WeChat"
+      "wechat_clawbot": "WeChat",
+      "wechat_oa_bot": "WeChat"
     },
     "unsupported_app": "Unsupported application type: {{ app_id }}",
     "status": {
@@ -633,7 +649,8 @@
     },
     "already_bound": {
       "title": "Already Connected",
-      "description": "You are already connected to the {{ platform_name }}. You can scan the QR code below to add the assistant."
+      "description": "You are already connected to the {{ platform_name }}. You can scan the QR code below to add the assistant.",
+      "description_no_qr": "You are already connected to the {{ platform_name }}."
     },
     "bind": {
       "button": "Bind",
@@ -664,6 +681,7 @@
       }
     },
     "qr_bind": {
+      "title": "Bind {{ app_name }}",
       "description": "Scan the QR code with {{ platform_name }} to complete the binding",
       "step1": "Scan QR Code with {{ platform_name }}",
       "instruction": "Open {{ platform_name }} and scan the QR code above to bind your account"
@@ -996,7 +1014,14 @@
         "description": "Supports docs, webpage, audio, video and more",
         "local": "Upload",
         "local_tooltip": "Try dragging local files to the sidebar",
-        "wechat": "WeChat",
+        "link": "Add link",
+        "link_tooltip": "Save webpage or video from link.",
+        "link_placeholder": "Add link",
+        "save_to": "Save to",
+        "save": "Save",
+        "invalid_link": "Please add a valid link",
+        "self_link": "Cannot save OmniBox links",
+        "wechat": "WeChat Collection Assistant",
         "wechat_tooltip": "Chat with OmniBox AI in WeChat",
         "browser": "Extension",
         "browser_tooltip": "Save any webpage with one click"
@@ -1741,5 +1766,13 @@
       "unknown": "Unknown",
       "offline": "Device unavailable"
     }
+  },
+  "login_link": {
+    "not_wechat": "Open the link the OmniBox official account sent you in WeChat.",
+    "not_bound": "This WeChat account is not bound to OmniBox yet. Bind the WeChat AI Assistant in OmniBox Settings -> Applications first.",
+    "not_owner": "Only the namespace owner can subscribe.",
+    "too_frequent": "Too many attempts. Please try again later.",
+    "failed": "Could not open the page. Go back to the OmniBox official account and tap the link again.",
+    "go_pricing": "Go to pricing"
   }
 }

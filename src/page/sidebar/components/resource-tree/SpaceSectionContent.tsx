@@ -3,6 +3,7 @@ import {
   FilePlus,
   FileUp,
   FolderPlus,
+  Link,
   MoreHorizontal,
 } from 'lucide-react';
 import { useMemo } from 'react';
@@ -140,6 +141,10 @@ export function SpaceSectionContent({
 
   const handleCreateFolder = () => {
     useSidebarStore.getState().openCreateFolderDialog(rootId);
+  };
+
+  const handleCreateLink = () => {
+    useSidebarStore.getState().openCreateLinkDialog(rootId);
   };
 
   const smartFolderDisabled = smartFolderQuotaExhausted[spaceType] === true;
@@ -341,6 +346,13 @@ export function SpaceSectionContent({
                     <FileUp className={menuIconClass} />
                     {t('actions.upload_file')}
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={menuItemClass}
+                    onClick={handleCreateLink}
+                  >
+                    <Link className={menuIconClass} />
+                    {t('actions.add_link')}
+                  </DropdownMenuItem>
                   <ResourceSortMenu
                     value={resourceSort}
                     disabled={sorting}
@@ -409,6 +421,10 @@ export function SpaceSectionContent({
           >
             <FileUp className={menuIconClass} />
             {t('actions.upload_file')}
+          </ContextMenuItem>
+          <ContextMenuItem className={menuItemClass} onClick={handleCreateLink}>
+            <Link className={menuIconClass} />
+            {t('actions.add_link')}
           </ContextMenuItem>
           <ResourceSortMenu
             variant="context"
