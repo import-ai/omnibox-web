@@ -26,6 +26,10 @@ import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
+import {
+  isSupportedApplicationId,
+  sortApplicationsForDisplay,
+} from './applicationOrder';
 import { beginCodeBind } from './beginCodeBind';
 import { beginQrCodeBind, WECHAT_OA_APP_ID } from './beginQrCodeBind';
 import { BindDialog } from './BindDialog';
@@ -42,13 +46,7 @@ function getLocalizedAppName(appId: string, t: any): string {
 }
 
 function validateAppId(appId: string): void {
-  if (
-    appId !== 'wechat_bot' &&
-    appId !== 'qq_bot' &&
-    appId !== 'telegram_bot' &&
-    appId !== 'wechat_clawbot' &&
-    appId !== WECHAT_OA_APP_ID
-  ) {
+  if (!isSupportedApplicationId(appId)) {
     throw new Error(`Unsupported application type: ${appId}`);
   }
 }
@@ -286,11 +284,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     }
   }, [autoAction, loading, applications]);
 
-  const displayedApplications = [...applications].sort(
-    (a, b) =>
-      Number(b.app_id === WECHAT_OA_APP_ID) -
-      Number(a.app_id === WECHAT_OA_APP_ID)
-  );
+  const displayedApplications = sortApplicationsForDisplay(applications);
 
   if (loading) {
     return (
