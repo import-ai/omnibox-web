@@ -625,8 +625,8 @@
   "applications": {
     "connection_description": "Connect the assistant in {{platform}} to this space",
     "title": "Assistants",
-    "description": "Manage your application integrations and bindings",
-    "empty": "No applications found",
+    "description": "Manage your assistants and their bindings",
+    "empty": "No assistants found",
     "app_names": {
       "wechat_bot": "WeChat Collection Assistant",
       "qq_bot": "QQ Assistant",
@@ -641,7 +641,7 @@
       "wechat_clawbot": "WeChat",
       "wechat_oa_bot": "WeChat"
     },
-    "unsupported_app": "Unsupported application type: {{ app_id }}",
+    "unsupported_app": "Unsupported assistant type: {{ app_id }}",
     "status": {
       "bound": "Bound",
       "unbound": "Not Bound",
@@ -655,8 +655,8 @@
     "bind": {
       "button": "Bind",
       "continue_button": "Continue",
-      "title": "Bind Application",
-      "description": "Follow these steps to connect your application",
+      "title": "Bind Assistant",
+      "description": "Follow these steps to connect your assistant",
       "step1": "Step 1: Add {{ platform_name }}",
       "step2": "Step 2: Send Code to {{ platform_name }}",
       "telegram_step1": "Step 1: Open Telegram or scan the QR code",
@@ -669,7 +669,7 @@
       "initiated": "Binding process initiated",
       "continue": "Continuing binding process",
       "error": "Failed to initiate binding",
-      "success": "Application bound successfully",
+      "success": "Assistant bound successfully",
       "cancel_button": "Cancel",
       "cancel": {
         "confirm": {
@@ -688,11 +688,11 @@
     },
     "unbind": {
       "button": "Unbind",
-      "success": "Application unbound successfully",
-      "error": "Failed to unbind application",
+      "success": "Assistant unbound successfully",
+      "error": "Failed to unbind assistant",
       "confirm": {
-        "title": "Unbind Application",
-        "description": "Are you sure you want to unbind {{ name }}? This will disconnect the application from your namespace.",
+        "title": "Unbind Assistant",
+        "description": "Are you sure you want to unbind {{ name }}? This will disconnect the assistant from your namespace.",
         "button": "Confirm Unbind"
       }
     }
@@ -1193,7 +1193,7 @@
       "update": "Update",
       "delete": "Delete"
     },
-    "related_application": "Related Application",
+    "related_application": "Related Assistant",
     "show": "Show",
     "hide": "Hide"
   },

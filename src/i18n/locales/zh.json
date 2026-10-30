@@ -626,8 +626,8 @@
   "applications": {
     "connection_description": "将 {{platform}} 中的助手连接到当前空间",
     "title": "助手管理",
-    "description": "管理你的应用集成和绑定",
-    "empty": "暂无应用",
+    "description": "管理你的助手和绑定状态",
+    "empty": "暂无助手",
     "app_names": {
       "wechat_bot": "微信收藏助手",
       "qq_bot": "QQ 助手",
@@ -642,7 +642,7 @@
       "wechat_clawbot": "微信",
       "wechat_oa_bot": "微信"
     },
-    "unsupported_app": "不支持的应用类型：{{ app_id }}",
+    "unsupported_app": "不支持的助手类型：{{ app_id }}",
     "status": {
       "bound": "已绑定",
       "unbound": "未绑定",
@@ -656,8 +656,8 @@
     "bind": {
       "button": "绑定",
       "continue_button": "继续绑定",
-      "title": "绑定应用",
-      "description": "按照以下步骤连接你的应用",
+      "title": "绑定助手",
+      "description": "按照以下步骤连接你的助手",
       "step1": "第 1 步：添加 {{ platform_name }}",
       "step2": "第 2 步：发送代码给 {{ platform_name }}",
       "telegram_step1": "第 1 步：打开 Telegram 或扫描二维码",
@@ -670,7 +670,7 @@
       "initiated": "绑定流程已启动",
       "continue": "继续绑定流程",
       "error": "启动绑定失败",
-      "success": "应用绑定成功",
+      "success": "助手绑定成功",
       "cancel_button": "取消绑定",
       "cancel": {
         "confirm": {
@@ -689,11 +689,11 @@
     },
     "unbind": {
       "button": "解绑",
-      "success": "应用解绑成功",
-      "error": "应用解绑失败",
+      "success": "助手解绑成功",
+      "error": "助手解绑失败",
       "confirm": {
-        "title": "解绑应用",
-        "description": "确定要解绑 {{ name }} 吗？这将断开应用与空间的连接。",
+        "title": "解绑助手",
+        "description": "确定要解绑 {{ name }} 吗？这将断开助手与空间的连接。",
         "button": "确认解绑"
       }
     }
@@ -1195,7 +1195,7 @@
       "update": "更新",
       "delete": "删除"
     },
-    "related_application": "关联应用",
+    "related_application": "关联助手",
     "show": "显示",
     "hide": "隐藏"
   },
