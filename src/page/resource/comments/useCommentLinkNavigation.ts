@@ -16,6 +16,7 @@ export interface CommentFocusOptions {
   centerResolvedDocumentComment?: boolean;
   openReply?: boolean;
   onLocated?: () => void;
+  onFinished?: (result: 'located' | 'timeout' | 'cancelled') => void;
 }
 
 interface UseCommentLinkNavigationOptions {
@@ -33,7 +34,10 @@ interface UseCommentLinkNavigationOptions {
   activeThreadId: string | null;
   threads: ResourceCommentThread[];
   openThread: (threadId: string) => void;
-  focusThread: (threadId: string, options?: CommentFocusOptions) => void;
+  focusThread: (
+    threadId: string,
+    options?: CommentFocusOptions
+  ) => void | (() => void);
 }
 
 export function useCommentLinkNavigation({
@@ -147,12 +151,17 @@ export function useCommentLinkNavigation({
     )
       return;
     if (target.resolved && (!panelElement || !panelOpen)) return;
-    // Document navigation selects and scrolls its own row without body alignment or reply focus.
-    handledLinkRef.current = linkKey;
-    focusThreadRef.current(targetId, {
+    const cancel = focusThreadRef.current(targetId, {
       openReply: false,
       centerResolvedDocumentComment: target.resolved,
+      onFinished: () => {
+        handledLinkRef.current = linkKey;
+      },
     });
+    return () => {
+      cancel?.();
+      handledLinkRef.current = linkKey;
+    };
   }, [
     enabled,
     documentTarget,

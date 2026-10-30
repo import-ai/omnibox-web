@@ -11,6 +11,8 @@ const ALIGNMENT_TOLERANCE = 0.1;
 const VIEWPORT_MARGIN = 12;
 const MAX_ALIGNMENT_FRAMES = 45;
 const STABLE_ALIGNMENT_FRAMES = 3;
+const DOCUMENT_NAVIGATION_TIMEOUT_MS = 5000;
+const DOCUMENT_SCROLL_RETRY_MS = 200;
 
 function getSourceScrollTarget(
   source: HTMLElement | null,
@@ -45,13 +47,18 @@ export function useCommentNavigation(
   openThread: (threadId: string) => void,
   getThread?: (threadId: string) => ResourceCommentThread | undefined
 ): {
-  focusThread: (threadId: string, options?: CommentFocusOptions) => void;
+  focusThread: (
+    threadId: string,
+    options?: CommentFocusOptions
+  ) => void | (() => void);
   cancelNavigation: () => void;
   navigatingThreadId: string | null;
   navigatingReplyThreadId: string | null;
 } {
   const panel = useResourceCommentsPanel();
   const frameRef = useRef(0);
+  const versionRef = useRef(0);
+  const cancelDocumentRef = useRef<(() => void) | null>(null);
   const [navigation, setNavigation] = useState<{
     threadId: string;
     openReply: boolean;
@@ -61,7 +68,11 @@ export function useCommentNavigation(
     ? navigation.threadId
     : null;
   const cancelNavigation = useCallback(() => {
+    versionRef.current += 1;
     cancelAnimationFrame(frameRef.current);
+    const cancelDocument = cancelDocumentRef.current;
+    cancelDocumentRef.current = null;
+    cancelDocument?.();
     setNavigation(null);
   }, []);
 
@@ -76,9 +87,57 @@ export function useCommentNavigation(
       const thread = getThread?.(threadId);
       if (thread && isDocumentCommentThread(thread)) {
         const targetRoot = thread.resolved ? panelElement : root;
-        let attempts = 0;
+        const version = versionRef.current;
+        const startedAt = performance.now();
         let boundaryScrollStarted = false;
-        const locate = () => {
+        let previousSourceTop: number | undefined;
+        let lastSourceMovementAt = startedAt;
+        let requestedTop: number | undefined;
+        let stableFrames = 0;
+        let finished = false;
+        const interruptionTargets = new Set(
+          [root, panelElement].filter(
+            element => element !== null && element !== undefined
+          )
+        );
+        const onUserScroll = (event: Event) => {
+          if (
+            event.target instanceof Element &&
+            event.target.closest(
+              '[data-resource-scroll], [data-comments-scroll]'
+            )
+          ) {
+            cancelNavigation();
+          }
+        };
+        const finish = (result: 'located' | 'timeout' | 'cancelled') => {
+          if (finished) return;
+          finished = true;
+          for (const element of interruptionTargets) {
+            element.removeEventListener('wheel', onUserScroll, true);
+            element.removeEventListener('touchstart', onUserScroll, true);
+          }
+          if (versionRef.current === version) cancelDocumentRef.current = null;
+          if (result === 'located') options?.onLocated?.();
+          options?.onFinished?.(result);
+        };
+        cancelDocumentRef.current = () => finish('cancelled');
+        for (const element of interruptionTargets) {
+          element.addEventListener('wheel', onUserScroll, {
+            passive: true,
+            capture: true,
+          });
+          element.addEventListener('touchstart', onUserScroll, {
+            passive: true,
+            capture: true,
+          });
+        }
+        const locate = (now: number) => {
+          if (versionRef.current !== version) return;
+          if (now - startedAt >= DOCUMENT_NAVIGATION_TIMEOUT_MS) {
+            finish('timeout');
+            return;
+          }
           const boundary = thread.resolved
             ? root?.querySelector<HTMLElement>('[data-resource-body-end]')
             : null;
@@ -88,22 +147,29 @@ export function useCommentNavigation(
           if (boundary && source) {
             const bodyBounds = boundary.getBoundingClientRect();
             const viewport = source.getBoundingClientRect();
+            if (source.scrollTop !== previousSourceTop) {
+              previousSourceTop = source.scrollTop;
+              lastSourceMovementAt = now;
+            }
             if (
               bodyBounds.bottom < viewport.top ||
               bodyBounds.top > viewport.bottom
             ) {
-              if (!boundaryScrollStarted) {
+              if (
+                !boundaryScrollStarted ||
+                now - lastSourceMovementAt >= DOCUMENT_SCROLL_RETRY_MS
+              ) {
                 boundary.scrollIntoView?.({
                   block: 'nearest',
                   behavior: 'smooth',
                 });
                 boundaryScrollStarted = true;
+                lastSourceMovementAt = now;
               }
-              if (++attempts < MAX_ALIGNMENT_FRAMES)
-                frameRef.current = requestAnimationFrame(locate);
-              else options?.onLocated?.();
+              frameRef.current = requestAnimationFrame(locate);
               return;
             }
+            boundaryScrollStarted = false;
           }
           const selector = thread.resolved
             ? '[data-thread-id]'
@@ -133,31 +199,56 @@ export function useCommentNavigation(
                   Math.max(
                     0,
                     commentsScroll.scrollTop +
-                      (cardBounds.top +
-                        cardBounds.bottom -
-                        viewport.top -
-                        viewport.bottom) /
-                        2
+                      (cardBounds.height > viewport.height
+                        ? cardBounds.top - viewport.top - VIEWPORT_MARGIN
+                        : (cardBounds.top +
+                            cardBounds.bottom -
+                            viewport.top -
+                            viewport.bottom) /
+                          2)
                   )
                 );
-                if (typeof commentsScroll.scrollTo === 'function') {
-                  commentsScroll.scrollTo({ top, behavior: 'smooth' });
-                } else {
-                  commentsScroll.scrollTop = top;
+                if (
+                  requestedTop === undefined ||
+                  Math.abs(top - requestedTop) > 1
+                ) {
+                  requestedTop = top;
+                  if (typeof commentsScroll.scrollTo === 'function') {
+                    commentsScroll.scrollTo({ top, behavior: 'smooth' });
+                  } else {
+                    commentsScroll.scrollTop = top;
+                  }
+                }
+                const currentBounds = card.getBoundingClientRect();
+                const visible =
+                  currentBounds.top >= viewport.top - 1 &&
+                  (currentBounds.height > viewport.height
+                    ? currentBounds.top <= viewport.top + VIEWPORT_MARGIN + 1
+                    : currentBounds.bottom <= viewport.bottom + 1);
+                const aligned =
+                  visible && Math.abs(commentsScroll.scrollTop - top) <= 1;
+                const imagesLoading = Array.from(
+                  source?.querySelectorAll('img') ?? []
+                ).some(image => !image.complete);
+                stableFrames = aligned && !imagesLoading ? stableFrames + 1 : 0;
+                if (stableFrames >= STABLE_ALIGNMENT_FRAMES) {
+                  finish('located');
+                  return;
                 }
               }
             } else {
               card.scrollIntoView?.({ block: 'nearest', behavior: 'smooth' });
+              finish('located');
+              return;
             }
-            options?.onLocated?.();
-            return;
           }
-          if (++attempts < MAX_ALIGNMENT_FRAMES)
-            frameRef.current = requestAnimationFrame(locate);
-          else options?.onLocated?.();
+          frameRef.current = requestAnimationFrame(locate);
         };
         frameRef.current = requestAnimationFrame(locate);
-        return;
+        return () => {
+          if (versionRef.current === version) cancelNavigation();
+          finish('cancelled');
+        };
       }
       if (!root || !panelElement || !panel) {
         return;
