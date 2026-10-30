@@ -141,7 +141,9 @@ export default function RecommendedQuestions({
           disabled={!question || transitionPhase !== 'idle'}
           className={cn(
             'group relative mb-4 flex min-h-12 w-fit min-w-recommended-question max-w-recommended-question items-center rounded-full text-left text-sm font-normal leading-recommended-question text-muted-foreground transition-opacity duration-150 motion-reduce:transition-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
-            compact ? 'pl-7 pr-5 py-3' : 'pl-8 pr-4 py-3',
+            compact
+              ? 'pl-7 pr-5 py-3'
+              : 'justify-center pl-[26px] pr-[22px] py-3',
             !question && 'invisible',
             transitionPhase === 'fadingOut' && 'opacity-0'
           )}
