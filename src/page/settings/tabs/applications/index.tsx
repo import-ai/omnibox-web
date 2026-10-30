@@ -47,7 +47,7 @@ function getLocalizedAppName(appId: string, t: any): string {
 
 function validateAppId(appId: string): void {
   if (!isSupportedApplicationId(appId)) {
-    throw new Error(`Unsupported application type: ${appId}`);
+    throw new Error(`Unsupported assistant type: ${appId}`);
   }
 }
 
