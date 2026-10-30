@@ -20,6 +20,10 @@ import { UpgradeButton } from '@/page/sidebar/components/namespace-switcher/Upgr
 
 import { SettingsExtensionsContext } from './settingsExtensionsContext';
 
+// An inset ring stays visible inside the nav's scroll box, which clips anything drawn outside.
+const navItemFocus =
+  'outline-hidden ring-sidebar-ring focus-visible:ring-2 focus-visible:ring-inset';
+
 interface SettingsSidebarProps {
   value: string;
   onChange: (value: string) => void;
@@ -139,7 +143,7 @@ export function SettingsSidebar({
 
   return (
     <div className="relative h-auto w-full shrink-0 overflow-y-auto rounded-t-xl bg-sidebar lg:h-full lg:w-[247px] lg:overflow-visible lg:rounded-l-xl lg:rounded-tr-none">
-      <div className="flex flex-col gap-1 p-2 lg:absolute lg:inset-2 lg:w-[231px] lg:justify-between lg:gap-5 lg:p-0">
+      <div className="flex flex-col gap-1 p-2 lg:absolute lg:inset-2 lg:w-[231px] lg:justify-between lg:gap-5 lg:overflow-y-auto lg:overscroll-contain lg:p-0">
         <div className="flex flex-col gap-1 lg:gap-5">
           {/* Account Section */}
           <div className="flex w-full flex-col gap-2 lg:gap-2">
@@ -152,8 +156,10 @@ export function SettingsSidebar({
             <div className="flex w-full flex-row flex-wrap gap-1 lg:flex-col lg:gap-0.5">
               <button
                 onClick={() => onChange('profile')}
+                aria-current={value === 'profile' ? 'page' : undefined}
                 className={cn(
                   'flex h-[30px] w-auto items-center gap-2 rounded px-2.5 py-1 text-left lg:w-full lg:gap-3',
+                  navItemFocus,
                   value === 'profile'
                     ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                     : 'hover:bg-sidebar-accent/60'
@@ -177,8 +183,10 @@ export function SettingsSidebar({
                   <button
                     key={item.value}
                     onClick={() => onChange(item.value)}
+                    aria-current={isSelected ? 'page' : undefined}
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
+                      navItemFocus,
                       isSelected
                         ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                         : 'hover:bg-sidebar-accent/60'
@@ -222,8 +230,10 @@ export function SettingsSidebar({
                   <button
                     key={item.value}
                     onClick={() => onChange(item.value)}
+                    aria-current={isSelected ? 'page' : undefined}
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
+                      navItemFocus,
                       isSelected
                         ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                         : 'hover:bg-sidebar-accent/60'
@@ -257,8 +267,10 @@ export function SettingsSidebar({
             {config.commercial && <UpgradeButton />}
             <button
               onClick={() => onChange(aboutItem.value)}
+              aria-current={value === aboutItem.value ? 'page' : undefined}
               className={cn(
                 'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
+                navItemFocus,
                 value === aboutItem.value
                   ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                   : 'hover:bg-sidebar-accent/60'

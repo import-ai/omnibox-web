@@ -57,6 +57,7 @@ export const terminal = new Set([
   'canceled',
   'timed_out',
   'unknown',
+  'offline',
 ]);
 export function mergeEvents(
   current: ExecutionEvent[],

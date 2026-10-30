@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/Button';
 import { Alert, AlertTitle } from '@/components/ui/Alert';
 import { cn } from '@/lib/utils';
+import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
+import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
 
 import ExecutionStatus from './ExecutionStatus';
 import {
@@ -43,25 +45,43 @@ function Field({
   );
 }
 
-function Artifact({ data }: { data: string }) {
+function parseArtifact(data: string) {
   try {
     const artifact = JSON.parse(data);
-    const url = new URL(artifact.url);
-    if (!['https:', 'http:'].includes(url.protocol)) return null;
-    return (
-      <a
-        className="inline-flex h-6 max-w-full items-center gap-1 rounded-lg border border-border px-2 text-xs font-medium text-foreground hover:bg-muted"
-        href={url.href}
-        target="_blank"
-        rel="noreferrer"
-      >
-        <Paperclip className="size-3 shrink-0 text-muted-foreground" />
-        <span className="truncate">{String(artifact.name)}</span>
-      </a>
-    );
+    return typeof artifact?.id === 'string' && artifact.id
+      ? { id: artifact.id as string, name: String(artifact.name) }
+      : null;
   } catch {
     return null;
   }
+}
+
+// Uploaded artifacts are resources, so they open like any chat resource link.
+function Artifact({
+  data,
+  namespaceId,
+}: {
+  data: string;
+  namespaceId: string;
+}) {
+  const { namespaceId: routeNamespaceId } = useChatRouteParams();
+  const artifact = parseArtifact(data);
+  if (!artifact) return null;
+  const props = {
+    className:
+      'inline-flex h-6 max-w-full items-center gap-1 rounded-lg border border-border px-2 text-xs font-medium text-foreground hover:bg-muted',
+    href: `/${namespaceId}/${artifact.id}`,
+    children: (
+      <>
+        <Paperclip className="size-3 shrink-0 text-muted-foreground" />
+        <span className="truncate">{artifact.name}</span>
+      </>
+    ),
+  };
+  // Copilot opens resources in the route's namespace only.
+  if (routeNamespaceId !== namespaceId)
+    return <a {...props} target="_blank" rel="noopener noreferrer" />;
+  return <ChatResourceLink {...props} resourceId={artifact.id} />;
 }
 
 export default function ExecutionCard({
@@ -127,9 +147,12 @@ export default function ExecutionCard({
     .map(v => v.data)
     .join('');
   const artifacts = events.filter(v => v.kind === 'artifact');
-  const failure = ['failed', 'unknown'].includes(e.status)
-    ? events.filter(v => v.kind === 'status').at(-1)?.data
-    : undefined;
+  const failure =
+    e.status === 'offline'
+      ? t('local_runtime.offline_reason')
+      : ['failed', 'unknown', 'denied'].includes(e.status)
+        ? events.filter(v => v.kind === 'status').at(-1)?.data
+        : undefined;
   return (
     <article
       className={cn(
@@ -190,7 +213,11 @@ export default function ExecutionCard({
           </span>
           <div className="flex flex-wrap gap-1.5">
             {artifacts.map(v => (
-              <Artifact key={v.sequence} data={v.data} />
+              <Artifact
+                key={v.sequence}
+                data={v.data}
+                namespaceId={e.namespace_id}
+              />
             ))}
           </div>
         </div>
