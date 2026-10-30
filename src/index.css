@@ -445,3 +445,8 @@ body > [id*='aliyunCaptcha' i],
 body > [class*='aliyunCaptcha' i] {
   pointer-events: auto;
 }
+
+/* The SDK popup stays white, so its title needs a dark foreground in both themes. */
+#aliyunCaptcha-window-popup #aliyunCaptcha-title {
+  color: #171717;
+}
