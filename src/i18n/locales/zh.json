@@ -559,7 +559,7 @@
     "preferences": "外观",
     "namespace": "空间设置",
     "api_key": "API 密钥",
-    "applications": "应用管理",
+    "applications": "助手管理",
     "feature_management": "功能管理",
     "feature_previews": "新功能尝鲜",
     "account": "账号",
@@ -625,7 +625,7 @@
   },
   "applications": {
     "connection_description": "将 {{platform}} 中的助手连接到当前空间",
-    "title": "应用管理",
+    "title": "助手管理",
     "description": "管理你的应用集成和绑定",
     "empty": "暂无应用",
     "app_names": {
@@ -1769,7 +1769,7 @@
   },
   "login_link": {
     "not_wechat": "请在微信中打开公众号「小黑 OmniBox」发给你的链接",
-    "not_bound": "当前微信还没有绑定 OmniBox，请先在 OmniBox 设置->应用管理绑定「微信 AI 对话助手」",
+    "not_bound": "当前微信还没有绑定 OmniBox，请先在 OmniBox 设置 → 助手管理绑定「微信 AI 对话助手」",
     "not_owner": "只有空间所有者可以开通",
     "too_frequent": "操作太频繁，请稍后再试",
     "failed": "打开失败，请回到公众号「小黑 OmniBox」重新点击链接",

@@ -286,6 +286,12 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     }
   }, [autoAction, loading, applications]);
 
+  const displayedApplications = [...applications].sort(
+    (a, b) =>
+      Number(b.app_id === WECHAT_OA_APP_ID) -
+      Number(a.app_id === WECHAT_OA_APP_ID)
+  );
+
   if (loading) {
     return (
       <div className="flex size-full items-center justify-center">
@@ -315,7 +321,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
             </p>
           </div>
         ) : (
-          applications.map((application: Application) => {
+          displayedApplications.map((application: Application) => {
             const state = getApplicationState(application);
             const isBound = state === 'bound';
 
