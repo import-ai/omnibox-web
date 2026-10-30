@@ -8,7 +8,7 @@ import useApplications from '@/hooks/useApplications';
 import type { Application } from '@/interface';
 
 import { ApplicationsForm } from '.';
-import { beginQrCodeBind } from './beginQrCodeBind';
+import { beginQrCodeBind, isQrCodeExpired } from './beginQrCodeBind';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -64,16 +64,18 @@ jest.mock('./beginQrCodeBind', () => ({
 jest.mock('./BindDialog', () => ({ BindDialog: () => null }));
 jest.mock('./QRCodeBindDialog', () => ({
   QRCodeBindDialog: ({
+    applicationId,
     open,
     onOpenChange,
     qrcodeContent,
   }: {
+    applicationId: string;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     qrcodeContent: string;
   }) =>
     open ? (
-      <div data-testid="qr-code-dialog">
+      <div data-application-id={applicationId} data-testid="qr-code-dialog">
         {qrcodeContent}
         <button
           type="button"
@@ -92,6 +94,7 @@ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 const mockedUseApplications = jest.mocked(useApplications);
 const mockedBeginQrCodeBind = jest.mocked(beginQrCodeBind);
+const mockedIsQrCodeExpired = jest.mocked(isQrCodeExpired);
 
 function application(partial: Partial<Application> = {}): Application {
   return {
@@ -121,6 +124,7 @@ describe('ApplicationsForm auto binding', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedIsQrCodeExpired.mockReturnValue(false);
     container = document.createElement('div');
     root = createRoot(container);
     bindApplication = jest.fn();
@@ -179,6 +183,53 @@ describe('ApplicationsForm auto binding', () => {
     expect(
       container.querySelector('[data-testid="qr-code-dialog"]')?.textContent
     ).toBe('qr-code-content');
+  });
+
+  it('does not poll the old application while rebuilding an expired QR code', async () => {
+    const expiredApplication = application({
+      id: 'old-application',
+      attrs: {
+        qrcode_content: 'expired-qr-code',
+        qrcode_expires_at: '2026-10-01T00:00:00Z',
+      },
+    });
+    const rebuiltApplication = application({
+      id: 'new-application',
+      attrs: {
+        qrcode_content: 'rebuilt-qr-code',
+        qrcode_expires_at: '2026-11-01T00:00:00Z',
+      },
+    });
+    mockApplications([expiredApplication]);
+    mockedIsQrCodeExpired.mockReturnValue(true);
+    const binding = deferred<Awaited<ReturnType<typeof beginQrCodeBind>>>();
+    mockedBeginQrCodeBind.mockReturnValue(binding.promise);
+
+    await act(async () => {
+      root.render(
+        <ApplicationsForm
+          autoAction={{ type: 'bind', appId: 'wechat_oa_bot' }}
+        />
+      );
+    });
+
+    const dialog = () =>
+      container.querySelector<HTMLElement>('[data-testid="qr-code-dialog"]');
+    expect(dialog()?.dataset.applicationId).toBe('');
+    expect(dialog()?.textContent).toBe('');
+
+    await act(async () => {
+      binding.resolve({
+        status: 'ready',
+        qrcodeContent: 'rebuilt-qr-code',
+        application: rebuiltApplication,
+        resumed: false,
+      });
+      await binding.promise;
+    });
+
+    expect(dialog()?.dataset.applicationId).toBe('new-application');
+    expect(dialog()?.textContent).toBe('rebuilt-qr-code');
   });
 
   it('shows the already-bound dialog without starting another binding', async () => {

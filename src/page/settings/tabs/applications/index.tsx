@@ -156,12 +156,14 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
 
       if (application.app_id === WECHAT_OA_APP_ID) {
         const existingQrCode = application.attrs?.qrcode_content;
+        const canResumeExistingBinding =
+          Boolean(existingQrCode) && !isQrCodeExpired(application.attrs);
         setQrcodeContent(
-          existingQrCode && !isQrCodeExpired(application.attrs)
-            ? existingQrCode
-            : ''
+          canResumeExistingBinding ? (existingQrCode ?? '') : ''
         );
-        setCurrentBindingApplication(application);
+        setCurrentBindingApplication(
+          canResumeExistingBinding ? application : null
+        );
         setQrBindDialogOpen(true);
 
         const result = await beginQrCodeBind(
