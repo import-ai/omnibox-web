@@ -163,6 +163,9 @@ export function createMessageOperator(
           children: existing?.children || [],
           attrs: { ...(existing?.attrs || {}), ...(chatResponse.attrs || {}) },
         };
+        delete message.attrs?.error_message;
+        delete message.attrs?.error_code;
+        delete message.attrs?.error_status;
         const newMapping = { ...prev.mapping, [message.id]: message };
         if (pendingId && pendingId !== message.id) {
           delete newMapping[pendingId];
@@ -198,6 +201,9 @@ export function createMessageOperator(
         }
         message.localRevision = (message.localRevision ?? 0) + 1;
         message.status = MessageStatus.SUCCESS;
+        delete message.attrs?.error_message;
+        delete message.attrs?.error_code;
+        delete message.attrs?.error_status;
         if (message.message.role === OpenAIMessageRole.TOOL) {
           message.attrs = {
             ...(message.attrs || {}),
@@ -223,6 +229,9 @@ export function createMessageOperator(
         }
         message.localRevision = (message.localRevision ?? 0) + 1;
         message.status = MessageStatus.STOPPED;
+        delete message.attrs?.error_message;
+        delete message.attrs?.error_code;
+        delete message.attrs?.error_status;
         return {
           ...prev,
           mapping: { ...prev.mapping, [message.id]: message },
@@ -240,7 +249,13 @@ export function createMessageOperator(
         message.status = MessageStatus.FAILED;
         message.attrs = {
           ...(message.attrs || {}),
-          error_message: errorResponse.message,
+          error_message:
+            typeof errorResponse.message === 'string' &&
+            errorResponse.message.trim()
+              ? errorResponse.message
+              : 'Unknown error',
+          error_code: errorResponse.code,
+          error_status: errorResponse.status,
         };
         return {
           ...prev,

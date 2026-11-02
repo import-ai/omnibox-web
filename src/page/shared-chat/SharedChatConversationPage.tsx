@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { ShareResourcePicker } from '@/components/resourcePicker';
-import { http } from '@/lib/request';
+import { chatHttp as http } from '@/lib/chatRequest';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizardLang';
 import ChatArea from '@/page/chat/chat-input';
@@ -346,6 +346,7 @@ export default function SharedChatConversationPage() {
               shareInfo.share_type !== 'chat_only'
                 ? onSelect => (
                     <ShareResourcePicker
+                      errorContext="chat"
                       shareId={shareId}
                       rootResource={shareInfo.resource!}
                       canBrowseResources={shareInfo.all_resources}

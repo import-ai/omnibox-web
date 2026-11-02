@@ -79,7 +79,8 @@ describe('useAgentCredits', () => {
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toHaveBeenCalledWith(
-      '/namespaces/namespace-a/usages/agent'
+      '/namespaces/namespace-a/usages/agent',
+      { errorContext: 'chat' }
     );
     expect(container.textContent).toBe('4200');
   });

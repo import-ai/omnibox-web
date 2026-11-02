@@ -42,12 +42,14 @@ function workspaceRootsToPickerResources(
 
 export function WorkspaceResourcePicker({
   namespaceId,
+  errorContext,
   onSelect,
   linkDestination = false,
   selectedResourceId,
   selectedResourcePath,
 }: {
   namespaceId: string;
+  errorContext?: 'chat';
   onSelect: (resource: ResourcePickerResource) => void;
   /** Grey out folders that cannot store a newly saved link. */
   linkDestination?: boolean;
@@ -55,6 +57,17 @@ export function WorkspaceResourcePicker({
   selectedResourcePath?: PathItem[];
 }) {
   const { t } = useTranslation();
+  const errorConfig = useMemo(
+    () => (errorContext ? { errorContext } : undefined),
+    [errorContext]
+  );
+  const inlineErrorConfig = useMemo(
+    () =>
+      errorContext
+        ? { errorContext, mute: true, redirectOnUnauthorized: true }
+        : undefined,
+    [errorContext]
+  );
   const [loadFailed, setLoadFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [roots, setRoots] = useState<ResourcePickerResource[]>([]);
@@ -66,7 +79,11 @@ export function WorkspaceResourcePicker({
     let cancelled = false;
     setLoadFailed(false);
     setLoading(true);
-    fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
+    fetchSortedWorkspaceRootResources(
+      namespaceId,
+      resourceSorts,
+      inlineErrorConfig
+    )
       .then(response => {
         if (cancelled) return;
         const roots = workspaceRootsToPickerResources(response, t);
@@ -89,7 +106,7 @@ export function WorkspaceResourcePicker({
     return () => {
       cancelled = true;
     };
-  }, [linkDestination, namespaceId, resourceSorts, t]);
+  }, [linkDestination, namespaceId, resourceSorts, t, inlineErrorConfig]);
 
   const present = useCallback(
     (resource: ResourcePickerResource) =>
@@ -101,12 +118,15 @@ export function WorkspaceResourcePicker({
       const spaceType = resource.picker_space_type ?? 'private';
       return (
         resource.resource_type === 'smart_folder'
-          ? fetchSmartFolderChildren(namespaceId, resource.id)
+          ? fetchSmartFolderChildren(namespaceId, resource.id, errorConfig)
           : fetchChildren(
               namespaceId,
               resource.id,
               getWorkspacePickerSort(resource, resourceSorts),
-              { params: rssTreeChildrenParams(resource.resource_type) }
+              {
+                ...errorConfig,
+                params: rssTreeChildrenParams(resource.resource_type),
+              }
             )
       ).then(resources =>
         resources.map(child =>
@@ -114,14 +134,14 @@ export function WorkspaceResourcePicker({
         )
       );
     },
-    [namespaceId, present, resourceSorts]
+    [namespaceId, present, resourceSorts, errorConfig]
   );
   const searchResources = useCallback(
     (query: string) =>
-      searchWorkspaceResources(namespaceId, query).then(resources =>
-        resources.map(present)
+      searchWorkspaceResources(namespaceId, query, inlineErrorConfig).then(
+        resources => resources.map(present)
       ),
-    [namespaceId, present]
+    [namespaceId, present, inlineErrorConfig]
   );
 
   const defaultExpandedRootIds = useMemo(

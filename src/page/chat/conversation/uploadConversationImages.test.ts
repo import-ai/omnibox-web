@@ -124,7 +124,14 @@ describe('uploadConversationImages', () => {
         uploadConversationImage('ns', 'conv', new File(['png'], 'shot.png'))
       ).rejects.toThrow();
       expect(toast.error).toHaveBeenCalledTimes(1);
-      expect(toast.error).toHaveBeenCalledWith('chat.image.upload_failed');
+      expect(toast.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          props: expect.objectContaining({
+            fallback: 'chat.errors.upload_failed',
+          }),
+        }),
+        { position: 'bottom-right' }
+      );
     }
   );
 
@@ -158,4 +165,23 @@ describe('uploadConversationImages', () => {
       },
     ]);
   });
+});
+
+it('preserves upload response details and leaves inline reporting to the caller', async () => {
+  const fetchMock = jest.fn().mockResolvedValue({
+    ok: false,
+    status: 413,
+    json: async () => ({ code: 'FILE_TOO_LARGE', message: 'private detail' }),
+  });
+  globalThis.fetch = fetchMock;
+  jest.mocked(toast.error).mockClear();
+  await expect(
+    resolveConversationImages(
+      'ns',
+      'c',
+      [{ file: new File(['x'], 'x.png') } as any],
+      false
+    )
+  ).rejects.toMatchObject({ code: 'FILE_TOO_LARGE', status: 413 });
+  expect(toast.error).not.toHaveBeenCalled();
 });

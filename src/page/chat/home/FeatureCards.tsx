@@ -19,8 +19,9 @@ import { Spinner } from '@/components/ui/Spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
 import { IResourceData, Resource, ResourceMeta } from '@/interface';
+import { chatHttp as http } from '@/lib/chatRequest';
 import { openFilePicker } from '@/lib/openFilePicker';
-import { http } from '@/lib/request';
+import { showChatError } from '@/lib/showChatError';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { cn } from '@/lib/utils';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
@@ -107,7 +108,7 @@ export default function FeatureCards() {
     if (uploading) return;
 
     if (!namespaceId) {
-      toast.error('Namespace not found');
+      showChatError('Namespace not found');
       return;
     }
 
@@ -117,13 +118,14 @@ export default function FeatureCards() {
     try {
       // Fetch the root resources for the namespace
       const rootData: { [key: string]: IResourceData } = await http.get(
-        `/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`
+        `/namespaces/${namespaceId}/root?namespace_id=${namespaceId}`,
+        { mute: true, redirectOnUnauthorized: true }
       );
 
       // Get the private space root resource
       const privateRoot = rootData['private'];
       if (!privateRoot) {
-        toast.error('Private root resource not found');
+        showChatError('Private root resource not found');
         return;
       }
 
@@ -146,8 +148,7 @@ export default function FeatureCards() {
         navigateToResource(navigate, `/${namespaceId}/${lastUploadedFile.id}`);
       }
     } catch (error: any) {
-      const errorMessage = error?.message || 'Upload failed';
-      toast.error(errorMessage);
+      showChatError(error, 'chat.errors.upload_failed');
       console.error('Upload error:', error);
     } finally {
       setUploading(false);

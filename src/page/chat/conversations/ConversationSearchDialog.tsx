@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/Command';
 import { Spinner } from '@/components/ui/Spinner';
 import useUser from '@/hooks/useUser';
-import { http } from '@/lib/request';
+import { chatHttp as http } from '@/lib/chatRequest';
 import type { ConversationSummary } from '@/page/chat/core/types/conversation';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import {

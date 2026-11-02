@@ -15,9 +15,11 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
+import { showChatError } from '@/lib/showChatError';
 
 interface IProps {
   open: boolean;
+  errorContext?: 'chat';
   titleKey?: string;
   descriptionKey?: string;
   targetName?: string;
@@ -54,7 +56,16 @@ export default function ConfirmDeleteDialog(props: IProps) {
   const handleConfirm = () => {
     setLoading(true);
     http
-      .delete(deleteUrl)
+      .delete(
+        deleteUrl,
+        props.errorContext === 'chat'
+          ? {
+              mute: true,
+              errorContext: 'chat',
+              redirectOnUnauthorized: true,
+            }
+          : undefined
+      )
       .then(() => {
         onSuccess?.();
 
@@ -71,13 +82,17 @@ export default function ConfirmDeleteDialog(props: IProps) {
           toastOptions.action = {
             label: t('undo'),
             onClick: () => {
-              http.post(restoreUrl).then(response => {
-                if (onRestoreSuccess) {
-                  onRestoreSuccess(response);
-                } else {
-                  onSuccess?.();
-                }
-              });
+              http
+                .post(restoreUrl, undefined, {
+                  errorContext: props.errorContext,
+                })
+                .then(response => {
+                  if (onRestoreSuccess) {
+                    onRestoreSuccess(response);
+                  } else {
+                    onSuccess?.();
+                  }
+                });
             },
           };
           toastOptions.classNames = { actionButton: actionButtonClassName };
@@ -87,9 +102,11 @@ export default function ConfirmDeleteDialog(props: IProps) {
       })
       .catch(error => {
         onError?.(error);
-        toast.error(t('error.title'), {
-          description: error.message || t('request.failed'),
-        });
+        if (props.errorContext === 'chat') showChatError(error);
+        else
+          toast.error(t('error.title'), {
+            description: error.message || t('request.failed'),
+          });
       })
       .finally(() => {
         setLoading(false);

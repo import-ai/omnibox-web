@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 
 import type App from '@/hooks/app.class';
 import { takePendingChatPayload } from '@/lib/chatBridge';
-import { http } from '@/lib/request';
+import { chatHttp as http } from '@/lib/chatRequest';
 import type {
   ApprovalMode,
   ChatCreatePayload,

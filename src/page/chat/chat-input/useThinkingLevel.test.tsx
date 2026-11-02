@@ -154,6 +154,7 @@ it('re-reads a share catalog only once a turn reaches a terminal status', async 
     await render(MessageStatus.PENDING);
     expect(http.get).toHaveBeenCalledWith('/config/models?share_id=share', {
       mute: true,
+      errorContext: 'chat',
     });
     expect(http.get).toHaveBeenCalledTimes(1);
 

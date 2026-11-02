@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import useApp from '@/hooks/useApp';
-import { http } from '@/lib/request';
+import { chatHttp as http } from '@/lib/chatRequest';
 import { getCurrentUserId } from '@/page/chat/conversation/conversationCache';
 import { isConversationAccessDenied } from '@/page/chat/conversation/conversationLoadPolicy';
 import {

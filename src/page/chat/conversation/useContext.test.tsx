@@ -401,7 +401,11 @@ describe('useContext conversation cache failures', () => {
 
     expect(mockGet).toHaveBeenCalledWith(
       '/namespaces/namespace-a/conversations/conversation-a/messages',
-      { params: { branch_node_id: 'message-a' }, mute: true }
+      {
+        params: { branch_node_id: 'message-a' },
+        mute: true,
+        errorContext: 'chat',
+      }
     );
     const [rejectCall, askCall] = jest.mocked(ask).mock.calls;
     expect(rejectCall[5]).toBe('interrupt-x');
@@ -495,7 +499,14 @@ describe('useContext conversation cache failures', () => {
 
     expect(error).toEqual(expect.objectContaining({ stopped: false }));
     expect(jest.mocked(ask)).toHaveBeenCalledTimes(1);
-    expect(mockToastError).toHaveBeenCalledWith('chat.decision.reject_failed');
+    expect(mockToastError).toHaveBeenCalledWith(
+      expect.objectContaining({
+        props: expect.objectContaining({
+          i18nKey: 'chat.decision.reject_failed',
+        }),
+      }),
+      { position: 'bottom-right' }
+    );
     expect(
       mockGet.mock.calls.filter(
         ([, config]) => config?.params?.branch_node_id === 'interrupt'
@@ -694,7 +705,11 @@ describe('useContext conversation cache failures', () => {
 
     expect(mockGet).toHaveBeenCalledWith(
       '/namespaces/namespace-a/conversations/conversation-a/messages',
-      { params: { branch_leaf_id: 'answer-2' }, mute: true }
+      {
+        params: { branch_leaf_id: 'answer-2' },
+        mute: true,
+        errorContext: 'chat',
+      }
     );
     expect(context().conversation.mapping['answer-2']).toBeDefined();
     expect(context().conversation.current_node).toBe(before);
@@ -1009,7 +1024,8 @@ describe('useContext conversation cache failures', () => {
       2,
       'namespace-a',
       'conversation-a',
-      images
+      images,
+      false
     );
     expect(jest.mocked(ask).mock.calls.at(-1)?.[18]).toBe('pending-query');
     expect(jest.mocked(ask).mock.calls.at(-1)?.[17]?.[0].attachment_id).toBe(
@@ -1096,7 +1112,7 @@ describe('useContext conversation cache failures', () => {
     });
     expect(mockGet).toHaveBeenCalledWith(
       '/namespaces/namespace-a/conversations/conversation-a/messages',
-      { params: {} }
+      { params: {}, errorContext: 'chat' }
     );
     expect(
       mockGet.mock.calls.some(

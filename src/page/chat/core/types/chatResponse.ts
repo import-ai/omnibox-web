@@ -108,6 +108,7 @@ export interface ChatErrorResponse extends ChatBaseResponse {
   // Set when the server refused the request before streaming, e.g.
   // 'pending_interrupt' while the conversation waits for a tool decision.
   code?: string;
+  status?: number;
   message_id?: string;
   interrupt_count?: number;
 }

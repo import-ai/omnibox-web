@@ -309,4 +309,26 @@ describe('WorkspaceResourcePicker', () => {
     expect(rowFor('Matching feed')).toBeDefined();
     expect(expandFor('Matching feed')).toBeNull();
   });
+  it('opts chat resource loading into localized errors while inline root errors stay muted', async () => {
+    await act(async () =>
+      root.render(
+        <WorkspaceResourcePicker
+          namespaceId="namespace-id"
+          errorContext="chat"
+          onSelect={onSelect}
+        />
+      )
+    );
+    expect(fetchSortedWorkspaceRootResources).toHaveBeenLastCalledWith(
+      'namespace-id',
+      expect.anything(),
+      { errorContext: 'chat', mute: true, redirectOnUnauthorized: true }
+    );
+    await act(async () => expandFor(smartFolder.name)!.click());
+    expect(fetchSmartFolderChildren).toHaveBeenLastCalledWith(
+      'namespace-id',
+      smartFolder.id,
+      { errorContext: 'chat' }
+    );
+  });
 });

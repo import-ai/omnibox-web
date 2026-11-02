@@ -154,7 +154,7 @@ export function UserMessage(props: IProps) {
     let cancelled = false;
     const ids = resourceIdsKey.split(',');
     const request = namespaceId
-      ? fetchResourcesByIds(namespaceId, ids)
+      ? fetchResourcesByIds(namespaceId, ids, { errorContext: 'chat' })
       : Promise.all(ids.map(id => fetchShareResource(shareId as string, id)));
 
     void request

@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/Form';
 import { Input } from '@/components/ui/input';
-import { http } from '@/lib/request';
+import { chatHttp as http } from '@/lib/chatRequest';
 
 const FormSchema = z.object({
   title: z.string(),

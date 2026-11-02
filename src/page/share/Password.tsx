@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { t } from 'i18next';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import z from 'zod';
 
 import { Button } from '@/components/Button';
@@ -26,6 +26,7 @@ const passwordSchema = z.object({
 type TPasswordForm = z.infer<typeof passwordSchema>;
 
 export function Password(props: PasswordProps) {
+  const { t } = useTranslation();
   const { passwordFailed, loading, onPassword } = props;
 
   const form = useForm<TPasswordForm>({

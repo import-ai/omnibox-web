@@ -129,16 +129,19 @@ export function fetchRootResources(
 
 export function fetchSmartFolderChildren(
   namespaceId: string,
-  id: string
+  id: string,
+  config?: RequestConfig
 ): Promise<Resource[]> {
   return http.get<Resource[]>(
-    `/namespaces/${namespaceId}/smart-folders/${id}/children`
+    `/namespaces/${namespaceId}/smart-folders/${id}/children`,
+    config
   );
 }
 
 export function searchResources(
   namespaceId: string,
-  query: string
+  query: string,
+  config?: RequestConfig
 ): Promise<ResourceMeta[]> {
   const params = new URLSearchParams();
   if (query) {
@@ -147,7 +150,8 @@ export function searchResources(
   params.set('type', 'resource');
   return http
     .get<IndexedResourceSearchResult[]>(
-      `/namespaces/${namespaceId}/search?${params.toString()}`
+      `/namespaces/${namespaceId}/search?${params.toString()}`,
+      config
     )
     .then(resources =>
       resources.map<ResourceMeta>(resource => ({

@@ -2,7 +2,9 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
-import { http } from '@/lib/request';
+import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
+import { chatHttp as http } from '@/lib/chatRequest';
+import { showChatError } from '@/lib/showChatError';
 import { createStreamTransport } from '@/lib/streamTransport';
 import { WizardLang } from '@/lib/wizardLang';
 import type {
@@ -415,6 +417,7 @@ export function ask(
       try {
         await transport.start();
       } catch (error) {
+        if (isChatCancellation(error)) return;
         outcome.failed = true;
         outcome.errorMessage ??=
           error instanceof Error ? error.message : String(error);
@@ -434,7 +437,8 @@ export function ask(
           messageOperator.error(
             {
               response_type: 'error',
-              message: error instanceof Error ? error.message : String(error),
+              message: 'Unknown error',
+              ...chatErrorDetails(error),
             },
             id
           );
@@ -450,7 +454,7 @@ export function resumeStream(
   url: string,
   lastEventId?: string
 ) {
-  return createStreamTransport(
+  const transport = createStreamTransport(
     url,
     {
       conversation_id: conversationId,
@@ -459,6 +463,18 @@ export function resumeStream(
     async data => messageProcessor(messageOperator, data),
     streamCancelUrl(url)
   );
+  return {
+    ...transport,
+    start: async () => {
+      try {
+        await transport.start();
+      } catch (error) {
+        if (!isChatCancellation(error)) {
+          showChatError(error);
+        }
+      }
+    },
+  };
 }
 
 function streamCancelUrl(url: string) {

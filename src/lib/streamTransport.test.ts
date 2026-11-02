@@ -118,3 +118,88 @@ describe('createStreamTransport', () => {
     expect(init.body).toBe('{"conversation_id":"conv"}');
   });
 });
+
+it('keeps the HTTP status and business code of a rejected chat request', async () => {
+  globalThis.fetch = jest.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        code: 'CONVERSATION_BUSY',
+        message: 'still generating',
+      }),
+      { status: 409 }
+    )
+  );
+  const transport = createStreamTransport(
+    '/ask',
+    {},
+    async () => {},
+    '/cancel'
+  );
+  await expect(transport.start()).rejects.toMatchObject({
+    code: 'CONVERSATION_BUSY',
+    status: 409,
+    message: 'still generating',
+  });
+});
+
+it('does not report a read failure after the view detaches', async () => {
+  let rejectRead!: (error: Error) => void;
+  let didRead!: () => void;
+  const reading = new Promise<void>(resolve => {
+    didRead = resolve;
+  });
+  globalThis.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    body: {
+      getReader: () => ({
+        read: () => {
+          didRead();
+          return new Promise((_, reject) => {
+            rejectRead = reject;
+          });
+        },
+        cancel: async () => {},
+      }),
+    },
+  });
+  const transport = createStreamTransport(
+    '/ask',
+    {},
+    async () => {},
+    '/cancel'
+  );
+  const started = transport.start();
+  await reading;
+  transport.destroy();
+  rejectRead(new TypeError('network lost'));
+  await expect(started).resolves.toBeUndefined();
+});
+
+it.each(['connect', 'read'])(
+  'retains transport phase for an unfamiliar %s failure',
+  async phase => {
+    const error = new TypeError('browser-specific network failure');
+    globalThis.fetch =
+      phase === 'connect'
+        ? jest.fn().mockRejectedValue(error)
+        : jest.fn().mockResolvedValue({
+            ok: true,
+            body: {
+              getReader: () => ({
+                read: () => Promise.reject(error),
+                cancel: async () => {},
+              }),
+            },
+          });
+    const transport = createStreamTransport(
+      '/ask',
+      {},
+      async () => {},
+      '/cancel'
+    );
+    await expect(transport.start()).rejects.toMatchObject({
+      code:
+        phase === 'connect' ? 'STREAM_CONNECTION_FAILED' : 'STREAM_READ_FAILED',
+    });
+  }
+);

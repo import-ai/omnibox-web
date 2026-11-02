@@ -50,6 +50,8 @@ export interface MessageAttrs {
   level?: string;
   lang?: '简体中文' | 'English';
   error_message?: string;
+  error_code?: string;
+  error_status?: number;
   compact?: {
     status: 'compacting' | 'compacted';
   };

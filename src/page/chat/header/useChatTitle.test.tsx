@@ -159,7 +159,8 @@ describe('useChatTitle', () => {
 
     expect(mockPost).toHaveBeenCalledWith(
       '/namespaces/namespace-a/conversations/conversation-a/title',
-      { text: 'Hello world', lang: 'zh' }
+      { text: 'Hello world', lang: 'zh' },
+      { errorContext: 'chat' }
     );
     await act(async () => undefined);
     expect(latestTitle).toBe('Generated title');
@@ -192,7 +193,8 @@ describe('useChatTitle', () => {
     });
     expect(mockPost).toHaveBeenCalledWith(
       '/namespaces/namespace-a/conversations/conversation-a/title',
-      { text: '你好', lang: 'zh' }
+      { text: '你好', lang: 'zh' },
+      { errorContext: 'chat' }
     );
   });
 
@@ -212,7 +214,8 @@ describe('useChatTitle', () => {
     });
     expect(mockPost).toHaveBeenCalledWith(
       '/namespaces/namespace-a/conversations/conversation-a/title',
-      { text: '你好', lang: 'zh' }
+      { text: '你好', lang: 'zh' },
+      { errorContext: 'chat' }
     );
   });
 

@@ -9,11 +9,11 @@ import { useDrop } from 'react-dnd';
 import { NativeTypes } from 'react-dnd-html5-backend';
 import { flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
 import { normalizeResourceMeta } from '@/lib/resourceMeta';
+import { showChatErrorKey } from '@/lib/showChatError';
 import { cn } from '@/lib/utils';
 import DecisionInput from '@/page/chat/chat-input/DecisionInput';
 import {
@@ -185,6 +185,7 @@ export default function ChatArea(props: IProps) {
   const defaultResourcePicker = namespaceId
     ? (onSelect: (resource: ResourceMeta) => void) => (
         <WorkspaceResourcePicker
+          errorContext="chat"
           namespaceId={namespaceId}
           onSelect={onSelect}
         />
@@ -216,7 +217,7 @@ export default function ChatArea(props: IProps) {
         CHAT_IMAGE_TYPES.includes(file.type)
       );
       if (accepted.length !== files.length)
-        toast.error(t('chat.image.unsupported_format'));
+        showChatErrorKey('chat.image.unsupported_format');
       const added = accepted.map(file => ({
         id: `composer-image-${imageIdRef.current++}`,
         name: file.name,

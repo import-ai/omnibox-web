@@ -19,6 +19,7 @@ export default function RemoveHistory(props: IProps) {
 
   return (
     <ConfirmDeleteDialog
+      errorContext="chat"
       open={data.open}
       targetName={t('chat.conversations.name')}
       itemTitle={data.title}

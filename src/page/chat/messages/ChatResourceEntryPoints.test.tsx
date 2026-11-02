@@ -34,6 +34,8 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
+jest.mock('@/lib/request', () => ({ http: {} }));
+
 jest.mock('@/page/sidebar/store', () => ({
   useRootId: () => '',
 }));

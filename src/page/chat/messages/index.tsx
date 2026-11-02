@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import ChatErrorText from '@/components/omnibox/ChatErrorText';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
@@ -167,7 +168,11 @@ function hasVisibleMessageContent(message: MessageDetail, chatOnly = false) {
   const openAIMessage = message.message;
 
   if (message.attrs?.tool_call?.decisions?.length) return true;
-  if (message.attrs?.compact || message.attrs?.error_message) {
+  if (
+    message.status === MessageStatus.FAILED ||
+    message.attrs?.compact ||
+    message.attrs?.error_message
+  ) {
     return true;
   }
   if (
@@ -365,12 +370,17 @@ export function Messages(props: IProps) {
               </ConversationShareMessageRow>
             );
           })()}
-        {message.status === MessageStatus.FAILED &&
-          message.attrs?.error_message && (
-            <div className="text-destructive mt-2">
-              {message.attrs.error_message}
-            </div>
-          )}
+        {message.status === MessageStatus.FAILED && (
+          <div className="text-destructive mt-2">
+            <ChatErrorText
+              error={{
+                message: message.attrs?.error_message,
+                code: message.attrs?.error_code,
+                status: message.attrs?.error_status,
+              }}
+            />
+          </div>
+        )}
         {!isLastInList &&
           ![OpenAIMessageRole.TOOL, OpenAIMessageRole.USER].includes(
             message.message.role

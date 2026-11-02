@@ -5,6 +5,8 @@ import { toast } from 'sonner';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
+import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
+import { showChatError, showChatErrorKey } from '@/lib/showChatError';
 import { getWizardLang } from '@/lib/wizardLang';
 import {
   AgentRequestChannel,
@@ -282,7 +284,8 @@ export default function useContext() {
         uploadedImages = await resolveConversationImages(
           namespaceId,
           conversationId,
-          images
+          images,
+          false
         );
         uploadRetries.current.delete(pendingId);
         params.onImagesUploaded?.();
@@ -333,13 +336,15 @@ export default function useContext() {
             clearId: conversationId,
           });
         }
-        messageOperator.error(
-          {
-            response_type: 'error',
-            message: error instanceof Error ? error.message : String(error),
-          },
-          pendingId
-        );
+        if (!isChatCancellation(error))
+          messageOperator.error(
+            {
+              response_type: 'error',
+              message: 'Unknown error',
+              ...chatErrorDetails(error),
+            },
+            pendingId
+          );
       } finally {
         const stayedOnConversation =
           !askFN || detachStreamRef.current === askFN.destroy;
@@ -452,7 +457,7 @@ export default function useContext() {
           // Accepted decisions were renamed to their server ID.
           discardLocalMessage(outcome?.requestId);
           discardLocalMessage(outcome?.acceptedMessageId);
-          if (!stopped) toast.error(i18n.t('chat.decision.reject_failed'));
+          if (!stopped) showChatErrorKey('chat.decision.reject_failed');
           // The rejection may have reached the server even though this page
           // saw an error; sync from the interrupted message to find out.
           void history.syncBelow(nodeId).catch(() => undefined);
@@ -554,7 +559,7 @@ export default function useContext() {
       try {
         await askFN.start();
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : String(error));
+        showChatError(error);
       }
     } finally {
       askAbortRef.current = null;

@@ -14,11 +14,13 @@ import {
 
 export function ShareResourcePicker({
   shareId,
+  errorContext,
   rootResource,
   canBrowseResources,
   onSelect,
 }: {
   shareId: string;
+  errorContext?: 'chat';
   rootResource: ResourceMeta;
   canBrowseResources: boolean;
   onSelect: (resource: ResourcePickerResource) => void;
@@ -53,10 +55,11 @@ export function ShareResourcePicker({
       if (cached) return cached;
 
       return fetchShareChildren(shareId, resource.id, {
+        ...(errorContext ? { errorContext } : {}),
         params: rssTreeChildrenParams(resource.resource_type),
       });
     },
-    [canBrowseResources, shareId]
+    [canBrowseResources, shareId, errorContext]
   );
 
   return (

@@ -210,6 +210,7 @@ export default function Actions(props: IProps) {
         </DropdownMenu>
       )}
       <ConfirmDeleteDialog
+        errorContext="chat"
         open={remove}
         targetName={t('chat.conversations.name')}
         itemTitle={chatTitle}

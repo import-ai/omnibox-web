@@ -67,3 +67,15 @@ describe('workspaceResourcePickerSort', () => {
     );
   });
 });
+
+it('forwards explicit chat error ownership to root requests', async () => {
+  await fetchSortedWorkspaceRootResources('namespace', sorts, {
+    errorContext: 'chat',
+    mute: true,
+  });
+  expect(fetchRootResources).toHaveBeenLastCalledWith(
+    'namespace',
+    { errorContext: 'chat', mute: true },
+    sorts
+  );
+});

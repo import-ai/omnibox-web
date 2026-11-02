@@ -10,12 +10,17 @@ import { isUndefined } from 'lodash-es';
 import { toast } from 'sonner';
 
 import { API_BASE_URL } from '@/const';
+import { chatErrorDetails } from '@/lib/chatErrors';
 import { detectBrowserLanguage } from '@/lib/detectLanguage';
+import { showChatError } from '@/lib/showChatError';
 import { removeGlobalCredential } from '@/page/user/util';
 
 export interface RequestConfig extends AxiosRequestConfig {
   // Whether to show error messages, default is true
   mute?: boolean;
+  errorContext?: 'chat';
+  // Keep authentication handling when an inline boundary owns the error display.
+  redirectOnUnauthorized?: boolean;
   // Suppress the global error toast only for these response error codes,
   // letting all other errors fall through to the global handler.
   muteCodes?: string[];
@@ -86,17 +91,23 @@ request.interceptors.response.use(
     }
     const err = error as AxiosError;
     const config = (err.config as RequestConfig) || {};
-    // @ts-ignore
-    const errorCode: string = (err.response?.data?.code || '').toLowerCase();
+    const errorCode = chatErrorDetails(err).code?.toLowerCase() ?? '';
     const mutedByCode = (config.muteCodes || []).some(
       code => code.toLowerCase() === errorCode
     );
     const mutedByPredicate = config.muteWhen?.(err) ?? false;
-    if (
+    const reportError =
       (isUndefined(config.mute) || !config.mute) &&
       !mutedByCode &&
-      !mutedByPredicate
+      !mutedByPredicate;
+    if (
+      (reportError || config.redirectOnUnauthorized) &&
+      err.status === 401 &&
+      window.location.pathname !== '/user/login'
     ) {
+      handleTokenError(false);
+    }
+    if (reportError) {
       let errorMessage = i18next.t('request.failed');
       if (errorCode === 'user_not_owner_or_admin') {
         errorMessage = i18next.t('permission.invite_owner_or_admin_required');
@@ -129,10 +140,8 @@ request.interceptors.response.use(
             errorMessage = i18next.t('request.unknown_error');
         }
       }
-      if (err.status === 401 && window.location.pathname !== '/user/login') {
-        handleTokenError(false);
-      }
-      toast.error(errorMessage, { position: 'bottom-right' });
+      if (config.errorContext === 'chat') showChatError(err);
+      else toast.error(errorMessage, { position: 'bottom-right' });
     }
     if (errorCode === 'token_expired') {
       handleTokenError(true);

@@ -4,7 +4,9 @@ import { type ReactNode, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import ChatErrorText from '@/components/omnibox/ChatErrorText';
 import { Alert, AlertTitle } from '@/components/ui/Alert';
+import { type ChatErrorDetails, chatErrorDetails } from '@/lib/chatErrors';
 import { cn } from '@/lib/utils';
 
 import ExecutionStatus from './ExecutionStatus';
@@ -79,7 +81,7 @@ export default function ExecutionCard({
   const currentDeviceId = useCurrentDeviceId();
   const [events, setEvents] = useState<ExecutionEvent[]>([]);
   const [open, setOpen] = useState(!terminal.has(e.status));
-  const [error, setError] = useState('');
+  const [error, setError] = useState<ChatErrorDetails | null>(null);
   const [busy, setBusy] = useState(false);
   useEffect(() => {
     if (!open) return;
@@ -96,9 +98,9 @@ export default function ExecutionCard({
           setEvents(old => mergeEvents(old, batch));
           if (page.length) sequence = page[page.length - 1].sequence;
         } while (page.length === 100);
-        setError('');
+        setError(null);
       } catch (err) {
-        if (active) setError(String(err));
+        if (active) setError(chatErrorDetails(err));
       } finally {
         if (active && !terminal.has(e.status)) timer = setTimeout(load, 1000);
       }
@@ -115,7 +117,7 @@ export default function ExecutionCard({
       await operation();
       refresh();
     } catch (err) {
-      setError(String(err));
+      setError(chatErrorDetails(err));
     } finally {
       setBusy(false);
     }
@@ -199,7 +201,7 @@ export default function ExecutionCard({
         <Alert variant="destructive">
           <AlertTitle>{t(`local_runtime.status.${e.status}`)}</AlertTitle>
           <pre className="max-h-48 overflow-auto whitespace-pre-wrap break-all font-mono text-xs">
-            {failure}
+            <ChatErrorText error={failure} fallback="chat.errors.tool_failed" />
           </pre>
         </Alert>
       )}
@@ -275,7 +277,7 @@ export default function ExecutionCard({
       </div>
       {error && (
         <p role="alert" className="text-xs text-destructive">
-          {error}
+          <ChatErrorText error={error} fallback="chat.errors.tool_failed" />
         </p>
       )}
     </article>
