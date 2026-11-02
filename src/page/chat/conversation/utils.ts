@@ -475,16 +475,17 @@ export async function stopStream({
   cancel,
   cancelUrl,
   conversationId,
+  messageId,
   messageOperator,
   setLoading,
 }: {
   cancel?: (() => Promise<void>) | null;
   cancelUrl: string;
   conversationId: string;
+  messageId?: string;
   messageOperator: MessageOperator;
   setLoading: (loading: boolean) => void;
 }) {
-  messageOperator.stop();
   try {
     if (cancel) {
       await cancel();
@@ -495,6 +496,7 @@ export async function stopStream({
         { mute: true }
       );
     }
+    messageOperator.stop(messageId);
   } finally {
     setLoading(false);
   }
