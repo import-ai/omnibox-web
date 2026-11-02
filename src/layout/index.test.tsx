@@ -15,6 +15,11 @@ const mockClearChatContext = jest.fn();
 const mockClearCopilot = jest.fn();
 const mockClearSidebar = jest.fn();
 const mockResetResourcePreviews = jest.fn();
+const defaultLocation = { pathname: '/namespace-a/chat', search: '' };
+let mockLocation = defaultLocation;
+let mockParams: { namespace_id?: string; share_id?: string } = {
+  namespace_id: 'namespace-a',
+};
 
 jest.mock('axios', () => ({
   __esModule: true,
@@ -37,9 +42,9 @@ jest.mock('react-i18next', () => ({
 
 jest.mock('react-router-dom', () => ({
   Outlet: () => null,
-  useLocation: () => ({ pathname: '/namespace-a/chat', search: '' }),
+  useLocation: () => mockLocation,
   useNavigate: () => mockNavigate,
-  useParams: () => ({ namespace_id: 'namespace-a' }),
+  useParams: () => mockParams,
 }));
 
 jest.mock('@/components/ui/Toaster', () => ({ Toaster: () => null }));
@@ -89,7 +94,11 @@ describe('Layout authentication storage changes', () => {
 
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
     localStorage.setItem('uid', 'user-a');
+    mockLocation = defaultLocation;
+    mockParams = { namespace_id: 'namespace-a' };
+    mockNavigate.mockClear();
     mockHttpGet.mockReset();
     mockHttpGet.mockResolvedValue([]);
     mockToggleTheme.mockClear();
@@ -162,5 +171,77 @@ describe('Layout authentication storage changes', () => {
     expect(mockClearCopilot).toHaveBeenCalledTimes(1);
     expect(mockClearSidebar).toHaveBeenCalledTimes(1);
     expect(mockResetResourcePreviews).toHaveBeenCalledTimes(1);
+  });
+
+  describe('root redirect', () => {
+    beforeEach(() => {
+      mockLocation = { pathname: '/', search: '' };
+      mockParams = {};
+    });
+
+    function namespaceResponse() {
+      return [{ id: 'namespace-a' }, { id: 'namespace-b' }];
+    }
+
+    it('lands on the last visited namespace', async () => {
+      localStorage.setItem('last_namespace_id', 'namespace-b');
+      mockHttpGet.mockImplementation((url: string) => {
+        if (url === '/config') return Promise.resolve({ commercial: false });
+        if (url === 'namespaces') return Promise.resolve(namespaceResponse());
+        return Promise.resolve([]);
+      });
+
+      await act(async () => root.render(<Layout />));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/namespace-b/chat', {
+        replace: true,
+      });
+    });
+
+    it('keeps a pending invite referral entry', async () => {
+      sessionStorage.setItem('omnibox.inviteReferral.landing', 'activation');
+      mockHttpGet.mockImplementation((url: string) => {
+        if (url === '/config') return Promise.resolve({ commercial: false });
+        if (url === 'namespaces') return Promise.resolve(namespaceResponse());
+        return Promise.resolve([]);
+      });
+
+      await act(async () => root.render(<Layout />));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        '/namespace-a/invite-referral?entry=activation',
+        { replace: true }
+      );
+    });
+
+    it('uses the commercial namespace endpoint when configured', async () => {
+      mockHttpGet.mockImplementation((url: string) => {
+        if (url === '/config') return Promise.resolve({ commercial: true });
+        if (url === 'pro-namespaces')
+          return Promise.resolve(namespaceResponse());
+        return Promise.resolve([]);
+      });
+
+      await act(async () => root.render(<Layout />));
+
+      expect(mockHttpGet).toHaveBeenCalledWith('pro-namespaces');
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('/namespace-a/chat', {
+        replace: true,
+      });
+    });
+
+    it('falls back to welcome when namespaces cannot be loaded', async () => {
+      mockHttpGet.mockImplementation((url: string) => {
+        if (url === '/config') return Promise.resolve({ commercial: false });
+        if (url === 'namespaces') return Promise.reject(new Error('offline'));
+        return Promise.resolve([]);
+      });
+
+      await act(async () => root.render(<Layout />));
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('/welcome', { replace: true });
+    });
   });
 });

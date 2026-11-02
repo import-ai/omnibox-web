@@ -8,6 +8,7 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { Toaster } from '@/components/ui/Toaster';
+import useConfig from '@/hooks/useConfig';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme';
 import { resolveColorTheme } from '@/lib/colorThemes';
@@ -31,6 +32,7 @@ import {
   isAuthStorageKey,
   shouldSyncUserOptions,
 } from './authStorage';
+import { LAST_NAMESPACE_ID_KEY, resolveRootDestination } from './rootRedirect';
 
 function clearUserWorkspaceState() {
   clearConversationCache();
@@ -50,6 +52,7 @@ export default function Layout() {
   const shareId = params.share_id;
   const [uid, setUid] = useState(localStorage.getItem('uid'));
   const isMobile = useIsMobile();
+  const { config, loading: configLoading } = useConfig();
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -155,23 +158,39 @@ export default function Layout() {
       return;
     }
 
-    if (loc.pathname === '/') {
-      http.get('namespaces').then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const inviteLanding = consumeInviteReferralLanding();
-          const destination =
-            inviteLanding === 'activation'
-              ? `/${data[0].id}/invite-referral?entry=activation`
-              : inviteLanding
-                ? `/${data[0].id}/invite-referral`
-                : `/${data[0].id}/chat`;
-          navigate(destination, { replace: true });
-        } else {
-          navigate('/welcome', { replace: true });
-        }
-      });
+    if (loc.pathname !== '/' || configLoading) {
+      return;
     }
-  }, [namespaceId, shareId, uid, loc]);
+
+    let active = true;
+    const endpoint = config.commercial ? 'pro-namespaces' : 'namespaces';
+    http
+      .get(endpoint)
+      .then(namespaces => {
+        if (!active) return;
+        const destination = resolveRootDestination(
+          Array.isArray(namespaces) ? namespaces : [],
+          {
+            inviteLanding: consumeInviteReferralLanding(),
+            lastNamespaceId: localStorage.getItem(LAST_NAMESPACE_ID_KEY),
+          }
+        );
+        navigate(destination, { replace: true });
+      })
+      .catch(() => {
+        if (active) navigate('/welcome', { replace: true });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [config.commercial, configLoading, namespaceId, shareId, uid, loc]);
+
+  useEffect(() => {
+    if (namespaceId && !shareId) {
+      localStorage.setItem(LAST_NAMESPACE_ID_KEY, namespaceId);
+    }
+  }, [namespaceId, shareId]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(loc.search);

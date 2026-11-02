@@ -33,22 +33,9 @@ export function setGlobalCredential(userId: string, token: string) {
   }
   localStorage.setItem('uid', userId);
   localStorage.setItem('token', token);
-  let jwtExpiration: Date;
-
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    jwtExpiration = new Date(payload.exp * 1000);
-  } catch {
-    jwtExpiration = new Date();
-    jwtExpiration.setTime(jwtExpiration.getTime() + 24 * 60 * 60 * 1000);
-  }
-  const isSecure = location.protocol === 'https:';
-  Cookies.set('token', token, {
-    path: '/',
-    secure: isSecure,
-    sameSite: 'strict',
-    expires: jwtExpiration,
-  });
+  // The httpOnly token cookie belongs to the backend. Writing it here would
+  // create a second, javascript-readable cookie with a different SameSite
+  // policy and let the two copies drift out of sync.
   window.dispatchEvent(new Event(CREDENTIAL_CHANGED));
 }
 

@@ -11,10 +11,13 @@ export default function useConfig() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    http.get('/config').then(data => {
-      setConfig(data);
-      setLoading(false);
-    });
+    http
+      .get('/config')
+      .then(data => setConfig(data))
+      // Falling back to the default config keeps callers from waiting forever
+      // when the config request fails.
+      .catch(() => undefined)
+      .finally(() => setLoading(false));
   }, []);
 
   return { config, loading };
