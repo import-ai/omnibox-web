@@ -2,10 +2,9 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Spinner } from '@/components/ui/Spinner';
-import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
-import { setGlobalCredential } from '@/page/user/util';
 
 import WrapperPage from '../WrapperPage';
+import { completeMiniProgramSignIn } from './miniProgramSignIn';
 
 function getHashParams(): URLSearchParams {
   return new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -25,10 +24,13 @@ export default function MiniProgramAuthPage() {
       return;
     }
 
-    setGlobalCredential(uid, token);
-    void getAuthSuccessRedirect(redirect).then(target => {
-      location.replace(target);
-    });
+    void completeMiniProgramSignIn(uid, token, redirect)
+      .then(target => {
+        location.replace(target);
+      })
+      .catch(() => {
+        location.replace('/user/login');
+      });
   }, []);
 
   return (
