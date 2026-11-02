@@ -1,12 +1,11 @@
 import axios, { AxiosError, CancelTokenSource } from 'axios';
+import { t } from 'i18next';
 import Cookies from 'js-cookie';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import DeleteIcon from '@/assets/deleteIcon.png';
 import Loading from '@/components/loading';
-import ChatErrorText from '@/components/omnibox/ChatErrorText';
 import {
   Empty,
   EmptyDescription,
@@ -16,7 +15,6 @@ import {
 import { SidebarProvider } from '@/components/ui/Sidebar';
 // import useFeaturePreviews from '@/hooks/useFeaturePreviews';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
-import { type ChatErrorDetails, chatErrorDetails } from '@/lib/chatErrors';
 import { http } from '@/lib/request';
 import { normalizeResourceMeta } from '@/lib/resourceMeta';
 import {
@@ -59,7 +57,6 @@ export const useShareContext = () => {
 };
 
 export default function SharePage() {
-  const { t } = useTranslation();
   const params = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -79,9 +76,7 @@ export default function SharePage() {
   const [requirePassword, setRequirePassword] = useState<boolean>(false);
   const [passwordFailed, setPasswordFailed] = useState<boolean>(false);
   const [passwordLoading, setPasswordLoading] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<ChatErrorDetails | null>(
-    null
-  );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [password, setPassword] = useState<string | null>(
     Cookies.get(SHARE_PASSWORD_COOKIE) ?? null
   );
@@ -145,8 +140,6 @@ export default function SharePage() {
     http
       .get(`/shares/${shareId}`, {
         cancelToken: cancelTokenSource.current.token,
-        errorContext: 'chat',
-        muteWhen: error => (error.response?.status ?? error.status) === 403,
       })
       .then(data => {
         setPasswordLoading(false);
@@ -155,7 +148,7 @@ export default function SharePage() {
       })
       .catch(err => {
         setPasswordLoading(false);
-        if ((err?.response?.status ?? err?.status) === 403) {
+        if (err && err.status && err.status === 403) {
           setPasswordFailed(true);
         }
       });
@@ -177,14 +170,17 @@ export default function SharePage() {
       .catch((err: AxiosError) => {
         if (axios.isCancel(err)) return;
         const status = err.response?.status;
+        const message = (err.response?.data as { message?: string })?.message;
         if (status === 401) {
           // Redirect to login page
           const currentUrl = encodeURIComponent(window.location.pathname);
           navigate(`/user/login?redirect=${currentUrl}`);
         } else if (status === 403) {
           setRequirePassword(true);
+        } else if (message) {
+          setErrorMessage(message);
         } else {
-          setErrorMessage(chatErrorDetails(err));
+          setErrorMessage(t('request.unknown_error'));
         }
       });
     return () => source.cancel();
@@ -258,12 +254,7 @@ export default function SharePage() {
               className="size-[clamp(120px,18vw,200px)]"
             />
           </EmptyMedia>
-          <EmptyDescription>
-            <ChatErrorText
-              error={errorMessage}
-              fallback="chat.errors.share_unavailable"
-            />
-          </EmptyDescription>
+          <EmptyDescription>{errorMessage}</EmptyDescription>
         </EmptyHeader>
       </Empty>
     );

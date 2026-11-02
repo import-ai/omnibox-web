@@ -43,26 +43,3 @@ it('updates a mounted historical error with the UI language and hides unknown de
   expect(container.textContent).toBe(en.chat.errors.unknown);
   await act(async () => root.unmount());
 });
-
-it('keeps existing product error copy reactive too', async () => {
-  const i18n = createInstance();
-  await i18n.init({
-    lng: 'zh',
-    resources: { zh: { translation: zh }, en: { translation: en } },
-  });
-  const container = document.createElement('div');
-  const root = createRoot(container);
-  await act(async () =>
-    root.render(
-      <I18nextProvider i18n={i18n}>
-        <ChatErrorText i18nKey="chat.image.unsupported_format" />
-      </I18nextProvider>
-    )
-  );
-  expect(container.textContent).toBe(zh.chat.image.unsupported_format);
-  await act(async () => {
-    await i18n.changeLanguage('en');
-  });
-  expect(container.textContent).toBe(en.chat.image.unsupported_format);
-  await act(async () => root.unmount());
-});

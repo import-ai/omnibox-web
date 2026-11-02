@@ -1,7 +1,6 @@
 import { t } from 'i18next';
 
 import { IResourceData, UploadFileInfo } from '@/interface';
-import { chatErrorDetails } from '@/lib/chatErrors';
 import { http } from '@/lib/request';
 
 export interface UploadProgress {
@@ -13,10 +12,7 @@ export type UploadProgressCallback = (progress: UploadProgress) => void;
 
 function throwUploadRequestError(error: any): never {
   if (error.response?.data?.message) {
-    throw Object.assign(
-      new Error(error.response.data.message),
-      chatErrorDetails(error)
-    );
+    throw new Error(error.response.data.message);
   }
   throw error;
 }
@@ -52,10 +48,7 @@ async function uploadFile(
     body: formData,
   });
   if (!resp.ok) {
-    throw Object.assign(new Error(t('upload.failed')), {
-      code: 'UPLOAD_FAILED',
-      status: resp.status,
-    });
+    throw new Error(t('upload.failed'));
   }
   try {
     return await http.post(

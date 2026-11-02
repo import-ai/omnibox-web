@@ -204,7 +204,7 @@ it('loads conversation pages using total and clears cards when the account chang
   expect(container.textContent).not.toContain('secret-account-a');
 });
 
-it('localizes failure details from status events without routine progress messages', async () => {
+it('shows failure details from status events without routine progress messages', async () => {
   mockGet.mockResolvedValue([
     { sequence: 1, kind: 'status', data: 'Starting command' },
     { sequence: 2, kind: 'status', data: 'spawn /bin/zsh ENOENT' },
@@ -220,9 +220,6 @@ it('localizes failure details from status events without routine progress messag
   );
   await act(async () => button('local_runtime.show_output').click());
   expect(container.querySelector('[role="alert"]')?.textContent).toContain(
-    'chat.errors.tool_failed'
-  );
-  expect(container.querySelector('[role="alert"]')?.textContent).not.toContain(
     'ENOENT'
   );
   expect(container.textContent).not.toContain('Starting command');

@@ -29,8 +29,6 @@ export const chatErrorNames = [
   'execution_changed',
   'execution_unavailable',
   'share_unavailable',
-  'share_password',
-  'name_conflict',
 ] as const;
 export type ChatErrorName = (typeof chatErrorNames)[number];
 export type ChatErrorKey = `chat.errors.${ChatErrorName}`;
@@ -123,10 +121,8 @@ const codes: Record<string, ChatErrorName> = {
   attachment_not_found: 'attachment_unavailable',
   storage_quota_exceeded: 'storage_full',
   insufficient_credits: 'credits_exhausted',
-  resource_name_conflict: 'name_conflict',
   share_not_found: 'share_unavailable',
   share_chat_not_allowed: 'share_unavailable',
-  invalid_share_password: 'share_password',
   stream_connection_failed: 'connection_interrupted',
   stream_read_failed: 'connection_interrupted',
   err_network: 'connection_interrupted',
@@ -158,7 +154,6 @@ export const chatErrorAliases: Record<string, ChatErrorName> = {
   资源需要内容: 'invalid_request',
   资源需要名称: 'invalid_request',
   需要上传文件: 'invalid_request',
-  资源名称在该目录下已存在: 'name_conflict',
   该资源为只读: 'forbidden',
   此分享不允许聊天功能: 'share_unavailable',
   此分享需要登录: 'unauthorized',
@@ -237,7 +232,6 @@ export const chatErrorAliases: Record<string, ChatErrorName> = {
   'File not found': 'not_found',
   'This file type is not supported': 'unsupported_file',
   'This resource is read-only': 'forbidden',
-  'Resource name already exists in this directory': 'name_conflict',
   'Storage quota exceeded. Please delete some files or upgrade your plan.':
     'storage_full',
   'Not enough credits to use Pro. Choose Basic or add credits.':

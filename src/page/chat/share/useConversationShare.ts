@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
-import { showChatErrorKey } from '@/lib/showChatError';
 import type {
   ConversationDetail,
   MessageDetail,
@@ -106,18 +105,18 @@ export function useConversationShare({
       initialSelection: ConversationShareInitialSelection = 'latest'
     ) => {
       if (isGenerating) {
-        showChatErrorKey('chat.share.generating');
+        toast.error(t('chat.share.generating'));
         return;
       }
       if (groups.length === 0) {
-        showChatErrorKey('chat.share.noCompletedGroup');
+        toast.error(t('chat.share.noCompletedGroup'));
         return;
       }
       if (
         targetMessageId &&
         !getConversationShareGroupForMessage(groups, targetMessageId)
       ) {
-        showChatErrorKey('chat.share.noCompletedGroup');
+        toast.error(t('chat.share.noCompletedGroup'));
         return;
       }
 
@@ -243,10 +242,12 @@ export function useConversationShare({
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError')
           return;
-        showChatErrorKey(
-          error instanceof Error && error.message === 'copy_failed'
-            ? 'chat.share.copyFailed'
-            : 'chat.share.createFailed'
+        toast.error(
+          t(
+            error instanceof Error && error.message === 'copy_failed'
+              ? 'chat.share.copyFailed'
+              : 'chat.share.createFailed'
+          )
         );
       } finally {
         setSharingChannel(null);

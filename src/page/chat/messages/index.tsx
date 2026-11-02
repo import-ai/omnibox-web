@@ -46,14 +46,9 @@ interface IProps {
   };
 }
 
-function DecisionReceipt({
-  message,
-  onRetry,
-}: {
-  message: MessageDetail;
-  onRetry: () => void;
-}) {
+function DecisionReceipt({ message }: { message: MessageDetail }) {
   const { t } = useTranslation();
+  if (message.status === MessageStatus.FAILED) return null;
   const sending = [MessageStatus.PENDING, MessageStatus.STREAMING].includes(
     message.status
   );
@@ -64,16 +59,7 @@ function DecisionReceipt({
     >
       {sending && <Spinner className="size-4" />}
       {t(
-        message.status === MessageStatus.FAILED
-          ? 'chat.delivery.send_failed'
-          : sending
-            ? 'chat.delivery.sending'
-            : 'chat.delivery.decision_submitted'
-      )}
-      {message.status === MessageStatus.FAILED && (
-        <Button variant="ghost" size="sm" onClick={onRetry}>
-          {t('chat.delivery.retry_send')}
-        </Button>
+        sending ? 'chat.delivery.sending' : 'chat.delivery.decision_submitted'
       )}
     </div>
   );
@@ -97,12 +83,7 @@ function renderMessage(
     openAIMessage.role === OpenAIMessageRole.USER &&
     message.attrs?.tool_call?.decisions?.length
   ) {
-    return (
-      <DecisionReceipt
-        message={message}
-        onRetry={() => onEdit(message.id, message.message.content || '')}
-      />
-    );
+    return <DecisionReceipt message={message} />;
   }
 
   if (
@@ -371,7 +352,10 @@ export function Messages(props: IProps) {
             );
           })()}
         {message.status === MessageStatus.FAILED && (
-          <div className="text-destructive mt-2">
+          <div
+            role="alert"
+            className="mt-2 flex flex-wrap items-center gap-2 text-sm text-destructive"
+          >
             <ChatErrorText
               error={{
                 message: message.attrs?.error_message,
@@ -379,6 +363,19 @@ export function Messages(props: IProps) {
                 status: message.attrs?.error_status,
               }}
             />
+            {message.message.role === OpenAIMessageRole.USER &&
+              (message.attrs?.pending_query ||
+                Boolean(message.attrs?.tool_call?.decisions?.length)) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    onEdit(message.id, message.message.content || '')
+                  }
+                >
+                  {t('chat.delivery.retry_send')}
+                </Button>
+              )}
           </div>
         )}
         {!isLastInList &&

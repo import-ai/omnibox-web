@@ -100,11 +100,11 @@ describe('chat error classification', () => {
     });
     const storedError = { message: 'Software caused connection abort' };
     expect(i18n.t(chatErrorKey(storedError))).toBe(
-      '连接已中断，请先检查任务结果。'
+      '网络连接异常，请检查网络后重试。'
     );
     await i18n.changeLanguage('en-US');
     expect(i18n.t(chatErrorKey(storedError))).toBe(
-      'Connection interrupted. Check the task result before retrying.'
+      'Connection interrupted. Check your network and try again.'
     );
     await i18n.changeLanguage('fr-FR');
     expect(i18n.t(chatErrorKey(storedError))).toBe(

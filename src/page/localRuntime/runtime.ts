@@ -83,16 +83,8 @@ export const runtimeApi = {
       mute: true,
     }),
   decide: (id: string, decision: 'approve' | 'reject') =>
-    http.post(
-      `/local-executions/${id}/decision`,
-      { decision },
-      { mute: true, redirectOnUnauthorized: true }
-    ),
-  cancel: (id: string) =>
-    http.post(`/local-executions/${id}/cancel`, undefined, {
-      mute: true,
-      redirectOnUnauthorized: true,
-    }),
+    http.post(`/local-executions/${id}/decision`, { decision }),
+  cancel: (id: string) => http.post(`/local-executions/${id}/cancel`),
 };
 
 export function useRuntimeUserId() {

@@ -124,14 +124,7 @@ describe('uploadConversationImages', () => {
         uploadConversationImage('ns', 'conv', new File(['png'], 'shot.png'))
       ).rejects.toThrow();
       expect(toast.error).toHaveBeenCalledTimes(1);
-      expect(toast.error).toHaveBeenCalledWith(
-        expect.objectContaining({
-          props: expect.objectContaining({
-            fallback: 'chat.errors.upload_failed',
-          }),
-        }),
-        { position: 'bottom-right' }
-      );
+      expect(toast.error).toHaveBeenCalledWith('chat.image.upload_failed');
     }
   );
 

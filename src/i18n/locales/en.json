@@ -1112,7 +1112,7 @@
     "errors": {
       "unknown": "Something went wrong. The result could not be confirmed.",
       "request_failed": "The chat request failed. The result could not be confirmed.",
-      "connection_interrupted": "Connection interrupted. Check the task result before retrying.",
+      "connection_interrupted": "Connection interrupted. Check your network and try again.",
       "response_unreadable": "Could not receive the response. Check the task result before retrying.",
       "timeout": "The request timed out. Check the task result before retrying.",
       "unauthorized": "Your session has expired. Please sign in again.",
@@ -1139,9 +1139,7 @@
       "approval_expired": "Approval expired or the action is no longer waiting. Refresh to check.",
       "execution_changed": "Execution parameters changed. Refresh and review them again.",
       "execution_unavailable": "The device or execution was not found.",
-      "share_unavailable": "The share is unavailable or does not allow chat.",
-      "share_password": "The share password is invalid. Check it and try again.",
-      "name_conflict": "A resource with this name already exists here. Choose another name."
+      "share_unavailable": "The share is unavailable or does not allow chat."
     }
   },
   "date": {

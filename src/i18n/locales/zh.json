@@ -1113,7 +1113,7 @@
     "errors": {
       "unknown": "对话出现异常，未能确认处理结果。",
       "request_failed": "对话请求失败，未能确认处理结果。",
-      "connection_interrupted": "连接已中断，请先检查任务结果。",
+      "connection_interrupted": "网络连接异常，请检查网络后重试。",
       "response_unreadable": "无法接收回复，请先检查任务结果。",
       "timeout": "请求超时，请先检查任务结果。",
       "unauthorized": "登录已失效，请重新登录。",
@@ -1140,9 +1140,7 @@
       "approval_expired": "确认已过期或操作不再等待确认，请刷新查看。",
       "execution_changed": "执行参数已变化，请刷新后重新确认。",
       "execution_unavailable": "未找到设备或执行记录。",
-      "share_unavailable": "分享不可用或未开启对话权限。",
-      "share_password": "分享密码无效，请检查后重新输入。",
-      "name_conflict": "此位置已存在同名资源，请使用其他名称。"
+      "share_unavailable": "分享不可用或未开启对话权限。"
     }
   },
   "date": {

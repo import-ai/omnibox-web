@@ -101,7 +101,7 @@ describe('useConversationHistory refresh', () => {
 
     expect(mockGet).toHaveBeenCalledWith(
       '/namespaces/namespace-a/conversations/conversation-a/messages',
-      { params: { branch_leaf_id: 'server-1' }, errorContext: 'chat' }
+      { params: { branch_leaf_id: 'server-1' } }
     );
   });
 });

@@ -154,7 +154,7 @@ export function UserMessage(props: IProps) {
     let cancelled = false;
     const ids = resourceIdsKey.split(',');
     const request = namespaceId
-      ? fetchResourcesByIds(namespaceId, ids, { errorContext: 'chat' })
+      ? fetchResourcesByIds(namespaceId, ids)
       : Promise.all(ids.map(id => fetchShareResource(shareId as string, id)));
 
     void request
@@ -212,22 +212,6 @@ export function UserMessage(props: IProps) {
       className="group relative flex flex-col items-end"
       data-message-id={message.id}
     >
-      {message.status === MessageStatus.FAILED &&
-        message.attrs?.pending_query && (
-          <div
-            role="alert"
-            className="flex items-center gap-2 text-sm text-destructive"
-          >
-            {t('chat.delivery.send_failed')}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(message.id, openAIMessage.content || '')}
-            >
-              {t('chat.delivery.retry_send')}
-            </Button>
-          </div>
-        )}
       <UserMessageImages images={images} />
       {showBubble && (
         <div

@@ -123,8 +123,7 @@ describe('HeaderTitle rename', () => {
     );
     expect(http.patch).toHaveBeenCalledWith(
       'namespaces/space/conversations/conversation-b',
-      { title: 'Conversation B' },
-      { errorContext: 'chat' }
+      { title: 'Conversation B' }
     );
   });
 

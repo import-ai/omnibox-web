@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 
 import { IconButton } from '@/components/omnibox/IconButton';
 import useApp from '@/hooks/useApp';
-import { chatHttp as http } from '@/lib/chatRequest';
+import { http } from '@/lib/request';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
@@ -42,9 +42,6 @@ export default function SaveMain(props: IProps) {
             app.fire('generate_resource', privateRoot.id, response);
           })
       )
-      .catch(() => {
-        // The chat HTTP client owns the localized error toast.
-      })
       .finally(() => {
         onLoading(false);
       });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import { chatHttp as http } from '@/lib/chatRequest';
+import { http } from '@/lib/request';
 import {
   isTerminalMessageStatus,
   OpenAIMessageRole,

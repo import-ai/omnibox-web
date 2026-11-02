@@ -175,8 +175,7 @@ describe('AddLinkPanel', () => {
       {
         url: 'https://example.com/article',
         parentId: 'root-b',
-      },
-      { errorContext: 'chat' }
+      }
     );
     expect(onSaved).toHaveBeenCalledWith('link-1');
     const restore = useSidebarStore.getState().restore;

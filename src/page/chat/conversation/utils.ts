@@ -3,8 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
 import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
-import { chatHttp as http } from '@/lib/chatRequest';
-import { showChatError } from '@/lib/showChatError';
+import { http } from '@/lib/request';
 import { createStreamTransport } from '@/lib/streamTransport';
 import { WizardLang } from '@/lib/wizardLang';
 import type {
@@ -454,7 +453,7 @@ export function resumeStream(
   url: string,
   lastEventId?: string
 ) {
-  const transport = createStreamTransport(
+  return createStreamTransport(
     url,
     {
       conversation_id: conversationId,
@@ -463,18 +462,6 @@ export function resumeStream(
     async data => messageProcessor(messageOperator, data),
     streamCancelUrl(url)
   );
-  return {
-    ...transport,
-    start: async () => {
-      try {
-        await transport.start();
-      } catch (error) {
-        if (!isChatCancellation(error)) {
-          showChatError(error);
-        }
-      }
-    },
-  };
 }
 
 function streamCancelUrl(url: string) {

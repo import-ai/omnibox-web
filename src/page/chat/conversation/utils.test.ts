@@ -1,5 +1,3 @@
-jest.mock('@/lib/showChatError', () => ({ showChatError: jest.fn() }));
-import { showChatError } from '@/lib/showChatError';
 /** @jest-environment-options {"customExportConditions": ["browser"]} */
 
 jest.mock('@/const', () => ({
@@ -27,7 +25,7 @@ import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import { OpenAIMessageRole } from '@/page/chat/core/types/chatResponse';
 import { getCachedMessageDisplayParts } from '@/page/chat/messages/messageDisplayPartsCache';
 
-import { ask, prepareBody, resumeStream } from './utils';
+import { ask, prepareBody } from './utils';
 
 const sessionValues = new Map<string, string>();
 const sessionStorageMock: Storage = {
@@ -481,42 +479,5 @@ describe('ask follow-latest and refusals', () => {
       count: 2,
     });
     expect(messageOperator.error).not.toHaveBeenCalled();
-  });
-});
-
-describe('resume errors', () => {
-  it.each([
-    '/api/v1/namespaces/n/wizard/stream/resume',
-    '/api/v1/shares/s/wizard/stream/resume',
-  ])(
-    'reports resume failure once through the localized boundary: %s',
-    async url => {
-      jest.mocked(showChatError).mockClear();
-      const error = Object.assign(new Error('upstream private detail'), {
-        status: 503,
-      });
-      jest.mocked(createStreamTransport).mockReturnValue({
-        start: jest.fn().mockRejectedValue(error),
-        cancel: jest.fn(),
-        destroy: jest.fn(),
-      });
-      const operator = { error: jest.fn() } as unknown as MessageOperator;
-      await expect(
-        resumeStream('c', operator, url).start()
-      ).resolves.toBeUndefined();
-      expect(showChatError).toHaveBeenCalledTimes(1);
-      expect(showChatError).toHaveBeenCalledWith(error);
-      expect(operator.error).not.toHaveBeenCalled();
-    }
-  );
-  it('does not report canceled resume requests', async () => {
-    jest.mocked(showChatError).mockClear();
-    jest.mocked(createStreamTransport).mockReturnValue({
-      start: jest.fn().mockRejectedValue({ name: 'AbortError' }),
-      cancel: jest.fn(),
-      destroy: jest.fn(),
-    });
-    await resumeStream('c', {} as MessageOperator, '/resume').start();
-    expect(showChatError).not.toHaveBeenCalled();
   });
 });

@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
 import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
-import { showChatError, showChatErrorKey } from '@/lib/showChatError';
 import { getWizardLang } from '@/lib/wizardLang';
 import {
   AgentRequestChannel,
@@ -457,7 +456,7 @@ export default function useContext() {
           // Accepted decisions were renamed to their server ID.
           discardLocalMessage(outcome?.requestId);
           discardLocalMessage(outcome?.acceptedMessageId);
-          if (!stopped) showChatErrorKey('chat.decision.reject_failed');
+          if (!stopped) toast.error(i18n.t('chat.decision.reject_failed'));
           // The rejection may have reached the server even though this page
           // saw an error; sync from the interrupted message to find out.
           void history.syncBelow(nodeId).catch(() => undefined);
@@ -559,7 +558,7 @@ export default function useContext() {
       try {
         await askFN.start();
       } catch (error) {
-        showChatError(error);
+        toast.error(error instanceof Error ? error.message : String(error));
       }
     } finally {
       askAbortRef.current = null;

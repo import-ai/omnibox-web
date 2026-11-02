@@ -1,5 +1,4 @@
 import type { SpaceType } from '@/interface';
-import type { RequestConfig } from '@/lib/request';
 import {
   fetchRootResources,
   type ResourceSortOptions,
@@ -12,10 +11,9 @@ export type WorkspaceResourceSorts = Record<SpaceType, ResourceSortOptions>;
 
 export async function fetchSortedWorkspaceRootResources(
   namespaceId: string,
-  sorts: WorkspaceResourceSorts,
-  config?: RequestConfig
+  sorts: WorkspaceResourceSorts
 ): Promise<RootResourcesResponse> {
-  return fetchRootResources(namespaceId, config, sorts);
+  return fetchRootResources(namespaceId, undefined, sorts);
 }
 
 export function setWorkspacePickerSpace(

@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { ShareResourcePicker } from '@/components/resourcePicker';
 import { Typewriter } from '@/components/typewriter';
-import { chatHttp as http } from '@/lib/chatRequest';
+import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import ChatArea from '@/page/chat/chat-input';
 import {
@@ -86,7 +86,6 @@ export default function SharedChatHomePage() {
             shareInfo.share_type !== 'chat_only'
               ? onSelect => (
                   <ShareResourcePicker
-                    errorContext="chat"
                     shareId={shareId}
                     rootResource={shareInfo.resource!}
                     canBrowseResources={shareInfo.all_resources}

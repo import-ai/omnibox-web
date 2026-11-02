@@ -73,8 +73,7 @@ export function ToolCallArgs({ args }: IProps) {
       } else if (params.namespace_id) {
         const resources: Resource[] = await fetchResourcesByIds(
           params.namespace_id,
-          ids,
-          { errorContext: 'chat' }
+          ids
         ).catch(() => []);
         entries = resources.map(resource => [
           resource.id,

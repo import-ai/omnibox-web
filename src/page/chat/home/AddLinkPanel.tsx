@@ -1,6 +1,7 @@
 import { ChevronDown } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
 import {
@@ -19,8 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import type { PathItem, Resource, ResourceMeta } from '@/interface';
-import { chatHttp as http } from '@/lib/chatRequest';
-import { showChatErrorKey } from '@/lib/showChatError';
+import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { fetchResource, fetchRootResources } from '@/service/resource';
@@ -67,7 +67,7 @@ export function AddLinkPanel({
 
   useEffect(() => {
     let active = true;
-    fetchRootResources(namespaceId, { errorContext: 'chat' })
+    fetchRootResources(namespaceId)
       .then(roots => {
         const root = roots.private;
         if (!active || !root?.id) {
@@ -94,10 +94,13 @@ export function AddLinkPanel({
     if (!('url' in prepared) || !destination || saving) {
       if (!('url' in prepared)) {
         setInvalid(true);
-        showChatErrorKey(
-          prepared.error === 'self'
-            ? 'chat.home.upload.self_link'
-            : 'chat.home.upload.invalid_link'
+        toast.error(
+          t(
+            prepared.error === 'self'
+              ? 'chat.home.upload.self_link'
+              : 'chat.home.upload.invalid_link'
+          ),
+          { position: 'bottom-right' }
         );
       }
       return;
@@ -294,7 +297,6 @@ export function AddLinkPanel({
             </DialogDescription>
           </DialogHeader>
           <WorkspaceResourcePicker
-            errorContext="chat"
             namespaceId={namespaceId}
             linkDestination
             selectedResourceId={destination?.id}

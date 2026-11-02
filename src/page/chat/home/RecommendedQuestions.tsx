@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { chatHttp as http } from '@/lib/chatRequest';
+import { http } from '@/lib/request';
 import { cn } from '@/lib/utils';
 
 import HomeMascot from './HomeMascot';

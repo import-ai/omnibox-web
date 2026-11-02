@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import useApp from '@/hooks/useApp';
-import { chatHttp as http } from '@/lib/chatRequest';
+import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizardLang';
 import {
   type ConversationCacheScope,

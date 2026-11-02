@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope, setPendingChatPayload } from '@/lib/chatBridge';
-import { chatHttp as http } from '@/lib/chatRequest';
+import { http } from '@/lib/request';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import {

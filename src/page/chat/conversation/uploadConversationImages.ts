@@ -1,5 +1,7 @@
+import i18next from 'i18next';
+import { toast } from 'sonner';
+
 import { chatErrorDetails } from '@/lib/chatErrors';
-import { showChatError } from '@/lib/showChatError';
 import {
   ChatImageInput,
   ChatMessageDisplayPart,
@@ -59,7 +61,7 @@ export async function uploadConversationImage(
       url: attachment.preview_url,
     };
   } catch (error) {
-    if (reportError) showChatError(error, 'chat.errors.upload_failed');
+    if (reportError) toast.error(i18next.t('chat.image.upload_failed'));
     throw error;
   }
 }
