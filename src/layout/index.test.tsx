@@ -278,5 +278,53 @@ describe('Layout authentication storage changes', () => {
         /^\/user\/login\?redirect=/
       );
     });
+
+    it('ignores a session response that arrives after the account changed', async () => {
+      localStorage.removeItem('uid');
+      let resolveSession: (uid: string) => void = () => undefined;
+      mockEstablishServerSession.mockReturnValue(
+        new Promise<string>(resolve => {
+          resolveSession = resolve;
+        })
+      );
+
+      await act(async () => root.render(<Layout />));
+
+      localStorage.setItem('uid', 'user-b');
+      localStorage.setItem('token', 'token-b');
+      await act(async () => {
+        resolveSession('user-a');
+      });
+
+      expect(localStorage.getItem('uid')).toBe('user-b');
+      expect(localStorage.getItem('token')).toBe('token-b');
+    });
+
+    it('ignores a session response after an auth storage change', async () => {
+      localStorage.removeItem('uid');
+      let resolveSession: (uid: string) => void = () => undefined;
+      mockEstablishServerSession.mockReturnValue(
+        new Promise<string>(resolve => {
+          resolveSession = resolve;
+        })
+      );
+
+      await act(async () => root.render(<Layout />));
+
+      await act(async () => {
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: 'uid',
+            oldValue: 'user-a',
+            newValue: null,
+          })
+        );
+      });
+      await act(async () => {
+        resolveSession('user-a');
+      });
+
+      expect(localStorage.getItem('uid')).toBeNull();
+    });
   });
 });

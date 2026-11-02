@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
@@ -57,26 +57,47 @@ export default function Layout() {
   const [sessionChecked, setSessionChecked] = useState(() =>
     Boolean(localStorage.getItem('uid'))
   );
+  const sessionAbortRef = useRef<AbortController | null>(null);
+  const authEpochRef = useRef(0);
   const isMobile = useIsMobile();
   const { config, loading: configLoading } = useConfig();
 
   useEffect(() => {
     let active = true;
+    const controller = new AbortController();
+    sessionAbortRef.current = controller;
+    const uidAtStart = localStorage.getItem('uid');
+    const tokenAtStart = localStorage.getItem('token');
+    const epochAtStart = authEpochRef.current;
+
+    // A response that arrives after the credentials changed belongs to the
+    // previous account and must not overwrite the newer state.
+    const isStillCurrent = () =>
+      authEpochRef.current === epochAtStart &&
+      localStorage.getItem('uid') === uidAtStart &&
+      localStorage.getItem('token') === tokenAtStart;
+
     // Refreshes the cookie so one written with an older SameSite policy is
     // replaced, and restores the signed-in user when local storage is empty.
-    void establishServerSession()
+    void establishServerSession(controller.signal)
       .then(sessionUid => {
-        if (!active) return;
+        if (!active || !isStillCurrent()) return;
         localStorage.setItem('uid', sessionUid);
         setUid(sessionUid);
         setSessionChecked(true);
       })
       .catch(() => {
         if (active) setSessionChecked(true);
+      })
+      .finally(() => {
+        if (sessionAbortRef.current === controller) {
+          sessionAbortRef.current = null;
+        }
       });
 
     return () => {
       active = false;
+      controller.abort();
     };
   }, []);
 
@@ -99,6 +120,11 @@ export default function Layout() {
           // Ignore malformed preferences from other tabs.
         }
       } else if (isAuthStorageKey(event.key)) {
+        // Signing out or switching accounts invalidates the session request
+        // that is still in flight for the previous credentials.
+        authEpochRef.current += 1;
+        sessionAbortRef.current?.abort();
+        sessionAbortRef.current = null;
         const storedUid = localStorage.getItem('uid');
         if (storedUid !== uid) {
           clearUserWorkspaceState();
