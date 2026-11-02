@@ -115,4 +115,3 @@ jobs:
           REF_LINK_TEXT="${REF}"
           REF_LINK_URL="${{ github.server_url }}/${{ github.repository }}/tree/${REF}"
           curl "${WEBHOOK_URL}/test?module=web&ref=${REF}&commit=${GITHUB_SHA}&tag=sha-${GITHUB_SHA::7}&run_url=${RUN_URL}&ref_link_text=${REF_LINK_TEXT}&ref_link_url=${REF_LINK_URL}" -H "Authorization: Bearer ${API_KEY}"
-
