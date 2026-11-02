@@ -836,6 +836,9 @@
     "fail": "Copy failed, please copy manually"
   },
   "chat": {
+    "stopping": "Stopping",
+    "tool_stopped": "Stopped",
+    "stop_failed": "Could not stop. Please try again.",
     "delivery": {
       "sending": "Sending",
       "send_failed": "Failed to send",

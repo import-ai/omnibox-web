@@ -133,7 +133,7 @@ function serverAncestorId(
 
 export default function useContext() {
   const app = useApp();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
   const detachStreamRef = useRef<(() => void) | null>(null);
   const detachActiveStream = useCallback(() => {
@@ -640,9 +640,10 @@ export default function useContext() {
       cancel,
       cancelUrl: `/namespaces/${namespaceId}/wizard/stream/cancel`,
       conversationId,
+      messageId: messages.at(-1)?.id,
       messageOperator,
       setLoading,
-    });
+    }).catch(() => toast.error(t('chat.stop_failed')));
   };
 
   const firstUserMessage = findFirstMessageWithMissingParent(messages);

@@ -37,6 +37,7 @@ import {
 import {
   findToolMessageForToolCall,
   isTerminalToolCallStatus,
+  isToolTurnStopped,
   resolveToolCallStatus,
 } from './assistantMessageUtils';
 import {
@@ -83,6 +84,8 @@ function toolStateIcon(status: ToolCallStatus) {
       return <Check className="size-4 text-green-600" />;
     case ToolCallStatus.FAILED:
       return <X className="size-4 text-red-600" />;
+    case ToolCallStatus.STOPPED:
+      return <Ban className="size-4" />;
     case ToolCallStatus.REJECTED:
       return <Ban className="size-4 text-red-600" />;
     default:
@@ -192,7 +195,10 @@ export function AssistantMessage(props: IProps) {
         t
       );
       const toolMessage = findToolMessageForToolCall(messages, toolCall.id);
-      const functionStatus = resolveToolCallStatus(toolMessage);
+      const functionStatus = resolveToolCallStatus(
+        toolMessage,
+        isToolTurnStopped(messages, message.id)
+      );
 
       toolCalls.push({
         toolCallId: toolCall.id,
@@ -220,7 +226,8 @@ export function AssistantMessage(props: IProps) {
         args: [],
         joinedArgs: '',
         status: resolveToolCallStatus(
-          findToolMessageForToolCall(messages, summary.id)
+          findToolMessageForToolCall(messages, summary.id),
+          isToolTurnStopped(messages, message.id)
         ),
       });
     }
@@ -295,6 +302,9 @@ export function AssistantMessage(props: IProps) {
                 >
                   {toolStateIcon(toolCall.status)}
                   <b>{toolCall.name}</b>
+                  {toolCall.status === ToolCallStatus.STOPPED && (
+                    <span>{t('chat.tool_stopped')}</span>
+                  )}
                   <ToolCallArgs args={toolCall.args} />
                 </li>
               ))}
