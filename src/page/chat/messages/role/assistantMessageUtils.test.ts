@@ -8,6 +8,7 @@ import {
   findToolMessageForToolCall,
   getLatestContextCompactCapacity,
   isTerminalToolCallStatus,
+  isToolTurnStopped,
   resolveToolCallStatus,
 } from './assistantMessageUtils';
 
@@ -73,7 +74,7 @@ describe('resolveToolCallStatus', () => {
     expect(resolveToolCallStatus(toolMessage)).toBe(status);
   });
 
-  it('falls back to running for matched non-terminal tool messages', () => {
+  it('uses successful message status when tool attrs are non-terminal', () => {
     const toolMessage = buildMessage({
       id: 'tool-message-running',
       status: MessageStatus.SUCCESS,
@@ -84,7 +85,7 @@ describe('resolveToolCallStatus', () => {
       },
     });
 
-    expect(resolveToolCallStatus(toolMessage)).toBe(ToolCallStatus.RUNNING);
+    expect(resolveToolCallStatus(toolMessage)).toBe(ToolCallStatus.SUCCESS);
   });
 
   it('falls back to pending when there is no matching tool message', () => {
@@ -206,4 +207,114 @@ describe('getLatestContextCompactCapacity', () => {
       percent: 20,
     });
   });
+});
+
+const row = (
+  id: string,
+  role = OpenAIMessageRole.ASSISTANT,
+  status = MessageStatus.SUCCESS,
+  attrs = {}
+): MessageDetail =>
+  ({
+    id,
+    clientKey: 0,
+    message: { role },
+    status,
+    parent_id: '',
+    children: [],
+    attrs,
+  }) as MessageDetail;
+
+describe('stopped tool lifecycle', () => {
+  it('recognizes stopped rows without tool attrs', () => {
+    expectEqual(
+      resolveToolCallStatus(
+        row('tool', OpenAIMessageRole.TOOL, MessageStatus.STOPPED)
+      ),
+      ToolCallStatus.STOPPED
+    );
+  });
+  it('preserves completed tool outcomes when the turn stops', () => {
+    for (const status of [
+      ToolCallStatus.SUCCESS,
+      ToolCallStatus.FAILED,
+      ToolCallStatus.REJECTED,
+    ]) {
+      expectEqual(
+        resolveToolCallStatus(
+          row('tool', OpenAIMessageRole.TOOL, MessageStatus.SUCCESS, {
+            tool_call: { status },
+          }),
+          true
+        ),
+        status
+      );
+    }
+  });
+  it('stops unmatched calls only with turn cancellation evidence', () => {
+    expectEqual(resolveToolCallStatus(undefined, true), ToolCallStatus.STOPPED);
+    expectEqual(resolveToolCallStatus(), ToolCallStatus.PENDING);
+  });
+  it('does not infer cancellation from a completed tool-issuing assistant', () => {
+    expectEqual(
+      isToolTurnStopped([row('q', OpenAIMessageRole.USER), row('a')], 'a'),
+      false
+    );
+  });
+  it('recognizes a historical orphan stopped message but isolates the next turn', () => {
+    const messages = [
+      row('q', OpenAIMessageRole.USER),
+      row('a'),
+      row('orphan', OpenAIMessageRole.TOOL, MessageStatus.STOPPED),
+      row('q2', OpenAIMessageRole.USER),
+      row('a2'),
+    ];
+    expectEqual(isToolTurnStopped(messages, 'a'), true);
+    expectEqual(isToolTurnStopped(messages, 'a2'), false);
+  });
+  it('uses a persisted assistant turn marker when no tool row was created', () => {
+    expectEqual(
+      isToolTurnStopped(
+        [
+          row('q', OpenAIMessageRole.USER),
+          row('a', OpenAIMessageRole.ASSISTANT, MessageStatus.SUCCESS, {
+            turn_status: 'stopped',
+          }),
+        ],
+        'a'
+      ),
+      true
+    );
+  });
+});
+
+function expectEqual(actual: unknown, expected: unknown) {
+  expect(actual).toBe(expected);
+}
+
+test('a new approval run does not inherit an earlier run cancellation', () => {
+  const old = row('old', OpenAIMessageRole.ASSISTANT, MessageStatus.SUCCESS, {
+    turn_run_id: 'run-1',
+    turn_status: 'stopped',
+    stopped_run_id: 'run-1',
+  });
+  const current = row(
+    'current',
+    OpenAIMessageRole.TOOL,
+    MessageStatus.STREAMING,
+    { turn_run_id: 'run-2' }
+  );
+  expect(
+    isToolTurnStopped([row('q', OpenAIMessageRole.USER), old, current], 'old')
+  ).toBe(false);
+});
+test('the latest retry tool message wins over a stopped earlier attempt', () => {
+  const old = buildMessage({ id: 'old', status: MessageStatus.STOPPED });
+  const current = buildMessage({
+    id: 'current',
+    status: MessageStatus.STREAMING,
+  });
+  expect(findToolMessageForToolCall([old, current], 'tool-call-1')).toBe(
+    current
+  );
 });
