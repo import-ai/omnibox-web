@@ -1131,7 +1131,7 @@
       "attachment_unavailable": "The attachment is unavailable or does not belong to this conversation.",
       "storage_full": "Storage is full. Delete some files or upgrade your plan.",
       "credits_exhausted": "Not enough credits. Switch to Agent 1.1 or add credits.",
-      "namespace_not_found": "Workspace not found. Refresh and try again.",
+      "namespace_not_found": "Namespace not found. Refresh and try again.",
       "private_root_unavailable": "Could not access your private space. Refresh and try again.",
       "tool_failed": "The tool action encountered an error. Check the execution result.",
       "device_offline": "The device is offline or paused. Check its status.",
