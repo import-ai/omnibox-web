@@ -25,6 +25,7 @@ import {
 } from '@/page/inviteReferral/registration';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
+import { establishServerSession } from '@/page/user/session';
 import { removeGlobalCredential } from '@/page/user/util';
 
 import {
@@ -51,8 +52,33 @@ export default function Layout() {
   const namespaceId = params.namespace_id;
   const shareId = params.share_id;
   const [uid, setUid] = useState(localStorage.getItem('uid'));
+  // The root path is served only to a browser the gateway considers signed
+  // in, so the cookie is the source of truth once local storage is empty.
+  const [sessionChecked, setSessionChecked] = useState(() =>
+    Boolean(localStorage.getItem('uid'))
+  );
   const isMobile = useIsMobile();
   const { config, loading: configLoading } = useConfig();
+
+  useEffect(() => {
+    let active = true;
+    // Refreshes the cookie so one written with an older SameSite policy is
+    // replaced, and restores the signed-in user when local storage is empty.
+    void establishServerSession()
+      .then(sessionUid => {
+        if (!active) return;
+        localStorage.setItem('uid', sessionUid);
+        setUid(sessionUid);
+        setSessionChecked(true);
+      })
+      .catch(() => {
+        if (active) setSessionChecked(true);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
@@ -137,6 +163,9 @@ export default function Layout() {
     }
 
     const requireLogin = () => {
+      if (!sessionChecked) {
+        return false;
+      }
       if (!uid) {
         if (namespaceId) {
           return true;
@@ -158,7 +187,7 @@ export default function Layout() {
       return;
     }
 
-    if (loc.pathname !== '/' || configLoading) {
+    if (!uid || loc.pathname !== '/' || configLoading) {
       return;
     }
 
@@ -184,7 +213,15 @@ export default function Layout() {
     return () => {
       active = false;
     };
-  }, [config.commercial, configLoading, namespaceId, shareId, uid, loc]);
+  }, [
+    config.commercial,
+    configLoading,
+    namespaceId,
+    sessionChecked,
+    shareId,
+    uid,
+    loc,
+  ]);
 
   useEffect(() => {
     if (namespaceId && !shareId) {

@@ -15,6 +15,7 @@ const mockClearChatContext = jest.fn();
 const mockClearCopilot = jest.fn();
 const mockClearSidebar = jest.fn();
 const mockResetResourcePreviews = jest.fn();
+const mockEstablishServerSession = jest.fn();
 const defaultLocation = { pathname: '/namespace-a/chat', search: '' };
 let mockLocation = defaultLocation;
 let mockParams: { namespace_id?: string; share_id?: string } = {
@@ -83,6 +84,9 @@ jest.mock('@/page/sidebar/store', () => ({
     getState: () => ({ clear: mockClearSidebar }),
   },
 }));
+jest.mock('@/page/user/session', () => ({
+  establishServerSession: () => mockEstablishServerSession(),
+}));
 
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -107,6 +111,8 @@ describe('Layout authentication storage changes', () => {
     mockClearCopilot.mockClear();
     mockClearSidebar.mockClear();
     mockResetResourcePreviews.mockClear();
+    mockEstablishServerSession.mockReset();
+    mockEstablishServerSession.mockResolvedValue('user-a');
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -242,6 +248,35 @@ describe('Layout authentication storage changes', () => {
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('/welcome', { replace: true });
+    });
+
+    it('restores the signed-in user from the session cookie', async () => {
+      localStorage.removeItem('uid');
+      mockEstablishServerSession.mockResolvedValue('user-a');
+      mockHttpGet.mockImplementation((url: string) => {
+        if (url === '/config') return Promise.resolve({ commercial: false });
+        if (url === 'namespaces') return Promise.resolve(namespaceResponse());
+        return Promise.resolve([]);
+      });
+
+      await act(async () => root.render(<Layout />));
+
+      expect(localStorage.getItem('uid')).toBe('user-a');
+      expect(mockNavigate).toHaveBeenCalledWith('/namespace-a/chat', {
+        replace: true,
+      });
+    });
+
+    it('asks for login when the session cannot be restored', async () => {
+      localStorage.removeItem('uid');
+      mockEstablishServerSession.mockRejectedValue(new Error('unauthorized'));
+
+      await act(async () => root.render(<Layout />));
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate.mock.calls[0][0]).toMatch(
+        /^\/user\/login\?redirect=/
+      );
     });
   });
 });

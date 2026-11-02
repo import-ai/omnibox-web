@@ -14,9 +14,9 @@ describe('establishServerSession', () => {
   });
 
   it('exchanges the stored token for a session cookie', async () => {
-    mockPost.mockResolvedValue(undefined);
+    mockPost.mockResolvedValue({ uid: 'user-1' });
 
-    await establishServerSession();
+    await expect(establishServerSession()).resolves.toBe('user-1');
 
     expect(mockPost).toHaveBeenCalledWith('auth/session', undefined, {
       mute: true,
