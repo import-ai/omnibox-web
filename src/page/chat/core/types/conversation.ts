@@ -41,6 +41,9 @@ export type Interrupt = {
 };
 
 export interface MessageAttrs {
+  turn_status?: 'stopped';
+  turn_run_id?: string;
+  stopped_run_id?: string;
   client_request_id?: string;
   pending_query?: boolean; // frontend only
   citations?: Citation[];

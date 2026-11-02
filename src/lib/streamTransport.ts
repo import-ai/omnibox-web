@@ -94,21 +94,23 @@ export function createStreamTransport(
       void reader?.cancel().catch(() => undefined);
     },
     cancel: async () => {
-      isAborted = true;
       const token = localStorage.getItem('token') || '';
+      const response = await fetch(cancelUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Platform': 'web',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ conversation_id: body.conversation_id }),
+      });
+      if (!response.ok)
+        throw new Error(`Stream cancel failed: ${response.status}`);
+      isAborted = true;
       try {
-        await fetch(cancelUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Client-Platform': 'web',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ conversation_id: body.conversation_id }),
-        });
-      } finally {
-        isAborted = true;
         await reader?.cancel();
+      } catch {
+        /* The server already accepted cancellation. */
       }
     },
   };

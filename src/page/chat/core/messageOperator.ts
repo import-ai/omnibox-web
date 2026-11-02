@@ -84,7 +84,7 @@ export function createMessageOperator(
     update: (delta: ChatDeltaResponse, id?: string) => {
       setConversation(prev => {
         const message = getMessage(prev, id);
-        if (!message) {
+        if (!message || message.status === MessageStatus.STOPPED) {
           return prev;
         }
 
@@ -196,7 +196,7 @@ export function createMessageOperator(
     done: (id?: string) => {
       setConversation(prev => {
         const message = getMessage(prev, id);
-        if (!message) {
+        if (!message || message.status === MessageStatus.STOPPED) {
           return prev;
         }
         message.localRevision = (message.localRevision ?? 0) + 1;
@@ -223,19 +223,62 @@ export function createMessageOperator(
 
     stop: (id?: string) => {
       setConversation(prev => {
-        const message = getMessage(prev, id);
-        if (!message) {
-          return prev;
+        let message = getMessage(prev, id);
+        if (!message) return prev;
+        const targetId = message.id;
+        let current = getMessage(prev);
+        const descendants = new Set<string>();
+        while (current && !descendants.has(current.id)) {
+          descendants.add(current.id);
+          if (current.id === targetId) {
+            message = getMessage(prev) ?? message;
+            break;
+          }
+          if (
+            current.message.role === OpenAIMessageRole.USER &&
+            !current.attrs?.tool_call?.decisions?.length
+          )
+            break;
+          current = prev.mapping[current.parent_id];
         }
-        message.localRevision = (message.localRevision ?? 0) + 1;
-        message.status = MessageStatus.STOPPED;
-        delete message.attrs?.error_message;
-        delete message.attrs?.error_code;
-        delete message.attrs?.error_status;
-        return {
-          ...prev,
-          mapping: { ...prev.mapping, [message.id]: message },
-        };
+        if (!message) return prev;
+        const runId = message.attrs?.turn_run_id;
+        const mapping = { ...prev.mapping };
+        const seen = new Set<string>();
+        while (message && !seen.has(message.id)) {
+          seen.add(message.id);
+          const isQuery =
+            message.message.role === OpenAIMessageRole.USER &&
+            !message.attrs?.tool_call?.decisions?.length;
+          const terminal = [
+            MessageStatus.SUCCESS,
+            MessageStatus.FAILED,
+            MessageStatus.STOPPED,
+          ].includes(message.status);
+          mapping[message.id] = {
+            ...message,
+            localRevision: (message.localRevision ?? 0) + 1,
+            status:
+              terminal || isQuery ? message.status : MessageStatus.STOPPED,
+            attrs: {
+              ...message.attrs,
+              ...(!isQuery
+                ? {
+                    turn_status: 'stopped' as const,
+                    ...(runId ? { stopped_run_id: runId } : {}),
+                  }
+                : {}),
+            },
+          };
+          if (mapping[message.id].status === MessageStatus.STOPPED) {
+            delete mapping[message.id].attrs?.error_message;
+            delete mapping[message.id].attrs?.error_code;
+            delete mapping[message.id].attrs?.error_status;
+          }
+          if (isQuery) break;
+          message = mapping[message.parent_id];
+        }
+        return { ...prev, mapping };
       });
     },
 
