@@ -837,6 +837,9 @@
     "fail": "复制失败，请手动复制"
   },
   "chat": {
+    "stopping": "正在停止",
+    "tool_stopped": "已停止",
+    "stop_failed": "停止失败，请重试",
     "delivery": {
       "sending": "发送中",
       "send_failed": "发送失败",
