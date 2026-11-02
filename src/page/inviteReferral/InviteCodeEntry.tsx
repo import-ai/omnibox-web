@@ -29,7 +29,7 @@ export function InviteCodeEntry() {
     <>
       <button
         type="button"
-        className="w-full text-center text-sm text-muted-foreground hover:underline"
+        className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
         onClick={() => setOpen(true)}
       >
         {code
