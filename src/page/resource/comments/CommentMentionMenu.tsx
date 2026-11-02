@@ -1,5 +1,7 @@
 import { createPortal } from 'react-dom';
 
+import { MentionAvatar } from '@/page/resource/MentionAvatar';
+
 import type { CommentMentionUser } from './commentMentions';
 import { mentionMenuPlacement } from './commentMentions';
 
@@ -10,9 +12,6 @@ export type CommentMentionMenuSpec = {
   selected: number;
   onPick: (user: CommentMentionUser) => void;
 };
-
-// Document @ menu uses this when a member has no color.
-const MENTION_AVATAR_COLOR = '#000000';
 
 export function CommentMentionMenu({
   spec,
@@ -50,19 +49,9 @@ export function CommentMentionMenu({
                 onMouseDown={event => event.preventDefault()}
                 onClick={() => spec.onPick(user)}
               >
-                <span
-                  className="tiptap-avatar"
-                  data-size="default"
-                  style={{
-                    ['--dynamic-user-color' as string]: MENTION_AVATAR_COLOR,
-                  }}
-                >
-                  <span className="tiptap-avatar-item">
-                    <span className="tiptap-avatar-fallback">
-                      {Array.from(user.name)[0]?.toLocaleUpperCase()}
-                    </span>
-                  </span>
-                </span>
+                <MentionAvatar
+                  initial={Array.from(user.name)[0]?.toLocaleUpperCase() || ''}
+                />
                 <span className="tiptap-button-text">{user.name}</span>
               </button>
             ))}

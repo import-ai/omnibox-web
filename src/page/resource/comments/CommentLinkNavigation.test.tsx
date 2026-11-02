@@ -1,11 +1,23 @@
 /** @jest-environment jsdom */
 
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => mockApp,
+}));
+const mockApp = { on: () => () => undefined };
+
 import { act, useCallback, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useLocation } from 'react-router-dom';
 
-import type { ResourceCommentThread } from '@/interface';
-import { listResourceCommentThreads } from '@/service/resourceComments';
+import type {
+  ResourceCommentThread,
+  ResourceInlineCommentThread,
+} from '@/interface';
+import {
+  getResourceCommentThread,
+  listResourceCommentThreads,
+} from '@/service/resourceComments';
 
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentHighlight } from './useCommentHighlight';
@@ -16,20 +28,38 @@ import {
 import { useResourceComments } from './useResourceComments';
 
 jest.mock('react-router-dom', () => ({ useLocation: jest.fn() }));
+jest.mock('react-i18next', () => {
+  const t = (key: string) => key;
+  return { useTranslation: () => ({ t }) };
+});
 jest.mock('./ResourceCommentsContext', () => ({
   useResourceCommentsPanel: jest.fn(),
 }));
 jest.mock('@import-ai/omnibox-editor', () => ({}));
 jest.mock('./commentAnchors', () => ({}));
+jest.mock('./useCommentMentionUsers', () => {
+  const users: unknown[] = [];
+  const namesById = {};
+  return {
+    useCommentMentionUsers: () => ({ users, namesById, loaded: false }),
+  };
+});
 jest.mock('@/service/resourceComments', () => ({
   listResourceCommentThreads: jest.fn(),
+  getResourceCommentThread: jest.fn(),
 }));
 jest.mock('@/hooks/useUser', () => ({
   USER_UPDATED_EVENT: 'user-updated',
 }));
+jest.mock('@/lib/request', () => ({
+  http: {
+    get: jest.fn().mockResolvedValue([]),
+    post: jest.fn().mockResolvedValue({ updated: 0 }),
+  },
+}));
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
-const threads: ResourceCommentThread[] = ['first', 'target'].map(id => ({
+const threads: ResourceInlineCommentThread[] = ['first', 'target'].map(id => ({
   id,
   quoted_text: id,
   creator: { id: 'author', username: 'Author' },
@@ -219,6 +249,7 @@ describe('comment link navigation', () => {
       offset: 0,
       limit: 20,
     });
+    jest.mocked(getResourceCommentThread).mockResolvedValue(threads[1]);
   });
 
   afterEach(async () => {
@@ -383,20 +414,20 @@ describe('comment link navigation', () => {
     expect(listResourceCommentThreads).toHaveBeenLastCalledWith(
       'namespace',
       'resource',
-      { offset: 1, limit: 20, resolved: false }
+      { view: 'sidebar', offset: 1, limit: 20, resolved: false }
     );
     await act(async () => container.querySelectorAll('button')[1].click());
     expect(container.querySelector('output')?.textContent).toContain('target');
   });
 
-  it('opens a resource with no comments on all comments', async () => {
+  it('opens a resource with no inline comments on unresolved comments', async () => {
     await act(async () =>
       root.render(<FilterFixture resourceId="empty" commentThreads={[]} />)
     );
     expect(listResourceCommentThreads).toHaveBeenCalledWith(
       'namespace',
       'empty',
-      { offset: 0, limit: 20, resolved: undefined }
+      { view: 'sidebar', offset: 0, limit: 20, resolved: false }
     );
   });
 
@@ -415,7 +446,7 @@ describe('comment link navigation', () => {
     expect(listResourceCommentThreads).toHaveBeenCalledWith(
       'namespace',
       'resolved-only',
-      { offset: 0, limit: 20, resolved: false }
+      { view: 'sidebar', offset: 0, limit: 20, resolved: false }
     );
   });
 });

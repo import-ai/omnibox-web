@@ -3,6 +3,7 @@ import {
   FilePlus,
   FileUp,
   FolderPlus,
+  Link,
   type LucideIcon,
   MessageSquarePlus,
   MessageSquareQuote,
@@ -278,6 +279,12 @@ export function useNodeMenu(
           icon: FileUp,
           label: t('actions.upload_file'),
           onClick: actions.handleUpload,
+        },
+        {
+          key: 'add_link',
+          icon: Link,
+          label: t('actions.add_link'),
+          onClick: actions.handleCreateLinkWithDialog,
         },
         { key: 'separator_1', separator: true },
         {

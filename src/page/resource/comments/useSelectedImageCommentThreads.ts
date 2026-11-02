@@ -1,11 +1,15 @@
 import { NodeSelection } from '@tiptap/pm/state';
 import { useLayoutEffect, useState } from 'react';
 
+import type { ResourceCommentThread } from '@/interface';
+
 import type { ResourceCommentEditor } from './commentAnchors';
+import { isDocumentCommentThread } from './documentCommentThreads';
 import { commentThreadIds } from './imageCommentMarks';
 
 export function useSelectedImageCommentThreads(
-  editor: ResourceCommentEditor | null
+  editor: ResourceCommentEditor | null,
+  threads?: ResourceCommentThread[]
 ): string[] {
   const [threadIds, setThreadIds] = useState<string[]>([]);
 
@@ -20,7 +24,12 @@ export function useSelectedImageCommentThreads(
         ) {
           const dom = editor.view.nodeDOM(selection.from);
           if (dom instanceof HTMLElement) {
-            next = commentThreadIds(dom.closest('.node-image') ?? dom);
+            const documentIds = new Set(
+              threads?.filter(isDocumentCommentThread).map(thread => thread.id)
+            );
+            next = commentThreadIds(dom.closest('.node-image') ?? dom).filter(
+              id => !documentIds.has(id)
+            );
           }
         }
       }
@@ -40,7 +49,7 @@ export function useSelectedImageCommentThreads(
       editor.off('transaction', update);
       editor.off('destroy', clear);
     };
-  }, [editor]);
+  }, [editor, threads]);
 
   return threadIds;
 }

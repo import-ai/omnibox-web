@@ -1,4 +1,5 @@
 import { ArrowUp, ChevronDown, Square } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
@@ -32,6 +33,7 @@ interface IActionProps {
 
 export default function ChatAction(props: IActionProps) {
   const { t } = useTranslation();
+  const [stopping, setStopping] = useState(false);
   const {
     disabled,
     disabledReason,
@@ -78,7 +80,16 @@ export default function ChatAction(props: IActionProps) {
           <Separator orientation="vertical" className="h-4 ml-0 mr-3" />
         </>
       )}
-      {waitingForAssistantDelta ? (
+      {stopping ? (
+        <Button
+          size="icon"
+          className="rounded-full size-8"
+          disabled
+          aria-label={t('chat.stopping')}
+        >
+          <Spinner />
+        </Button>
+      ) : waitingForAssistantDelta ? (
         <span className="cursor-not-allowed">
           <Button
             size="icon"
@@ -97,7 +108,15 @@ export default function ChatAction(props: IActionProps) {
                 size="icon"
                 variant="default"
                 className="rounded-full size-8"
-                onClick={onStop}
+                onClick={async () => {
+                  if (stopping) return;
+                  setStopping(true);
+                  try {
+                    await onStop?.();
+                  } finally {
+                    setStopping(false);
+                  }
+                }}
               >
                 <Square className="size-3! fill-current" />
               </Button>

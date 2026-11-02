@@ -263,8 +263,11 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
 
         const parentId = resource.parent_id || null;
         const node = createNode(resource, parentId, spaceType);
-        if (!(node.id in s.nodes)) {
+        const existing = s.nodes[node.id];
+        if (!existing) {
           s.nodes[node.id] = node;
+        } else if (!existing.name && node.name) {
+          existing.name = node.name;
         }
 
         const parent = parentId ? s.nodes[parentId] : null;
@@ -282,7 +285,13 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
         }
       });
 
-      if (resource.parent_id && !manualSort) {
+      // The parent's children request is already in flight and started before
+      // this link existed. Refreshing now would replace the row with that
+      // stale list. expand() keeps children the response does not know about.
+      const parentLoading = resource.parent_id
+        ? get().ui[resource.parent_id]?.loading
+        : false;
+      if (resource.parent_id && !manualSort && !parentLoading) {
         await refreshSortedChildren(get, resource.parent_id);
       }
 

@@ -71,7 +71,7 @@ export function ShareLayout(props: IProps) {
   const showComments =
     !isChatActive &&
     !chatOnly &&
-    !!resource?.content?.trim() &&
+    !!resource &&
     !['folder', 'smart_folder', 'rss_folder'].includes(resource.resource_type);
 
   const content = (

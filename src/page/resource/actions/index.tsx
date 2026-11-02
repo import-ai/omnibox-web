@@ -417,6 +417,14 @@ export default function Actions(props: IActionProps) {
       openFilePicker(fileInputRef.current);
       return;
     }
+    if (id === 'add_link') {
+      if (!resource) {
+        return;
+      }
+      useSidebarStore.getState().openCreateLinkDialog(resource.id);
+      setOpen(false);
+      return;
+    }
     if (id === 'download_as_png') {
       onLoading('download_as_png');
       exportResourceAsPng(resource.name || t('untitled'))
@@ -853,6 +861,19 @@ export default function Actions(props: IActionProps) {
                   ? `${t('actions.upload_to_folder')} ${progress}`
                   : t('actions.upload_to_folder')}
               </span>
+            </DropdownMenuItem>
+          )}
+          {resource &&
+            canUseRegularResourceActions &&
+            !isFolder &&
+            !isMobile && <DropdownMenuSeparator />}
+          {resource && canUseRegularResourceActions && (
+            <DropdownMenuItem
+              className="cursor-pointer gap-2"
+              onClick={() => handleAction('add_link')}
+            >
+              <Link className="size-4 text-muted-foreground" />
+              <span>{t('actions.add_link')}</span>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

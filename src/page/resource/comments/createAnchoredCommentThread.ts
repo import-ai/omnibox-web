@@ -128,12 +128,19 @@ function waitForCommentAnchor(editor: ResourceCommentEditor, threadId: string) {
 
 function getThreadAuthorLabel(thread: ResourceCommentThread) {
   const author =
-    thread.creator.username || thread.comments[0]?.author.username || '?';
+    thread.creator.display_name ||
+    thread.creator.username ||
+    thread.comments[0]?.author.display_name ||
+    thread.comments[0]?.author.username ||
+    '?';
   return Array.from(author.trim())[0]?.toLocaleUpperCase() || '?';
 }
 
 function getThreadSecondaryLabel(thread: ResourceCommentThread) {
-  const author = thread.comments[1]?.author.username || '';
+  const author =
+    thread.comments[1]?.author.display_name ||
+    thread.comments[1]?.author.username ||
+    '';
   return Array.from(author.trim())[0]?.toLocaleUpperCase() || '';
 }
 
@@ -142,7 +149,9 @@ function getThreadCommentLabels(thread: ResourceCommentThread) {
     .map(
       comment =>
         Array.from(
-          comment.author.username?.trim() || '?'
+          comment.author.display_name?.trim() ||
+            comment.author.username?.trim() ||
+            '?'
         )[0]?.toLocaleUpperCase() || '?'
     )
     .join('|');

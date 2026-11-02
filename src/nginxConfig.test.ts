@@ -20,6 +20,7 @@ describe('nginx routes', () => {
       '/user/login',
       '/user/auth/confirm',
       '/user/auth/miniprogram',
+      '/user/auth/login-link',
       '/user/auth/confirm/google',
       '/user/sign-up',
       '/user/verify-otp',

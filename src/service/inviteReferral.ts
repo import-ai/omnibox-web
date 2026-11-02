@@ -2,7 +2,10 @@ import { http } from '@/lib/request';
 
 export type InviteSource = 'manual' | 'link' | 'qr_code';
 export type InviteTaskCode =
-  'phone_bound' | 'file_conversation_completed' | 'wechat_assistant_bound';
+  | 'phone_bound'
+  | 'file_conversation_completed'
+  | 'wechat_assistant_bound'
+  | 'wechat_oa_followed';
 
 export interface InviteRegistrationResult {
   is_invited_new_user: true;
@@ -15,7 +18,12 @@ export interface InviteTask {
   title: string;
   reward_text: string;
   status: 'completed' | 'pending';
-  action: 'phone_binding' | 'home' | 'wechat_assistant_binding' | null;
+  action:
+    | 'phone_binding'
+    | 'home'
+    | 'wechat_assistant_binding'
+    | 'wechat_oa_binding'
+    | null;
 }
 
 export interface InviteRewardRule {

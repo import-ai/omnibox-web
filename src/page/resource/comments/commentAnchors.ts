@@ -11,6 +11,7 @@ import {
   isImageCommentQuote,
   parseImageCommentQuote,
 } from './commentQuote';
+import { isInlineCommentThread } from './documentCommentThreads';
 import { addImageCommentMark, getImageCommentRange } from './imageCommentMarks';
 
 export type ResourceCommentEditor = OmniboxEditorCommentSelection['editor'];
@@ -50,6 +51,7 @@ export function restoreResourceCommentAnchors(
   threads: ResourceCommentThread[]
 ) {
   for (const thread of threads) {
+    if (!isInlineCommentThread(thread)) continue;
     // Image comments can be marked orphaned after their in-memory anchor is
     // cleared. Put them back when the image is still in the document.
     if (
@@ -64,6 +66,7 @@ export function restoreResourceCommentAnchors(
       to: thread.anchor.to,
     };
     if (findResourceCommentRange(editor, thread.id)) {
+      refreshCommentAnchorLabels(editor, thread);
       editor.commands.setResourceCommentResolved?.(thread.id, thread.resolved);
       continue;
     }
@@ -105,14 +108,57 @@ export function restoreResourceCommentAnchors(
   }
 }
 
+function refreshCommentAnchorLabels(
+  editor: ResourceCommentEditor,
+  thread: ResourceCommentThread
+) {
+  const attrs = {
+    label: getCommentAuthorLabel(thread),
+    commentCount: Math.max(1, thread.comments.length),
+    secondaryLabel: getCommentSecondaryLabel(thread),
+    labels: getCommentLabels(thread),
+  };
+  const tr = editor.state.tr;
+  let changed = false;
+  editor.state.doc.descendants((node, pos) => {
+    if (!node.isText) return;
+    for (const mark of node.marks) {
+      if (
+        mark.type.name !== 'resourceComment' ||
+        mark.attrs.threadId !== thread.id
+      )
+        continue;
+      if (
+        Object.entries(attrs).every(([key, value]) => mark.attrs[key] === value)
+      )
+        continue;
+      tr.removeMark(pos, pos + node.nodeSize, mark);
+      tr.addMark(
+        pos,
+        pos + node.nodeSize,
+        mark.type.create({ ...mark.attrs, ...attrs })
+      );
+      changed = true;
+    }
+  });
+  if (changed) editor.view.dispatch(tr.setMeta('addToHistory', false));
+}
+
 function getCommentAuthorLabel(thread: ResourceCommentThread) {
   const author =
-    thread.creator.username || thread.comments[0]?.author.username || '?';
+    thread.creator.display_name ||
+    thread.creator.username ||
+    thread.comments[0]?.author.display_name ||
+    thread.comments[0]?.author.username ||
+    '?';
   return Array.from(author.trim())[0]?.toLocaleUpperCase() || '?';
 }
 
 function getCommentSecondaryLabel(thread: ResourceCommentThread) {
-  const author = thread.comments[1]?.author.username || '';
+  const author =
+    thread.comments[1]?.author.display_name ||
+    thread.comments[1]?.author.username ||
+    '';
   return Array.from(author.trim())[0]?.toLocaleUpperCase() || '';
 }
 
@@ -121,7 +167,9 @@ function getCommentLabels(thread: ResourceCommentThread) {
     .map(
       comment =>
         Array.from(
-          comment.author.username?.trim() || '?'
+          comment.author.display_name?.trim() ||
+            comment.author.username?.trim() ||
+            '?'
         )[0]?.toLocaleUpperCase() || '?'
     )
     .join('|');
@@ -135,6 +183,7 @@ export function collectResourceCommentAnchors(
   const orphanedThreadIds: string[] = [];
 
   for (const thread of threads) {
+    if (!isInlineCommentThread(thread)) continue;
     if (thread.anchor.status !== 'active') {
       continue;
     }

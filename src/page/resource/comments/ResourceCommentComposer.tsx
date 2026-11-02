@@ -1,21 +1,13 @@
-import { Image, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 
-import {
-  AutosizeTextarea,
-  type AutosizeTextAreaRef,
-} from '@/components/autosize-textarea';
+import { type AutosizeTextAreaRef } from '@/components/autosize-textarea';
 import { Button } from '@/components/Button';
 
-import { CommentMentionField } from './CommentMentionField';
-import { CommentMentionMenu } from './CommentMentionMenu';
 import { imageCommentLabel } from './commentQuote';
-import { pasteCommentImage } from './pasteCommentImage';
-import { ResourceCommentDraftImage } from './ResourceCommentDraftImage';
+import { ResourceCommentInput } from './ResourceCommentInput';
+import { useCommentDraft } from './useCommentDraft';
 import { useCommentDraftPosition } from './useCommentDraftPosition';
-import { useCommentMentionInput } from './useCommentMentionInput';
 import type { ResourceCommentsController } from './useResourceComments';
 
 interface ResourceCommentComposerProps {
@@ -29,10 +21,6 @@ export function ResourceCommentComposer({
 }: ResourceCommentComposerProps) {
   const { t } = useTranslation();
   const selection = controller.canComment ? controller.pendingSelection : null;
-  const [content, setContent] = useState('');
-  const mention = useCommentMentionInput(content, setContent);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [attachmentId, setAttachmentId] = useState<string | null>(null);
   const [isClosing, setIsClosing] = useState(false);
   const surfaceRef = useRef<HTMLElement>(null);
   const inputRef = useRef<AutosizeTextAreaRef>(null);
@@ -40,28 +28,23 @@ export function ResourceCommentComposer({
     selection,
     surfaceRef,
   });
-  const previewUrlRef = useRef<string | null>(null);
-  const uploadRequestRef = useRef(0);
   const closeTimerRef = useRef<number | null>(null);
   const previousSelectionRef = useRef(selection);
   const selectionKey = selection ? `${selection.from}:${selection.to}` : null;
-  const uploading = !!imagePreview && !attachmentId;
-  const hasDraft = !!content.trim() || !!attachmentId;
-
-  const clearImage = useCallback(() => {
-    uploadRequestRef.current += 1;
-    if (previewUrlRef.current) {
-      URL.revokeObjectURL(previewUrlRef.current);
-      previewUrlRef.current = null;
-    }
-    setImagePreview(null);
-    setAttachmentId(null);
-  }, []);
-
-  useEffect(() => {
-    setContent('');
-    clearImage();
-  }, [clearImage, selectionKey]);
+  const {
+    content,
+    setContent,
+    imagePreview,
+    attachmentId,
+    uploading,
+    hasDraft,
+    clearImage,
+    uploadImage,
+  } = useCommentDraft(
+    selectionKey,
+    controller.uploadCommentImage,
+    controller.submitting
+  );
 
   useEffect(() => {
     if (selection && selection !== previousSelectionRef.current) {
@@ -76,12 +59,8 @@ export function ResourceCommentComposer({
 
   useEffect(() => {
     return () => {
-      uploadRequestRef.current += 1;
       if (closeTimerRef.current !== null) {
         window.clearTimeout(closeTimerRef.current);
-      }
-      if (previewUrlRef.current) {
-        URL.revokeObjectURL(previewUrlRef.current);
       }
     };
   }, []);
@@ -135,30 +114,6 @@ export function ResourceCommentComposer({
     };
   }, [cancel, hasDraft, selection, uploading]);
 
-  const uploadImage = (file: File) => {
-    if (controller.submitting || !file.type.startsWith('image/')) {
-      return;
-    }
-    clearImage();
-    const url = URL.createObjectURL(file);
-    previewUrlRef.current = url;
-    setImagePreview(url);
-    const requestId = ++uploadRequestRef.current;
-    controller
-      .uploadCommentImage(file)
-      .then(uploaded => {
-        if (requestId === uploadRequestRef.current) {
-          setAttachmentId(uploaded.id);
-        }
-      })
-      .catch(() => {
-        if (requestId === uploadRequestRef.current) {
-          clearImage();
-          toast.error(t('upload.failed'));
-        }
-      });
-  };
-
   if (!selection) {
     return null;
   }
@@ -201,84 +156,19 @@ export function ResourceCommentComposer({
             t('resource_comments.image_quote')
           )}
         </q>
-        <div
-          className="omnibox-comment-composer__input"
-          data-has-preview={imagePreview ? '' : undefined}
-        >
-          <CommentMentionField
-            display={mention.displayValue}
-            atoms={mention.atoms}
-          >
-            <AutosizeTextarea
-              ref={inputRef}
-              className="border-line"
-              minHeight={0}
-              maxHeight={160}
-              maxLength={10000}
-              placeholder={t('resource_comments.write_comment')}
-              rows={1}
-              value={mention.displayValue}
-              aria-busy={uploading}
-              {...mention.inputProps}
-              onPaste={event => pasteCommentImage(event, uploadImage)}
-              onKeyDown={event => {
-                if (mention.onKeyDown(event)) {
-                  return;
-                }
-                if (event.key !== 'Enter' || event.nativeEvent.isComposing) {
-                  return;
-                }
-                if (event.shiftKey) {
-                  return;
-                }
-                event.preventDefault();
-                if (event.repeat) {
-                  return;
-                }
-                submit().catch(() => undefined);
-              }}
-            />
-          </CommentMentionField>
-          <CommentMentionMenu spec={mention.menu} />
-          {imagePreview ? (
-            <div className="omnibox-comment-composer__preview">
-              <ResourceCommentDraftImage
-                key={imagePreview}
-                src={imagePreview}
-              />
-              <button
-                type="button"
-                className="omnibox-comment-image-remove"
-                aria-label={t('resource_comments.remove_image')}
-                title={t('resource_comments.remove_image')}
-                onClick={clearImage}
-              >
-                <X aria-hidden="true" strokeWidth={2} />
-              </button>
-            </div>
-          ) : null}
-          <label
-            className="omnibox-comment-composer__attach"
-            aria-label={t('resource_comments.attach_image')}
-            title={t('resource_comments.attach_image')}
-          >
-            <input
-              type="file"
-              accept="image/*"
-              className="sr-only"
-              disabled={controller.submitting}
-              onChange={event => {
-                const file = event.target.files?.[0];
-                event.target.value = '';
-                if (!file) {
-                  return;
-                }
-                uploadImage(file);
-              }}
-            />
-            <Image aria-hidden="true" className="size-4" strokeWidth={1.5} />
-          </label>
-        </div>
+        <ResourceCommentInput
+          draft={{
+            content,
+            setContent,
+            imagePreview,
+            uploading,
+            clearImage,
+            uploadImage,
+          }}
+          inputRef={inputRef}
+          disabled={controller.submitting}
+          onSubmit={submit}
+        />
         {controller.createConflict ? (
           <p className="omnibox-comment-composer__error" role="alert">
             {t('resource_comments.content_conflict')}

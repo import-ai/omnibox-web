@@ -68,6 +68,7 @@ const rssFolder: TreeNode = {
 const handleAddAllToChat = jest.fn();
 const handleAddToChat = jest.fn();
 const handleCreateFolderWithDialog = jest.fn();
+const handleCreateLinkWithDialog = jest.fn();
 
 const actions = {
   get node() {
@@ -76,6 +77,7 @@ const actions = {
   handleAddAllToChat,
   handleAddToChat,
   handleCreateFolderWithDialog,
+  handleCreateLinkWithDialog,
 } as unknown as UseNodeActionsReturn;
 
 const folder: TreeNode = {
@@ -124,6 +126,35 @@ describe('useNodeMenu', () => {
     const createFolder = items.find(item => item.key === 'create_folder');
     (createFolder as { onClick?: () => void }).onClick?.();
     expect(handleCreateFolderWithDialog).toHaveBeenCalled();
+  });
+
+  it('places add link after upload file on ordinary resources', async () => {
+    node = { ...folder };
+    storeNodes = { [folder.id]: folder };
+
+    await act(async () => root.render(<Probe />));
+
+    const keys = items.map(item => item.key);
+    expect(keys.indexOf('add_link')).toBe(keys.indexOf('upload_file') + 1);
+
+    const addLink = items.find(item => item.key === 'add_link');
+    (addLink as { onClick?: () => void }).onClick?.();
+    expect(handleCreateLinkWithDialog).toHaveBeenCalled();
+  });
+
+  it('hides add link on rss and smart folders', async () => {
+    await act(async () => root.render(<Probe />));
+    expect(items.map(item => item.key)).not.toContain('add_link');
+
+    node = {
+      ...folder,
+      id: 'smart-folder',
+      resourceType: 'smart_folder',
+    };
+    storeNodes = { [node.id]: node };
+
+    await act(async () => root.render(<Probe />));
+    expect(items.map(item => item.key)).not.toContain('add_link');
   });
 
   it('offers an rss folder as chat context, all articles at once', async () => {

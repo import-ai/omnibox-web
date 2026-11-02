@@ -118,3 +118,37 @@ describe('createStreamTransport', () => {
     expect(init.body).toBe('{"conversation_id":"conv"}');
   });
 });
+
+describe('stream cancellation', () => {
+  beforeEach(() => jest.clearAllMocks());
+  afterEach(() => jest.restoreAllMocks());
+  it('rejects HTTP failure and can retry', async () => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: { getItem: () => '' },
+    });
+    const fetchMock = jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce({ ok: false, status: 500 } as Response)
+      .mockResolvedValueOnce({ ok: true } as Response);
+    const transport = createStreamTransport(
+      '/ask',
+      { conversation_id: 'conversation' },
+      async () => {},
+      '/cancel'
+    );
+    await expect(transport.cancel()).rejects.toThrow('500');
+    await expect(transport.cancel()).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+  it('rejects network failure', async () => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: { getItem: () => '' },
+    });
+    jest.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+    await expect(
+      createStreamTransport('/ask', {}, async () => {}, '/cancel').cancel()
+    ).rejects.toThrow('offline');
+  });
+});

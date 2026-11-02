@@ -4,6 +4,8 @@ import { act, type ReactNode } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { TooltipProvider } from '@/components/tooltip';
+
 import { WorkspaceResourcePicker } from './WorkspaceResourcePicker';
 
 (
@@ -77,6 +79,8 @@ describe('WorkspaceResourcePicker', () => {
     fetchChildren.mockResolvedValue([]);
     fetchSmartFolderChildren.mockReset();
     fetchSmartFolderChildren.mockResolvedValue([]);
+    searchResources.mockReset();
+    searchResources.mockResolvedValue([]);
     fetchSortedWorkspaceRootResources.mockReset();
     fetchSortedWorkspaceRootResources.mockResolvedValue({
       private: {
@@ -105,6 +109,7 @@ describe('WorkspaceResourcePicker', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+    jest.useRealTimers();
   });
 
   const rowFor = (name: string) =>
@@ -170,6 +175,111 @@ describe('WorkspaceResourcePicker', () => {
 
     expect(fetchChildren).toHaveBeenCalled();
     expect(rowFor('An article')).toBeDefined();
+  });
+
+  it('marks the resource already chosen as the save location', async () => {
+    Element.prototype.scrollIntoView = jest.fn();
+    await act(async () => {
+      root.render(
+        (
+          <TooltipProvider>
+            <WorkspaceResourcePicker
+              namespaceId="namespace-id"
+              selectedResourceId="private-root"
+              selectedResourcePath={[{ id: 'private-root', name: 'private' }]}
+              onSelect={onSelect}
+            />
+          </TooltipProvider>
+        ) as ReactNode
+      );
+    });
+
+    const selected = container.querySelector('button[aria-pressed="true"]');
+    expect(selected?.textContent).toContain('private');
+    expect(rowFor(rssFolder.name)?.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('greys out rss and smart folders when choosing where to save a link', async () => {
+    await act(async () => {
+      root.render(
+        (
+          <TooltipProvider>
+            <WorkspaceResourcePicker
+              namespaceId="namespace-id"
+              linkDestination
+              onSelect={onSelect}
+            />
+          </TooltipProvider>
+        ) as ReactNode
+      );
+    });
+
+    for (const folder of [rssFolder, smartFolder]) {
+      const row = rowFor(folder.name);
+      expect(row).toBeDefined();
+      expect(row!.disabled).toBe(true);
+
+      await act(async () => {
+        row!.click();
+      });
+    }
+
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(expandFor(rssFolder.name)).toBeNull();
+    expect(expandFor(smartFolder.name)).toBeNull();
+  });
+
+  it('greys out searched rss items and read-only hits when choosing a link destination', async () => {
+    jest.useFakeTimers();
+    searchResources.mockResolvedValue([
+      {
+        id: 'rss-item-id',
+        name: 'An article',
+        parent_id: rssFolder.id,
+        resource_type: 'rss_item',
+      },
+      {
+        id: 'readonly-id',
+        name: 'Locked doc',
+        parent_id: 'private-root',
+        resource_type: 'doc',
+        read_only: true,
+      },
+    ]);
+
+    await act(async () => {
+      root.render(
+        (
+          <TooltipProvider>
+            <WorkspaceResourcePicker
+              namespaceId="namespace-id"
+              linkDestination
+              onSelect={onSelect}
+            />
+          </TooltipProvider>
+        ) as ReactNode
+      );
+    });
+
+    const input = container.querySelector('input')!;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value'
+      )!.set!.call(input, 'article');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(rowFor('An article')!.disabled).toBe(true);
+    expect(rowFor('Locked doc')!.disabled).toBe(true);
+
+    await act(async () => {
+      rowFor('An article')!.click();
+      rowFor('Locked doc')!.click();
+    });
+    expect(onSelect).not.toHaveBeenCalled();
+    jest.useRealTimers();
   });
 
   it('shows folder results from a smart folder without an expand button', async () => {

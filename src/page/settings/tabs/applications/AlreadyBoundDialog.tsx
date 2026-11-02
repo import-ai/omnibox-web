@@ -37,36 +37,41 @@ export function AlreadyBoundDialog({
         <DialogHeader>
           <DialogTitle>{t('applications.already_bound.title')}</DialogTitle>
           <DialogDescription>
-            {t('applications.already_bound.description', {
-              platform_name: platformName,
-            })}
+            {t(
+              qrCodeUrl
+                ? 'applications.already_bound.description'
+                : 'applications.already_bound.description_no_qr',
+              { platform_name: platformName }
+            )}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col items-center space-y-4 py-4">
-          {qrCodeDataUrl ? (
-            <div className="relative">
-              <img
-                src={qrCodeDataUrl}
-                alt="Bot QR Code"
-                className="size-48 rounded-lg border border-border"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
+        {qrCodeUrl ? (
+          <div className="flex flex-col items-center space-y-4 py-4">
+            {qrCodeDataUrl ? (
+              <div className="relative">
                 <img
-                  src={logoUrl}
-                  alt="OmniBox Logo"
-                  className="size-12 rounded-lg bg-white p-1 shadow-xs"
+                  src={qrCodeDataUrl}
+                  alt="Bot QR Code"
+                  className="size-48 rounded-lg border border-border"
                 />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <img
+                    src={logoUrl}
+                    alt="OmniBox Logo"
+                    className="size-12 rounded-lg bg-white p-1 shadow-xs"
+                  />
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex size-48 items-center justify-center rounded-lg border border-border">
-              <div className="text-center text-muted-foreground">
-                {t('loading')}
+            ) : (
+              <div className="flex size-48 items-center justify-center rounded-lg border border-border">
+                <div className="text-center text-muted-foreground">
+                  {t('loading')}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

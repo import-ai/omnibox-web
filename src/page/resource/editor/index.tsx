@@ -2,6 +2,7 @@ import '@import-ai/omnibox-editor/style.css';
 import '../resourceEditor.css';
 
 import {
+  contentToTiptapJson,
   OmniboxEditor,
   type OmniboxEditorCommentSelection,
   type TiptapJsonContent,
@@ -36,6 +37,7 @@ import {
   type EditorUpdatePayload,
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
+import { normalizeResourceEditorContent } from '@/page/resource/editor/normalizeResourceEditorContent';
 import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
@@ -120,8 +122,20 @@ export default function Editor(props: IEditorProps) {
   const loc = useLocation();
   const { app, theme } = useTheme();
   const [title, onTitle] = useState('');
-  const { mentionUsers, membersById, namesById, ready } =
-    useMentionUsers(namespaceId);
+  const {
+    mentionUsers,
+    membersById,
+    namesById: activeNames,
+    ready,
+  } = useMentionUsers(namespaceId);
+  const namesById = useMemo(
+    () => ({
+      ...resource.mention_display_names,
+      ...comments.mentionDisplayNames,
+      ...activeNames,
+    }),
+    [resource.mention_display_names, comments.mentionDisplayNames, activeNames]
+  );
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
   const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
   const applyingMentionLabelsRef = useRef(false);
@@ -163,8 +177,13 @@ export default function Editor(props: IEditorProps) {
     markdownRef.current = resolvedContent;
   }
   const editorContent = useMemo(
-    () => (isFolder || !ready ? null : resolvedContent),
-    [isFolder, ready, resolvedContent]
+    () =>
+      isFolder || !ready
+        ? null
+        : normalizeResourceEditorContent(
+            contentToTiptapJson(resolvedContent, { linkBase })
+          ),
+    [isFolder, ready, resolvedContent, linkBase]
   );
   const { commentsConfig, getAnchorSync, registerEditor } = comments;
 
@@ -225,6 +244,7 @@ export default function Editor(props: IEditorProps) {
     }
     liveMentionLabelsRef.current = true;
     applyingMentionLabelsRef.current = true;
+    tr.setMeta('addToHistory', false);
     editor.view.dispatch(tr);
     applyingMentionLabelsRef.current = false;
   }, [namesById, ready]);
@@ -374,7 +394,7 @@ export default function Editor(props: IEditorProps) {
 
   return (
     <div
-      className={`resource-editable-page relative pb-[30vh] ${
+      className={`resource-editable-page relative ${
         wide ? 'resource-editable-page--wide' : ''
       }`}
       style={

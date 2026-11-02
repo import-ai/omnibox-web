@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { SpaceType } from '@/interface';
+import type { PathItem, SpaceType } from '@/interface';
 import { useSidebarStore } from '@/page/sidebar/store';
 import {
   fetchChildren,
@@ -10,7 +10,9 @@ import {
 } from '@/service/resource';
 import { rssTreeChildrenParams } from '@/service/resourceSort';
 
+import { withLinkDestinationAvailability } from './linkDestination';
 import { ResourcePicker } from './ResourcePicker';
+import { getInitialRootExpansionIds } from './resourcePickerState';
 import type { ResourcePickerResource } from './resourcePickerTypes';
 import {
   fetchSortedWorkspaceRootResources,
@@ -41,9 +43,16 @@ function workspaceRootsToPickerResources(
 export function WorkspaceResourcePicker({
   namespaceId,
   onSelect,
+  linkDestination = false,
+  selectedResourceId,
+  selectedResourcePath,
 }: {
   namespaceId: string;
   onSelect: (resource: ResourcePickerResource) => void;
+  /** Grey out folders that cannot store a newly saved link. */
+  linkDestination?: boolean;
+  selectedResourceId?: string;
+  selectedResourcePath?: PathItem[];
 }) {
   const { t } = useTranslation();
   const [loadFailed, setLoadFailed] = useState(false);
@@ -59,7 +68,13 @@ export function WorkspaceResourcePicker({
     setLoading(true);
     fetchSortedWorkspaceRootResources(namespaceId, resourceSorts)
       .then(response => {
-        if (!cancelled) setRoots(workspaceRootsToPickerResources(response, t));
+        if (cancelled) return;
+        const roots = workspaceRootsToPickerResources(response, t);
+        setRoots(
+          linkDestination
+            ? roots.map(root => withLinkDestinationAvailability(root, t))
+            : roots
+        );
       })
       .catch(error => {
         if (!cancelled) {
@@ -74,8 +89,13 @@ export function WorkspaceResourcePicker({
     return () => {
       cancelled = true;
     };
-  }, [namespaceId, resourceSorts, t]);
+  }, [linkDestination, namespaceId, resourceSorts, t]);
 
+  const present = useCallback(
+    (resource: ResourcePickerResource) =>
+      linkDestination ? withLinkDestinationAvailability(resource, t) : resource,
+    [linkDestination, t]
+  );
   const loadChildren = useCallback(
     (resource: ResourcePickerResource) => {
       const spaceType = resource.picker_space_type ?? 'private';
@@ -89,14 +109,40 @@ export function WorkspaceResourcePicker({
               { params: rssTreeChildrenParams(resource.resource_type) }
             )
       ).then(resources =>
-        resources.map(child => setWorkspacePickerSpace(child, spaceType))
+        resources.map(child =>
+          present(setWorkspacePickerSpace(child, spaceType))
+        )
       );
     },
-    [namespaceId, resourceSorts]
+    [namespaceId, present, resourceSorts]
   );
   const searchResources = useCallback(
-    (query: string) => searchWorkspaceResources(namespaceId, query),
-    [namespaceId]
+    (query: string) =>
+      searchWorkspaceResources(namespaceId, query).then(resources =>
+        resources.map(present)
+      ),
+    [namespaceId, present]
+  );
+
+  const defaultExpandedRootIds = useMemo(
+    () =>
+      selectedResourceId
+        ? getInitialRootExpansionIds(
+            roots,
+            selectedResourceId,
+            selectedResourcePath
+          )
+        : undefined,
+    [roots, selectedResourceId, selectedResourcePath]
+  );
+  const defaultExpandedIds = useMemo(
+    () =>
+      selectedResourceId
+        ? (selectedResourcePath ?? [])
+            .map(item => item.id)
+            .filter(id => id !== selectedResourceId)
+        : undefined,
+    [selectedResourceId, selectedResourcePath]
   );
 
   return (
@@ -107,6 +153,9 @@ export function WorkspaceResourcePicker({
       roots={roots}
       loadChildren={loadChildren}
       searchResources={searchResources}
+      selectedResourceId={selectedResourceId}
+      defaultExpandedIds={defaultExpandedIds}
+      defaultExpandedRootIds={defaultExpandedRootIds}
       onSelect={onSelect}
     />
   );

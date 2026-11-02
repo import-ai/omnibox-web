@@ -22,6 +22,7 @@ const move = jest.fn();
 const rename = jest.fn();
 const patch = jest.fn();
 const openCreateFolderDialog = jest.fn();
+const openCreateLinkDialog = jest.fn();
 let node: TreeNode;
 
 jest.mock('react-i18next', () => ({
@@ -73,6 +74,7 @@ jest.mock('@/page/sidebar/store', () => ({
       move,
       nodes: { [node.id]: node },
       openCreateFolderDialog,
+      openCreateLinkDialog,
       patch,
       rename,
     }),
@@ -220,6 +222,9 @@ describe('useNodeActions', () => {
     current.handleCreateFolderWithDialog();
     expect(openCreateFolderDialog).toHaveBeenCalledWith('folder');
     expect(locateSidebarResource).toHaveBeenCalledTimes(1);
+
+    current.handleCreateLinkWithDialog();
+    expect(openCreateLinkDialog).toHaveBeenCalledWith('folder');
 
     jest.mocked(navigateToResource).mockClear();
     await act(async () => current.handleMoveFinished(['folder'], 'target'));

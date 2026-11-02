@@ -1,5 +1,5 @@
 import type { NotificationDetail, NotificationItem } from './types';
-import { mergeNotificationDetail } from './utils';
+import { isCampaignRewardNotification, mergeNotificationDetail } from './utils';
 
 describe('mergeNotificationDetail', () => {
   it('keeps the system type from the selected list item', () => {
@@ -13,5 +13,34 @@ describe('mergeNotificationDetail', () => {
     expect(mergeNotificationDetail(detail, item).notification_type).toBe(
       'system'
     );
+  });
+});
+
+describe('isCampaignRewardNotification', () => {
+  it('does not change the detail renderer for unrelated activity notices', () => {
+    expect(
+      isCampaignRewardNotification({
+        notification_type: 'activity',
+        tags: ['marketing'],
+      })
+    ).toBe(false);
+    expect(
+      isCampaignRewardNotification({ notification_type: 'activity', tags: [] })
+    ).toBe(false);
+  });
+
+  it('treats an activity reward like a changelog detail', () => {
+    expect(
+      isCampaignRewardNotification({
+        notification_type: 'activity',
+        tags: ['activity_reward'],
+      })
+    ).toBe(true);
+    expect(
+      isCampaignRewardNotification({
+        notification_type: 'system',
+        tags: ['changelog'],
+      })
+    ).toBe(false);
   });
 });

@@ -1,5 +1,11 @@
 import { Image, Pencil, Trash, X } from 'lucide-react';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -26,12 +32,14 @@ export function ResourceCommentItem({
   threadResolved,
   controller,
   onEditingChange,
+  leadingActions,
 }: {
   comment: ResourceComment;
   threadId: string;
   threadResolved: boolean;
   controller: ResourceCommentsController;
   onEditingChange?: (editing: boolean) => void;
+  leadingActions?: ReactNode;
 }) {
   const { i18n, t } = useTranslation();
   const [editing, setEditing] = useState(false);
@@ -46,7 +54,10 @@ export function ResourceCommentItem({
     textAreaRef: editInputRef,
     triggerAutoSize: `${editing}:${content}:${editImages.length}`,
   });
-  const author = comment.author.username || t('resource_comments.deleted_user');
+  const author =
+    comment.author.display_name ||
+    comment.author.username ||
+    t('resource_comments.deleted_user');
 
   const canEdit = !threadResolved && controller.canEditComment(comment);
   const uploading = editImages.some(image => !image.id);
@@ -182,8 +193,9 @@ export function ResourceCommentItem({
               ) : null}
             </span>
           </div>
-          {canEdit || controller.canDeleteComment(comment) ? (
+          {leadingActions || canEdit || controller.canDeleteComment(comment) ? (
             <div className="omnibox-comment-message__meta">
+              {leadingActions}
               {canEdit && (
                 <Tooltip>
                   <TooltipTrigger asChild>
