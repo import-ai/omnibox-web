@@ -20,7 +20,22 @@ describe('establishServerSession', () => {
 
     expect(mockPost).toHaveBeenCalledWith('auth/session', undefined, {
       mute: true,
+      skipAuthRedirect: true,
+      signal: undefined,
     });
+  });
+
+  it('forwards the abort signal to the request', async () => {
+    mockPost.mockResolvedValue({ uid: 'user-1' });
+    const controller = new AbortController();
+
+    await establishServerSession(controller.signal);
+
+    expect(mockPost).toHaveBeenCalledWith(
+      'auth/session',
+      undefined,
+      expect.objectContaining({ signal: controller.signal })
+    );
   });
 
   it('propagates failures so callers can pick a fallback', async () => {

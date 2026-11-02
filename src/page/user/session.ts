@@ -12,9 +12,15 @@ interface SessionResponse {
  * Returns the user the session belongs to, which lets a client that lost its
  * local storage restore the signed-in state from the cookie alone.
  */
-export async function establishServerSession(): Promise<string> {
+export async function establishServerSession(
+  signal?: AbortSignal
+): Promise<string> {
   const { uid } = (await http.post('auth/session', undefined, {
     mute: true,
+    // Callers decide what to do when there is no session: public pages stay
+    // put, private pages route to the login screen themselves.
+    skipAuthRedirect: true,
+    signal,
   })) as SessionResponse;
   return uid;
 }
