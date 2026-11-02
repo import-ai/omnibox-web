@@ -1,27 +1,54 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Application } from '@/interface';
 import { http } from '@/lib/request';
+
+interface FetchApplicationsOptions {
+  showLoading?: boolean;
+}
 
 export default function useApplications(namespaceId: string) {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const requestSequenceRef = useRef(0);
+  const visibleRequestCountRef = useRef(0);
 
-  const fetchApplications = async () => {
-    if (!namespaceId) return;
+  const fetchApplications = async ({
+    showLoading = true,
+  }: FetchApplicationsOptions = {}) => {
+    const requestSequence = ++requestSequenceRef.current;
+    if (!namespaceId) {
+      if (showLoading) {
+        setLoading(false);
+      }
+      return;
+    }
+
+    if (showLoading) {
+      visibleRequestCountRef.current += 1;
+      setLoading(true);
+    }
 
     try {
-      setLoading(true);
       setError(null);
       const response = await http.get(
         `/namespaces/${namespaceId}/applications`
       );
-      setApplications(response);
+      if (requestSequence === requestSequenceRef.current) {
+        setApplications(response);
+      }
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch applications');
+      if (requestSequence === requestSequenceRef.current) {
+        setError(err.message || 'Failed to fetch applications');
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) {
+        visibleRequestCountRef.current -= 1;
+        if (visibleRequestCountRef.current === 0) {
+          setLoading(false);
+        }
+      }
     }
   };
 
@@ -31,16 +58,38 @@ export default function useApplications(namespaceId: string) {
       undefined,
       { mute: true }
     );
-    await fetchApplications(); // Refresh the list
+    setApplications(current => {
+      const index = current.findIndex(
+        application => application.app_id === response.app_id
+      );
+      if (index === -1) {
+        return [...current, response];
+      }
+      return current.map((application, currentIndex) =>
+        currentIndex === index ? response : application
+      );
+    });
+    void fetchApplications({ showLoading: false });
     return response;
   };
 
-  const unbindApplication = async (applicationId: string): Promise<void> => {
+  const unbindApplication = async (
+    applicationId: string,
+    { showLoading = true }: FetchApplicationsOptions = {}
+  ): Promise<void> => {
     await http.delete(
       `/namespaces/${namespaceId}/applications/${applicationId}`,
       { mute: true }
     );
-    await fetchApplications(); // Refresh the list
+    setApplications(current =>
+      current.filter(application => application.id !== applicationId)
+    );
+    const refresh = fetchApplications({ showLoading });
+    if (showLoading) {
+      await refresh;
+    } else {
+      void refresh;
+    }
   };
 
   const checkApplicationStatus = async (
