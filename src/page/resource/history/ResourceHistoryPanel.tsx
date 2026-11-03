@@ -42,6 +42,17 @@ function formatRevisionDate(value: string, language: string) {
   ).format(new Date(value));
 }
 
+function sameRevisionAuthor(
+  left: ResourceRevisionSummary['author'],
+  right: ResourceRevisionSummary['author']
+) {
+  return (
+    left?.id === right?.id &&
+    left?.username === right?.username &&
+    left?.display_name === right?.display_name
+  );
+}
+
 export default function ResourceHistoryPanel({
   namespaceId,
   resourceId,
@@ -63,6 +74,7 @@ export default function ResourceHistoryPanel({
   const [reloadKey, setReloadKey] = useState(0);
   const detailRequest = useRef(0);
   const revisionsRef = useRef<ResourceRevisionSummary[]>([]);
+  const revisionsVersionRef = useRef(0);
 
   useEffect(() => {
     const key = `${namespaceId}:${resourceId}`;
@@ -107,6 +119,7 @@ export default function ResourceHistoryPanel({
         .then(items => {
           if (!active || id !== requestId) return;
           revisionsRef.current = items;
+          revisionsVersionRef.current += 1;
           setRevisions(items);
           syncRevisionAuthors(namespaceId, resourceId, items);
           setFailed(false);
@@ -158,6 +171,10 @@ export default function ResourceHistoryPanel({
 
   const chooseRevision = async (revisionId: string) => {
     const requestId = ++detailRequest.current;
+    const revisionsVersionAtRequest = revisionsVersionRef.current;
+    const revisionAtRequest = revisionsRef.current.find(
+      item => item.id === revisionId
+    );
     const pathname = window.location.pathname;
     if (revisionId === 'current') {
       clearRevision(namespaceId, resourceId);
@@ -177,13 +194,17 @@ export default function ResourceHistoryPanel({
         pathname !== window.location.pathname
       )
         return;
-      const latestRevision = revisionsRef.current.find(
-        item => item.id === revision.id
-      );
+      const latestRevision =
+        revisionsVersionRef.current > revisionsVersionAtRequest
+          ? revisionsRef.current.find(item => item.id === revision.id)
+          : undefined;
+      const latestListAuthorChanged =
+        latestRevision &&
+        !sameRevisionAuthor(latestRevision.author, revisionAtRequest?.author);
       selectRevision(
         namespaceId,
         resourceId,
-        latestRevision
+        latestRevision && latestListAuthorChanged
           ? { ...revision, author: latestRevision.author }
           : revision
       );
