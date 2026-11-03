@@ -5,6 +5,7 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
+import { removeGlobalCredential } from '@/page/user/util';
 
 import Layout from './index';
 
@@ -85,7 +86,8 @@ jest.mock('@/page/sidebar/store', () => ({
   },
 }));
 jest.mock('@/page/user/session', () => ({
-  establishServerSession: () => mockEstablishServerSession(),
+  establishServerSession: (signal?: AbortSignal) =>
+    mockEstablishServerSession(signal),
 }));
 
 (
@@ -99,6 +101,13 @@ describe('Layout authentication storage changes', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+    document.cookie
+      .split(';')
+      .map(cookie => cookie.split('=')[0].trim())
+      .filter(Boolean)
+      .forEach(name => {
+        document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+      });
     localStorage.setItem('uid', 'user-a');
     mockLocation = defaultLocation;
     mockParams = { namespace_id: 'namespace-a' };
@@ -324,6 +333,58 @@ describe('Layout authentication storage changes', () => {
         resolveSession('user-a');
       });
 
+      expect(localStorage.getItem('uid')).toBeNull();
+    });
+
+    it('cancels the in-flight session refresh when this tab signs out', async () => {
+      localStorage.removeItem('uid');
+      localStorage.removeItem('token');
+      let sessionSignal: AbortSignal | undefined;
+      mockEstablishServerSession.mockImplementation((signal?: AbortSignal) => {
+        sessionSignal = signal;
+        return new Promise<string>(() => undefined);
+      });
+
+      await act(async () => root.render(<Layout />));
+      expect(sessionSignal?.aborted).toBe(false);
+
+      await act(async () => {
+        removeGlobalCredential();
+      });
+
+      expect(sessionSignal?.aborted).toBe(true);
+      expect(localStorage.getItem('uid')).toBeNull();
+    });
+
+    it('keeps the cookie cleared when a cancelled refresh resolves late', async () => {
+      localStorage.removeItem('uid');
+      localStorage.removeItem('token');
+      document.cookie = 'token=stale; path=/';
+      let deliverResponse: () => void = () => undefined;
+      mockEstablishServerSession.mockImplementation((signal?: AbortSignal) => {
+        return new Promise<string>((resolve, reject) => {
+          deliverResponse = () => {
+            // A browser drops the whole response, including its Set-Cookie
+            // header, once the request has been aborted.
+            if (signal?.aborted) {
+              reject(new Error('canceled'));
+              return;
+            }
+            document.cookie = 'token=refreshed; path=/';
+            resolve('user-a');
+          };
+        });
+      });
+
+      await act(async () => root.render(<Layout />));
+      await act(async () => {
+        removeGlobalCredential();
+      });
+      await act(async () => {
+        deliverResponse();
+      });
+
+      expect(document.cookie).not.toMatch(/token=(stale|refreshed)/);
       expect(localStorage.getItem('uid')).toBeNull();
     });
   });

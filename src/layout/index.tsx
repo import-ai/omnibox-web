@@ -26,7 +26,10 @@ import {
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { establishServerSession } from '@/page/user/session';
-import { removeGlobalCredential } from '@/page/user/util';
+import {
+  CREDENTIAL_CHANGED_EVENT,
+  removeGlobalCredential,
+} from '@/page/user/util';
 
 import {
   getAuthChangeRedirectPath,
@@ -102,6 +105,29 @@ export default function Layout() {
   }, []);
 
   useEffect(() => {
+    // Signing out in this tab only fires the credential event: the browser
+    // never sends a `storage` event to the tab that changed local storage. A
+    // session refresh still in flight would reissue the cookie the logout just
+    // cleared, so any credential change has to cancel it.
+    const handleCredentialChange = () => {
+      authEpochRef.current += 1;
+      sessionAbortRef.current?.abort();
+      sessionAbortRef.current = null;
+      const storedUid = localStorage.getItem('uid');
+      if (storedUid !== uid) {
+        clearUserWorkspaceState();
+      }
+      setUid(storedUid);
+      const redirectPath = getAuthChangeRedirectPath(
+        window.location.pathname,
+        uid,
+        storedUid
+      );
+      if (redirectPath) {
+        navigate(redirectPath, { replace: true });
+      }
+    };
+
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'i18nextLng') {
         const lang = event.newValue;
@@ -120,29 +146,17 @@ export default function Layout() {
           // Ignore malformed preferences from other tabs.
         }
       } else if (isAuthStorageKey(event.key)) {
-        // Signing out or switching accounts invalidates the session request
-        // that is still in flight for the previous credentials.
-        authEpochRef.current += 1;
-        sessionAbortRef.current?.abort();
-        sessionAbortRef.current = null;
-        const storedUid = localStorage.getItem('uid');
-        if (storedUid !== uid) {
-          clearUserWorkspaceState();
-        }
-        setUid(storedUid);
-        const redirectPath = getAuthChangeRedirectPath(
-          window.location.pathname,
-          uid,
-          storedUid
-        );
-        if (redirectPath) {
-          navigate(redirectPath, { replace: true });
-        }
+        handleCredentialChange();
       }
     };
     window.addEventListener('storage', handleStorageChange);
+    window.addEventListener(CREDENTIAL_CHANGED_EVENT, handleCredentialChange);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener(
+        CREDENTIAL_CHANGED_EVENT,
+        handleCredentialChange
+      );
     };
   }, [i18n, navigate, onToggleTheme, uid]);
 
