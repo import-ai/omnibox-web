@@ -1,6 +1,7 @@
 import { Check, ChevronDown, Hand, ShieldCheck, ShieldX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,24 +31,34 @@ export default function ApprovalModeSelect({
   const TriggerIcon = options.find(
     option => option.value === approvalMode
   )?.Icon;
+  const modeLabel = t(`chat.decision.mode.${approvalMode}`);
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            'inline-flex h-8 shrink-0 items-center gap-2 rounded-full px-2 text-xs font-normal md:pl-2 md:pr-1',
-            composerControlHoverClass
-          )}
-        >
-          {TriggerIcon && <TriggerIcon className="size-4" />}
-          <span className="hidden md:block">
-            {t(`chat.decision.mode.${approvalMode}`)}
-          </span>
-          <ChevronDown className="size-4" />
-        </button>
-      </DropdownMenuTrigger>
+      <Tooltip delayDuration={0}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label={modeLabel}
+              className={cn(
+                'inline-flex size-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-normal @min-[480px]/composer-toolbar:w-auto @min-[480px]/composer-toolbar:gap-2 @min-[480px]/composer-toolbar:pl-2 @min-[480px]/composer-toolbar:pr-1',
+                composerControlHoverClass
+              )}
+            >
+              {TriggerIcon && <TriggerIcon aria-hidden className="size-4" />}
+              <span className="hidden @min-[480px]/composer-toolbar:block">
+                {modeLabel}
+              </span>
+              <ChevronDown
+                aria-hidden
+                className="hidden size-4 @min-[480px]/composer-toolbar:block"
+              />
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="top">{modeLabel}</TooltipContent>
+      </Tooltip>
       <DropdownMenuContent
         side="top"
         align="start"

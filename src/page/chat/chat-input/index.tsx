@@ -415,7 +415,7 @@ export default function ChatArea(props: IProps) {
         }}
         disabled={disabled}
       />
-      <div className="flex items-center justify-between">
+      <div className="@container/composer-toolbar flex items-center justify-between">
         <fieldset
           disabled={isPreparingImages}
           className="flex min-w-0 items-center gap-2"
