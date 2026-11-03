@@ -31,7 +31,10 @@ export type QrCodeBindResult =
 export async function beginQrCodeBind(
   application: Application,
   bindApplication: (appId: string) => Promise<Application>,
-  unbindApplication: (applicationId: string) => Promise<void>,
+  unbindApplication: (
+    applicationId: string,
+    options?: { showLoading?: boolean }
+  ) => Promise<void>,
   now: number = Date.now()
 ): Promise<QrCodeBindResult> {
   if (application.api_key_id) {
@@ -46,7 +49,7 @@ export async function beginQrCodeBind(
     return { status: 'ready', qrcodeContent, application, resumed: true };
   }
   if (application.id) {
-    await unbindApplication(application.id);
+    await unbindApplication(application.id, { showLoading: false });
   }
   const response = await bindApplication(application.app_id);
   return {

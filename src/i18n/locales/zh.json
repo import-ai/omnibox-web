@@ -559,7 +559,7 @@
     "preferences": "外观",
     "namespace": "空间设置",
     "api_key": "API 密钥",
-    "applications": "应用管理",
+    "applications": "助手管理",
     "feature_management": "功能管理",
     "feature_previews": "新功能尝鲜",
     "account": "账号",
@@ -625,9 +625,9 @@
   },
   "applications": {
     "connection_description": "将 {{platform}} 中的助手连接到当前空间",
-    "title": "应用管理",
-    "description": "管理你的应用集成和绑定",
-    "empty": "暂无应用",
+    "title": "助手管理",
+    "description": "管理你的助手和绑定状态",
+    "empty": "暂无助手",
     "app_names": {
       "wechat_bot": "微信收藏助手",
       "qq_bot": "QQ 助手",
@@ -642,7 +642,7 @@
       "wechat_clawbot": "微信",
       "wechat_oa_bot": "微信"
     },
-    "unsupported_app": "不支持的应用类型：{{ app_id }}",
+    "unsupported_app": "不支持的助手类型：{{ app_id }}",
     "status": {
       "bound": "已绑定",
       "unbound": "未绑定",
@@ -656,8 +656,8 @@
     "bind": {
       "button": "绑定",
       "continue_button": "继续绑定",
-      "title": "绑定应用",
-      "description": "按照以下步骤连接你的应用",
+      "title": "绑定助手",
+      "description": "按照以下步骤连接你的助手",
       "step1": "第 1 步：添加 {{ platform_name }}",
       "step2": "第 2 步：发送代码给 {{ platform_name }}",
       "telegram_step1": "第 1 步：打开 Telegram 或扫描二维码",
@@ -670,7 +670,7 @@
       "initiated": "绑定流程已启动",
       "continue": "继续绑定流程",
       "error": "启动绑定失败",
-      "success": "应用绑定成功",
+      "success": "助手绑定成功",
       "cancel_button": "取消绑定",
       "cancel": {
         "confirm": {
@@ -689,11 +689,11 @@
     },
     "unbind": {
       "button": "解绑",
-      "success": "应用解绑成功",
-      "error": "应用解绑失败",
+      "success": "助手解绑成功",
+      "error": "助手解绑失败",
       "confirm": {
-        "title": "解绑应用",
-        "description": "确定要解绑 {{ name }} 吗？这将断开应用与空间的连接。",
+        "title": "解绑助手",
+        "description": "确定要解绑 {{ name }} 吗？这将断开助手与空间的连接。",
         "button": "确认解绑"
       }
     }
@@ -837,6 +837,9 @@
     "fail": "复制失败，请手动复制"
   },
   "chat": {
+    "stopping": "正在停止",
+    "tool_stopped": "已停止",
+    "stop_failed": "停止失败，请重试",
     "delivery": {
       "sending": "发送中",
       "send_failed": "发送失败",
@@ -1022,7 +1025,7 @@
         "save": "保存",
         "invalid_link": "请添加正确的链接",
         "self_link": "不能保存小黑 OmniBox 链接",
-        "wechat": "微信收藏助手",
+        "wechat": "微信助手",
         "wechat_tooltip": "在微信中和“小黑”聊天",
         "browser": "安装插件",
         "browser_tooltip": "网页正文一键剪藏"
@@ -1109,6 +1112,38 @@
       "retry": "重新加载历史消息",
       "loading_details": "正在加载详情…",
       "retry_details": "重新加载详情"
+    },
+    "errors": {
+      "unknown": "对话出现异常，未能确认处理结果。",
+      "request_failed": "对话请求失败，未能确认处理结果。",
+      "connection_interrupted": "网络连接异常，请检查网络后重试。",
+      "response_unreadable": "无法接收回复，请先检查任务结果。",
+      "timeout": "请求超时，请先检查任务结果。",
+      "unauthorized": "登录已失效，请重新登录。",
+      "forbidden": "你没有权限执行此操作。",
+      "not_found": "未找到对话或资源，请刷新后查看。",
+      "invalid_request": "请求无法处理，请检查输入后再试。",
+      "rate_limited": "请求过于频繁，请稍后再试。",
+      "service_unavailable": "服务出现异常，请先检查任务结果。",
+      "busy": "对话仍在生成回复，请稍候。",
+      "pending_decision": "请先处理待确认的工具操作。",
+      "decision_not_applied": "工具操作的确认尚未生效，请检查对话状态。",
+      "already_decided": "此工具操作已在其他位置处理，请刷新查看。",
+      "upload_failed": "上传失败，请检查文件后重试。",
+      "file_too_large": "文件过大，请选择较小的文件。",
+      "unsupported_file": "不支持此文件类型，请选择其他文件。",
+      "attachment_unavailable": "附件不可用或不属于当前对话。",
+      "storage_full": "空间存储容量不足，请清理文件或升级套餐。",
+      "credits_exhausted": "积分不足，请切换至 Agent 1.1 或购买积分。",
+      "namespace_not_found": "未找到当前空间，请刷新后重试。",
+      "private_root_unavailable": "无法访问个人空间，请刷新后重试。",
+      "tool_failed": "工具操作出现异常，请检查执行结果。",
+      "device_offline": "设备已离线或暂停，请检查设备状态。",
+      "device_revoked": "设备访问权限已撤销，请重新连接设备。",
+      "approval_expired": "确认已过期或操作不再等待确认，请刷新查看。",
+      "execution_changed": "执行参数已变化，请刷新后重新确认。",
+      "execution_unavailable": "未找到设备或执行记录。",
+      "share_unavailable": "分享不可用或未开启对话权限。"
     }
   },
   "date": {
@@ -1195,7 +1230,7 @@
       "update": "更新",
       "delete": "删除"
     },
-    "related_application": "关联应用",
+    "related_application": "关联助手",
     "show": "显示",
     "hide": "隐藏"
   },
@@ -1769,7 +1804,7 @@
   },
   "login_link": {
     "not_wechat": "请在微信中打开公众号「小黑 OmniBox」发给你的链接",
-    "not_bound": "当前微信还没有绑定 OmniBox，请先在 OmniBox 设置->应用管理绑定「微信 AI 对话助手」",
+    "not_bound": "当前微信还没有绑定 OmniBox，请先在 OmniBox 设置 → 助手管理绑定「微信 AI 对话助手」",
     "not_owner": "只有空间所有者可以开通",
     "too_frequent": "操作太频繁，请稍后再试",
     "failed": "打开失败，请回到公众号「小黑 OmniBox」重新点击链接",

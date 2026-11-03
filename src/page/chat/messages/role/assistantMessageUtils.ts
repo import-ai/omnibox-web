@@ -9,6 +9,7 @@ const terminalToolCallStatuses = new Set<string>([
   ToolCallStatus.SUCCESS,
   ToolCallStatus.FAILED,
   ToolCallStatus.REJECTED,
+  ToolCallStatus.STOPPED,
 ]);
 
 export function isTerminalToolCallStatus(
@@ -21,20 +22,63 @@ export function findToolMessageForToolCall(
   messages: MessageDetail[],
   toolCallId: string
 ) {
-  return messages.find(
+  return messages
+    .slice()
+    .reverse()
+    .find(
+      m =>
+        m.message.role === OpenAIMessageRole.TOOL &&
+        m.message.tool_call_id === toolCallId
+    );
+}
+
+export function isToolTurnStopped(
+  messages: MessageDetail[],
+  assistantId: string
+): boolean {
+  const index = messages.findIndex(m => m.id === assistantId);
+  if (index < 0) return false;
+  let start = index;
+  while (
+    start > 0 &&
+    (messages[start].message.role !== OpenAIMessageRole.USER ||
+      messages[start].attrs?.tool_call?.decisions?.length)
+  )
+    start--;
+  let end = index + 1;
+  while (
+    end < messages.length &&
+    (messages[end].message.role !== OpenAIMessageRole.USER ||
+      messages[end].attrs?.tool_call?.decisions?.length)
+  )
+    end++;
+  const turn = messages.slice(start, end);
+  const runId = turn
+    .slice()
+    .reverse()
+    .find(m => m.attrs?.turn_run_id)?.attrs?.turn_run_id;
+  return turn.some(
     m =>
-      m.message.role === OpenAIMessageRole.TOOL &&
-      m.message.tool_call_id === toolCallId
+      (m.status === MessageStatus.STOPPED &&
+        (!runId || m.attrs?.turn_run_id === runId)) ||
+      (m.attrs?.turn_status === 'stopped' &&
+        (!runId || (m.attrs.stopped_run_id ?? m.attrs.turn_run_id) === runId))
   );
 }
 
 export function resolveToolCallStatus(
-  toolMessage?: Pick<MessageDetail, 'attrs'>
+  toolMessage?: Pick<MessageDetail, 'attrs' | 'status'>,
+  turnStopped = false
 ): ToolCallStatus {
-  const toolCallStatus = toolMessage?.attrs?.tool_call?.status;
-  if (toolCallStatus && isTerminalToolCallStatus(toolCallStatus)) {
-    return toolCallStatus;
-  }
+  const status = toolMessage?.attrs?.tool_call?.status;
+  if (status && isTerminalToolCallStatus(status)) return status;
+  if (toolMessage?.status === MessageStatus.STOPPED)
+    return ToolCallStatus.STOPPED;
+  if (toolMessage?.status === MessageStatus.FAILED)
+    return ToolCallStatus.FAILED;
+  if (toolMessage?.status === MessageStatus.SUCCESS)
+    return ToolCallStatus.SUCCESS;
+  if (turnStopped) return ToolCallStatus.STOPPED;
   return toolMessage ? ToolCallStatus.RUNNING : ToolCallStatus.PENDING;
 }
 

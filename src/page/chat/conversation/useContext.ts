@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
+import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
 import { getWizardLang } from '@/lib/wizardLang';
 import {
   AgentRequestChannel,
@@ -133,7 +134,7 @@ function serverAncestorId(
 
 export default function useContext() {
   const app = useApp();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
   const detachStreamRef = useRef<(() => void) | null>(null);
   const detachActiveStream = useCallback(() => {
@@ -282,7 +283,8 @@ export default function useContext() {
         uploadedImages = await resolveConversationImages(
           namespaceId,
           conversationId,
-          images
+          images,
+          false
         );
         uploadRetries.current.delete(pendingId);
         params.onImagesUploaded?.();
@@ -333,13 +335,15 @@ export default function useContext() {
             clearId: conversationId,
           });
         }
-        messageOperator.error(
-          {
-            response_type: 'error',
-            message: error instanceof Error ? error.message : String(error),
-          },
-          pendingId
-        );
+        if (!isChatCancellation(error))
+          messageOperator.error(
+            {
+              response_type: 'error',
+              message: 'Unknown error',
+              ...chatErrorDetails(error),
+            },
+            pendingId
+          );
       } finally {
         const stayedOnConversation =
           !askFN || detachStreamRef.current === askFN.destroy;
@@ -640,9 +644,10 @@ export default function useContext() {
       cancel,
       cancelUrl: `/namespaces/${namespaceId}/wizard/stream/cancel`,
       conversationId,
+      messageId: messages.at(-1)?.id,
       messageOperator,
       setLoading,
-    });
+    }).catch(() => toast.error(t('chat.stop_failed')));
   };
 
   const firstUserMessage = findFirstMessageWithMissingParent(messages);
