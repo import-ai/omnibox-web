@@ -5,4 +5,5 @@ export enum ToolCallStatus {
   SUCCESS = 'success',
   FAILED = 'failed',
   REJECTED = 'rejected',
+  STOPPED = 'stopped',
 }

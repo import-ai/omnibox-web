@@ -91,7 +91,7 @@ export function LoginForm({
   const { allowedCountries } = usePhoneConfig();
   const captcha = useCaptcha({ scene: 'web', mode: 'popup' });
   const linkClass =
-    'text-sm hover:underline dark:text-[#60a5fa] text-[#107bfa] underline-offset-2';
+    'text-sm hover:underline text-blue-600 dark:text-blue-400 underline-offset-2';
   const loginMethod =
     contactMethod === 'email' ? t('login.email') : t('login.phone');
 

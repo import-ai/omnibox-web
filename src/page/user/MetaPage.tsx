@@ -9,14 +9,14 @@ export default function MetaPage() {
       {t('login.agree_our_rule')}{' '}
       <Link
         to="https://www.omnibox.pro/s/w3A0gJXVUI"
-        className="hover:underline underline-offset-2"
+        className="text-[#71717a] dark:text-[#a1a1aa] hover:underline underline-offset-2"
       >
         {t('login.service')}
       </Link>{' '}
       {t('login.and')}{' '}
       <Link
         to="https://www.omnibox.pro/s/qYdPydLfW7"
-        className="hover:underline underline-offset-2"
+        className="text-[#71717a] dark:text-[#a1a1aa] hover:underline underline-offset-2"
       >
         {t('login.privacy')}
       </Link>

@@ -481,3 +481,47 @@ describe('ask follow-latest and refusals', () => {
     expect(messageOperator.error).not.toHaveBeenCalled();
   });
 });
+
+describe('stopStream acknowledgement', () => {
+  it('does not mark local messages stopped before the server accepts cancellation', async () => {
+    const { stopStream } = await import('./utils');
+    let accept!: () => void;
+    const cancel = jest.fn(
+      () =>
+        new Promise<void>(resolve => {
+          accept = resolve;
+        })
+    );
+    const operator = { stop: jest.fn() } as unknown as MessageOperator;
+    const setLoading = jest.fn();
+    const pending = stopStream({
+      cancel,
+      cancelUrl: '/cancel',
+      conversationId: 'c',
+      messageId: 'tool',
+      messageOperator: operator,
+      setLoading,
+    });
+    expect(operator.stop).not.toHaveBeenCalled();
+    accept();
+    await pending;
+    expect(operator.stop).toHaveBeenCalledWith('tool');
+    expect(setLoading).toHaveBeenCalledWith(false);
+  });
+  it('keeps local status unchanged when cancellation fails', async () => {
+    const { stopStream } = await import('./utils');
+    const operator = { stop: jest.fn() } as unknown as MessageOperator;
+    await expect(
+      stopStream({
+        cancel: async () => {
+          throw new Error('offline');
+        },
+        cancelUrl: '/cancel',
+        conversationId: 'c',
+        messageOperator: operator,
+        setLoading: jest.fn(),
+      })
+    ).rejects.toThrow('offline');
+    expect(operator.stop).not.toHaveBeenCalled();
+  });
+});

@@ -102,7 +102,14 @@ export default class Hook {
   }
 
   applyFilter(id: string, ...args: any[]) {
+    return this.__applyFilter(id, args, true);
+  }
+
+  private __applyFilter(id: string, args: any[], cacheWhenMissing: boolean) {
     if (!this.hasHook(id)) {
+      if (!cacheWhenMissing) {
+        return args[0];
+      }
       !Array.isArray(this._caches[id]) && (this._caches[id] = []);
       this._caches[id].push(args);
       return args[0];
@@ -129,5 +136,10 @@ export default class Hook {
 
   fire(...args: any) {
     this.applyFilter.apply(this, args);
+  }
+
+  /** Delivers an event to current listeners without caching it for later. */
+  fireNow(id: string, ...args: any[]) {
+    return this.__applyFilter(id, args, false);
   }
 }

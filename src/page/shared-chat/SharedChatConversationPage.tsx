@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { ShareResourcePicker } from '@/components/resourcePicker';
 import { http } from '@/lib/request';
@@ -288,9 +289,10 @@ export default function SharedChatConversationPage() {
       cancel,
       cancelUrl: `/shares/${shareId}/wizard/stream/cancel`,
       conversationId,
+      messageId: messages.at(-1)?.id,
       messageOperator,
       setLoading,
-    });
+    }).catch(() => toast.error(t('chat.stop_failed')));
   };
 
   const mergedLoading =

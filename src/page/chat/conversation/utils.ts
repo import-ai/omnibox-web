@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
+import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
 import { http } from '@/lib/request';
 import { createStreamTransport } from '@/lib/streamTransport';
 import { WizardLang } from '@/lib/wizardLang';
@@ -415,6 +416,7 @@ export function ask(
       try {
         await transport.start();
       } catch (error) {
+        if (isChatCancellation(error)) return;
         outcome.failed = true;
         outcome.errorMessage ??=
           error instanceof Error ? error.message : String(error);
@@ -434,7 +436,8 @@ export function ask(
           messageOperator.error(
             {
               response_type: 'error',
-              message: error instanceof Error ? error.message : String(error),
+              message: 'Unknown error',
+              ...chatErrorDetails(error),
             },
             id
           );
@@ -475,16 +478,17 @@ export async function stopStream({
   cancel,
   cancelUrl,
   conversationId,
+  messageId,
   messageOperator,
   setLoading,
 }: {
   cancel?: (() => Promise<void>) | null;
   cancelUrl: string;
   conversationId: string;
+  messageId?: string;
   messageOperator: MessageOperator;
   setLoading: (loading: boolean) => void;
 }) {
-  messageOperator.stop();
   try {
     if (cancel) {
       await cancel();
@@ -495,6 +499,7 @@ export async function stopStream({
         { mute: true }
       );
     }
+    messageOperator.stop(messageId);
   } finally {
     setLoading(false);
   }
