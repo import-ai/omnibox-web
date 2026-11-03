@@ -83,6 +83,7 @@
     }
   },
   "copilot": {
+    "expand_view": "Expand",
     "title": "Copilot",
     "description": "Continue the AI conversation in this namespace",
     "expand": "Open Copilot",
@@ -689,6 +690,7 @@
     "unbind": {
       "button": "Unbind",
       "success": "Assistant unbound successfully",
+      "wechat_success": "Unbound successfully",
       "error": "Failed to unbind assistant",
       "confirm": {
         "title": "Unbind Assistant",
@@ -1230,7 +1232,9 @@
     },
     "related_application": "Related Assistant",
     "show": "Show",
-    "hide": "Hide"
+    "hide": "Hide",
+    "personal_and_team": "Personal + Team",
+    "personal_and_team_hint": "Access resources you have permission to in Personal and Team. New content uses the specified destination or existing assistant destination; otherwise it is saved to Personal."
   },
   "tasks": {
     "description": "View background task status and manage task execution.",
