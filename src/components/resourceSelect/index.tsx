@@ -164,7 +164,13 @@ export function ResourceSelect(props: IProps) {
         )}
       >
         {includePersonalAndTeam && resourceId === 'personal_and_team' ? (
-          <ResourceTypeIcon resource={{ resource_type: 'folder' }} />
+          <ResourceTypeIcon
+            resource={{
+              id: 'personal_and_team',
+              parent_id: null,
+              resource_type: 'folder',
+            }}
+          />
         ) : (
           data && <ResourceTypeIcon resource={data} />
         )}
