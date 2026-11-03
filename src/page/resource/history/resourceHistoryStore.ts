@@ -11,6 +11,7 @@ export function supportsResourceHistory(resourceType?: string) {
 
 interface ResourceHistoryState {
   selections: Record<string, ResourceRevisionDetail>;
+  selectionVersions: Record<string, number>;
   selectRevision: (
     namespaceId: string,
     resourceId: string,
@@ -37,13 +38,21 @@ export function setResourceRevisionQuery(value: string | null) {
 
 export const useResourceHistoryStore = create<ResourceHistoryState>(set => ({
   selections: {},
+  selectionVersions: {},
   selectRevision: (namespaceId, resourceId, revision) =>
-    set(state => ({
-      selections: {
-        ...state.selections,
-        [resourceHistoryKey(namespaceId, resourceId)]: revision,
-      },
-    })),
+    set(state => {
+      const key = resourceHistoryKey(namespaceId, resourceId);
+      return {
+        selections: {
+          ...state.selections,
+          [key]: revision,
+        },
+        selectionVersions: {
+          ...state.selectionVersions,
+          [key]: (state.selectionVersions[key] ?? 0) + 1,
+        },
+      };
+    }),
   syncRevisionAuthors: (namespaceId, resourceId, revisions) =>
     set(state => {
       const key = resourceHistoryKey(namespaceId, resourceId);
@@ -69,8 +78,15 @@ export const useResourceHistoryStore = create<ResourceHistoryState>(set => ({
     }),
   clearRevision: (namespaceId, resourceId) =>
     set(state => {
+      const key = resourceHistoryKey(namespaceId, resourceId);
       const selections = { ...state.selections };
-      delete selections[resourceHistoryKey(namespaceId, resourceId)];
-      return { selections };
+      delete selections[key];
+      return {
+        selections,
+        selectionVersions: {
+          ...state.selectionVersions,
+          [key]: (state.selectionVersions[key] ?? 0) + 1,
+        },
+      };
     }),
 }));

@@ -62,14 +62,23 @@ export default function ResourceHistoryPanel({
   const [loadingRevision, setLoadingRevision] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const detailRequest = useRef(0);
+  const revisionsRef = useRef<ResourceRevisionSummary[]>([]);
 
   useEffect(() => {
+    const key = `${namespaceId}:${resourceId}`;
+    let selectionVersion =
+      useResourceHistoryStore.getState().selectionVersions[key] ?? 0;
     const cancelSelection = () => {
       detailRequest.current += 1;
       setLoadingRevision(null);
     };
     cancelSelection();
-    const unsubscribe = useResourceHistoryStore.subscribe(cancelSelection);
+    const unsubscribe = useResourceHistoryStore.subscribe(state => {
+      const nextSelectionVersion = state.selectionVersions[key] ?? 0;
+      if (nextSelectionVersion === selectionVersion) return;
+      selectionVersion = nextSelectionVersion;
+      cancelSelection();
+    });
     return () => {
       detailRequest.current += 1;
       unsubscribe();
@@ -97,6 +106,7 @@ export default function ResourceHistoryPanel({
       loadResourceRevisions(namespaceId, resourceId)
         .then(items => {
           if (!active || id !== requestId) return;
+          revisionsRef.current = items;
           setRevisions(items);
           syncRevisionAuthors(namespaceId, resourceId, items);
           setFailed(false);
@@ -167,7 +177,16 @@ export default function ResourceHistoryPanel({
         pathname !== window.location.pathname
       )
         return;
-      selectRevision(namespaceId, resourceId, revision);
+      const latestRevision = revisionsRef.current.find(
+        item => item.id === revision.id
+      );
+      selectRevision(
+        namespaceId,
+        resourceId,
+        latestRevision
+          ? { ...revision, author: latestRevision.author }
+          : revision
+      );
       setResourceRevisionQuery(revisionId);
     } catch {
       // The request interceptor displays the error; keep the preview for retry.
