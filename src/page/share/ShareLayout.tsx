@@ -9,6 +9,7 @@ import useApp from '@/hooks/useApp';
 import { PublicShareInfo, ResourceMeta, SharedResource } from '@/interface';
 import { cn } from '@/lib/utils';
 import { ResourceCommentsProvider } from '@/page/resource/comments/ResourceCommentsContext';
+import { SCROLL_TO_BOTTOM_EVENT } from '@/page/resource/scrollToBottom';
 import {
   resourcePaneColumnClassName,
   shouldUseFullWidthResourcePane,
@@ -56,8 +57,13 @@ export function ShareLayout(props: IProps) {
   const useFullWidth = shouldUseFullWidthResourcePane(resource?.resource_type);
   const showResourcePane = !isChatActive && !chatOnly;
   const onNearBottom = useCallback(() => {
-    app.fire('scroll-to-bottom');
-  }, [app]);
+    const resourceId = currentResourceId ?? resource?.id;
+    if (!resourceId) return;
+    app.fireNow(SCROLL_TO_BOTTOM_EVENT, {
+      namespaceId: shareInfo.id,
+      resourceId,
+    });
+  }, [app, currentResourceId, resource?.id, shareInfo.id]);
   const { large, compactResourcePane } = useResourcePaneLayout(
     scrollContainerRef,
     { enabled: showResourcePane, onNearBottom }
