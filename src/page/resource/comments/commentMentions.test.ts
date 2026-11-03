@@ -86,6 +86,42 @@ describe('comment mentions', () => {
     ).toBe(104);
   });
 
+  it('keeps every matching member available beyond the eighth result', () => {
+    const members = Array.from({ length: 12 }, (_, index) => ({
+      id: `u${index + 1}`,
+      name: `Member ${index + 1}`,
+      position: 'Team',
+    }));
+    expect(filterCommentMentionUsers(members, '')).toEqual(members);
+    expect(filterCommentMentionUsers(members, 'team')).toEqual(members);
+    expect(filterCommentMentionUsers(members, 'Member 9')).toEqual([
+      members[8],
+    ]);
+    expect(
+      filterCommentMentionUsers(
+        [...members, members[8], { id: '', name: 'Invalid' }],
+        ''
+      )
+    ).toEqual(members);
+  });
+
+  it('caps the menu height even when there is ample space below', () => {
+    expect(
+      mentionMenuPlacement(
+        { top: 100, bottom: 140, left: 100 },
+        { width: 1200, height: 1000 }
+      )
+    ).toEqual({ left: 100, top: 144, maxHeight: 192 });
+  });
+
+  it('fits the menu into a small viewport instead of forcing a minimum height', () => {
+    const placement = mentionMenuPlacement(
+      { top: 50, bottom: 90, left: 100 },
+      { width: 320, height: 120 }
+    );
+    expect(placement).toEqual({ left: 56, bottom: 74, maxHeight: 38 });
+  });
+
   it('shows @name in the editor while keeping the shortcode', () => {
     const stored = 'Hi [@ id="u1" label="Old"] there';
     expect(commentDraftDisplay(stored).display).toBe('Hi @Old there');

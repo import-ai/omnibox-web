@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 import { MentionAvatar } from '@/page/resource/MentionAvatar';
@@ -10,6 +11,7 @@ export type CommentMentionMenuSpec = {
   label: string;
   matches: CommentMentionUser[];
   selected: number;
+  queryKey: string | null;
   onPick: (user: CommentMentionUser) => void;
 };
 
@@ -18,6 +20,27 @@ export function CommentMentionMenu({
 }: {
   spec: CommentMentionMenuSpec | null;
 }) {
+  const menuRef = useRef<HTMLDivElement>(null);
+  const selectedId = spec?.matches[spec.selected]?.id;
+  const selectedIndex = spec?.selected;
+  const queryKey = spec?.queryKey;
+
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    const option = menu?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!menu || !option) return;
+    const menuRect = menu.getBoundingClientRect();
+    const optionRect = option.getBoundingClientRect();
+    const top = menuRect.top + menu.clientTop;
+    const bottom = menuRect.bottom - menu.clientTop;
+    // Scroll only the menu; scrolling an option into view can move the document.
+    if (optionRect.top < top) {
+      menu.scrollTop += optionRect.top - top;
+    } else if (optionRect.bottom > bottom) {
+      menu.scrollTop += optionRect.bottom - bottom;
+    }
+  }, [selectedId, selectedIndex, queryKey]);
+
   const rect = spec?.anchor?.getBoundingClientRect();
   if (!spec || !rect || typeof document === 'undefined') {
     return null;
@@ -28,10 +51,11 @@ export function CommentMentionMenu({
   });
   return createPortal(
     <div
+      ref={menuRef}
       role="listbox"
       aria-label={spec.label}
       data-selector="tiptap-mention-dropdown-menu"
-      className="fixed z-[200] overflow-auto"
+      className="scrollbar-thin-visible fixed z-[200] overflow-x-hidden overflow-y-auto overscroll-contain"
       style={placement}
     >
       <div className="tiptap-card">

@@ -1,13 +1,9 @@
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
 
 import { DropdownMenuItem } from '@/components/ui/DropdownMenu';
-import { getExpandedCopilotPath } from '@/page/copilot/copilotNavigation';
-import {
-  getCopilotWorkspace,
-  useCopilotStore,
-} from '@/page/copilot/copilotStore';
+import { useChatSubmissionPreparing } from '@/page/chat/chat-input/chatSubmissionStore';
+import { useExpandCopilot } from '@/page/copilot/useExpandCopilot';
 
 interface CloseCurrentResourceProps {
   namespaceId: string;
@@ -18,25 +14,15 @@ export default function CloseCurrentResource({
   namespaceId,
 }: CloseCurrentResourceProps) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const workspace = useCopilotStore(state =>
-    getCopilotWorkspace(state, namespaceId)
-  );
-  const requestExpandFromResource = useCopilotStore(
-    state => state.requestExpandFromResource
-  );
-
-  const handleClose = () => {
-    const destination = getExpandedCopilotPath(namespaceId, workspace);
-    // Keep the citation preview covering the underlying resource route until
-    // the chat route commits. Clearing preview first would unhide that Outlet
-    // (e.g. resource A) for a frame before navigation lands on the conversation.
-    requestExpandFromResource(namespaceId);
-    navigate(destination);
-  };
+  const handleClose = useExpandCopilot(namespaceId);
+  const preparing = useChatSubmissionPreparing(namespaceId);
 
   return (
-    <DropdownMenuItem className="cursor-pointer gap-2" onClick={handleClose}>
+    <DropdownMenuItem
+      className="cursor-pointer gap-2"
+      disabled={preparing}
+      onClick={handleClose}
+    >
       <X className="size-4 text-muted-foreground" />
       <span>{t('resource.close_current')}</span>
     </DropdownMenuItem>

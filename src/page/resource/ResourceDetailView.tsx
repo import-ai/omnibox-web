@@ -20,6 +20,7 @@ import {
   useCopilotStore,
 } from '@/page/copilot/copilotStore';
 import { COPILOT_PANEL_TRANSITION_MS } from '@/page/copilot/useCopilotPanelLayout';
+import { SCROLL_TO_BOTTOM_EVENT } from '@/page/resource/scrollToBottom';
 import { useResourceBodyDragAutoScroll } from '@/page/resource/useResourceBodyDragAutoScroll';
 import {
   isFolderLikeResourceType,
@@ -153,8 +154,9 @@ function ResourceDetailContent({
     currentResource?.resource_type
   );
   const onNearBottom = useCallback(() => {
-    app.fire('scroll-to-bottom');
-  }, [app]);
+    if (!namespaceId || !resourceId) return;
+    app.fireNow(SCROLL_TO_BOTTOM_EVENT, { namespaceId, resourceId });
+  }, [app, namespaceId, resourceId]);
   const { large, compactResourcePane } = useResourcePaneLayout(
     scrollContainerRef,
     { onNearBottom }
