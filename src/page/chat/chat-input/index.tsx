@@ -10,6 +10,7 @@ import { NativeTypes } from 'react-dnd-html5-backend';
 import { flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
@@ -33,6 +34,10 @@ import ApprovalModeSelect from './ApprovalModeSelect';
 import ChatAction from './ChatAction';
 import { CHAT_IMAGE_TYPES } from './chatImages';
 import ChatInput from './ChatInput';
+import {
+  getChatInputImageDraft,
+  saveChatInputImageDraft,
+} from './chatInputDraft';
 import ChatTool from './ChatTool';
 import ContextCapacityIndicator from './ContextCapacityIndicator';
 import ThinkingLevelSelector from './ThinkingLevelSelector';
@@ -128,13 +133,18 @@ export default function ChatArea(props: IProps) {
   ]);
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const [images, setImages] = useState<ComposerChatImage[]>([]);
+  const draftScope = approvalModeResetKey ?? navigatePrefix;
+  const [images, setImages] = useState<ComposerChatImage[]>(() =>
+    getChatInputImageDraft(draftScope)
+  );
   const submittingRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPreparingImages, setIsPreparingImages] = useState(false);
-  const imageIdRef = useRef(0);
   const imagesRef = useRef(images);
   imagesRef.current = images;
+  useEffect(() => {
+    saveChatInputImageDraft(draftScope, images);
+  }, [draftScope, images]);
   const {
     approvalMode,
     clearComposerAfterSend,
@@ -218,7 +228,7 @@ export default function ChatArea(props: IProps) {
       if (accepted.length !== files.length)
         toast.error(t('chat.image.unsupported_format'));
       const added = accepted.map(file => ({
-        id: `composer-image-${imageIdRef.current++}`,
+        id: `composer-image-${uuidv4()}`,
         name: file.name,
         url: URL.createObjectURL(file),
         file,

@@ -2,10 +2,50 @@ import { type ComposerMention, mentionsToResources } from './composerDocument';
 import { queryFromComposerDisplayText } from './composerQuery';
 import type { ComposerState } from './composerState';
 import type { ComposerToolRange } from './composerToolTokens';
-import type { IResTypeContext } from './types';
+import type { ComposerChatImage, IResTypeContext } from './types';
 import { ToolType } from './types';
 
 const DRAFT_KEY_PREFIX = 'chat:input-draft:v2:';
+
+// Files stay in memory for pane handoffs; object URLs belong to each composer.
+const imageDrafts = new Map<string, Omit<ComposerChatImage, 'url'>[]>();
+let imageDraftOwner: string | null | undefined;
+
+function getImageDrafts() {
+  let owner: string | null = null;
+  try {
+    owner = globalThis.localStorage?.getItem('uid') ?? null;
+  } catch {
+    imageDrafts.clear();
+  }
+  if (owner !== imageDraftOwner) {
+    imageDrafts.clear();
+    imageDraftOwner = owner;
+  }
+  return imageDrafts;
+}
+
+export function getChatInputImageDraft(scope: string): ComposerChatImage[] {
+  return (getImageDrafts().get(scope) ?? []).map(image => ({
+    ...image,
+    url: URL.createObjectURL(image.file),
+  }));
+}
+
+export function saveChatInputImageDraft(
+  scope: string,
+  images: ComposerChatImage[]
+) {
+  const drafts = getImageDrafts();
+  if (!images.length) {
+    drafts.delete(scope);
+    return;
+  }
+  drafts.set(
+    scope,
+    images.map(({ id, name, file }) => ({ id, name, file }))
+  );
+}
 
 export interface ChatInputDraft {
   composerState: ComposerState;
@@ -67,6 +107,7 @@ export function clearChatInputDraft(
   scope: string,
   storage = getSessionStorage()
 ) {
+  getImageDrafts().delete(scope);
   if (!storage) return;
   try {
     storage.removeItem(`${DRAFT_KEY_PREFIX}${scope}`);

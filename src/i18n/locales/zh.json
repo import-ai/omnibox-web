@@ -83,6 +83,7 @@
     }
   },
   "copilot": {
+    "expand_view": "展开",
     "title": "Copilot",
     "description": "在当前工作区中继续 AI 对话",
     "expand": "打开小黑",
