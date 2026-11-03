@@ -31,6 +31,7 @@ import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { cn } from '@/lib/utils';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
+import ExpandCopilotButton from '@/page/copilot/ExpandCopilotButton';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
@@ -102,6 +103,7 @@ export default function Actions(props: IProps) {
 
   return (
     <div className="flex items-center gap-1 text-sm">
+      {compact && <ExpandCopilotButton namespaceId={namespaceId} />}
       {conversationsPage && onChatSearch && (
         <IconButton
           label={t('chat.conversations.search')}

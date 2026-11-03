@@ -13,6 +13,7 @@ import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
 import type { ChatInputHandle } from './ChatInput';
 import {
   clearChatInputDraft,
+  clearChatInputTextDraft,
   createChatInputDraft,
   getChatInputDraft,
   saveChatInputDraft,
@@ -183,7 +184,7 @@ export function useChatAreaDraftLifecycle({
   const handleComposerStateChange = useCallback(
     (composerState: ComposerState) => {
       if (!composerState.displayText) {
-        clearChatInputDraft(draftScope);
+        clearChatInputTextDraft(draftScope);
         return;
       }
       saveChatInputDraft(draftScope, createChatInputDraft(composerState));

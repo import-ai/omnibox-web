@@ -1,5 +1,6 @@
+import axios from 'axios';
 import { CircleHelp } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
@@ -94,26 +95,21 @@ function hasDocs(appId: string): boolean {
 }
 
 interface ApplicationsFormProps {
+  active?: boolean;
   autoAction?: {
     type: 'bind';
     appId: string;
   };
 }
 
-export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
+export function ApplicationsForm({
+  active = true,
+  autoAction,
+}: ApplicationsFormProps) {
   const { showToast } = useSettingsToast();
   const { t, i18n } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
-
-  const {
-    applications,
-    loading,
-    bindApplication,
-    unbindApplication,
-    checkApplicationStatus,
-    refetch,
-  } = useApplications(namespaceId);
 
   const [bindingLoading, setBindingLoading] = useState(false);
   const [unbindingLoading, setUnbindingLoading] = useState(false);
@@ -135,6 +131,60 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   // Track if autoAction has been processed to prevent re-triggering
   const autoActionProcessedRef = useRef(false);
   const bindRequestSequenceRef = useRef(0);
+  const activeRef = useRef(active);
+  activeRef.current = active;
+
+  const unbindSession = useMemo(
+    () => ({ active, notified: new Set<string>() }),
+    [namespaceId, active]
+  );
+
+  useEffect(() => {
+    unbindSession.active = active;
+    setConfirmApplication(null);
+    setConfirmAction(null);
+    setUnbindingLoading(false);
+    return () => {
+      unbindSession.active = false;
+    };
+  }, [active, unbindSession]);
+
+  const completeUnbind = useCallback(
+    (application: Application, source: 'remote' | 'local' = 'remote') => {
+      if (!activeRef.current || !unbindSession.active) return;
+      setConfirmApplication(current =>
+        current?.id === application.id ? null : current
+      );
+      if (
+        document.visibilityState === 'visible' &&
+        !unbindSession.notified.has(application.id)
+      ) {
+        unbindSession.notified.add(application.id);
+        showToast(
+          t(
+            source === 'remote' && application.app_id === WECHAT_OA_APP_ID
+              ? 'applications.unbind.wechat_success'
+              : 'applications.unbind.success'
+          ),
+          'success'
+        );
+      }
+    },
+    [unbindSession, showToast, t]
+  );
+
+  const {
+    applications,
+    loading,
+    bindApplication,
+    unbindApplication,
+    checkApplicationStatus,
+    refetch,
+  } = useApplications(namespaceId, {
+    active,
+    syncWechatBinding: true,
+    onUnbound: completeUnbind,
+  });
 
   const handleBind = async (application: Application) => {
     const bindRequestSequence = ++bindRequestSequenceRef.current;
@@ -259,13 +309,27 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
     try {
       setUnbindingLoading(true);
       await unbindApplication(application.id);
-      setConfirmApplication(null);
-      setConfirmAction(null);
-      showToast(t('applications.unbind.success'), 'success');
-    } catch {
+      completeUnbind(application, 'local');
+    } catch (error) {
+      if (!activeRef.current || !unbindSession.active) return;
+      if (
+        application.app_id === WECHAT_OA_APP_ID &&
+        axios.isAxiosError(error) &&
+        error.response?.data?.code === 'APP_AUTHORIZATION_NOT_FOUND'
+      ) {
+        const refreshed = await refetch({ background: true });
+        if (!activeRef.current || !unbindSession.active) return;
+        const current = refreshed?.find(
+          item => item.app_id === application.app_id
+        );
+        if (current && !current.id) {
+          completeUnbind(application);
+          return;
+        }
+      }
       showToast(t('applications.unbind.error'), 'error');
     } finally {
-      setUnbindingLoading(false);
+      if (unbindSession.active) setUnbindingLoading(false);
     }
   };
 
@@ -304,11 +368,12 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
   // Reset the processed flag when autoAction changes
   useEffect(() => {
     autoActionProcessedRef.current = false;
-  }, [autoAction]);
+  }, [autoAction, namespaceId]);
 
   // Auto-trigger binding when autoAction is provided (only once)
   useEffect(() => {
     if (
+      active &&
       autoAction &&
       autoAction.type === 'bind' &&
       !loading &&
@@ -323,7 +388,7 @@ export function ApplicationsForm({ autoAction }: ApplicationsFormProps) {
         handleBind(targetApp);
       }
     }
-  }, [autoAction, loading, applications]);
+  }, [active, autoAction, loading, applications]);
 
   const displayedApplications = sortApplicationsForDisplay(applications);
 

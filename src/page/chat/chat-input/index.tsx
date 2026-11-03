@@ -10,6 +10,7 @@ import { NativeTypes } from 'react-dnd-html5-backend';
 import { flushSync } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
@@ -33,6 +34,11 @@ import ApprovalModeSelect from './ApprovalModeSelect';
 import ChatAction from './ChatAction';
 import { CHAT_IMAGE_TYPES } from './chatImages';
 import ChatInput from './ChatInput';
+import {
+  getChatInputImageDraft,
+  saveChatInputImageDraft,
+} from './chatInputDraft';
+import { beginChatSubmissionPreparation } from './chatSubmissionStore';
 import ChatTool from './ChatTool';
 import ContextCapacityIndicator from './ContextCapacityIndicator';
 import ThinkingLevelSelector from './ThinkingLevelSelector';
@@ -128,13 +134,18 @@ export default function ChatArea(props: IProps) {
   ]);
 
   const [mode, setMode] = useState<ChatMode>(ChatMode.ASK);
-  const [images, setImages] = useState<ComposerChatImage[]>([]);
+  const draftScope = approvalModeResetKey ?? navigatePrefix;
+  const [images, setImages] = useState<ComposerChatImage[]>(() =>
+    getChatInputImageDraft(draftScope)
+  );
   const submittingRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPreparingImages, setIsPreparingImages] = useState(false);
-  const imageIdRef = useRef(0);
   const imagesRef = useRef(images);
   imagesRef.current = images;
+  useEffect(() => {
+    saveChatInputImageDraft(draftScope, images);
+  }, [draftScope, images]);
   const {
     approvalMode,
     clearComposerAfterSend,
@@ -218,7 +229,7 @@ export default function ChatArea(props: IProps) {
       if (accepted.length !== files.length)
         toast.error(t('chat.image.unsupported_format'));
       const added = accepted.map(file => ({
-        id: `composer-image-${imageIdRef.current++}`,
+        id: `composer-image-${uuidv4()}`,
         name: file.name,
         url: URL.createObjectURL(file),
         file,
@@ -259,6 +270,11 @@ export default function ChatArea(props: IProps) {
     if (submittingRef.current || disabled) return;
     const v = query.trim();
     if (v) {
+      const finishPreparation = beginChatSubmissionPreparation(
+        namespaceId,
+        draftScope
+      );
+      if (!finishPreparation) return;
       submittingRef.current = true;
       setIsSubmitting(true);
       try {
@@ -303,7 +319,10 @@ export default function ChatArea(props: IProps) {
             displayParts: localDisplayParts,
             images: pendingImages,
             ...selection,
-            onImagesUploaded: clearPreparedDraft,
+            onImagesUploaded: () => {
+              clearPreparedDraft();
+              finishPreparation();
+            },
           });
         } catch (error) {
           // The message never went out: put the draft back exactly, unless
@@ -337,12 +356,15 @@ export default function ChatArea(props: IProps) {
       } catch {
         // Request and stream layers report errors; allow a new submission.
       } finally {
+        finishPreparation();
         submittingRef.current = false;
         setIsSubmitting(false);
         setIsPreparingImages(false);
       }
     }
   }, [
+    draftScope,
+    namespaceId,
     approvalMode,
     selection,
     disabled,
@@ -415,7 +437,7 @@ export default function ChatArea(props: IProps) {
         }}
         disabled={disabled}
       />
-      <div className="flex items-center justify-between">
+      <div className="@container/composer-toolbar flex items-center justify-between">
         <fieldset
           disabled={isPreparingImages}
           className="flex min-w-0 items-center gap-2"

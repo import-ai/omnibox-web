@@ -280,6 +280,8 @@ export interface APIKeyPermission {
 }
 
 export interface APIKeyAttrs {
+  resource_scope?: 'resource' | 'personal_and_team';
+  default_save_resource_id?: string;
   related_app_id?: string;
   note?: string;
   root_resource_id: string;

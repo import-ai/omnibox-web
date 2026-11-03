@@ -5,6 +5,11 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import { setPendingChatPayload } from '@/lib/chatBridge';
+import {
+  beginChatSubmissionPreparation,
+  isChatSubmissionPreparing,
+  useChatSubmissionStore,
+} from '@/page/chat/chat-input/chatSubmissionStore';
 import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
 import { ChatMode } from '@/page/chat/chat-input/types';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
@@ -143,6 +148,7 @@ describe('useContext conversation cache failures', () => {
 
   beforeEach(() => {
     localStorage.setItem('uid', 'user-a');
+    useChatSubmissionStore.setState({ pending: {} });
     sessionStorage.clear();
     clearConversationCache();
     resetConversationBootstrapState();
@@ -1483,5 +1489,180 @@ describe('useContext conversation cache failures', () => {
     expect(getCachedConversation(cacheScope, 'conversation-a')?.title).toBe(
       'Newer conversation'
     );
+  });
+  it('protects failed-bubble retry uploads with a fresh preparation token', async () => {
+    useChatSubmissionStore.setState({ pending: {} });
+    const conversation = cachedConversation();
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    const retryUpload =
+      deferred<
+        Awaited<ReturnType<typeof imageUploads.resolveConversationImages>>
+      >();
+    const upload = jest
+      .spyOn(imageUploads, 'resolveConversationImages')
+      .mockRejectedValueOnce(new Error('first upload failed'))
+      .mockReturnValueOnce(retryUpload.promise);
+    const finishInitial = beginChatSubmissionPreparation(
+      'namespace-a',
+      'conversation-a'
+    )!;
+    const file = new File(['image'], 'image.png', { type: 'image/png' });
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => root.render(<Probe />));
+    await act(async () => {
+      await context.sendMessage({
+        query: 'retry-image',
+        tools: [],
+        selectedResources: [],
+        mode: ChatMode.ASK,
+        images: [
+          { id: 'image-a', name: file.name, file, url: 'blob:original' },
+        ],
+        onImagesUploaded: finishInitial,
+      });
+      finishInitial();
+    });
+    expect(isChatSubmissionPreparing('namespace-a')).toBe(false);
+    let pending!: Promise<unknown>;
+    await act(async () => {
+      pending = context.onEdit('pending-query', 'retry-image');
+      await Promise.resolve();
+    });
+    expect(upload).toHaveBeenCalledTimes(2);
+    const protectedRetry = isChatSubmissionPreparing('namespace-a');
+    await act(async () => {
+      await context.onEdit('pending-query', 'retry-image');
+    });
+    expect(upload).toHaveBeenCalledTimes(2);
+    await act(async () => {
+      retryUpload.reject(new Error('controlled cleanup'));
+      await pending;
+    });
+    upload.mockRestore();
+    useChatSubmissionStore.setState({ pending: {} });
+    expect(protectedRetry).toBe(true);
+  });
+  it('releases a successful bubble retry before generation and never reuses its old composer token', async () => {
+    const conversation = cachedConversation();
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    const retryUpload =
+      deferred<
+        Awaited<ReturnType<typeof imageUploads.resolveConversationImages>>
+      >();
+    const stream = deferred<void>();
+    const upload = jest
+      .spyOn(imageUploads, 'resolveConversationImages')
+      .mockRejectedValueOnce(new Error('first failure'))
+      .mockReturnValueOnce(retryUpload.promise);
+    jest.mocked(ask).mockReturnValue(
+      askRun(
+        { failed: false },
+        jest.fn(() => stream.promise)
+      )
+    );
+    const finishComposer = beginChatSubmissionPreparation(
+      'namespace-a',
+      'conversation-a'
+    )!;
+    const file = new File(['image'], 'retry.png', { type: 'image/png' });
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => root.render(<Probe />));
+    await act(async () => {
+      await context.sendMessage({
+        query: 'image retry',
+        tools: [],
+        selectedResources: [],
+        mode: ChatMode.ASK,
+        images: [{ id: 'local', name: file.name, file, url: 'blob:retry' }],
+        onImagesUploaded: finishComposer,
+      });
+      finishComposer();
+    });
+    let retry!: Promise<unknown>;
+    await act(async () => {
+      retry = context.onEdit('pending-query', 'image retry');
+      await Promise.resolve();
+    });
+    expect(isChatSubmissionPreparing('namespace-a')).toBe(true);
+    await act(async () => {
+      retryUpload.resolve([
+        { attachment_id: 'uploaded', name: file.name, url: '/preview' },
+      ]);
+      await Promise.resolve();
+    });
+    expect(jest.mocked(ask)).toHaveBeenCalled();
+    expect(isChatSubmissionPreparing('namespace-a')).toBe(false);
+    const finishNew = beginChatSubmissionPreparation(
+      'namespace-a',
+      'turn:conversation-a'
+    )!;
+    await act(async () => {
+      stream.resolve();
+      await retry;
+    });
+    expect(isChatSubmissionPreparing('namespace-a')).toBe(true);
+    finishNew();
+    upload.mockRestore();
+  });
+
+  it('acquires a new token for every failed bubble retry and releases after each failure', async () => {
+    const conversation = cachedConversation();
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    const second =
+      deferred<
+        Awaited<ReturnType<typeof imageUploads.resolveConversationImages>>
+      >();
+    const third =
+      deferred<
+        Awaited<ReturnType<typeof imageUploads.resolveConversationImages>>
+      >();
+    const upload = jest
+      .spyOn(imageUploads, 'resolveConversationImages')
+      .mockRejectedValueOnce(new Error('first failure'))
+      .mockReturnValueOnce(second.promise)
+      .mockReturnValueOnce(third.promise);
+    const file = new File(['image'], 'retry.png', { type: 'image/png' });
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => root.render(<Probe />));
+    await act(async () => {
+      await context.sendMessage({
+        query: 'image retry',
+        tools: [],
+        selectedResources: [],
+        mode: ChatMode.ASK,
+        images: [{ id: 'local', name: file.name, file, url: 'blob:retry' }],
+      });
+    });
+    expect(isChatSubmissionPreparing('namespace-a')).toBe(false);
+    for (const pendingUpload of [second, third]) {
+      let retry!: Promise<unknown>;
+      await act(async () => {
+        retry = context.onEdit('pending-query', 'image retry');
+        await Promise.resolve();
+      });
+      expect(isChatSubmissionPreparing('namespace-a')).toBe(true);
+      await act(async () => {
+        pendingUpload.reject(new Error('retry failure'));
+        await retry;
+      });
+      expect(isChatSubmissionPreparing('namespace-a')).toBe(false);
+    }
+    expect(upload).toHaveBeenCalledTimes(3);
+    upload.mockRestore();
   });
 });
