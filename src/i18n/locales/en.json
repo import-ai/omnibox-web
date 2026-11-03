@@ -689,6 +689,7 @@
     "unbind": {
       "button": "Unbind",
       "success": "Assistant unbound successfully",
+      "wechat_success": "Unbound successfully",
       "error": "Failed to unbind assistant",
       "confirm": {
         "title": "Unbind Assistant",
