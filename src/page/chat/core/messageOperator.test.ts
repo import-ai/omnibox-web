@@ -146,6 +146,45 @@ it('replaces the pending query with the persisted receipt without duplicating te
   expect(conversation.current_node).toBe('saved');
 });
 
+it.each(['done', 'stop', 'add'] as const)(
+  'clears stale error details when a message transitions through %s',
+  transition => {
+    let conversation: ConversationDetail = { id: 'c', mapping: {} };
+    const operator = createMessageOperator(conversation, updater => {
+      conversation = updateConversation(conversation, updater);
+    });
+    const bos = {
+      response_type: 'bos' as const,
+      id: 'm',
+      parentId: '',
+      role: OpenAIMessageRole.ASSISTANT,
+    };
+    operator.add(bos);
+    operator.error(
+      {
+        response_type: 'error',
+        message: '',
+        code: 'CONVERSATION_BUSY',
+        status: 409,
+      },
+      'm'
+    );
+    expect(conversation.mapping.m.attrs).toMatchObject({
+      error_message: 'Unknown error',
+      error_code: 'CONVERSATION_BUSY',
+      error_status: 409,
+    });
+    if (transition === 'stop') {
+      // A resumed active message can still carry a stale server snapshot.
+      conversation.mapping.m.status = MessageStatus.STREAMING;
+    }
+    if (transition === 'add') operator.add(bos);
+    else operator[transition]('m');
+    expect(conversation.mapping.m.attrs?.error_message).toBeUndefined();
+    expect(conversation.mapping.m.attrs?.error_code).toBeUndefined();
+    expect(conversation.mapping.m.attrs?.error_status).toBeUndefined();
+  }
+);
 test('stopping a captured tool does not stop a newer turn or accept late EOS', () => {
   let conversation = {
     id: 'c',

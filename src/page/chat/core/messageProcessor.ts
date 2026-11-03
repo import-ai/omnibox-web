@@ -1,3 +1,4 @@
+import { chatErrorDetails } from '@/lib/chatErrors';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
   ChatDeltaResponse,
@@ -6,7 +7,7 @@ import {
 } from '@/page/chat/core/types/chatResponse.ts';
 
 // The server may answer an SSE error event with plain text instead of a JSON
-// chunk; show that text as the error rather than failing on JSON.parse.
+// chunk; retain the raw details for safe classification at display time.
 export function parseChatResponse(data: string): ChatResponse {
   try {
     const parsed: unknown = JSON.parse(data);
@@ -19,6 +20,7 @@ export function parseChatResponse(data: string): ChatResponse {
   return {
     response_type: 'error',
     message: data.trim() || 'Unknown error',
+    ...chatErrorDetails(data),
   } as ChatErrorResponse;
 }
 

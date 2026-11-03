@@ -56,12 +56,21 @@ export function APIKeyPermissionScope({
   namespaceId,
   resourceId,
   scope,
+  combined,
 }: {
   namespaceId: string;
   resourceId: string;
   scope?: APIKeyPermissionScopeData;
+  combined?: boolean;
 }) {
   const { t } = useTranslation();
+
+  if (combined)
+    return (
+      <span className="text-sm font-semibold text-foreground">
+        {t('api_key.personal_and_team')}
+      </span>
+    );
 
   if (!scope) return <Spinner className="text-muted-foreground" />;
 
