@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
+import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
 import { getWizardLang } from '@/lib/wizardLang';
 import {
   AgentRequestChannel,
@@ -282,7 +283,8 @@ export default function useContext() {
         uploadedImages = await resolveConversationImages(
           namespaceId,
           conversationId,
-          images
+          images,
+          false
         );
         uploadRetries.current.delete(pendingId);
         params.onImagesUploaded?.();
@@ -333,13 +335,15 @@ export default function useContext() {
             clearId: conversationId,
           });
         }
-        messageOperator.error(
-          {
-            response_type: 'error',
-            message: error instanceof Error ? error.message : String(error),
-          },
-          pendingId
-        );
+        if (!isChatCancellation(error))
+          messageOperator.error(
+            {
+              response_type: 'error',
+              message: 'Unknown error',
+              ...chatErrorDetails(error),
+            },
+            pendingId
+          );
       } finally {
         const stayedOnConversation =
           !askFN || detachStreamRef.current === askFN.destroy;

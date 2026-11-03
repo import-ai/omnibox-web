@@ -77,3 +77,31 @@ test('streamed citations remain visible after paginated bootstrap', () => {
   );
   expect(html).toContain('C1');
 });
+
+test.each([
+  ['Software caused connection abort', undefined, 'connection_interrupted'],
+  ['provider detail', undefined, 'unknown'],
+  ['', 'CONVERSATION_BUSY', 'busy'],
+  [undefined, undefined, 'unknown'],
+])(
+  'localizes failed message %s without rendering its raw details',
+  (message, code, key) => {
+    const failed = node('failed', {
+      status: MessageStatus.FAILED,
+      attrs: { error_message: message, error_code: code },
+    });
+    const html = renderToStaticMarkup(
+      <Messages
+        conversation={{ id: 'c', mapping: { failed } }}
+        messages={[failed]}
+        messageOperator={
+          { getParent: () => undefined } as unknown as MessageOperator
+        }
+        onEdit={() => {}}
+        onRegenerate={() => {}}
+      />
+    );
+    expect(html).toContain(`chat.errors.${key}`);
+    if (message) expect(html).not.toContain(message);
+  }
+);
