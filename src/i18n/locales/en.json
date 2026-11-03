@@ -83,6 +83,7 @@
     }
   },
   "copilot": {
+    "expand_view": "Expand",
     "title": "Copilot",
     "description": "Continue the AI conversation in this namespace",
     "expand": "Open Copilot",
