@@ -5,7 +5,9 @@ import { toast } from 'sonner';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
+import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
 import { getWizardLang } from '@/lib/wizardLang';
+import { beginChatSubmissionPreparation } from '@/page/chat/chat-input/chatSubmissionStore';
 import {
   AgentRequestChannel,
   ApprovalMode,
@@ -228,134 +230,151 @@ export default function useContext() {
     } = params;
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
-      const provisionalTitle = v
-        ? provisionalTitleForSend({
-            query: v,
-            conversationTitle: conversation.title,
-            hasEarlierUserMessage: messages.some(
-              message =>
-                message.id !== retryId &&
-                message.message.role === OpenAIMessageRole.USER &&
-                Boolean(message.message.content?.trim())
-            ),
-          })
-        : null;
-      if (provisionalTitle) {
-        const scope = { userId: getCurrentUserId(), namespaceId };
-        const provisional = {
-          id: conversationId,
-          title: provisionalTitle,
-          created_at: conversation.created_at || new Date().toISOString(),
-        };
-        rememberProvisionalConversation(scope, provisional);
-        app.fire('chat:conversation:provisional', {
-          userId: scope.userId,
-          namespaceId,
-          conversation: provisional,
-        });
-      }
-      const pendingId = beginPendingQuery(
-        messageOperator,
-        v,
-        parentMessageId,
-        {
-          composer: displayParts ? { display_parts: displayParts } : undefined,
-          tool_call: decisions ? { decisions, status: 'pending' } : undefined,
-          // Kept on the local message so sending it again keeps the strength.
-          edition,
-          level,
-        },
-        retryId
+      // Composer guards cover creation; each actual turn owns its upload phase,
+      // including failed-message retries that never re-enter the composer.
+      const finishPreparation = beginChatSubmissionPreparation(
+        namespaceId,
+        `turn:${conversationId}`
       );
-      uploadRetries.current.set(pendingId, async () => {
-        await sendTurn(params, parentMessageId, { retryId: pendingId });
-      });
-      let askFN: ReturnType<typeof ask> | undefined;
-      let uploadedImages: Awaited<
-        ReturnType<typeof resolveConversationImages>
-      > = [];
+      if (!finishPreparation) return undefined;
       try {
-        if (v) {
-          setWaitingForAssistantDelta(true);
-        }
-        setLoading(true);
-        uploadedImages = await resolveConversationImages(
-          namespaceId,
-          conversationId,
-          images
-        );
-        uploadRetries.current.delete(pendingId);
-        params.onImagesUploaded?.();
-        const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
-        askFN = ask(
-          conversationId,
-          v,
-          tools,
-          selectedResources,
-          channel,
-          parentMessageId,
-          messageOperator,
-          url,
-          getWizardLang(i18n),
-          namespaceId,
-          undefined,
-          undefined,
-          undefined,
-          decisions ? { decisions } : undefined,
-          withUploadedImageParts(displayParts, uploadedImages),
-          recommendedQuestionId,
-          currentResourceId,
-          uploadedImages,
-          pendingId,
-          edition,
-          level,
-          {
-            deferPendingInterrupt,
-            reportAlreadyDecided: true,
-            // A new question continues from the newest message once any
-            // running reply finished; edits and retries keep their parent.
-            followLatest: !decisions?.length && !retryId,
-            onReparented: parentId => {
-              void history.mergeBranch(parentId).catch(() => undefined);
-            },
-          }
-        );
-        askAbortRef.current = askFN.cancel;
-        detachStreamRef.current = askFN.destroy;
-        await askFN.start();
-      } catch (error) {
+        const provisionalTitle = v
+          ? provisionalTitleForSend({
+              query: v,
+              conversationTitle: conversation.title,
+              hasEarlierUserMessage: messages.some(
+                message =>
+                  message.id !== retryId &&
+                  message.message.role === OpenAIMessageRole.USER &&
+                  Boolean(message.message.content?.trim())
+              ),
+            })
+          : null;
         if (provisionalTitle) {
           const scope = { userId: getCurrentUserId(), namespaceId };
-          clearProvisionalConversation(scope, conversationId);
+          const provisional = {
+            id: conversationId,
+            title: provisionalTitle,
+            created_at: conversation.created_at || new Date().toISOString(),
+          };
+          rememberProvisionalConversation(scope, provisional);
           app.fire('chat:conversation:provisional', {
             userId: scope.userId,
             namespaceId,
-            clearId: conversationId,
+            conversation: provisional,
           });
         }
-        messageOperator.error(
+        const pendingId = beginPendingQuery(
+          messageOperator,
+          v,
+          parentMessageId,
           {
-            response_type: 'error',
-            message: error instanceof Error ? error.message : String(error),
+            composer: displayParts
+              ? { display_parts: displayParts }
+              : undefined,
+            tool_call: decisions ? { decisions, status: 'pending' } : undefined,
+            // Kept on the local message so sending it again keeps the strength.
+            edition,
+            level,
           },
-          pendingId
+          retryId
         );
+        uploadRetries.current.set(pendingId, async () => {
+          await sendTurn(params, parentMessageId, { retryId: pendingId });
+        });
+        let askFN: ReturnType<typeof ask> | undefined;
+        let uploadedImages: Awaited<
+          ReturnType<typeof resolveConversationImages>
+        > = [];
+        try {
+          if (v) {
+            setWaitingForAssistantDelta(true);
+          }
+          setLoading(true);
+          uploadedImages = await resolveConversationImages(
+            namespaceId,
+            conversationId,
+            images,
+            false
+          );
+          uploadRetries.current.delete(pendingId);
+          params.onImagesUploaded?.();
+          finishPreparation();
+          const url = `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : mode}`;
+          askFN = ask(
+            conversationId,
+            v,
+            tools,
+            selectedResources,
+            channel,
+            parentMessageId,
+            messageOperator,
+            url,
+            getWizardLang(i18n),
+            namespaceId,
+            undefined,
+            undefined,
+            undefined,
+            decisions ? { decisions } : undefined,
+            withUploadedImageParts(displayParts, uploadedImages),
+            recommendedQuestionId,
+            currentResourceId,
+            uploadedImages,
+            pendingId,
+            edition,
+            level,
+            {
+              deferPendingInterrupt,
+              reportAlreadyDecided: true,
+              // A new question continues from the newest message once any
+              // running reply finished; edits and retries keep their parent.
+              followLatest: !decisions?.length && !retryId,
+              onReparented: parentId => {
+                void history.mergeBranch(parentId).catch(() => undefined);
+              },
+            }
+          );
+          askAbortRef.current = askFN.cancel;
+          detachStreamRef.current = askFN.destroy;
+          await askFN.start();
+        } catch (error) {
+          if (provisionalTitle) {
+            const scope = { userId: getCurrentUserId(), namespaceId };
+            clearProvisionalConversation(scope, conversationId);
+            app.fire('chat:conversation:provisional', {
+              userId: scope.userId,
+              namespaceId,
+              clearId: conversationId,
+            });
+          }
+          if (!isChatCancellation(error))
+            messageOperator.error(
+              {
+                response_type: 'error',
+                message: 'Unknown error',
+                ...chatErrorDetails(error),
+              },
+              pendingId
+            );
+        } finally {
+          const stayedOnConversation =
+            !askFN || detachStreamRef.current === askFN.destroy;
+          askAbortRef.current = null;
+          if (askFN && detachStreamRef.current === askFN.destroy) {
+            detachStreamRef.current = null;
+          }
+          setWaitingForAssistantDelta(false);
+          setLoading(false);
+          if (stayedOnConversation) {
+            void history.refreshHistory().catch(() => undefined);
+          }
+        }
+        return askFN
+          ? { ...askFN.outcome, images: uploadedImages }
+          : { failed: true, requestId: pendingId };
       } finally {
-        const stayedOnConversation =
-          !askFN || detachStreamRef.current === askFN.destroy;
-        askAbortRef.current = null;
-        if (askFN && detachStreamRef.current === askFN.destroy) {
-          detachStreamRef.current = null;
-        }
-        setWaitingForAssistantDelta(false);
-        setLoading(false);
-        if (stayedOnConversation) {
-          void history.refreshHistory().catch(() => undefined);
-        }
+        finishPreparation();
       }
-      return askFN
-        ? { ...askFN.outcome, images: uploadedImages }
-        : { failed: true, requestId: pendingId };
     }
     return undefined;
   };

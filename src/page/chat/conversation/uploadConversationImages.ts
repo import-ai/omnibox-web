@@ -1,6 +1,7 @@
 import i18next from 'i18next';
 import { toast } from 'sonner';
 
+import { chatErrorDetails } from '@/lib/chatErrors';
 import {
   ChatImageInput,
   ChatMessageDisplayPart,
@@ -18,7 +19,8 @@ function isComposerChatImage(
 export async function uploadConversationImage(
   namespaceId: string,
   conversationId: string,
-  file: File
+  file: File,
+  reportError = true
 ): Promise<ChatImageInput> {
   const formData = new FormData();
   formData.append('file[]', file);
@@ -36,7 +38,17 @@ export async function uploadConversationImage(
       }
     );
     if (!response.ok) {
-      throw new Error('Failed to upload image');
+      let payload: unknown;
+      try {
+        payload = await response.json();
+      } catch {
+        /* Use the transport fallback. */
+      }
+      throw Object.assign(
+        new Error('Failed to upload image'),
+        chatErrorDetails(payload),
+        { status: response.status }
+      );
     }
     const attachment = (await response.json()) as {
       attachment_id: string;
@@ -49,7 +61,7 @@ export async function uploadConversationImage(
       url: attachment.preview_url,
     };
   } catch (error) {
-    toast.error(i18next.t('chat.image.upload_failed'));
+    if (reportError) toast.error(i18next.t('chat.image.upload_failed'));
     throw error;
   }
 }
@@ -57,7 +69,8 @@ export async function uploadConversationImage(
 export async function resolveConversationImages(
   namespaceId: string,
   conversationId: string,
-  images: ResolvableChatImage[] | undefined
+  images: ResolvableChatImage[] | undefined,
+  reportError = true
 ): Promise<ChatImageInput[]> {
   if (!images?.length) {
     return [];
@@ -66,7 +79,12 @@ export async function resolveConversationImages(
   for (const image of images) {
     if (isComposerChatImage(image)) {
       uploaded.push(
-        await uploadConversationImage(namespaceId, conversationId, image.file)
+        await uploadConversationImage(
+          namespaceId,
+          conversationId,
+          image.file,
+          reportError
+        )
       );
       continue;
     }

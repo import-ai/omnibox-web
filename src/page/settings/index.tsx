@@ -67,6 +67,7 @@ export default function Setting() {
           </DialogHeader>
         </VisuallyHidden.Root>
         <SettingWrapper
+          open={open}
           initialTab={initialTab}
           autoAction={autoAction}
           onClose={closeSettings}

@@ -165,3 +165,42 @@ test.each([MessageStatus.STREAMING, MessageStatus.STOPPED])(
     expect(merged.mapping.latest.message.reasoning_content).toBeUndefined();
   }
 );
+
+it('preserves local error metadata only for the same failed snapshot', () => {
+  const failed = message('m', {
+    status: MessageStatus.FAILED,
+    details_loaded: true,
+    attrs: {
+      error_message: 'Unknown error',
+      error_code: 'CONVERSATION_BUSY',
+      error_status: 409,
+    },
+  });
+  const server = message('m', {
+    status: MessageStatus.FAILED,
+    attrs: { error_message: 'Unknown error' },
+  });
+  const merged = mergeHistoryPage(page({ m: failed }), page({ m: server }));
+  expect(merged.mapping.m.attrs?.error_code).toBe('CONVERSATION_BUSY');
+  const recovered = mergeHistoryPage(merged, page({ m: message('m') }));
+  expect(recovered.mapping.m.attrs?.error_code).toBeUndefined();
+});
+
+it('accepts a newer failed snapshot without retaining an earlier error with the same timestamp', () => {
+  const original = message('m', {
+    details_loaded: true,
+    status: MessageStatus.FAILED,
+    attrs: { error_message: 'old failure', error_code: 'CONVERSATION_BUSY' },
+  });
+  const changed = message('m', {
+    status: MessageStatus.FAILED,
+    attrs: { error_message: 'new failure', error_code: 'TOKEN_EXPIRED' },
+  });
+  expect(
+    mergeHistoryPage(page({ m: original }), page({ m: changed })).mapping.m
+      .attrs
+  ).toMatchObject({
+    error_message: 'new failure',
+    error_code: 'TOKEN_EXPIRED',
+  });
+});
