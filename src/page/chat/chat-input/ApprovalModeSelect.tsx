@@ -42,7 +42,7 @@ export default function ApprovalModeSelect({
               type="button"
               aria-label={modeLabel}
               className={cn(
-                'inline-flex size-8 shrink-0 items-center justify-center rounded-full p-0 text-xs font-normal @min-[480px]/composer-toolbar:w-auto @min-[480px]/composer-toolbar:gap-2 @min-[480px]/composer-toolbar:pl-2 @min-[480px]/composer-toolbar:pr-1',
+                'inline-flex h-8 w-12 shrink-0 items-center justify-center gap-1 rounded-full p-0 text-xs font-normal @min-[480px]/composer-toolbar:w-auto @min-[480px]/composer-toolbar:gap-2 @min-[480px]/composer-toolbar:pl-2 @min-[480px]/composer-toolbar:pr-1',
                 composerControlHoverClass
               )}
             >
@@ -52,7 +52,7 @@ export default function ApprovalModeSelect({
               </span>
               <ChevronDown
                 aria-hidden
-                className="hidden size-4 @min-[480px]/composer-toolbar:block"
+                className="size-3 @min-[480px]/composer-toolbar:size-4"
               />
             </button>
           </DropdownMenuTrigger>
