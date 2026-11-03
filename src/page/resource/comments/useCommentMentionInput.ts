@@ -29,7 +29,10 @@ export function useCommentMentionInput(
   const { users, namesById } = useCommentMentionUsers();
   const [caret, setCaret] = useState(0);
   const [dismissed, setDismissed] = useState<string | null>(null);
-  const [index, setIndex] = useState(0);
+  const [selection, setSelection] = useState<{
+    queryKey: string | null;
+    userId: string | null;
+  }>({ queryKey: null, userId: null });
   const elementRef = useRef<HTMLTextAreaElement | null>(null);
   const pendingCaret = useRef<number | null>(null);
   const draft = commentDraftDisplay(value, namesById);
@@ -38,11 +41,22 @@ export function useCommentMentionInput(
   const matches = query ? filterCommentMentionUsers(users, query.query) : [];
   const signature = query ? `${query.start}:${query.query}` : null;
   const open = !!query && matches.length > 0 && dismissed !== signature;
-  const selected = Math.min(index, Math.max(matches.length - 1, 0));
+  const selected =
+    selection.queryKey === signature
+      ? Math.max(
+          matches.findIndex(user => user.id === selection.userId),
+          0
+        )
+      : 0;
   const queryRef = useRef(query);
   const caretRef = useRef(safeCaret);
   queryRef.current = query;
   caretRef.current = safeCaret;
+
+  useLayoutEffect(() => {
+    setSelection({ queryKey: signature, userId: null });
+    setDismissed(null);
+  }, [signature]);
 
   useLayoutEffect(() => {
     const element = elementRef.current;
@@ -89,6 +103,7 @@ export function useCommentMentionInput(
         label: t('resource_comments.mention_members'),
         matches,
         selected,
+        queryKey: signature,
         onPick: pick,
       }
     : null;
@@ -133,12 +148,19 @@ export function useCommentMentionInput(
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
         event.stopPropagation();
-        setIndex(current => {
-          const last = matches.length - 1;
-          const base = Math.min(current, last);
-          return event.key === 'ArrowDown'
-            ? (base + 1) % matches.length
-            : (base + last) % matches.length;
+        setSelection(current => {
+          const base =
+            current.queryKey === signature
+              ? Math.max(
+                  matches.findIndex(user => user.id === current.userId),
+                  0
+                )
+              : 0;
+          const next =
+            event.key === 'ArrowDown'
+              ? (base + 1) % matches.length
+              : (base + matches.length - 1) % matches.length;
+          return { queryKey: signature, userId: matches[next].id };
         });
         return true;
       }
