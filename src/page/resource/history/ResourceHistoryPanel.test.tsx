@@ -3,6 +3,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { NAMESPACE_MEMBERS_REFRESH } from '@/page/resource/mentionCard';
 import {
   fetchResourceRevision,
   fetchResourceRevisions,
@@ -71,7 +72,11 @@ function revision(
     version,
     name,
     created_at: createdAt,
-    author: { id: 'user-a', username: 'Ada' },
+    author: {
+      id: 'user-a',
+      username: 'Ada',
+      display_name: 'Ada Lovelace（Ada）',
+    },
     is_current: id === 'current',
   };
 }
@@ -129,6 +134,7 @@ describe('ResourceHistoryPanel', () => {
     expect(container.textContent).toContain('Doc');
     expect(container.textContent).toContain('resource.history.current');
     expect(container.textContent).toContain('v1 · Doc');
+    expect(container.textContent).toContain('Ada Lovelace（Ada）');
   });
 
   it('refetches the revision list when the open resource is updated', async () => {
@@ -142,6 +148,39 @@ describe('ResourceHistoryPanel', () => {
     expect(mockedFetchRevisions).toHaveBeenCalledTimes(2);
     expect(container.textContent).toContain('Doc v2');
     expect(container.textContent).toContain('Doc');
+  });
+
+  it('refreshes author names after a namespace member changes', async () => {
+    await renderPanel();
+    await act(async () => {
+      useResourceHistoryStore
+        .getState()
+        .selectRevision('namespace-a', 'resource-a', {
+          ...initialRevisions[0],
+          resource_id: 'resource-a',
+          content: 'Doc',
+          content_hash: 'hash',
+        });
+    });
+    const renamed = {
+      ...initialRevisions[0],
+      author: {
+        ...initialRevisions[0].author!,
+        display_name: 'New Name（Ada）',
+      },
+    };
+    mockedFetchRevisions.mockResolvedValue([renamed]);
+
+    await act(async () => {
+      fireApp(NAMESPACE_MEMBERS_REFRESH, 'namespace-a');
+    });
+
+    expect(mockedFetchRevisions).toHaveBeenCalledTimes(2);
+    expect(container.textContent).toContain('New Name（Ada）');
+    expect(
+      useResourceHistoryStore.getState().selections['namespace-a:resource-a']
+        ?.author?.display_name
+    ).toBe('New Name（Ada）');
   });
 
   it('refetches when a copilot edit reports the resource id', async () => {

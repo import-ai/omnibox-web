@@ -8,15 +8,18 @@ import {
   RESOURCE_CONTENT_UPDATE_EVENTS,
 } from '@/hooks/resourceUpdateEvent';
 import useApp from '@/hooks/useApp';
+import { USER_UPDATED_EVENT } from '@/hooks/userEvents';
 import type { Resource } from '@/interface';
 import { cn } from '@/lib/utils';
 import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
+import { NAMESPACE_MEMBERS_REFRESH } from '@/page/resource/mentionCard';
 import type { ResourceRevisionSummary } from '@/service/resource';
 
 import {
   setResourceRevisionQuery,
   useResourceHistoryStore,
 } from './resourceHistoryStore';
+import { resourceRevisionAuthorDisplayName } from './resourceRevisionAuthor';
 
 interface ResourceHistoryPanelProps {
   namespaceId: string;
@@ -46,6 +49,9 @@ export default function ResourceHistoryPanel({
   const { t, i18n } = useTranslation();
   const app = useApp();
   const selectRevision = useResourceHistoryStore(state => state.selectRevision);
+  const syncRevisionAuthors = useResourceHistoryStore(
+    state => state.syncRevisionAuthors
+  );
   const clearRevision = useResourceHistoryStore(state => state.clearRevision);
   const selected = useResourceHistoryStore(
     state => state.selections[`${namespaceId}:${resourceId}`]
@@ -92,6 +98,7 @@ export default function ResourceHistoryPanel({
         .then(items => {
           if (!active || id !== requestId) return;
           setRevisions(items);
+          syncRevisionAuthors(namespaceId, resourceId, items);
           setFailed(false);
         })
         .catch(() => {
@@ -118,12 +125,26 @@ export default function ResourceHistoryPanel({
     const unbind = RESOURCE_CONTENT_UPDATE_EVENTS.map(event =>
       app.on(event, handleResourceEvent)
     );
+    const handleMembersRefresh = (changedNamespaceId?: string) => {
+      if (changedNamespaceId && changedNamespaceId !== namespaceId) return;
+      load('silent');
+    };
+    const unbindMembers = app.on(
+      NAMESPACE_MEMBERS_REFRESH,
+      handleMembersRefresh
+    );
+    const handleUserUpdated = () => load('silent');
+    window.addEventListener(USER_UPDATED_EVENT, handleUserUpdated);
+    window.addEventListener('focus', handleUserUpdated);
 
     return () => {
       active = false;
       unbind.forEach(off => off());
+      unbindMembers();
+      window.removeEventListener(USER_UPDATED_EVENT, handleUserUpdated);
+      window.removeEventListener('focus', handleUserUpdated);
     };
-  }, [app, namespaceId, reloadKey, resourceId]);
+  }, [app, namespaceId, reloadKey, resourceId, syncRevisionAuthors]);
 
   const chooseRevision = async (revisionId: string) => {
     const requestId = ++detailRequest.current;
@@ -190,6 +211,9 @@ export default function ResourceHistoryPanel({
                 revision.id === 'current'
                   ? !selected
                   : selected?.id === revision.id;
+              const authorName = resourceRevisionAuthorDisplayName(
+                revision.author
+              );
               return (
                 <button
                   className={cn(
@@ -216,7 +240,7 @@ export default function ResourceHistoryPanel({
                   </span>
                   <span className="text-xs text-muted-foreground">
                     {formatRevisionDate(revision.created_at, i18n.language)}
-                    {revision.author ? ` · ${revision.author.username}` : ''}
+                    {authorName ? ` · ${authorName}` : ''}
                   </span>
                 </button>
               );
