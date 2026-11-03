@@ -28,6 +28,7 @@ import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AlreadyBoundDialog } from './AlreadyBoundDialog';
 import {
+  APPLICATION_ORDER,
   isSupportedApplicationId,
   sortApplicationsForDisplay,
 } from './applicationOrder';
@@ -131,16 +132,31 @@ export function ApplicationsForm({
   // Track if autoAction has been processed to prevent re-triggering
   const autoActionProcessedRef = useRef(false);
   const bindRequestSequenceRef = useRef(0);
-  const activeRef = useRef(active);
-  activeRef.current = active;
 
   const unbindSession = useMemo(
     () => ({ active, notified: new Set<string>() }),
     [namespaceId, active]
   );
 
+  const sessionRef = useRef(unbindSession);
+  sessionRef.current = unbindSession;
+  const isCurrentSession = useCallback(
+    () => unbindSession.active && sessionRef.current === unbindSession,
+    [unbindSession]
+  );
+
   useEffect(() => {
     unbindSession.active = active;
+    bindRequestSequenceRef.current += 1;
+    setBindDialogOpen(false);
+    setQrBindDialogOpen(false);
+    setAlreadyBoundDialogOpen(false);
+    setCurrentBindingApplication(null);
+    setBindingCode('');
+    setQrcodeContent('');
+    setCurrentAppId('');
+    setBindingLoading(false);
+    setCancelingLoading(false);
     setConfirmApplication(null);
     setConfirmAction(null);
     setUnbindingLoading(false);
@@ -150,27 +166,32 @@ export function ApplicationsForm({
   }, [active, unbindSession]);
 
   const completeUnbind = useCallback(
-    (application: Application, source: 'remote' | 'local' = 'remote') => {
-      if (!activeRef.current || !unbindSession.active) return;
+    (removed: Application[], source: 'remote' | 'local' = 'remote') => {
+      if (!isCurrentSession()) return;
       setConfirmApplication(current =>
-        current?.id === application.id ? null : current
+        removed.some(application => application.id === current?.id)
+          ? null
+          : current
       );
-      if (
-        document.visibilityState === 'visible' &&
-        !unbindSession.notified.has(application.id)
-      ) {
-        unbindSession.notified.add(application.id);
+      const unseen = removed.filter(
+        application =>
+          !unbindSession.notified.has(`${application.app_id}:${application.id}`)
+      );
+      if (document.visibilityState === 'visible' && unseen.length) {
+        unseen.forEach(application =>
+          unbindSession.notified.add(`${application.app_id}:${application.id}`)
+        );
         showToast(
           t(
-            source === 'remote' && application.app_id === WECHAT_OA_APP_ID
-              ? 'applications.unbind.wechat_success'
+            source === 'remote'
+              ? 'applications.unbind.remote_success'
               : 'applications.unbind.success'
           ),
           'success'
         );
       }
     },
-    [unbindSession, showToast, t]
+    [isCurrentSession, unbindSession, showToast, t]
   );
 
   const {
@@ -182,14 +203,15 @@ export function ApplicationsForm({
     refetch,
   } = useApplications(namespaceId, {
     active,
-    syncWechatBinding: true,
+    syncBindingIds: APPLICATION_ORDER,
     onUnbound: completeUnbind,
   });
 
   const handleBind = async (application: Application) => {
     const bindRequestSequence = ++bindRequestSequenceRef.current;
     const isCurrentBindRequest = () =>
-      bindRequestSequence === bindRequestSequenceRef.current;
+      bindRequestSequence === bindRequestSequenceRef.current &&
+      isCurrentSession();
 
     try {
       setBindingLoading(true);
@@ -216,7 +238,12 @@ export function ApplicationsForm({
 
         const result = await beginQrCodeBind(
           application,
-          bindApplication,
+          appId => {
+            if (!isCurrentBindRequest()) {
+              throw new DOMException('Obsolete binding request', 'AbortError');
+            }
+            return bindApplication(appId);
+          },
           unbindApplication
         );
         if (!isCurrentBindRequest()) {
@@ -309,31 +336,39 @@ export function ApplicationsForm({
     try {
       setUnbindingLoading(true);
       await unbindApplication(application.id);
-      completeUnbind(application, 'local');
+      completeUnbind([application], 'local');
     } catch (error) {
-      if (!activeRef.current || !unbindSession.active) return;
+      if (!isCurrentSession()) return;
       if (
-        application.app_id === WECHAT_OA_APP_ID &&
+        isSupportedApplicationId(application.app_id) &&
         axios.isAxiosError(error) &&
         error.response?.data?.code === 'APP_AUTHORIZATION_NOT_FOUND'
       ) {
         const refreshed = await refetch({ background: true });
-        if (!activeRef.current || !unbindSession.active) return;
+        if (!isCurrentSession()) return;
         const current = refreshed?.find(
           item => item.app_id === application.app_id
         );
         if (current && !current.id) {
-          completeUnbind(application);
+          completeUnbind([application]);
+          return;
+        }
+        if (current?.id && current.id !== application.id) {
+          setConfirmApplication(null);
+          setConfirmAction(null);
+          showToast(t('applications.unbind.state_changed'), 'success');
           return;
         }
       }
       showToast(t('applications.unbind.error'), 'error');
     } finally {
-      if (unbindSession.active) setUnbindingLoading(false);
+      if (isCurrentSession()) setUnbindingLoading(false);
     }
   };
 
   const handleBindingComplete = async () => {
+    if (!isCurrentSession()) return;
+    const sequence = ++bindRequestSequenceRef.current;
     setBindDialogOpen(false);
     setQrBindDialogOpen(false);
     setCurrentBindingApplication(null);
@@ -341,20 +376,24 @@ export function ApplicationsForm({
     setQrcodeContent('');
     setCurrentAppId('');
     await refetch();
-    showToast(t('applications.bind.success'), 'success');
+    if (isCurrentSession() && sequence === bindRequestSequenceRef.current) {
+      showToast(t('applications.bind.success'), 'success');
+    }
   };
 
   const handleCancelBind = async (application: Application) => {
     try {
       setCancelingLoading(true);
       await unbindApplication(application.id);
+      if (!isCurrentSession()) return;
       setConfirmApplication(null);
       setConfirmAction(null);
       showToast(t('applications.bind.cancel.success'), 'success');
     } catch {
-      showToast(t('applications.unbind.error'), 'error');
+      if (isCurrentSession())
+        showToast(t('applications.unbind.error'), 'error');
     } finally {
-      setCancelingLoading(false);
+      if (isCurrentSession()) setCancelingLoading(false);
     }
   };
 
@@ -546,8 +585,15 @@ export function ApplicationsForm({
       </div>
 
       <BindDialog
+        active={active}
         open={bindDialogOpen}
-        onOpenChange={setBindDialogOpen}
+        onOpenChange={open => {
+          setBindDialogOpen(open);
+          if (!open) {
+            bindRequestSequenceRef.current += 1;
+            setBindingLoading(false);
+          }
+        }}
         bindingCode={bindingCode}
         urlLink={currentBindingApplication?.attrs?.url_link}
         applicationId={currentBindingApplication?.id || ''}
@@ -557,6 +603,7 @@ export function ApplicationsForm({
       />
 
       <QRCodeBindDialog
+        active={active}
         open={qrBindDialogOpen}
         onOpenChange={open => {
           setQrBindDialogOpen(open);

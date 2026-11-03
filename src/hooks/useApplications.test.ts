@@ -40,7 +40,15 @@ describe('useApplications remote unbinding', () => {
   function Probe({ namespaceId = 'space-1', enabled = true, active = true }) {
     latest = useApplications(namespaceId, {
       active,
-      syncWechatBinding: enabled,
+      syncBindingIds: enabled
+        ? [
+            'wechat_oa_bot',
+            'wechat_bot',
+            'qq_bot',
+            'wechat_clawbot',
+            'telegram_bot',
+          ]
+        : [],
       onUnbound,
     });
     return null;
@@ -70,7 +78,7 @@ describe('useApplications remote unbinding', () => {
 
     expect(latest.applications).toEqual([unbound]);
     expect(onUnbound).toHaveBeenCalledTimes(1);
-    expect(onUnbound).toHaveBeenCalledWith(bound);
+    expect(onUnbound).toHaveBeenCalledWith([bound]);
     expect(latest.loading).toBe(false);
   });
 
@@ -93,16 +101,77 @@ describe('useApplications remote unbinding', () => {
     expect(onUnbound).not.toHaveBeenCalled();
   });
 
-  it('does not start AI-assistant polling for the separate collection assistant', async () => {
+  it.each(['wechat_bot', 'qq_bot', 'wechat_clawbot', 'telegram_bot'])(
+    'synchronizes %s without a bound WeChat AI assistant',
+    async appId => {
+      const existing = { ...bound, app_id: appId };
+      jest.mocked(http.get).mockResolvedValueOnce([existing]);
+      await act(async () => root.render(createElement(Probe)));
+      jest.mocked(http.get).mockResolvedValue([{ app_id: appId }]);
+      await act(async () => jest.advanceTimersByTime(3000));
+      expect(latest.applications).toEqual([{ app_id: appId }]);
+      expect(onUnbound).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it('detects another assistant removed during a local mutation refresh', async () => {
+    const qq = { ...bound, app_id: 'qq_bot', id: 'qq-1' };
+    const telegram = { ...bound, app_id: 'telegram_bot', id: 'telegram-1' };
+    jest.mocked(http.get).mockResolvedValueOnce([qq, telegram]);
+    await act(async () => root.render(createElement(Probe)));
+    jest.mocked(http.delete).mockResolvedValue(undefined);
     jest
       .mocked(http.get)
-      .mockResolvedValue([{ ...bound, app_id: 'wechat_bot' }]);
-    await act(async () => root.render(createElement(Probe)));
-    await act(async () => jest.advanceTimersByTime(9000));
+      .mockResolvedValue([{ app_id: 'qq_bot' }, { app_id: 'telegram_bot' }]);
+    await act(async () => latest.unbindApplication(telegram.id));
+    expect(onUnbound).toHaveBeenCalledTimes(1);
+    expect(onUnbound).toHaveBeenCalledWith([qq]);
+  });
 
-    expect(http.get).toHaveBeenCalledTimes(1);
+  it('reports all simultaneous removals in one batch and stops polling', async () => {
+    const qq = { ...bound, app_id: 'qq_bot', id: 'qq-1' };
+    jest.mocked(http.get).mockResolvedValueOnce([bound, qq]);
+    await act(async () => root.render(createElement(Probe)));
+    jest.mocked(http.get).mockResolvedValue([unbound, { app_id: 'qq_bot' }]);
+    await act(async () => jest.advanceTimersByTime(3000));
+    await act(async () => jest.advanceTimersByTime(9000));
+    expect(onUnbound).toHaveBeenCalledTimes(1);
+    expect(onUnbound).toHaveBeenCalledWith([bound, qq]);
+    expect(http.get).toHaveBeenCalledTimes(2);
+  });
+
+  it('recovers an initial fetch failure on focus without historical notifications', async () => {
+    jest.mocked(http.get).mockRejectedValueOnce(new Error('offline'));
+    await act(async () => root.render(createElement(Probe)));
+    jest.mocked(http.get).mockResolvedValue([unbound]);
+    await act(async () => window.dispatchEvent(new Event('focus')));
+    expect(latest.applications).toEqual([unbound]);
+    expect(latest.error).toBeNull();
     expect(onUnbound).not.toHaveBeenCalled();
   });
+
+  it.each([
+    { response: [] },
+    {
+      response: [
+        {
+          ...bound,
+          id: 'new-binding',
+          attrs: { key: 'pending' },
+          api_key_id: undefined,
+        },
+      ],
+    },
+    { response: [{ ...bound, id: 'new-binding', api_key_id: 'new-key' }] },
+  ])(
+    'does not announce missing rows or replacement bindings: %j',
+    async ({ response }) => {
+      await act(async () => root.render(createElement(Probe)));
+      jest.mocked(http.get).mockResolvedValue(response);
+      await act(async () => jest.advanceTimersByTime(3000));
+      expect(onUnbound).not.toHaveBeenCalled();
+    }
+  );
 
   it('preserves confirmed data when a silent poll fails and recovers later', async () => {
     await act(async () => root.render(createElement(Probe)));
@@ -267,6 +336,147 @@ describe('useApplications remote unbinding', () => {
     expect(latest.applications).toEqual([unbound]);
   });
 
+  it.each(['namespace', 'inactive', 'unmount'])(
+    'rejects new writes from an obsolete session after %s',
+    async change => {
+      await act(async () => root.render(createElement(Probe)));
+      const previous = latest;
+      await act(async () => {
+        if (change === 'namespace')
+          root.render(createElement(Probe, { namespaceId: 'space-2' }));
+        if (change === 'inactive')
+          root.render(createElement(Probe, { active: false }));
+        if (change === 'unmount') root.render(null);
+      });
+      await expect(
+        previous.bindApplication('wechat_oa_bot')
+      ).rejects.toMatchObject({
+        name: 'AbortError',
+      });
+      await expect(previous.unbindApplication(bound.id)).rejects.toMatchObject({
+        name: 'AbortError',
+      });
+      expect(http.post).not.toHaveBeenCalled();
+      expect(http.delete).not.toHaveBeenCalled();
+    }
+  );
+
+  it('stops an expired-binding continuation from posting after the namespace changes', async () => {
+    await act(async () => root.render(createElement(Probe)));
+    const previous = latest;
+    const deletion = deferred<void>();
+    jest.mocked(http.delete).mockReturnValueOnce(deletion.promise);
+    const continuation = previous
+      .unbindApplication(bound.id)
+      .then(() => previous.bindApplication(bound.app_id));
+    const outcome = expect(continuation).rejects.toMatchObject({
+      name: 'AbortError',
+    });
+    await act(async () =>
+      root.render(createElement(Probe, { namespaceId: 'space-2' }))
+    );
+    await act(async () => deletion.resolve());
+    await outcome;
+    expect(http.post).not.toHaveBeenCalled();
+  });
+
+  it.each(['external', 'namespace', 'inactive', 'unmount', 'mutation'])(
+    'aborts status requests and rejects late success after %s cancellation',
+    async change => {
+      await act(async () => root.render(createElement(Probe)));
+      const pending = deferred<Application>();
+      jest.mocked(http.get).mockReturnValueOnce(pending.promise);
+      const external = new AbortController();
+      const query = latest.checkApplicationStatus(bound.id, {
+        signal: external.signal,
+      });
+      const outcome = expect(query).rejects.toMatchObject({
+        name: 'AbortError',
+      });
+      const signal = jest.mocked(http.get).mock.calls.at(-1)?.[1]?.signal;
+      await act(async () => {
+        if (change === 'external') external.abort();
+        if (change === 'namespace')
+          root.render(createElement(Probe, { namespaceId: 'space-2' }));
+        if (change === 'inactive')
+          root.render(createElement(Probe, { active: false }));
+        if (change === 'unmount') root.render(null);
+        if (change === 'mutation') {
+          jest.mocked(http.delete).mockResolvedValueOnce(undefined);
+          await latest.unbindApplication(bound.id);
+        }
+      });
+      expect(signal?.aborted).toBe(true);
+      await act(async () => pending.resolve(bound));
+      await outcome;
+    }
+  );
+
+  it('rejects an older creation for the same app and never refreshes its stale result', async () => {
+    await act(async () => root.render(createElement(Probe)));
+    const older = deferred<Application>();
+    const newer = deferred<Application>();
+    const list = deferred<Application[]>();
+    jest
+      .mocked(http.post)
+      .mockReturnValueOnce(older.promise)
+      .mockReturnValueOnce(newer.promise);
+    jest.mocked(http.get).mockReturnValueOnce(list.promise);
+    const first = latest.bindApplication(bound.app_id);
+    const firstOutcome = first.then(
+      value => ({ value, error: undefined }),
+      error => ({ value: undefined, error })
+    );
+    const second = latest.bindApplication(bound.app_id);
+    const current = { ...bound, id: 'new-binding' };
+    await act(async () => {
+      newer.resolve(current);
+      await second;
+    });
+    expect(latest.applications).toEqual([current]);
+    await act(async () => {
+      older.resolve({ ...bound, id: 'old-binding' });
+      await firstOutcome;
+    });
+    expect((await firstOutcome).error).toMatchObject({ name: 'AbortError' });
+    expect(latest.applications).toEqual([current]);
+    expect(http.get).toHaveBeenCalledTimes(2);
+    await act(async () => list.resolve([current]));
+    expect(latest.applications).toEqual([current]);
+  });
+
+  it('merges different apps created concurrently and ignores an older list refresh', async () => {
+    jest.mocked(http.get).mockResolvedValueOnce([]);
+    await act(async () => root.render(createElement(Probe)));
+    const firstCreation = deferred<Application>();
+    const secondCreation = deferred<Application>();
+    const staleList = deferred<Application[]>();
+    const currentList = deferred<Application[]>();
+    jest
+      .mocked(http.post)
+      .mockReturnValueOnce(firstCreation.promise)
+      .mockReturnValueOnce(secondCreation.promise);
+    jest
+      .mocked(http.get)
+      .mockReturnValueOnce(staleList.promise)
+      .mockReturnValueOnce(currentList.promise);
+    const first = latest.bindApplication('wechat_oa_bot');
+    const second = latest.bindApplication('qq_bot');
+    const qq = { ...bound, app_id: 'qq_bot', id: 'qq-binding' };
+    await act(async () => {
+      secondCreation.resolve(qq);
+      await second;
+    });
+    await act(async () => {
+      firstCreation.resolve(bound);
+      await first;
+    });
+    expect(latest.applications).toEqual([qq, bound]);
+    await act(async () => currentList.resolve([bound, qq]));
+    await act(async () => staleList.resolve([qq]));
+    expect(latest.applications).toEqual([bound, qq]);
+  });
+
   it('removes a successfully deleted binding even if the refresh fails', async () => {
     await act(async () => root.render(createElement(Probe)));
     jest.mocked(http.delete).mockResolvedValue(undefined);
@@ -274,5 +484,58 @@ describe('useApplications remote unbinding', () => {
     await act(async () => latest.unbindApplication(bound.id));
 
     expect(latest.applications).toEqual([unbound]);
+  });
+  it('retains the last confirmed snapshot and keeps polling after an incomplete response', async () => {
+    await act(async () => root.render(createElement(Probe)));
+    jest.mocked(http.get).mockResolvedValueOnce([]);
+    await act(async () => jest.advanceTimersByTime(3000));
+    expect(latest.applications).toEqual([bound]);
+    expect(onUnbound).not.toHaveBeenCalled();
+    jest.mocked(http.get).mockResolvedValueOnce([unbound]);
+    await act(async () => jest.advanceTimersByTime(3000));
+    expect(latest.applications).toEqual([unbound]);
+    expect(onUnbound).toHaveBeenCalledWith([bound]);
+  });
+
+  it.each([
+    null,
+    '<html>Gateway unavailable</html>',
+    [null],
+    [{ id: 'invalid-row' }],
+  ])(
+    'keeps malformed list data out of the confirmed state: %j',
+    async response => {
+      await act(async () => root.render(createElement(Probe)));
+      jest.mocked(http.get).mockResolvedValueOnce(response);
+      await act(async () => jest.advanceTimersByTime(3000));
+      expect(latest.applications).toEqual([bound]);
+      expect(onUnbound).not.toHaveBeenCalled();
+      jest.mocked(http.get).mockResolvedValueOnce([unbound]);
+      await act(async () => jest.advanceTimersByTime(3000));
+      expect(latest.applications).toEqual([unbound]);
+      expect(onUnbound).toHaveBeenCalledWith([bound]);
+    }
+  );
+
+  it('does not start a status read while cancellation is still pending', async () => {
+    await act(async () => root.render(createElement(Probe)));
+    const deletion = deferred<void>();
+    jest.mocked(http.delete).mockReturnValueOnce(deletion.promise);
+    const operation = latest.unbindApplication(bound.id);
+    const calls = jest.mocked(http.get).mock.calls.length;
+    jest.mocked(http.get).mockResolvedValueOnce(bound);
+    await expect(latest.checkApplicationStatus(bound.id)).rejects.toMatchObject(
+      { name: 'AbortError' }
+    );
+    expect(http.get).toHaveBeenCalledTimes(calls);
+    jest.mocked(http.get).mockReset().mockResolvedValue([unbound]);
+    await act(async () => {
+      deletion.resolve();
+      await operation;
+    });
+    jest.mocked(http.get).mockResolvedValueOnce(bound);
+    await expect(latest.checkApplicationStatus(bound.id)).resolves.toEqual(
+      bound
+    );
   });
 });

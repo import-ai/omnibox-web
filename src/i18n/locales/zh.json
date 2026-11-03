@@ -690,7 +690,8 @@
     "unbind": {
       "button": "解绑",
       "success": "助手解绑成功",
-      "wechat_success": "解绑成功",
+      "state_changed": "绑定状态已更新，请确认后重新操作。",
+      "remote_success": "解绑成功",
       "error": "助手解绑失败",
       "confirm": {
         "title": "解绑助手",

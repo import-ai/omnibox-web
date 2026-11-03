@@ -319,4 +319,83 @@ describe('ApplicationsForm unbinding synchronization', () => {
     expect(container.textContent).toContain('未绑定');
     expect(showToast).not.toHaveBeenCalled();
   });
+  describe.each(['wechat_bot', 'qq_bot', 'wechat_clawbot', 'telegram_bot'])(
+    '%s synchronization',
+    appId => {
+      const existing = { ...bound, app_id: appId };
+      const removed = { app_id: appId };
+      it('updates the row and shows the generic remote success once', async () => {
+        jest.mocked(http.get).mockResolvedValueOnce([existing]);
+        await act(async () => root.render(<ApplicationsForm />));
+        jest.mocked(http.get).mockResolvedValue([removed]);
+        await act(async () => jest.advanceTimersByTime(3000));
+        await act(async () => jest.advanceTimersByTime(6000));
+        expect(container.textContent).toContain('未绑定');
+        expect(showToast).toHaveBeenCalledTimes(1);
+        expect(showToast).toHaveBeenCalledWith('解绑成功', 'success');
+      });
+      it('recovers duplicate unbinding after server verification', async () => {
+        jest.mocked(http.get).mockResolvedValueOnce([existing]);
+        await act(async () => root.render(<ApplicationsForm />));
+        await click('解绑');
+        jest.mocked(http.delete).mockRejectedValueOnce(missingBinding);
+        jest.mocked(http.get).mockResolvedValue([removed]);
+        await click('确认解绑');
+        expect(container.textContent).toContain('未绑定');
+        expect(showToast).toHaveBeenCalledTimes(1);
+        expect(showToast).toHaveBeenCalledWith('解绑成功', 'success');
+      });
+      it.each(['pending', 'bound'])(
+        'preserves a replacement %s binding',
+        async state => {
+          jest.mocked(http.get).mockResolvedValueOnce([existing]);
+          await act(async () => root.render(<ApplicationsForm />));
+          await click('解绑');
+          jest.mocked(http.delete).mockRejectedValueOnce(missingBinding);
+          const replacement = {
+            ...existing,
+            id: 'new-binding',
+            api_key_id: state === 'bound' ? 'new-key' : undefined,
+            attrs: state === 'pending' ? { key: 'new-code' } : {},
+          };
+          jest.mocked(http.get).mockResolvedValue([replacement]);
+          await click('确认解绑');
+          expect(http.delete).toHaveBeenCalledTimes(1);
+          expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+          expect(showToast).not.toHaveBeenCalledWith('解绑成功', 'success');
+          expect(showToast).not.toHaveBeenCalledWith('助手解绑失败', 'error');
+          expect(showToast).toHaveBeenCalledWith(
+            '绑定状态已更新，请确认后重新操作。',
+            'success'
+          );
+        }
+      );
+      it.each([new Error('offline'), { response: { status: 403 } }])(
+        'preserves real failures: %j',
+        async error => {
+          jest.mocked(http.get).mockResolvedValueOnce([existing]);
+          await act(async () => root.render(<ApplicationsForm />));
+          await click('解绑');
+          jest.mocked(http.delete).mockRejectedValueOnce(error);
+          await click('确认解绑');
+          expect(container.textContent).toContain('已绑定');
+          expect(showToast).toHaveBeenCalledWith('助手解绑失败', 'error');
+        }
+      );
+    }
+  );
+
+  it('groups simultaneous remote removals and allows a new binding to notify later', async () => {
+    const qq = { ...bound, id: 'qq-1', app_id: 'qq_bot' };
+    jest.mocked(http.get).mockResolvedValueOnce([bound, qq]);
+    await act(async () => root.render(<ApplicationsForm />));
+    jest.mocked(http.get).mockResolvedValue([unbound, { app_id: 'qq_bot' }]);
+    await act(async () => jest.advanceTimersByTime(3000));
+    expect(showToast).toHaveBeenCalledTimes(1);
+    jest.mocked(http.get).mockResolvedValue([{ ...qq, id: 'qq-2' }, unbound]);
+    await act(async () => window.dispatchEvent(new Event('focus')));
+    jest.mocked(http.get).mockResolvedValue([unbound, { app_id: 'qq_bot' }]);
+    await act(async () => jest.advanceTimersByTime(3000));
+    expect(showToast).toHaveBeenCalledTimes(2);
+  });
 });
