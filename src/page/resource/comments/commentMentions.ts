@@ -102,8 +102,7 @@ export function splitCommentContent(content: string): CommentContentPart[] {
 
 export function filterCommentMentionUsers<T extends CommentMentionUser>(
   users: T[],
-  query: string,
-  limit = 8
+  query: string
 ) {
   const needle = query.trim().toLowerCase();
   const seen = new Set<string>();
@@ -118,9 +117,6 @@ export function filterCommentMentionUsers<T extends CommentMentionUser>(
       continue;
     }
     matches.push(user);
-    if (matches.length >= limit) {
-      break;
-    }
   }
   return matches;
 }
@@ -302,12 +298,12 @@ export function mentionMenuPlacement(
     return {
       left,
       bottom: viewport.height - rect.top + gap,
-      maxHeight: Math.max(96, spaceAbove - gap - 8),
+      maxHeight: Math.max(0, Math.min(menuHeight, spaceAbove - gap - 8)),
     };
   }
   return {
     left,
     top: rect.bottom + gap,
-    maxHeight: Math.max(96, spaceBelow - gap - 8),
+    maxHeight: Math.max(0, Math.min(menuHeight, spaceBelow - gap - 8)),
   };
 }
