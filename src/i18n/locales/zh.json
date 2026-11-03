@@ -1233,7 +1233,9 @@
     },
     "related_application": "关联助手",
     "show": "显示",
-    "hide": "隐藏"
+    "hide": "隐藏",
+    "personal_and_team": "个人 + 团队",
+    "personal_and_team_hint": "可访问个人及团队中你有权限的资源。新内容优先保存到指定位置或助手已有保存位置，未指定时默认保存到个人。"
   },
   "tasks": {
     "description": "查看后台任务的处理状态，并管理任务执行。",
