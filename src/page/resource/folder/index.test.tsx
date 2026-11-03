@@ -363,6 +363,228 @@ function fileItem(id: string, name: string) {
   };
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+function pageItems(prefix: string, start = 0, count = 10) {
+  return Array.from({ length: count }, (_, index) =>
+    fileItem(`${prefix}-${start + index}`, `${prefix} ${start + index}`)
+  );
+}
+
+function childRequests(folderId: string, offset?: number) {
+  return mockGet.mock.calls.filter(([url]) => {
+    const requestUrl = String(url);
+    if (!requestUrl.includes(`/${folderId}/children?`)) return false;
+    return offset === undefined || requestUrl.includes(`offset=${offset}&`);
+  });
+}
+
+describe('Folder paged loading', () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  beforeEach(() => {
+    mockGet.mockReset();
+    Object.keys(mockListeners).forEach(key => {
+      delete mockListeners[key];
+    });
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(async () => {
+    await act(async () => root.unmount());
+    container.remove();
+  });
+
+  async function renderFolder(resourceId = FOLDER_ID) {
+    await act(async () => {
+      root.render(
+        <Folder
+          resourceId={resourceId}
+          apiPrefix={`/namespaces/${NAMESPACE_ID}/resources`}
+          namespaceId={NAMESPACE_ID}
+          navigationPrefix={`/${NAMESPACE_ID}`}
+        />
+      );
+    });
+  }
+
+  function fireBottom(resourceId = FOLDER_ID, namespaceId = NAMESPACE_ID) {
+    fireApp('scroll-to-bottom', { namespaceId, resourceId });
+  }
+
+  function rowCount(name: string) {
+    return Array.from(container.querySelectorAll('h3')).filter(
+      node => node.textContent === name
+    ).length;
+  }
+
+  it('does not request another page while the first page is loading', async () => {
+    const initial = deferred<unknown[]>();
+    mockGet.mockReturnValueOnce(initial.promise);
+
+    await renderFolder();
+    await act(async () => fireBottom());
+
+    expect(childRequests(FOLDER_ID)).toHaveLength(1);
+
+    await act(async () => initial.resolve(pageItems('Item')));
+  });
+
+  it('coalesces repeated bottom events into one page request', async () => {
+    const nextPage = deferred<unknown[]>();
+    mockGet.mockImplementation((url: string) =>
+      String(url).includes('offset=10&')
+        ? nextPage.promise
+        : Promise.resolve(pageItems('Item'))
+    );
+
+    await renderFolder();
+    await act(async () => {
+      fireBottom();
+      fireBottom();
+    });
+
+    expect(childRequests(FOLDER_ID, 10)).toHaveLength(1);
+
+    await act(async () => nextPage.resolve(pageItems('Item', 10)));
+  });
+
+  it('isolates bottom events and stale responses after switching folders', async () => {
+    const stalePage = deferred<unknown[]>();
+    const nextInitial = deferred<unknown[]>();
+    const nextFolderId = 'folder-2';
+    mockGet.mockImplementation((url: string) => {
+      const requestUrl = String(url);
+      if (
+        requestUrl.includes(`/${FOLDER_ID}/children?`) &&
+        requestUrl.includes('offset=10&')
+      ) {
+        return stalePage.promise;
+      }
+      if (
+        requestUrl.includes(`/${nextFolderId}/children?`) &&
+        requestUrl.includes('offset=0&')
+      ) {
+        return nextInitial.promise;
+      }
+      return Promise.resolve(pageItems('Old'));
+    });
+
+    await renderFolder();
+    await act(async () => fireBottom());
+    await renderFolder(nextFolderId);
+    await act(async () => fireBottom(nextFolderId));
+
+    expect(childRequests(nextFolderId, 10)).toHaveLength(0);
+
+    await act(async () => nextInitial.resolve(pageItems('New')));
+    expect(container.textContent).toContain('New 0');
+    expect(container.textContent).not.toContain('Old 10');
+
+    await act(async () => stalePage.resolve(pageItems('Old', 10)));
+    expect(container.textContent).toContain('New 0');
+    expect(container.textContent).not.toContain('Old 10');
+  });
+
+  it('does not let a stale response release the new folder lock', async () => {
+    const stalePage = deferred<unknown[]>();
+    const nextInitial = deferred<unknown[]>();
+    const nextFolderId = 'folder-2';
+    mockGet.mockImplementation((url: string) => {
+      const requestUrl = String(url);
+      if (
+        requestUrl.includes(`/${FOLDER_ID}/children?`) &&
+        requestUrl.includes('offset=10&')
+      ) {
+        return stalePage.promise;
+      }
+      if (
+        requestUrl.includes(`/${nextFolderId}/children?`) &&
+        requestUrl.includes('offset=0&')
+      ) {
+        return nextInitial.promise;
+      }
+      return Promise.resolve(pageItems('Old'));
+    });
+
+    await renderFolder();
+    await act(async () => fireBottom());
+    await renderFolder(nextFolderId);
+    await act(async () => stalePage.resolve(pageItems('Old', 10)));
+    await act(async () => fireBottom(nextFolderId));
+
+    expect(childRequests(nextFolderId, 10)).toHaveLength(0);
+
+    await act(async () => nextInitial.resolve(pageItems('New')));
+  });
+
+  it('ignores bottom events for another list context', async () => {
+    mockGet.mockResolvedValue(pageItems('Item'));
+
+    await renderFolder();
+    await act(async () => fireBottom('other-folder'));
+
+    expect(childRequests(FOLDER_ID, 10)).toHaveLength(0);
+  });
+
+  it('deduplicates resource IDs without ending pagination early', async () => {
+    mockGet.mockImplementation((url: string) => {
+      if (String(url).includes('offset=10&')) {
+        return Promise.resolve(
+          pageItems('Item', 8, 10).map((item, index) =>
+            index < 2
+              ? fileItem(`Item-${index + 8}`, `Item ${index + 8}`)
+              : item
+          )
+        );
+      }
+      return Promise.resolve(pageItems('Item'));
+    });
+
+    await renderFolder();
+    await act(async () => fireBottom());
+
+    expect(rowCount('Item 8')).toBe(1);
+    expect(rowCount('Item 9')).toBe(1);
+    expect(container.textContent).toContain('load_more');
+  });
+
+  it('keeps the original offset retryable after a page request fails', async () => {
+    const failedPage = deferred<unknown[]>();
+    mockGet.mockImplementation((url: string) =>
+      String(url).includes('offset=10&')
+        ? failedPage.promise
+        : Promise.resolve(pageItems('Item'))
+    );
+
+    await renderFolder();
+    await act(async () => fireBottom());
+    await act(async () => {
+      failedPage.reject(new Error('network error'));
+    });
+
+    mockGet.mockImplementation((url: string) =>
+      String(url).includes('offset=10&')
+        ? Promise.resolve(pageItems('Item', 10))
+        : Promise.resolve(pageItems('Item'))
+    );
+    await act(async () => fireBottom());
+
+    expect(childRequests(FOLDER_ID, 10)).toHaveLength(2);
+  });
+});
+
 describe('Folder sidebar delete refresh', () => {
   let container: HTMLDivElement;
   let root: Root;
