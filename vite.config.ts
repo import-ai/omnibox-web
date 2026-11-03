@@ -46,6 +46,16 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       proxy: {
+        '/docs': {
+          target:
+            process.env.VITE_DOCS_PATH ??
+            env.VITE_DOCS_PATH ??
+            process.env.VITE_API_PATH ??
+            env.VITE_API_PATH ??
+            'http://127.0.0.1:8000',
+          changeOrigin: true,
+          ws: true,
+        },
         '/api/v1': {
           target:
             process.env.VITE_API_PATH ??
