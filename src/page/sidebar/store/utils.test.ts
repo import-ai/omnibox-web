@@ -7,6 +7,8 @@ import {
   getBatchSelectionSummary,
   getBatchUnsupportedTipKey,
   isBatchSelectableNode,
+  patchNodeFromResource,
+  sidebarResourceName,
 } from './utils';
 
 jest.mock('@/page/sidebar/components/smart-folder', () => ({
@@ -100,6 +102,48 @@ describe('managed folder expansion', () => {
       expect(state.ui[result.id].expanded).toBe(false);
     }
   );
+});
+
+describe('sidebar link names', () => {
+  const link = {
+    id: 'link-1',
+    parent_id: 'folder',
+    resource_type: 'link',
+    has_children: false,
+    attrs: { url: 'https://v.douyin.com/1vtkpRm_WQU/' },
+  } as Resource;
+
+  it('uses the saved url while the link has no analyzed name', () => {
+    expect(sidebarResourceName({ ...link, name: '  ' })).toBe(
+      'https://v.douyin.com/1vtkpRm_WQU/'
+    );
+    expect(createNode({ ...link, name: '' }, 'folder', 'private').name).toBe(
+      'https://v.douyin.com/1vtkpRm_WQU/'
+    );
+  });
+
+  it('keeps that url when a loading children payload has no name', () => {
+    const node = createNode(
+      { ...link, name: 'https://v.douyin.com/1vtkpRm_WQU/' },
+      'folder',
+      'private'
+    );
+
+    patchNodeFromResource(node, { ...link, name: '' });
+
+    expect(node.name).toBe('https://v.douyin.com/1vtkpRm_WQU/');
+  });
+
+  it('replaces the url once analysis names the link', () => {
+    const node = createNode({ ...link, name: '' }, 'folder', 'private');
+
+    patchNodeFromResource(node, {
+      ...link,
+      name: '如何看待全国社会保障基金会',
+    });
+
+    expect(node.name).toBe('如何看待全国社会保障基金会');
+  });
 });
 
 describe('isBatchSelectableNode', () => {

@@ -2,6 +2,7 @@ import { CreatedTimeAttribute } from '@/components/attributes/CreatedTimeAttribu
 import { FilenameAttribute } from '@/components/attributes/FilenameAttribute';
 import { Metadata } from '@/components/attributes/Metadata';
 import { PublishedTimeAttribute } from '@/components/attributes/PublishedTimeAttribute';
+import { ResourceContributors } from '@/components/attributes/ResourcePeopleAttribute';
 import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Tag from '@/components/tags';
 import { Resource } from '@/interface';
@@ -133,6 +134,13 @@ export default function Attributes(props: IProps) {
       />
       {resource.created_at && (
         <CreatedTimeAttribute createdAt={resource.created_at} />
+      )}
+      {resource.resource_type === 'doc' && (
+        <ResourceContributors
+          namespaceId={namespaceId}
+          creator={resource.creator}
+          collaborators={resource.collaborators}
+        />
       )}
       {shouldRenderResourceTasks && (
         <ResourceTasks

@@ -145,3 +145,119 @@ it('replaces the pending query with the persisted receipt without duplicating te
   expect(conversation.mapping.saved.status).toBe(MessageStatus.SUCCESS);
   expect(conversation.current_node).toBe('saved');
 });
+
+it.each(['done', 'stop', 'add'] as const)(
+  'clears stale error details when a message transitions through %s',
+  transition => {
+    let conversation: ConversationDetail = { id: 'c', mapping: {} };
+    const operator = createMessageOperator(conversation, updater => {
+      conversation = updateConversation(conversation, updater);
+    });
+    const bos = {
+      response_type: 'bos' as const,
+      id: 'm',
+      parentId: '',
+      role: OpenAIMessageRole.ASSISTANT,
+    };
+    operator.add(bos);
+    operator.error(
+      {
+        response_type: 'error',
+        message: '',
+        code: 'CONVERSATION_BUSY',
+        status: 409,
+      },
+      'm'
+    );
+    expect(conversation.mapping.m.attrs).toMatchObject({
+      error_message: 'Unknown error',
+      error_code: 'CONVERSATION_BUSY',
+      error_status: 409,
+    });
+    if (transition === 'stop') {
+      // A resumed active message can still carry a stale server snapshot.
+      conversation.mapping.m.status = MessageStatus.STREAMING;
+    }
+    if (transition === 'add') operator.add(bos);
+    else operator[transition]('m');
+    expect(conversation.mapping.m.attrs?.error_message).toBeUndefined();
+    expect(conversation.mapping.m.attrs?.error_code).toBeUndefined();
+    expect(conversation.mapping.m.attrs?.error_status).toBeUndefined();
+  }
+);
+test('stopping a captured tool does not stop a newer turn or accept late EOS', () => {
+  let conversation = {
+    id: 'c',
+    current_node: 'a2',
+    mapping: {},
+  } as ConversationDetail;
+  const row = (
+    id: string,
+    parent_id: string,
+    role: OpenAIMessageRole,
+    status: MessageStatus
+  ) => ({
+    id,
+    clientKey: 0,
+    parent_id,
+    children: [],
+    message: { role },
+    status,
+  });
+  conversation.mapping = {
+    q: row('q', '', OpenAIMessageRole.USER, MessageStatus.SUCCESS),
+    a: row('a', 'q', OpenAIMessageRole.ASSISTANT, MessageStatus.SUCCESS),
+    t: row('t', 'a', OpenAIMessageRole.TOOL, MessageStatus.STREAMING),
+    q2: row('q2', 't', OpenAIMessageRole.USER, MessageStatus.SUCCESS),
+    a2: row('a2', 'q2', OpenAIMessageRole.ASSISTANT, MessageStatus.STREAMING),
+  };
+  const operator = createMessageOperator(conversation, update => {
+    conversation = typeof update === 'function' ? update(conversation) : update;
+  });
+  operator.stop('t');
+  operator.done('t');
+  operator.update(
+    { response_type: 'delta', message: { content: 'late' } },
+    't'
+  );
+  expect(conversation.mapping.t.status).toBe(MessageStatus.STOPPED);
+  expect(conversation.mapping.t.message.content).toBeUndefined();
+  expect(conversation.mapping.a2.status).toBe(MessageStatus.STREAMING);
+  expect(conversation.mapping.a.status).toBe(MessageStatus.SUCCESS);
+  expect(conversation.mapping.a.attrs?.turn_status).toBe('stopped');
+});
+
+test('stop acknowledgement includes TOOL descendants created while cancellation was pending', () => {
+  let conversation = {
+    id: 'c',
+    current_node: 't',
+    mapping: {
+      q: {
+        id: 'q',
+        parent_id: '',
+        children: ['a'],
+        message: { role: OpenAIMessageRole.USER },
+        status: MessageStatus.SUCCESS,
+      },
+      a: {
+        id: 'a',
+        parent_id: 'q',
+        children: ['t'],
+        message: { role: OpenAIMessageRole.ASSISTANT },
+        status: MessageStatus.SUCCESS,
+      },
+      t: {
+        id: 't',
+        parent_id: 'a',
+        children: [],
+        message: { role: OpenAIMessageRole.TOOL },
+        status: MessageStatus.STREAMING,
+      },
+    },
+  } as unknown as ConversationDetail;
+  const operator = createMessageOperator(conversation, update => {
+    conversation = typeof update === 'function' ? update(conversation) : update;
+  });
+  operator.stop('a');
+  expect(conversation.mapping.t.status).toBe(MessageStatus.STOPPED);
+});

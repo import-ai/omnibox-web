@@ -13,7 +13,7 @@ import type {
   NotificationFilter,
   NotificationItem,
 } from './types';
-import { mergeNotificationDetail } from './utils';
+import { isCampaignRewardNotification, mergeNotificationDetail } from './utils';
 
 function Notification({ onClose }: { onClose?: () => void }) {
   const { t } = useTranslation();
@@ -163,7 +163,8 @@ function Notification({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
-      {detail?.notification_type === 'system' ? (
+      {detail?.notification_type === 'system' ||
+      (detail && isCampaignRewardNotification(detail)) ? (
         <SystemNotificationDetailDialog
           detail={detail}
           open={detailOpen}

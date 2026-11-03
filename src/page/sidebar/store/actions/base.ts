@@ -189,9 +189,11 @@ export function buildBaseActions(set: SidebarSet) {
         if (!parent) return;
         const newIds = new Set(resources.map(r => (r as { id: string }).id));
         const deletedIds = new Set<string>();
+        const preserveMissing = s.ui[parentId]?.loading === true;
 
         for (const cid of parent.children) {
           if (!newIds.has(cid) && s.nodes[cid]?.parentId === parentId) {
+            if (preserveMissing) continue;
             const deleteRecursive = (id: string) => {
               const node = s.nodes[id];
               if (!node) return;
@@ -234,9 +236,17 @@ export function buildBaseActions(set: SidebarSet) {
           }
         }
 
-        parent.children = resources.map(r => (r as { id: string }).id);
+        const listedIds = resources.map(r => (r as { id: string }).id);
+        const preservedIds = preserveMissing
+          ? parent.children.filter(
+              cid => !newIds.has(cid) && s.nodes[cid]?.parentId === parentId
+            )
+          : [];
+        parent.children = [...listedIds, ...preservedIds];
         parent.hasChildren =
-          isManagedChildrenNode(parent) || resources.length > 0;
+          isManagedChildrenNode(parent) ||
+          listedIds.length > 0 ||
+          preservedIds.length > 0;
         const pui = ensureUI(s, parentId);
         pui.loaded = true;
         if (isSmartFolderChildResource(parent)) pui.expanded = false;

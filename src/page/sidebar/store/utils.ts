@@ -6,6 +6,23 @@ import type { SidebarState, TreeNode } from './types';
 
 type ResourceWithChildrenState = Resource & { hasChildren?: boolean };
 
+/** Name shown in the sidebar. A link can be saved before analysis names it. */
+export function sidebarResourceName(resource: {
+  name?: string | null;
+  resource_type?: string;
+  attrs?: { url?: unknown };
+}): string {
+  const name = resource.name?.trim();
+  if (name) return name;
+  if (
+    resource.resource_type === 'link' &&
+    typeof resource.attrs?.url === 'string'
+  ) {
+    return resource.attrs.url.trim();
+  }
+  return '';
+}
+
 function getResourceHasChildren(resource: ResourceWithChildrenState): boolean {
   if (isSmartFolderChildResource(resource)) {
     return false;
@@ -33,7 +50,7 @@ export function createNode(
     id: resource.id,
     parentId,
     spaceType,
-    name: resource.name || '',
+    name: sidebarResourceName(resource),
     resourceType: resource.resource_type,
     content: resource.content,
     attrs: resource.attrs,
@@ -218,7 +235,10 @@ export function patchNodeFromResource(
   resource: Resource
 ): void {
   const resourceWithChildrenState = resource as ResourceWithChildrenState;
-  node.name = resource.name || '';
+  const nextName = sidebarResourceName(resource);
+  // A children payload for a link that is still being analyzed often has no
+  // name yet. Keep the url already shown instead of blanking the row.
+  if (nextName) node.name = nextName;
   node.hasChildren = isSmartFolderChildResource(node)
     ? false
     : getResourceHasChildren(resourceWithChildrenState);

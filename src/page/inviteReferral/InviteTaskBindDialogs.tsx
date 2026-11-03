@@ -15,15 +15,24 @@ import useUser from '@/hooks/useUser';
 import PhoneValidate from '@/page/settings/tabs/account/PhoneValidate';
 import { AlreadyBoundDialog } from '@/page/settings/tabs/applications/AlreadyBoundDialog';
 import { beginCodeBind } from '@/page/settings/tabs/applications/beginCodeBind';
+import {
+  beginQrCodeBind,
+  WECHAT_OA_APP_ID,
+} from '@/page/settings/tabs/applications/beginQrCodeBind';
 import { BindDialog } from '@/page/settings/tabs/applications/BindDialog';
+import { QRCodeBindDialog } from '@/page/settings/tabs/applications/QRCodeBindDialog';
 
 const WECHAT_BOT_APP_ID = 'wechat_bot';
+
+export type InviteWechatAppId =
+  typeof WECHAT_BOT_APP_ID | typeof WECHAT_OA_APP_ID;
 
 interface InviteTaskBindDialogsProps {
   namespaceId: string;
   phoneOpen: boolean;
   onPhoneOpenChange: (open: boolean) => void;
   wechatSession: number;
+  wechatAppId: InviteWechatAppId;
   onWechatClose: () => void;
   onBound: () => void;
 }
@@ -33,6 +42,7 @@ export function InviteTaskBindDialogs({
   phoneOpen,
   onPhoneOpenChange,
   wechatSession,
+  wechatAppId,
   onWechatClose,
   onBound,
 }: InviteTaskBindDialogsProps) {
@@ -62,7 +72,14 @@ export function InviteTaskBindDialogs({
           </div>
         </DialogContent>
       </Dialog>
-      {wechatSession > 0 ? (
+      {wechatSession > 0 && wechatAppId === WECHAT_OA_APP_ID ? (
+        <InviteOfficialAccountBindSession
+          key={wechatSession}
+          namespaceId={namespaceId}
+          onBound={onBound}
+          onClose={onWechatClose}
+        />
+      ) : wechatSession > 0 ? (
         <InviteWechatBindSession
           key={wechatSession}
           namespaceId={namespaceId}
@@ -165,6 +182,114 @@ function InviteWechatBindSession({
       urlLink={urlLink}
       applicationId={applicationId}
       appId={WECHAT_BOT_APP_ID}
+      checkApplicationStatus={checkApplicationStatus}
+      onBindingComplete={() => {
+        toast.success(t('applications.bind.success'));
+        onBound();
+        onClose();
+      }}
+    />
+  );
+}
+
+function InviteOfficialAccountBindSession({
+  namespaceId,
+  onBound,
+  onClose,
+}: {
+  namespaceId: string;
+  onBound: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const {
+    applications,
+    loading,
+    error,
+    bindApplication,
+    unbindApplication,
+    checkApplicationStatus,
+  } = useApplications(namespaceId);
+  const startedRef = useRef(false);
+  const [phase, setPhase] = useState<'starting' | 'bind' | 'already'>(
+    'starting'
+  );
+  const [qrcodeContent, setQrcodeContent] = useState('');
+  const [applicationId, setApplicationId] = useState('');
+
+  useEffect(() => {
+    if (loading || startedRef.current) return;
+    startedRef.current = true;
+    if (error || !namespaceId) {
+      onClose();
+      return;
+    }
+
+    const target = applications.find(app => app.app_id === WECHAT_OA_APP_ID);
+    if (!target) {
+      toast.error(t('applications.bind.error'));
+      onClose();
+      return;
+    }
+    void beginQrCodeBind(target, bindApplication, unbindApplication)
+      .then(result => {
+        if (result.status === 'already_bound') {
+          setPhase('already');
+          return;
+        }
+        if (!result.qrcodeContent) {
+          toast.error(t('applications.bind.error'));
+          onClose();
+          return;
+        }
+        setQrcodeContent(result.qrcodeContent);
+        setApplicationId(result.application.id);
+        setPhase('bind');
+        toast.success(
+          t(
+            result.resumed
+              ? 'applications.bind.continue'
+              : 'applications.bind.initiated'
+          )
+        );
+      })
+      .catch(() => {
+        onClose();
+      });
+  }, [
+    applications,
+    bindApplication,
+    error,
+    loading,
+    namespaceId,
+    onClose,
+    t,
+    unbindApplication,
+  ]);
+
+  if (phase === 'already') {
+    return (
+      <AlreadyBoundDialog
+        open
+        appId={WECHAT_OA_APP_ID}
+        onOpenChange={open => {
+          if (!open) onClose();
+        }}
+      />
+    );
+  }
+
+  if (phase !== 'bind') return null;
+
+  return (
+    <QRCodeBindDialog
+      open
+      onOpenChange={open => {
+        if (!open) onClose();
+      }}
+      qrcodeContent={qrcodeContent}
+      applicationId={applicationId}
+      appId={WECHAT_OA_APP_ID}
       checkApplicationStatus={checkApplicationStatus}
       onBindingComplete={() => {
         toast.success(t('applications.bind.success'));

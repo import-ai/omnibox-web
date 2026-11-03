@@ -54,6 +54,7 @@ export interface NodeUI {
 
 export interface DialogsState {
   createFolderTargetId: string | null;
+  createLinkTargetId: string | null;
   createRssFolderTargetId: string | null;
   currentUploadTargetId: string | null;
   upload: Record<string, string>;
@@ -142,6 +143,8 @@ export interface SidebarActions {
   setRenamingId: (id: string | null) => void;
   openCreateFolderDialog: (parentId: string) => void;
   closeCreateFolderDialog: () => void;
+  openCreateLinkDialog: (parentId: string) => void;
+  closeCreateLinkDialog: () => void;
   openCreateRssFolderDialog: (parentId: string) => void;
   closeCreateRssFolderDialog: () => void;
   setCurrentUploadTargetId: (id: string | null) => void;
@@ -204,6 +207,7 @@ export type SidebarGet = () => SidebarStore;
 
 export const initialDialogsState: DialogsState = {
   createFolderTargetId: null,
+  createLinkTargetId: null,
   createRssFolderTargetId: null,
   currentUploadTargetId: null,
   upload: {},

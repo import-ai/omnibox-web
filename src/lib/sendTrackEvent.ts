@@ -59,17 +59,21 @@ export async function track(name: string, payload: Attributes = {}) {
   }
 
   http
-    .post('/trace', {
-      events: [
-        {
-          name,
-          props: {
-            finger: visitorId,
-            ...props,
+    .post(
+      '/trace',
+      {
+        events: [
+          {
+            name,
+            props: {
+              finger: visitorId,
+              ...props,
+            },
           },
-        },
-      ],
-    })
+        ],
+      },
+      { mute: true }
+    )
     .then(() => {
       if (once) {
         eventStorage.markEventAsTracked(key);

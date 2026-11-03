@@ -51,7 +51,7 @@ export function SystemNotificationDetailDialog({
           '[&>button]:right-6 [&>button]:top-5 [&>button]:inline-flex [&>button]:size-8 [&>button]:items-center [&>button]:justify-center'
         )}
       >
-        <DialogHeader className="border-b border-border pb-4 pr-8 text-left">
+        <DialogHeader className="min-w-0 border-b border-border pb-4 pr-8 text-left">
           <div className="flex min-w-0 items-center gap-3">
             <DialogClose asChild>
               <button
@@ -62,7 +62,7 @@ export function SystemNotificationDetailDialog({
                 <ChevronLeft className="size-6" />
               </button>
             </DialogClose>
-            <DialogTitle className="truncate text-left text-2xl font-semibold leading-8 text-foreground">
+            <DialogTitle className="min-w-0 truncate text-left text-2xl font-semibold leading-8 text-foreground">
               {detail?.title}
             </DialogTitle>
           </div>

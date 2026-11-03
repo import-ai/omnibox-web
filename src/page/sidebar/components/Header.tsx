@@ -19,9 +19,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/Sidebar';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { cn } from '@/lib/utils';
+import { trackInviteReferralHomeEntryClick } from '@/page/inviteReferral/tracking';
+import { useInviteReferralEntryExposure } from '@/page/inviteReferral/useInviteReferralEntryExposure';
 
 interface IProps {
   onActiveKey: (activeKey: string) => void;
@@ -30,7 +33,12 @@ interface IProps {
 
 export function Header(props: IProps) {
   const { onActiveKey } = props;
+  const { isMobile, open, openMobile } = useSidebar();
   const pathname = useLocation().pathname;
+  const inviteEntryRef = useInviteReferralEntryExposure(
+    isMobile ? openMobile : open,
+    pathname
+  );
   const { conversation_id: conversationId } = useParams();
   const isChatActive = pathname.includes('/chat') && !conversationId;
   const inviteActive = pathname.includes('/invite-referral');
@@ -46,6 +54,7 @@ export function Header(props: IProps) {
   };
 
   const onInviteReferral = () => {
+    trackInviteReferralHomeEntryClick();
     onActiveKey('invite-referral');
   };
 
@@ -138,6 +147,7 @@ export function Header(props: IProps) {
         >
           <div
             className="flex cursor-pointer items-center gap-2"
+            ref={inviteEntryRef}
             onClick={onInviteReferral}
           >
             <Gift className="size-4 text-blue-500" />

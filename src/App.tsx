@@ -33,6 +33,7 @@ const WechatAuthConfirmPage = lazy(
 const WechatMiniProgramAuthPage = lazy(
   () => import('@/page/user/wechat/MiniProgramAuthPage')
 );
+const LoginLinkPage = lazy(() => import('@/page/user/LoginLinkPage'));
 const GoogleAuthConfirmPage = lazy(
   () => import('@/page/user/google/AuthConfirmPage')
 );
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
       {
         path: 'user/auth/miniprogram',
         element: <WechatMiniProgramAuthPage />,
+      },
+      {
+        path: 'user/auth/login-link',
+        element: <LoginLinkPage />,
       },
       {
         path: 'user/auth/confirm/google',

@@ -2,6 +2,7 @@ import {
   Bell,
   BotMessageSquare,
   CircleHelp,
+  Gift,
   Megaphone,
   Package,
   ScrollText,
@@ -11,7 +12,13 @@ import { useTranslation } from 'react-i18next';
 import type { NotificationItem } from './types';
 
 type NotificationTagIcon =
-  'assistant' | 'default' | 'system' | 'marketing' | 'changelog' | 'survey';
+  | 'assistant'
+  | 'default'
+  | 'system'
+  | 'marketing'
+  | 'changelog'
+  | 'survey'
+  | 'reward';
 
 interface NotificationTagProps {
   item: NotificationItem;
@@ -34,6 +41,7 @@ const iconMap = {
   marketing: Megaphone,
   changelog: ScrollText,
   survey: CircleHelp,
+  reward: Gift,
 } satisfies Record<NotificationTagIcon, typeof BotMessageSquare>;
 
 const notificationTagIconKeyMap = {
@@ -41,6 +49,7 @@ const notificationTagIconKeyMap = {
   marketing: 'marketing',
   changelog: 'changelog',
   survey: 'survey',
+  activity_reward: 'reward',
 } as const satisfies Record<string, NotificationTagIcon>;
 
 const notificationTagLabelKeyMap = {
@@ -50,6 +59,7 @@ const notificationTagLabelKeyMap = {
   marketing: 'notification_modal.tags.marketing',
   changelog: 'notification_modal.tags.changelog',
   survey: 'notification_modal.tags.survey',
+  activity_reward: 'notification_modal.tags.activity_reward',
 } as const;
 
 export function getNotificationTagLabel(

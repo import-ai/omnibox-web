@@ -1,5 +1,8 @@
 import { createClientKey } from '@/page/chat/core/clientKey';
-import { isTerminalMessageStatus } from '@/page/chat/core/types/chatResponse';
+import {
+  isTerminalMessageStatus,
+  MessageStatus,
+} from '@/page/chat/core/types/chatResponse';
 import type {
   ConversationDetail,
   MessageDetail,
@@ -19,8 +22,24 @@ export function mergeHistoryPage(
   )
     return previous;
   const mapping = replaceBranch ? {} : { ...previous.mapping };
-  for (const [id, message] of Object.entries(page.mapping)) {
+  for (const [id, snapshot] of Object.entries(page.mapping)) {
+    let message = snapshot;
     const existing = previous.mapping[id];
+    const sameFailure =
+      existing?.status === MessageStatus.FAILED &&
+      message.status === MessageStatus.FAILED &&
+      existing.attrs?.error_message === message.attrs?.error_message;
+    if (sameFailure) {
+      message = {
+        ...message,
+        attrs: {
+          ...message.attrs,
+          error_code: message.attrs?.error_code ?? existing.attrs?.error_code,
+          error_status:
+            message.attrs?.error_status ?? existing.attrs?.error_status,
+        },
+      };
+    }
     if (
       !replaceBranch &&
       revisions &&
@@ -33,6 +52,9 @@ export function mergeHistoryPage(
     mapping[id] =
       existing &&
       existing.details_loaded &&
+      ((existing.status !== MessageStatus.FAILED &&
+        message.status !== MessageStatus.FAILED) ||
+        sameFailure) &&
       (existing.updated_at === message.updated_at ||
         // Completed SSE snapshots get their first server timestamp on refresh.
         (revisions &&
@@ -43,6 +65,9 @@ export function mergeHistoryPage(
         ? {
             ...message,
             ...existing,
+            ...(sameFailure
+              ? { attrs: { ...existing.attrs, ...message.attrs } }
+              : {}),
             updated_at: message.updated_at,
             sibling_ids: message.sibling_ids,
             children: message.children,

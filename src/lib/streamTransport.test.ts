@@ -118,3 +118,127 @@ describe('createStreamTransport', () => {
     expect(init.body).toBe('{"conversation_id":"conv"}');
   });
 });
+
+it('keeps the HTTP status and business code of a rejected chat request', async () => {
+  globalThis.fetch = jest.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        code: 'CONVERSATION_BUSY',
+        message: 'still generating',
+      }),
+      { status: 409 }
+    )
+  );
+  const transport = createStreamTransport(
+    '/ask',
+    {},
+    async () => {},
+    '/cancel'
+  );
+  await expect(transport.start()).rejects.toMatchObject({
+    code: 'CONVERSATION_BUSY',
+    status: 409,
+    message: 'still generating',
+  });
+});
+
+it('does not report a read failure after the view detaches', async () => {
+  let rejectRead!: (error: Error) => void;
+  let didRead!: () => void;
+  const reading = new Promise<void>(resolve => {
+    didRead = resolve;
+  });
+  globalThis.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    body: {
+      getReader: () => ({
+        read: () => {
+          didRead();
+          return new Promise((_, reject) => {
+            rejectRead = reject;
+          });
+        },
+        cancel: async () => {},
+      }),
+    },
+  });
+  const transport = createStreamTransport(
+    '/ask',
+    {},
+    async () => {},
+    '/cancel'
+  );
+  const started = transport.start();
+  await reading;
+  transport.destroy();
+  rejectRead(new TypeError('network lost'));
+  await expect(started).resolves.toBeUndefined();
+});
+
+it.each(['connect', 'read'])(
+  'retains transport phase for an unfamiliar %s failure',
+  async phase => {
+    const error = new TypeError('browser-specific network failure');
+    globalThis.fetch =
+      phase === 'connect'
+        ? jest.fn().mockRejectedValue(error)
+        : jest.fn().mockResolvedValue({
+            ok: true,
+            body: {
+              getReader: () => ({
+                read: () => Promise.reject(error),
+                cancel: async () => {},
+              }),
+            },
+          });
+    const transport = createStreamTransport(
+      '/ask',
+      {},
+      async () => {},
+      '/cancel'
+    );
+    await expect(transport.start()).rejects.toMatchObject({
+      code:
+        phase === 'connect' ? 'STREAM_CONNECTION_FAILED' : 'STREAM_READ_FAILED',
+    });
+  }
+);
+describe('stream cancellation', () => {
+  beforeEach(() => jest.clearAllMocks());
+  afterEach(() => jest.restoreAllMocks());
+  it('rejects HTTP failure and can retry', async () => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: { getItem: () => '' },
+    });
+    const fetchMock = jest
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce({ ok: false, status: 500 } as Response)
+      .mockResolvedValueOnce(streamResponse(['data: still active\n\n']))
+      .mockResolvedValueOnce({ ok: true } as Response);
+    const delivered: string[] = [];
+    const transport = createStreamTransport(
+      '/ask',
+      { conversation_id: 'conversation' },
+      async data => {
+        delivered.push(data);
+      },
+      '/cancel'
+    );
+    await expect(transport.cancel()).rejects.toThrow('500');
+    await transport.start();
+    expect(delivered).toEqual(['still active']);
+    await expect(transport.cancel()).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+  it('rejects network failure', async () => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: { getItem: () => '' },
+    });
+    jest.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('offline'));
+    await expect(
+      createStreamTransport('/ask', {}, async () => {}, '/cancel').cancel()
+    ).rejects.toThrow('offline');
+  });
+});

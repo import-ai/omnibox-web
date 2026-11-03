@@ -13,6 +13,10 @@ import {
 } from '@/components/omnibox/Dialog';
 
 import { buildLocalizedInviteUrl } from './inviteUrl';
+import {
+  trackInviteReferralShareCloseClick,
+  trackInviteReferralShareCopyClick,
+} from './tracking';
 
 interface InviteShareDialogProps {
   inviteCode: string;
@@ -55,7 +59,13 @@ export function InviteShareDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={nextOpen => {
+        if (!nextOpen) trackInviteReferralShareCloseClick();
+        onOpenChange(nextOpen);
+      }}
+    >
       <DialogContent
         className="w-[510px] max-w-[calc(100vw-32px)] sm:max-w-[calc(100vw-32px)] gap-5 rounded-xl p-6 sm:p-8"
         onOpenAutoFocus={event => event.preventDefault()}
@@ -78,7 +88,10 @@ export function InviteShareDialog({
               <Button
                 type="button"
                 className="h-10 min-w-[70px] px-4"
-                onClick={() => copyValue(inviteCode)}
+                onClick={() => {
+                  trackInviteReferralShareCopyClick('code');
+                  copyValue(inviteCode);
+                }}
               >
                 {t('inviteReferral.share.copy')}
               </Button>
@@ -100,7 +113,10 @@ export function InviteShareDialog({
                 type="button"
                 className="h-10 min-w-[70px] px-4"
                 disabled={!invitationText}
-                onClick={() => copyValue(invitationText)}
+                onClick={() => {
+                  trackInviteReferralShareCopyClick('link');
+                  copyValue(invitationText);
+                }}
               >
                 {t('inviteReferral.share.copy')}
               </Button>
