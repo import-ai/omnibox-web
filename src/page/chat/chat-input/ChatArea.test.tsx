@@ -9,6 +9,10 @@ import { http } from '@/lib/request';
 import { PendingDecisionNotRejected } from '@/page/chat/conversation/pendingDecisionSend';
 
 import { clearChatInputDraft } from './chatInputDraft';
+import {
+  isChatSubmissionPreparing,
+  useChatSubmissionStore,
+} from './chatSubmissionStore';
 import ChatArea from './index';
 
 jest.mock('./ThinkingLevelSelector', () => ({
@@ -222,6 +226,7 @@ describe('ChatArea', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+    useChatSubmissionStore.setState({ pending: {} });
     clearChatInputDraft('/namespace-a');
     clearChatInputDraft('conversation-a');
     clearChatInputDraft('conversation-b');
@@ -968,5 +973,110 @@ describe('ChatArea', () => {
     ) as HTMLTextAreaElement;
     expect(composer.value).toBe('推荐问题');
     expect(sendMessage).not.toHaveBeenCalled();
+  });
+  it.each(['success', 'failure'] as const)(
+    'blocks expansion through create/upload and releases after %s',
+    async outcome => {
+      let finish!: () => void;
+      let uploaded!: () => void;
+      const sendMessage = jest.fn(
+        (params: { onImagesUploaded?: () => void }) =>
+          new Promise<void>((resolve, reject) => {
+            uploaded = () => params.onImagesUploaded?.();
+            finish = () =>
+              outcome === 'success'
+                ? resolve()
+                : reject(new Error('upload failed'));
+          })
+      );
+      await act(async () =>
+        root.render(
+          <ChatArea
+            initialQuery="hello"
+            loading={false}
+            messages={[]}
+            namespaceId="namespace-a"
+            navigatePrefix="/namespace-a"
+            selectedResources={[]}
+            setSelectedResources={jest.fn()}
+            sendMessage={sendMessage}
+          />
+        )
+      );
+      await act(async () =>
+        (
+          container.querySelector('[data-testid="add-image"]') as HTMLElement
+        ).click()
+      );
+      await act(async () =>
+        (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+      );
+      expect(isChatSubmissionPreparing('namespace-a')).toBe(true);
+      if (outcome === 'success') {
+        await act(async () => uploaded());
+        expect(isChatSubmissionPreparing('namespace-a')).toBe(false);
+        expect(
+          container.querySelector('[data-testid="image-count"]')?.textContent
+        ).toBe('0');
+      }
+      await act(async () => finish());
+      expect(isChatSubmissionPreparing('namespace-a')).toBe(false);
+      if (outcome === 'failure') {
+        expect(
+          container.querySelector('[data-testid="image-count"]')?.textContent
+        ).toBe('1');
+        expect(
+          (container.querySelector('textarea') as HTMLTextAreaElement).value
+        ).toBe('hello');
+        await act(async () =>
+          (
+            container.querySelector('[data-testid="send"]') as HTMLElement
+          ).click()
+        );
+        expect(sendMessage).toHaveBeenCalledTimes(2);
+        await act(async () => finish());
+        expect(isChatSubmissionPreparing('namespace-a')).toBe(false);
+      }
+    }
+  );
+
+  it('does not allow a remounted composer to repeat an unfinished upload', async () => {
+    let finish!: () => void;
+    const sendMessage = jest.fn(
+      () =>
+        new Promise<void>(resolve => {
+          finish = resolve;
+        })
+    );
+    const renderComposer = () => (
+      <ChatArea
+        initialQuery="hello"
+        loading={false}
+        messages={[]}
+        namespaceId="namespace-a"
+        navigatePrefix="/namespace-a"
+        approvalModeResetKey="conversation-a"
+        selectedResources={[]}
+        setSelectedResources={jest.fn()}
+        sendMessage={sendMessage}
+      />
+    );
+    await act(async () => root.render(renderComposer()));
+    await act(async () =>
+      (
+        container.querySelector('[data-testid="add-image"]') as HTMLElement
+      ).click()
+    );
+    await act(async () =>
+      (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+    );
+    await act(async () => root.render(null));
+    await act(async () => root.render(renderComposer()));
+    await act(async () =>
+      (container.querySelector('[data-testid="send"]') as HTMLElement).click()
+    );
+    expect(sendMessage).toHaveBeenCalledTimes(1);
+    await act(async () => finish());
+    expect(isChatSubmissionPreparing('namespace-a')).toBe(false);
   });
 });

@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { DropdownMenuItem } from '@/components/ui/DropdownMenu';
+import { useChatSubmissionPreparing } from '@/page/chat/chat-input/chatSubmissionStore';
 import { useExpandCopilot } from '@/page/copilot/useExpandCopilot';
 
 interface CloseCurrentResourceProps {
@@ -14,9 +15,14 @@ export default function CloseCurrentResource({
 }: CloseCurrentResourceProps) {
   const { t } = useTranslation();
   const handleClose = useExpandCopilot(namespaceId);
+  const preparing = useChatSubmissionPreparing(namespaceId);
 
   return (
-    <DropdownMenuItem className="cursor-pointer gap-2" onClick={handleClose}>
+    <DropdownMenuItem
+      className="cursor-pointer gap-2"
+      disabled={preparing}
+      onClick={handleClose}
+    >
       <X className="size-4 text-muted-foreground" />
       <span>{t('resource.close_current')}</span>
     </DropdownMenuItem>

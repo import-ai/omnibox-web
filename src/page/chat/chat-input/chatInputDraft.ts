@@ -102,18 +102,26 @@ export function getChatInputDraft(
   return undefined;
 }
 
-/** Removes an unsent composer draft after send or explicit reset. */
-export function clearChatInputDraft(
+/** Text edits must not discard independently selected image files. */
+export function clearChatInputTextDraft(
   scope: string,
   storage = getSessionStorage()
 ) {
-  getImageDrafts().delete(scope);
   if (!storage) return;
   try {
     storage.removeItem(`${DRAFT_KEY_PREFIX}${scope}`);
   } catch (error) {
     console.error({ message: 'Failed to clear chat input draft', error });
   }
+}
+
+/** Removes the complete draft after send or an explicit reset. */
+export function clearChatInputDraft(
+  scope: string,
+  storage = getSessionStorage()
+) {
+  getImageDrafts().delete(scope);
+  clearChatInputTextDraft(scope, storage);
 }
 
 function getSessionStorage(): Storage | undefined {

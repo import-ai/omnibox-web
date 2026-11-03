@@ -3,6 +3,11 @@
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import {
+  beginChatSubmissionPreparation,
+  useChatSubmissionStore,
+} from '@/page/chat/chat-input/chatSubmissionStore';
+
 import { getCopilotWorkspace, useCopilotStore } from './copilotStore';
 import ExpandCopilotButton from './ExpandCopilotButton';
 
@@ -19,12 +24,14 @@ jest.mock('@/components/omnibox/IconButton', () => ({
     label,
     onClick,
     children,
+    disabled,
   }: {
     label: string;
     onClick: () => void;
     children: ReactNode;
+    disabled?: boolean;
   }) => (
-    <button aria-label={label} onClick={onClick}>
+    <button aria-label={label} onClick={onClick} disabled={disabled}>
       {children}
     </button>
   ),
@@ -39,6 +46,7 @@ describe('ExpandCopilotButton', () => {
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = true;
     sessionStorage.clear();
+    useChatSubmissionStore.setState({ pending: {} });
     useCopilotStore.setState({ workspaces: {}, pendingExpandFromResource: {} });
     container = document.createElement('div');
     document.body.appendChild(container);
@@ -130,5 +138,26 @@ describe('ExpandCopilotButton', () => {
       getCopilotWorkspace(useCopilotStore.getState(), 'namespace-a')
         .previewResourceId
     ).toBe('resource-a');
+  });
+  it('disables expansion while preparing and checks a same-event submission before navigating', async () => {
+    useCopilotStore.getState().showHome('namespace-a');
+    await act(async () =>
+      root.render(<ExpandCopilotButton namespaceId="namespace-a" />)
+    );
+    const button = container.querySelector('button')!;
+    let finish!: () => void;
+    act(() => {
+      finish = beginChatSubmissionPreparation(
+        'namespace-a',
+        'home:namespace-a'
+      )!;
+      button.click();
+    });
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(button.disabled).toBe(true);
+    act(() => finish());
+    expect(button.disabled).toBe(false);
+    act(() => button.click());
+    expect(mockNavigate).toHaveBeenCalledWith('/namespace-a/chat');
   });
 });

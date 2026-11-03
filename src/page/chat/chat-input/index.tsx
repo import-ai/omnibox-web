@@ -38,6 +38,7 @@ import {
   getChatInputImageDraft,
   saveChatInputImageDraft,
 } from './chatInputDraft';
+import { beginChatSubmissionPreparation } from './chatSubmissionStore';
 import ChatTool from './ChatTool';
 import ContextCapacityIndicator from './ContextCapacityIndicator';
 import ThinkingLevelSelector from './ThinkingLevelSelector';
@@ -269,6 +270,11 @@ export default function ChatArea(props: IProps) {
     if (submittingRef.current || disabled) return;
     const v = query.trim();
     if (v) {
+      const finishPreparation = beginChatSubmissionPreparation(
+        namespaceId,
+        draftScope
+      );
+      if (!finishPreparation) return;
       submittingRef.current = true;
       setIsSubmitting(true);
       try {
@@ -313,7 +319,10 @@ export default function ChatArea(props: IProps) {
             displayParts: localDisplayParts,
             images: pendingImages,
             ...selection,
-            onImagesUploaded: clearPreparedDraft,
+            onImagesUploaded: () => {
+              clearPreparedDraft();
+              finishPreparation();
+            },
           });
         } catch (error) {
           // The message never went out: put the draft back exactly, unless
@@ -347,12 +356,15 @@ export default function ChatArea(props: IProps) {
       } catch {
         // Request and stream layers report errors; allow a new submission.
       } finally {
+        finishPreparation();
         submittingRef.current = false;
         setIsSubmitting(false);
         setIsPreparingImages(false);
       }
     }
   }, [
+    draftScope,
+    namespaceId,
     approvalMode,
     selection,
     disabled,
