@@ -11,6 +11,7 @@ import Layout from './index';
 
 const mockNavigate = jest.fn();
 const mockHttpGet = jest.fn();
+const mockHttpPost = jest.fn().mockResolvedValue(undefined);
 const mockToggleTheme = jest.fn();
 const mockClearChatContext = jest.fn();
 const mockClearCopilot = jest.fn();
@@ -36,10 +37,9 @@ jest.mock('react-dnd', () => ({
 jest.mock('react-dnd-html5-backend', () => ({ HTML5Backend: {} }));
 jest.mock('react-dnd-touch-backend', () => ({ TouchBackend: {} }));
 
+const mockI18n = { changeLanguage: jest.fn(), language: 'zh-CN' };
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    i18n: { changeLanguage: jest.fn(), language: 'zh-CN' },
-  }),
+  useTranslation: () => ({ i18n: mockI18n }),
 }));
 
 jest.mock('react-router-dom', () => ({
@@ -59,7 +59,10 @@ jest.mock('@/hooks/useTheme', () => ({
   }),
 }));
 jest.mock('@/lib/request', () => ({
-  http: { get: (...args: unknown[]) => mockHttpGet(...args) },
+  http: {
+    get: (...args: unknown[]) => mockHttpGet(...args),
+    post: (...args: unknown[]) => mockHttpPost(...args),
+  },
 }));
 jest.mock('@/lib/sendTrackEvent', () => ({ track: jest.fn() }));
 jest.mock('@/page/chat/chatStore', () => ({
@@ -165,6 +168,48 @@ describe('Layout authentication storage changes', () => {
     });
     expect(mockToggleTheme).toHaveBeenCalledTimes(1);
     expect(mockToggleTheme).toHaveBeenCalledWith('light', 'stone', 'roboto');
+  });
+
+  it('accepts all docs appearance modes and ignores invalid modes', async () => {
+    await act(async () => root.render(<Layout />));
+    mockToggleTheme.mockClear();
+    await act(async () => {
+      for (const skin of ['dark', 'light', 'system', 'invalid']) {
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: 'theme',
+            newValue: JSON.stringify({
+              skin,
+              colorTheme: 'stone',
+              font: 'inter',
+            }),
+          })
+        );
+      }
+    });
+    expect(mockToggleTheme.mock.calls).toEqual([
+      ['dark', 'stone', 'inter'],
+      ['light', 'stone', 'inter'],
+      ['system', 'stone', 'inter'],
+    ]);
+  });
+
+  it('persists a docs choice and keeps it during account hydration', async () => {
+    const pending = { user_id: 'user-a', mode: 'dark', updated_at: 1 };
+    localStorage.setItem('omnibox-docs-appearance', JSON.stringify(pending));
+    mockHttpPost.mockClear();
+    mockHttpGet.mockResolvedValue([{ name: 'theme', value: 'light' }]);
+    await act(async () => root.render(<Layout />));
+    expect(mockToggleTheme).toHaveBeenLastCalledWith(
+      'dark',
+      'omnibox',
+      'system'
+    );
+    expect(mockHttpPost).toHaveBeenCalledWith('/user/option', {
+      name: 'theme',
+      value: 'dark',
+    });
+    expect(localStorage.getItem('omnibox-docs-appearance')).toBeNull();
   });
 
   it('clears conversation and workspace state when another tab changes uid', async () => {

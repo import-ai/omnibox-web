@@ -12,6 +12,10 @@ import useConfig from '@/hooks/useConfig';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme';
 import { resolveColorTheme } from '@/lib/colorThemes';
+import {
+  getPendingDocsAppearance,
+  persistDocsAppearance,
+} from '@/lib/docsAppearance';
 import { resolveFont } from '@/lib/fonts';
 import { http } from '@/lib/request';
 import { track } from '@/lib/sendTrackEvent';
@@ -137,11 +141,18 @@ export default function Layout() {
       } else if (event.key === 'theme') {
         try {
           const themeInStorage = JSON.parse(event.newValue || '{}');
+          if (
+            event.newValue !== null &&
+            !['light', 'dark', 'system'].includes(themeInStorage?.skin)
+          ) {
+            return;
+          }
           onToggleTheme(
             themeInStorage?.skin ?? 'system',
             resolveColorTheme(themeInStorage?.colorTheme),
             resolveFont(themeInStorage?.font)
           );
+          void persistDocsAppearance(uid).catch(() => undefined);
         } catch {
           // Ignore malformed preferences from other tabs.
         }
@@ -150,9 +161,14 @@ export default function Layout() {
       }
     };
     window.addEventListener('storage', handleStorageChange);
+    const retryDocsAppearance = () => {
+      void persistDocsAppearance(uid).catch(() => undefined);
+    };
+    window.addEventListener('focus', retryDocsAppearance);
     window.addEventListener(CREDENTIAL_CHANGED_EVENT, handleCredentialChange);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', retryDocsAppearance);
       window.removeEventListener(
         CREDENTIAL_CHANGED_EVENT,
         handleCredentialChange
@@ -293,6 +309,8 @@ export default function Layout() {
     }
 
     const source = axios.CancelToken.source();
+    const pendingAtStart = getPendingDocsAppearance(uid);
+    const themeAtStart = localStorage.getItem('theme');
     http
       .get('/user/option/list', { cancelToken: source.token })
       .then((response: Array<{ name: string; value: any }>) => {
@@ -314,7 +332,11 @@ export default function Layout() {
         );
         const fontValue = response.find(item => item.name === 'font');
         const font = resolveFont(fontValue?.value);
-        const skin = themeValue?.value || app.getTheme().skin;
+        const pending = getPendingDocsAppearance(uid) ?? pendingAtStart;
+        const skin =
+          localStorage.getItem('theme') !== themeAtStart
+            ? app.getTheme().skin
+            : pending?.mode || themeValue?.value || app.getTheme().skin;
         const colorTheme = resolveColorTheme(colorThemeValue?.value);
         if (
           skin !== app.getTheme().skin ||
@@ -323,6 +345,7 @@ export default function Layout() {
         ) {
           onToggleTheme(skin, colorTheme, font);
         }
+        void persistDocsAppearance(uid).catch(() => undefined);
       });
 
     return () => source.cancel();
