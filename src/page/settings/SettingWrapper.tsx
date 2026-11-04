@@ -21,6 +21,7 @@ import { AutoRenewalSection } from './tabs/account/AutoRenewalSection';
 import SettingForm from './tabs/account/SettingForm';
 import { ApplicationsForm } from './tabs/applications';
 import CommonForm from './tabs/basic';
+import Contact from './tabs/contact';
 import Content from './tabs/content';
 import { FeaturePreviewsForm } from './tabs/featurePreviews';
 import ProfileForm from './tabs/profile';
@@ -154,6 +155,10 @@ export default function SettingWrapper({
     {
       value: 'featurePreviews',
       children: <FeaturePreviewsForm />,
+    },
+    {
+      value: 'contact',
+      children: <Contact />,
     },
     {
       value: 'about',
