@@ -839,6 +839,10 @@
     "stopping": "Stopping",
     "tool_stopped": "Stopped",
     "stop_failed": "Could not stop. Please try again.",
+    "stream": {
+      "recovering": "Reconnecting…",
+      "offline": "You are offline. The reply will resume when the connection returns."
+    },
     "delivery": {
       "sending": "Sending",
       "send_failed": "Failed to send",
@@ -1116,6 +1120,8 @@
       "unknown": "Something went wrong. The result could not be confirmed.",
       "request_failed": "The chat request failed. The result could not be confirmed.",
       "connection_interrupted": "Connection interrupted. Check your network and try again.",
+      "stream_interrupted": "The reply was interrupted. Please generate again.",
+      "stream_send_failed": "The message was not delivered. Please try again.",
       "response_unreadable": "Could not receive the response. Check the task result before retrying.",
       "timeout": "The request timed out. Check the task result before retrying.",
       "unauthorized": "Your session has expired. Please sign in again.",

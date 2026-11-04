@@ -81,11 +81,11 @@ jest.mock('@/page/chat/conversation/utils.ts', () => ({
   beginPendingQuery: jest.fn(() => 'pending-query'),
   extractOriginalMessageSettings: jest.fn(),
   findFirstMessageWithMissingParent: jest.fn(() => undefined),
-  getStreamEventId: jest.fn(),
   isTerminalMessageStatus: () => true,
   resumeStream: () => ({
     cancel: jest.fn(),
     destroy: jest.fn(),
+    getLastEventId: () => undefined,
     start: mockResumeStart,
   }),
   stopStream: jest.fn(),
@@ -211,6 +211,7 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn().mockResolvedValue(undefined),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
       start: jest.fn().mockResolvedValue(undefined),
     });
     let context!: ReturnType<typeof useContext>;
@@ -268,6 +269,7 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false, lastMessageId },
       cancel: jest.fn().mockResolvedValue(undefined),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
       start: jest.fn().mockResolvedValue(undefined),
     });
     jest
@@ -342,6 +344,7 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false, ...outcome },
       cancel: jest.fn().mockResolvedValue(undefined),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
       start,
     };
   }
@@ -983,6 +986,7 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn(),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
       start: jest.fn().mockResolvedValue(undefined),
     });
     let context!: ReturnType<typeof useContext>;
@@ -1035,6 +1039,7 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn(),
       destroy,
+      getLastEventId: () => undefined,
       start: () => started,
     });
     mockGet.mockResolvedValue({ id: 'conversation-a', mapping: {}, total: 0 });
@@ -1188,6 +1193,7 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn(),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
       start: jest.fn().mockRejectedValue(new Error('offline')),
     });
     let context!: ReturnType<typeof useContext>;
@@ -1240,6 +1246,7 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn(),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
       start: jest.fn().mockResolvedValue(undefined),
     });
     let context!: ReturnType<typeof useContext>;

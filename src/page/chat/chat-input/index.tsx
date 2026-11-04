@@ -24,6 +24,7 @@ import {
   SendMessageParams,
   ToolType,
 } from '@/page/chat/chat-input/types';
+import type { StreamState } from '@/page/chat/conversation/chatStreamRecovery';
 import { PendingDecisionNotRejected } from '@/page/chat/conversation/pendingDecisionSend';
 import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
 import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
@@ -57,6 +58,7 @@ interface IProps {
   suppressInitialToolRestore?: boolean;
   loading: boolean;
   waitingForAssistantDelta?: boolean;
+  streamState?: StreamState;
   imageUploadDisabled?: boolean;
   imageUploadDisabledReason?: string;
   proUnsupported?: boolean;
@@ -85,6 +87,7 @@ export default function ChatArea(props: IProps) {
     suppressInitialToolRestore = false,
     loading,
     waitingForAssistantDelta = false,
+    streamState = 'connected',
     imageUploadDisabled = false,
     imageUploadDisabledReason,
     proUnsupported = false,
@@ -484,6 +487,7 @@ export default function ChatArea(props: IProps) {
             }
             loading={loading}
             waitingForAssistantDelta={waitingForAssistantDelta}
+            streamState={streamState}
             mode={mode}
             setMode={setMode}
           />

@@ -4,6 +4,8 @@ import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ShareResourcePicker } from '@/components/resourcePicker';
+import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/Marker';
+import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizardLang';
@@ -14,11 +16,13 @@ import {
   ChatCreatePayload,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
+import { resumeStreamCursor } from '@/page/chat/conversation/chatStreamRecovery';
+import { mergeHistoryPage } from '@/page/chat/conversation/conversationHistory';
 import Scrollbar from '@/page/chat/conversation/Scrollbar';
+import useChatStreamRecovery from '@/page/chat/conversation/useChatStreamRecovery';
 import {
   ask,
   extractOriginalMessageSettings,
-  getStreamEventId,
   isTerminalMessageStatus,
   resumeStream,
   stopStream,
@@ -43,6 +47,7 @@ export default function SharedChatConversationPage() {
   const shareId = params.share_id || '';
   const conversationId = params.conversation_id || '';
   const askAbortRef = useRef<(() => Promise<void>) | null>(null);
+  const detachStreamRef = useRef<(() => void) | null>(null);
   const regeneratingRef = useRef(false);
   const { shareInfo, selectedResources, setSelectedResources, mode, password } =
     useShareContext();
@@ -65,6 +70,8 @@ export default function SharedChatConversationPage() {
     id: conversationId,
     mapping: {},
   });
+  const conversationRef = useRef(conversation);
+  conversationRef.current = conversation;
   const messageOperator = useMemo(
     () => createMessageOperator(conversation, setConversation),
     [conversation, setConversation]
@@ -84,6 +91,31 @@ export default function SharedChatConversationPage() {
     return result;
   }, [conversation]);
 
+  const recovery = useChatStreamRecovery({
+    conversationId,
+    conversationRef,
+    setConversation,
+    messageOperator,
+    askAbortRef,
+    detachStreamRef,
+    // The share endpoint always returns the whole conversation; the branch
+    // params are accepted here for parity with the private conversation API.
+    loadSnapshot: query =>
+      http.get(`/shares/${shareId}/conversations/${conversationId}`, {
+        params: query,
+      }),
+    createResumeStream: (lastEventId, onOpen) =>
+      resumeStream(
+        conversationId,
+        messageOperator,
+        `/api/v1/shares/${shareId}/wizard/stream/resume`,
+        lastEventId,
+        onOpen
+      ),
+  });
+  const trackStream = recovery.track;
+  const untrackStream = recovery.untrack;
+
   const sendMessage = async ({
     query,
     edition,
@@ -96,12 +128,13 @@ export default function SharedChatConversationPage() {
   }: SendMessageParams) => {
     const v = query.trim();
     if (v || (decisions && decisions.length > 0)) {
+      let askFN: ReturnType<typeof ask> | undefined;
       try {
         if (v) {
           setWaitingForAssistantDelta(true);
         }
         setLoading(true);
-        const askFN = ask(
+        askFN = ask(
           conversationId,
           v,
           tools,
@@ -124,10 +157,25 @@ export default function SharedChatConversationPage() {
           edition,
           level
         );
+        recovery.reset();
+        recovery.track(askFN);
         askAbortRef.current = askFN.cancel;
+        detachStreamRef.current = askFN.destroy;
         await askFN.start();
+        if (askFN.outcome?.transientError) {
+          void recovery.recover({
+            pendingRequestId: askFN.outcome?.acceptedMessageId
+              ? undefined
+              : askFN.outcome?.requestId,
+            cursor: askFN.getLastEventId?.(),
+          });
+        }
       } finally {
-        askAbortRef.current = null;
+        if (askFN) recovery.untrack(askFN);
+        if (!askFN || askAbortRef.current === askFN.cancel)
+          askAbortRef.current = null;
+        if (askFN && detachStreamRef.current === askFN.destroy)
+          detachStreamRef.current = null;
         setWaitingForAssistantDelta(false);
         setLoading(false);
       }
@@ -146,8 +194,9 @@ export default function SharedChatConversationPage() {
     } = extractOriginalMessageSettings(editedMessage);
 
     setLoading(true);
+    let askFN: ReturnType<typeof ask> | undefined;
     try {
-      const askFN = ask(
+      askFN = ask(
         conversationId,
         newContent,
         originalTools,
@@ -170,10 +219,25 @@ export default function SharedChatConversationPage() {
         editedMessage.attrs?.edition,
         editedMessage.attrs?.level
       );
+      recovery.reset();
+      recovery.track(askFN);
       askAbortRef.current = askFN.cancel;
+      detachStreamRef.current = askFN.destroy;
       await askFN.start();
+      if (askFN.outcome?.transientError) {
+        void recovery.recover({
+          pendingRequestId: askFN.outcome?.acceptedMessageId
+            ? undefined
+            : askFN.outcome?.requestId,
+          cursor: askFN.getLastEventId?.(),
+        });
+      }
     } finally {
-      askAbortRef.current = null;
+      if (askFN) recovery.untrack(askFN);
+      if (!askFN || askAbortRef.current === askFN.cancel)
+        askAbortRef.current = null;
+      if (askFN && detachStreamRef.current === askFN.destroy)
+        detachStreamRef.current = null;
       setLoading(false);
     }
   };
@@ -200,8 +264,9 @@ export default function SharedChatConversationPage() {
     regeneratingRef.current = true;
     setRegeneratingParentId(parentId);
     setLoading(true);
+    let askFN: ReturnType<typeof ask> | undefined;
     try {
-      const askFN = ask(
+      askFN = ask(
         conversationId,
         parentMessage.message.content,
         originalTools,
@@ -224,10 +289,20 @@ export default function SharedChatConversationPage() {
         parentMessage.attrs?.edition,
         parentMessage.attrs?.level
       );
+      recovery.reset();
+      recovery.track(askFN);
       askAbortRef.current = askFN.cancel;
+      detachStreamRef.current = askFN.destroy;
       await askFN.start();
+      if (askFN.outcome?.transientError) {
+        void recovery.recover({ cursor: askFN.getLastEventId?.() });
+      }
     } finally {
-      askAbortRef.current = null;
+      if (askFN) recovery.untrack(askFN);
+      if (!askFN || askAbortRef.current === askFN.cancel)
+        askAbortRef.current = null;
+      if (askFN && detachStreamRef.current === askFN.destroy)
+        detachStreamRef.current = null;
       regeneratingRef.current = false;
       setRegeneratingParentId(null);
       setLoading(false);
@@ -250,7 +325,11 @@ export default function SharedChatConversationPage() {
       http
         .get(`/shares/${shareId}/conversations/${conversationId}`)
         .then((response: ConversationDetail) => {
-          setConversation(response);
+          setConversation(previous =>
+            previous.id === response.id
+              ? mergeHistoryPage(previous, response)
+              : response
+          );
           return response;
         });
 
@@ -263,10 +342,13 @@ export default function SharedChatConversationPage() {
           conversationId,
           messageOperator,
           `/api/v1/shares/${shareId}/wizard/stream/resume`,
-          getStreamEventId(conversation)
+          resumeStreamCursor(conversation)
         );
+        if (resumeFN) trackStream(resumeFN);
         askAbortRef.current = resumeFN.cancel;
+        detachStreamRef.current = resumeFN.destroy;
         void resumeFN.start().finally(() => {
+          if (resumeFN) untrackStream(resumeFN);
           if (askAbortRef.current === resumeFN?.cancel) {
             askAbortRef.current = null;
           }
@@ -276,15 +358,17 @@ export default function SharedChatConversationPage() {
       return () => {
         destroyed = true;
         resumeFN?.destroy();
+        if (resumeFN) untrackStream(resumeFN);
       };
     }
     sessionStorage.removeItem(SHARED_CHAT_CREATE_PAYLOAD_KEY);
     void sendMessage(chatCreatePayload);
-  }, [shareId, conversationId]);
+  }, [shareId, conversationId, trackStream, untrackStream]);
 
   const onStop = async () => {
     const cancel = askAbortRef.current;
     askAbortRef.current = null;
+    recovery.stop();
     await stopStream({
       cancel,
       cancelUrl: `/shares/${shareId}/wizard/stream/cancel`,
@@ -296,7 +380,9 @@ export default function SharedChatConversationPage() {
   };
 
   const mergedLoading =
-    loading || !isTerminalMessageStatus(messages.at(-1)?.status);
+    loading ||
+    recovery.streamState === 'recovering' ||
+    !isTerminalMessageStatus(messages.at(-1)?.status);
 
   useEffect(() => {
     if (
@@ -325,6 +411,21 @@ export default function SharedChatConversationPage() {
           onEdit={onEdit}
           regeneratingParentId={regeneratingParentId}
         />
+        {(recovery.streamState === 'recovering' ||
+          recovery.streamState === 'offline') && (
+          <Marker role="status" className="mt-4">
+            <MarkerIcon>
+              <Spinner />
+            </MarkerIcon>
+            <MarkerContent
+              className={
+                recovery.streamState === 'recovering' ? 'shimmer' : undefined
+              }
+            >
+              {t(`chat.stream.${recovery.streamState}`)}
+            </MarkerContent>
+          </Marker>
+        )}
       </Scrollbar>
       <div
         className="relative z-20 flex shrink-0 justify-center bg-background px-4 pb-[max(8px,env(safe-area-inset-bottom))]"
@@ -358,6 +459,7 @@ export default function SharedChatConversationPage() {
             }
             loading={mergedLoading}
             waitingForAssistantDelta={waitingForAssistantDelta}
+            streamState={recovery.streamState}
             sendMessage={sendMessage}
             onStop={onStop}
           />

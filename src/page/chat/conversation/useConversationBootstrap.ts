@@ -9,12 +9,13 @@ import type {
   ChatCreatePayload,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
-import { getStreamEventId, resumeStream } from '@/page/chat/conversation/utils';
+import { resumeStream } from '@/page/chat/conversation/utils';
 import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import { isTerminalMessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
 
+import { resumeStreamCursor } from './chatStreamRecovery';
 import {
   clearCachedConversation,
   clearCachedConversationIfUnchanged,
@@ -49,6 +50,8 @@ interface ConversationBootstrapOptions {
   namespaceId: string;
   sendMessage: (params: SendMessageParams) => Promise<void>;
   detachActiveStream?: () => void;
+  trackStream?: (stream: ReturnType<typeof resumeStream>) => void;
+  untrackStream?: (stream: ReturnType<typeof resumeStream>) => void;
   setAccessDenied: Dispatch<SetStateAction<boolean>>;
   setConversation: Dispatch<SetStateAction<ConversationDetail>>;
   setInitialApprovalMode: Dispatch<SetStateAction<ApprovalMode | undefined>>;
@@ -80,6 +83,7 @@ function clearVisibleConversation(
     options;
   clearCachedConversation(cacheScope, conversationId);
   runtime.resumeFN?.destroy();
+  if (runtime.resumeFN) options.untrackStream?.(runtime.resumeFN);
   if (askAbortRef.current === runtime.resumeFN?.cancel) {
     askAbortRef.current = null;
   }
@@ -193,11 +197,14 @@ function resumeLoadedConversation(
     conversationId,
     messageOperator,
     `/api/v1/namespaces/${namespaceId}/wizard/stream/resume`,
-    getStreamEventId(conversation)
+    resumeStreamCursor(conversation)
   );
+  options.trackStream?.(runtime.resumeFN);
+  const resumeFN = runtime.resumeFN;
   askAbortRef.current = runtime.resumeFN.cancel;
-  void runtime.resumeFN.start().finally(() => {
-    if (askAbortRef.current === runtime.resumeFN?.cancel) {
+  void resumeFN.start().finally(() => {
+    options.untrackStream?.(resumeFN);
+    if (askAbortRef.current === resumeFN.cancel) {
       askAbortRef.current = null;
     }
     if (isActiveRequest(options, runtime)) {
@@ -234,6 +241,7 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
     return () => {
       runtime.destroyed = true;
       runtime.resumeFN?.destroy();
+      if (runtime.resumeFN) options.untrackStream?.(runtime.resumeFN);
     };
   }
   options.setInitialApprovalMode(payload?.approvalMode);
@@ -249,6 +257,7 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
     return () => {
       runtime.destroyed = true;
       runtime.resumeFN?.destroy();
+      if (runtime.resumeFN) options.untrackStream?.(runtime.resumeFN);
       if (openedConversationIds.has(options.conversationId)) {
         options.detachActiveStream?.();
       }
@@ -260,6 +269,7 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
   return () => {
     runtime.destroyed = true;
     runtime.resumeFN?.destroy();
+    if (runtime.resumeFN) options.untrackStream?.(runtime.resumeFN);
   };
 }
 

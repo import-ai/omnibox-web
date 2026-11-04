@@ -2,7 +2,11 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
-import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
+import {
+  chatErrorDetails,
+  isChatCancellation,
+  isTransientChatError,
+} from '@/lib/chatErrors';
 import { http } from '@/lib/request';
 import { createStreamTransport } from '@/lib/streamTransport';
 import { WizardLang } from '@/lib/wizardLang';
@@ -29,10 +33,7 @@ import {
   isTerminalMessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/core/types/conversation';
+import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { cacheMessageDisplayParts } from '@/page/chat/messages/messageDisplayPartsCache';
 
 function getPrivateSearchResources(
@@ -213,6 +214,9 @@ export interface AskOutcome {
   requestId?: string;
   // The server ID that local message got once accepted.
   acceptedMessageId?: string;
+  // The stream broke while the turn itself may still be running. The caller
+  // should reconcile with the server and resume instead of showing a failure.
+  transientError?: boolean;
 }
 
 export interface AskOptions {
@@ -420,6 +424,10 @@ export function ask(
         outcome.failed = true;
         outcome.errorMessage ??=
           error instanceof Error ? error.message : String(error);
+        if (isTransientChatError(error)) {
+          outcome.transientError = true;
+          return;
+        }
         if (!streamError) {
           let id = pendingId;
           if (acceptedId) {
@@ -451,7 +459,8 @@ export function resumeStream(
   conversationId: string,
   messageOperator: MessageOperator,
   url: string,
-  lastEventId?: string
+  lastEventId?: string,
+  onOpen?: () => void
 ) {
   return createStreamTransport(
     url,
@@ -460,18 +469,13 @@ export function resumeStream(
       last_event_id: lastEventId,
     },
     async data => messageProcessor(messageOperator, data),
-    streamCancelUrl(url)
+    streamCancelUrl(url),
+    onOpen
   );
 }
 
 function streamCancelUrl(url: string) {
   return url.replace(/\/(?:ask|write|stream\/resume)$/, '/stream/cancel');
-}
-
-export function getStreamEventId(conversation: ConversationDetail) {
-  return Object.values(conversation.mapping).find(
-    message => !isTerminalMessageStatus(message.status)
-  )?.attrs?.stream_event_id;
 }
 
 export async function stopStream({
