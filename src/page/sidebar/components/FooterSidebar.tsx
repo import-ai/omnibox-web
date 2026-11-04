@@ -73,7 +73,7 @@ export function FooterSidebar(props: IProps) {
       key: 'download',
       icon: <Smartphone />,
       label: t('footer.download_app'),
-      href: '/zh-cn/download/',
+      href: `/${i18n.language.startsWith('zh') ? 'zh-cn' : 'en'}/download/`,
     },
     ...(pricingOrFeedbackEntry ? [pricingOrFeedbackEntry] : []),
   ];

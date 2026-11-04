@@ -147,7 +147,7 @@ describe('FooterSidebar', () => {
     expect(mockTranslate).not.toHaveBeenCalledWith('footer.upgrade');
     expect(mockTranslate).not.toHaveBeenCalledWith('footer.renew');
   });
-  it.each(['zh-CN', 'en'])(
+  it.each(['zh-CN', 'zh-cn', 'en', 'en-US'])(
     'keeps the required order and relative links in %s',
     language => {
       mockLanguage = language;
@@ -169,10 +169,12 @@ describe('FooterSidebar', () => {
         'footer.upgrade',
       ]);
       expect(entries[0].getAttribute('href')).toBe(
-        language === 'en' ? '/docs/' : '/docs/zh-cn/'
+        language.startsWith('zh') ? '/docs/zh-cn/' : '/docs/'
       );
       expect(entries[1].tagName).toBe('BUTTON');
-      expect(entries[2].getAttribute('href')).toBe('/zh-cn/download/');
+      expect(entries[2].getAttribute('href')).toBe(
+        language.startsWith('zh') ? '/zh-cn/download/' : '/en/download/'
+      );
       expect(host.querySelector('a button')).toBeNull();
       expect(host.querySelector('img')).toBeNull();
     }
