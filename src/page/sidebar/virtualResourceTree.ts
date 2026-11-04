@@ -1,4 +1,5 @@
-export const RESOURCE_ROW_HEIGHT = 38;
+/** 36px button, 1px vertical margins, and the 2px gap used by conversation rows. */
+export const RESOURCE_ROW_HEIGHT = 40;
 export const RESOURCE_ROW_OVERSCAN = 8;
 
 export interface VirtualTreeNode {
