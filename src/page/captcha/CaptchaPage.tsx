@@ -26,14 +26,24 @@ function postToApp(message: CaptchaMessage) {
 
 /**
  * Minimal H5 page the mobile app loads in a WebView to run Aliyun captcha
- * with the app scene. Query: `?lang=zh|en&theme=light|dark` (the language is
- * applied by the layout). The verify param is posted to the app as
+ * with the app scene. Query: `?lang=zh|en&theme=light|dark`.
+ * The verify param is posted to the app as
  * `{ type: 'captcha', captchaVerifyParam }`; failures as
  * `{ type: 'captcha_error', message }`.
  */
 export default function CaptchaPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [params] = useSearchParams();
+  const langParam = params.get('lang');
+
+  useEffect(() => {
+    if (!langParam) return;
+    const language = langParam.includes('en') ? 'en-US' : 'zh-CN';
+    if (language !== i18n.language) {
+      void i18n.changeLanguage(language);
+    }
+  }, [langParam, i18n]);
+
   const theme = THEMES[params.get('theme') === 'dark' ? 'dark' : 'light'];
   const [slideStyle] = useState(() => ({
     width: Math.max(

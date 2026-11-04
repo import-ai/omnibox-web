@@ -43,7 +43,8 @@ Routes are defined in `src/App.tsx` using `createBrowserRouter` with lazy loadin
   - `/user/account/delete/confirm`
   - `/user/auth/confirm`, `/user/auth/miniprogram`, `/user/auth/confirm/google`
 - `/oauth/authorize` - OAuth authorization screen
-- `/captcha` - Aliyun captcha H5 page loaded by the mobile app's WebView
+- `/captcha` - Standalone public Aliyun captcha H5 page for the mobile app's
+  WebView; outside Layout/AuthConfigProvider, with page-owned language handling
 - `/invite/confirm` and `/invite/:namespace_id/:invitation_id` - Invite flows
 - `/:namespace_id` - Authenticated workspace with the main sidebar layout
   - `/:resource_id?` - Resource viewer
