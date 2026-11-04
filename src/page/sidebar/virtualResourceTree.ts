@@ -1,4 +1,4 @@
-export const RESOURCE_ROW_HEIGHT = 34;
+export const RESOURCE_ROW_HEIGHT = 38;
 export const RESOURCE_ROW_OVERSCAN = 8;
 
 export interface VirtualTreeNode {
