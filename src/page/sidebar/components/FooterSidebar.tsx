@@ -1,15 +1,17 @@
-import { RiDiscordLine } from '@remixicon/react';
-import { CircleHelp, MessageCircleWarning } from 'lucide-react';
+import {
+  CircleHelp,
+  MessageCircleWarning,
+  MessagesSquare,
+  Smartphone,
+} from 'lucide-react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CrownIcon } from '@/assets/icons/CrownIcon';
 import { UpgradeIcon } from '@/assets/icons/UpgradeIcon';
-import { WechatGroupQrCode } from '@/assets/icons/WechatGroupQrCode';
-import { Wechat } from '@/assets/icons/WechatStroke';
-import { Button } from '@/components/Button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { IconButton } from '@/components/omnibox/IconButton';
 import { SidebarFooter } from '@/components/ui/Sidebar';
-import { DISCORD_LINK } from '@/const';
+import useApp from '@/hooks/useApp';
 import type { Namespace } from '@/interface';
 import { getUpgradeLink } from '@/lib/upgradeLink';
 
@@ -21,19 +23,28 @@ interface IProps {
   namespaceId: string;
 }
 
+type FooterEntry = {
+  key: string;
+  icon: ReactNode;
+  label: string;
+} & ({ href: string; onClick?: never } | { href?: never; onClick: () => void });
+
 export function FooterSidebar(props: IProps) {
   const { commercial, currentNamespace, namespaceId } = props;
   const { t, i18n } = useTranslation();
+  const app = useApp();
   const pricingEntryVariant = getPricingEntryVariant(currentNamespace);
   const pricingOrFeedbackEntry =
     commercial === false
       ? {
+          key: 'feedback',
           icon: <MessageCircleWarning />,
           label: t('footer.feedback'),
-          value: '/community/',
+          href: '/community/',
         }
       : pricingEntryVariant
         ? {
+            key: 'pricing',
             icon:
               pricingEntryVariant === 'upgrade' ? (
                 <UpgradeIcon className="text-blue-500" />
@@ -41,70 +52,52 @@ export function FooterSidebar(props: IProps) {
                 <CrownIcon />
               ),
             label: t(`footer.${pricingEntryVariant}`),
-            value: getUpgradeLink(i18n, namespaceId),
+            href: getUpgradeLink(i18n, namespaceId),
           }
         : undefined;
 
-  const footerEntries = [
+  const footerEntries: FooterEntry[] = [
     {
+      key: 'docs',
       icon: <CircleHelp />,
       label: t('footer.docs'),
-      value: '/docs/',
+      href: `/docs/${i18n.language.includes('zh') ? 'zh-cn/' : ''}`,
     },
     {
-      icon: <RiDiscordLine />,
-      label: t('footer.discord'),
-      value: DISCORD_LINK,
+      key: 'contact',
+      icon: <MessagesSquare />,
+      label: t('footer.contact'),
+      onClick: () => app.fire('open_settings', { tab: 'contact' }),
     },
     {
-      icon: <Wechat />,
-      label: t('footer.wechat'),
-      value: '/wechat',
+      key: 'download',
+      icon: <Smartphone />,
+      label: t('footer.download_app'),
+      href: `/${i18n.language.startsWith('zh') ? 'zh-cn' : 'en'}/download/`,
     },
     ...(pricingOrFeedbackEntry ? [pricingOrFeedbackEntry] : []),
   ];
 
   return (
     <SidebarFooter className="flex-row flex-wrap items-center justify-around gap-6 px-6 pb-2">
-      {footerEntries.map(item =>
-        item.value === '/wechat' ? (
-          <Tooltip key={item.value}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 px-0 text-muted-foreground hover:bg-sidebar-accent hover:text-muted-foreground dark:hover:bg-accent [&_svg]:size-5! [&_svg]:scale-[1.3]"
-              >
-                {item.icon}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="block w-[178px] rounded-xl border-none px-[22px] pb-4 pt-[22px] shadow-xs">
-              <WechatGroupQrCode />
-              <p className="mt-2 p-0 text-center">{t('footer.join')}</p>
-            </TooltipContent>
-          </Tooltip>
-        ) : (
-          <Tooltip key={item.value}>
-            <TooltipTrigger asChild>
-              <a
-                href={`${item.value}${item.value === '/docs/' && i18n.language.includes('zh') ? 'zh-cn/' : ''}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground!"
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 px-0 hover:bg-sidebar-accent hover:text-muted-foreground dark:hover:bg-accent [&_svg]:size-5!"
-                >
-                  {item.icon}
-                </Button>
-              </a>
-            </TooltipTrigger>
-            <TooltipContent>{item.label}</TooltipContent>
-          </Tooltip>
-        )
-      )}
+      {footerEntries.map(item => (
+        <IconButton
+          key={item.key}
+          label={item.label}
+          tone="sidebar"
+          className="size-8 cursor-pointer px-0 [&_svg]:size-5!"
+          asChild={Boolean(item.href)}
+          onClick={item.onClick}
+        >
+          {item.href ? (
+            <a href={item.href} target="_blank" rel="noopener noreferrer">
+              {item.icon}
+            </a>
+          ) : (
+            item.icon
+          )}
+        </IconButton>
+      ))}
       {!pricingOrFeedbackEntry && <span aria-hidden className="size-8" />}
     </SidebarFooter>
   );

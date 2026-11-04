@@ -1,4 +1,8 @@
-import { renderToStaticMarkup } from 'react-dom/server';
+/** @jest-environment jsdom */
+
+import { act } from 'react';
+import { createRoot } from 'react-dom/client';
+import { renderToStaticMarkup } from 'react-dom/server.node';
 
 import { TooltipProvider } from '@/components/tooltip';
 import { NamespaceTier } from '@/interface';
@@ -6,10 +10,17 @@ import { NamespaceTier } from '@/interface';
 import { FooterSidebar } from './FooterSidebar';
 
 const mockTranslate = jest.fn((key: string) => key);
+const mockFire = jest.fn();
+let mockLanguage = 'zh-CN';
+
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: () => ({ fire: mockFire }),
+}));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    i18n: { language: 'zh-CN' },
+    i18n: { language: mockLanguage },
     t: mockTranslate,
   }),
 }));
@@ -41,6 +52,8 @@ function renderFooter(
 describe('FooterSidebar', () => {
   beforeEach(() => {
     mockTranslate.mockClear();
+    mockFire.mockClear();
+    mockLanguage = 'zh-CN';
   });
 
   it('renders the blue upgrade entry for expired premium spaces', () => {
@@ -133,5 +146,63 @@ describe('FooterSidebar', () => {
     expect(html).not.toContain('/pricing?namespace=');
     expect(mockTranslate).not.toHaveBeenCalledWith('footer.upgrade');
     expect(mockTranslate).not.toHaveBeenCalledWith('footer.renew');
+  });
+  it.each(['zh-CN', 'zh-cn', 'en', 'en-US'])(
+    'keeps the required order and relative links in %s',
+    language => {
+      mockLanguage = language;
+      const host = document.createElement('div');
+      host.innerHTML = renderFooter({
+        commercial: true,
+        namespaceId: 'namespace-1',
+        currentNamespace: {
+          id: 'namespace-1',
+          name: 'Basic',
+          tier: NamespaceTier.BASIC,
+        },
+      });
+      const entries = [...host.querySelectorAll('[aria-label]')];
+      expect(entries.map(entry => entry.getAttribute('aria-label'))).toEqual([
+        'footer.docs',
+        'footer.contact',
+        'footer.download_app',
+        'footer.upgrade',
+      ]);
+      expect(entries[0].getAttribute('href')).toBe(
+        language.startsWith('zh') ? '/docs/zh-cn/' : '/docs/'
+      );
+      expect(entries[1].tagName).toBe('BUTTON');
+      expect(entries[2].getAttribute('href')).toBe(
+        language.startsWith('zh') ? '/zh-cn/download/' : '/en/download/'
+      );
+      expect(host.querySelector('a button')).toBeNull();
+      expect(host.querySelector('img')).toBeNull();
+    }
+  );
+
+  it('opens the existing settings dialog directly on contact without navigating', async () => {
+    (
+      globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
+    const host = document.createElement('div');
+    const root = createRoot(host);
+    try {
+      await act(async () =>
+        root.render(
+          <FooterSidebar commercial={true} namespaceId="namespace-1" />
+        )
+      );
+      await act(async () =>
+        host
+          .querySelector<HTMLButtonElement>('[aria-label="footer.contact"]')!
+          .click()
+      );
+      expect(mockFire).toHaveBeenCalledTimes(1);
+      expect(mockFire).toHaveBeenCalledWith('open_settings', {
+        tab: 'contact',
+      });
+    } finally {
+      await act(async () => root.unmount());
+    }
   });
 });

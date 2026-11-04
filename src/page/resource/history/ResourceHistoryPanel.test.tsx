@@ -3,6 +3,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { NAMESPACE_MEMBERS_REFRESH } from '@/page/resource/mentionCard';
 import {
   fetchResourceRevision,
   fetchResourceRevisions,
@@ -71,7 +72,11 @@ function revision(
     version,
     name,
     created_at: createdAt,
-    author: { id: 'user-a', username: 'Ada' },
+    author: {
+      id: 'user-a',
+      username: 'Ada',
+      display_name: 'Ada Lovelace（Ada）',
+    },
     is_current: id === 'current',
   };
 }
@@ -97,7 +102,10 @@ describe('ResourceHistoryPanel', () => {
     });
     window.history.replaceState({}, '', '/namespace-a/resource-a');
     mockedFetchRevision.mockReset();
-    useResourceHistoryStore.setState({ selections: {} });
+    useResourceHistoryStore.setState({
+      selections: {},
+      selectionVersions: {},
+    });
     mockedFetchRevisions.mockResolvedValue(initialRevisions);
   });
 
@@ -129,6 +137,7 @@ describe('ResourceHistoryPanel', () => {
     expect(container.textContent).toContain('Doc');
     expect(container.textContent).toContain('resource.history.current');
     expect(container.textContent).toContain('v1 · Doc');
+    expect(container.textContent).toContain('Ada Lovelace（Ada）');
   });
 
   it('refetches the revision list when the open resource is updated', async () => {
@@ -142,6 +151,264 @@ describe('ResourceHistoryPanel', () => {
     expect(mockedFetchRevisions).toHaveBeenCalledTimes(2);
     expect(container.textContent).toContain('Doc v2');
     expect(container.textContent).toContain('Doc');
+  });
+
+  it('refreshes author names after a namespace member changes', async () => {
+    await renderPanel();
+    await act(async () => {
+      useResourceHistoryStore
+        .getState()
+        .selectRevision('namespace-a', 'resource-a', {
+          ...initialRevisions[0],
+          resource_id: 'resource-a',
+          content: 'Doc',
+          content_hash: 'hash',
+        });
+    });
+    const renamed = {
+      ...initialRevisions[0],
+      author: {
+        ...initialRevisions[0].author!,
+        display_name: 'New Name（Ada）',
+      },
+    };
+    mockedFetchRevisions.mockResolvedValue([renamed]);
+
+    await act(async () => {
+      fireApp(NAMESPACE_MEMBERS_REFRESH, 'namespace-a');
+    });
+
+    expect(mockedFetchRevisions).toHaveBeenCalledTimes(2);
+    expect(container.textContent).toContain('New Name（Ada）');
+    expect(
+      useResourceHistoryStore.getState().selections['namespace-a:resource-a']
+        ?.author?.display_name
+    ).toBe('New Name（Ada）');
+  });
+
+  it('keeps a pending revision selection when author names refresh', async () => {
+    const revisionB = revision(
+      'revision-b',
+      'Second',
+      '2026-09-20T07:00:00.000Z'
+    );
+    mockedFetchRevisions.mockResolvedValue([
+      updatedRevisions[0],
+      updatedRevisions[1],
+      revisionB,
+    ]);
+    await renderPanel();
+    await act(async () => {
+      useResourceHistoryStore
+        .getState()
+        .selectRevision('namespace-a', 'resource-a', {
+          ...updatedRevisions[1],
+          resource_id: 'resource-a',
+          content: 'Doc',
+          content_hash: 'hash',
+        });
+    });
+
+    let resolveSecond!: (value: ResourceRevisionDetail) => void;
+    mockedFetchRevision.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          resolveSecond = resolve;
+        })
+    );
+    const secondButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent?.includes('Second')
+    )!;
+    await act(async () => secondButton.click());
+
+    mockedFetchRevisions.mockResolvedValue([
+      updatedRevisions[0],
+      {
+        ...updatedRevisions[1],
+        author: {
+          ...updatedRevisions[1].author!,
+          display_name: 'New Name（Ada）',
+        },
+      },
+      revisionB,
+    ]);
+    await act(async () => {
+      fireApp(NAMESPACE_MEMBERS_REFRESH, 'namespace-a');
+    });
+    await act(async () => {
+      resolveSecond({
+        ...revisionB,
+        resource_id: 'resource-a',
+        content: 'Second',
+        content_hash: 'second',
+      });
+    });
+
+    expect(
+      useResourceHistoryStore.getState().selections['namespace-a:resource-a'].id
+    ).toBe('revision-b');
+    expect(window.location.search).toBe('?revision=revision-b');
+  });
+
+  it('uses the latest list author when an older detail response arrives', async () => {
+    const revisionB = revision(
+      'revision-b',
+      'Second',
+      '2026-09-20T07:00:00.000Z'
+    );
+    mockedFetchRevisions.mockResolvedValue([
+      updatedRevisions[0],
+      updatedRevisions[1],
+      revisionB,
+    ]);
+    await renderPanel();
+    await act(async () => {
+      useResourceHistoryStore
+        .getState()
+        .selectRevision('namespace-a', 'resource-a', {
+          ...updatedRevisions[1],
+          resource_id: 'resource-a',
+          content: 'Doc',
+          content_hash: 'hash',
+        });
+    });
+
+    let resolveSecond!: (value: ResourceRevisionDetail) => void;
+    mockedFetchRevision.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          resolveSecond = resolve;
+        })
+    );
+    const secondButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent?.includes('Second')
+    )!;
+    await act(async () => secondButton.click());
+
+    const renamedB = {
+      ...revisionB,
+      author: {
+        ...revisionB.author!,
+        display_name: 'New Name（Ada）',
+      },
+    };
+    mockedFetchRevisions.mockResolvedValue([
+      updatedRevisions[0],
+      updatedRevisions[1],
+      renamedB,
+    ]);
+    await act(async () => {
+      fireApp(NAMESPACE_MEMBERS_REFRESH, 'namespace-a');
+    });
+    await act(async () => {
+      resolveSecond({
+        ...revisionB,
+        author: {
+          ...revisionB.author!,
+          display_name: 'Old Name（Ada）',
+        },
+        resource_id: 'resource-a',
+        content: 'Second',
+        content_hash: 'second',
+      });
+    });
+
+    expect(
+      useResourceHistoryStore.getState().selections['namespace-a:resource-a']
+        .author?.display_name
+    ).toBe('New Name（Ada）');
+    expect(container.textContent).toContain('New Name（Ada）');
+    expect(container.textContent).not.toContain('Old Name（Ada）');
+  });
+
+  it('keeps the detail author when a list refresh returns the same author', async () => {
+    const revisionB = revision(
+      'revision-b',
+      'Second',
+      '2026-09-20T07:00:00.000Z'
+    );
+    const initialRevisionsWithB = [
+      updatedRevisions[0],
+      updatedRevisions[1],
+      revisionB,
+    ];
+    mockedFetchRevisions.mockResolvedValue(initialRevisionsWithB);
+    await renderPanel();
+
+    let resolveSecond!: (value: ResourceRevisionDetail) => void;
+    mockedFetchRevision.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          resolveSecond = resolve;
+        })
+    );
+    const secondButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent?.includes('Second')
+    )!;
+    await act(async () => secondButton.click());
+    await act(async () => {
+      fireApp(NAMESPACE_MEMBERS_REFRESH, 'namespace-a');
+    });
+    await act(async () => {
+      resolveSecond({
+        ...revisionB,
+        author: {
+          ...revisionB.author!,
+          display_name: 'New Name（Ada）',
+        },
+        resource_id: 'resource-a',
+        content: 'Second',
+        content_hash: 'second',
+      });
+    });
+
+    expect(
+      useResourceHistoryStore.getState().selections['namespace-a:resource-a']
+        .author?.display_name
+    ).toBe('New Name（Ada）');
+  });
+
+  it('keeps the detail author when the list did not refresh during the request', async () => {
+    const revisionB = revision(
+      'revision-b',
+      'Second',
+      '2026-09-20T07:00:00.000Z'
+    );
+    mockedFetchRevisions.mockResolvedValue([
+      updatedRevisions[0],
+      updatedRevisions[1],
+      revisionB,
+    ]);
+    await renderPanel();
+
+    let resolveSecond!: (value: ResourceRevisionDetail) => void;
+    mockedFetchRevision.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          resolveSecond = resolve;
+        })
+    );
+    const secondButton = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent?.includes('Second')
+    )!;
+    await act(async () => secondButton.click());
+    await act(async () => {
+      resolveSecond({
+        ...revisionB,
+        author: {
+          ...revisionB.author!,
+          display_name: 'New Name（Ada）',
+        },
+        resource_id: 'resource-a',
+        content: 'Second',
+        content_hash: 'second',
+      });
+    });
+
+    expect(
+      useResourceHistoryStore.getState().selections['namespace-a:resource-a']
+        .author?.display_name
+    ).toBe('New Name（Ada）');
   });
 
   it('refetches when a copilot edit reports the resource id', async () => {
