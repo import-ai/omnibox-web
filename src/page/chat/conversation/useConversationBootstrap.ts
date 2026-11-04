@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 
 import type App from '@/hooks/app.class';
 import { takePendingChatPayload } from '@/lib/chatBridge';
+import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
 import type {
   ApprovalMode,
@@ -165,6 +166,14 @@ async function loadConversation(
     });
     return response;
   } catch (error) {
+    if (isActiveRequest(options, runtime)) {
+      reportChatError(error, {
+        conversationId,
+        channel: 'web',
+        stage: 'history',
+        clientState: 'loading_history',
+      });
+    }
     if (
       isActiveRequest(options, runtime) &&
       isConversationAccessDenied(error)
@@ -203,7 +212,8 @@ function resumeLoadedConversation(
     conversationId,
     messageOperator,
     `/api/v1/namespaces/${namespaceId}/wizard/stream/resume`,
-    resumeStreamCursor(conversation)
+    resumeStreamCursor(conversation),
+    { channel: 'web' }
   );
   options.trackStream?.(runtime.resumeFN);
   const resumeFN = runtime.resumeFN;

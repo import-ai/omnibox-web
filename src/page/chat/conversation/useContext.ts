@@ -10,6 +10,7 @@ import {
   isChatCancellation,
   isTransientChatError,
 } from '@/lib/chatErrors';
+import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizardLang';
 import { beginChatSubmissionPreparation } from '@/page/chat/chat-input/chatSubmissionStore';
@@ -332,17 +333,28 @@ export default function useContext() {
         let uploadedImages: Awaited<
           ReturnType<typeof resolveConversationImages>
         > = [];
+        let uploadFailed = false;
         try {
           if (v) {
             setWaitingForAssistantDelta(true);
           }
           setLoading(true);
-          uploadedImages = await resolveConversationImages(
-            namespaceId,
-            conversationId,
-            images,
-            false
-          );
+          try {
+            uploadedImages = await resolveConversationImages(
+              namespaceId,
+              conversationId,
+              images,
+              false,
+              {
+                requestId: pendingId,
+                parentMessageId,
+                channel,
+              }
+            );
+          } catch (error) {
+            uploadFailed = true;
+            throw error;
+          }
           uploadRetries.current.delete(pendingId);
           params.onImagesUploaded?.();
           finishPreparation();
@@ -403,7 +415,20 @@ export default function useContext() {
               clearId: conversationId,
             });
           }
-          if (!isChatCancellation(error))
+          if (!isChatCancellation(error)) {
+            // `ask()` already reports transport/stream failures, and the
+            // upload helper reports upload failures. Only report an error
+            // that happens before either boundary has taken ownership.
+            if (!uploadFailed && !askFN?.outcome.failed) {
+              reportChatError(error, {
+                conversationId,
+                requestId: pendingId,
+                parentMessageId,
+                channel,
+                stage: 'prepare',
+                clientState: 'sending',
+              });
+            }
             messageOperator.error(
               {
                 response_type: 'error',
@@ -412,6 +437,7 @@ export default function useContext() {
               },
               pendingId
             );
+          }
         } finally {
           if (askFN) recovery.untrack(askFN);
           const stayedOnConversation =

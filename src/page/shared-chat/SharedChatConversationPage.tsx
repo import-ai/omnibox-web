@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { ShareResourcePicker } from '@/components/resourcePicker';
 import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/Marker';
 import { Spinner } from '@/components/ui/Spinner';
+import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
 import { setDocumentTitle } from '@/lib/utils';
 import { getWizardLang } from '@/lib/wizardLang';
@@ -119,6 +120,7 @@ export default function SharedChatConversationPage() {
         messageOperator,
         `/api/v1/shares/${shareId}/wizard/stream/resume`,
         lastEventId,
+        { channel: 'web_share', shareId },
         onOpen
       ),
   });
@@ -342,6 +344,16 @@ export default function SharedChatConversationPage() {
               : response
           );
           return response;
+        })
+        .catch(error => {
+          reportChatError(error, {
+            conversationId,
+            channel: 'web_share',
+            stage: 'history',
+            shareId,
+            clientState: 'loading_history',
+          });
+          throw error;
         });
 
     if (!chatCreatePayload) {
@@ -371,7 +383,14 @@ export default function SharedChatConversationPage() {
         setLoading,
       });
       recovery.stop();
-    } catch {
+    } catch (error) {
+      reportChatError(error, {
+        conversationId,
+        channel: 'web_share',
+        stage: 'transport',
+        shareId,
+        clientState: 'stopping',
+      });
       toast.error(t('chat.stop_failed'));
       void recovery.recover({ force: true });
     }

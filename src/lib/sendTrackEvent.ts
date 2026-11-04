@@ -41,14 +41,28 @@ class EventStorage {
 const eventStorage = new EventStorage();
 
 interface Attributes {
-  [index: string]: string | boolean;
+  [index: string]: string | number | boolean | undefined;
+}
+
+let fingerprintPromise: ReturnType<typeof FingerprintJS.load> | undefined;
+
+async function getVisitorId() {
+  try {
+    fingerprintPromise ??= FingerprintJS.load();
+    const fp = await fingerprintPromise;
+    const { visitorId } = await fp.get();
+    return visitorId;
+  } catch (error) {
+    // A blocked or failed load must not disable tracking for the whole page.
+    fingerprintPromise = undefined;
+    throw error;
+  }
 }
 
 export async function track(name: string, payload: Attributes = {}) {
   const { once = false, userId, ...props } = payload;
 
-  const fp = await FingerprintJS.load();
-  const { visitorId } = await fp.get();
+  const visitorId = await getVisitorId();
 
   // Dealing with many to many relationships
   const key = userId ? `${userId}_${visitorId}` : name;

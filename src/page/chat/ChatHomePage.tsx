@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { getChatHomeDraftScope, setPendingChatPayload } from '@/lib/chatBridge';
+import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
@@ -197,7 +198,12 @@ export default function ChatHomePage() {
         })
       );
       navigateToResource(navigate, `/${namespaceId}/chat/${conversation.id}`);
-    } catch {
+    } catch (error) {
+      reportChatError(error, {
+        channel: 'web',
+        stage: 'prepare',
+        clientState: 'creating_conversation',
+      });
       setSendFailed(true);
     }
   };

@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react';
 
+import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
 import type {
   ConversationDetail,
@@ -124,8 +125,16 @@ export default function useConversationHistory(
             return merged;
           });
         })
-        .catch(() => {
-          if (valid(token)) setHistoryError(true);
+        .catch(error => {
+          if (valid(token)) {
+            reportChatError(error, {
+              conversationId: conversation.id,
+              stage: 'history',
+              channel: 'web',
+              clientState: 'loading_history',
+            });
+            setHistoryError(true);
+          }
         })
         .finally(() => {
           if (pageRequest.current === request) pageRequest.current = null;
@@ -182,6 +191,17 @@ export default function useConversationHistory(
               }
               return { ...prev, mapping };
             });
+          })
+          .catch(error => {
+            if (valid(token)) {
+              reportChatError(error, {
+                conversationId: conversation.id,
+                stage: 'history',
+                channel: 'web',
+                clientState: 'loading_details',
+              });
+            }
+            throw error;
           })
           .finally(() => {
             for (const id of batch)
@@ -246,9 +266,20 @@ export default function useConversationHistory(
         message.localRevision ?? 0,
       ])
     );
-    const page: ConversationDetail = await http.get(baseUrl, {
-      params: { branch_leaf_id: before.current_node },
-    });
+    let page: ConversationDetail;
+    try {
+      page = await http.get(baseUrl, {
+        params: { branch_leaf_id: before.current_node },
+      });
+    } catch (error) {
+      reportChatError(error, {
+        conversationId: conversation.id,
+        stage: 'history',
+        channel: 'web',
+        clientState: 'refreshing_history',
+      });
+      throw error;
+    }
     if (!valid(token)) return;
     setConversation(prev => mergeHistoryPage(prev, page, false, revisions));
   };
@@ -261,10 +292,22 @@ export default function useConversationHistory(
   ): Promise<{ message: LatestMessage; adopt: () => void } | undefined> => {
     const token = generation.current;
     const before = current.current;
-    const page: ConversationDetail = await http.get(baseUrl, {
-      params: { branch_node_id: nodeId },
-      mute: true,
-    });
+    let page: ConversationDetail;
+    try {
+      page = await http.get(baseUrl, {
+        params: { branch_node_id: nodeId },
+        mute: true,
+      });
+    } catch (error) {
+      reportChatError(error, {
+        conversationId: conversation.id,
+        stage: 'history',
+        channel: 'web',
+        clientState: 'loading_latest_history',
+        userVisible: false,
+      });
+      throw error;
+    }
     if (!valid(token) || !page.current_node) return undefined;
     const message = latestMessageOf(
       page.mapping[page.current_node],
@@ -294,10 +337,22 @@ export default function useConversationHistory(
   const mergeBranch = async (leafId: string) => {
     const token = generation.current;
     const before = current.current;
-    const page: ConversationDetail = await http.get(baseUrl, {
-      params: { branch_leaf_id: leafId },
-      mute: true,
-    });
+    let page: ConversationDetail;
+    try {
+      page = await http.get(baseUrl, {
+        params: { branch_leaf_id: leafId },
+        mute: true,
+      });
+    } catch (error) {
+      reportChatError(error, {
+        conversationId: conversation.id,
+        stage: 'history',
+        channel: 'web',
+        clientState: 'merging_history',
+        userVisible: false,
+      });
+      throw error;
+    }
     if (!valid(token)) return;
     setConversation(prev => {
       if (prev.id !== before.id) return prev;

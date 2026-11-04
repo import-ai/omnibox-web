@@ -1093,7 +1093,8 @@ describe('useContext conversation cache failures', () => {
       'namespace-a',
       'conversation-a',
       images,
-      false
+      false,
+      expect.objectContaining({ requestId: 'pending-query' })
     );
     expect(jest.mocked(ask).mock.calls.at(-1)?.[18]).toBe('pending-query');
     expect(jest.mocked(ask).mock.calls.at(-1)?.[17]?.[0].attachment_id).toBe(
