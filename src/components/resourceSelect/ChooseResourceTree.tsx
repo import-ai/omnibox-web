@@ -22,6 +22,8 @@ import {
 import { rssTreeChildrenParams } from '@/service/resourceSort';
 
 interface ChooseResourceTreeProps {
+  includePersonalAndTeam?: boolean;
+  onSelectPersonalAndTeam?: () => void;
   namespaceId: string;
   resourceId: string;
   selectedResourcePath?: PathItem[];
@@ -40,6 +42,8 @@ type ChooseResourceTreeResource = ResourcePickerResource & {
 /** Destination tree for ResourceSelect — same picker UX as Move to, pick closes the menu. */
 export function ChooseResourceTree({
   namespaceId,
+  includePersonalAndTeam,
+  onSelectPersonalAndTeam,
   resourceId,
   selectedResourcePath,
   disabledIds,
@@ -145,6 +149,25 @@ export function ChooseResourceTree({
     };
   }, [decorateResource, namespaceId, resourceSorts, t]);
 
+  const pickerRoots = useMemo<ResourcePickerResource[]>(
+    () =>
+      includePersonalAndTeam &&
+      roots.some(root => root.picker_space_type === 'teamspace')
+        ? [
+            {
+              id: 'personal_and_team',
+              name: t('api_key.personal_and_team'),
+              resource_type: 'folder',
+              parent_id: null,
+              has_children: false,
+              children: [],
+            },
+            ...roots,
+          ]
+        : roots,
+    [includePersonalAndTeam, roots, t]
+  );
+
   const defaultExpandedRootIds = useMemo(
     () => getInitialRootExpansionIds(roots, resourceId, selectedResourcePath),
     [resourceId, roots, selectedResourcePath]
@@ -202,7 +225,7 @@ export function ChooseResourceTree({
       enableManagedFolders={enableManagedFolders}
       loadFailed={loadFailed}
       loading={loading}
-      roots={roots}
+      roots={pickerRoots}
       defaultExpandedIds={defaultExpandedIds}
       defaultExpandedRootIds={defaultExpandedRootIds}
       loadChildren={loadChildren}
@@ -216,7 +239,13 @@ export function ChooseResourceTree({
       beforeList={<DropdownMenuSeparator />}
       listClassName="min-h-0 max-h-72 pb-0 pr-1 scrollbar-gutter-stable scrollbar-thin [scrollbar-color:var(--border)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent"
       selectedResourceId={resourceId}
-      onSelect={onChange}
+      onSelect={resource => {
+        if (includePersonalAndTeam && resource.id === 'personal_and_team') {
+          onSelectPersonalAndTeam?.();
+        } else {
+          onChange(resource);
+        }
+      }}
     />
   );
 }

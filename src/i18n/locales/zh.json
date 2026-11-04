@@ -83,6 +83,7 @@
     }
   },
   "copilot": {
+    "expand_view": "展开",
     "title": "Copilot",
     "description": "在当前工作区中继续 AI 对话",
     "expand": "打开小黑",
@@ -544,6 +545,16 @@
     "bind_failed": "手机绑定失败"
   },
   "setting": {
+    "contact": {
+      "title": "联系我们",
+      "description": "加入小黑社群，交流使用心得、反馈问题与建议",
+      "wechat_title": "微信群",
+      "wechat_description": "微信扫码加入社群，交流小黑的使用心得",
+      "wechat_qr_alt": "小黑微信社群二维码",
+      "discord_title": "Discord",
+      "discord_description": "加入 Discord 社区参与交流",
+      "join_discord": "加入 Discord"
+    },
     "option_descriptions": {
       "username": "设置在空间中显示的名称",
       "password": "设置或更新用于登录账户的密码",
@@ -1234,7 +1245,9 @@
     },
     "related_application": "关联助手",
     "show": "显示",
-    "hide": "隐藏"
+    "hide": "隐藏",
+    "personal_and_team": "个人 + 团队",
+    "personal_and_team_hint": "可访问个人及团队中你有权限的资源。新内容优先保存到指定位置或助手已有保存位置，未指定时默认保存到个人。"
   },
   "tasks": {
     "description": "查看后台任务的处理状态，并管理任务执行。",
@@ -1395,6 +1408,8 @@
     }
   },
   "footer": {
+    "contact": "联系我们",
+    "download_app": "下载 APP",
     "docs": "帮助文档",
     "discord": "Discord",
     "wechat": "二维码",

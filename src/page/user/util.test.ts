@@ -1,5 +1,7 @@
 /** @jest-environment jsdom */
 
+import Cookies from 'js-cookie';
+
 import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
 
 import {
@@ -18,11 +20,13 @@ jest.mock('js-cookie', () => ({
 }));
 
 const mockClearConversationCache = jest.mocked(clearConversationCache);
+const mockCookieSet = jest.mocked(Cookies.set);
 
 describe('credential conversation cache cleanup', () => {
   beforeEach(() => {
     localStorage.clear();
     mockClearConversationCache.mockClear();
+    mockCookieSet.mockClear();
   });
 
   it('notifies subscribers on login, logout and cross-tab changes', () => {
@@ -64,6 +68,12 @@ describe('credential conversation cache cleanup', () => {
     setGlobalCredential('user-b', 'invalid-token');
 
     expect(mockClearConversationCache).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves the token cookie to the backend', () => {
+    setGlobalCredential('user-a', 'token-a');
+
+    expect(mockCookieSet).not.toHaveBeenCalled();
   });
 
   it('keeps conversations when refreshing credentials for the same user', () => {

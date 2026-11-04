@@ -83,6 +83,7 @@
     }
   },
   "copilot": {
+    "expand_view": "Expand",
     "title": "Copilot",
     "description": "Continue the AI conversation in this namespace",
     "expand": "Open Copilot",
@@ -543,6 +544,16 @@
     "bind_failed": "Failed to bind phone"
   },
   "setting": {
+    "contact": {
+      "title": "Contact us",
+      "description": "Join the OmniBox community to share tips, report issues, and suggest improvements",
+      "wechat_title": "WeChat group",
+      "wechat_description": "Scan with WeChat to join the group and share OmniBox tips",
+      "wechat_qr_alt": "OmniBox WeChat community QR code",
+      "discord_title": "Discord",
+      "discord_description": "Connect with the community on Discord",
+      "join_discord": "Join Discord"
+    },
     "option_descriptions": {
       "username": "Choose the name shown to other space members",
       "password": "Set or update the password used to sign in",
@@ -1232,7 +1243,9 @@
     },
     "related_application": "Related Assistant",
     "show": "Show",
-    "hide": "Hide"
+    "hide": "Hide",
+    "personal_and_team": "Personal + Team",
+    "personal_and_team_hint": "Access resources you have permission to in Personal and Team. New content uses the specified destination or existing assistant destination; otherwise it is saved to Personal."
   },
   "tasks": {
     "description": "View background task status and manage task execution.",
@@ -1393,6 +1406,8 @@
     }
   },
   "footer": {
+    "contact": "Contact us",
+    "download_app": "Download app",
     "docs": "Docs",
     "discord": "Discord",
     "wechat": "QR Code",

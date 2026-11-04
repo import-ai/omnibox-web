@@ -22,6 +22,7 @@ import {
   supportsResourceHistory,
   useResourceHistoryStore,
 } from '../history/resourceHistoryStore';
+import { resourceRevisionAuthorDisplayName } from '../history/resourceRevisionAuthor';
 import Breadcrumb from './BreadcrumbMain';
 
 export default function Header(props: IActionProps) {
@@ -57,6 +58,9 @@ export default function Header(props: IActionProps) {
   const copilotActive =
     copilotWorkspace.open && !commentsActive && !historyActive;
   const historyRevision = isHistorical ? selectedRevision : null;
+  const historyAuthorName = resourceRevisionAuthorDisplayName(
+    historyRevision?.author
+  );
 
   return (
     <header className="flex min-h-[48px] min-w-0 shrink-0 items-center gap-2 overflow-hidden rounded-[16px] bg-background">
@@ -85,9 +89,7 @@ export default function Header(props: IActionProps) {
                   timeStyle: 'short',
                 }
               ).format(new Date(historyRevision.created_at))}
-              {historyRevision.author
-                ? ` · ${historyRevision.author.username}`
-                : ''}
+              {historyAuthorName ? ` · ${historyAuthorName}` : ''}
             </span>
             <Button
               onClick={onViewCurrent}

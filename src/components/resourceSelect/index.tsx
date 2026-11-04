@@ -16,6 +16,7 @@ import { fetchResource, fetchRootResources } from '@/service/resource';
 import { ChooseResourceTree } from './ChooseResourceTree';
 
 interface IProps {
+  includePersonalAndTeam?: boolean;
   loading: boolean;
   resourceId: string;
   namespaceId: string;
@@ -34,6 +35,7 @@ type SelectedResource = ResourcePickerResource & { path?: PathItem[] };
 export function ResourceSelect(props: IProps) {
   const {
     className,
+    includePersonalAndTeam,
     loading,
     namespaceId,
     resourceId,
@@ -74,6 +76,12 @@ export function ResourceSelect(props: IProps) {
     if (loading || !namespaceId) {
       requestControllerRef.current?.abort();
       if (!namespaceId) onData(null);
+      onFetching(false);
+      return;
+    }
+    if (includePersonalAndTeam && resourceId === 'personal_and_team') {
+      requestControllerRef.current?.abort();
+      onData(null);
       onFetching(false);
       return;
     }
@@ -124,7 +132,14 @@ export function ResourceSelect(props: IProps) {
       });
 
     return () => controller.abort();
-  }, [t, loading, namespaceId, reloadToken, resourceId]);
+  }, [
+    t,
+    loading,
+    namespaceId,
+    reloadToken,
+    resourceId,
+    includePersonalAndTeam,
+  ]);
 
   useEffect(() => {
     const trigger = triggerRef.current;
@@ -142,14 +157,27 @@ export function ResourceSelect(props: IProps) {
     <DropdownMenu open={open} onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger
         ref={triggerRef}
+        disabled={loading}
         className={cn(
           'flex h-9 min-w-0 flex-1 items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-0 focus:outline-hidden disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30',
           className
         )}
       >
-        {data && <ResourceTypeIcon resource={data} />}
+        {includePersonalAndTeam && resourceId === 'personal_and_team' ? (
+          <ResourceTypeIcon
+            resource={{
+              id: 'personal_and_team',
+              parent_id: null,
+              resource_type: 'folder',
+            }}
+          />
+        ) : (
+          data && <ResourceTypeIcon resource={data} />
+        )}
         <span className="min-w-0 flex-1 truncate text-left text-sm text-neutral-900 dark:text-white">
-          {data?.name || placeholder}
+          {includePersonalAndTeam && resourceId === 'personal_and_team'
+            ? t('api_key.personal_and_team')
+            : data?.name || placeholder}
         </span>
         {fetching ? (
           <LoaderCircle className="size-4 shrink-0 animate-spin opacity-50 transition-transform" />
@@ -176,6 +204,12 @@ export function ResourceSelect(props: IProps) {
       >
         {open && (
           <ChooseResourceTree
+            includePersonalAndTeam={includePersonalAndTeam}
+            onSelectPersonalAndTeam={() => {
+              requestControllerRef.current?.abort();
+              onChange('personal_and_team');
+              onOpen(false);
+            }}
             namespaceId={namespaceId}
             resourceId={resourceId}
             selectedResourcePath={

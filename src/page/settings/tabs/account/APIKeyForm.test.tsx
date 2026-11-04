@@ -19,6 +19,14 @@ beforeAll(() => {
   };
 });
 
+jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
+jest.mock('@/service/resource', () => ({
+  fetchRootResources: jest
+    .fn()
+    .mockResolvedValue({ private: { id: 'personal' } }),
+}));
+const mockCreate = jest.fn().mockResolvedValue({});
+const mockPatch = jest.fn().mockResolvedValue({});
 const mockDelete = jest.fn();
 const mockToast = jest.fn();
 const mockKeys = [
@@ -45,6 +53,8 @@ jest.mock('@/hooks/useApiKeys', () => ({
     apiKeys: mockKeys,
     loading: false,
     deleteAPIKey: mockDelete,
+    createAPIKey: mockCreate,
+    patchAPIKey: mockPatch,
   }),
 }));
 jest.mock('@/page/settings/SettingsToastProvider', () => ({
@@ -52,7 +62,17 @@ jest.mock('@/page/settings/SettingsToastProvider', () => ({
 }));
 jest.mock('@/components/help-tooltip', () => ({ HelpTooltip: () => null }));
 jest.mock('@/components/resourceSelect', () => ({
-  ResourceSelect: () => null,
+  ResourceSelect: ({
+    resourceId,
+    onChange,
+  }: {
+    resourceId: string;
+    onChange: (id: string) => void;
+  }) => (
+    <button data-testid="scope" onClick={() => onChange('personal_and_team')}>
+      {resourceId}
+    </button>
+  ),
 }));
 jest.mock('./APIKeyPermissionScope', () => ({
   APIKeyPermissionScope: () => null,
@@ -74,7 +94,7 @@ it('keeps deletion open while pending and on failure, then closes after a succes
       })
   );
   const button = (text: string) =>
-    Array.from(document.querySelectorAll('button')).find(
+    Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(
       item => item.textContent === text
     )!;
   try {
@@ -115,5 +135,60 @@ it('keeps deletion open while pending and on failure, then closes after a succes
     (
       globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
     ).IS_REACT_ACT_ENVIRONMENT = false;
+  }
+});
+
+it('defaults new keys to Personal and explicitly serializes a combined choice', async () => {
+  (
+    globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  ).IS_REACT_ACT_ENVIRONMENT = true;
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <TooltipProvider>
+          <APIKeyForm />
+        </TooltipProvider>
+      )
+    );
+    await act(async () =>
+      Array.from(container.querySelectorAll<HTMLButtonElement>('button'))
+        .find(b => b.textContent === 'create')!
+        .click()
+    );
+    expect(document.querySelector('[data-testid="scope"]')?.textContent).toBe(
+      'personal'
+    );
+    await act(async () =>
+      (
+        document.querySelector('[data-testid="scope"]') as HTMLButtonElement
+      ).click()
+    );
+    expect(document.querySelector('[data-testid="scope"]')?.textContent).toBe(
+      'personal_and_team'
+    );
+    await act(async () =>
+      (document.querySelector('[role="checkbox"]') as HTMLButtonElement).click()
+    );
+    await act(async () =>
+      Array.from(
+        document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')
+      )
+        .find(b => b.textContent === 'create')!
+        .click()
+    );
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attrs: expect.objectContaining({
+          resource_scope: 'personal_and_team',
+          root_resource_id: 'personal',
+        }),
+      })
+    );
+  } finally {
+    act(() => root.unmount());
+    container.remove();
   }
 });

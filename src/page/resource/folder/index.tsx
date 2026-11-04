@@ -1,6 +1,5 @@
-import axios from 'axios';
 import { format } from 'date-fns';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,8 +10,11 @@ import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { Resource, ResourceSummary } from '@/interface';
-import { http } from '@/lib/request';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
+import {
+  isScrollToBottomContextFor,
+  SCROLL_TO_BOTTOM_EVENT,
+} from '@/page/resource/scrollToBottom';
 import { getShareSmartFolderChildNavigationState } from '@/page/share/sidebar/navigation';
 import { RssItemFeedBadge } from '@/page/sidebar/components/rss-folder/RssItemFeedBadge';
 import {
@@ -24,6 +26,7 @@ import type { ResourceSortOptions } from '@/service/resourceSort';
 
 import { groupTimestampedItemsByTimestamp, itemTimestamp } from '../utils';
 import { FolderContent } from './FolderContent';
+import useFolderChildren from './useFolderChildren';
 
 interface IProps {
   resourceId: string;
@@ -44,8 +47,6 @@ interface IProps {
   rssFeedNames?: boolean;
 }
 
-const PAGE_SIZE = 10;
-
 export default function Folder(props: IProps) {
   const {
     resourceId,
@@ -61,12 +62,6 @@ export default function Folder(props: IProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const app = useApp();
-  const [loading, onLoading] = useState(false);
-  const [loadingMore, onLoadingMore] = useState(false);
-  const [data, onData] = useState<Array<ResourceSummary>>([]);
-  const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
-  const isSmartFolder = !!smartFolderParentId;
   // One config request for the whole listing, not one per item row.
   const feedNames = useRssFolderLinkNames(
     namespaceId,
@@ -91,90 +86,23 @@ export default function Folder(props: IProps) {
   const folderContentApiPrefix = apiPrefix.includes('/smart-folders')
     ? `/namespaces/${namespaceId}/resources`
     : apiPrefix;
-
-  const reloadChildren = useCallback(
-    (cancelToken?: axios.CancelToken) => {
-      onLoading(true);
-      onData([]);
-      setOffset(0);
-      setHasMore(true);
-      const requestUrl = loadAll
-        ? `${apiPrefix}/${resourceId}/children?summary=true${sortQuery}`
-        : `${apiPrefix}/${resourceId}/children?summary=true&offset=0&limit=${PAGE_SIZE}${sortQuery}`;
-
-      return http
-        .get(requestUrl, {
-          cancelToken,
-          mute: isSmartFolder,
-        })
-        .then((res: Array<ResourceSummary>) => {
-          onData(res);
-          setHasMore(!loadAll && res.length === PAGE_SIZE);
-        })
-        .catch(error => {
-          if (isSmartFolder && error.response?.status === 404) {
-            onData([]);
-            setHasMore(false);
-          }
-        })
-        .finally(() => {
-          onLoading(false);
-        });
-    },
-    [apiPrefix, isSmartFolder, loadAll, resourceId, sortQuery]
-  );
-
-  const reloadSmartFolderChildren = useCallback(() => {
-    if (!smartFolderParentId) {
-      return;
-    }
-
-    http
-      .get(`${apiPrefix}/${smartFolderParentId}/children?summary=true`, {
-        mute: true,
-      })
-      .then((res: Array<ResourceSummary>) => {
-        onData(res);
-        setOffset(res.length);
-        setHasMore(false);
-        onLoading(false);
-      })
-      .catch(error => {
-        if (error.response?.status === 404) {
-          onData([]);
-          setOffset(0);
-          setHasMore(false);
-          onLoading(false);
-        }
-      });
-  }, [apiPrefix, smartFolderParentId]);
-
-  useEffect(() => {
-    const source = axios.CancelToken.source();
-    reloadChildren(source.token);
-    return () => {
-      source.cancel();
-    };
-  }, [reloadChildren]);
-
-  const loadMore = useCallback(() => {
-    if (loadAll || loadingMore || !hasMore) return;
-
-    onLoadingMore(true);
-    const newOffset = offset + PAGE_SIZE;
-    http
-      .get(
-        `${apiPrefix}/${resourceId}/children?summary=true&offset=${newOffset}&limit=${PAGE_SIZE}${sortQuery}`
-      )
-      .then((res: Array<ResourceSummary>) => {
-        onData(prevData => [...prevData, ...res]);
-        setOffset(newOffset);
-        setHasMore(res.length === PAGE_SIZE);
-      })
-      .finally(() => {
-        onLoadingMore(false);
-      });
-  }, [loadAll, loadingMore, hasMore, offset, apiPrefix, resourceId, sortQuery]);
+  const {
+    data,
+    hasMore,
+    loadMore,
+    loading,
+    loadingMore,
+    reload: reloadChildren,
+    reloadSmartFolder: reloadSmartFolderChildren,
+    replaceAll: replaceSmartFolderChildren,
+    setData: onData,
+  } = useFolderChildren({
+    apiPrefix,
+    loadAll,
+    resourceId,
+    smartFolderParentId,
+    sortQuery,
+  });
 
   useEffect(() => {
     if (!smartFolderParentId) return;
@@ -185,13 +113,10 @@ export default function Folder(props: IProps) {
           return;
         }
 
-        onData(children);
-        setOffset(children.length);
-        setHasMore(false);
-        onLoading(false);
+        replaceSmartFolderChildren(children);
       }
     );
-  }, [app, smartFolderParentId]);
+  }, [app, replaceSmartFolderChildren, smartFolderParentId]);
 
   useEffect(() => {
     if (!smartFolderParentId) return;
@@ -265,12 +190,17 @@ export default function Folder(props: IProps) {
   ]);
 
   useEffect(() => {
-    return app.on('scroll-to-bottom', () => {
-      if (hasMore && !loadingMore) {
+    return app.on(SCROLL_TO_BOTTOM_EVENT, (context: unknown) => {
+      if (
+        isScrollToBottomContextFor(context, {
+          namespaceId,
+          resourceId,
+        })
+      ) {
         loadMore();
       }
     });
-  }, [hasMore, loadingMore, loadMore]);
+  }, [app, loadMore, namespaceId, resourceId]);
 
   useEffect(() => {
     if (initialSyncLoading) {

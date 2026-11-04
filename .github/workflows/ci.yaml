@@ -54,6 +54,9 @@ jobs:
       - name: Test assistant binding synchronization
         run: pnpm exec jest src/hooks/useApplications.test.ts src/hooks/useApplicationSessions.test.ts src/page/settings/tabs/applications src/page/settings/SettingsBindingLifecycle.test.tsx --runInBand
 
+      - name: Test docs appearance synchronization
+        run: pnpm exec jest src/lib/docsAppearance.test.ts src/layout/index.test.tsx src/layout/authStorage.test.ts --runInBand
+
       - name: Test invite referral tracking
         run: pnpm exec jest src/page/inviteReferral/InviteReferralEntryExposure.test.tsx src/page/inviteReferral/tracking.test.ts src/lib/sendTrackEvent.test.ts --runInBand
 

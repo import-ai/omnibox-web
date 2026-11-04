@@ -247,7 +247,11 @@ describe('ResourceDetailView', () => {
           content: '# Previous Resource A',
           content_hash: 'hash-a',
           created_at: '2026-09-20T07:00:00.000Z',
-          author: null,
+          author: {
+            id: 'user-a',
+            username: 'alice',
+            display_name: '荔枝（alice）',
+          },
           is_current: false,
         });
 
@@ -263,6 +267,7 @@ describe('ResourceDetailView', () => {
         'resource.history.back_to_current'
       );
       expect(container.textContent).toContain('resource.history.restore');
+      expect(container.textContent).toContain('荔枝（alice）');
     }
   );
 
