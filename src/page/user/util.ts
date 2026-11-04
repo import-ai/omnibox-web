@@ -2,7 +2,12 @@ import Cookies from 'js-cookie';
 
 import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
 
-const CREDENTIAL_CHANGED = 'omnibox:credential-changed';
+/**
+ * Fired in the tab that changed the credentials. The cross-tab `storage`
+ * event does not reach the tab that performed the change, so consumers that
+ * must react immediately, such as cancelling in-flight requests, listen here.
+ */
+export const CREDENTIAL_CHANGED_EVENT = 'omnibox:credential-changed';
 
 export function subscribeCredentials(
   listener: (credential: { userId: string; token: string } | null) => void
@@ -17,11 +22,11 @@ export function subscribeCredentials(
       notify();
     }
   };
-  window.addEventListener(CREDENTIAL_CHANGED, notify);
+  window.addEventListener(CREDENTIAL_CHANGED_EVENT, notify);
   window.addEventListener('storage', onStorage);
   notify();
   return () => {
-    window.removeEventListener(CREDENTIAL_CHANGED, notify);
+    window.removeEventListener(CREDENTIAL_CHANGED_EVENT, notify);
     window.removeEventListener('storage', onStorage);
   };
 }
@@ -33,23 +38,10 @@ export function setGlobalCredential(userId: string, token: string) {
   }
   localStorage.setItem('uid', userId);
   localStorage.setItem('token', token);
-  let jwtExpiration: Date;
-
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    jwtExpiration = new Date(payload.exp * 1000);
-  } catch {
-    jwtExpiration = new Date();
-    jwtExpiration.setTime(jwtExpiration.getTime() + 24 * 60 * 60 * 1000);
-  }
-  const isSecure = location.protocol === 'https:';
-  Cookies.set('token', token, {
-    path: '/',
-    secure: isSecure,
-    sameSite: 'strict',
-    expires: jwtExpiration,
-  });
-  window.dispatchEvent(new Event(CREDENTIAL_CHANGED));
+  // The httpOnly token cookie belongs to the backend. Writing it here would
+  // create a second, javascript-readable cookie with a different SameSite
+  // policy and let the two copies drift out of sync.
+  window.dispatchEvent(new Event(CREDENTIAL_CHANGED_EVENT));
 }
 
 export function removeGlobalCredential() {
@@ -57,5 +49,5 @@ export function removeGlobalCredential() {
   localStorage.removeItem('uid');
   localStorage.removeItem('token');
   Cookies.remove('token', { path: '/' });
-  window.dispatchEvent(new Event(CREDENTIAL_CHANGED));
+  window.dispatchEvent(new Event(CREDENTIAL_CHANGED_EVENT));
 }

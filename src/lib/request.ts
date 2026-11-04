@@ -16,6 +16,9 @@ import { removeGlobalCredential } from '@/page/user/util';
 export interface RequestConfig extends AxiosRequestConfig {
   // Whether to show error messages, default is true
   mute?: boolean;
+  // Leave the response handling to the caller. Used by background session
+  // checks that must not redirect a public page to the login screen.
+  skipAuthRedirect?: boolean;
   // Suppress the global error toast only for these response error codes,
   // letting all other errors fall through to the global handler.
   muteCodes?: string[];
@@ -86,6 +89,7 @@ request.interceptors.response.use(
     }
     const err = error as AxiosError;
     const config = (err.config as RequestConfig) || {};
+    const skipAuthRedirect = config.skipAuthRedirect === true;
     // @ts-ignore
     const errorCode: string = (err.response?.data?.code || '').toLowerCase();
     const mutedByCode = (config.muteCodes || []).some(
@@ -129,15 +133,21 @@ request.interceptors.response.use(
             errorMessage = i18next.t('request.unknown_error');
         }
       }
-      if (err.status === 401 && window.location.pathname !== '/user/login') {
+      if (
+        err.status === 401 &&
+        !skipAuthRedirect &&
+        window.location.pathname !== '/user/login'
+      ) {
         handleTokenError(false);
       }
       toast.error(errorMessage, { position: 'bottom-right' });
     }
-    if (errorCode === 'token_expired') {
-      handleTokenError(true);
-    } else if (errorCode === 'invalid_token') {
-      handleTokenError(false);
+    if (!skipAuthRedirect) {
+      if (errorCode === 'token_expired') {
+        handleTokenError(true);
+      } else if (errorCode === 'invalid_token') {
+        handleTokenError(false);
+      }
     }
     return Promise.reject(error);
   }
