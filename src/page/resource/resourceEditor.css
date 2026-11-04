@@ -1,3 +1,5 @@
+@reference '../../index.css';
+
 .resource-readonly-editor,
 .resource-editable-editor {
   --tt-table-scrollbar-thumb-color: var(--border);
@@ -396,6 +398,20 @@
   box-shadow: none;
   padding: 0;
   align-items: stretch;
+}
+
+/* Keep the editor's internal scroller flush with the same popover edge as
+   the comment menu. Padding belongs inside the scroller, not around its rail. */
+.tiptap-suggestion-menu[data-selector='tiptap-mention-dropdown-menu'] {
+  padding: 0;
+  font-family: var(--app-font, ui-sans-serif, system-ui, sans-serif);
+}
+
+.tiptap-suggestion-menu[data-selector='tiptap-mention-dropdown-menu']
+  .tiptap-card-body {
+  @apply scrollbar-thin-visible;
+  overflow-x: hidden;
+  padding: 0.25rem;
 }
 
 [data-selector='tiptap-mention-dropdown-menu'] .tiptap-button {
