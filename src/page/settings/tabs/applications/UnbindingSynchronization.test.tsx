@@ -98,7 +98,7 @@ const bound = {
 const unbound = { app_id: 'wechat_oa_bot' } as Application;
 const missingBinding = {
   isAxiosError: true,
-  response: { status: 404, data: { code: 'APP_AUTHORIZATION_NOT_FOUND' } },
+  response: { status: 404, data: { code: 'app_authorization_not_found' } },
 };
 
 (
@@ -192,6 +192,16 @@ describe('ApplicationsForm unbinding synchronization', () => {
   it.each([
     ['network error', new Error('offline')],
     ['permission error', { response: { status: 403 } }],
+    [
+      'server error with a misleading code',
+      {
+        isAxiosError: true,
+        response: {
+          status: 500,
+          data: { code: 'app_authorization_not_found' },
+        },
+      },
+    ],
     [
       'unrelated not-found error',
       { response: { status: 404, data: { code: 'APP_NOT_FOUND' } } },
@@ -397,5 +407,32 @@ describe('ApplicationsForm unbinding synchronization', () => {
     jest.mocked(http.get).mockResolvedValue([unbound, { app_id: 'qq_bot' }]);
     await act(async () => jest.advanceTimersByTime(3000));
     expect(showToast).toHaveBeenCalledTimes(2);
+  });
+  it('does not display an old account’s successful unbind in the new account session', async () => {
+    localStorage.setItem('uid', 'account-before');
+    await act(async () => root.render(<ApplicationsForm />));
+    await click('解绑');
+    let resolve!: () => void;
+    const pending = new Promise<void>(done => {
+      resolve = done;
+    });
+    jest.mocked(http.delete).mockReturnValueOnce(pending);
+    await click('确认解绑');
+    jest.mocked(http.get).mockResolvedValue([unbound]);
+    await act(async () => {
+      localStorage.setItem('uid', 'account-after');
+      window.dispatchEvent(new Event('omnibox:credential-changed'));
+    });
+    await act(async () => {
+      resolve();
+      await pending;
+    });
+    expect(showToast).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('未绑定');
+    expect(container.querySelector('[role="alertdialog"]')).toBeNull();
+    await act(async () => {
+      localStorage.removeItem('uid');
+      window.dispatchEvent(new Event('omnibox:credential-changed'));
+    });
   });
 });

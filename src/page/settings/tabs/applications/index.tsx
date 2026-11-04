@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
+import { useApplicationIdentity } from '@/hooks/useApplicationIdentity';
 import useApplications from '@/hooks/useApplications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/getDocsLink.ts';
@@ -111,6 +112,7 @@ export function ApplicationsForm({
   const { t, i18n } = useTranslation();
   const params = useParams();
   const namespaceId = params.namespace_id || '';
+  const accountId = useApplicationIdentity();
 
   const [bindingLoading, setBindingLoading] = useState(false);
   const [unbindingLoading, setUnbindingLoading] = useState(false);
@@ -135,7 +137,7 @@ export function ApplicationsForm({
 
   const unbindSession = useMemo(
     () => ({ active, notified: new Set<string>() }),
-    [namespaceId, active]
+    [namespaceId, active, accountId]
   );
 
   const sessionRef = useRef(unbindSession);
@@ -342,7 +344,8 @@ export function ApplicationsForm({
       if (
         isSupportedApplicationId(application.app_id) &&
         axios.isAxiosError(error) &&
-        error.response?.data?.code === 'APP_AUTHORIZATION_NOT_FOUND'
+        error.response?.status === 404 &&
+        error.response?.data?.code === 'app_authorization_not_found'
       ) {
         const refreshed = await refetch({ background: true });
         if (!isCurrentSession()) return;

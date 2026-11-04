@@ -502,6 +502,7 @@ describe('useApplications remote unbinding', () => {
     '<html>Gateway unavailable</html>',
     [null],
     [{ id: 'invalid-row' }],
+    [unbound, bound],
   ])(
     'keeps malformed list data out of the confirmed state: %j',
     async response => {
@@ -537,5 +538,26 @@ describe('useApplications remote unbinding', () => {
     await expect(latest.checkApplicationStatus(bound.id)).resolves.toEqual(
       bound
     );
+  });
+  it('isolates another account in the same namespace and rejects its old list response', async () => {
+    await act(async () => root.render(createElement(Probe)));
+    const old = deferred<Application[]>();
+    jest.mocked(http.get).mockReturnValueOnce(old.promise);
+    await act(async () => jest.advanceTimersByTime(3000));
+    const previous = latest;
+    const signal = jest.mocked(http.get).mock.calls.at(-1)?.[1]?.signal;
+    jest.mocked(http.get).mockResolvedValueOnce([unbound]);
+    await act(async () => {
+      localStorage.setItem('uid', 'another-account');
+      window.dispatchEvent(new Event('omnibox:credential-changed'));
+    });
+    expect(signal?.aborted).toBe(true);
+    await act(async () => old.resolve([bound]));
+    expect(latest.applications).toEqual([unbound]);
+    expect(onUnbound).not.toHaveBeenCalled();
+    await expect(previous.bindApplication(bound.app_id)).rejects.toMatchObject({
+      name: 'AbortError',
+    });
+    localStorage.removeItem('uid');
   });
 });

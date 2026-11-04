@@ -51,6 +51,9 @@ jobs:
       - name: Run lint
         run: pnpm run lint
 
+      - name: Test assistant binding synchronization
+        run: pnpm exec jest src/hooks/useApplications.test.ts src/hooks/useApplicationSessions.test.ts src/page/settings/tabs/applications src/page/settings/SettingsBindingLifecycle.test.tsx --runInBand
+
       - name: Test invite referral tracking
         run: pnpm exec jest src/page/inviteReferral/InviteReferralEntryExposure.test.tsx src/page/inviteReferral/tracking.test.ts src/lib/sendTrackEvent.test.ts --runInBand
 

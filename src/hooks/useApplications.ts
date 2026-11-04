@@ -4,6 +4,11 @@ import { BIND_CHECK_INTERVAL } from '@/const';
 import { Application } from '@/interface';
 import { http } from '@/lib/request';
 
+import {
+  getApplicationIdentity,
+  useApplicationIdentity,
+} from './useApplicationIdentity';
+
 interface ApplicationSyncOptions {
   active?: boolean;
   syncBindingIds?: readonly string[];
@@ -25,7 +30,9 @@ export default function useApplications(
     onUnbound,
   }: ApplicationSyncOptions = {}
 ) {
+  const accountId = useApplicationIdentity();
   const [state, setState] = useState({
+    accountId,
     namespaceId,
     applications: [] as Application[],
     loading: true,
@@ -36,6 +43,7 @@ export default function useApplications(
   const session = useMemo(
     () => ({
       active: false,
+      accountId,
       requestVersion: 0,
       mutations: 0,
       creationVersions: new Map<string, number>(),
@@ -43,7 +51,7 @@ export default function useApplications(
       applications: [] as Application[],
       requests: new Map<AbortController, { showLoading: boolean }>(),
     }),
-    [namespaceId, active]
+    [namespaceId, active, accountId]
   );
 
   const fetchApplications = useCallback(
@@ -57,6 +65,7 @@ export default function useApplications(
       }
       if (
         !session.active ||
+        session.accountId !== getApplicationIdentity() ||
         !syncRef.current.active ||
         ((background || syncRef.current.syncBindingIds.length > 0) &&
           document.visibilityState !== 'visible')
@@ -76,6 +85,7 @@ export default function useApplications(
         );
         if (
           !session.active ||
+          session.accountId !== getApplicationIdentity() ||
           !syncRef.current.active ||
           controller.signal.aborted ||
           requestVersion !== session.requestVersion ||
@@ -89,8 +99,15 @@ export default function useApplications(
             application =>
               !application ||
               typeof application.app_id !== 'string' ||
-              !application.app_id
-          )
+              !application.app_id ||
+              (application.namespace_id &&
+                application.namespace_id !== namespaceId) ||
+              (session.accountId &&
+                application.user_id &&
+                application.user_id !== session.accountId)
+          ) ||
+          new Set(response.map(application => application.app_id)).size !==
+            response.length
         ) {
           throw new Error('Invalid applications response');
         }
@@ -108,6 +125,7 @@ export default function useApplications(
         const previousApplications = session.applications;
         session.applications = response;
         setState({
+          accountId: session.accountId,
           namespaceId,
           applications: response,
           loading: [...session.requests.values()].some(
@@ -133,15 +151,20 @@ export default function useApplications(
       } catch (err) {
         if (
           session.active &&
+          session.accountId === getApplicationIdentity() &&
           !controller.signal.aborted &&
           requestVersion === session.requestVersion &&
           !background
         ) {
           setState(previous => ({
             ...previous,
+            accountId: session.accountId,
             namespaceId,
             applications:
-              previous.namespaceId === namespaceId ? previous.applications : [],
+              previous.namespaceId === namespaceId &&
+              previous.accountId === session.accountId
+                ? previous.applications
+                : [],
             loading: [...session.requests.values()].some(
               request => request.showLoading
             ),
@@ -153,7 +176,12 @@ export default function useApplications(
         }
       } finally {
         session.requests.delete(controller);
-        if (showLoading && session.active && syncRef.current.active) {
+        if (
+          showLoading &&
+          session.active &&
+          session.accountId === getApplicationIdentity() &&
+          syncRef.current.active
+        ) {
           setState(previous => ({
             ...previous,
             loading: [...session.requests.values()].some(
@@ -168,7 +196,11 @@ export default function useApplications(
 
   const bindApplication = useCallback(
     async (appId: string): Promise<Application> => {
-      if (!session.active || !syncRef.current.active) {
+      if (
+        !session.active ||
+        session.accountId !== getApplicationIdentity() ||
+        !syncRef.current.active
+      ) {
         throw new DOMException('Obsolete application session', 'AbortError');
       }
       const creationVersion = (session.creationVersions.get(appId) ?? 0) + 1;
@@ -187,7 +219,11 @@ export default function useApplications(
         if (session.creationVersions.get(appId) !== creationVersion) {
           throw new DOMException('Obsolete application creation', 'AbortError');
         }
-        if (session.active && syncRef.current.active) {
+        if (
+          session.active &&
+          session.accountId === getApplicationIdentity() &&
+          syncRef.current.active
+        ) {
           const existing = session.applications.find(
             application => application.app_id === response.app_id
           );
@@ -197,6 +233,7 @@ export default function useApplications(
               )
             : [...session.applications, response];
           setState({
+            accountId: session.accountId,
             namespaceId,
             applications: session.applications,
             loading: false,
@@ -217,7 +254,11 @@ export default function useApplications(
       applicationId: string,
       { showLoading = true }: Pick<RefreshOptions, 'showLoading'> = {}
     ): Promise<void> => {
-      if (!session.active || !syncRef.current.active) {
+      if (
+        !session.active ||
+        session.accountId !== getApplicationIdentity() ||
+        !syncRef.current.active
+      ) {
         throw new DOMException('Obsolete application session', 'AbortError');
       }
       session.mutations++;
@@ -230,13 +271,14 @@ export default function useApplications(
           `/namespaces/${namespaceId}/applications/${applicationId}`,
           { mute: true }
         );
-        if (session.active) {
+        if (session.active && session.accountId === getApplicationIdentity()) {
           session.applications = session.applications.map(application =>
             application.id === applicationId
               ? ({ app_id: application.app_id } as Application)
               : application
           );
           setState({
+            accountId: session.accountId,
             namespaceId,
             applications: session.applications,
             loading: false,
@@ -257,13 +299,23 @@ export default function useApplications(
       applicationId: string,
       options?: { signal?: AbortSignal }
     ): Promise<Application> => {
-      if (session.mutations > 0) {
-        throw new DOMException('Binding mutation in progress', 'AbortError');
+      if (
+        session.mutations > 0 ||
+        !session.active ||
+        !syncRef.current.active ||
+        session.accountId !== getApplicationIdentity()
+      ) {
+        throw new DOMException('Unavailable binding session', 'AbortError');
       }
       const controller = new AbortController();
       const abort = () => controller.abort();
       options?.signal?.addEventListener('abort', abort, { once: true });
-      if (options?.signal?.aborted || !session.active) controller.abort();
+      if (
+        options?.signal?.aborted ||
+        !session.active ||
+        session.accountId !== getApplicationIdentity()
+      )
+        controller.abort();
       session.statusRequests.add(controller);
       try {
         const result: Application = await http.get(
@@ -273,6 +325,7 @@ export default function useApplications(
         if (
           controller.signal.aborted ||
           !session.active ||
+          session.accountId !== getApplicationIdentity() ||
           result.id !== applicationId
         ) {
           throw new DOMException('Obsolete binding status', 'AbortError');
@@ -341,7 +394,8 @@ export default function useApplications(
     };
   }, [active, syncBindingIds.length, namespaceId, session, fetchApplications]);
 
-  const currentNamespace = state.namespaceId === namespaceId;
+  const currentNamespace =
+    state.namespaceId === namespaceId && state.accountId === accountId;
   return {
     applications: currentNamespace ? state.applications : [],
     loading: !currentNamespace || state.loading,
