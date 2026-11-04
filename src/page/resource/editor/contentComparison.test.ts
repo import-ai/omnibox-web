@@ -68,7 +68,6 @@ describe('contentComparison', () => {
           },
         ],
       },
-      { type: 'paragraph', attrs: { id: 'terminal', indent: 0 } },
     ]);
 
     expect(toComparableDocument(editor)).toBe(toComparableDocument(server));
@@ -288,6 +287,58 @@ describe('contentComparison', () => {
           { type: 'paragraph' },
           { type: 'paragraph' },
         ])
+      )
+    ).toBe(true);
+  });
+
+  it('detects a blank paragraph added after ordinary text', () => {
+    const baseline = toComparableDocument(
+      documentWith([
+        { type: 'paragraph', content: [{ type: 'text', text: 'First' }] },
+      ])
+    );
+
+    expect(
+      isDocumentChanged(
+        baseline,
+        documentWith([
+          { type: 'paragraph', content: [{ type: 'text', text: 'First' }] },
+          { type: 'paragraph' },
+        ])
+      )
+    ).toBe(true);
+  });
+
+  it('ignores one editor padding paragraph after block content', () => {
+    const codeBlock: TiptapJsonContent = {
+      type: 'codeBlock',
+      attrs: { language: 'ts' },
+      content: [{ type: 'text', text: 'const value = 1;' }],
+    };
+    const baseline = toComparableDocument(documentWith([codeBlock]));
+
+    expect(
+      isDocumentChanged(
+        baseline,
+        documentWith([codeBlock, { type: 'paragraph' }])
+      )
+    ).toBe(false);
+  });
+
+  it('detects an extra blank paragraph after editor padding', () => {
+    const codeBlock: TiptapJsonContent = {
+      type: 'codeBlock',
+      attrs: { language: 'ts' },
+      content: [{ type: 'text', text: 'const value = 1;' }],
+    };
+    const baseline = toComparableDocument(
+      documentWith([codeBlock, { type: 'paragraph' }])
+    );
+
+    expect(
+      isDocumentChanged(
+        baseline,
+        documentWith([codeBlock, { type: 'paragraph' }, { type: 'paragraph' }])
       )
     ).toBe(true);
   });

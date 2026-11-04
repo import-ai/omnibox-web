@@ -191,6 +191,29 @@ describe('useResourceEditorSave', () => {
     );
   });
 
+  it('submits a body change when a trailing blank paragraph is added', async () => {
+    jest.mocked(http.patch).mockResolvedValue({ id: 'resource' });
+    const { app } = await renderSave({
+      currentDocument: {
+        type: 'doc',
+        content: [...baselineDocument.content!, { type: 'paragraph' }],
+      },
+    });
+
+    await act(async () => app.fire('save'));
+    await Promise.resolve();
+
+    expect(http.patch).toHaveBeenCalledWith(
+      '/namespaces/namespace/resources/resource',
+      {
+        content: 'serialized body',
+        expected_content_hash: 'hash',
+        comment_anchors: [{ thread_id: 'thread' }],
+        orphaned_comment_thread_ids: ['orphan'],
+      }
+    );
+  });
+
   it('keeps one in-flight save when save is triggered repeatedly', async () => {
     let resolveRequest: ((resource: Partial<Resource>) => void) | undefined;
     jest.mocked(http.patch).mockImplementation(

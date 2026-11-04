@@ -8,6 +8,8 @@ interface ComparisonResult {
   linkQueryChanged: boolean;
   codeWhitespaceChanged: boolean;
   attachmentTargetChanged: boolean;
+  trailingBlankLineChanged: boolean;
+  simpleTrailingBlankLineChanged: boolean;
 }
 
 it('compares real editor documents without false dirty state', () => {
@@ -25,5 +27,7 @@ it('compares real editor documents without false dirty state', () => {
     linkQueryChanged: true,
     codeWhitespaceChanged: true,
     attachmentTargetChanged: true,
+    trailingBlankLineChanged: true,
+    simpleTrailingBlankLineChanged: true,
   });
 }, 70000);

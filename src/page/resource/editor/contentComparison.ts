@@ -166,6 +166,15 @@ function isEmptyParagraph(node: ComparableNode) {
   );
 }
 
+function isEditorTerminalParagraph(content: ComparableNode[]) {
+  const last = content.at(-1);
+  if (!last || !isEmptyParagraph(last)) {
+    return false;
+  }
+  const previous = content.at(-2);
+  return !previous || previous.type !== 'paragraph';
+}
+
 function stableStringify(value: unknown): string {
   if (value === null || typeof value !== 'object') {
     return JSON.stringify(value) ?? 'null';
@@ -193,9 +202,9 @@ export function toComparableDocument(
     return stableStringify({ type: 'doc' });
   }
 
-  // The editor appends exactly one empty terminal paragraph after loading block
-  // content. Keep any additional blank paragraphs as user-authored content.
-  if (document.content?.length && isEmptyParagraph(document.content.at(-1)!)) {
+  // The editor appends one empty paragraph after block content so users can
+  // continue typing. A blank paragraph after normal text is user-authored.
+  if (document.content?.length && isEditorTerminalParagraph(document.content)) {
     document.content.pop();
   }
   if (document.content && document.content.length === 0) {

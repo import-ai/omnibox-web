@@ -16,12 +16,19 @@ export interface EditBaseline {
   comparableDocument: ComparableDocument;
 }
 
+interface EditorSchema {
+  nodeFromJSON: (json: TiptapJsonContent) => {
+    toJSON: () => TiptapJsonContent;
+  };
+}
+
 interface EditBaselineInput {
   resourceId: string;
   name: string;
   content: string;
   linkBase: string;
   document?: TiptapJsonContent;
+  schema?: EditorSchema;
 }
 
 export function buildEditBaseline({
@@ -30,10 +37,17 @@ export function buildEditBaseline({
   content,
   linkBase,
   document,
+  schema,
 }: EditBaselineInput): EditBaseline {
-  const baselineDocument =
-    document ??
-    normalizeResourceEditorContent(contentToTiptapJson(content, { linkBase }));
+  let baselineDocument = document;
+  if (!baselineDocument) {
+    const parsedDocument = normalizeResourceEditorContent(
+      contentToTiptapJson(content, { linkBase })
+    );
+    baselineDocument = schema
+      ? schema.nodeFromJSON(parsedDocument).toJSON()
+      : parsedDocument;
+  }
 
   return {
     resourceId,

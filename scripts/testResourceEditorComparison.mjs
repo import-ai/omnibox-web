@@ -91,6 +91,13 @@ const serverMarkdown = [
   '',
   '[相对路径录音](attachments/relative.wav)',
   '',
+  '| 名称 | 值 |',
+  '| --- | --- |',
+  '| A | 1 |',
+  '',
+  '1. 第一项',
+  '2. 第二项',
+  '',
   '```ts',
   'const a = 1;',
   '```',
@@ -148,8 +155,11 @@ try {
   first.close();
 
   const draftWithoutComments = await mount(serverMarkdown);
+  const schemaDraftJson = draftWithoutComments.editor.schema
+    .nodeFromJSON(contentToTiptapJson(serverMarkdown, { linkBase }))
+    .toJSON();
   results.draftRemountUnchanged = !isDocumentChanged(
-    toComparableDocument(contentToTiptapJson(serverMarkdown, { linkBase })),
+    toComparableDocument(schemaDraftJson),
     draftWithoutComments.json
   );
   draftWithoutComments.close();
@@ -158,12 +168,14 @@ try {
   results.remountUnchanged = !isDocumentChanged(firstBaseline, second.json);
   second.close();
 
-  const draftBaseline = toComparableDocument(
-    contentToTiptapJson(serverMarkdown, { linkBase })
-  );
   const withLiveLabels = await mount(
     serverMarkdown.replace('label="Old name"', 'label="New name"'),
     true
+  );
+  const draftBaseline = toComparableDocument(
+    withLiveLabels.editor.schema
+      .nodeFromJSON(contentToTiptapJson(serverMarkdown, { linkBase }))
+      .toJSON()
   );
   results.draftAndCommentsUnchanged = !isDocumentChanged(
     draftBaseline,
@@ -194,6 +206,29 @@ try {
     attachmentChanged.json
   );
   attachmentChanged.close();
+
+  const trailingBlankLine = await mount(serverMarkdown);
+  trailingBlankLine.editor.commands.insertContentAt(
+    trailingBlankLine.editor.state.doc.content.size,
+    { type: 'paragraph' }
+  );
+  results.trailingBlankLineChanged = isDocumentChanged(
+    firstBaseline,
+    trailingBlankLine.editor.getJSON()
+  );
+  trailingBlankLine.close();
+
+  const simpleParagraph = await mount('Ordinary paragraph');
+  const simpleBaseline = toComparableDocument(simpleParagraph.editor.getJSON());
+  const simpleBefore = simpleParagraph.editor.getJSON();
+  simpleParagraph.editor.commands.focus('end');
+  simpleParagraph.editor.commands.splitBlock();
+  const simpleAfter = simpleParagraph.editor.getJSON();
+  results.simpleTrailingBlankLineChanged = isDocumentChanged(
+    simpleBaseline,
+    simpleAfter
+  );
+  simpleParagraph.close();
 
   console.log(JSON.stringify(results));
 } finally {

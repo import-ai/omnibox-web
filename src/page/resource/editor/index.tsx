@@ -215,6 +215,7 @@ export default function Editor(props: IEditorProps) {
         content: resource.content ?? '',
         linkBase,
         document: cache?.content === undefined ? editor.getJSON() : undefined,
+        schema: editor.schema,
       });
       baselineRef.current = baseline;
 
