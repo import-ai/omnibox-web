@@ -703,4 +703,45 @@ describe('useChatStreamRecovery', () => {
       jest.useRealTimers();
     }
   });
+  it('clears a local interruption when the server confirms the answer is still generating', async () => {
+    const initial = conversation(MessageStatus.FAILED);
+    initial.mapping['assistant-1'].attrs = {
+      stream_event_id: '1-3',
+      error_code: 'stream_interrupted',
+      error_message: 'lost',
+    };
+    let finish!: () => void;
+    const loadSnapshot = jest
+      .fn()
+      .mockResolvedValueOnce(conversation(MessageStatus.STREAMING))
+      .mockResolvedValueOnce(conversation(MessageStatus.SUCCESS));
+    const createResumeStream = jest.fn(() => ({
+      start: () =>
+        new Promise<void>(done => {
+          finish = done;
+        }),
+      getLastResponseType: () => 'done',
+    }));
+    const probe = await renderRecovery(initial, {
+      loadSnapshot,
+      createResumeStream,
+    });
+    let pending!: Promise<void>;
+    await act(async () => {
+      pending = probe.get().recover();
+    });
+    expect(probe.state().mapping['assistant-1'].status).toBe(
+      MessageStatus.STREAMING
+    );
+    expect(
+      probe.state().mapping['assistant-1'].attrs?.error_code
+    ).toBeUndefined();
+    await act(async () => {
+      finish();
+      await pending;
+    });
+    expect(probe.state().mapping['assistant-1'].status).toBe(
+      MessageStatus.SUCCESS
+    );
+  });
 });

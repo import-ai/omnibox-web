@@ -8,7 +8,10 @@ import {
   isTransientChatError,
 } from '@/lib/chatErrors';
 import type { MessageOperator } from '@/page/chat/core/messageOperator';
-import { OpenAIMessageRole } from '@/page/chat/core/types/chatResponse';
+import {
+  MessageStatus,
+  OpenAIMessageRole,
+} from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 
 import {
@@ -296,6 +299,27 @@ export default function useChatStreamRecovery(
               updateState('connected');
               return;
             }
+            optionsRef.current.setConversation(previous => {
+              if (stale() || previous.id !== snapshot.id) return previous;
+              const mapping = { ...previous.mapping };
+              let changed = false;
+              for (const [id, server] of Object.entries(snapshot.mapping)) {
+                const message = mapping[id];
+                if (
+                  message?.status !== MessageStatus.FAILED ||
+                  message.attrs?.error_code !== 'stream_interrupted' ||
+                  (message.localRevision ?? 0) !== (revisions[id] ?? 0)
+                )
+                  continue;
+                const attrs = { ...message.attrs };
+                delete attrs.error_message;
+                delete attrs.error_code;
+                delete attrs.error_status;
+                changed = true;
+                mapping[id] = { ...message, status: server.status, attrs };
+              }
+              return changed ? { ...previous, mapping } : previous;
+            });
             cursorOverride = undefined;
             const terminal = await resumeOnce(resumeCursor, stale);
             if (stale()) return;
