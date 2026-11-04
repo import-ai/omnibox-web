@@ -419,6 +419,14 @@ export function ask(
     start: async () => {
       try {
         await transport.start();
+        if (
+          !transport.isDetached?.() &&
+          !streamError &&
+          !['done', 'stopped'].includes(transport.getLastResponseType?.() ?? '')
+        ) {
+          outcome.failed = true;
+          outcome.transientError = true;
+        }
       } catch (error) {
         if (isChatCancellation(error)) return;
         outcome.failed = true;

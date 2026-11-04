@@ -21,6 +21,7 @@ export function createStreamTransport(
   // Cursor of the last event delivered to the callback. A repeated event is
   // skipped so a resume replay cannot append the same delta twice.
   let lastEventId: string | undefined;
+  let lastResponseType: string | undefined;
   const deliveredEventIds = new Set<string>();
 
   const eventIdOf = (data: string) => {
@@ -40,6 +41,12 @@ export function createStreamTransport(
     const eventId = eventIdOf(data);
     if (eventId && deliveredEventIds.has(eventId)) return;
     await callback(data);
+    try {
+      lastResponseType = (JSON.parse(data) as { response_type?: string })
+        .response_type;
+    } catch {
+      /* Non-JSON payloads have no terminal marker. */
+    }
     if (eventId) {
       deliveredEventIds.add(eventId);
       lastEventId = eventId;
@@ -127,6 +134,8 @@ export function createStreamTransport(
       void reader?.cancel().catch(() => undefined);
     },
     getLastEventId: () => lastEventId,
+    getLastResponseType: () => lastResponseType,
+    isDetached: () => isAborted,
     cancel: async () => {
       const token = localStorage.getItem('token') || '';
       const response = await fetch(cancelUrl, {

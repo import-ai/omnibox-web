@@ -50,6 +50,12 @@ interface ConversationBootstrapOptions {
   namespaceId: string;
   sendMessage: (params: SendMessageParams) => Promise<void>;
   detachActiveStream?: () => void;
+  onResumeError?: (
+    error: unknown,
+    cursor?: string,
+    initialConversation?: ConversationDetail
+  ) => void;
+  detachStreamRef?: { current: (() => void) | null };
   trackStream?: (stream: ReturnType<typeof resumeStream>) => void;
   untrackStream?: (stream: ReturnType<typeof resumeStream>) => void;
   setAccessDenied: Dispatch<SetStateAction<boolean>>;
@@ -202,15 +208,52 @@ function resumeLoadedConversation(
   options.trackStream?.(runtime.resumeFN);
   const resumeFN = runtime.resumeFN;
   askAbortRef.current = runtime.resumeFN.cancel;
-  void resumeFN.start().finally(() => {
-    options.untrackStream?.(resumeFN);
-    if (askAbortRef.current === resumeFN.cancel) {
-      askAbortRef.current = null;
-    }
-    if (isActiveRequest(options, runtime)) {
-      void loadConversation(options, runtime, 'refresh', refreshLeaf);
-    }
-  });
+  if (options.detachStreamRef)
+    options.detachStreamRef.current = resumeFN.destroy;
+  let failed = false;
+  void resumeFN
+    .start()
+    .catch(error => {
+      failed = true;
+      if (
+        isActiveRequest(options, runtime) &&
+        askAbortRef.current === resumeFN.cancel
+      )
+        options.onResumeError?.(
+          error,
+          resumeFN.getLastEventId?.(),
+          conversation
+        );
+    })
+    .finally(() => {
+      const owned = askAbortRef.current === resumeFN.cancel;
+      options.untrackStream?.(resumeFN);
+      if (options.detachStreamRef?.current === resumeFN.destroy)
+        options.detachStreamRef.current = null;
+      if (askAbortRef.current === resumeFN.cancel) {
+        askAbortRef.current = null;
+      }
+      if (!failed && owned && isActiveRequest(options, runtime)) {
+        void loadConversation(options, runtime, 'refresh', refreshLeaf).then(
+          snapshot => {
+            if (
+              snapshot &&
+              replyStillRunning(snapshot) &&
+              !['done', 'error', 'stopped'].includes(
+                resumeFN.getLastResponseType?.() ?? ''
+              ) &&
+              isActiveRequest(options, runtime)
+            ) {
+              options.onResumeError?.(
+                { code: 'STREAM_READ_FAILED' },
+                resumeFN.getLastEventId?.(),
+                snapshot
+              );
+            }
+          }
+        );
+      }
+    });
 }
 
 function startConversationBootstrap(options: ConversationBootstrapOptions) {

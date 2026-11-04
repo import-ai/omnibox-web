@@ -19,12 +19,13 @@ import {
   interruptionPlan,
   isLocalRequestMessage,
   isReplyComplete,
+  mergeRecoverySnapshot,
   resumeStreamCursor,
   type SnapshotQuery,
   snapshotQuery,
+  snapshotRevisions,
   type StreamState,
 } from './chatStreamRecovery';
-import { mergeHistoryPage } from './conversationHistory';
 
 const MAX_RECOVERY_ATTEMPTS = 5;
 const MAX_BACKOFF_MS = 8000;
@@ -37,15 +38,18 @@ export interface RecoverableStream {
 
 export interface ResumableStream extends RecoverableStream {
   start: () => Promise<void>;
+  getLastResponseType?: () => string | undefined;
 }
 
 interface ChatStreamRecoveryOptions {
   conversationId: string;
+  scopeKey?: string;
   conversationRef: MutableRefObject<ConversationDetail>;
   setConversation: Dispatch<SetStateAction<ConversationDetail>>;
   messageOperator: MessageOperator;
   askAbortRef: MutableRefObject<(() => Promise<void>) | null>;
   detachStreamRef: MutableRefObject<(() => void) | null>;
+  onUnavailable?: () => void;
   loadSnapshot: (query: SnapshotQuery) => Promise<ConversationDetail>;
   createResumeStream: (
     lastEventId?: string,
@@ -54,6 +58,7 @@ interface ChatStreamRecoveryOptions {
 }
 
 interface RecoverOptions {
+  initialConversation?: ConversationDetail;
   // Local user message whose delivery is in doubt.
   pendingRequestId?: string;
   // Cursor of the stream this page was reading.
@@ -173,17 +178,15 @@ export default function useChatStreamRecovery(
   );
 
   const mergeSnapshot = useCallback(
-    (snapshot: ConversationDetail, requestId?: string) => {
-      const before = optionsRef.current.conversationRef.current;
-      const revisions = Object.fromEntries(
-        Object.entries(before.mapping).map(([id, message]) => [
-          id,
-          message.localRevision ?? 0,
-        ])
-      );
+    (
+      snapshot: ConversationDetail,
+      revisions: Record<string, number>,
+      requestId?: string,
+      stale: () => boolean = () => false
+    ) => {
       optionsRef.current.setConversation(previous => {
-        if (previous.id !== snapshot.id) return previous;
-        const merged = mergeHistoryPage(previous, snapshot, false, revisions);
+        if (stale() || previous.id !== snapshot.id) return previous;
+        const merged = mergeRecoverySnapshot(previous, snapshot, revisions);
         return requestId ? adoptAcceptedRequest(merged, requestId) : merged;
       });
     },
@@ -191,39 +194,40 @@ export default function useChatStreamRecovery(
   );
 
   const resumeOnce = useCallback(
-    async (cursor?: string) => {
-      const stream = optionsRef.current.createResumeStream(cursor, () =>
-        updateState('connected')
-      );
+    async (cursor: string | undefined, stale: () => boolean) => {
       const current = optionsRef.current;
+      const stream = current.createResumeStream(cursor, () => {
+        if (!stale()) updateState('connected');
+      });
       activeStreamRef.current = stream;
       current.askAbortRef.current = stream.cancel ?? null;
       current.detachStreamRef.current = stream.destroy ?? null;
       try {
         await stream.start();
+        return ['done', 'error', 'stopped'].includes(
+          stream.getLastResponseType?.() ?? ''
+        );
       } finally {
-        const lastEventId = stream.getLastEventId?.();
-        if (lastEventId) cursorRef.current = lastEventId;
-        if (activeStreamRef.current === stream) {
-          if (current.askAbortRef.current === stream.cancel) {
-            current.askAbortRef.current = null;
-          }
-          if (current.detachStreamRef.current === stream.destroy) {
-            current.detachStreamRef.current = null;
-          }
-          activeStreamRef.current = undefined;
+        if (!stale()) {
+          const lastEventId = stream.getLastEventId?.();
+          if (lastEventId) cursorRef.current = lastEventId;
         }
+        if (activeStreamRef.current === stream) releaseStream();
       }
     },
-    [updateState]
+    [releaseStream, updateState]
   );
 
   const recover = useCallback(
     async (params: RecoverOptions = {}) => {
       if (!optionsRef.current.conversationId || destroyedRef.current) return;
-      if (suppressedRef.current || runningRef.current) return;
+      if (suppressedRef.current || (runningRef.current && !params.force))
+        return;
 
-      const local = optionsRef.current.conversationRef.current;
+      const committed = optionsRef.current.conversationRef.current;
+      const local = activeLeaf(committed)
+        ? committed
+        : (params.initialConversation ?? committed);
       if (!params.pendingRequestId && !hasUnfinishedTurn(local)) {
         if (stateRef.current !== 'connected') updateState('connected');
         return;
@@ -234,13 +238,17 @@ export default function useChatStreamRecovery(
       }
 
       const generation = ++generationRef.current;
+      const scope = optionsRef.current.scopeKey;
+      const conversationId = optionsRef.current.conversationId;
       const stale = () =>
         destroyedRef.current ||
         suppressedRef.current ||
+        optionsRef.current.scopeKey !== scope ||
+        optionsRef.current.conversationId !== conversationId ||
         generationRef.current !== generation;
       runningRef.current = true;
       try {
-        if (params.force) {
+        if (params.force || activeStreamRef.current) {
           captureCursor();
           activeStreamRef.current?.destroy?.();
           releaseStream();
@@ -253,7 +261,10 @@ export default function useChatStreamRecovery(
         let cursorOverride = params.cursor;
         for (;;) {
           try {
-            const before = optionsRef.current.conversationRef.current;
+            const before =
+              attempt === 0
+                ? local
+                : optionsRef.current.conversationRef.current;
             const leafBefore = activeLeaf(before);
             const requestId =
               params.pendingRequestId ??
@@ -262,6 +273,7 @@ export default function useChatStreamRecovery(
             // Read the server only to decide whether the turn is still
             // running. Merging its text here would make the resume below
             // replay events this page already shows.
+            const revisions = snapshotRevisions(before);
             const snapshot = await optionsRef.current.loadSnapshot(
               snapshotQuery(before)
             );
@@ -273,60 +285,38 @@ export default function useChatStreamRecovery(
             const resumeCursor =
               cursorOverride ?? cursorRef.current ?? resumeStreamCursor(before);
 
-            if (!localRequest || !requestId) {
-              if (!activeLeaf(snapshot) || isReplyComplete(snapshot)) {
-                mergeSnapshot(snapshot);
-                cursorRef.current = undefined;
-                updateState('connected');
-                return;
-              }
-              cursorOverride = undefined;
-              await resumeOnce(resumeCursor);
-              if (stale()) return;
-
-              // A resume that ends without a terminal event means the server
-              // no longer has this turn: report a real interruption instead
-              // of leaving the bubble spinning forever.
-              const after = await optionsRef.current.loadSnapshot(
-                snapshotQuery(optionsRef.current.conversationRef.current)
-              );
-              if (stale()) return;
-              mergeSnapshot(after);
-              if (activeLeaf(after) && !isReplyComplete(after)) {
-                markInterrupted(undefined, after);
-                return;
-              }
+            const acceptedBefore =
+              localRequest && findAcceptedRequest(snapshot, localRequest);
+            if (
+              isReplyComplete(snapshot) &&
+              (!localRequest || acceptedBefore)
+            ) {
+              mergeSnapshot(snapshot, revisions, requestId, stale);
               cursorRef.current = undefined;
               updateState('connected');
               return;
             }
-
-            // The page sent this question but never learned whether the server
-            // took it. A resume replays the accepted `bos`, which carries the
-            // client request ID, so the local bubble reconciles itself. The
-            // question is never sent again.
             cursorOverride = undefined;
-            await resumeOnce(resumeCursor);
+            const terminal = await resumeOnce(resumeCursor, stale);
             if (stale()) return;
             const current = optionsRef.current.conversationRef.current;
+            const afterRevisions = snapshotRevisions(current);
             const after = await optionsRef.current.loadSnapshot(
               snapshotQuery(current)
             );
             if (stale()) return;
-            const accepted = findAcceptedRequest(after, localRequest);
             if (
-              !accepted &&
+              localRequest &&
+              requestId &&
+              !findAcceptedRequest(after, localRequest) &&
               isLocalRequestMessage(current.mapping[requestId])
             ) {
-              // Nothing on the server took this question. Keep the local
-              // bubble so the user can retry it manually; never resend it
-              // here.
               cursorRef.current = undefined;
               markUndelivered(requestId);
               return;
             }
-            mergeSnapshot(after, requestId);
-            if (activeLeaf(after) && !isReplyComplete(after)) {
+            mergeSnapshot(after, afterRevisions, requestId, stale);
+            if (!terminal && activeLeaf(after) && !isReplyComplete(after)) {
               markInterrupted(undefined, after);
               return;
             }
@@ -342,7 +332,19 @@ export default function useChatStreamRecovery(
               }
               attempt += 1;
               if (attempt >= MAX_RECOVERY_ATTEMPTS) {
-                markInterrupted(error);
+                if (
+                  isLocalRequestMessage(
+                    activeLeaf(optionsRef.current.conversationRef.current)
+                  )
+                )
+                  markUndelivered(
+                    activeLeaf(optionsRef.current.conversationRef.current)!.id
+                  );
+                else
+                  markInterrupted({
+                    code: 'stream_interrupted',
+                    message: chatErrorDetails(error).message,
+                  });
                 return;
               }
               updateState('recovering');
@@ -351,6 +353,7 @@ export default function useChatStreamRecovery(
               continue;
             }
             if (isUnavailable(error)) {
+              optionsRef.current.onUnavailable?.();
               updateState('connected');
               return;
             }
@@ -408,10 +411,12 @@ export default function useChatStreamRecovery(
   useEffect(() => {
     generationRef.current += 1;
     runningRef.current = false;
+    activeStreamRef.current?.destroy?.();
+    releaseStream();
     cursorRef.current = undefined;
     suppressedRef.current = false;
     updateState('connected');
-  }, [options.conversationId, updateState]);
+  }, [options.conversationId, options.scopeKey, releaseStream, updateState]);
 
   useEffect(() => {
     const onVisibilityChange = () => {
@@ -444,5 +449,9 @@ export default function useChatStreamRecovery(
     };
   }, [options.conversationId, recover, updateState]);
 
-  return { streamState, recover, reset, stop, track, untrack };
+  const isRecovering = useCallback(
+    () => runningRef.current || stateRef.current === 'offline',
+    []
+  );
+  return { streamState, recover, reset, stop, track, untrack, isRecovering };
 }

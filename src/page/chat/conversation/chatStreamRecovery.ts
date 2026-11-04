@@ -1,11 +1,14 @@
 import {
   isTerminalMessageStatus,
+  MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse';
 import type {
   ConversationDetail,
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
+
+import { mergeHistoryPage } from './conversationHistory';
 
 export type StreamState =
   'connected' | 'recovering' | 'offline' | 'interrupted';
@@ -27,6 +30,8 @@ export function activeLeaf(
 export function hasUnfinishedTurn(conversation: ConversationDetail) {
   const leaf = activeLeaf(conversation);
   if (!leaf) return false;
+  if (leaf.status === MessageStatus.FAILED)
+    return leaf.attrs?.error_code === 'stream_interrupted';
   return isLocalRequestMessage(leaf) || !isReplyComplete(conversation);
 }
 
@@ -75,17 +80,22 @@ export function findAcceptedRequest(
 ): MessageDetail | undefined {
   const byRequestId = Object.values(conversation.mapping).find(
     message =>
-      message.id !== local.id && message.attrs?.client_request_id === local.id
+      message.id !== local.id &&
+      message.message.role === OpenAIMessageRole.USER &&
+      message.attrs?.client_request_id === local.id
   );
   if (byRequestId) return byRequestId;
   // Older backends do not echo the client request ID. The question itself is
-  // still the only user message under the same parent with the same text.
+  // still a new user message under the same parent with the same text.
+  // Older identical siblings cannot prove delivery of this request.
   const content = local.message.content?.trim();
-  if (!content) return undefined;
+  const sentAt = Date.parse(local.created_at ?? '');
+  if (!content || !Number.isFinite(sentAt)) return undefined;
   return Object.values(conversation.mapping).find(
     message =>
       message.id !== local.id &&
       message.message.role === OpenAIMessageRole.USER &&
+      Date.parse(message.created_at ?? '') >= sentAt &&
       message.parent_id === local.parent_id &&
       message.message.content?.trim() === content
   );
@@ -133,6 +143,7 @@ export function getBranchEventId(conversation: ConversationDetail) {
     if (!message) return undefined;
     const eventId = message.attrs?.stream_event_id;
     if (eventId) return eventId;
+    if (message.message.role === OpenAIMessageRole.USER) return undefined;
     currentId = message.parent_id;
   }
   return undefined;
@@ -157,4 +168,42 @@ export function interruptionPlan(
   }
   if (isTerminalMessageStatus(leaf.status)) return undefined;
   return { messageId: leaf.id };
+}
+
+export function snapshotRevisions(conversation: ConversationDetail) {
+  return Object.fromEntries(
+    Object.entries(conversation.mapping).map(([id, message]) => [
+      id,
+      message.localRevision ?? 0,
+    ])
+  );
+}
+
+// Recovery snapshots replace partial details, even when persistence has not
+// advanced updated_at yet. Never replace events delivered during the request.
+export function mergeRecoverySnapshot(
+  previous: ConversationDetail,
+  snapshot: ConversationDetail,
+  revisions: Record<string, number>
+) {
+  const merged = mergeHistoryPage(previous, snapshot, false, revisions);
+  if (merged === previous) return previous;
+  for (const [id, message] of Object.entries(snapshot.mapping)) {
+    const existing = previous.mapping[id];
+    if (existing && (existing.localRevision ?? 0) !== (revisions[id] ?? 0))
+      continue;
+    if (
+      existing &&
+      isTerminalMessageStatus(existing.status) &&
+      !isTerminalMessageStatus(message.status)
+    ) {
+      merged.mapping[id] = existing;
+    } else {
+      merged.mapping[id] = {
+        ...message,
+        clientKey: merged.mapping[id].clientKey,
+      };
+    }
+  }
+  return merged;
 }

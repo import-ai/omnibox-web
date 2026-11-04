@@ -16,7 +16,6 @@ import {
   ChatCreatePayload,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
-import { resumeStreamCursor } from '@/page/chat/conversation/chatStreamRecovery';
 import { mergeHistoryPage } from '@/page/chat/conversation/conversationHistory';
 import Scrollbar from '@/page/chat/conversation/Scrollbar';
 import useChatStreamRecovery from '@/page/chat/conversation/useChatStreamRecovery';
@@ -72,10 +71,17 @@ export default function SharedChatConversationPage() {
   });
   const conversationRef = useRef(conversation);
   conversationRef.current = conversation;
-  const messageOperator = useMemo(
-    () => createMessageOperator(conversation, setConversation),
-    [conversation, setConversation]
-  );
+  const recoveryResetRef = useRef<(() => void) | null>(null);
+  const messageOperator = useMemo(() => {
+    const operator = createMessageOperator(conversation, setConversation);
+    return {
+      ...operator,
+      activate: (id: string) => {
+        recoveryResetRef.current?.();
+        operator.activate(id);
+      },
+    };
+  }, [conversation, setConversation]);
 
   const messages = useMemo((): MessageDetail[] => {
     const result: MessageDetail[] = [];
@@ -93,6 +99,7 @@ export default function SharedChatConversationPage() {
 
   const recovery = useChatStreamRecovery({
     conversationId,
+    scopeKey: shareId,
     conversationRef,
     setConversation,
     messageOperator,
@@ -100,9 +107,11 @@ export default function SharedChatConversationPage() {
     detachStreamRef,
     // The share endpoint always returns the whole conversation; the branch
     // params are accepted here for parity with the private conversation API.
+    onUnavailable: () => setConversation({ id: conversationId, mapping: {} }),
     loadSnapshot: query =>
       http.get(`/shares/${shareId}/conversations/${conversationId}`, {
         params: query,
+        mute: true,
       }),
     createResumeStream: (lastEventId, onOpen) =>
       resumeStream(
@@ -113,8 +122,8 @@ export default function SharedChatConversationPage() {
         onOpen
       ),
   });
-  const trackStream = recovery.track;
-  const untrackStream = recovery.untrack;
+  recoveryResetRef.current = recovery.reset;
+  const recover = recovery.recover;
 
   const sendMessage = async ({
     query,
@@ -321,10 +330,12 @@ export default function SharedChatConversationPage() {
       : null;
     setInitialApprovalMode(chatCreatePayload?.approvalMode);
     setSuppressInitialToolRestore(Boolean(chatCreatePayload));
+    let destroyed = false;
     const loadConversation = () =>
       http
         .get(`/shares/${shareId}/conversations/${conversationId}`)
         .then((response: ConversationDetail) => {
+          if (destroyed) return response;
           setConversation(previous =>
             previous.id === response.id
               ? mergeHistoryPage(previous, response)
@@ -334,49 +345,36 @@ export default function SharedChatConversationPage() {
         });
 
     if (!chatCreatePayload) {
-      let destroyed = false;
-      let resumeFN: ReturnType<typeof resumeStream> | undefined;
       void loadConversation().then(conversation => {
         if (destroyed) return;
-        resumeFN = resumeStream(
-          conversationId,
-          messageOperator,
-          `/api/v1/shares/${shareId}/wizard/stream/resume`,
-          resumeStreamCursor(conversation)
-        );
-        if (resumeFN) trackStream(resumeFN);
-        askAbortRef.current = resumeFN.cancel;
-        detachStreamRef.current = resumeFN.destroy;
-        void resumeFN.start().finally(() => {
-          if (resumeFN) untrackStream(resumeFN);
-          if (askAbortRef.current === resumeFN?.cancel) {
-            askAbortRef.current = null;
-          }
-          void loadConversation();
-        });
+        void recover({ initialConversation: conversation });
       });
       return () => {
         destroyed = true;
-        resumeFN?.destroy();
-        if (resumeFN) untrackStream(resumeFN);
+        detachStreamRef.current?.();
       };
     }
     sessionStorage.removeItem(SHARED_CHAT_CREATE_PAYLOAD_KEY);
     void sendMessage(chatCreatePayload);
-  }, [shareId, conversationId, trackStream, untrackStream]);
+  }, [shareId, conversationId, recover]);
 
   const onStop = async () => {
     const cancel = askAbortRef.current;
     askAbortRef.current = null;
-    recovery.stop();
-    await stopStream({
-      cancel,
-      cancelUrl: `/shares/${shareId}/wizard/stream/cancel`,
-      conversationId,
-      messageId: messages.at(-1)?.id,
-      messageOperator,
-      setLoading,
-    }).catch(() => toast.error(t('chat.stop_failed')));
+    try {
+      await stopStream({
+        cancel,
+        cancelUrl: `/shares/${shareId}/wizard/stream/cancel`,
+        conversationId,
+        messageId: messages.at(-1)?.id,
+        messageOperator,
+        setLoading,
+      });
+      recovery.stop();
+    } catch {
+      toast.error(t('chat.stop_failed'));
+      void recovery.recover({ force: true });
+    }
   };
 
   const mergedLoading =

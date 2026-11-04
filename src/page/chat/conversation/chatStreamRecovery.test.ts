@@ -9,6 +9,7 @@ import type {
 
 import {
   adoptAcceptedRequest,
+  findAcceptedRequest,
   getBranchEventId,
   hasUnfinishedTurn,
   interruptionPlan,
@@ -239,6 +240,7 @@ describe('chat stream recovery state', () => {
       }
     );
     local.message.content = 'hello';
+    local.created_at = '2026-11-04T02:00:00Z';
     const accepted = message(
       'server-1',
       OpenAIMessageRole.USER,
@@ -248,6 +250,7 @@ describe('chat stream recovery state', () => {
       }
     );
     accepted.message.content = 'hello';
+    accepted.created_at = '2026-11-04T02:00:01Z';
     const adopted = adoptAcceptedRequest(
       conversation(
         { parent, 'request-1': local, 'server-1': accepted },
@@ -307,5 +310,53 @@ describe('chat stream recovery state', () => {
       false
     );
     expect(isReplyComplete(conversation({}, ''))).toBe(true);
+  });
+  it('does not reuse a previous turn cursor after the server resets its sequence', () => {
+    const previous = message(
+      'old-answer',
+      OpenAIMessageRole.ASSISTANT,
+      MessageStatus.SUCCESS,
+      { attrs: { stream_event_id: '1-900' } }
+    );
+    const pending = message(
+      'new-request',
+      OpenAIMessageRole.USER,
+      MessageStatus.PENDING,
+      { parent_id: previous.id, attrs: { client_request_id: 'new-request' } }
+    );
+    const state = conversation(
+      { [previous.id]: previous, [pending.id]: pending },
+      pending.id
+    );
+    expect(resumeStreamCursor(state)).toBeUndefined();
+  });
+  it('does not adopt an older identical sibling as proof of request delivery', () => {
+    const local = message(
+      'request',
+      OpenAIMessageRole.USER,
+      MessageStatus.PENDING,
+      {
+        parent_id: 'parent',
+        created_at: '2026-11-04T02:00:00Z',
+        attrs: { client_request_id: 'request' },
+        message: { role: OpenAIMessageRole.USER, content: 'hello' },
+      }
+    );
+    const older = message(
+      'older',
+      OpenAIMessageRole.USER,
+      MessageStatus.SUCCESS,
+      {
+        parent_id: 'parent',
+        created_at: '2026-11-04T01:00:00Z',
+        message: { role: OpenAIMessageRole.USER, content: 'hello' },
+      }
+    );
+    expect(
+      findAcceptedRequest(
+        conversation({ request: local, older }, local.id),
+        local
+      )
+    ).toBeUndefined();
   });
 });
