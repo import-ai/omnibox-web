@@ -39,6 +39,10 @@ jest.mock('@/components/omnibox/Dialog', () => {
   };
 });
 jest.mock('@/components/ui/Separator', () => ({ Separator: () => null }));
+jest.mock('@/page/settings/tabs/contact', () => ({
+  __esModule: true,
+  default: () => <output>Contact content</output>,
+}));
 jest.mock('@/page/settings/SettingsToastProvider', () => ({
   SettingsToastProvider: ({ children }: { children: ReactNode }) => children,
 }));
@@ -46,6 +50,7 @@ jest.mock('@/page/settings/SettingsSidebar', () => ({
   SettingsSidebar: ({ onChange }: { onChange: (tab: string) => void }) => (
     <>
       <button onClick={() => onChange('profile')}>Profile</button>
+      <button onClick={() => onChange('contact')}>Contact</button>
       <button onClick={() => onChange('applications')}>Applications</button>
     </>
   ),
@@ -153,5 +158,19 @@ describe('settings binding page lifecycle', () => {
 
     await click('Applications');
     expect(container.querySelector('output')?.dataset.active).toBe('true');
+  });
+  it('opens contact from the event and allows switching back to contact in the same dialog', async () => {
+    await act(async () => openSettings({ tab: 'contact' }));
+    expect(container.textContent).toContain('Contact content');
+    const profile = [...container.querySelectorAll('button')].find(
+      button => button.textContent === 'Profile'
+    )!;
+    await act(async () => profile.click());
+    expect(container.textContent).not.toContain('Contact content');
+    const contact = [...container.querySelectorAll('button')].find(
+      button => button.textContent === 'Contact'
+    )!;
+    await act(async () => contact.click());
+    expect(container.textContent).toContain('Contact content');
   });
 });
