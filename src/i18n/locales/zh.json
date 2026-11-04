@@ -545,6 +545,16 @@
     "bind_failed": "手机绑定失败"
   },
   "setting": {
+    "contact": {
+      "title": "联系我们",
+      "description": "加入小黑社群，交流使用心得、反馈问题与建议",
+      "wechat_title": "微信群",
+      "wechat_description": "微信扫码加入社群，交流小黑的使用心得",
+      "wechat_qr_alt": "小黑微信社群二维码",
+      "discord_title": "Discord",
+      "discord_description": "加入 Discord 社区参与交流",
+      "join_discord": "加入 Discord"
+    },
     "option_descriptions": {
       "username": "设置在空间中显示的名称",
       "password": "设置或更新用于登录账户的密码",
@@ -1403,6 +1413,8 @@
     }
   },
   "footer": {
+    "contact": "联系我们",
+    "download_app": "下载 APP",
     "docs": "帮助文档",
     "discord": "Discord",
     "wechat": "二维码",

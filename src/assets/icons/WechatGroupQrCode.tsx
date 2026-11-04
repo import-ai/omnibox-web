@@ -1,5 +1,9 @@
 import wechatGroupUrl from '@/assets/wechatGroup.png';
 
-export function WechatGroupQrCode() {
-  return <img src={wechatGroupUrl} alt="WeChat Group QR Code" />;
+export function WechatGroupQrCode({
+  alt = 'WeChat Group QR Code',
+}: {
+  alt?: string;
+}) {
+  return <img src={wechatGroupUrl} alt={alt} />;
 }
