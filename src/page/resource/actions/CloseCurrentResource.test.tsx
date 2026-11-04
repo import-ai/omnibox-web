@@ -5,6 +5,10 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import {
+  beginChatSubmissionPreparation,
+  useChatSubmissionStore,
+} from '@/page/chat/chat-input/chatSubmissionStore';
+import {
   getCopilotWorkspace,
   useCopilotStore,
 } from '@/page/copilot/copilotStore';
@@ -40,6 +44,7 @@ describe('CloseCurrentResource', () => {
 
   beforeEach(() => {
     localStorage.clear();
+    useChatSubmissionStore.setState({ pending: {} });
     sessionStorage.clear();
     useCopilotStore.setState({
       workspaces: {},
@@ -84,5 +89,27 @@ describe('CloseCurrentResource', () => {
       previewResourceId: 'Abcd1234Efgh5678',
       view: 'conversation',
     });
+  });
+  it('blocks the legacy close action during preparation and unlocks on failure cleanup', async () => {
+    useCopilotStore
+      .getState()
+      .showConversation('namespace-a', 'conversation-a');
+    const finish = beginChatSubmissionPreparation(
+      'namespace-a',
+      'conversation-a'
+    )!;
+    await act(async () =>
+      root.render(<CloseCurrentResource namespaceId="namespace-a" />)
+    );
+    const button = container.querySelector('button')!;
+    expect(button.disabled).toBe(true);
+    act(() => button.click());
+    expect(mockNavigate).not.toHaveBeenCalled();
+    act(() => finish());
+    expect(button.disabled).toBe(false);
+    act(() => button.click());
+    expect(mockNavigate).toHaveBeenCalledWith(
+      '/namespace-a/chat/conversation-a'
+    );
   });
 });

@@ -8,6 +8,7 @@ import { TextDecoder, TextEncoder } from 'util';
 
 import { PendingDecisionNotRejected } from '@/page/chat/conversation/pendingDecisionSend';
 
+import { clearChatInputDraft } from './chatInputDraft';
 import type ChatAreaComponent from './index';
 import type { IResTypeContext } from './types';
 
@@ -118,6 +119,7 @@ describe('ChatArea draft restore with the real composer', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
+    clearChatInputDraft('/namespace-restore');
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -245,5 +247,44 @@ describe('ChatArea draft restore with the real composer', () => {
     });
 
     expect(textarea().value).toBe(before);
+  });
+  it('retains selected images when text is emptied and the real composer remounts', async () => {
+    require('@/page/chat/chatStore').useChatStore.getState().clearContext();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: jest.fn(() => 'blob:retained-image'),
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      value: jest.fn(),
+    });
+    const sendMessage = jest.fn();
+    await act(async () => root.render(<Page sendMessage={sendMessage} />));
+    await type('temporary text');
+    await act(async () =>
+      mockDropSpec.drop(
+        { files: [new File(['image'], 'keep.png', { type: 'image/png' })] },
+        { getItemType: () => 'file' }
+      )
+    );
+    await act(async () => {
+      const element = textarea();
+      Object.getOwnPropertyDescriptor(
+        HTMLTextAreaElement.prototype,
+        'value'
+      )!.set!.call(element, '');
+      element.setSelectionRange(0, 0);
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    expect(textarea().value).toBe('');
+    expect(container.querySelector('img[alt="keep.png"]')).not.toBeNull();
+    await act(async () => root.render(null));
+    await act(async () => root.render(<Page sendMessage={sendMessage} />));
+    expect(textarea().value).toBe('');
+    expect(container.querySelector('img[alt="keep.png"]')).not.toBeNull();
+    await act(async () => root.render(null));
+    clearChatInputDraft('/namespace-restore');
+    await act(async () => root.render(<Page sendMessage={sendMessage} />));
+    expect(container.querySelector('img[alt="keep.png"]')).toBeNull();
   });
 });

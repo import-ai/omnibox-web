@@ -42,6 +42,9 @@ jest.mock('@/components/resourcePicker', () => ({
 
 jest.mock('@/components/ui/DropdownMenu', () => ({
   DropdownMenuSeparator: () => null,
+  DropdownMenuItem: ({ children }: { children: ReactNode }) => (
+    <button>{children}</button>
+  ),
 }));
 
 jest.mock('react-i18next', () => ({
@@ -266,3 +269,54 @@ describe('ChooseResourceTree', () => {
     consoleError.mockRestore();
   });
 });
+
+it.each([true, false])(
+  'shows combined scope only when a Team root exists (Team=%s)',
+  async hasTeam => {
+    fetchSortedWorkspaceRootResources.mockResolvedValue({
+      private: {
+        id: 'private',
+        name: 'Personal',
+        resource_type: 'folder',
+        children: [],
+      },
+      ...(hasTeam
+        ? {
+            teamspace: {
+              id: 'team',
+              name: 'Team',
+              resource_type: 'folder',
+              children: [],
+            },
+          }
+        : {}),
+    });
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    try {
+      await act(async () =>
+        root.render(
+          <ChooseResourceTree
+            includePersonalAndTeam
+            namespaceId="ns"
+            resourceId="private"
+            onChange={jest.fn()}
+          />
+        )
+      );
+      expect(
+        mockResourcePickerProps.roots.some(
+          root => root.id === 'personal_and_team'
+        )
+      ).toBe(hasTeam);
+      if (hasTeam)
+        expect(mockResourcePickerProps.roots[0]).toMatchObject({
+          id: 'personal_and_team',
+          resource_type: 'folder',
+          has_children: false,
+        });
+    } finally {
+      await act(async () => root.unmount());
+    }
+  }
+);

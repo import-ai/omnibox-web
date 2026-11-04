@@ -9,6 +9,7 @@ import { http } from '@/lib/request';
 
 import useApplications from './useApplications';
 
+jest.mock('@/const', () => ({ BIND_CHECK_INTERVAL: 3000 }));
 jest.mock('@/lib/request', () => ({
   http: {
     delete: jest.fn(),
@@ -125,7 +126,7 @@ describe('useApplications', () => {
     expect(current.applications).toEqual([refreshed]);
   });
 
-  it('can remove an application without showing the list loading state', async () => {
+  it('replaces a removed binding with an unbound row without showing loading', async () => {
     const existing = application({ attrs: { key: 'pending-code' } });
     const refresh = deferred<Application[]>();
     const get = http.get as jest.Mock;
@@ -142,7 +143,7 @@ describe('useApplications', () => {
       '/namespaces/namespace-1/applications/application-1',
       { mute: true }
     );
-    expect(current.applications).toEqual([]);
+    expect(current.applications).toEqual([{ app_id: existing.app_id }]);
     expect(current.loading).toBe(false);
 
     await act(async () => {

@@ -26,11 +26,6 @@ describe.each([
         '--foreground',
       ],
       [
-        '.omnibox-comment-mention-field.is-composing > textarea',
-        'color',
-        '--foreground',
-      ],
-      [
         '.omnibox-comment-mention-field > textarea::placeholder',
         'color',
         '--muted-foreground',

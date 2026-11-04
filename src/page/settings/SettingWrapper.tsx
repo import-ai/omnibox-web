@@ -27,6 +27,7 @@ import ProfileForm from './tabs/profile';
 import { RemainQuota } from './tabs/quota';
 
 interface SettingWrapperProps {
+  open: boolean;
   initialTab?: string;
   autoAction?:
     | {
@@ -40,6 +41,7 @@ interface SettingWrapperProps {
 }
 
 export default function SettingWrapper({
+  open,
   initialTab,
   autoAction,
   onClose,
@@ -132,6 +134,7 @@ export default function SettingWrapper({
       value: 'applications',
       children: (
         <ApplicationsForm
+          active={open}
           autoAction={autoAction?.type === 'bind' ? autoAction : undefined}
         />
       ),

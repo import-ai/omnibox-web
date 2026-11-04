@@ -19,7 +19,6 @@ import {
 } from '@/components/omnibox/Dialog';
 import { IconButton } from '@/components/omnibox/IconButton';
 import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
-import { ResourceSelect } from '@/components/resourceSelect';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Alert, AlertDescription } from '@/components/ui/Alert';
 import {
@@ -48,12 +47,14 @@ import {
 import { getRelatedTime } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
+import { fetchRootResources } from '@/service/resource';
 
 import {
   APIKeyPermissionScope,
   type APIKeyPermissionScopeData,
   fetchAPIKeyPermissionScopes,
 } from './APIKeyPermissionScope';
+import { APIKeyScopeSelect } from './APIKeyScopeSelect';
 
 function APIKeyInfoRow({
   label,
@@ -108,6 +109,7 @@ type APIKeyPermissionState = Record<
 >;
 
 interface APIKeyFormData {
+  resource_scope?: 'resource' | 'personal_and_team';
   note: string;
   root_resource_id: string;
   permissions: APIKeyPermissionState;
@@ -217,6 +219,33 @@ export function APIKeyForm() {
   const [formData, setFormData] = useState<APIKeyFormData>(() =>
     createEmptyFormData()
   );
+  const [personalRootId, setPersonalRootId] = useState('');
+  useEffect(() => {
+    setCreateDialogOpen(false);
+    setUpdateDialogOpen(false);
+    setEditingKey(null);
+    setFormData(createEmptyFormData());
+  }, [namespaceId]);
+  useEffect(() => {
+    const controller = new AbortController();
+    setPersonalRootId('');
+    fetchRootResources(namespaceId, { signal: controller.signal })
+      .then(roots => {
+        if (!controller.signal.aborted)
+          setPersonalRootId(roots.private?.id ?? '');
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [namespaceId]);
+  useEffect(() => {
+    if (createDialogOpen && personalRootId) {
+      setFormData(prev =>
+        prev.root_resource_id
+          ? prev
+          : { ...prev, root_resource_id: personalRootId }
+      );
+    }
+  }, [createDialogOpen, personalRootId]);
   const [permissionScopes, setPermissionScopes] = useState<
     Record<string, APIKeyPermissionScopeData>
   >({});
@@ -275,6 +304,7 @@ export function APIKeyForm() {
       const attrs: APIKeyAttrs = {
         note: formData.note.trim(),
         root_resource_id: formData.root_resource_id,
+        resource_scope: formData.resource_scope ?? 'resource',
         permissions,
       };
 
@@ -324,6 +354,7 @@ export function APIKeyForm() {
       const attrs: APIKeyAttrs = {
         note: formData.note.trim(),
         root_resource_id: formData.root_resource_id,
+        resource_scope: formData.resource_scope ?? 'resource',
         permissions,
       };
 
@@ -359,6 +390,7 @@ export function APIKeyForm() {
     setFormData({
       note: key.attrs.note ?? '',
       root_resource_id: key.attrs.root_resource_id,
+      resource_scope: key.attrs.resource_scope,
       permissions: createPermissionState(key.attrs.permissions),
     });
     setUpdateDialogOpen(true);
@@ -529,19 +561,13 @@ export function APIKeyForm() {
                     content={t('api_key.permission_scope_tooltip')}
                   />
                 </div>
-                <ResourceSelect
-                  enableManagedFolders
+                <APIKeyScopeSelect
                   namespaceId={namespaceId}
-                  resourceId={formData.root_resource_id}
+                  value={formData}
                   loading={creating}
-                  className="w-full"
-                  onChange={resourceId =>
-                    setFormData(prev => ({
-                      ...prev,
-                      root_resource_id: resourceId,
-                    }))
+                  onChange={selection =>
+                    setFormData(prev => ({ ...prev, ...selection }))
                   }
-                  placeholder={t('api_key.root_resource_id_placeholder')}
                 />
               </div>
 
@@ -597,19 +623,13 @@ export function APIKeyForm() {
                     content={t('api_key.permission_scope_tooltip')}
                   />
                 </div>
-                <ResourceSelect
-                  enableManagedFolders
+                <APIKeyScopeSelect
                   namespaceId={namespaceId}
-                  resourceId={formData.root_resource_id}
+                  value={formData}
                   loading={updating}
-                  className="w-full"
-                  onChange={resourceId =>
-                    setFormData(prev => ({
-                      ...prev,
-                      root_resource_id: resourceId,
-                    }))
+                  onChange={selection =>
+                    setFormData(prev => ({ ...prev, ...selection }))
                   }
-                  placeholder={t('api_key.root_resource_id_placeholder')}
                 />
               </div>
 
@@ -767,6 +787,7 @@ export function APIKeyForm() {
                 <APIKeyPermissionScope
                   namespaceId={namespaceId}
                   resourceId={key.attrs.root_resource_id}
+                  combined={key.attrs.resource_scope === 'personal_and_team'}
                   scope={permissionScopes[key.attrs.root_resource_id]}
                 />
               </APIKeyInfoRow>
