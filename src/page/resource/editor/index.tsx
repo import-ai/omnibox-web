@@ -6,7 +6,7 @@ import {
   OmniboxEditor,
   type OmniboxEditorCommentSelection,
   type TiptapJsonContent,
-  type UploadFunction,
+  tiptapJsonToMarkdown,
 } from '@import-ai/omnibox-editor';
 import React, {
   useCallback,
@@ -22,22 +22,28 @@ import { toast } from 'sonner';
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import useTheme from '@/hooks/useTheme';
 import type { Resource } from '@/interface';
-import { http } from '@/lib/request';
 import {
-  clearCache,
+  clearCacheTitle,
   getCache,
-  updateCacheContent,
   updateCacheTitle,
 } from '@/page/resource/editor/cache';
 import {
   OMNIBOX_EDITOR_CONTENT_WIDTH,
   OMNIBOX_EDITOR_WIDE_CONTENT_WIDTH,
 } from '@/page/resource/editor/const';
+import { isDocumentChanged } from '@/page/resource/editor/contentComparison';
 import {
   type EditorUpdatePayload,
   serializeResourceEditorContent,
 } from '@/page/resource/editor/contentSerialization';
+import { updateResourceEditorDraft } from '@/page/resource/editor/draftCache';
+import {
+  buildEditBaseline,
+  type EditBaseline,
+} from '@/page/resource/editor/editBaseline';
 import { normalizeResourceEditorContent } from '@/page/resource/editor/normalizeResourceEditorContent';
+import { useResourceEditorSave } from '@/page/resource/editor/useResourceEditorSave';
+import { useResourceImageUpload } from '@/page/resource/editor/useResourceImageUpload';
 import { MentionHoverCard } from '@/page/resource/MentionHoverCard';
 import { resolveMentionLabels } from '@/page/resource/mentionLabels';
 import { useMentionUsers } from '@/page/resource/useMentionUsers';
@@ -61,18 +67,6 @@ interface IEditorProps {
   wide: boolean;
 }
 
-interface UploadedFile {
-  name: string;
-  link: string;
-}
-
-interface UploadResponse {
-  namespace_id: string;
-  resource_id: string;
-  uploaded: UploadedFile[];
-  failed: string[];
-}
-
 type BodyEditorFocus = OmniboxEditorCommentSelection['editor'];
 
 type ResourceOmniboxEditorProps = Omit<
@@ -90,15 +84,6 @@ type ResourceOmniboxEditorProps = Omit<
 const ResourceOmniboxEditor =
   OmniboxEditor as React.ComponentType<ResourceOmniboxEditorProps>;
 
-function saveResourceEditorCache(
-  resourceId: string,
-  title: string,
-  content: string
-) {
-  updateCacheTitle(resourceId, title);
-  updateCacheContent(resourceId, content);
-}
-
 export default function Editor(props: IEditorProps) {
   const {
     resource,
@@ -110,7 +95,6 @@ export default function Editor(props: IEditorProps) {
     onContentDirtyChange,
   } = props;
   const { i18n, t } = useTranslation();
-  const markdownRef = useRef('');
   const { registerImagePreview, imagePreviewProps } = useResourceImagePreview(
     `edit:${namespaceId}:${resource.id}`
   );
@@ -137,10 +121,13 @@ export default function Editor(props: IEditorProps) {
     [resource.mention_display_names, comments.mentionDisplayNames, activeNames]
   );
   const cache = useMemo(() => getCache(resource.id), [resource.id]);
-  const dirtyRef = useRef(Boolean(cache?.title || cache?.content));
-  const applyingMentionLabelsRef = useRef(false);
-  const hasCachedContentChange =
-    cache?.content !== undefined && cache.content !== (resource.content ?? '');
+  const baselineRef = useRef<EditBaseline | null>(null);
+  const baselineResourceIdRef = useRef(resource.id);
+  if (baselineResourceIdRef.current !== resource.id) {
+    baselineResourceIdRef.current = resource.id;
+    baselineRef.current = null;
+    bodyEditorRef.current = null;
+  }
   const cachedTitle = cache?.title ?? resource.name ?? '';
   const isFolder = resource.resource_type === 'folder';
   const linkBase = useMemo(
@@ -158,24 +145,16 @@ export default function Editor(props: IEditorProps) {
     id: string;
     names: Record<string, string>;
   } | null>(null);
-  // True after mention labels are written into the live doc. The open
-  // snapshot is older, and a later render must not put it back into the save.
-  const liveMentionLabelsRef = useRef(false);
   if (!ready) {
     openedNamesRef.current = null;
-    liveMentionLabelsRef.current = false;
   } else if (openedNamesRef.current?.id !== resource.id) {
     openedNamesRef.current = { id: resource.id, names: namesById };
-    liveMentionLabelsRef.current = false;
   }
   const resolvedContent = useMemo(
     () =>
       resolveMentionLabels(initialContent, openedNamesRef.current?.names ?? {}),
     [initialContent, ready, resource.id]
   );
-  if (ready && !dirtyRef.current && !liveMentionLabelsRef.current) {
-    markdownRef.current = resolvedContent;
-  }
   const editorContent = useMemo(
     () =>
       isFolder || !ready
@@ -189,26 +168,36 @@ export default function Editor(props: IEditorProps) {
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newTitle = normalizeTitleInput(e.target.value);
-    dirtyRef.current = true;
     onTitle(newTitle);
-    updateCacheTitle(resource.id, newTitle);
+    const baseline = baselineRef.current;
+    if (baseline && newTitle.trim() === baseline.originalName) {
+      clearCacheTitle(resource.id);
+    } else {
+      updateCacheTitle(resource.id, newTitle);
+    }
   };
 
   const handleEditorUpdate = useCallback(
     (payload: EditorUpdatePayload) => {
       const content = serializeResourceEditorContent(payload);
-      if (applyingMentionLabelsRef.current) {
-        markdownRef.current = content;
+      const baseline = baselineRef.current;
+      if (!baseline || !payload.json) {
         return;
       }
-      if (content !== markdownRef.current) {
-        dirtyRef.current = true;
-        onContentDirtyChange(content !== (resource.content ?? ''));
-        updateCacheContent(resource.id, content);
-      }
-      markdownRef.current = content;
+      const bodyChanged = isDocumentChanged(
+        baseline.comparableDocument,
+        payload.json
+      );
+      onContentDirtyChange(bodyChanged);
+      updateResourceEditorDraft({
+        resourceId: resource.id,
+        title,
+        baselineTitle: baseline.originalName,
+        content,
+        bodyChanged,
+      });
     },
-    [onContentDirtyChange, resource.content, resource.id]
+    [onContentDirtyChange, resource.id, title]
   );
 
   const handleEditorReady = useCallback(
@@ -216,8 +205,45 @@ export default function Editor(props: IEditorProps) {
       bodyEditorRef.current = editor;
       registerEditor(editor);
       registerImagePreview(editor);
+
+      if (baselineRef.current?.resourceId === resource.id) {
+        return;
+      }
+      const baseline = buildEditBaseline({
+        resourceId: resource.id,
+        name: resource.name ?? '',
+        content: resource.content ?? '',
+        linkBase,
+        document: cache?.content === undefined ? editor.getJSON() : undefined,
+      });
+      baselineRef.current = baseline;
+
+      const currentDocument = editor.getJSON();
+      const content = tiptapJsonToMarkdown(currentDocument);
+      const bodyChanged = isDocumentChanged(
+        baseline.comparableDocument,
+        currentDocument
+      );
+      onContentDirtyChange(bodyChanged);
+      updateResourceEditorDraft({
+        resourceId: resource.id,
+        title: cachedTitle,
+        baselineTitle: baseline.originalName,
+        content,
+        bodyChanged,
+      });
     },
-    [registerEditor, registerImagePreview]
+    [
+      cache?.content,
+      cachedTitle,
+      linkBase,
+      onContentDirtyChange,
+      registerEditor,
+      registerImagePreview,
+      resource.content,
+      resource.id,
+      resource.name,
+    ]
   );
 
   useEffect(() => {
@@ -242,11 +268,8 @@ export default function Editor(props: IEditorProps) {
     if (!changed) {
       return;
     }
-    liveMentionLabelsRef.current = true;
-    applyingMentionLabelsRef.current = true;
     tr.setMeta('addToHistory', false);
     editor.view.dispatch(tr);
-    applyingMentionLabelsRef.current = false;
   }, [namesById, ready]);
 
   const handleTitleEnter = useCallback(() => {
@@ -268,60 +291,15 @@ export default function Editor(props: IEditorProps) {
     });
   }, [t]);
 
-  const uploadImage = useCallback<UploadFunction>(
-    async (file, onProgress, abortSignal) => {
-      const token = localStorage.getItem('token') || '';
-      const formData = new FormData();
-      formData.append('file[]', file);
-
-      const response = await fetch(
-        `/api/v1/namespaces/${namespaceId}/resources/${resource.id}/attachments`,
-        {
-          method: 'POST',
-          headers: {
-            'X-Client-Platform': 'web',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: formData,
-          signal: abortSignal,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const data = (await response.json()) as UploadResponse;
-      const uploaded = data.uploaded[0];
-      if (!uploaded) {
-        throw new Error(data.failed[0] || 'Upload failed');
-      }
-
-      onProgress?.({ progress: 100 });
-      return `${linkBase}/attachments/${uploaded.link}`;
-    },
-    [linkBase, namespaceId, resource.id]
-  );
+  const uploadImage = useResourceImageUpload({
+    linkBase,
+    namespaceId,
+    resourceId: resource.id,
+  });
 
   useEffect(() => {
     onTitle(cachedTitle);
-    if (ready && !dirtyRef.current && !liveMentionLabelsRef.current) {
-      markdownRef.current = resolvedContent;
-    }
-    onContentDirtyChange(hasCachedContentChange);
-  }, [
-    cachedTitle,
-    hasCachedContentChange,
-    onContentDirtyChange,
-    ready,
-    resolvedContent,
-  ]);
-
-  useEffect(() => {
-    return () => {
-      bodyEditorRef.current = null;
-    };
-  }, [resource.id]);
+  }, [cachedTitle]);
 
   const handleNavigateToTitle = useCallback(() => {
     const ta = titleRef.current?.textArea;
@@ -331,66 +309,20 @@ export default function Editor(props: IEditorProps) {
     }
   }, []);
 
-  useEffect(() => {
-    return app.on('save', (onSuccess?: () => void) => {
-      const name = title.trim();
-      const content = markdownRef.current;
-      if (!content && !name) {
-        navigate(`/${namespaceId}/${resource.id}`, {
-          state: loc.state,
-        });
-        return;
-      }
-      const anchorSync = resource.content_hash ? getAnchorSync() : null;
-      http
-        .patch(`/namespaces/${namespaceId}/resources/${resource.id}`, {
-          name,
-          content,
-          namespaceId: namespaceId,
-          ...(anchorSync && resource.content_hash
-            ? {
-                expected_content_hash: resource.content_hash,
-                ...anchorSync,
-              }
-            : {}),
-        })
-        .then((delta: Resource) => {
-          app.fire('update_resource', delta);
-          onResource(delta);
-          dirtyRef.current = false;
-          onContentDirtyChange(false);
-          clearCache(resource.id);
-          navigate(`/${namespaceId}/${resource.id}`, {
-            state: loc.state,
-          });
-          onSuccess && onSuccess();
-        });
-    });
-  }, [
+  useResourceEditorSave({
     app,
+    baselineRef,
+    bodyEditorRef,
+    contentHash: resource.content_hash,
     getAnchorSync,
-    loc.state,
+    locationState: loc.state,
     namespaceId,
     navigate,
-    onResource,
     onContentDirtyChange,
-    resource.content_hash,
-    resource.id,
+    onResource,
+    resourceId: resource.id,
     title,
-  ]);
-
-  useEffect(() => {
-    const keydownFN = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        saveResourceEditorCache(resource.id, title, markdownRef.current);
-      }
-    };
-    document.addEventListener('keydown', keydownFN);
-    return () => {
-      document.removeEventListener('keydown', keydownFN);
-    };
-  }, [resource.id, title]);
+  });
 
   return (
     <div
