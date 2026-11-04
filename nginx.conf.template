@@ -152,7 +152,11 @@ server {
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        # Preserve the client-facing scheme reported by the gateway. The hop
+        # into this container is plain HTTP even when the user is on HTTPS,
+        # and the backend uses this header to decide whether the session
+        # cookie may be Secure.
+        proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
 
         proxy_set_header REMOTE-HOST $remote_addr;
         proxy_set_header Upgrade $http_upgrade;
