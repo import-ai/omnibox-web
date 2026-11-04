@@ -98,6 +98,23 @@ it('preserves existing ordinary-page invalid-token navigation', async () => {
   expect(window.location.href).toBe('/user/login');
 });
 
+it('lets the caller handle an auth error on a public page', async () => {
+  Object.assign(window.location, {
+    pathname: '/s/share-1',
+    href: 'https://test.omnibox.pro/s/share-1',
+  });
+
+  await rejectRequest('/auth/session', 401, 'INVALID_TOKEN', {
+    mute: true,
+    skipAuthRedirect: true,
+  });
+  jest.runAllTimers();
+
+  expect(window.location.href).toBe('https://test.omnibox.pro/s/share-1');
+  expect(removeGlobalCredential).not.toHaveBeenCalled();
+  expect(toast.error).not.toHaveBeenCalled();
+});
+
 describe('muteWhen', () => {
   beforeEach(() => {
     Object.assign(window.location, {
