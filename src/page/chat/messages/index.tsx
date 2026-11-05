@@ -362,6 +362,12 @@ export function Messages(props: IProps) {
                 code: message.attrs?.error_code,
                 status: message.attrs?.error_status,
               }}
+              conversationId={conversation.id}
+              messageId={message.id}
+              requestId={message.attrs?.client_request_id}
+              parentMessageId={message.parent_id}
+              channel={chatOnly ? 'web_share' : 'web'}
+              clientState="failed_message"
             />
             {message.message.role === OpenAIMessageRole.USER &&
               (message.attrs?.pending_query ||

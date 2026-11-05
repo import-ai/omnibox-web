@@ -51,8 +51,20 @@ jobs:
       - name: Run lint
         run: pnpm run lint
 
+      - name: Test assistant binding synchronization
+        run: pnpm exec jest src/hooks/useApplications.test.ts src/hooks/useApplicationSessions.test.ts src/page/settings/tabs/applications src/page/settings/SettingsBindingLifecycle.test.tsx --runInBand
+
       - name: Test docs appearance synchronization
         run: pnpm exec jest src/lib/docsAppearance.test.ts src/layout/index.test.tsx src/layout/authStorage.test.ts --runInBand
+
+      - name: Test anonymous captcha entry
+        run: pnpm exec jest src/page/captcha/CaptchaPage.test.tsx src/hooks/useCaptcha.test.tsx src/lib/captcha.test.ts --runInBand
+
+      - name: Test chat error telemetry
+        run: pnpm exec jest src/lib/chatErrorTracking.test.ts src/lib/traceOutbox.test.ts src/lib/sendTrackEvent.retry.test.ts src/lib/sendTrackEvent.chat.test.ts src/lib/request.traceScope.test.ts src/components/omnibox/ChatErrorText.test.tsx src/page/chat/messages/MessageFailureFeedback.test.tsx --runInBand
+
+      - name: Test chat stream recovery
+        run: pnpm exec jest src/lib/chatErrors.test.ts src/lib/streamTransport.test.ts src/page/chat/conversation src/page/chat/core src/page/shared-chat --runInBand
 
       - name: Test invite referral tracking
         run: pnpm exec jest src/page/inviteReferral/InviteReferralEntryExposure.test.tsx src/page/inviteReferral/tracking.test.ts src/lib/sendTrackEvent.test.ts --runInBand

@@ -2,6 +2,8 @@ export const chatErrorNames = [
   'unknown',
   'request_failed',
   'connection_interrupted',
+  'stream_interrupted',
+  'stream_send_failed',
   'response_unreadable',
   'timeout',
   'unauthorized',
@@ -29,6 +31,9 @@ export const chatErrorNames = [
   'execution_changed',
   'execution_unavailable',
   'share_unavailable',
+  'content_review',
+  'output_content_review',
+  'upstream_error',
 ] as const;
 export type ChatErrorName = (typeof chatErrorNames)[number];
 export type ChatErrorKey = `chat.errors.${ChatErrorName}`;
@@ -79,6 +84,11 @@ export function chatErrorDetails(error: unknown): ChatErrorDetails {
 
 // Explicit backend codes take precedence over lossy or previously translated text.
 const codes: Record<string, ChatErrorName> = {
+  not_authorized: 'unauthorized',
+  invalid_client_request_id: 'invalid_request',
+  invalid_query: 'invalid_request',
+  chat_not_allowed: 'share_unavailable',
+  message_id_not_set: 'service_unavailable',
   conversation_busy: 'busy',
   pending_interrupt: 'pending_decision',
   decision_not_applied: 'decision_not_applied',
@@ -125,10 +135,27 @@ const codes: Record<string, ChatErrorName> = {
   share_chat_not_allowed: 'share_unavailable',
   stream_connection_failed: 'connection_interrupted',
   stream_read_failed: 'connection_interrupted',
+  stream_interrupted: 'stream_interrupted',
+  stream_not_found: 'stream_interrupted',
+  stream_send_failed: 'stream_send_failed',
   err_network: 'connection_interrupted',
   econnreset: 'connection_interrupted',
   econnaborted: 'timeout',
   etimedout: 'timeout',
+  content_review_rejected: 'content_review',
+  output_content_review_rejected: 'output_content_review',
+  upstream_bad_request: 'upstream_error',
+  upstream_unauthorized: 'upstream_error',
+  upstream_forbidden: 'upstream_error',
+  upstream_not_found: 'upstream_error',
+  upstream_conflict: 'upstream_error',
+  upstream_unprocessable: 'upstream_error',
+  upstream_rate_limited: 'upstream_error',
+  upstream_server_error: 'upstream_error',
+  upstream_timeout: 'upstream_error',
+  upstream_connection_failed: 'upstream_error',
+  upstream_api_error: 'upstream_error',
+  internal_error: 'upstream_error',
 };
 
 // Only exact, source-backed legacy aliases are recognized. Unknown text is never shown.
@@ -207,6 +234,16 @@ export const chatErrorAliases: Record<string, ChatErrorName> = {
   'Response body is not readable': 'response_unreadable',
   'Unknown error': 'unknown',
   'Inappropriate content': 'service_unavailable',
+  '本次请求未通过模型服务的安全审核，请修改相关内容后重试，或新建对话。':
+    'content_review',
+  "This request did not pass the model service's safety review. Edit the relevant content and try again, or start a new conversation.":
+    'content_review',
+  '生成的回复未通过模型服务的安全审核，请新建对话或修改后重试。':
+    'output_content_review',
+  "The generated reply did not pass the model service's safety review. Start a new conversation or edit the relevant content and try again.":
+    'output_content_review',
+  '网络错误，请稍后重试。': 'upstream_error',
+  'Network error. Please try again later.': 'upstream_error',
   'Namespace not found': 'namespace_not_found',
   'Workspace not found': 'namespace_not_found',
   'Private root resource not found': 'private_root_unavailable',
@@ -289,4 +326,21 @@ export function chatErrorKey(
 export function isChatCancellation(error: unknown): boolean {
   const value = objectOf(error);
   return value.__CANCEL__ === true || value.name === 'AbortError';
+}
+
+// Connection loss is recoverable: the server keeps the turn alive and the
+// client can resume it. Server-side failures and 4xx answers are not.
+const transientCodes = new Set([
+  'stream_connection_failed',
+  'stream_read_failed',
+  'err_network',
+  'econnreset',
+  'etimedout',
+]);
+
+export function isTransientChatError(error: unknown): boolean {
+  if (isChatCancellation(error)) return false;
+  const { code, status } = chatErrorDetails(error);
+  if (code && transientCodes.has(code.toLowerCase())) return true;
+  return status === 408 || status === 502 || status === 503 || status === 504;
 }

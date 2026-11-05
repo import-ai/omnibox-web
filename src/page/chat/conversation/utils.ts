@@ -2,7 +2,12 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { FORCE_PRIVATE_SEARCH } from '@/const';
 import { ResourceMeta } from '@/interface.ts';
-import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
+import {
+  chatErrorDetails,
+  isChatCancellation,
+  isTransientChatError,
+} from '@/lib/chatErrors';
+import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
 import { createStreamTransport } from '@/lib/streamTransport';
 import { WizardLang } from '@/lib/wizardLang';
@@ -29,10 +34,7 @@ import {
   isTerminalMessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
-import {
-  ConversationDetail,
-  MessageDetail,
-} from '@/page/chat/core/types/conversation';
+import { MessageDetail } from '@/page/chat/core/types/conversation';
 import { cacheMessageDisplayParts } from '@/page/chat/messages/messageDisplayPartsCache';
 
 function getPrivateSearchResources(
@@ -213,6 +215,9 @@ export interface AskOutcome {
   requestId?: string;
   // The server ID that local message got once accepted.
   acceptedMessageId?: string;
+  // The stream broke while the turn itself may still be running. The caller
+  // should reconcile with the server and resume instead of showing a failure.
+  transientError?: boolean;
 }
 
 export interface AskOptions {
@@ -309,6 +314,7 @@ export function ask(
   let acceptedId = pendingId ? undefined : parent_message_id;
   let assistantId: string | undefined;
   let streamError = false;
+  const errorStage = tool_call?.decisions?.length ? 'decision' : 'stream';
   const outcome: AskOutcome = { failed: false, requestId: pendingId };
 
   const transport = createStreamTransport(
@@ -379,6 +385,16 @@ export function ask(
         streamError = true;
         outcome.failed = true;
         outcome.errorMessage = chatResponse.message;
+        reportChatError(chatResponse, {
+          conversationId,
+          requestId: pendingId,
+          messageId: chatResponse.id || acceptedId || assistantId,
+          parentMessageId: parent_message_id,
+          channel,
+          stage: errorStage,
+          shareId,
+          clientState: acceptedId ? 'streaming' : 'sending',
+        });
         if (!chatResponse.id && !acceptedId) {
           chatResponse.id = pendingId;
           data = JSON.stringify(chatResponse);
@@ -415,11 +431,23 @@ export function ask(
     start: async () => {
       try {
         await transport.start();
+        if (
+          !transport.isDetached?.() &&
+          !streamError &&
+          !['done', 'stopped'].includes(transport.getLastResponseType?.() ?? '')
+        ) {
+          outcome.failed = true;
+          outcome.transientError = true;
+        }
       } catch (error) {
         if (isChatCancellation(error)) return;
         outcome.failed = true;
         outcome.errorMessage ??=
           error instanceof Error ? error.message : String(error);
+        if (isTransientChatError(error)) {
+          outcome.transientError = true;
+          return;
+        }
         if (!streamError) {
           let id = pendingId;
           if (acceptedId) {
@@ -433,6 +461,16 @@ export function ask(
                 created_at: new Date().toISOString(),
               });
           }
+          reportChatError(error, {
+            conversationId,
+            requestId: pendingId,
+            messageId: id,
+            parentMessageId: parent_message_id,
+            channel,
+            stage: tool_call?.decisions?.length ? 'decision' : 'transport',
+            shareId,
+            clientState: acceptedId ? 'streaming' : 'sending',
+          });
           messageOperator.error(
             {
               response_type: 'error',
@@ -451,27 +489,64 @@ export function resumeStream(
   conversationId: string,
   messageOperator: MessageOperator,
   url: string,
-  lastEventId?: string
+  lastEventId?: string,
+  context: {
+    channel?: string;
+    shareId?: string;
+    requestId?: string;
+  } = {},
+  onOpen?: () => void
 ) {
-  return createStreamTransport(
+  const requestId = context.requestId || uuidv4();
+  const transport = createStreamTransport(
     url,
     {
       conversation_id: conversationId,
       last_event_id: lastEventId,
+      client_request_id: requestId,
     },
-    async data => messageProcessor(messageOperator, data),
-    streamCancelUrl(url)
+    async data => {
+      const chatResponse = parseChatResponse(data);
+      if (chatResponse.response_type === 'error') {
+        reportChatError(chatResponse, {
+          conversationId,
+          requestId,
+          messageId: chatResponse.id,
+          channel: context.channel || 'web',
+          stage: 'resume',
+          shareId: context.shareId,
+          clientState: 'resuming',
+        });
+      }
+      messageProcessor(messageOperator, data);
+    },
+    streamCancelUrl(url),
+    onOpen
   );
+  return {
+    ...transport,
+    start: async () => {
+      try {
+        await transport.start();
+      } catch (error) {
+        if (!isChatCancellation(error)) {
+          reportChatError(error, {
+            conversationId,
+            requestId,
+            channel: context.channel || 'web',
+            stage: 'resume',
+            shareId: context.shareId,
+            clientState: 'resuming',
+          });
+        }
+        throw error;
+      }
+    },
+  };
 }
 
 function streamCancelUrl(url: string) {
   return url.replace(/\/(?:ask|write|stream\/resume)$/, '/stream/cancel');
-}
-
-export function getStreamEventId(conversation: ConversationDetail) {
-  return Object.values(conversation.mapping).find(
-    message => !isTerminalMessageStatus(message.status)
-  )?.attrs?.stream_event_id;
 }
 
 export async function stopStream({

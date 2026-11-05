@@ -26,11 +26,13 @@ import {
   ask,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
+  stopStream,
 } from './utils';
 
 const mockGet = jest.fn();
 const mockFire = jest.fn();
 const mockResumeStart = jest.fn();
+const mockResumeDestroy = jest.fn();
 
 jest.mock('@/hooks/useApp', () => ({
   __esModule: true,
@@ -43,6 +45,7 @@ jest.mock('@/const', () => ({ FORCE_ASK: false }));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
+    t: (key: string) => key,
     i18n: { language: 'zh', t: (key: string) => key },
   }),
 }));
@@ -86,13 +89,29 @@ jest.mock('@/page/chat/conversation/utils.ts', () => ({
   beginPendingQuery: jest.fn(() => 'pending-query'),
   extractOriginalMessageSettings: jest.fn(),
   findFirstMessageWithMissingParent: jest.fn(() => undefined),
-  getStreamEventId: jest.fn(),
   isTerminalMessageStatus: () => true,
-  resumeStream: () => ({
-    cancel: jest.fn(),
-    destroy: jest.fn(),
-    start: mockResumeStart,
-  }),
+  resumeStream: (
+    _conversationId: string,
+    _operator: unknown,
+    _url: string,
+    _cursor: string | undefined,
+    context: { channel?: string },
+    onOpen?: () => void
+  ) => {
+    if (typeof context === 'function')
+      throw new Error('Recovery callback passed as telemetry context');
+    return {
+      cancel: jest.fn(),
+      destroy: mockResumeDestroy,
+      getLastEventId: () => undefined,
+      getLastResponseType: () => 'done',
+      isDetached: () => false,
+      start: async () => {
+        onOpen?.();
+        return mockResumeStart();
+      },
+    };
+  },
   stopStream: jest.fn(),
 }));
 
@@ -157,6 +176,7 @@ describe('useContext conversation cache failures', () => {
       .mockImplementation(() => undefined);
     mockGet.mockReset();
     mockFire.mockReset();
+    mockResumeDestroy.mockClear();
     mockResumeStart.mockReset();
     mockResumeStart.mockResolvedValue(undefined);
     container = document.createElement('div');
@@ -168,6 +188,65 @@ describe('useContext conversation cache failures', () => {
     await act(async () => root.unmount());
     container.remove();
     clearConversationCache();
+  });
+
+  it('recovers a bootstrap transport failure without an unhandled rejection', async () => {
+    const complete = cachedConversation();
+    complete.mapping['message-a'].status =
+      'success' as (typeof complete.mapping)['message-a']['status'];
+    complete.mapping['message-a'].message.role =
+      'assistant' as (typeof complete.mapping)['message-a']['message']['role'];
+    mockGet
+      .mockResolvedValueOnce(cachedConversation())
+      .mockResolvedValue(complete);
+    mockResumeStart.mockRejectedValueOnce({ code: 'STREAM_READ_FAILED' });
+    await act(async () => {
+      root.render(<ConversationProbe onContent={() => undefined} />);
+    });
+    expect(mockGet).toHaveBeenCalledWith(
+      '/namespaces/namespace-a/conversations/conversation-a/messages',
+      { params: { branch_node_id: 'message-a' }, mute: true }
+    );
+    expect(mockResumeStart).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the reader attached until cancellation succeeds and recovers after cancellation fails', async () => {
+    const resumed = deferred<void>();
+    const cancellation = deferred<void>();
+    const complete = cachedConversation();
+    complete.mapping['message-a'].message.role =
+      'assistant' as (typeof complete.mapping)['message-a']['message']['role'];
+    complete.mapping['message-a'].status =
+      'success' as (typeof complete.mapping)['message-a']['status'];
+    mockGet
+      .mockResolvedValueOnce(cachedConversation())
+      .mockResolvedValue(complete);
+    mockResumeStart.mockReturnValueOnce(resumed.promise);
+    jest.mocked(stopStream).mockReturnValueOnce(cancellation.promise);
+    let context!: ReturnType<typeof useContext>;
+    function Probe() {
+      context = useContext();
+      return null;
+    }
+    await act(async () => {
+      root.render(<Probe />);
+    });
+    let stopping!: Promise<void>;
+    await act(async () => {
+      stopping = context.onStop();
+    });
+    expect(mockResumeDestroy).not.toHaveBeenCalled();
+    await act(async () => {
+      cancellation.reject(new Error('offline'));
+      await stopping;
+      resumed.resolve();
+      await resumed.promise;
+    });
+    expect(mockResumeDestroy).toHaveBeenCalledTimes(1);
+    expect(mockGet).toHaveBeenCalledWith(
+      '/namespaces/namespace-a/conversations/conversation-a/messages',
+      { params: { branch_node_id: 'message-a' }, mute: true }
+    );
   });
 
   it('blocks composer while history is unresolved and enables a hydrated empty conversation', async () => {
@@ -217,6 +296,9 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn().mockResolvedValue(undefined),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
+      getLastResponseType: () => undefined,
+      isDetached: () => false,
       start: jest.fn().mockResolvedValue(undefined),
     });
     let context!: ReturnType<typeof useContext>;
@@ -274,6 +356,9 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false, lastMessageId },
       cancel: jest.fn().mockResolvedValue(undefined),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
+      getLastResponseType: () => undefined,
+      isDetached: () => false,
       start: jest.fn().mockResolvedValue(undefined),
     });
     jest
@@ -348,6 +433,9 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false, ...outcome },
       cancel: jest.fn().mockResolvedValue(undefined),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
+      getLastResponseType: () => undefined,
+      isDetached: () => false,
       start,
     };
   }
@@ -989,6 +1077,9 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn(),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
+      getLastResponseType: () => undefined,
+      isDetached: () => false,
       start: jest.fn().mockResolvedValue(undefined),
     });
     let context!: ReturnType<typeof useContext>;
@@ -1016,7 +1107,8 @@ describe('useContext conversation cache failures', () => {
       'namespace-a',
       'conversation-a',
       images,
-      false
+      false,
+      expect.objectContaining({ requestId: 'pending-query' })
     );
     expect(jest.mocked(ask).mock.calls.at(-1)?.[18]).toBe('pending-query');
     expect(jest.mocked(ask).mock.calls.at(-1)?.[17]?.[0].attachment_id).toBe(
@@ -1041,6 +1133,9 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn(),
       destroy,
+      getLastEventId: () => undefined,
+      getLastResponseType: () => undefined,
+      isDetached: () => false,
       start: () => started,
     });
     mockGet.mockResolvedValue({ id: 'conversation-a', mapping: {}, total: 0 });
@@ -1194,6 +1289,9 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn(),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
+      getLastResponseType: () => undefined,
+      isDetached: () => false,
       start: jest.fn().mockRejectedValue(new Error('offline')),
     });
     let context!: ReturnType<typeof useContext>;
@@ -1246,6 +1344,9 @@ describe('useContext conversation cache failures', () => {
       outcome: { failed: false },
       cancel: jest.fn(),
       destroy: jest.fn(),
+      getLastEventId: () => undefined,
+      getLastResponseType: () => undefined,
+      isDetached: () => false,
       start: jest.fn().mockResolvedValue(undefined),
     });
     let context!: ReturnType<typeof useContext>;

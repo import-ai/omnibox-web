@@ -700,7 +700,8 @@
     "unbind": {
       "button": "Unbind",
       "success": "Assistant unbound successfully",
-      "wechat_success": "Unbound successfully",
+      "state_changed": "Binding status has changed. Please check it before trying again.",
+      "remote_success": "Unbound successfully",
       "error": "Failed to unbind assistant",
       "confirm": {
         "title": "Unbind Assistant",
@@ -851,6 +852,10 @@
     "stopping": "Stopping",
     "tool_stopped": "Stopped",
     "stop_failed": "Could not stop. Please try again.",
+    "stream": {
+      "recovering": "Reconnecting…",
+      "offline": "You are offline. The reply will resume when the connection returns."
+    },
     "delivery": {
       "sending": "Sending",
       "send_failed": "Failed to send",
@@ -1128,6 +1133,8 @@
       "unknown": "Something went wrong. The result could not be confirmed.",
       "request_failed": "The chat request failed. The result could not be confirmed.",
       "connection_interrupted": "Connection interrupted. Check your network and try again.",
+      "stream_interrupted": "The reply was interrupted. Please generate again.",
+      "stream_send_failed": "The message was not delivered. Please try again.",
       "response_unreadable": "Could not receive the response. Check the task result before retrying.",
       "timeout": "The request timed out. Check the task result before retrying.",
       "unauthorized": "Your session has expired. Please sign in again.",
@@ -1136,6 +1143,9 @@
       "invalid_request": "The request could not be processed. Check your input and try again.",
       "rate_limited": "Too many requests. Please try again later.",
       "service_unavailable": "The service encountered an error. Check the task result before retrying.",
+      "content_review": "This request did not pass the model service's safety review. Edit the relevant content and try again, or start a new conversation.",
+      "output_content_review": "The generated reply did not pass the model service's safety review. Start a new conversation or edit the relevant content and try again.",
+      "upstream_error": "Network error. Please try again later.",
       "busy": "This conversation is still generating a reply. Please wait.",
       "pending_decision": "Please decide the pending tool action first.",
       "decision_not_applied": "The tool decision has not been applied. Check the conversation status.",
@@ -1784,7 +1794,7 @@
     "cwd": "Working directory",
     "timeout": "Timeout",
     "timeout_value": "{{count}}s",
-    "created_at": "Started",
+    "created_at": "Requested",
     "finished_at": "Finished",
     "exit_code": "Exit code",
     "approve": "Approve",
@@ -1795,6 +1805,7 @@
     "show_output": "Show output",
     "hide_output": "Hide output",
     "no_output": "No output",
+    "offline_reason": "The device went offline, signed out or turned off local execution before the command started. The command did not run.",
     "artifacts": "Artifacts",
     "approvals": "Approvals",
     "decision": {
@@ -1813,7 +1824,8 @@
       "denied": "Denied",
       "canceled": "Canceled",
       "timed_out": "Timed out",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "offline": "Device unavailable"
     }
   },
   "login_link": {

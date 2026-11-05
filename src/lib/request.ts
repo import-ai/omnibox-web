@@ -14,6 +14,7 @@ import { detectBrowserLanguage } from '@/lib/detectLanguage';
 import { removeGlobalCredential } from '@/page/user/util';
 
 export interface RequestConfig extends AxiosRequestConfig {
+  traceScopeValid?: () => boolean;
   // Whether to show error messages, default is true
   mute?: boolean;
   // Leave the response handling to the caller. Used by background session
@@ -58,6 +59,9 @@ request.interceptors.request.use(
     config.headers['From'] = 'web';
     if (!config.headers['Content-Type']) {
       config.headers['Content-Type'] = 'application/json';
+    }
+    if ((config as RequestConfig).traceScopeValid?.() === false) {
+      throw new axios.CanceledError('Trace scope changed');
     }
     return config;
   },

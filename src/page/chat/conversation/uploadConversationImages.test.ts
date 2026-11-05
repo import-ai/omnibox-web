@@ -1,6 +1,9 @@
 import { toast } from 'sonner';
 
 jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
+jest.mock('@/lib/chatErrorTracking', () => ({
+  reportChatError: jest.fn(),
+}));
 jest.mock('i18next', () => ({
   __esModule: true,
   default: { t: (key: string) => key },

@@ -25,7 +25,7 @@ import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import { OpenAIMessageRole } from '@/page/chat/core/types/chatResponse';
 import { getCachedMessageDisplayParts } from '@/page/chat/messages/messageDisplayPartsCache';
 
-import { ask, prepareBody } from './utils';
+import { ask, prepareBody, resumeStream } from './utils';
 
 const sessionValues = new Map<string, string>();
 const sessionStorageMock: Storage = {
@@ -524,4 +524,89 @@ describe('stopStream acknowledgement', () => {
     ).rejects.toThrow('offline');
     expect(operator.stop).not.toHaveBeenCalled();
   });
+});
+
+describe('ask transport completion', () => {
+  it.each([
+    ['done', false],
+    [undefined, true],
+  ])(
+    'distinguishes terminal %s from a clean truncated response',
+    async (terminal, interrupted) => {
+      (createStreamTransport as jest.Mock).mockReturnValue({
+        start: async () => undefined,
+        getLastResponseType: () => terminal,
+        isDetached: () => false,
+      });
+      const operator = {
+        add: jest.fn(),
+        update: jest.fn(),
+        error: jest.fn(),
+      } as unknown as MessageOperator;
+      const stream = ask(
+        'c1',
+        'hello',
+        [],
+        [],
+        AgentRequestChannel.WEB,
+        undefined,
+        operator,
+        '/ask',
+        undefined,
+        'n1',
+        undefined,
+        undefined
+      );
+      await stream.start();
+      expect(Boolean(stream.outcome.transientError)).toBe(interrupted);
+      expect(operator.error).not.toHaveBeenCalled();
+    }
+  );
+
+  it('does not restart an intentionally detached reader after a page takes ownership', async () => {
+    (createStreamTransport as jest.Mock).mockReturnValue({
+      start: async () => undefined,
+      getLastResponseType: () => undefined,
+      isDetached: () => true,
+    });
+    const operator = {
+      add: jest.fn(),
+      update: jest.fn(),
+      error: jest.fn(),
+    } as unknown as MessageOperator;
+    const stream = ask(
+      'c1',
+      'hello',
+      [],
+      [],
+      AgentRequestChannel.WEB,
+      undefined,
+      operator,
+      '/ask',
+      undefined,
+      'n1',
+      undefined,
+      undefined
+    );
+    await stream.start();
+    expect(stream.outcome.transientError).toBeUndefined();
+  });
+});
+
+test('forwards the recovery onOpen callback after telemetry context', () => {
+  const onOpen = jest.fn();
+  (createStreamTransport as jest.Mock).mockReturnValue({
+    start: async () => {},
+  });
+  resumeStream(
+    'c',
+    {} as MessageOperator,
+    '/resume',
+    'cursor',
+    { channel: 'web' },
+    onOpen
+  );
+  expect((createStreamTransport as jest.Mock).mock.calls.at(-1)?.[4]).toBe(
+    onOpen
+  );
 });

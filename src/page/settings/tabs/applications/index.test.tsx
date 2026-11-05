@@ -17,8 +17,10 @@ jest.mock('react-i18next', () => ({
   }),
 }));
 
+let mockNamespaceId = 'namespace-1';
+
 jest.mock('react-router-dom', () => ({
-  useParams: () => ({ namespace_id: 'namespace-1' }),
+  useParams: () => ({ namespace_id: mockNamespaceId }),
 }));
 
 jest.mock('@/components/Button', () => ({
@@ -124,6 +126,7 @@ describe('ApplicationsForm auto binding', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNamespaceId = 'namespace-1';
     mockedIsQrCodeExpired.mockReturnValue(false);
     container = document.createElement('div');
     root = createRoot(container);
@@ -163,7 +166,7 @@ describe('ApplicationsForm auto binding', () => {
 
     expect(mockedBeginQrCodeBind).toHaveBeenCalledWith(
       target,
-      bindApplication,
+      expect.any(Function),
       unbindApplication
     );
     expect(
@@ -448,5 +451,105 @@ describe('ApplicationsForm auto binding', () => {
       'applications.bind.error',
       'error'
     );
+  });
+  it.each(['inactive', 'namespace'])(
+    'ignores a late QR creation result after the form becomes %s',
+    async change => {
+      mockApplications([application()]);
+      const binding = deferred<Awaited<ReturnType<typeof beginQrCodeBind>>>();
+      mockedBeginQrCodeBind.mockReturnValue(binding.promise);
+      const autoAction = { type: 'bind' as const, appId: 'wechat_oa_bot' };
+      await act(async () =>
+        root.render(<ApplicationsForm autoAction={autoAction} />)
+      );
+      mockShowToast.mockClear();
+      if (change === 'namespace') mockNamespaceId = 'namespace-2';
+      await act(async () =>
+        root.render(<ApplicationsForm active={change !== 'inactive'} />)
+      );
+      await act(async () => {
+        binding.resolve({
+          status: 'ready',
+          qrcodeContent: 'obsolete-code',
+          application: application(),
+          resumed: false,
+        });
+        await binding.promise;
+      });
+      expect(
+        container.querySelector('[data-testid="qr-code-dialog"]')
+      ).toBeNull();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(['wechat_clawbot', 'qq_bot', 'telegram_bot'])(
+    'ignores late %s creation after leaving and reopening the assistants tab',
+    async appId => {
+      mockApplications([application({ app_id: appId, id: '' })]);
+      const binding = deferred<Application>();
+      bindApplication.mockReturnValue(binding.promise);
+      await act(async () =>
+        root.render(<ApplicationsForm autoAction={{ type: 'bind', appId }} />)
+      );
+      await act(async () => root.render(<ApplicationsForm active={false} />));
+      await act(async () => root.render(<ApplicationsForm />));
+      mockShowToast.mockClear();
+      await act(async () => {
+        binding.resolve(
+          application({
+            app_id: appId,
+            attrs: { key: 'obsolete-code', qrcode_content: 'obsolete-qr' },
+          })
+        );
+        await binding.promise;
+      });
+      expect(
+        container.querySelector('[data-testid="qr-code-dialog"]')
+      ).toBeNull();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    }
+  );
+  it('does not recreate an expired QR binding when its dialog closes during cancellation', async () => {
+    const target = application({
+      attrs: {
+        qrcode_content: 'expired-code',
+        qrcode_expires_at: '2020-01-01T00:00:00Z',
+      },
+    });
+    mockApplications([target]);
+    mockedIsQrCodeExpired.mockReturnValue(true);
+    const actual =
+      jest.requireActual<typeof import('./beginQrCodeBind')>(
+        './beginQrCodeBind'
+      );
+    mockedBeginQrCodeBind.mockImplementationOnce(actual.beginQrCodeBind);
+    const cancellation = deferred<void>();
+    unbindApplication.mockReturnValueOnce(cancellation.promise);
+    await act(async () =>
+      root.render(
+        <ApplicationsForm
+          autoAction={{ type: 'bind', appId: 'wechat_oa_bot' }}
+        />
+      )
+    );
+    expect(unbindApplication).toHaveBeenCalledWith(target.id, {
+      showLoading: false,
+    });
+    await act(async () =>
+      container
+        .querySelector<HTMLButtonElement>('[aria-label="close-qr-dialog"]')
+        ?.click()
+    );
+    mockShowToast.mockClear();
+    await act(async () => {
+      cancellation.resolve();
+      await cancellation.promise;
+    });
+    expect(bindApplication).not.toHaveBeenCalled();
+    expect(
+      container.querySelector('[data-testid="qr-code-dialog"]')
+    ).toBeNull();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 });
