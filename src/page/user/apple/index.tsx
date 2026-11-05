@@ -10,6 +10,8 @@ import { getLangOnly } from '@/lib/lang';
 import { http } from '@/lib/request';
 import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 
+import { useAgreementConsent } from '../AgreementConsent';
+
 declare global {
   interface Window {
     AppleID: {
@@ -44,6 +46,7 @@ interface IProps {
 export default function Apple(props: IProps) {
   const { mode = 'login', iconOnly = false } = props;
   const { t, i18n } = useTranslation();
+  const { runWithConsent } = useAgreementConsent();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect');
   const [sdkLoaded, setSdkLoaded] = useState(false);
@@ -196,7 +199,7 @@ export default function Apple(props: IProps) {
   const button = (
     <Button
       variant="outline"
-      onClick={loginWithApple}
+      onClick={() => runWithConsent(() => void loginWithApple())}
       disabled={!sdkLoaded || loading}
       aria-label={iconOnly ? label : undefined}
       className={

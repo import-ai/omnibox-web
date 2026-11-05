@@ -34,6 +34,7 @@ import { withInviteCode } from '@/page/inviteReferral/authInviteParams';
 import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 import { InviteCodeEntry } from '@/page/inviteReferral/InviteCodeEntry';
 
+import { useAgreementConsent } from '../AgreementConsent';
 import { isSupportedEmail } from './emailDomains';
 import { EmailSuggestionInput } from './EmailSuggestionInput';
 import type { AuthMethod, ContactMethod } from './index';
@@ -82,6 +83,7 @@ export function LoginForm({
   ...props
 }: IProps) {
   const { t } = useTranslation();
+  const { runWithConsent } = useAgreementConsent();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
@@ -436,7 +438,12 @@ export function LoginForm({
       {contactMethod === 'email' && authMethod === 'otp' && (
         <Form {...emailForm} key="email-form">
           <form
-            onSubmit={emailForm.handleSubmit(onEmailSubmit)}
+            onSubmit={event => {
+              event.preventDefault();
+              runWithConsent(() => {
+                void emailForm.handleSubmit(onEmailSubmit)();
+              });
+            }}
             className={cn('flex flex-col gap-4', className)}
             {...props}
           >
@@ -486,7 +493,12 @@ export function LoginForm({
       {contactMethod === 'email' && authMethod === 'password' && (
         <Form {...emailPasswordForm} key="email-password-form">
           <form
-            onSubmit={emailPasswordForm.handleSubmit(onEmailPasswordSubmit)}
+            onSubmit={event => {
+              event.preventDefault();
+              runWithConsent(() => {
+                void emailPasswordForm.handleSubmit(onEmailPasswordSubmit)();
+              });
+            }}
             className={cn('flex flex-col gap-4', className)}
             {...props}
           >
@@ -556,7 +568,12 @@ export function LoginForm({
       {contactMethod === 'phone' && authMethod === 'otp' && (
         <Form {...phoneForm} key="phone-form">
           <form
-            onSubmit={phoneForm.handleSubmit(onPhoneSubmit)}
+            onSubmit={event => {
+              event.preventDefault();
+              runWithConsent(() => {
+                void phoneForm.handleSubmit(onPhoneSubmit)();
+              });
+            }}
             className={cn('flex flex-col gap-4', className)}
             {...props}
           >
@@ -597,7 +614,12 @@ export function LoginForm({
       {contactMethod === 'phone' && authMethod === 'password' && (
         <Form {...phonePasswordForm} key="phone-password-form">
           <form
-            onSubmit={phonePasswordForm.handleSubmit(onPhonePasswordSubmit)}
+            onSubmit={event => {
+              event.preventDefault();
+              runWithConsent(() => {
+                void phonePasswordForm.handleSubmit(onPhonePasswordSubmit)();
+              });
+            }}
             className={cn('flex flex-col gap-4', className)}
             {...props}
           >

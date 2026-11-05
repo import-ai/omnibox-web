@@ -60,6 +60,9 @@ jobs:
       - name: Test anonymous captcha entry
         run: pnpm exec jest src/page/captcha/CaptchaPage.test.tsx src/hooks/useCaptcha.test.tsx src/lib/captcha.test.ts --runInBand
 
+      - name: Test auth agreement consent
+        run: pnpm exec jest src/page/user --runInBand
+
       - name: Test chat stream recovery
         run: pnpm exec jest src/lib/chatErrors.test.ts src/lib/streamTransport.test.ts src/page/chat/conversation src/page/chat/core src/page/shared-chat --runInBand
 

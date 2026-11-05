@@ -437,6 +437,15 @@
     "apple_signin_failed": "Apple sign in failed",
     "apple_sdk_not_loaded": "Apple SDK not loaded",
     "or_continue": "Or continue with",
+    "agreement": {
+      "checkbox_label": "I have read and agree to the <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
+      "confirm": {
+        "title": "Terms of Service and Privacy Policy",
+        "description": "Before continuing, please read and agree to OmniBox’s <terms>Terms of Service</terms> and <privacy>Privacy Policy</privacy>.",
+        "button": "Agree and continue"
+      },
+      "decline": "Disagree"
+    },
     "agree_our_rule": "By clicking continue, you agree to our",
     "service": "Terms of Service",
     "and": "and",

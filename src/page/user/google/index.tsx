@@ -7,6 +7,8 @@ import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { http } from '@/lib/request';
 
+import { useAgreementConsent } from '../AgreementConsent';
+
 interface IProps {
   mode?: 'login' | 'register';
   iconOnly?: boolean;
@@ -15,6 +17,7 @@ interface IProps {
 export default function Google(props: IProps) {
   const { mode = 'login', iconOnly = false } = props;
   const { t } = useTranslation();
+  const { runWithConsent } = useAgreementConsent();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
   const label = t(
@@ -39,7 +42,7 @@ export default function Google(props: IProps) {
   const button = (
     <Button
       variant="outline"
-      onClick={loginWithGoogle}
+      onClick={() => runWithConsent(loginWithGoogle)}
       aria-label={iconOnly ? label : undefined}
       className={
         iconOnly

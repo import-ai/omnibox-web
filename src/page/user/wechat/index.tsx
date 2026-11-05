@@ -8,6 +8,7 @@ import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { http } from '@/lib/request';
 
+import { useAgreementConsent } from '../AgreementConsent';
 import { prepareH5WechatOAuthState } from './h5WechatAuthSync';
 import {
   isExternalMobileBrowser,
@@ -23,6 +24,7 @@ interface IProps {
 export default function WeChat(props: IProps) {
   const { onScan, mode = 'login', iconOnly = false } = props;
   const { t } = useTranslation();
+  const { runWithConsent } = useAgreementConsent();
   const [params] = useSearchParams();
   const redirect = params.get('redirect');
   const isWeChat = navigator.userAgent.toLowerCase().includes('micromessenger');
@@ -88,7 +90,15 @@ export default function WeChat(props: IProps) {
   const button = (
     <Button
       variant="outline"
-      onClick={useMiniProgramLaunch ? handleMiniProgramLaunch : loginWithWeChat}
+      onClick={() =>
+        runWithConsent(() => {
+          if (useMiniProgramLaunch) {
+            void handleMiniProgramLaunch();
+          } else {
+            loginWithWeChat();
+          }
+        })
+      }
       disabled={useMiniProgramLaunch && launching}
       aria-label={iconOnly ? label : undefined}
       className={
