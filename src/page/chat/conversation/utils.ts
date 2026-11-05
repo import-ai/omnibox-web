@@ -7,6 +7,7 @@ import {
   isChatCancellation,
   isTransientChatError,
 } from '@/lib/chatErrors';
+import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
 import { createStreamTransport } from '@/lib/streamTransport';
 import { WizardLang } from '@/lib/wizardLang';
@@ -313,6 +314,7 @@ export function ask(
   let acceptedId = pendingId ? undefined : parent_message_id;
   let assistantId: string | undefined;
   let streamError = false;
+  const errorStage = tool_call?.decisions?.length ? 'decision' : 'stream';
   const outcome: AskOutcome = { failed: false, requestId: pendingId };
 
   const transport = createStreamTransport(
@@ -383,6 +385,16 @@ export function ask(
         streamError = true;
         outcome.failed = true;
         outcome.errorMessage = chatResponse.message;
+        reportChatError(chatResponse, {
+          conversationId,
+          requestId: pendingId,
+          messageId: chatResponse.id || acceptedId || assistantId,
+          parentMessageId: parent_message_id,
+          channel,
+          stage: errorStage,
+          shareId,
+          clientState: acceptedId ? 'streaming' : 'sending',
+        });
         if (!chatResponse.id && !acceptedId) {
           chatResponse.id = pendingId;
           data = JSON.stringify(chatResponse);
@@ -449,6 +461,16 @@ export function ask(
                 created_at: new Date().toISOString(),
               });
           }
+          reportChatError(error, {
+            conversationId,
+            requestId: pendingId,
+            messageId: id,
+            parentMessageId: parent_message_id,
+            channel,
+            stage: tool_call?.decisions?.length ? 'decision' : 'transport',
+            shareId,
+            clientState: acceptedId ? 'streaming' : 'sending',
+          });
           messageOperator.error(
             {
               response_type: 'error',
@@ -468,18 +490,59 @@ export function resumeStream(
   messageOperator: MessageOperator,
   url: string,
   lastEventId?: string,
+  context: {
+    channel?: string;
+    shareId?: string;
+    requestId?: string;
+  } = {},
   onOpen?: () => void
 ) {
-  return createStreamTransport(
+  const requestId = context.requestId || uuidv4();
+  const transport = createStreamTransport(
     url,
     {
       conversation_id: conversationId,
       last_event_id: lastEventId,
+      client_request_id: requestId,
     },
-    async data => messageProcessor(messageOperator, data),
+    async data => {
+      const chatResponse = parseChatResponse(data);
+      if (chatResponse.response_type === 'error') {
+        reportChatError(chatResponse, {
+          conversationId,
+          requestId,
+          messageId: chatResponse.id,
+          channel: context.channel || 'web',
+          stage: 'resume',
+          shareId: context.shareId,
+          clientState: 'resuming',
+        });
+      }
+      messageProcessor(messageOperator, data);
+    },
     streamCancelUrl(url),
     onOpen
   );
+  return {
+    ...transport,
+    start: async () => {
+      try {
+        await transport.start();
+      } catch (error) {
+        if (!isChatCancellation(error)) {
+          reportChatError(error, {
+            conversationId,
+            requestId,
+            channel: context.channel || 'web',
+            stage: 'resume',
+            shareId: context.shareId,
+            clientState: 'resuming',
+          });
+        }
+        throw error;
+      }
+    },
+  };
 }
 
 function streamCancelUrl(url: string) {
