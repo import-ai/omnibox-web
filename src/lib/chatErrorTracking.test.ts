@@ -1,4 +1,4 @@
-import { track } from '@/lib/sendTrackEvent';
+import { getChatErrorScope, track } from '@/lib/sendTrackEvent';
 
 import {
   chatErrorDedupeKey,
@@ -9,6 +9,7 @@ import {
 
 jest.mock('@/lib/sendTrackEvent', () => ({
   track: jest.fn(() => Promise.resolve()),
+  getChatErrorScope: jest.fn(() => 'api:user-a'),
 }));
 
 const mockedTrack = jest.mocked(track);
@@ -194,4 +195,31 @@ test('does not report empty red text', () => {
   });
 
   expect(mockedTrack).not.toHaveBeenCalled();
+});
+
+test.each([
+  ['stream_interrupted', 'network'],
+  ['stream_send_failed', 'network'],
+  ['content_review_rejected', 'request'],
+  ['output_content_review_rejected', 'request'],
+  ['upstream_timeout', 'service'],
+  ['upstream_connection_failed', 'service'],
+  ['upstream_rate_limited', 'service'],
+  ['internal_error', 'service'],
+])('groups existing error code %s as %s', (code, group) => {
+  expect(chatErrorGroup({ code })).toBe(group);
+});
+
+test('visible red copy is independently reported after account or API scope changes', () => {
+  const context = {
+    conversationId: 'shared',
+    messageId: 'same',
+    stage: 'display' as const,
+  };
+  for (const scope of ['api:user-a', 'api:user-b', 'other-api:user-b']) {
+    jest.mocked(getChatErrorScope).mockReturnValue(scope);
+    reportChatErrorDisplay('same copy', context);
+    reportChatErrorDisplay('same copy', context);
+  }
+  expect(mockedTrack).toHaveBeenCalledTimes(3);
 });

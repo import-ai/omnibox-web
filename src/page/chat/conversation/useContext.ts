@@ -249,6 +249,7 @@ export default function useContext() {
         messageOperator,
         `/api/v1/namespaces/${namespaceId}/wizard/stream/resume`,
         lastEventId,
+        { channel: 'web' },
         onOpen
       ),
   });

@@ -1,6 +1,7 @@
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 import { http } from '@/lib/request';
+import { TraceOutbox } from '@/lib/traceOutbox';
 
 class EventStorage {
   private loaded: boolean = false;
@@ -59,7 +60,66 @@ async function getVisitorId() {
   }
 }
 
+let chatErrorOutbox: TraceOutbox | undefined;
+
+function chatUserId() {
+  try {
+    return localStorage.getItem('uid') || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function chatScope() {
+  return typeof window === 'undefined'
+    ? 'server'
+    : JSON.stringify([window.location.origin, chatUserId() || '']);
+}
+
+function getChatErrorOutbox() {
+  if (!chatErrorOutbox) {
+    chatErrorOutbox = new TraceOutbox({
+      read: async () => sessionStorage.getItem('omnibox_chat_error_outbox'),
+      write: async value => {
+        sessionStorage.setItem('omnibox_chat_error_outbox', value);
+      },
+      scope: chatScope,
+      online: () => navigator.onLine !== false,
+      send: async (props, scope) => {
+        // Fingerprinting is optional for diagnostic delivery.
+        const finger = await getVisitorId().catch(() => undefined);
+        if (chatScope() !== scope) throw new Error('Trace scope changed');
+        await http.post(
+          '/trace',
+          { events: [{ name: 'chat_error', props: { ...props, finger } }] },
+          {
+            mute: true,
+            skipAuthRedirect: true,
+            timeout: 10_000,
+            traceScopeValid: () => chatScope() === scope,
+          }
+        );
+      },
+    });
+    const flush = () => {
+      void chatErrorOutbox?.flush();
+    };
+    window.addEventListener('online', flush);
+    window.addEventListener('omnibox:credential-changed', flush);
+    window.addEventListener('storage', flush);
+    document.addEventListener('visibilitychange', flush);
+  }
+  return chatErrorOutbox;
+}
+
 export async function track(name: string, payload: Attributes = {}) {
+  if (name === 'chat_error') {
+    if (typeof window === 'undefined') return;
+    return getChatErrorOutbox().enqueue({
+      ...payload,
+      user_id: chatUserId(),
+    });
+  }
   const { once = false, userId, ...props } = payload;
 
   const visitorId = await getVisitorId();
@@ -96,4 +156,13 @@ export async function track(name: string, payload: Attributes = {}) {
     .catch(err => {
       console.error(err);
     });
+}
+
+// Restore pending errors after a reload, even before another error occurs.
+if (typeof window !== 'undefined') {
+  void getChatErrorOutbox().flush();
+}
+
+export function getChatErrorScope() {
+  return chatScope();
 }

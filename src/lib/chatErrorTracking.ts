@@ -5,7 +5,7 @@ import {
   type ChatErrorName,
   isChatCancellation,
 } from '@/lib/chatErrors';
-import { track } from '@/lib/sendTrackEvent';
+import * as tracking from '@/lib/sendTrackEvent';
 
 export type ChatErrorStage =
   | 'prepare'
@@ -37,6 +37,11 @@ export interface ChatErrorContext {
 }
 
 const errorGroups: Record<ChatErrorName, ChatErrorGroup> = {
+  stream_interrupted: 'network',
+  stream_send_failed: 'network',
+  content_review: 'request',
+  output_content_review: 'request',
+  upstream_error: 'service',
   unknown: 'unknown',
   request_failed: 'service',
   connection_interrupted: 'network',
@@ -115,7 +120,8 @@ function sanitizeMessage(value: string | undefined): string | undefined {
   return sanitized ? sanitized.slice(0, 512) : undefined;
 }
 
-function isDuplicate(key: string) {
+function isDuplicate(eventKey: string) {
+  const key = `${tracking.getChatErrorScope?.() ?? ''}:${eventKey}`;
   const now = Date.now();
   for (const [entry, expiresAt] of deduped) {
     if (expiresAt <= now) deduped.delete(entry);
@@ -198,7 +204,7 @@ export function reportChatErrorDisplay(
     dedupe_key: dedupeKey,
   };
 
-  void track('chat_error', props).catch(() => undefined);
+  void tracking.track('chat_error', props).catch(() => undefined);
 }
 
 export function reportChatError(error: unknown, context: ChatErrorContext) {
@@ -231,5 +237,5 @@ export function reportChatError(error: unknown, context: ChatErrorContext) {
     dedupe_key: dedupeKey,
   };
 
-  void track('chat_error', props).catch(() => undefined);
+  void tracking.track('chat_error', props).catch(() => undefined);
 }
