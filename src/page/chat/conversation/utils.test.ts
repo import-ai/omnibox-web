@@ -25,7 +25,7 @@ import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import { OpenAIMessageRole } from '@/page/chat/core/types/chatResponse';
 import { getCachedMessageDisplayParts } from '@/page/chat/messages/messageDisplayPartsCache';
 
-import { ask, prepareBody } from './utils';
+import { ask, prepareBody, resumeStream } from './utils';
 
 const sessionValues = new Map<string, string>();
 const sessionStorageMock: Storage = {
@@ -591,4 +591,22 @@ describe('ask transport completion', () => {
     await stream.start();
     expect(stream.outcome.transientError).toBeUndefined();
   });
+});
+
+test('forwards the recovery onOpen callback after telemetry context', () => {
+  const onOpen = jest.fn();
+  (createStreamTransport as jest.Mock).mockReturnValue({
+    start: async () => {},
+  });
+  resumeStream(
+    'c',
+    {} as MessageOperator,
+    '/resume',
+    'cursor',
+    { channel: 'web' },
+    onOpen
+  );
+  expect((createStreamTransport as jest.Mock).mock.calls.at(-1)?.[4]).toBe(
+    onOpen
+  );
 });

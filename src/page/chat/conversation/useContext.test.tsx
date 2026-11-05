@@ -90,14 +90,28 @@ jest.mock('@/page/chat/conversation/utils.ts', () => ({
   extractOriginalMessageSettings: jest.fn(),
   findFirstMessageWithMissingParent: jest.fn(() => undefined),
   isTerminalMessageStatus: () => true,
-  resumeStream: () => ({
-    cancel: jest.fn(),
-    destroy: mockResumeDestroy,
-    getLastEventId: () => undefined,
-    getLastResponseType: () => 'done',
-    isDetached: () => false,
-    start: mockResumeStart,
-  }),
+  resumeStream: (
+    _conversationId: string,
+    _operator: unknown,
+    _url: string,
+    _cursor: string | undefined,
+    context: { channel?: string },
+    onOpen?: () => void
+  ) => {
+    if (typeof context === 'function')
+      throw new Error('Recovery callback passed as telemetry context');
+    return {
+      cancel: jest.fn(),
+      destroy: mockResumeDestroy,
+      getLastEventId: () => undefined,
+      getLastResponseType: () => 'done',
+      isDetached: () => false,
+      start: async () => {
+        onOpen?.();
+        return mockResumeStart();
+      },
+    };
+  },
   stopStream: jest.fn(),
 }));
 
@@ -1093,7 +1107,8 @@ describe('useContext conversation cache failures', () => {
       'namespace-a',
       'conversation-a',
       images,
-      false
+      false,
+      expect.objectContaining({ requestId: 'pending-query' })
     );
     expect(jest.mocked(ask).mock.calls.at(-1)?.[18]).toBe('pending-query');
     expect(jest.mocked(ask).mock.calls.at(-1)?.[17]?.[0].attachment_id).toBe(

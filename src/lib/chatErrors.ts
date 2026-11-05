@@ -84,6 +84,11 @@ export function chatErrorDetails(error: unknown): ChatErrorDetails {
 
 // Explicit backend codes take precedence over lossy or previously translated text.
 const codes: Record<string, ChatErrorName> = {
+  not_authorized: 'unauthorized',
+  invalid_client_request_id: 'invalid_request',
+  invalid_query: 'invalid_request',
+  chat_not_allowed: 'share_unavailable',
+  message_id_not_set: 'service_unavailable',
   conversation_busy: 'busy',
   pending_interrupt: 'pending_decision',
   decision_not_applied: 'decision_not_applied',
