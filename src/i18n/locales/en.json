@@ -700,7 +700,8 @@
     "unbind": {
       "button": "Unbind",
       "success": "Assistant unbound successfully",
-      "wechat_success": "Unbound successfully",
+      "state_changed": "Binding status has changed. Please check it before trying again.",
+      "remote_success": "Unbound successfully",
       "error": "Failed to unbind assistant",
       "confirm": {
         "title": "Unbind Assistant",
