@@ -72,7 +72,7 @@ let originalApple: Window['AppleID'];
 const ua = navigator.userAgent;
 const confirm = () =>
   [...document.querySelectorAll('button')].find(
-    node => node.textContent === 'Agree and continue'
+    node => node.textContent === 'Agree and Continue'
   )!;
 const decline = () =>
   [...document.querySelectorAll('button')].find(

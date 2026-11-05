@@ -181,8 +181,8 @@ it('renders complete English copy and links without resetting agreement', async 
   await click(checkbox());
   await click(button('First'));
   expect(dialog()?.textContent).toContain(
-    'Before continuing, please read and agree to OmniBox’s 《User Agreement》 and 《Privacy Policy》.'
+    'Before proceeding, please read and agree to OmniBox’s 《User Agreement》 and 《Privacy Policy》'
   );
-  await click(button('Agree and continue'));
+  await click(button('Agree and Continue'));
   expect(first).toHaveBeenCalledTimes(1);
 });
