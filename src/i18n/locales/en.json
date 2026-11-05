@@ -1793,7 +1793,7 @@
     "cwd": "Working directory",
     "timeout": "Timeout",
     "timeout_value": "{{count}}s",
-    "created_at": "Started",
+    "created_at": "Requested",
     "finished_at": "Finished",
     "exit_code": "Exit code",
     "approve": "Approve",
@@ -1804,6 +1804,7 @@
     "show_output": "Show output",
     "hide_output": "Hide output",
     "no_output": "No output",
+    "offline_reason": "The device went offline, signed out or turned off local execution before the command started. The command did not run.",
     "artifacts": "Artifacts",
     "approvals": "Approvals",
     "decision": {
@@ -1822,7 +1823,8 @@
       "denied": "Denied",
       "canceled": "Canceled",
       "timed_out": "Timed out",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "offline": "Device unavailable"
     }
   },
   "login_link": {

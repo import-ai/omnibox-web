@@ -111,6 +111,10 @@ it.each<{
     expect(getSection('setting.account').textContent).toContain(
       'Local execution'
     );
+    expect(buttons[0].getAttribute('aria-current')).toBe('page');
+    expect(
+      container.querySelectorAll('button[aria-current="page"]')
+    ).toHaveLength(1);
     expect(buttons[0].classList.contains('bg-sidebar-accent')).toBe(true);
     await act(async () => buttons[0].click());
     expect(onChange).toHaveBeenCalledWith('extension:localSync');
