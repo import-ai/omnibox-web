@@ -78,6 +78,21 @@ export function ConversationMessageList({
                   </MarkerContent>
                 </Marker>
               )}
+            {(context.streamState === 'recovering' ||
+              context.streamState === 'offline') && (
+              <Marker role="status" className="mt-4">
+                <MarkerIcon>
+                  <Spinner />
+                </MarkerIcon>
+                <MarkerContent
+                  className={
+                    context.streamState === 'recovering' ? 'shimmer' : undefined
+                  }
+                >
+                  {t(`chat.stream.${context.streamState}`)}
+                </MarkerContent>
+              </Marker>
+            )}
           </>
         )}
       </Scrollbar>
@@ -149,6 +164,7 @@ export function ConversationFooter({
           imageUploadDisabled={imageUploadDisabled}
           proUnsupported={imageUploadDisabled}
           waitingForAssistantDelta={context.waitingForAssistantDelta}
+          streamState={context.streamState}
           onStop={context.onStop}
         />
         <div

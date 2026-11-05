@@ -2,6 +2,8 @@ export const chatErrorNames = [
   'unknown',
   'request_failed',
   'connection_interrupted',
+  'stream_interrupted',
+  'stream_send_failed',
   'response_unreadable',
   'timeout',
   'unauthorized',
@@ -128,6 +130,9 @@ const codes: Record<string, ChatErrorName> = {
   share_chat_not_allowed: 'share_unavailable',
   stream_connection_failed: 'connection_interrupted',
   stream_read_failed: 'connection_interrupted',
+  stream_interrupted: 'stream_interrupted',
+  stream_not_found: 'stream_interrupted',
+  stream_send_failed: 'stream_send_failed',
   err_network: 'connection_interrupted',
   econnreset: 'connection_interrupted',
   econnaborted: 'timeout',
@@ -316,4 +321,21 @@ export function chatErrorKey(
 export function isChatCancellation(error: unknown): boolean {
   const value = objectOf(error);
   return value.__CANCEL__ === true || value.name === 'AbortError';
+}
+
+// Connection loss is recoverable: the server keeps the turn alive and the
+// client can resume it. Server-side failures and 4xx answers are not.
+const transientCodes = new Set([
+  'stream_connection_failed',
+  'stream_read_failed',
+  'err_network',
+  'econnreset',
+  'etimedout',
+]);
+
+export function isTransientChatError(error: unknown): boolean {
+  if (isChatCancellation(error)) return false;
+  const { code, status } = chatErrorDetails(error);
+  if (code && transientCodes.has(code.toLowerCase())) return true;
+  return status === 408 || status === 502 || status === 503 || status === 504;
 }

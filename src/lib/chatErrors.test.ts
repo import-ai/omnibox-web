@@ -9,6 +9,7 @@ import {
   chatErrorKey,
   chatErrorNames,
   isChatCancellation,
+  isTransientChatError,
 } from './chatErrors';
 
 describe('chat error classification', () => {
@@ -46,6 +47,7 @@ describe('chat error classification', () => {
       'NetworkError when attempting to fetch resource.',
       'connection_interrupted',
     ],
+    [{ code: 'STREAM_NOT_FOUND' }, 'stream_interrupted'],
   ])('classifies %p as %s', (error, suffix) => {
     expect(chatErrorKey(error)).toBe(`chat.errors.${suffix}`);
   });
@@ -89,6 +91,18 @@ describe('chat error classification', () => {
     expect(isChatCancellation({ name: 'AbortError' })).toBe(true);
     expect(isChatCancellation({ __CANCEL__: true })).toBe(true);
     expect(isChatCancellation('AbortError')).toBe(false);
+  });
+
+  it('treats connection loss and gateway errors as recoverable', () => {
+    expect(isTransientChatError({ code: 'STREAM_CONNECTION_FAILED' })).toBe(
+      true
+    );
+    expect(isTransientChatError({ code: 'stream_read_failed' })).toBe(true);
+    expect(isTransientChatError({ status: 503 })).toBe(true);
+    expect(isTransientChatError({ status: 504 })).toBe(true);
+    expect(isTransientChatError({ status: 400 })).toBe(false);
+    expect(isTransientChatError({ code: 'CONVERSATION_BUSY' })).toBe(false);
+    expect(isTransientChatError({ name: 'AbortError' })).toBe(false);
   });
 
   it('translates the same historical error using the current UI language', async () => {

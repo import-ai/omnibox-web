@@ -5,7 +5,12 @@ import { toast } from 'sonner';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
-import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
+import {
+  chatErrorDetails,
+  isChatCancellation,
+  isTransientChatError,
+} from '@/lib/chatErrors';
+import { http } from '@/lib/request';
 import { getWizardLang } from '@/lib/wizardLang';
 import { beginChatSubmissionPreparation } from '@/page/chat/chat-input/chatSubmissionStore';
 import {
@@ -30,6 +35,7 @@ import {
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
   isTerminalMessageStatus,
+  resumeStream,
   stopStream,
 } from '@/page/chat/conversation/utils.ts';
 import {
@@ -55,9 +61,11 @@ import {
 } from '@/page/copilot/copilotStore';
 
 import {
+  clearCachedConversation,
   type ConversationCacheScope,
   getCurrentUserId,
 } from './conversationCache';
+import useChatStreamRecovery from './useChatStreamRecovery';
 import useConversationBootstrap, {
   CHAT_CREATE_PAYLOAD_KEY,
 } from './useConversationBootstrap';
@@ -199,14 +207,52 @@ export default function useContext() {
     conversation,
     setConversation
   );
+  const recoveryResetRef = useRef<(() => void) | null>(null);
   const messageOperator = useMemo((): MessageOperator => {
     return {
       ...createMessageOperator(conversation, setConversation),
       activate: (id: string) => {
+        recoveryResetRef.current?.();
+        detachActiveStream();
         void history.activateBranch(id);
       },
     };
-  }, [conversation, setConversation, history.activateBranch]);
+  }, [
+    conversation,
+    setConversation,
+    history.activateBranch,
+    detachActiveStream,
+  ]);
+
+  const recovery = useChatStreamRecovery({
+    conversationId,
+    scopeKey: `${userId}:${namespaceId}`,
+    conversationRef,
+    setConversation,
+    messageOperator,
+    askAbortRef,
+    detachStreamRef,
+    onUnavailable: () => {
+      clearCachedConversation(cacheScope, conversationId);
+      setConversation({ id: conversationId, mapping: {} });
+      setAccessDenied(true);
+    },
+    loadSnapshot: query =>
+      http.get(
+        `/namespaces/${namespaceId}/conversations/${conversationId}/messages`,
+        { params: query, mute: true }
+      ),
+    createResumeStream: (lastEventId, onOpen) =>
+      resumeStream(
+        conversationId,
+        messageOperator,
+        `/api/v1/namespaces/${namespaceId}/wizard/stream/resume`,
+        lastEventId,
+        onOpen
+      ),
+  });
+
+  recoveryResetRef.current = recovery.reset;
 
   const sendTurn = async (
     params: SendMessageParams,
@@ -334,9 +380,19 @@ export default function useContext() {
               },
             }
           );
+          recovery.reset();
+          recovery.track(askFN);
           askAbortRef.current = askFN.cancel;
           detachStreamRef.current = askFN.destroy;
           await askFN.start();
+          if (askFN.outcome.transientError) {
+            void recovery.recover({
+              pendingRequestId: askFN.outcome.acceptedMessageId
+                ? undefined
+                : pendingId,
+              cursor: askFN.getLastEventId?.(),
+            });
+          }
         } catch (error) {
           if (provisionalTitle) {
             const scope = { userId: getCurrentUserId(), namespaceId };
@@ -357,15 +413,17 @@ export default function useContext() {
               pendingId
             );
         } finally {
+          if (askFN) recovery.untrack(askFN);
           const stayedOnConversation =
             !askFN || detachStreamRef.current === askFN.destroy;
-          askAbortRef.current = null;
+          if (!askFN || askAbortRef.current === askFN.cancel)
+            askAbortRef.current = null;
           if (askFN && detachStreamRef.current === askFN.destroy) {
             detachStreamRef.current = null;
           }
           setWaitingForAssistantDelta(false);
           setLoading(false);
-          if (stayedOnConversation) {
+          if (stayedOnConversation && !recovery.isRecovering()) {
             void history.refreshHistory().catch(() => undefined);
           }
         }
@@ -498,6 +556,13 @@ export default function useContext() {
     namespaceId,
     sendMessage,
     detachActiveStream,
+    detachStreamRef,
+    onResumeError: (error, cursor, initialConversation) => {
+      if (!isChatCancellation(error))
+        void recovery.recover({ cursor, initialConversation });
+    },
+    trackStream: recovery.track,
+    untrackStream: recovery.untrack,
     setAccessDenied,
     setConversation,
     setInitialApprovalMode,
@@ -507,6 +572,7 @@ export default function useContext() {
 
   const mergedLoading =
     loading ||
+    recovery.streamState === 'recovering' ||
     (conversation.total === undefined && !conversation.current_node) ||
     !isTerminalMessageStatus(messages.at(-1)?.status);
 
@@ -545,8 +611,9 @@ export default function useContext() {
     regeneratingRef.current = true;
     setRegeneratingParentId(parentId);
     setLoading(true);
+    let askFN: ReturnType<typeof ask> | undefined;
     try {
-      const askFN = ask(
+      askFN = ask(
         conversationId,
         parentMessage.message.content,
         originalTools,
@@ -569,18 +636,30 @@ export default function useContext() {
         parentMessage.attrs?.edition,
         parentMessage.attrs?.level
       );
+      recovery.reset();
+      recovery.track(askFN);
       askAbortRef.current = askFN.cancel;
+      detachStreamRef.current = askFN.destroy;
       try {
         await askFN.start();
+        if (askFN.outcome.transientError) {
+          void recovery.recover({ cursor: askFN.getLastEventId?.() });
+        }
       } catch (error) {
-        toast.error(error instanceof Error ? error.message : String(error));
+        if (isTransientChatError(error))
+          void recovery.recover({ cursor: askFN?.getLastEventId?.() });
+        else
+          toast.error(error instanceof Error ? error.message : String(error));
       }
     } finally {
-      askAbortRef.current = null;
+      if (askFN) recovery.untrack(askFN);
+      if (!askFN || askAbortRef.current === askFN.cancel)
+        askAbortRef.current = null;
       regeneratingRef.current = false;
       setRegeneratingParentId(null);
       setLoading(false);
-      void history.refreshHistory().catch(() => undefined);
+      if (!recovery.isRecovering())
+        void history.refreshHistory().catch(() => undefined);
     }
   };
 
@@ -601,8 +680,9 @@ export default function useContext() {
     } = extractOriginalMessageSettings(editedMessage);
 
     setLoading(true);
+    let askFN: ReturnType<typeof ask> | undefined;
     try {
-      const askFN = ask(
+      askFN = ask(
         conversationId,
         newContent,
         originalTools,
@@ -636,12 +716,26 @@ export default function useContext() {
         editedMessage.attrs?.edition,
         editedMessage.attrs?.level
       );
+      recovery.reset();
+      recovery.track(askFN);
       askAbortRef.current = askFN.cancel;
+      detachStreamRef.current = askFN.destroy;
       await askFN.start();
+      if (askFN.outcome.transientError) {
+        void recovery.recover({
+          pendingRequestId: askFN.outcome.acceptedMessageId
+            ? undefined
+            : askFN.outcome.requestId,
+          cursor: askFN.getLastEventId?.(),
+        });
+      }
     } finally {
-      askAbortRef.current = null;
+      if (askFN) recovery.untrack(askFN);
+      if (!askFN || askAbortRef.current === askFN.cancel)
+        askAbortRef.current = null;
       setLoading(false);
-      void history.refreshHistory().catch(() => undefined);
+      if (!recovery.isRecovering())
+        void history.refreshHistory().catch(() => undefined);
     }
   };
 
@@ -655,14 +749,20 @@ export default function useContext() {
     }
     const cancel = askAbortRef.current;
     askAbortRef.current = null;
-    await stopStream({
-      cancel,
-      cancelUrl: `/namespaces/${namespaceId}/wizard/stream/cancel`,
-      conversationId,
-      messageId: messages.at(-1)?.id,
-      messageOperator,
-      setLoading,
-    }).catch(() => toast.error(t('chat.stop_failed')));
+    try {
+      await stopStream({
+        cancel,
+        cancelUrl: `/namespaces/${namespaceId}/wizard/stream/cancel`,
+        conversationId,
+        messageId: messages.at(-1)?.id,
+        messageOperator,
+        setLoading,
+      });
+      recovery.stop();
+    } catch {
+      toast.error(t('chat.stop_failed'));
+      void recovery.recover({ force: true });
+    }
   };
 
   const firstUserMessage = findFirstMessageWithMissingParent(messages);
@@ -707,6 +807,7 @@ export default function useContext() {
     namespaceId,
     conversation,
     messageOperator,
+    streamState: recovery.streamState,
     onRegenerate,
     onEdit,
     onStop,
