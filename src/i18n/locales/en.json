@@ -438,7 +438,7 @@
     "apple_sdk_not_loaded": "Apple SDK not loaded",
     "or_continue": "Or continue with",
     "agreement": {
-      "checkbox_label": "I have read and agree to the <terms>《User Agreement》</terms> and <privacy>《Privacy Policy》</privacy>.",
+      "checkbox_label": "I have read and agree<terms>《User Agreement》</terms>and<privacy>《Privacy Policy》</privacy>.",
       "confirm": {
         "title": "Terms of Service and Privacy Policy",
         "description": "Before continuing, please read and agree to OmniBox’s <terms>《User Agreement》</terms> and <privacy>《Privacy Policy》</privacy>.",

@@ -175,7 +175,7 @@ it('renders complete English copy and links without resetting agreement', async 
     await i18n.changeLanguage('en');
   });
   expect(container.textContent).toContain(
-    'I have read and agree to the 《User Agreement》 and 《Privacy Policy》.'
+    'I have read and agree《User Agreement》and《Privacy Policy》.'
   );
   expect(checkbox().getAttribute('aria-checked')).toBe('true');
   await click(checkbox());
