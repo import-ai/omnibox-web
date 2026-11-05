@@ -54,6 +54,9 @@ jobs:
       - name: Test docs appearance synchronization
         run: pnpm exec jest src/lib/docsAppearance.test.ts src/layout/index.test.tsx src/layout/authStorage.test.ts --runInBand
 
+      - name: Test anonymous captcha entry
+        run: pnpm exec jest src/page/captcha/CaptchaPage.test.tsx src/hooks/useCaptcha.test.tsx src/lib/captcha.test.ts --runInBand
+
       - name: Test chat stream recovery
         run: pnpm exec jest src/lib/chatErrors.test.ts src/lib/streamTransport.test.ts src/page/chat/conversation src/page/chat/core src/page/shared-chat --runInBand
 
