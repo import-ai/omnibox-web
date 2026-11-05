@@ -36,7 +36,16 @@ export function useAgreementConsent() {
   return context;
 }
 
-function AgreementText({ i18nKey }: { i18nKey: string }) {
+function AgreementText({
+  i18nKey,
+  inDialog = false,
+}: {
+  i18nKey: string;
+  inDialog?: boolean;
+}) {
+  const linkClassName = inDialog
+    ? 'text-primary! no-underline! hover:text-primary! hover:no-underline!'
+    : 'text-muted-foreground! no-underline! hover:text-muted-foreground! hover:no-underline!';
   return (
     <Trans
       i18nKey={i18nKey}
@@ -46,7 +55,7 @@ function AgreementText({ i18nKey }: { i18nKey: string }) {
             href="https://www.omnibox.pro/s/w3A0gJXVUI"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-foreground"
+            className={linkClassName}
             onClick={event => event.stopPropagation()}
           />
         ),
@@ -55,7 +64,7 @@ function AgreementText({ i18nKey }: { i18nKey: string }) {
             href="https://www.omnibox.pro/s/qYdPydLfW7"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline underline-offset-2 hover:text-foreground"
+            className={linkClassName}
             onClick={event => event.stopPropagation()}
           />
         ),
@@ -68,7 +77,7 @@ export function AgreementCheckbox() {
   const { agreed, setAgreed } = useAgreementConsent();
   const id = useId();
   return (
-    <div className="flex items-start gap-3 text-xs leading-5 text-muted-foreground">
+    <div className="flex items-start gap-3 text-xs leading-5 text-primary">
       <Checkbox
         id={id}
         className="mt-0.5"
@@ -145,7 +154,10 @@ export function AgreementConsentProvider({
               {t('login.agreement.confirm.title')}
             </DialogTitle>
             <DialogDescription className="leading-6">
-              <AgreementText i18nKey="login.agreement.confirm.description" />
+              <AgreementText
+                i18nKey="login.agreement.confirm.description"
+                inDialog
+              />
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">

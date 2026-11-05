@@ -175,13 +175,13 @@ it('renders complete English copy and links without resetting agreement', async 
     await i18n.changeLanguage('en');
   });
   expect(container.textContent).toContain(
-    'I have read and agree to the Terms of Service and Privacy Policy.'
+    'I have read and agree to the 《User Agreement》 and 《Privacy Policy》.'
   );
   expect(checkbox().getAttribute('aria-checked')).toBe('true');
   await click(checkbox());
   await click(button('First'));
   expect(dialog()?.textContent).toContain(
-    'Before continuing, please read and agree to OmniBox’s Terms of Service and Privacy Policy.'
+    'Before continuing, please read and agree to OmniBox’s 《User Agreement》 and 《Privacy Policy》.'
   );
   await click(button('Agree and continue'));
   expect(first).toHaveBeenCalledTimes(1);
