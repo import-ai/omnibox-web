@@ -6,11 +6,14 @@ import { TooltipProvider } from '@/components/tooltip';
 import { Spinner } from '@/components/ui/Spinner';
 import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 
+import {
+  AgreementCheckbox,
+  AgreementConsentProvider,
+} from '../AgreementConsent';
 import Apple from '../apple';
 import { Available } from '../available';
 import Email from '../email';
 import Google from '../google';
-import MetaPage from '../MetaPage';
 import Phone from '../phone';
 import WeChat from '../wechat';
 import { useH5WechatAuthPoll } from '../wechat/h5WechatAuthSync';
@@ -71,50 +74,56 @@ export default function LoginPage() {
   }
 
   return (
-    <WrapperPage layout="split" extra={<MetaPage />} showAppDownload>
-      {scan ? (
-        <Scan onScan={onScan} />
-      ) : (
-        <LoginForm
-          contactMethod={contactMethod}
-          authMethod={authMethod}
-          setAuthMethod={setAuthMethod}
-        >
-          <Available>
-            {available => {
-              return (
-                <div className="grid gap-6">
-                  <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                    <span className="bg-background text-muted-foreground relative z-10 px-2">
-                      {t('login.or_continue')}
-                    </span>
-                  </div>
-                  <TooltipProvider>
-                    <div className="grid grid-cols-4 gap-2">
-                      {contactMethod === 'phone' ? (
-                        <Email
-                          onClick={() => setContactMethod('email')}
-                          mode="login"
-                          iconOnly
-                        />
-                      ) : (
-                        <Phone
-                          onClick={() => setContactMethod('phone')}
-                          mode="login"
-                          iconOnly
-                        />
-                      )}
-                      {available.wechat && <WeChat onScan={onScan} iconOnly />}
-                      {available.google && <Google iconOnly />}
-                      {available.apple && <Apple iconOnly />}
+    <AgreementConsentProvider
+      scopeKey={`${contactMethod}:${authMethod}:${params.toString()}`}
+    >
+      <WrapperPage layout="split" extra={<AgreementCheckbox />} showAppDownload>
+        {scan ? (
+          <Scan onScan={onScan} />
+        ) : (
+          <LoginForm
+            contactMethod={contactMethod}
+            authMethod={authMethod}
+            setAuthMethod={setAuthMethod}
+          >
+            <Available>
+              {available => {
+                return (
+                  <div className="grid gap-6">
+                    <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                      <span className="bg-background text-muted-foreground relative z-10 px-2">
+                        {t('login.or_continue')}
+                      </span>
                     </div>
-                  </TooltipProvider>
-                </div>
-              );
-            }}
-          </Available>
-        </LoginForm>
-      )}
-    </WrapperPage>
+                    <TooltipProvider>
+                      <div className="grid grid-cols-4 gap-2">
+                        {contactMethod === 'phone' ? (
+                          <Email
+                            onClick={() => setContactMethod('email')}
+                            mode="login"
+                            iconOnly
+                          />
+                        ) : (
+                          <Phone
+                            onClick={() => setContactMethod('phone')}
+                            mode="login"
+                            iconOnly
+                          />
+                        )}
+                        {available.wechat && (
+                          <WeChat onScan={onScan} iconOnly />
+                        )}
+                        {available.google && <Google iconOnly />}
+                        {available.apple && <Apple iconOnly />}
+                      </div>
+                    </TooltipProvider>
+                  </div>
+                );
+              }}
+            </Available>
+          </LoginForm>
+        )}
+      </WrapperPage>
+    </AgreementConsentProvider>
   );
 }
