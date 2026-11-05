@@ -31,6 +31,9 @@ export const chatErrorNames = [
   'execution_changed',
   'execution_unavailable',
   'share_unavailable',
+  'content_review',
+  'output_content_review',
+  'upstream_error',
 ] as const;
 export type ChatErrorName = (typeof chatErrorNames)[number];
 export type ChatErrorKey = `chat.errors.${ChatErrorName}`;
@@ -134,6 +137,20 @@ const codes: Record<string, ChatErrorName> = {
   econnreset: 'connection_interrupted',
   econnaborted: 'timeout',
   etimedout: 'timeout',
+  content_review_rejected: 'content_review',
+  output_content_review_rejected: 'output_content_review',
+  upstream_bad_request: 'upstream_error',
+  upstream_unauthorized: 'upstream_error',
+  upstream_forbidden: 'upstream_error',
+  upstream_not_found: 'upstream_error',
+  upstream_conflict: 'upstream_error',
+  upstream_unprocessable: 'upstream_error',
+  upstream_rate_limited: 'upstream_error',
+  upstream_server_error: 'upstream_error',
+  upstream_timeout: 'upstream_error',
+  upstream_connection_failed: 'upstream_error',
+  upstream_api_error: 'upstream_error',
+  internal_error: 'upstream_error',
 };
 
 // Only exact, source-backed legacy aliases are recognized. Unknown text is never shown.
@@ -212,6 +229,16 @@ export const chatErrorAliases: Record<string, ChatErrorName> = {
   'Response body is not readable': 'response_unreadable',
   'Unknown error': 'unknown',
   'Inappropriate content': 'service_unavailable',
+  '本次请求未通过模型服务的安全审核，请修改相关内容后重试，或新建对话。':
+    'content_review',
+  "This request did not pass the model service's safety review. Edit the relevant content and try again, or start a new conversation.":
+    'content_review',
+  '生成的回复未通过模型服务的安全审核，请新建对话或修改后重试。':
+    'output_content_review',
+  "The generated reply did not pass the model service's safety review. Start a new conversation or edit the relevant content and try again.":
+    'output_content_review',
+  '网络错误，请稍后重试。': 'upstream_error',
+  'Network error. Please try again later.': 'upstream_error',
   'Namespace not found': 'namespace_not_found',
   'Workspace not found': 'namespace_not_found',
   'Private root resource not found': 'private_root_unavailable',

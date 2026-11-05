@@ -201,3 +201,47 @@ it.each(['STREAM_CONNECTION_FAILED', 'STREAM_READ_FAILED'])(
     );
   }
 );
+
+it.each([
+  ['content_review_rejected', 'content_review'],
+  ['output_content_review_rejected', 'output_content_review'],
+  ['upstream_bad_request', 'upstream_error'],
+  ['upstream_unauthorized', 'upstream_error'],
+  ['upstream_forbidden', 'upstream_error'],
+  ['upstream_not_found', 'upstream_error'],
+  ['upstream_conflict', 'upstream_error'],
+  ['upstream_unprocessable', 'upstream_error'],
+  ['upstream_rate_limited', 'upstream_error'],
+  ['upstream_server_error', 'upstream_error'],
+  ['upstream_timeout', 'upstream_error'],
+  ['upstream_connection_failed', 'upstream_error'],
+  ['upstream_api_error', 'upstream_error'],
+  ['internal_error', 'upstream_error'],
+])('classifies the new server code %s as %s', (code, suffix) => {
+  expect(chatErrorKey({ code, message: 'upstream detail' })).toBe(
+    `chat.errors.${suffix}`
+  );
+});
+
+it.each([
+  [
+    '本次请求未通过模型服务的安全审核，请修改相关内容后重试，或新建对话。',
+    'content_review',
+  ],
+  [
+    "This request did not pass the model service's safety review. Edit the relevant content and try again, or start a new conversation.",
+    'content_review',
+  ],
+  [
+    '生成的回复未通过模型服务的安全审核，请新建对话或修改后重试。',
+    'output_content_review',
+  ],
+  [
+    "The generated reply did not pass the model service's safety review. Start a new conversation or edit the relevant content and try again.",
+    'output_content_review',
+  ],
+  ['网络错误，请稍后重试。', 'upstream_error'],
+  ['Network error. Please try again later.', 'upstream_error'],
+])('classifies the stored server copy %p as %s', (message, suffix) => {
+  expect(chatErrorKey({ message })).toBe(`chat.errors.${suffix}`);
+});
