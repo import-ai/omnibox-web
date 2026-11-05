@@ -115,8 +115,38 @@ it.each<{
     expect(
       container.querySelectorAll('button[aria-current="page"]')
     ).toHaveLength(1);
+    expect(buttons[0].classList.contains('bg-sidebar-accent')).toBe(true);
     await act(async () => buttons[0].click());
     expect(onChange).toHaveBeenCalledWith('extension:localSync');
+  } finally {
+    await act(async () => root.unmount());
+  }
+});
+
+it('places contact immediately before about and selects the contact tab', async () => {
+  (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const onChange = jest.fn();
+  try {
+    await act(async () =>
+      root.render(
+        <SettingsSidebar value="contact" onChange={onChange} username="User" />
+      )
+    );
+    const buttons = [...container.querySelectorAll('button')];
+    const contactIndex = buttons.findIndex(
+      button => button.textContent === 'setting.contact.title'
+    );
+    expect(buttons[contactIndex + 1].textContent).toBe('setting.about');
+    expect(buttons[contactIndex].classList.contains('bg-sidebar-accent')).toBe(
+      true
+    );
+    expect(
+      buttons[contactIndex].querySelector('.lucide-messages-square')
+    ).not.toBeNull();
+    await act(async () => buttons[contactIndex].click());
+    expect(onChange).toHaveBeenCalledWith('contact');
   } finally {
     await act(async () => root.unmount());
   }

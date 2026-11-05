@@ -544,6 +544,16 @@
     "bind_failed": "Failed to bind phone"
   },
   "setting": {
+    "contact": {
+      "title": "Contact us",
+      "description": "Join the OmniBox community to share tips, report issues, and suggest improvements",
+      "wechat_title": "WeChat group",
+      "wechat_description": "Scan with WeChat to join the group and share OmniBox tips",
+      "wechat_qr_alt": "OmniBox WeChat community QR code",
+      "discord_title": "Discord",
+      "discord_description": "Connect with the community on Discord",
+      "join_discord": "Join Discord"
+    },
     "option_descriptions": {
       "username": "Choose the name shown to other space members",
       "password": "Set or update the password used to sign in",
@@ -841,6 +851,10 @@
     "stopping": "Stopping",
     "tool_stopped": "Stopped",
     "stop_failed": "Could not stop. Please try again.",
+    "stream": {
+      "recovering": "Reconnecting…",
+      "offline": "You are offline. The reply will resume when the connection returns."
+    },
     "delivery": {
       "sending": "Sending",
       "send_failed": "Failed to send",
@@ -1118,6 +1132,8 @@
       "unknown": "Something went wrong. The result could not be confirmed.",
       "request_failed": "The chat request failed. The result could not be confirmed.",
       "connection_interrupted": "Connection interrupted. Check your network and try again.",
+      "stream_interrupted": "The reply was interrupted. Please generate again.",
+      "stream_send_failed": "The message was not delivered. Please try again.",
       "response_unreadable": "Could not receive the response. Check the task result before retrying.",
       "timeout": "The request timed out. Check the task result before retrying.",
       "unauthorized": "Your session has expired. Please sign in again.",
@@ -1126,6 +1142,9 @@
       "invalid_request": "The request could not be processed. Check your input and try again.",
       "rate_limited": "Too many requests. Please try again later.",
       "service_unavailable": "The service encountered an error. Check the task result before retrying.",
+      "content_review": "This request did not pass the model service's safety review. Edit the relevant content and try again, or start a new conversation.",
+      "output_content_review": "The generated reply did not pass the model service's safety review. Start a new conversation or edit the relevant content and try again.",
+      "upstream_error": "Network error. Please try again later.",
       "busy": "This conversation is still generating a reply. Please wait.",
       "pending_decision": "Please decide the pending tool action first.",
       "decision_not_applied": "The tool decision has not been applied. Check the conversation status.",
@@ -1395,6 +1414,8 @@
     }
   },
   "footer": {
+    "contact": "Contact us",
+    "download_app": "Download app",
     "docs": "Docs",
     "discord": "Discord",
     "wechat": "QR Code",

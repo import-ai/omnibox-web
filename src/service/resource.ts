@@ -69,6 +69,7 @@ export type BatchCreateFolderResponse = Partial<Resource> & {
 export interface ResourceRevisionAuthor {
   id: string;
   username: string;
+  display_name?: string | null;
 }
 
 export interface ResourceRevisionSummary {

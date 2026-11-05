@@ -9,6 +9,7 @@ import {
   chatErrorKey,
   chatErrorNames,
   isChatCancellation,
+  isTransientChatError,
 } from './chatErrors';
 
 describe('chat error classification', () => {
@@ -46,6 +47,7 @@ describe('chat error classification', () => {
       'NetworkError when attempting to fetch resource.',
       'connection_interrupted',
     ],
+    [{ code: 'STREAM_NOT_FOUND' }, 'stream_interrupted'],
   ])('classifies %p as %s', (error, suffix) => {
     expect(chatErrorKey(error)).toBe(`chat.errors.${suffix}`);
   });
@@ -89,6 +91,18 @@ describe('chat error classification', () => {
     expect(isChatCancellation({ name: 'AbortError' })).toBe(true);
     expect(isChatCancellation({ __CANCEL__: true })).toBe(true);
     expect(isChatCancellation('AbortError')).toBe(false);
+  });
+
+  it('treats connection loss and gateway errors as recoverable', () => {
+    expect(isTransientChatError({ code: 'STREAM_CONNECTION_FAILED' })).toBe(
+      true
+    );
+    expect(isTransientChatError({ code: 'stream_read_failed' })).toBe(true);
+    expect(isTransientChatError({ status: 503 })).toBe(true);
+    expect(isTransientChatError({ status: 504 })).toBe(true);
+    expect(isTransientChatError({ status: 400 })).toBe(false);
+    expect(isTransientChatError({ code: 'CONVERSATION_BUSY' })).toBe(false);
+    expect(isTransientChatError({ name: 'AbortError' })).toBe(false);
   });
 
   it('translates the same historical error using the current UI language', async () => {
@@ -187,3 +201,47 @@ it.each(['STREAM_CONNECTION_FAILED', 'STREAM_READ_FAILED'])(
     );
   }
 );
+
+it.each([
+  ['content_review_rejected', 'content_review'],
+  ['output_content_review_rejected', 'output_content_review'],
+  ['upstream_bad_request', 'upstream_error'],
+  ['upstream_unauthorized', 'upstream_error'],
+  ['upstream_forbidden', 'upstream_error'],
+  ['upstream_not_found', 'upstream_error'],
+  ['upstream_conflict', 'upstream_error'],
+  ['upstream_unprocessable', 'upstream_error'],
+  ['upstream_rate_limited', 'upstream_error'],
+  ['upstream_server_error', 'upstream_error'],
+  ['upstream_timeout', 'upstream_error'],
+  ['upstream_connection_failed', 'upstream_error'],
+  ['upstream_api_error', 'upstream_error'],
+  ['internal_error', 'upstream_error'],
+])('classifies the new server code %s as %s', (code, suffix) => {
+  expect(chatErrorKey({ code, message: 'upstream detail' })).toBe(
+    `chat.errors.${suffix}`
+  );
+});
+
+it.each([
+  [
+    '本次请求未通过模型服务的安全审核，请修改相关内容后重试，或新建对话。',
+    'content_review',
+  ],
+  [
+    "This request did not pass the model service's safety review. Edit the relevant content and try again, or start a new conversation.",
+    'content_review',
+  ],
+  [
+    '生成的回复未通过模型服务的安全审核，请新建对话或修改后重试。',
+    'output_content_review',
+  ],
+  [
+    "The generated reply did not pass the model service's safety review. Start a new conversation or edit the relevant content and try again.",
+    'output_content_review',
+  ],
+  ['网络错误，请稍后重试。', 'upstream_error'],
+  ['Network error. Please try again later.', 'upstream_error'],
+])('classifies the stored server copy %p as %s', (message, suffix) => {
+  expect(chatErrorKey({ message })).toBe(`chat.errors.${suffix}`);
+});

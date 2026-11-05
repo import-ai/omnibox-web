@@ -5,6 +5,7 @@ import {
   HouseCog,
   KeyRound,
   List,
+  MessagesSquare,
   MonitorSmartphone,
   Sun,
   Users,
@@ -126,12 +127,18 @@ export function SettingsSidebar({
       })),
   ];
 
-  // About section item
-  const aboutItem: MenuItem = {
-    label: t('setting.about'),
-    value: 'about',
-    icon: <img src={logoUrl} alt="" className="size-4" />,
-  };
+  const footerItems: MenuItem[] = [
+    {
+      label: t('setting.contact.title'),
+      value: 'contact',
+      icon: <MessagesSquare className="size-4" />,
+    },
+    {
+      label: t('setting.about'),
+      value: 'about',
+      icon: <img src={logoUrl} alt="" className="size-4" />,
+    },
+  ];
 
   // Get username initial
   const initial = username?.charAt(0)?.toUpperCase() || 'U';
@@ -265,38 +272,41 @@ export function SettingsSidebar({
         <div className="flex w-full flex-col gap-2 lg:gap-2">
           <div className="flex w-full flex-row flex-wrap gap-1 lg:flex-col lg:gap-0.5">
             {config.commercial && <UpgradeButton />}
-            <button
-              onClick={() => onChange(aboutItem.value)}
-              aria-current={value === aboutItem.value ? 'page' : undefined}
-              className={cn(
-                'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
-                navItemFocus,
-                value === aboutItem.value
-                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                  : 'hover:bg-sidebar-accent/60'
-              )}
-            >
-              <span
+            {footerItems.map(item => (
+              <button
+                key={item.value}
+                onClick={() => onChange(item.value)}
+                aria-current={value === item.value ? 'page' : undefined}
                 className={cn(
-                  'size-4 shrink-0',
-                  value === aboutItem.value
-                    ? 'text-foreground'
-                    : 'text-muted-foreground'
+                  'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
+                  navItemFocus,
+                  value === item.value
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'hover:bg-sidebar-accent/60'
                 )}
               >
-                {aboutItem.icon}
-              </span>
-              <span
-                className={cn(
-                  'whitespace-nowrap text-sm font-medium',
-                  value === aboutItem.value
-                    ? 'text-foreground'
-                    : 'text-muted-foreground'
-                )}
-              >
-                {aboutItem.label}
-              </span>
-            </button>
+                <span
+                  className={cn(
+                    'size-4 shrink-0',
+                    value === item.value
+                      ? 'text-foreground'
+                      : 'text-muted-foreground'
+                  )}
+                >
+                  {item.icon}
+                </span>
+                <span
+                  className={cn(
+                    'whitespace-nowrap text-sm font-medium',
+                    value === item.value
+                      ? 'text-foreground'
+                      : 'text-muted-foreground'
+                  )}
+                >
+                  {item.label}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
       </div>

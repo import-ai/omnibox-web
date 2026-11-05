@@ -1,6 +1,7 @@
-import { lazy } from 'react';
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
+import Loading from '@/components/loading';
 import CoreApp from '@/hooks/app.class';
 import AppContext from '@/hooks/appContext';
 import { AuthConfigProvider } from '@/hooks/AuthConfigContext';
@@ -67,8 +68,21 @@ const loadInviteReferralPage = lazyRoute(() => import('@/page/inviteReferral'));
 const app = new CoreApp();
 const router = createBrowserRouter([
   {
+    path: '/captcha',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <CaptchaPage />
+      </Suspense>
+    ),
+    errorElement: <Error />,
+  },
+  {
     path: '/',
-    element: <Layout />,
+    element: (
+      <AuthConfigProvider>
+        <Layout />
+      </AuthConfigProvider>
+    ),
     errorElement: <Error />,
     children: [
       {
@@ -110,11 +124,6 @@ const router = createBrowserRouter([
       {
         path: 'user/accept-invite',
         element: <AcceptInvitePage />,
-      },
-      {
-        // H5 captcha page loaded by the mobile app's WebView.
-        path: 'captcha',
-        element: <CaptchaPage />,
       },
       {
         path: 'user/account/delete/confirm',
@@ -214,15 +223,13 @@ export default function Main({
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
       <AppContext.Provider value={app}>
-        <AuthConfigProvider>
-          <SettingsExtensionsContext.Provider value={settingsExtensions}>
-            <CurrentDeviceContext.Provider value={getCurrentDeviceId}>
-              <PublicSiteOriginContext.Provider value={publicSiteOrigin}>
-                <RouterProvider router={router} />
-              </PublicSiteOriginContext.Provider>
-            </CurrentDeviceContext.Provider>
-          </SettingsExtensionsContext.Provider>
-        </AuthConfigProvider>
+        <SettingsExtensionsContext.Provider value={settingsExtensions}>
+          <CurrentDeviceContext.Provider value={getCurrentDeviceId}>
+            <PublicSiteOriginContext.Provider value={publicSiteOrigin}>
+              <RouterProvider router={router} />
+            </PublicSiteOriginContext.Provider>
+          </CurrentDeviceContext.Provider>
+        </SettingsExtensionsContext.Provider>
       </AppContext.Provider>
     </div>
   );

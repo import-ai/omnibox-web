@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { FORCE_ASK } from '@/const';
 import { ChatMode } from '@/page/chat/chat-input/types';
+import type { StreamState } from '@/page/chat/conversation/chatStreamRecovery';
 
 interface IActionProps {
   disabled: boolean;
@@ -27,6 +28,7 @@ interface IActionProps {
   onStop?: () => void;
   loading: boolean;
   waitingForAssistantDelta: boolean;
+  streamState?: StreamState;
   mode: ChatMode;
   setMode: (mode: ChatMode) => void;
 }
@@ -41,6 +43,7 @@ export default function ChatAction(props: IActionProps) {
     onStop,
     loading,
     waitingForAssistantDelta,
+    streamState = 'connected',
     mode,
     setMode,
   } = props;
@@ -121,7 +124,13 @@ export default function ChatAction(props: IActionProps) {
                 <Square className="size-3! fill-current" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{t('chat.messages.actions.stop')}</TooltipContent>
+            <TooltipContent>
+              {streamState === 'recovering'
+                ? t('chat.stream.recovering')
+                : streamState === 'offline'
+                  ? t('chat.stream.offline')
+                  : t('chat.messages.actions.stop')}
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       ) : disabled ? (

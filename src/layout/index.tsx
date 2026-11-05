@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { TouchBackend } from 'react-dnd-touch-backend';
@@ -8,6 +8,7 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import Loading from '@/components/loading';
 import { Toaster } from '@/components/ui/Toaster';
+import useConfig from '@/hooks/useConfig';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme';
 import { resolveColorTheme } from '@/lib/colorThemes';
@@ -28,13 +29,18 @@ import {
 } from '@/page/inviteReferral/registration';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { removeGlobalCredential } from '@/page/user/util';
+import { establishServerSession } from '@/page/user/session';
+import {
+  CREDENTIAL_CHANGED_EVENT,
+  removeGlobalCredential,
+} from '@/page/user/util';
 
 import {
   getAuthChangeRedirectPath,
   isAuthStorageKey,
   shouldSyncUserOptions,
 } from './authStorage';
+import { LAST_NAMESPACE_ID_KEY, resolveRootDestination } from './rootRedirect';
 
 function clearUserWorkspaceState() {
   clearConversationCache();
@@ -53,9 +59,79 @@ export default function Layout() {
   const namespaceId = params.namespace_id;
   const shareId = params.share_id;
   const [uid, setUid] = useState(localStorage.getItem('uid'));
+  // The root path is served only to a browser the gateway considers signed
+  // in, so the cookie is the source of truth once local storage is empty.
+  const [sessionChecked, setSessionChecked] = useState(() =>
+    Boolean(localStorage.getItem('uid'))
+  );
+  const sessionAbortRef = useRef<AbortController | null>(null);
+  const authEpochRef = useRef(0);
   const isMobile = useIsMobile();
+  const { config, loading: configLoading } = useConfig();
 
   useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    sessionAbortRef.current = controller;
+    const uidAtStart = localStorage.getItem('uid');
+    const tokenAtStart = localStorage.getItem('token');
+    const epochAtStart = authEpochRef.current;
+
+    // A response that arrives after the credentials changed belongs to the
+    // previous account and must not overwrite the newer state.
+    const isStillCurrent = () =>
+      authEpochRef.current === epochAtStart &&
+      localStorage.getItem('uid') === uidAtStart &&
+      localStorage.getItem('token') === tokenAtStart;
+
+    // Refreshes the cookie so one written with an older SameSite policy is
+    // replaced, and restores the signed-in user when local storage is empty.
+    void establishServerSession(controller.signal)
+      .then(sessionUid => {
+        if (!active || !isStillCurrent()) return;
+        localStorage.setItem('uid', sessionUid);
+        setUid(sessionUid);
+        setSessionChecked(true);
+      })
+      .catch(() => {
+        if (active) setSessionChecked(true);
+      })
+      .finally(() => {
+        if (sessionAbortRef.current === controller) {
+          sessionAbortRef.current = null;
+        }
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
+  }, []);
+
+  useEffect(() => {
+    // Signing out in this tab only fires the credential event: the browser
+    // never sends a `storage` event to the tab that changed local storage. A
+    // session refresh still in flight would reissue the cookie the logout just
+    // cleared, so any credential change has to cancel it.
+    const handleCredentialChange = () => {
+      authEpochRef.current += 1;
+      sessionAbortRef.current?.abort();
+      sessionAbortRef.current = null;
+      const storedUid = localStorage.getItem('uid');
+      if (storedUid !== uid) {
+        clearUserWorkspaceState();
+      }
+      setUid(storedUid);
+      const redirectPath = getAuthChangeRedirectPath(
+        window.location.pathname,
+        uid,
+        storedUid
+      );
+      if (redirectPath) {
+        navigate(redirectPath, { replace: true });
+      }
+    };
+
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === 'i18nextLng') {
         const lang = event.newValue;
@@ -81,19 +157,7 @@ export default function Layout() {
           // Ignore malformed preferences from other tabs.
         }
       } else if (isAuthStorageKey(event.key)) {
-        const storedUid = localStorage.getItem('uid');
-        if (storedUid !== uid) {
-          clearUserWorkspaceState();
-        }
-        setUid(storedUid);
-        const redirectPath = getAuthChangeRedirectPath(
-          window.location.pathname,
-          uid,
-          storedUid
-        );
-        if (redirectPath) {
-          navigate(redirectPath, { replace: true });
-        }
+        handleCredentialChange();
       }
     };
     window.addEventListener('storage', handleStorageChange);
@@ -101,9 +165,14 @@ export default function Layout() {
       void persistDocsAppearance(uid).catch(() => undefined);
     };
     window.addEventListener('focus', retryDocsAppearance);
+    window.addEventListener(CREDENTIAL_CHANGED_EVENT, handleCredentialChange);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('focus', retryDocsAppearance);
+      window.removeEventListener(
+        CREDENTIAL_CHANGED_EVENT,
+        handleCredentialChange
+      );
     };
   }, [i18n, navigate, onToggleTheme, uid]);
 
@@ -150,6 +219,9 @@ export default function Layout() {
     }
 
     const requireLogin = () => {
+      if (!sessionChecked) {
+        return false;
+      }
       if (!uid) {
         if (namespaceId) {
           return true;
@@ -171,23 +243,47 @@ export default function Layout() {
       return;
     }
 
-    if (loc.pathname === '/') {
-      http.get('namespaces').then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const inviteLanding = consumeInviteReferralLanding();
-          const destination =
-            inviteLanding === 'activation'
-              ? `/${data[0].id}/invite-referral?entry=activation`
-              : inviteLanding
-                ? `/${data[0].id}/invite-referral`
-                : `/${data[0].id}/chat`;
-          navigate(destination, { replace: true });
-        } else {
-          navigate('/welcome', { replace: true });
-        }
-      });
+    if (!uid || loc.pathname !== '/' || configLoading) {
+      return;
     }
-  }, [namespaceId, shareId, uid, loc]);
+
+    let active = true;
+    const endpoint = config.commercial ? 'pro-namespaces' : 'namespaces';
+    http
+      .get(endpoint)
+      .then(namespaces => {
+        if (!active) return;
+        const destination = resolveRootDestination(
+          Array.isArray(namespaces) ? namespaces : [],
+          {
+            inviteLanding: consumeInviteReferralLanding(),
+            lastNamespaceId: localStorage.getItem(LAST_NAMESPACE_ID_KEY),
+          }
+        );
+        navigate(destination, { replace: true });
+      })
+      .catch(() => {
+        if (active) navigate('/welcome', { replace: true });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [
+    config.commercial,
+    configLoading,
+    namespaceId,
+    sessionChecked,
+    shareId,
+    uid,
+    loc,
+  ]);
+
+  useEffect(() => {
+    if (namespaceId && !shareId) {
+      localStorage.setItem(LAST_NAMESPACE_ID_KEY, namespaceId);
+    }
+  }, [namespaceId, shareId]);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(loc.search);

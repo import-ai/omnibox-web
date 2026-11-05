@@ -545,6 +545,16 @@
     "bind_failed": "手机绑定失败"
   },
   "setting": {
+    "contact": {
+      "title": "联系我们",
+      "description": "加入小黑社群，交流使用心得、反馈问题与建议",
+      "wechat_title": "微信群",
+      "wechat_description": "微信扫码加入社群，交流小黑的使用心得",
+      "wechat_qr_alt": "小黑微信社群二维码",
+      "discord_title": "Discord",
+      "discord_description": "加入 Discord 社区参与交流",
+      "join_discord": "加入 Discord"
+    },
     "option_descriptions": {
       "username": "设置在空间中显示的名称",
       "password": "设置或更新用于登录账户的密码",
@@ -842,6 +852,10 @@
     "stopping": "正在停止",
     "tool_stopped": "已停止",
     "stop_failed": "停止失败，请重试",
+    "stream": {
+      "recovering": "正在恢复连接",
+      "offline": "网络已断开，联网后会自动恢复"
+    },
     "delivery": {
       "sending": "发送中",
       "send_failed": "发送失败",
@@ -1119,6 +1133,8 @@
       "unknown": "对话出现异常，未能确认处理结果。",
       "request_failed": "对话请求失败，未能确认处理结果。",
       "connection_interrupted": "网络连接异常，请检查网络后重试。",
+      "stream_interrupted": "回复生成已中断，请重新生成。",
+      "stream_send_failed": "消息未发送成功，请重试。",
       "response_unreadable": "无法接收回复，请先检查任务结果。",
       "timeout": "请求超时，请先检查任务结果。",
       "unauthorized": "登录已失效，请重新登录。",
@@ -1127,6 +1143,9 @@
       "invalid_request": "请求无法处理，请检查输入后再试。",
       "rate_limited": "请求过于频繁，请稍后再试。",
       "service_unavailable": "服务出现异常，请先检查任务结果。",
+      "content_review": "本次请求未通过模型服务的安全审核，请修改相关内容后重试，或新建对话。",
+      "output_content_review": "生成的回复未通过模型服务的安全审核，请新建对话或修改后重试。",
+      "upstream_error": "网络错误，请稍后重试。",
       "busy": "对话仍在生成回复，请稍候。",
       "pending_decision": "请先处理待确认的工具操作。",
       "decision_not_applied": "工具操作的确认尚未生效，请检查对话状态。",
@@ -1397,6 +1416,8 @@
     }
   },
   "footer": {
+    "contact": "联系我们",
+    "download_app": "下载 APP",
     "docs": "帮助文档",
     "discord": "Discord",
     "wechat": "二维码",

@@ -525,3 +525,70 @@ describe('stopStream acknowledgement', () => {
     expect(operator.stop).not.toHaveBeenCalled();
   });
 });
+
+describe('ask transport completion', () => {
+  it.each([
+    ['done', false],
+    [undefined, true],
+  ])(
+    'distinguishes terminal %s from a clean truncated response',
+    async (terminal, interrupted) => {
+      (createStreamTransport as jest.Mock).mockReturnValue({
+        start: async () => undefined,
+        getLastResponseType: () => terminal,
+        isDetached: () => false,
+      });
+      const operator = {
+        add: jest.fn(),
+        update: jest.fn(),
+        error: jest.fn(),
+      } as unknown as MessageOperator;
+      const stream = ask(
+        'c1',
+        'hello',
+        [],
+        [],
+        AgentRequestChannel.WEB,
+        undefined,
+        operator,
+        '/ask',
+        undefined,
+        'n1',
+        undefined,
+        undefined
+      );
+      await stream.start();
+      expect(Boolean(stream.outcome.transientError)).toBe(interrupted);
+      expect(operator.error).not.toHaveBeenCalled();
+    }
+  );
+
+  it('does not restart an intentionally detached reader after a page takes ownership', async () => {
+    (createStreamTransport as jest.Mock).mockReturnValue({
+      start: async () => undefined,
+      getLastResponseType: () => undefined,
+      isDetached: () => true,
+    });
+    const operator = {
+      add: jest.fn(),
+      update: jest.fn(),
+      error: jest.fn(),
+    } as unknown as MessageOperator;
+    const stream = ask(
+      'c1',
+      'hello',
+      [],
+      [],
+      AgentRequestChannel.WEB,
+      undefined,
+      operator,
+      '/ask',
+      undefined,
+      'n1',
+      undefined,
+      undefined
+    );
+    await stream.start();
+    expect(stream.outcome.transientError).toBeUndefined();
+  });
+});
