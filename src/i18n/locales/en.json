@@ -440,9 +440,9 @@
     "agreement": {
       "checkbox_label": "I have read and agree<terms>《User Agreement》</terms>and<privacy>《Privacy Policy》</privacy>.",
       "confirm": {
-        "title": "Terms of Service and Privacy Policy",
-        "description": "Before continuing, please read and agree to OmniBox’s <terms>《User Agreement》</terms> and <privacy>《Privacy Policy》</privacy>.",
-        "button": "Agree and continue"
+        "title": "Service Agreement and Privacy Policy",
+        "description": "Before proceeding, please read and agree to OmniBox’s <terms>《User Agreement》</terms> and <privacy>《Privacy Policy》</privacy>",
+        "button": "Agree and Continue"
       },
       "decline": "Disagree"
     },

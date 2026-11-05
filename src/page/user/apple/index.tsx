@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -43,6 +43,8 @@ interface IProps {
   iconOnly?: boolean;
 }
 
+type AppleConfigStatus = 'loading' | 'ready' | 'error';
+
 export default function Apple(props: IProps) {
   const { mode = 'login', iconOnly = false } = props;
   const { t, i18n } = useTranslation();
@@ -51,7 +53,14 @@ export default function Apple(props: IProps) {
   const redirect = searchParams.get('redirect');
   const [sdkLoaded, setSdkLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [authConfig, setAuthConfig] = useState<any>(null);
+  const [configStatus, setConfigStatus] =
+    useState<AppleConfigStatus>('loading');
+  // The agreement dialog keeps the click callback. Confirmation reads this ref
+  // instead of the config captured when the dialog opened.
+  const authConfigRef = useRef<any>(null);
+  const configRequestRef = useRef(0);
+  const configLoadingRef = useRef(false);
+  const signingInRef = useRef(false);
 
   // Load Apple SDK
   useEffect(() => {
@@ -88,19 +97,39 @@ export default function Apple(props: IProps) {
     };
   }, [i18n, t]);
 
-  // Pre-fetch auth config to avoid async delay on click
+  const loadAuthConfig = useCallback(() => {
+    const requestId = ++configRequestRef.current;
+    configLoadingRef.current = true;
+    authConfigRef.current = null;
+    setConfigStatus('loading');
+    http
+      .get('/apple/auth-config')
+      .then(config => {
+        if (requestId !== configRequestRef.current) return;
+        authConfigRef.current = config;
+        setConfigStatus('ready');
+      })
+      .catch(() => {
+        if (requestId !== configRequestRef.current) return;
+        authConfigRef.current = null;
+        setConfigStatus('error');
+      })
+      .finally(() => {
+        if (requestId === configRequestRef.current) {
+          configLoadingRef.current = false;
+        }
+      });
+  }, []);
+
+  // Prefetch once the SDK is ready so confirmation never waits on the network.
   useEffect(() => {
-    if (sdkLoaded) {
-      http
-        .get('/apple/auth-config')
-        .then(config => {
-          setAuthConfig(config);
-        })
-        .catch(() => {
-          // Silent fail, will retry on click
-        });
-    }
-  }, [sdkLoaded]);
+    if (!sdkLoaded) return;
+    loadAuthConfig();
+    return () => {
+      configRequestRef.current += 1;
+      configLoadingRef.current = false;
+    };
+  }, [sdkLoaded, loadAuthConfig]);
 
   useEffect(() => {
     const handleSuccess = (event: CustomEvent) => {
@@ -154,31 +183,13 @@ export default function Apple(props: IProps) {
       : 'login.login_use_apple'
   );
 
-  const loginWithApple = async () => {
-    if (!sdkLoaded) {
-      toast.error(t('login.apple_sdk_not_loaded'), {
-        position: 'bottom-right',
-      });
-      return;
-    }
+  const loginWithApple = () => {
+    const config = authConfigRef.current;
+    if (!config || !window.AppleID || signingInRef.current) return;
 
-    if (!window.AppleID) {
-      toast.error(t('login.apple_sdk_not_loaded'), {
-        position: 'bottom-right',
-      });
-      return;
-    }
-
+    signingInRef.current = true;
     setLoading(true);
     try {
-      // Use pre-fetched config if available, otherwise fetch it
-      let config = authConfig;
-      if (!config) {
-        config = await http.get('/apple/auth-config');
-        setAuthConfig(config);
-      }
-
-      // Initialize and sign in synchronously to preserve user gesture context
       window.AppleID.auth.init({
         clientId: config.client_id,
         scope: config.scope || 'name email',
@@ -187,20 +198,34 @@ export default function Apple(props: IProps) {
         nonce: config.nonce,
         usePopup: true,
       });
-
-      await window.AppleID.auth.signIn();
+      void Promise.resolve(window.AppleID.auth.signIn()).finally(() => {
+        signingInRef.current = false;
+        setLoading(false);
+      });
     } catch {
-      // do nothing
-    } finally {
+      signingInRef.current = false;
       setLoading(false);
     }
+  };
+
+  const handleClick = () => {
+    if (configLoadingRef.current || signingInRef.current) return;
+    if (!authConfigRef.current) {
+      loadAuthConfig();
+      return;
+    }
+    runWithConsent(loginWithApple);
   };
 
   const button = (
     <Button
       variant="outline"
-      onClick={() => runWithConsent(() => void loginWithApple())}
-      disabled={!sdkLoaded || loading}
+      onClick={handleClick}
+      disabled={
+        !sdkLoaded ||
+        loading ||
+        (configStatus !== 'ready' && configStatus !== 'error')
+      }
       aria-label={iconOnly ? label : undefined}
       className={
         iconOnly ? 'h-9 w-full px-0 [&_svg]:size-5' : 'w-full [&_svg]:size-5'
