@@ -117,6 +117,49 @@ describe('createStreamTransport', () => {
     });
     expect(init.body).toBe('{"conversation_id":"conv"}');
   });
+
+  it('tracks the newest event id and skips replayed events', async () => {
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        streamResponse([
+          'data: {"response_type":"delta","event_id":"1-1","delta":"a"}\n\n',
+          'data: {"response_type":"delta","event_id":"1-1","delta":"a"}\n\n',
+          'data: {"response_type":"delta","event_id":"1-2","delta":"b"}\n\n',
+          'data: {"response_type":"done","event_id":"1-3"}\n\n',
+        ])
+      ) as unknown as typeof fetch;
+    const delivered: string[] = [];
+    const transport = createStreamTransport(
+      '/ask',
+      {},
+      async data => {
+        delivered.push(data);
+      },
+      '/cancel'
+    );
+    await transport.start();
+    expect(delivered).toHaveLength(3);
+    expect(transport.getLastEventId()).toBe('1-3');
+  });
+
+  it('aborts the pending request when the view detaches', async () => {
+    let signal: AbortSignal | undefined;
+    globalThis.fetch = jest.fn().mockImplementation((_url, init) => {
+      signal = (init as RequestInit).signal as AbortSignal;
+      return new Promise(() => undefined);
+    }) as unknown as typeof fetch;
+    const transport = createStreamTransport(
+      '/ask',
+      {},
+      async () => {},
+      '/cancel'
+    );
+    void transport.start();
+    expect(signal?.aborted).toBe(false);
+    transport.destroy();
+    expect(signal?.aborted).toBe(true);
+  });
 });
 
 it('keeps the HTTP status and business code of a rejected chat request', async () => {
