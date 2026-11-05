@@ -198,10 +198,14 @@ export default function Apple(props: IProps) {
         nonce: config.nonce,
         usePopup: true,
       });
-      void Promise.resolve(window.AppleID.auth.signIn()).finally(() => {
-        signingInRef.current = false;
-        setLoading(false);
-      });
+      void Promise.resolve(window.AppleID.auth.signIn())
+        .catch(() => {
+          // The SDK failure event owns cancellation and error feedback.
+        })
+        .finally(() => {
+          signingInRef.current = false;
+          setLoading(false);
+        });
     } catch {
       signingInRef.current = false;
       setLoading(false);

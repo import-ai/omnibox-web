@@ -4,6 +4,7 @@ import { createInstance } from 'i18next';
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { I18nextProvider } from 'react-i18next';
+import { toast } from 'sonner';
 
 import en from '@/i18n/locales/en.json';
 import zh from '@/i18n/locales/zh.json';
@@ -219,3 +220,56 @@ it('keeps Apple clickable after a config failure and retries without authorizing
   });
   expect(http.get).toHaveBeenCalledTimes(2);
 });
+
+it.each(['popup_closed_by_user', 'invalid_client'])(
+  'consumes a rejected sign-in promise (%s) and allows retry',
+  async errorCode => {
+    jest
+      .mocked(window.AppleID.auth.signIn)
+      .mockRejectedValueOnce({ error: errorCode });
+    await renderApple();
+    await resolveConfig();
+    await act(async () => button('使用 Apple 登录').click());
+    await act(async () => {
+      button('同意并继续').click();
+      expect(window.AppleID.auth.signIn).toHaveBeenCalledTimes(1);
+    });
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+    expect(button('使用 Apple 登录').disabled).toBe(false);
+    expect(toast.error).not.toHaveBeenCalled();
+    await act(async () => button('使用 Apple 登录').click());
+    expect(window.AppleID.auth.signIn).toHaveBeenCalledTimes(2);
+    expect(http.get).toHaveBeenCalledTimes(1);
+  }
+);
+
+it.each([
+  ['user_cancelled_authorize', 0],
+  ['popup_closed_by_user', 0],
+  ['invalid_client', 1],
+] as const)(
+  'keeps failure-event feedback single and cancellation quiet (%s)',
+  async (errorCode, expectedToasts) => {
+    jest
+      .mocked(window.AppleID.auth.signIn)
+      .mockRejectedValueOnce({ error: errorCode });
+    await renderApple();
+    await resolveConfig();
+    await act(async () => button('使用 Apple 登录').click());
+    await act(async () => {
+      button('同意并继续').click();
+      document.dispatchEvent(
+        new CustomEvent('AppleIDSignInOnFailure', {
+          detail: { error: errorCode },
+        })
+      );
+    });
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+    expect(button('使用 Apple 登录').disabled).toBe(false);
+    expect(toast.error).toHaveBeenCalledTimes(expectedToasts);
+  }
+);
