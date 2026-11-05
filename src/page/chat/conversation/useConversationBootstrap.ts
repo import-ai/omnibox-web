@@ -9,12 +9,13 @@ import type {
   ChatCreatePayload,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
-import { getStreamEventId, resumeStream } from '@/page/chat/conversation/utils';
+import { resumeStream } from '@/page/chat/conversation/utils';
 import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import { isTerminalMessageStatus } from '@/page/chat/core/types/chatResponse';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 import { getTitleFromConversationDetail } from '@/page/chat/utils';
 
+import { resumeStreamCursor } from './chatStreamRecovery';
 import {
   clearCachedConversation,
   clearCachedConversationIfUnchanged,
@@ -49,6 +50,14 @@ interface ConversationBootstrapOptions {
   namespaceId: string;
   sendMessage: (params: SendMessageParams) => Promise<void>;
   detachActiveStream?: () => void;
+  onResumeError?: (
+    error: unknown,
+    cursor?: string,
+    initialConversation?: ConversationDetail
+  ) => void;
+  detachStreamRef?: { current: (() => void) | null };
+  trackStream?: (stream: ReturnType<typeof resumeStream>) => void;
+  untrackStream?: (stream: ReturnType<typeof resumeStream>) => void;
   setAccessDenied: Dispatch<SetStateAction<boolean>>;
   setConversation: Dispatch<SetStateAction<ConversationDetail>>;
   setInitialApprovalMode: Dispatch<SetStateAction<ApprovalMode | undefined>>;
@@ -80,6 +89,7 @@ function clearVisibleConversation(
     options;
   clearCachedConversation(cacheScope, conversationId);
   runtime.resumeFN?.destroy();
+  if (runtime.resumeFN) options.untrackStream?.(runtime.resumeFN);
   if (askAbortRef.current === runtime.resumeFN?.cancel) {
     askAbortRef.current = null;
   }
@@ -193,17 +203,57 @@ function resumeLoadedConversation(
     conversationId,
     messageOperator,
     `/api/v1/namespaces/${namespaceId}/wizard/stream/resume`,
-    getStreamEventId(conversation)
+    resumeStreamCursor(conversation)
   );
+  options.trackStream?.(runtime.resumeFN);
+  const resumeFN = runtime.resumeFN;
   askAbortRef.current = runtime.resumeFN.cancel;
-  void runtime.resumeFN.start().finally(() => {
-    if (askAbortRef.current === runtime.resumeFN?.cancel) {
-      askAbortRef.current = null;
-    }
-    if (isActiveRequest(options, runtime)) {
-      void loadConversation(options, runtime, 'refresh', refreshLeaf);
-    }
-  });
+  if (options.detachStreamRef)
+    options.detachStreamRef.current = resumeFN.destroy;
+  let failed = false;
+  void resumeFN
+    .start()
+    .catch(error => {
+      failed = true;
+      if (
+        isActiveRequest(options, runtime) &&
+        askAbortRef.current === resumeFN.cancel
+      )
+        options.onResumeError?.(
+          error,
+          resumeFN.getLastEventId?.(),
+          conversation
+        );
+    })
+    .finally(() => {
+      const owned = askAbortRef.current === resumeFN.cancel;
+      options.untrackStream?.(resumeFN);
+      if (options.detachStreamRef?.current === resumeFN.destroy)
+        options.detachStreamRef.current = null;
+      if (askAbortRef.current === resumeFN.cancel) {
+        askAbortRef.current = null;
+      }
+      if (!failed && owned && isActiveRequest(options, runtime)) {
+        void loadConversation(options, runtime, 'refresh', refreshLeaf).then(
+          snapshot => {
+            if (
+              snapshot &&
+              replyStillRunning(snapshot) &&
+              !['done', 'error', 'stopped'].includes(
+                resumeFN.getLastResponseType?.() ?? ''
+              ) &&
+              isActiveRequest(options, runtime)
+            ) {
+              options.onResumeError?.(
+                { code: 'STREAM_READ_FAILED' },
+                resumeFN.getLastEventId?.(),
+                snapshot
+              );
+            }
+          }
+        );
+      }
+    });
 }
 
 function startConversationBootstrap(options: ConversationBootstrapOptions) {
@@ -234,6 +284,7 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
     return () => {
       runtime.destroyed = true;
       runtime.resumeFN?.destroy();
+      if (runtime.resumeFN) options.untrackStream?.(runtime.resumeFN);
     };
   }
   options.setInitialApprovalMode(payload?.approvalMode);
@@ -249,6 +300,7 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
     return () => {
       runtime.destroyed = true;
       runtime.resumeFN?.destroy();
+      if (runtime.resumeFN) options.untrackStream?.(runtime.resumeFN);
       if (openedConversationIds.has(options.conversationId)) {
         options.detachActiveStream?.();
       }
@@ -260,6 +312,7 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
   return () => {
     runtime.destroyed = true;
     runtime.resumeFN?.destroy();
+    if (runtime.resumeFN) options.untrackStream?.(runtime.resumeFN);
   };
 }
 

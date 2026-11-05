@@ -83,7 +83,6 @@ jest.mock('@/page/chat/conversation/utils.ts', () => ({
   ask: jest.fn(() => mockStream()),
   resumeStream: () => mockStream(),
   stopStream: jest.fn(),
-  getStreamEventId: jest.fn(),
   isTerminalMessageStatus: () => true,
   extractOriginalMessageSettings: () => ({
     originalTools: [],
