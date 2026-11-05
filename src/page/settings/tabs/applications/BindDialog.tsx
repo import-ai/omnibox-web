@@ -1,5 +1,4 @@
 import { Send } from 'lucide-react';
-import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoUrl from '@/assets/logo.svg';
@@ -12,24 +11,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
-import { BIND_CHECK_INTERVAL } from '@/const';
+import type { Application } from '@/interface';
 
 import { getQrCodeUrl } from './getQrCodeUrl';
+import { useBindingStatusPolling } from './useBindingStatusPolling';
 import { useQrCode } from './useQrCode';
 
 interface BindDialogProps {
   open: boolean;
+  active?: boolean;
   onOpenChange: (open: boolean) => void;
   bindingCode: string;
   urlLink?: string;
   applicationId: string;
   appId: string;
-  checkApplicationStatus: (applicationId: string) => Promise<any>;
+  checkApplicationStatus: (
+    applicationId: string,
+    options?: { signal?: AbortSignal }
+  ) => Promise<Application>;
   onBindingComplete: () => void;
 }
 
 export function BindDialog({
   open,
+  active = true,
   onOpenChange,
   bindingCode,
   urlLink,
@@ -39,11 +44,6 @@ export function BindDialog({
   onBindingComplete,
 }: BindDialogProps) {
   const { t } = useTranslation();
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const pollingStartTimeRef = useRef<number>(0);
-
-  const POLLING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-
   const qrCodeUrl = getQrCodeUrl(appId, bindingCode, urlLink);
   const isTelegram = appId === 'telegram_bot';
   const platformName = t(`applications.app_names.${appId}`, {
@@ -51,61 +51,13 @@ export function BindDialog({
   });
   const qrCodeDataUrl = useQrCode(qrCodeUrl, open);
 
-  const stopPolling = useCallback(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  }, []);
-
-  const checkBindingStatus = useCallback(async () => {
-    if (!open || !applicationId) return;
-
-    try {
-      const application = await checkApplicationStatus(applicationId);
-
-      // Check if binding is complete (has api_key_id)
-      if (application.api_key_id) {
-        stopPolling();
-        onBindingComplete();
-        return;
-      }
-
-      // Check for timeout
-      const elapsedTime = Date.now() - pollingStartTimeRef.current;
-      if (elapsedTime > POLLING_TIMEOUT) {
-        stopPolling();
-        console.warn('Binding check timeout reached');
-      }
-    } catch (error) {
-      console.error('Error checking binding status:', error);
-      // Continue polling despite errors
-    }
-  }, [
+  useBindingStatusPolling({
     open,
+    active,
     applicationId,
     checkApplicationStatus,
     onBindingComplete,
-    stopPolling,
-    POLLING_TIMEOUT,
-  ]);
-
-  // Start polling when dialog opens
-  useEffect(() => {
-    if (open && applicationId) {
-      pollingStartTimeRef.current = Date.now();
-      pollingIntervalRef.current = setInterval(
-        checkBindingStatus,
-        BIND_CHECK_INTERVAL
-      );
-    } else {
-      stopPolling();
-    }
-
-    return () => {
-      stopPolling();
-    };
-  }, [open, applicationId, checkBindingStatus, stopPolling]);
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

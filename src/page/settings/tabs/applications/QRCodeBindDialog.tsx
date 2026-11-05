@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import logoUrl from '@/assets/logo.svg';
@@ -9,22 +8,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
-import { BIND_CHECK_INTERVAL } from '@/const';
+import type { Application } from '@/interface';
 
+import { useBindingStatusPolling } from './useBindingStatusPolling';
 import { useQrCode } from './useQrCode';
 
 interface QRCodeBindDialogProps {
   open: boolean;
+  active?: boolean;
   onOpenChange: (open: boolean) => void;
   qrcodeContent: string;
   applicationId: string;
   appId: string;
-  checkApplicationStatus: (applicationId: string) => Promise<any>;
+  checkApplicationStatus: (
+    applicationId: string,
+    options?: { signal?: AbortSignal }
+  ) => Promise<Application>;
   onBindingComplete: () => void;
 }
 
 export function QRCodeBindDialog({
   open,
+  active = true,
   onOpenChange,
   qrcodeContent,
   applicationId,
@@ -33,11 +38,6 @@ export function QRCodeBindDialog({
   onBindingComplete,
 }: QRCodeBindDialogProps) {
   const { t } = useTranslation();
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const pollingStartTimeRef = useRef<number>(0);
-
-  const POLLING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-
   const platformName = t(`applications.scan_via.${appId}`, {
     defaultValue: appId,
   });
@@ -46,61 +46,13 @@ export function QRCodeBindDialog({
   });
   const qrCodeDataUrl = useQrCode(qrcodeContent, open);
 
-  const stopPolling = useCallback(() => {
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  }, []);
-
-  const checkBindingStatus = useCallback(async () => {
-    if (!open || !applicationId) return;
-
-    try {
-      const application = await checkApplicationStatus(applicationId);
-
-      // Check if binding is complete (has api_key_id)
-      if (application.api_key_id) {
-        stopPolling();
-        onBindingComplete();
-        return;
-      }
-
-      // Check for timeout
-      const elapsedTime = Date.now() - pollingStartTimeRef.current;
-      if (elapsedTime > POLLING_TIMEOUT) {
-        stopPolling();
-        console.warn('Binding check timeout reached');
-      }
-    } catch (error) {
-      console.error('Error checking binding status:', error);
-      // Continue polling despite errors
-    }
-  }, [
+  useBindingStatusPolling({
     open,
+    active,
     applicationId,
     checkApplicationStatus,
     onBindingComplete,
-    stopPolling,
-    POLLING_TIMEOUT,
-  ]);
-
-  // Start polling when dialog opens
-  useEffect(() => {
-    if (open && applicationId) {
-      pollingStartTimeRef.current = Date.now();
-      pollingIntervalRef.current = setInterval(
-        checkBindingStatus,
-        BIND_CHECK_INTERVAL
-      );
-    } else {
-      stopPolling();
-    }
-
-    return () => {
-      stopPolling();
-    };
-  }, [open, applicationId, checkBindingStatus, stopPolling]);
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

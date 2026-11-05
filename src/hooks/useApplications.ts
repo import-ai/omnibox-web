@@ -4,10 +4,15 @@ import { BIND_CHECK_INTERVAL } from '@/const';
 import { Application } from '@/interface';
 import { http } from '@/lib/request';
 
+import {
+  getApplicationIdentity,
+  useApplicationIdentity,
+} from './useApplicationIdentity';
+
 interface ApplicationSyncOptions {
   active?: boolean;
-  syncWechatBinding?: boolean;
-  onUnbound?: (application: Application) => void;
+  syncBindingIds?: readonly string[];
+  onUnbound?: (applications: Application[]) => void;
 }
 
 interface RefreshOptions {
@@ -15,34 +20,38 @@ interface RefreshOptions {
   showLoading?: boolean;
 }
 
+const NO_BINDING_SYNC: readonly string[] = [];
+
 export default function useApplications(
   namespaceId: string,
   {
     active = true,
-    syncWechatBinding = false,
+    syncBindingIds = NO_BINDING_SYNC,
     onUnbound,
   }: ApplicationSyncOptions = {}
 ) {
+  const accountId = useApplicationIdentity();
   const [state, setState] = useState({
+    accountId,
     namespaceId,
     applications: [] as Application[],
     loading: true,
     error: null as string | null,
   });
-  const syncRef = useRef({ active, syncWechatBinding, onUnbound });
-  syncRef.current = { active, syncWechatBinding, onUnbound };
+  const syncRef = useRef({ active, syncBindingIds, onUnbound });
+  syncRef.current = { active, syncBindingIds, onUnbound };
   const session = useMemo(
     () => ({
       active: false,
+      accountId,
       requestVersion: 0,
       mutations: 0,
+      creationVersions: new Map<string, number>(),
+      statusRequests: new Set<AbortController>(),
       applications: [] as Application[],
-      requests: new Map<
-        AbortController,
-        { background: boolean; showLoading: boolean }
-      >(),
+      requests: new Map<AbortController, { showLoading: boolean }>(),
     }),
-    [namespaceId, active]
+    [namespaceId, active, accountId]
   );
 
   const fetchApplications = useCallback(
@@ -56,13 +65,15 @@ export default function useApplications(
       }
       if (
         !session.active ||
+        session.accountId !== getApplicationIdentity() ||
         !syncRef.current.active ||
-        (background && document.visibilityState !== 'visible')
+        ((background || syncRef.current.syncBindingIds.length > 0) &&
+          document.visibilityState !== 'visible')
       )
         return;
       const requestVersion = ++session.requestVersion;
       const controller = new AbortController();
-      session.requests.set(controller, { background, showLoading });
+      session.requests.set(controller, { showLoading });
       if (showLoading) {
         setState(previous => ({ ...previous, loading: true, error: null }));
       }
@@ -74,15 +85,47 @@ export default function useApplications(
         );
         if (
           !session.active ||
+          session.accountId !== getApplicationIdentity() ||
           !syncRef.current.active ||
           controller.signal.aborted ||
           requestVersion !== session.requestVersion ||
-          (background && document.visibilityState !== 'visible')
+          ((background || syncRef.current.syncBindingIds.length > 0) &&
+            document.visibilityState !== 'visible')
         )
           return;
+        if (
+          !Array.isArray(response) ||
+          response.some(
+            application =>
+              !application ||
+              typeof application.app_id !== 'string' ||
+              !application.app_id ||
+              (application.namespace_id &&
+                application.namespace_id !== namespaceId) ||
+              (session.accountId &&
+                application.user_id &&
+                application.user_id !== session.accountId)
+          ) ||
+          new Set(response.map(application => application.app_id)).size !==
+            response.length
+        ) {
+          throw new Error('Invalid applications response');
+        }
+        // The list contract includes an explicit placeholder for unbound apps.
+        // A missing known assistant cannot establish a new binding baseline.
+        if (
+          session.applications.some(
+            previous =>
+              syncRef.current.syncBindingIds.includes(previous.app_id) &&
+              !response.some(current => current.app_id === previous.app_id)
+          )
+        ) {
+          throw new Error('Incomplete applications response');
+        }
         const previousApplications = session.applications;
         session.applications = response;
         setState({
+          accountId: session.accountId,
           namespaceId,
           applications: response,
           loading: [...session.requests.values()].some(
@@ -91,27 +134,37 @@ export default function useApplications(
           error: null,
         });
 
-        if (background && syncRef.current.syncWechatBinding) {
-          const previous = previousApplications.find(
-            app => app.app_id === 'wechat_oa_bot' && app.id && app.api_key_id
-          );
-          const current = response.find(app => app.app_id === 'wechat_oa_bot');
-          if (previous && current && !current.id) {
-            syncRef.current.onUnbound?.(previous);
-          }
+        const removed = previousApplications.filter(previous => {
+          if (
+            !syncRef.current.syncBindingIds.includes(previous.app_id) ||
+            !previous.id ||
+            !previous.api_key_id
+          )
+            return false;
+          const current = response.find(app => app.app_id === previous.app_id);
+          return current && !current.id;
+        });
+        if (removed.length && document.visibilityState === 'visible') {
+          syncRef.current.onUnbound?.(removed);
         }
         return response;
       } catch (err) {
         if (
           session.active &&
+          session.accountId === getApplicationIdentity() &&
+          !controller.signal.aborted &&
           requestVersion === session.requestVersion &&
           !background
         ) {
           setState(previous => ({
             ...previous,
+            accountId: session.accountId,
             namespaceId,
             applications:
-              previous.namespaceId === namespaceId ? previous.applications : [],
+              previous.namespaceId === namespaceId &&
+              previous.accountId === session.accountId
+                ? previous.applications
+                : [],
             loading: [...session.requests.values()].some(
               request => request.showLoading
             ),
@@ -123,7 +176,12 @@ export default function useApplications(
         }
       } finally {
         session.requests.delete(controller);
-        if (showLoading && session.active && syncRef.current.active) {
+        if (
+          showLoading &&
+          session.active &&
+          session.accountId === getApplicationIdentity() &&
+          syncRef.current.active
+        ) {
           setState(previous => ({
             ...previous,
             loading: [...session.requests.values()].some(
@@ -138,15 +196,34 @@ export default function useApplications(
 
   const bindApplication = useCallback(
     async (appId: string): Promise<Application> => {
+      if (
+        !session.active ||
+        session.accountId !== getApplicationIdentity() ||
+        !syncRef.current.active
+      ) {
+        throw new DOMException('Obsolete application session', 'AbortError');
+      }
+      const creationVersion = (session.creationVersions.get(appId) ?? 0) + 1;
+      session.creationVersions.set(appId, creationVersion);
       session.mutations++;
       session.requestVersion++;
+      session.requests.forEach((_request, controller) => controller.abort());
+      session.requests.clear();
+      session.statusRequests.forEach(controller => controller.abort());
       try {
         const response: Application = await http.post(
           `/namespaces/${namespaceId}/applications/${appId}`,
           undefined,
           { mute: true }
         );
-        if (session.active && syncRef.current.active) {
+        if (session.creationVersions.get(appId) !== creationVersion) {
+          throw new DOMException('Obsolete application creation', 'AbortError');
+        }
+        if (
+          session.active &&
+          session.accountId === getApplicationIdentity() &&
+          syncRef.current.active
+        ) {
           const existing = session.applications.find(
             application => application.app_id === response.app_id
           );
@@ -156,6 +233,7 @@ export default function useApplications(
               )
             : [...session.applications, response];
           setState({
+            accountId: session.accountId,
             namespaceId,
             applications: session.applications,
             loading: false,
@@ -176,20 +254,31 @@ export default function useApplications(
       applicationId: string,
       { showLoading = true }: Pick<RefreshOptions, 'showLoading'> = {}
     ): Promise<void> => {
+      if (
+        !session.active ||
+        session.accountId !== getApplicationIdentity() ||
+        !syncRef.current.active
+      ) {
+        throw new DOMException('Obsolete application session', 'AbortError');
+      }
       session.mutations++;
       session.requestVersion++;
+      session.requests.forEach((_request, controller) => controller.abort());
+      session.requests.clear();
+      session.statusRequests.forEach(controller => controller.abort());
       try {
         await http.delete(
           `/namespaces/${namespaceId}/applications/${applicationId}`,
           { mute: true }
         );
-        if (session.active) {
+        if (session.active && session.accountId === getApplicationIdentity()) {
           session.applications = session.applications.map(application =>
             application.id === applicationId
               ? ({ app_id: application.app_id } as Application)
               : application
           );
           setState({
+            accountId: session.accountId,
             namespaceId,
             applications: session.applications,
             loading: false,
@@ -206,9 +295,48 @@ export default function useApplications(
   );
 
   const checkApplicationStatus = useCallback(
-    async (applicationId: string): Promise<Application> =>
-      http.get(`/namespaces/${namespaceId}/applications/${applicationId}`),
-    [namespaceId]
+    async (
+      applicationId: string,
+      options?: { signal?: AbortSignal }
+    ): Promise<Application> => {
+      if (
+        session.mutations > 0 ||
+        !session.active ||
+        !syncRef.current.active ||
+        session.accountId !== getApplicationIdentity()
+      ) {
+        throw new DOMException('Unavailable binding session', 'AbortError');
+      }
+      const controller = new AbortController();
+      const abort = () => controller.abort();
+      options?.signal?.addEventListener('abort', abort, { once: true });
+      if (
+        options?.signal?.aborted ||
+        !session.active ||
+        session.accountId !== getApplicationIdentity()
+      )
+        controller.abort();
+      session.statusRequests.add(controller);
+      try {
+        const result: Application = await http.get(
+          `/namespaces/${namespaceId}/applications/${applicationId}`,
+          { signal: controller.signal, mute: true }
+        );
+        if (
+          controller.signal.aborted ||
+          !session.active ||
+          session.accountId !== getApplicationIdentity() ||
+          result.id !== applicationId
+        ) {
+          throw new DOMException('Obsolete binding status', 'AbortError');
+        }
+        return result;
+      } finally {
+        options?.signal?.removeEventListener('abort', abort);
+        session.statusRequests.delete(controller);
+      }
+    },
+    [namespaceId, session]
   );
 
   useEffect(() => {
@@ -217,42 +345,44 @@ export default function useApplications(
     return () => {
       session.active = false;
       session.requestVersion++;
-      session.requests.forEach((_background, controller) => controller.abort());
+      session.requests.forEach((_request, controller) => controller.abort());
+      session.statusRequests.forEach(controller => controller.abort());
     };
   }, [active, session, fetchApplications]);
 
   useEffect(() => {
-    if (!active || !syncWechatBinding || !namespaceId) return;
-    const cancelBackgroundRequests = () => {
-      session.requests.forEach(({ background }, controller) => {
-        if (background) {
-          controller.abort();
-          session.requests.delete(controller);
-        }
-      });
+    if (!active || !syncBindingIds.length || !namespaceId) return;
+    const cancelReadRequests = () => {
+      session.requests.forEach((_request, controller) => controller.abort());
+      session.requests.clear();
+      session.statusRequests.forEach(controller => controller.abort());
     };
-    const refresh = async () => {
+    const refresh = async (calibrate = false) => {
       if (
         !session.active ||
         session.mutations > 0 ||
         session.requests.size > 0 ||
         document.visibilityState !== 'visible' ||
-        !session.applications.some(
-          app => app.app_id === 'wechat_oa_bot' && app.id && app.api_key_id
-        )
+        (!calibrate &&
+          !session.applications.some(
+            app =>
+              syncRef.current.syncBindingIds.includes(app.app_id) &&
+              app.id &&
+              app.api_key_id
+          ))
       ) {
         return;
       }
       await fetchApplications({ background: true });
     };
     const interval = setInterval(() => void refresh(), BIND_CHECK_INTERVAL);
-    const onFocus = () => void refresh();
+    const onFocus = () => void refresh(true);
     const onVisibilityChange = () => {
       if (document.visibilityState !== 'visible') {
-        cancelBackgroundRequests();
+        cancelReadRequests();
         return;
       }
-      void refresh();
+      void refresh(true);
     };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onVisibilityChange);
@@ -260,11 +390,12 @@ export default function useApplications(
       clearInterval(interval);
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onVisibilityChange);
-      cancelBackgroundRequests();
+      cancelReadRequests();
     };
-  }, [active, syncWechatBinding, namespaceId, session, fetchApplications]);
+  }, [active, syncBindingIds.length, namespaceId, session, fetchApplications]);
 
-  const currentNamespace = state.namespaceId === namespaceId;
+  const currentNamespace =
+    state.namespaceId === namespaceId && state.accountId === accountId;
   return {
     applications: currentNamespace ? state.applications : [],
     loading: !currentNamespace || state.loading,
