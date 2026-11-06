@@ -1,4 +1,3 @@
-import type { TFunction } from 'i18next';
 import { ScrollText } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,10 +24,9 @@ import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import { hasToolCalls } from '../conversation/conversationHistory';
 import { ProcessDetails } from '../conversation/ProcessDetails';
-import {
-  buildMessageDisplayItems,
-  getCollapsedProcessDurationSeconds,
-} from './messageGroups';
+import { AnswerDuration } from './AnswerDuration';
+import { getAnswerTiming } from './answerTiming';
+import { buildMessageDisplayItems } from './messageGroups';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -124,30 +122,10 @@ function renderMessage(
   return <></>;
 }
 
-function formatProcessDuration(seconds: number, t: TFunction) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const restSeconds = seconds % 60;
-  const parts: string[] = [];
-
-  if (hours > 0) {
-    parts.push(t('chat.messages.process.duration.hours', { count: hours }));
-  }
-  if (minutes > 0) {
-    parts.push(t('chat.messages.process.duration.minutes', { count: minutes }));
-  }
-  if (restSeconds > 0 || parts.length === 0) {
-    parts.push(
-      t('chat.messages.process.duration.seconds', { count: restSeconds })
-    );
-  }
-
-  return parts.join(' ');
-}
-
 function hasVisibleMessageContent(message: MessageDetail, chatOnly = false) {
   const openAIMessage = message.message;
 
+  if (getAnswerTiming(message)) return true;
   if (message.attrs?.tool_call?.decisions?.length) return true;
   if (
     message.status === MessageStatus.FAILED ||
@@ -323,6 +301,7 @@ export function Messages(props: IProps) {
         {message.attrs?.compact && (
           <ContextCompactedDivider status={message.attrs.compact.status} />
         )}
+        <AnswerDuration message={message} />
         {shouldRenderMessage &&
           (() => {
             const content = renderMessage(
@@ -404,13 +383,7 @@ export function Messages(props: IProps) {
             <ProcessDetails
               key={`process_${item.messages[0].id}`}
               ids={item.messages.map(message => message.id)}
-              title={formatProcessDuration(
-                getCollapsedProcessDurationSeconds(
-                  item.messages,
-                  item.finalMessage
-                ),
-                t
-              )}
+              title={t('chat.messages.process.title')}
             >
               {() =>
                 visibleProcessMessages.map((message, processIndex) =>

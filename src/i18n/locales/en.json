@@ -926,11 +926,18 @@
         "tokens": "{{estimated}} / {{trigger}} tokens"
       },
       "process": {
+        "title": "Response process",
         "duration": {
           "hours": "{{count}}h",
           "minutes": "{{count}}m",
           "seconds": "{{count}}s"
         }
+      },
+      "answer_duration": {
+        "success": "Response time: {{duration}}",
+        "stopped": "Stopped · elapsed {{duration}}",
+        "failed": "Failed · elapsed {{duration}}",
+        "less_than_second": "<1s"
       },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected",

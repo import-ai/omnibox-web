@@ -927,11 +927,18 @@
         "tokens": "{{estimated}} / {{trigger}} 词元"
       },
       "process": {
+        "title": "回答过程",
         "duration": {
           "hours": "{{count}} 小时",
           "minutes": "{{count}} 分",
           "seconds": "{{count}} 秒"
         }
+      },
+      "answer_duration": {
+        "success": "回答耗时 {{duration}}",
+        "stopped": "已停止 · 耗时 {{duration}}",
+        "failed": "回答失败 · 耗时 {{duration}}",
+        "less_than_second": "不足 1 秒"
       },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源",
