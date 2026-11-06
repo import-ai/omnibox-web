@@ -28,21 +28,23 @@ jest.mock('@/page/chat/components/ToolCallArgs', () => ({
 jest.mock('@/page/chat/messages/citations/CitationMarkdown', () => ({
   CitationMarkdown: ({
     content,
-    footer,
+    metadata,
   }: {
     content: string;
-    footer?: ReactNode;
+    metadata?: ReactNode;
   }) => (
     <div>
       {content}
-      {footer}
-      <button>Copy action</button>
+      <div>
+        <button>Copy action</button>
+        {metadata}
+      </div>
     </div>
   ),
 }));
 
 test.each([false, true])(
-  'keeps the duration between body and actions with reasoning: %s',
+  'keeps the duration in the answer toolbar with reasoning: %s',
   reasoning => {
     const message: MessageDetail = {
       id: 'a',
@@ -81,8 +83,8 @@ test.each([false, true])(
     expect(html.indexOf('Answer body')).toBeLessThan(
       html.indexOf('chat.messages.answer_duration.success')
     );
-    expect(html.indexOf('chat.messages.answer_duration.success')).toBeLessThan(
-      html.indexOf('Copy action')
+    expect(html.indexOf('Copy action')).toBeLessThan(
+      html.indexOf('chat.messages.answer_duration.success')
     );
     expect(html.match(/chat.messages.answer_duration.success/g)).toHaveLength(
       1

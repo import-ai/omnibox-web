@@ -9,7 +9,7 @@ export function AnswerDuration({ message }: { message: MessageDetail }) {
   const timing = getAnswerTiming(message);
   if (!timing) return null;
   return (
-    <div className="mb-3 flex items-center gap-1.5 text-sm text-muted-foreground">
+    <div className="flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
       <Timer className="size-4" aria-hidden="true" />
       <span>
         {t(`chat.messages.answer_duration.${timing.outcome}`, {
