@@ -48,6 +48,7 @@ test.each([false, true])(
   reasoning => {
     const message: MessageDetail = {
       id: 'a',
+      clientKey: 1,
       parent_id: 'q',
       children: [],
       status: MessageStatus.SUCCESS,
