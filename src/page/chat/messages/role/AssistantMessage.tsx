@@ -34,6 +34,7 @@ import {
   DetailLoadState,
   useMessageDetails,
 } from '../../conversation/MessageDetailsContext';
+import { AnswerDuration } from '../AnswerDuration';
 import {
   findToolMessageForToolCall,
   isTerminalToolCallStatus,
@@ -178,6 +179,7 @@ export function AssistantMessage(props: IProps) {
         isLastMessage={isLastMessage}
         hideActions={hideActions}
         onShare={onShare}
+        footer={<AnswerDuration message={message} />}
       />
     );
   }

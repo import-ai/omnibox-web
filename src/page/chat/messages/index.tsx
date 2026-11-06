@@ -301,7 +301,6 @@ export function Messages(props: IProps) {
         {message.attrs?.compact && (
           <ContextCompactedDivider status={message.attrs.compact.status} />
         )}
-        <AnswerDuration message={message} />
         {shouldRenderMessage &&
           (() => {
             const content = renderMessage(
@@ -330,6 +329,10 @@ export function Messages(props: IProps) {
               </ConversationShareMessageRow>
             );
           })()}
+        {(message.message.role !== OpenAIMessageRole.ASSISTANT ||
+          !message.message.content?.trim()) && (
+          <AnswerDuration message={message} />
+        )}
         {message.status === MessageStatus.FAILED && (
           <div
             role="alert"

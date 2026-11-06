@@ -8,6 +8,7 @@ import type {
   ConversationDetail,
   MessageDetail,
 } from '../core/types/conversation';
+import { AnswerDuration } from './AnswerDuration';
 import { Messages } from './index';
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (s: string) => s }),
@@ -16,8 +17,17 @@ jest.mock('@/page/share/ShareChatOnlyContext', () => ({
   useShareChatOnly: () => false,
 }));
 jest.mock('@/page/chat/messages/role/AssistantMessage', () => ({
-  AssistantMessage: ({ citations }: { citations: Citation[] }) => (
-    <output>{JSON.stringify(citations)}</output>
+  AssistantMessage: ({
+    citations,
+    message,
+  }: {
+    citations: Citation[];
+    message: MessageDetail;
+  }) => (
+    <>
+      <output>{JSON.stringify(citations)}</output>
+      <AnswerDuration message={message} />
+    </>
   ),
 }));
 jest.mock('@/page/chat/messages/role/ToolMessage', () => ({

@@ -73,6 +73,7 @@ interface IProps {
   channel?: string;
   isLastMessage: boolean;
   hideActions?: boolean;
+  footer?: React.ReactNode;
   onShare?: (messageId: string) => void;
 }
 
@@ -95,6 +96,7 @@ export function CitationMarkdown(props: IProps) {
     channel,
     isLastMessage,
     hideActions = false,
+    footer,
     onShare,
   } = props;
   const { theme } = useTheme();
@@ -173,6 +175,7 @@ export function CitationMarkdown(props: IProps) {
           {replacedContent}
         </Markdown>
       </CitationContext.Provider>
+      {footer}
       {!hideActions &&
         ![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
           <div

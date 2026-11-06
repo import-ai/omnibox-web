@@ -67,7 +67,7 @@ jobs:
         run: pnpm exec jest src/lib/chatErrorTracking.test.ts src/lib/traceOutbox.test.ts src/lib/sendTrackEvent.retry.test.ts src/lib/sendTrackEvent.chat.test.ts src/lib/request.traceScope.test.ts src/components/omnibox/ChatErrorText.test.tsx src/page/chat/messages/MessageFailureFeedback.test.tsx --runInBand
 
       - name: Test chat stream recovery
-        run: pnpm exec jest src/lib/chatErrors.test.ts src/lib/streamTransport.test.ts src/page/chat/conversation src/page/chat/core src/page/shared-chat --runInBand
+        run: pnpm exec jest src/lib/chatErrors.test.ts src/lib/streamTransport.test.ts src/page/chat/conversation src/page/chat/core src/page/shared-chat src/page/chat/messages/answerTiming.test.tsx src/page/chat/messages/index.test.tsx src/page/chat/messages/role/AssistantDuration.test.tsx --runInBand
 
       - name: Test invite referral tracking
         run: pnpm exec jest src/page/inviteReferral/InviteReferralEntryExposure.test.tsx src/page/inviteReferral/tracking.test.ts src/lib/sendTrackEvent.test.ts --runInBand
