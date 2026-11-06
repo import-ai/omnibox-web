@@ -51,6 +51,9 @@ jobs:
       - name: Run lint
         run: pnpm run lint
 
+      - name: Test invite permission validation
+        run: pnpm exec jest src/components/invite-dialog/people/InviteForm.test.tsx --runInBand
+
       - name: Test assistant binding synchronization
         run: pnpm exec jest src/hooks/useApplications.test.ts src/hooks/useApplicationSessions.test.ts src/page/settings/tabs/applications src/page/settings/SettingsBindingLifecycle.test.tsx --runInBand
 
