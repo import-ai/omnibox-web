@@ -178,23 +178,13 @@ export function UserMessage(props: IProps) {
     };
   }, [params.namespace_id, params.share_id, resourceIdsKey]);
 
-  const resourceByName = new Map(
-    resources.map(resource => [
-      resource.name,
-      {
-        resource:
-          resourceMetaById[resource.id] ??
-          resourceMetaFromPrivateSearchResource(resource),
-        contextType: resource.type,
-      },
-    ])
-  );
   const copyHtml = createUserMessageCopyHtml(
     openAIMessage.content || '',
     message.attrs?.tools,
     message.attrs?.enable_thinking,
     tool => t(`chat.tools.${tool}`),
-    displayParts
+    displayParts,
+    t('untitled')
   );
   const displayLines = contentDisplayParts?.some(part => part.type !== 'text')
     ? splitDisplayPartsByLine(contentDisplayParts)
@@ -281,7 +271,7 @@ export function UserMessage(props: IProps) {
                           : undefined
                       }
                     >
-                      {part.resource.name}
+                      {part.resource.name || t('untitled')}
                     </InlineChatToken>
                   );
                 })}
@@ -304,21 +294,23 @@ export function UserMessage(props: IProps) {
                       return segment.text;
                     }
 
-                    const tokenResource = resourceByName.get(segment.text);
+                    const tokenResource =
+                      resourceMetaById[segment.resource.id] ??
+                      resourceMetaFromPrivateSearchResource(segment.resource);
                     return (
                       <InlineChatToken
                         key={segmentIndex}
                         icon="resource"
-                        resource={tokenResource?.resource}
-                        contextType={tokenResource?.contextType}
-                        resourceId={tokenResource?.resource.id}
+                        resource={tokenResource}
+                        contextType={segment.resource.type}
+                        resourceId={segment.resource.id}
                         href={
-                          resourceLinkPrefix && tokenResource
-                            ? `${resourceLinkPrefix}/${tokenResource.resource.id}`
+                          resourceLinkPrefix
+                            ? `${resourceLinkPrefix}/${segment.resource.id}`
                             : undefined
                         }
                       >
-                        {segment.text}
+                        {segment.text || t('untitled')}
                       </InlineChatToken>
                     );
                   }
