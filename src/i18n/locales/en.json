@@ -323,6 +323,7 @@
     "member": "Member",
     "min": "At least 2 characters",
     "max": "At most 32 characters",
+    "permission_required": "Please select a permission level for this member.",
     "submit": "Save",
     "button": "Send Invitation",
     "success": "Invitation sent",
