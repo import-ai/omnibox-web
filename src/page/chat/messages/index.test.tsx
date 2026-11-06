@@ -8,6 +8,7 @@ import type {
   ConversationDetail,
   MessageDetail,
 } from '../core/types/conversation';
+import { AnswerDuration } from './AnswerDuration';
 import { Messages } from './index';
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (s: string) => s }),
@@ -16,8 +17,17 @@ jest.mock('@/page/share/ShareChatOnlyContext', () => ({
   useShareChatOnly: () => false,
 }));
 jest.mock('@/page/chat/messages/role/AssistantMessage', () => ({
-  AssistantMessage: ({ citations }: { citations: Citation[] }) => (
-    <output>{JSON.stringify(citations)}</output>
+  AssistantMessage: ({
+    citations,
+    message,
+  }: {
+    citations: Citation[];
+    message: MessageDetail;
+  }) => (
+    <>
+      <output>{JSON.stringify(citations)}</output>
+      <AnswerDuration message={message} />
+    </>
   ),
 }));
 jest.mock('@/page/chat/messages/role/ToolMessage', () => ({
@@ -77,6 +87,50 @@ test('streamed citations remain visible after paginated bootstrap', () => {
   );
   expect(html).toContain('C1');
 });
+
+test.each([false, true])(
+  'renders one answer duration with a collapsed process: %s',
+  multiStep => {
+    const timing = {
+      version: 1,
+      answer_id: 'a',
+      run_id: 'run',
+      started_at: '2026-11-05T00:00:00Z',
+      previous_duration_ms: 0,
+      duration_ms: 8000,
+      outcome: 'success',
+    } as const;
+    const answer = node('answer', {
+      attrs: { answer_timing: timing },
+      message: {
+        role: OpenAIMessageRole.ASSISTANT,
+        content: 'answer',
+        reasoning_content: 'think',
+      },
+    });
+    const process = node('process', {
+      attrs: { answer_timing: { ...timing, outcome: 'running' } },
+      message: { role: OpenAIMessageRole.ASSISTANT, content: 'working' },
+    });
+    const messages = multiStep ? [process, answer] : [answer];
+    const html = renderToStaticMarkup(
+      <Messages
+        conversation={{ id: 'c', mapping: { process, answer } }}
+        messages={messages}
+        messageOperator={
+          { getParent: () => undefined } as unknown as MessageOperator
+        }
+        onEdit={() => {}}
+        onRegenerate={() => {}}
+      />
+    );
+    expect(html.match(/chat.messages.answer_duration.success/g)).toHaveLength(
+      1
+    );
+    if (multiStep) expect(html).toContain('chat.messages.process.title');
+    expect(html).not.toContain('chat.messages.process.duration');
+  }
+);
 
 test.each([
   ['Software caused connection abort', undefined, 'connection_interrupted'],

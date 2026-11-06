@@ -3,7 +3,6 @@ import type { MessageDetail } from '../core/types/conversation';
 import {
   buildMessageDisplayItems,
   buildMessageIndexItems,
-  getCollapsedProcessDurationSeconds,
 } from './messageGroups';
 
 function buildMessage(
@@ -172,52 +171,6 @@ describe('buildMessageDisplayItems', () => {
       'process:assistant-tool-call,tool-decision,tool-message',
       'message:final-answer',
     ]);
-  });
-});
-
-describe('getCollapsedProcessDurationSeconds', () => {
-  it('uses process start and final answer created timestamps', () => {
-    expect(
-      getCollapsedProcessDurationSeconds(
-        [
-          buildMessage({
-            id: 'process',
-            created_at: '2026-07-04T10:00:00.000Z',
-          }),
-        ],
-        buildMessage({
-          id: 'final',
-          created_at: '2026-07-04T10:01:08.000Z',
-        })
-      )
-    ).toBe(68);
-  });
-
-  it('falls back to zero when timestamps are missing', () => {
-    expect(
-      getCollapsedProcessDurationSeconds(
-        [buildMessage({ id: 'process' })],
-        buildMessage({ id: 'final' })
-      )
-    ).toBe(0);
-  });
-
-  it('uses the first valid process timestamp', () => {
-    expect(
-      getCollapsedProcessDurationSeconds(
-        [
-          buildMessage({ id: 'missing-time' }),
-          buildMessage({
-            id: 'process',
-            created_at: '2026-07-04T10:00:00.000Z',
-          }),
-        ],
-        buildMessage({
-          id: 'final',
-          created_at: '2026-07-04T10:00:07.000Z',
-        })
-      )
-    ).toBe(7);
   });
 });
 

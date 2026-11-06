@@ -81,6 +81,50 @@ test('recognizes a tool message without fetching its arguments', () => {
   ).toBe(true);
 });
 
+test('refresh reconciles persisted final timing while keeping SSE details', () => {
+  const streamed = message('latest', {
+    updated_at: undefined,
+    localRevision: 3,
+    details_loaded: true,
+    message: {
+      role: OpenAIMessageRole.ASSISTANT,
+      content: 'answer',
+      reasoning_content: 'thinking',
+    },
+    attrs: {
+      answer_timing: {
+        version: 1,
+        answer_id: 'a',
+        run_id: 'run',
+        started_at: '2026-11-05T00:00:00Z',
+        previous_duration_ms: 0,
+        outcome: 'running',
+      },
+    },
+  });
+  const timing = {
+    version: 1,
+    answer_id: 'a',
+    run_id: 'run',
+    started_at: '2026-11-05T00:00:00Z',
+    previous_duration_ms: 0,
+    duration_ms: 8123,
+    outcome: 'success',
+  } as const;
+  const summary = message('latest', {
+    details_loaded: false,
+    attrs: { answer_timing: timing },
+  });
+  const merged = mergeHistoryPage(
+    page({ latest: streamed }),
+    page({ latest: summary }),
+    false,
+    { latest: 3 }
+  );
+  expect(merged.mapping.latest.message.reasoning_content).toBe('thinking');
+  expect(merged.mapping.latest.attrs?.answer_timing).toEqual(timing);
+});
+
 test('ignores a refresh after a newer BOS changes the active branch head', () => {
   const previous = page(
     { old: message('old'), next: message('next', { localRevision: 1 }) },

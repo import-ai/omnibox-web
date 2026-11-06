@@ -65,9 +65,13 @@ export function mergeHistoryPage(
         ? {
             ...message,
             ...existing,
-            ...(sameFailure
-              ? { attrs: { ...existing.attrs, ...message.attrs } }
-              : {}),
+            attrs: {
+              ...existing.attrs,
+              ...(sameFailure ? message.attrs : {}),
+              ...(message.attrs?.answer_timing
+                ? { answer_timing: message.attrs.answer_timing }
+                : {}),
+            },
             updated_at: message.updated_at,
             sibling_ids: message.sibling_ids,
             children: message.children,

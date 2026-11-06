@@ -73,6 +73,7 @@ interface IProps {
   channel?: string;
   isLastMessage: boolean;
   hideActions?: boolean;
+  metadata?: React.ReactNode;
   onShare?: (messageId: string) => void;
 }
 
@@ -95,6 +96,7 @@ export function CitationMarkdown(props: IProps) {
     channel,
     isLastMessage,
     hideActions = false,
+    metadata,
     onShare,
   } = props;
   const { theme } = useTheme();
@@ -173,82 +175,91 @@ export function CitationMarkdown(props: IProps) {
           {replacedContent}
         </Markdown>
       </CitationContext.Provider>
-      {!hideActions &&
-        ![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-          <div
-            className={`flex items-center gap-1 ml-[-6px] mt-[-10px] ${
-              isLastMessage
-                ? ''
-                : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
-            }`}
-          >
-            {hasSiblings && (
-              <>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="p-0 w-4 h-7"
-                  onClick={onPrevious}
-                  disabled={currentIndex === 0}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
-                  {(currentIndex ?? 0) + 1}/{siblingsLength}
-                </span>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="p-0 w-4 h-7"
-                  onClick={onNext}
-                  disabled={currentIndex === (siblingsLength ?? 1) - 1}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </>
+      {![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) &&
+        (!hideActions || metadata) && (
+          <div className="mt-[-10px] flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            {!hideActions && (
+              <div
+                className={`flex shrink-0 items-center gap-1 ml-[-6px] ${
+                  isLastMessage
+                    ? ''
+                    : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
+                }`}
+              >
+                {hasSiblings && (
+                  <>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="p-0 w-4 h-7"
+                      onClick={onPrevious}
+                      disabled={currentIndex === 0}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
+                      {(currentIndex ?? 0) + 1}/{siblingsLength}
+                    </span>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="p-0 w-4 h-7"
+                      onClick={onNext}
+                      disabled={currentIndex === (siblingsLength ?? 1) - 1}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </>
+                )}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className={`${sidebarToolbarIconButtonClassName} size-7`}
+                      disabled={regenerateDisabled}
+                      onClick={() => onRegenerate(messageId)}
+                    >
+                      <RefreshCw
+                        className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`}
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('chat.messages.actions.regenerate')}</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Copy content={copyContent} />
+                <Save conversation={conversation} content={copyContent} />
+                {onShare && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        aria-label={t('chat.share.action')}
+                        className={`${sidebarToolbarIconButtonClassName} size-7`}
+                        onClick={() => onShare(messageId)}
+                        size="icon"
+                        type="button"
+                        variant="ghost"
+                      >
+                        <ShareIcon className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{t('chat.share.action')}</TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
             )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className={`${sidebarToolbarIconButtonClassName} size-7`}
-                  disabled={regenerateDisabled}
-                  onClick={() => onRegenerate(messageId)}
-                >
-                  <RefreshCw
-                    className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`}
-                  />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{t('chat.messages.actions.regenerate')}</p>
-              </TooltipContent>
-            </Tooltip>
-            <Copy content={copyContent} />
-            <Save conversation={conversation} content={copyContent} />
-            {onShare && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    aria-label={t('chat.share.action')}
-                    className={`${sidebarToolbarIconButtonClassName} size-7`}
-                    onClick={() => onShare(messageId)}
-                    size="icon"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <ShareIcon className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{t('chat.share.action')}</TooltipContent>
-              </Tooltip>
-            )}
-            <MessageChannelTime
-              channel={channel}
-              className="opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100"
-              time={createdAtLabel}
-            />
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-x-3 gap-y-1">
+              {!hideActions && (
+                <MessageChannelTime
+                  channel={channel}
+                  className="opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100"
+                  time={createdAtLabel}
+                />
+              )}
+              {metadata}
+            </div>
           </div>
         )}
     </div>

@@ -50,26 +50,6 @@ function isUserQuery(message: MessageDetail) {
   );
 }
 
-function getTimestamp(value?: string) {
-  const timestamp = value ? new Date(value).getTime() : NaN;
-  return Number.isNaN(timestamp) ? undefined : timestamp;
-}
-
-export function getCollapsedProcessDurationSeconds(
-  messages: MessageDetail[],
-  finalMessage: MessageDetail
-) {
-  const start = messages
-    .map(message => getTimestamp(message.created_at))
-    .find(timestamp => timestamp !== undefined);
-  const end = getTimestamp(finalMessage.created_at);
-
-  if (start === undefined || end === undefined || end < start) {
-    return 0;
-  }
-  return Math.floor((end - start) / 1000);
-}
-
 export function buildMessageDisplayItems(
   messages: MessageDetail[]
 ): MessageDisplayItem[] {

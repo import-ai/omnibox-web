@@ -40,7 +40,19 @@ export type Interrupt = {
   decisions: string[];
 };
 
+export interface AnswerTiming {
+  version: 1;
+  answer_id: string;
+  run_id: string;
+  started_at: string;
+  ended_at?: string;
+  previous_duration_ms: number | null;
+  duration_ms?: number | null;
+  outcome: 'running' | 'paused' | 'success' | 'failed' | 'stopped';
+}
+
 export interface MessageAttrs {
+  answer_timing?: AnswerTiming;
   turn_status?: 'stopped';
   turn_run_id?: string;
   stopped_run_id?: string;
