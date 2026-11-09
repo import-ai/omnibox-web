@@ -22,6 +22,7 @@ import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 import { ConversationShareMessageRow } from '@/page/chat/share/ConversationShareMessageRow';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
+import { hasToolCalls } from '../conversation/conversationHistory';
 import { ProcessDetails } from '../conversation/ProcessDetails';
 import { formatAnswerDuration } from './answerTiming';
 import { buildMessageDisplayItems } from './messageGroups';
