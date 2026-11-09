@@ -285,3 +285,37 @@ describe('legacy process duration compatibility', () => {
     expect(getLegacyProcessDurationMs([final], first)).toBeUndefined();
   });
 });
+
+describe('stopped message projections', () => {
+  it.each([
+    ['', 'thought'],
+    ['partial body', 'thought'],
+    ['', ''],
+    ['partial body', ''],
+  ])(
+    'keeps stopped process with body=%s and reasoning=%s',
+    (content, reasoning) => {
+      const source = buildMessage({
+        id: 'stopped',
+        status: MessageStatus.STOPPED,
+        message: {
+          role: OpenAIMessageRole.ASSISTANT,
+          content,
+          reasoning_content: reasoning,
+        },
+      });
+      const before = JSON.stringify(source);
+      const items = buildMessageDisplayItems([source]);
+      expect(items[0].type).toBe('collapsed_process');
+      if (items[0].type !== 'collapsed_process')
+        throw new Error('missing stopped disclosure');
+      expect(items[0].messages).toHaveLength(1);
+      expect(items[0].messages[0].message.content).toBeUndefined();
+      expect(items[0].messages[0].message.reasoning_content).toBe(reasoning);
+      expect(items.filter(x => x.type === 'message')).toHaveLength(
+        content ? 1 : 0
+      );
+      expect(JSON.stringify(source)).toBe(before);
+    }
+  );
+});

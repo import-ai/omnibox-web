@@ -288,7 +288,7 @@ test('preserves stopped process folding without claiming a completed duration', 
     node('tool', { message: { role: OpenAIMessageRole.TOOL } }),
     timedAnswer({}, { status: MessageStatus.STOPPED }),
   ]);
-  expect(html).toContain('Process details');
+  expect(html).toContain('Stopped');
   expect(html).not.toContain('Response time');
 });
 
@@ -369,4 +369,92 @@ test('does not disguise malformed new timing as legacy timing', () => {
   ]);
   expect(html).toContain('Process details');
   expect(html).not.toContain('19s');
+});
+
+describe('stopped answer disclosure', () => {
+  test.each([
+    ['thinking', '', 'partial thought'],
+    ['body', 'partial body', 'partial thought'],
+    ['empty', '', ''],
+    ['body without reasoning', 'partial body', ''],
+  ])(
+    'shows stopped for %s without a completion duration',
+    (_phase, content, reasoning) => {
+      const source = timedAnswer(
+        { status: 'stopped', duration_ms: undefined },
+        {
+          status: MessageStatus.STOPPED,
+          message: {
+            role: OpenAIMessageRole.ASSISTANT,
+            content,
+            reasoning_content: reasoning,
+          },
+        }
+      );
+      const html = renderAnswer([source]);
+      expect(html).toContain('Stopped');
+      expect(html.match(/<summary/g)).toHaveLength(1);
+      expect(html).not.toContain('Process details');
+      expect(html).not.toContain('1m 8s');
+      expect(html).not.toContain('Response time');
+      expect(html.match(/<output>/g)?.length ?? 0).toBe(content ? 1 : 0);
+      expect(renderAnswer([JSON.parse(JSON.stringify(source))])).toBe(html);
+    }
+  );
+  test.each(['en', 'zh'])(
+    'localizes the stopped outcome in %s before final status refresh',
+    language => {
+      mockLanguage = language;
+      const html = renderAnswer([
+        timedAnswer({ status: 'stopped', duration_ms: undefined }),
+      ]);
+      expect(html).toContain(language === 'zh' ? '已停止' : 'Stopped');
+      expect(html).not.toContain('1m 8s');
+    }
+  );
+  test('retains a lazy stopped thought even when the body has not started', () => {
+    const html = renderAnswer([
+      timedAnswer(
+        { status: 'stopped', duration_ms: undefined },
+        {
+          status: MessageStatus.STOPPED,
+          details_loaded: false,
+          has_reasoning: true,
+          message: { role: OpenAIMessageRole.ASSISTANT },
+        }
+      ),
+    ]);
+    expect(html).toContain('Stopped');
+    expect(html).not.toContain('<output>');
+  });
+});
+
+test('uses a persisted stopped timing snapshot before a stale streaming status is refreshed', () => {
+  const source = timedAnswer(
+    { status: 'stopped', duration_ms: undefined },
+    {
+      status: MessageStatus.STREAMING,
+      message: {
+        role: OpenAIMessageRole.ASSISTANT,
+        reasoning_content: 'thought',
+      },
+    }
+  );
+  const html = renderAnswer([source]);
+  expect(html).toContain('Stopped');
+  expect(html).not.toContain('<output>');
+});
+
+test('shows stopped for a persisted turn outcome without timing metadata', () => {
+  const source = timedAnswer(
+    {},
+    {
+      attrs: { turn_status: 'stopped' } as MessageAttrs,
+      message: {
+        role: OpenAIMessageRole.ASSISTANT,
+        reasoning_content: 'thought',
+      },
+    }
+  );
+  expect(renderAnswer([source])).toContain('Stopped');
 });

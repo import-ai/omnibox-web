@@ -934,7 +934,8 @@
           "hours": "{{count}} 小时",
           "minutes": "{{count}} 分",
           "seconds": "{{count}} 秒"
-        }
+        },
+        "stopped": "已停止"
       },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源",

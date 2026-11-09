@@ -1,4 +1,5 @@
 import { hasToolCalls } from '../conversation/conversationHistory';
+import { readAnswerTiming } from '../core/answerTiming';
 /** Groups chat messages for final-answer collapse and message index rendering. */
 import { MessageStatus, OpenAIMessageRole } from '../core/types/chatResponse';
 import type { MessageDetail } from '../core/types/conversation';
@@ -32,12 +33,20 @@ function isProcessMessage(message: MessageDetail) {
   return isResponseMessage(message) || isToolDecisionMessage(message);
 }
 
+export function isStoppedMessage(message: MessageDetail) {
+  return (
+    message.status === MessageStatus.STOPPED ||
+    message.attrs?.turn_status === 'stopped' ||
+    readAnswerTiming(message.attrs?.answer_timing)?.status === 'stopped'
+  );
+}
+
 function isFinalAnswer(message: MessageDetail) {
   return (
     message.message.role === OpenAIMessageRole.ASSISTANT &&
-    (message.status === MessageStatus.SUCCESS ||
-      message.status === MessageStatus.STOPPED) &&
-    Boolean(message.message.content?.trim()) &&
+    (isStoppedMessage(message) ||
+      (message.status === MessageStatus.SUCCESS &&
+        Boolean(message.message.content?.trim()))) &&
     !hasToolCalls(message)
   );
 }
@@ -71,17 +80,18 @@ export function buildMessageDisplayItems(
 
     const responseMessages = messages.slice(start, index);
     const finalMessage = responseMessages[responseMessages.length - 1];
+    const stopped = isStoppedMessage(finalMessage);
     const hasFinalReasoning = Boolean(
       finalMessage.has_reasoning ||
       finalMessage.message.reasoning_content?.trim()
     );
     if (
-      (responseMessages.length > 1 || hasFinalReasoning) &&
+      (responseMessages.length > 1 || hasFinalReasoning || stopped) &&
       isFinalAnswer(finalMessage)
     ) {
       const processMessages = responseMessages.slice(0, -1);
       let answerMessage = finalMessage;
-      if (hasFinalReasoning) {
+      if (hasFinalReasoning || (stopped && processMessages.length === 0)) {
         // Project one stored message into process and answer views without changing its identity.
         processMessages.push({
           ...finalMessage,
@@ -98,7 +108,9 @@ export function buildMessageDisplayItems(
         messages: processMessages,
         finalMessage,
       });
-      result.push({ type: 'message', message: answerMessage });
+      if (!stopped || answerMessage.message.content?.trim()) {
+        result.push({ type: 'message', message: answerMessage });
+      }
       continue;
     }
 
