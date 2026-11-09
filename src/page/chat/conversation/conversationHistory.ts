@@ -1,3 +1,7 @@
+import {
+  isStaleAnswerTiming,
+  mergeAnswerTiming,
+} from '@/page/chat/core/answerTiming';
 import { createClientKey } from '@/page/chat/core/clientKey';
 import {
   isTerminalMessageStatus,
@@ -73,6 +77,25 @@ export function mergeHistoryPage(
             children: message.children,
           }
         : { ...message, clientKey: existing?.clientKey ?? createClientKey() };
+    if (
+      existing &&
+      isTerminalMessageStatus(existing.status) &&
+      isStaleAnswerTiming(
+        existing.attrs?.answer_timing,
+        message.attrs?.answer_timing
+      )
+    ) {
+      mapping[id].status = existing.status;
+    }
+    if (existing?.attrs?.answer_timing || message.attrs?.answer_timing) {
+      mapping[id].attrs = {
+        ...mapping[id].attrs,
+        answer_timing: mergeAnswerTiming(
+          existing?.attrs?.answer_timing,
+          message.attrs?.answer_timing
+        ),
+      };
+    }
   }
   const citations = new Map(
     (replaceBranch ? [] : (previous.citations ?? [])).map(citation => [

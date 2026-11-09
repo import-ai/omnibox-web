@@ -204,3 +204,79 @@ it('accepts a newer failed snapshot without retaining an earlier error with the 
     error_code: 'TOKEN_EXPIRED',
   });
 });
+
+test('accepts final timing metadata from history while retaining loaded reasoning details', () => {
+  const completeTiming = {
+    version: 1 as const,
+    answer_id: 'answer',
+    run_id: 'run',
+    status: 'complete' as const,
+    started_at: '2026-11-09T00:00:00Z',
+    completed_at: '2026-11-09T00:00:02Z',
+    duration_ms: 2000,
+  };
+  const previous = page({
+    answer: message('answer', {
+      details_loaded: true,
+      message: {
+        role: OpenAIMessageRole.ASSISTANT,
+        content: 'answer',
+        reasoning_content: 'loaded',
+      },
+      attrs: { metrics: { tokens: 7 } },
+    }),
+  });
+  const summary = page({
+    answer: message('answer', {
+      details_loaded: false,
+      has_reasoning: true,
+      attrs: { answer_timing: completeTiming },
+    }),
+  });
+  const merged = mergeHistoryPage(previous, summary);
+  expect(merged.mapping.answer.attrs).toMatchObject({
+    answer_timing: completeTiming,
+    metrics: { tokens: 7 },
+  });
+  expect(merged.mapping.answer.message.reasoning_content).toBe('loaded');
+});
+
+test.each([false, true])(
+  'retains completed timing through stale history with branch replacement %s',
+  replaceBranch => {
+    const timing = {
+      version: 1 as const,
+      answer_id: 'answer',
+      run_id: 'run',
+      started_at: '2026-11-09T00:00:00Z',
+      status: 'complete' as const,
+      completed_at: '2026-11-09T00:00:05Z',
+      duration_ms: 3000,
+    };
+    const previous = page({
+      answer: message('answer', {
+        details_loaded: false,
+        attrs: { answer_timing: timing },
+      }),
+    });
+    const stale = page({
+      answer: message('answer', {
+        updated_at: 'later',
+        status: MessageStatus.STREAMING,
+        attrs: {
+          answer_timing: {
+            version: 1,
+            answer_id: timing.answer_id,
+            run_id: timing.run_id,
+            started_at: timing.started_at,
+            status: 'running',
+          },
+        },
+      }),
+    });
+    const merged = mergeHistoryPage(previous, stale, replaceBranch).mapping
+      .answer;
+    expect(merged.attrs?.answer_timing).toEqual(timing);
+    expect(merged.status).toBe(MessageStatus.SUCCESS);
+  }
+);

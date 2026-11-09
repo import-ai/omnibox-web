@@ -1,4 +1,3 @@
-import type { TFunction } from 'i18next';
 import { ScrollText } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -25,10 +24,8 @@ import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import { hasToolCalls } from '../conversation/conversationHistory';
 import { ProcessDetails } from '../conversation/ProcessDetails';
-import {
-  buildMessageDisplayItems,
-  getCollapsedProcessDurationSeconds,
-} from './messageGroups';
+import { formatAnswerDuration } from './answerTiming';
+import { buildMessageDisplayItems } from './messageGroups';
 
 interface IProps {
   conversation: ConversationDetail;
@@ -122,27 +119,6 @@ function renderMessage(
     return <ToolMessage citations={citations} message={message} />;
   }
   return <></>;
-}
-
-function formatProcessDuration(seconds: number, t: TFunction) {
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const restSeconds = seconds % 60;
-  const parts: string[] = [];
-
-  if (hours > 0) {
-    parts.push(t('chat.messages.process.duration.hours', { count: hours }));
-  }
-  if (minutes > 0) {
-    parts.push(t('chat.messages.process.duration.minutes', { count: minutes }));
-  }
-  if (restSeconds > 0 || parts.length === 0) {
-    parts.push(
-      t('chat.messages.process.duration.seconds', { count: restSeconds })
-    );
-  }
-
-  return parts.join(' ');
 }
 
 function hasVisibleMessageContent(message: MessageDetail, chatOnly = false) {
@@ -296,6 +272,13 @@ export function Messages(props: IProps) {
     message => message.message.role !== OpenAIMessageRole.SYSTEM
   );
   const displayItems = buildMessageDisplayItems(filteredMessages);
+  const groupedMessageIds = new Set(
+    displayItems.flatMap(item =>
+      item.type === 'collapsed_process'
+        ? [...item.messages.map(message => message.id), item.finalMessage.id]
+        : []
+    )
+  );
 
   const lastAssistantId = filteredMessages.reduce((lastId, message) => {
     return message.message.role === OpenAIMessageRole.ASSISTANT
@@ -313,6 +296,14 @@ export function Messages(props: IProps) {
       message.id === lastAssistantId;
     const isCompacting = message.attrs?.compact?.status === 'compacting';
     const shouldRenderMessage = !(isCompacting && !message.message.content);
+    const duration =
+      !groupedMessageIds.has(message.id) &&
+      message.message.role === OpenAIMessageRole.ASSISTANT &&
+      Boolean(message.message.content?.trim()) &&
+      !hasToolCalls(message) &&
+      (message.has_reasoning || message.message.reasoning_content?.trim())
+        ? formatAnswerDuration(message, t)
+        : undefined;
 
     return (
       <div
@@ -322,6 +313,9 @@ export function Messages(props: IProps) {
       >
         {message.attrs?.compact && (
           <ContextCompactedDivider status={message.attrs.compact.status} />
+        )}
+        {duration && (
+          <p className="mb-3 py-3 text-sm text-muted-foreground">{duration}</p>
         )}
         {shouldRenderMessage &&
           (() => {
@@ -404,13 +398,10 @@ export function Messages(props: IProps) {
             <ProcessDetails
               key={`process_${item.messages[0].id}`}
               ids={item.messages.map(message => message.id)}
-              title={formatProcessDuration(
-                getCollapsedProcessDurationSeconds(
-                  item.messages,
-                  item.finalMessage
-                ),
-                t
-              )}
+              title={
+                formatAnswerDuration(item.finalMessage, t) ??
+                t('chat.messages.process.details')
+              }
             >
               {() =>
                 visibleProcessMessages.map((message, processIndex) =>

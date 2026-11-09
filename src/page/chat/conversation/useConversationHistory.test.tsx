@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { act } from 'react';
+import { act, useState } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
@@ -103,5 +103,75 @@ describe('useConversationHistory refresh', () => {
       '/namespaces/namespace-a/conversations/conversation-a/messages',
       { params: { branch_leaf_id: 'server-1' } }
     );
+  });
+  it('retains final timing when lazy details replay an earlier running snapshot', async () => {
+    const timing = {
+      version: 1,
+      answer_id: 'answer',
+      run_id: 'run',
+      started_at: '2026-11-09T00:00:00Z',
+      status: 'complete',
+      completed_at: '2026-11-09T00:00:05Z',
+      duration_ms: 3000,
+    };
+    const original = {
+      id: 'conversation-a',
+      current_node: 'answer',
+      mapping: {
+        answer: {
+          id: 'answer',
+          clientKey: 1,
+          parent_id: '',
+          children: [],
+          details_loaded: false,
+          status: 'success',
+          message: { role: 'assistant', content: 'answer' },
+          attrs: { answer_timing: timing },
+        },
+      },
+    } as unknown as ConversationDetail;
+    mockGet.mockResolvedValue({
+      mapping: {
+        answer: {
+          ...original.mapping.answer,
+          status: 'streaming',
+          message: {
+            role: 'assistant',
+            content: 'answer',
+            reasoning_content: 'loaded',
+          },
+          attrs: {
+            answer_timing: {
+              version: 1,
+              answer_id: 'answer',
+              run_id: 'run',
+              started_at: timing.started_at,
+              status: 'running',
+            },
+          },
+        },
+      },
+    });
+    let history: ReturnType<typeof useConversationHistory> | undefined;
+    let latest = original;
+    function Probe() {
+      const [conversation, setConversation] = useState(original);
+      latest = conversation;
+      history = useConversationHistory(
+        'namespace-a',
+        'user-a',
+        conversation,
+        setConversation
+      );
+      return null;
+    }
+    await act(async () => root.render(<Probe />));
+    await act(async () => {
+      await history!.loadDetails(['answer']);
+    });
+    expect(latest.mapping.answer.message.reasoning_content).toBe('loaded');
+    expect(latest.mapping.answer.attrs?.answer_timing).toEqual(timing);
+    expect(latest.mapping.answer.details_loaded).toBe(true);
+    expect(latest.mapping.answer.status).toBe('success');
   });
 });
