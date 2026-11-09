@@ -5,10 +5,11 @@
 ## Contract
 
 - A visible login → register → login sequence produces two login events and one registration event, with three different `page_view_id` values.
-- Rerenders, input validation, contact/authentication method changes, theme/language changes and temporary foreground/focus changes retain the current visit.
-- OTP and authentication callback child steps retain the originating visit. Leaving authentication and returning starts a new visit. A document reload starts a new visit.
+- Each actual redisplay starts a new exposure, including OTP/scan/captcha return, social authorization return and background/focus return. Each event gets a fresh `page_view_id` and timestamp, regardless of authentication success.
+- Rerenders, input validation, contact/authentication method changes and theme/language changes do not create an exposure while the primary page stays displayed. Merely clicking social login, declined consent, prelaunch failures and disabled/unpresented captcha do not count as a redisplay.
+- SDK return callbacks are deduplicated against the observed foreground return and against duplicate/late callbacks. A successful authentication redirect with no displayed anonymous form does not create an exposure.
 - Preloading, loading placeholders and already-authenticated redirects produce no exposure. The layout session check must finish before anonymous authentication exposure is enabled.
-- Only a laid-out authentication form intersecting the foreground viewport triggers an event. The persistent Layout hook preserves the visit when the routed form is temporarily replaced by a child step or scan view.
+- Only a laid-out authentication form intersecting the foreground viewport triggers the first exposure. Returning from a child step or scan view starts another exposure. Ordinary scrolling within the same page does not create a new page visit.
 
 ## Event properties
 

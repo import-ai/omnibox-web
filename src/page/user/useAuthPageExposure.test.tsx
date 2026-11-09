@@ -4,6 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 
 import { track } from '@/lib/sendTrackEvent';
 
+import { createAuthPageReturnNotifier } from './authPageReturn';
 import { useAuthPageExposure } from './useAuthPageExposure';
 
 jest.mock('@/lib/sendTrackEvent', () => ({ track: jest.fn(async () => {}) }));
@@ -45,6 +46,7 @@ beforeEach(() => {
   jest.useFakeTimers();
   mockedTrack.mockClear();
   localStorage.clear();
+  jest.spyOn(document, 'hasFocus').mockReturnValue(true);
   visible = layoutVisible = true;
   jest
     .spyOn(document, 'visibilityState', 'get')
@@ -101,7 +103,7 @@ test('counts login → register → login as three distinct exposures', async ()
     new Set(mockedTrack.mock.calls.map(([, props]) => props?.page_view_id)).size
   ).toBe(3);
 });
-test('does not count StrictMode, rerenders, query state or foreground return twice', async () => {
+test('counts foreground redisplay but not StrictMode, rerenders or DOM updates', async () => {
   await render();
   await render();
   await visibility(false);
@@ -112,7 +114,7 @@ test('does not count StrictMode, rerenders, query state or foreground return twi
   await act(async () => {
     jest.advanceTimersByTime(20);
   });
-  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
 });
 test('waits for anonymous session restoration and excludes authenticated redirects', async () => {
   await render('/user/login', false);
@@ -143,13 +145,13 @@ test('waits for lazy form mounting and real layout', async () => {
   await visibility(true);
   expect(mockedTrack).toHaveBeenCalledTimes(1);
 });
-test('retains the visit across OTP and auth callback child steps', async () => {
+test('counts redisplay after OTP and auth callback child steps', async () => {
   await render();
   await render('/user/verify-otp', true, false);
   await render();
   await render('/user/auth/confirm', true, false);
   await render();
-  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  expect(mockedTrack).toHaveBeenCalledTimes(3);
 });
 test('starts a new visit after leaving authentication', async () => {
   await render();
@@ -171,4 +173,135 @@ test('cancels pending exposure after unmount', async () => {
     jest.advanceTimersByTime(20);
   });
   expect(mockedTrack).not.toHaveBeenCalled();
+});
+
+test('counts form return from WeChat scanning without a route change', async () => {
+  await render();
+  await render('/user/login', true, false);
+  await render();
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+});
+test('counts popup return once even when promise and event both report cancellation', async () => {
+  await render('/user/sign-up');
+  const returned = createAuthPageReturnNotifier('register');
+  await act(async () => {
+    returned();
+    returned();
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+});
+test('does not double count SDK return after foreground redisplay', async () => {
+  await render();
+  const returned = createAuthPageReturnNotifier('login');
+  await visibility(false);
+  await visibility(true);
+  await act(async () => {
+    returned();
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+});
+test('counts BFCache return once across pageshow and visibility notifications', async () => {
+  await render();
+  await act(async () => {
+    window.dispatchEvent(new Event('pagehide'));
+    window.dispatchEvent(new Event('pageshow'));
+    document.dispatchEvent(new Event('visibilitychange'));
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+});
+test('ignores stale SDK returns after changing page', async () => {
+  await render();
+  const returned = createAuthPageReturnNotifier('login');
+  await render('/user/sign-up');
+  await render();
+  await act(async () => {
+    returned();
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(3);
+});
+test('counts return only after an actually visible captcha challenge', async () => {
+  await render();
+  const popup = document.createElement('div');
+  popup.id = 'aliyunCaptcha-window-popup';
+  let shown = false;
+  popup.getClientRects = () => ({ length: shown ? 1 : 0 }) as DOMRectList;
+  await act(async () => {
+    document.body.append(popup);
+  });
+  await act(async () => {
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  shown = true;
+  await act(async () => {
+    popup.setAttribute('class', 'open');
+  });
+  await act(async () => {
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  shown = false;
+  await act(async () => {
+    popup.remove();
+  });
+  await act(async () => {
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+});
+
+test('counts popup authorization failure returning focus without visibilitychange', async () => {
+  await render();
+  await act(async () => {
+    window.dispatchEvent(new Event('blur'));
+    document.dispatchEvent(
+      new CustomEvent('AppleIDSignInOnFailure', {
+        detail: { error: 'authorization_failed' },
+      })
+    );
+    window.dispatchEvent(new Event('focus'));
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+  await act(async () => {
+    window.dispatchEvent(new Event('focus'));
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+});
+
+test('never reports while a popup is open despite DOM mutations and SDK return before focus', async () => {
+  await render();
+  const returned = createAuthPageReturnNotifier('login');
+  await act(async () => {
+    window.dispatchEvent(new Event('blur'));
+    container.querySelector('form')!.setAttribute('class', 'loading');
+  });
+  await act(async () => {
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    returned();
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  await act(async () => {
+    window.dispatchEvent(new Event('focus'));
+    jest.advanceTimersByTime(20);
+  });
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
+});
+
+test('resynchronizes focus after it was restored on an OTP child route', async () => {
+  await render();
+  await act(async () => window.dispatchEvent(new Event('blur')));
+  await render('/user/verify-otp', true, false);
+  await act(async () => window.dispatchEvent(new Event('focus')));
+  await render();
+  expect(mockedTrack).toHaveBeenCalledTimes(2);
 });
