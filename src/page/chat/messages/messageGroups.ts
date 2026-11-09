@@ -71,13 +71,34 @@ export function buildMessageDisplayItems(
 
     const responseMessages = messages.slice(start, index);
     const finalMessage = responseMessages[responseMessages.length - 1];
-    if (responseMessages.length > 1 && isFinalAnswer(finalMessage)) {
+    const hasFinalReasoning = Boolean(
+      finalMessage.has_reasoning ||
+      finalMessage.message.reasoning_content?.trim()
+    );
+    if (
+      (responseMessages.length > 1 || hasFinalReasoning) &&
+      isFinalAnswer(finalMessage)
+    ) {
+      const processMessages = responseMessages.slice(0, -1);
+      let answerMessage = finalMessage;
+      if (hasFinalReasoning) {
+        // Project one stored message into process and answer views without changing its identity.
+        processMessages.push({
+          ...finalMessage,
+          message: { ...finalMessage.message, content: undefined },
+        });
+        answerMessage = {
+          ...finalMessage,
+          has_reasoning: false,
+          message: { ...finalMessage.message, reasoning_content: undefined },
+        };
+      }
       result.push({
         type: 'collapsed_process',
-        messages: responseMessages.slice(0, -1),
+        messages: processMessages,
         finalMessage,
       });
-      result.push({ type: 'message', message: finalMessage });
+      result.push({ type: 'message', message: answerMessage });
       continue;
     }
 

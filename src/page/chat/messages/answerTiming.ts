@@ -52,5 +52,5 @@ export function formatAnswerDuration(message: MessageDetail, t: TFunction) {
     }
     duration = parts.join(' ');
   }
-  return t('chat.messages.process.response_time', { duration });
+  return duration;
 }

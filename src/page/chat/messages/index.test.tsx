@@ -170,10 +170,12 @@ afterEach(() => {
   mockChatOnly = false;
 });
 
-test('shows server cumulative time above a single reasoning answer', () => {
+test('reuses the closed process disclosure above a single reasoning answer', () => {
   const html = renderAnswer([timedAnswer()]);
-  expect(html).toContain('Response time: 1m 8s');
-  expect(html.indexOf('Response time')).toBeLessThan(html.indexOf('<output>'));
+  expect(html).toContain('1m 8s');
+  expect(html.indexOf('<summary')).toBeLessThan(html.indexOf('<output>'));
+  expect(html).not.toContain('Response time');
+  expect(html).not.toContain('回答耗时');
 });
 
 test('shows the same top-level summary for lazy reasoning history without loading details', () => {
@@ -187,7 +189,7 @@ test('shows the same top-level summary for lazy reasoning history without loadin
       }
     ),
   ]);
-  expect(html).toContain('Response time: 1m 8s');
+  expect(html).toContain('1m 8s');
 });
 
 test('uses one answer summary for multiple tool steps and final reasoning', () => {
@@ -202,14 +204,16 @@ test('uses one answer summary for multiple tool steps and final reasoning', () =
     node('tool-2', { message: { role: OpenAIMessageRole.TOOL } }),
     timedAnswer({}, { created_at: '2026-11-09T00:30:00Z' }),
   ]);
-  expect(html).toContain('Response time: 1m 8s');
-  expect(html.match(/Response time:/g)).toHaveLength(1);
-  expect(html.indexOf('Response time')).toBeLessThan(html.indexOf('<output>'));
+  expect(html).toContain('1m 8s');
+  expect(html.match(/<summary/g)).toHaveLength(1);
+  expect(html.indexOf('<summary')).toBeLessThan(html.indexOf('<output>'));
+  expect(html).not.toContain('Response time');
+  expect(html).not.toContain('回答耗时');
 });
 
 test.each([
-  ['en', 'Response time: Less than 1 second'],
-  ['zh', '回答耗时：不足 1 秒'],
+  ['en', 'Less than 1 second'],
+  ['zh', '不足 1 秒'],
 ])('localizes positive subsecond durations in %s', (language, expected) => {
   mockLanguage = language;
   expect(renderAnswer([timedAnswer({ duration_ms: 50 })])).toContain(expected);
@@ -245,9 +249,7 @@ test.each([
             { attrs: { answer_timing: {} } as unknown as MessageAttrs }
           )
         : timedAnswer(invalid);
-  expect(renderAnswer([answer])).toContain(
-    'Response time: Duration unavailable'
-  );
+  expect(renderAnswer([answer])).toContain('Duration unavailable');
 });
 
 test('does not estimate legacy multi-step duration from creation or update timestamps', () => {
@@ -265,7 +267,7 @@ test('does not estimate legacy multi-step duration from creation or update times
       }
     ),
   ]);
-  expect(html).toContain('Response time: Duration unavailable');
+  expect(html).toContain('Duration unavailable');
 });
 
 test.each([
@@ -308,21 +310,21 @@ test('renders each selected branch using its own answer timing', () => {
     run_id: 'run-2',
     duration_ms: 9000,
   });
-  expect(renderAnswer([first])).toContain('Response time: 2s');
-  expect(renderAnswer([second])).toContain('Response time: 9s');
+  expect(renderAnswer([first])).toContain('2s');
+  expect(renderAnswer([second])).toContain('9s');
 });
 
 test('formats hours, minutes and seconds from active time despite a longer wall time', () => {
   const html = renderAnswer([
     timedAnswer({ duration_ms: 3661000, completed_at: '2026-11-09T02:00:00Z' }),
   ]);
-  expect(html).toContain('Response time: 1h 1m 1s');
+  expect(html).toContain('1h 1m 1s');
 });
 
 test('localizes unavailable timing without inventing zero seconds', () => {
   mockLanguage = 'zh';
   expect(renderAnswer([timedAnswer({}, { attrs: undefined })])).toContain(
-    '回答耗时：耗时不可用'
+    '耗时不可用'
   );
 });
 
@@ -334,7 +336,7 @@ test('does not show time on an earlier successful message in a stopped turn', ()
 
 test('preserves the same duration summary on a chat-only share', () => {
   mockChatOnly = true;
-  expect(renderAnswer([timedAnswer()])).toContain('Response time: 1m 8s');
+  expect(renderAnswer([timedAnswer()])).toContain('1m 8s');
 });
 
 test.each(['stopped', 'failed'])(
@@ -345,3 +347,12 @@ test.each(['stopped', 'failed'])(
     ).not.toContain('Response time');
   }
 );
+
+test('single reasoning uses the original disclosure and only one final answer anchor', () => {
+  const html = renderAnswer([timedAnswer()]);
+  expect(html).toContain('<details');
+  expect(html).toContain('<summary');
+  expect(html.match(/id="message-answer"/g)).toHaveLength(1);
+  expect(html.match(/<output>/g)).toHaveLength(1);
+  expect(html).not.toContain('Response time');
+});

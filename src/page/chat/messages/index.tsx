@@ -22,7 +22,6 @@ import { UserMessage } from '@/page/chat/messages/role/UserMessage';
 import { ConversationShareMessageRow } from '@/page/chat/share/ConversationShareMessageRow';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
-import { hasToolCalls } from '../conversation/conversationHistory';
 import { ProcessDetails } from '../conversation/ProcessDetails';
 import { formatAnswerDuration } from './answerTiming';
 import { buildMessageDisplayItems } from './messageGroups';
@@ -272,21 +271,17 @@ export function Messages(props: IProps) {
     message => message.message.role !== OpenAIMessageRole.SYSTEM
   );
   const displayItems = buildMessageDisplayItems(filteredMessages);
-  const groupedMessageIds = new Set(
-    displayItems.flatMap(item =>
-      item.type === 'collapsed_process'
-        ? [...item.messages.map(message => message.id), item.finalMessage.id]
-        : []
-    )
-  );
-
   const lastAssistantId = filteredMessages.reduce((lastId, message) => {
     return message.message.role === OpenAIMessageRole.ASSISTANT
       ? message.id
       : lastId;
   }, '');
 
-  function renderMessageBlock(message: MessageDetail, isLastInList: boolean) {
+  function renderMessageBlock(
+    message: MessageDetail,
+    isLastInList: boolean,
+    isFinalReasoning = false
+  ) {
     if (!hasVisibleMessageContent(message, chatOnly)) {
       return null;
     }
@@ -296,26 +291,14 @@ export function Messages(props: IProps) {
       message.id === lastAssistantId;
     const isCompacting = message.attrs?.compact?.status === 'compacting';
     const shouldRenderMessage = !(isCompacting && !message.message.content);
-    const duration =
-      !groupedMessageIds.has(message.id) &&
-      message.message.role === OpenAIMessageRole.ASSISTANT &&
-      Boolean(message.message.content?.trim()) &&
-      !hasToolCalls(message) &&
-      (message.has_reasoning || message.message.reasoning_content?.trim())
-        ? formatAnswerDuration(message, t)
-        : undefined;
-
     return (
       <div
         key={message.clientKey}
-        id={`message-${message.id}`}
+        id={`${isFinalReasoning ? 'process-message' : 'message'}-${message.id}`}
         className="scroll-mt-4"
       >
         {message.attrs?.compact && (
           <ContextCompactedDivider status={message.attrs.compact.status} />
-        )}
-        {duration && (
-          <p className="mb-3 py-3 text-sm text-muted-foreground">{duration}</p>
         )}
         {shouldRenderMessage &&
           (() => {
@@ -407,7 +390,8 @@ export function Messages(props: IProps) {
                 visibleProcessMessages.map((message, processIndex) =>
                   renderMessageBlock(
                     message,
-                    processIndex === visibleProcessMessages.length - 1
+                    processIndex === visibleProcessMessages.length - 1,
+                    message.id === item.finalMessage.id
                   )
                 )
               }

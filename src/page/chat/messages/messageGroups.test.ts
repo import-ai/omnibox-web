@@ -215,3 +215,34 @@ describe('buildMessageIndexItems', () => {
     ]);
   });
 });
+
+describe('single-node reasoning process projection', () => {
+  it.each([false, true])(
+    'splits live and lazy reasoning without changing stored messages (lazy=%s)',
+    lazy => {
+      const source = buildMessage({
+        id: 'single',
+        has_reasoning: lazy,
+        details_loaded: lazy ? false : undefined,
+        message: {
+          role: OpenAIMessageRole.ASSISTANT,
+          content: 'final body',
+          ...(lazy ? {} : { reasoning_content: 'thinking' }),
+        },
+      });
+      const before = JSON.stringify(source);
+      const items = buildMessageDisplayItems([source]);
+      expect(items).toHaveLength(2);
+      expect(items[0].type).toBe('collapsed_process');
+      if (items[0].type !== 'collapsed_process' || items[1].type !== 'message')
+        throw new Error('wrong projection');
+      expect(items[0].finalMessage).toBe(source);
+      expect(items[0].messages[0].id).toBe(source.id);
+      expect(items[0].messages[0].message.content).toBeUndefined();
+      expect(items[1].message.message.content).toBe('final body');
+      expect(items[1].message.message.reasoning_content).toBeUndefined();
+      expect(items[1].message.has_reasoning).toBe(false);
+      expect(JSON.stringify(source)).toBe(before);
+    }
+  );
+});

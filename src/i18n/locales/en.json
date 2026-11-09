@@ -927,7 +927,6 @@
         "tokens": "{{estimated}} / {{trigger}} tokens"
       },
       "process": {
-        "response_time": "Response time: {{duration}}",
         "details": "Process details",
         "duration": {
           "unavailable": "Duration unavailable",
