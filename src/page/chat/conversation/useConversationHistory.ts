@@ -21,7 +21,7 @@ import type {
 } from '@/page/chat/core/types/conversation';
 
 import { getCurrentUserId } from './conversationCache';
-import { mergeHistoryPage } from './conversationHistory';
+import { mergeHistoryPage, mergeMessageTiming } from './conversationHistory';
 
 export interface LatestMessage {
   id: string;
@@ -193,11 +193,11 @@ export default function useConversationHistory(
               const mapping = { ...prev.mapping };
               for (const [id, message] of Object.entries(response.mapping)) {
                 const existing = mapping[id];
-                if (
-                  !existing ||
-                  (existing.localRevision ?? 0) !== revisions.get(id)
-                )
+                if (!existing) continue;
+                if ((existing.localRevision ?? 0) !== revisions.get(id)) {
+                  mapping[id] = mergeMessageTiming(existing, message);
                   continue;
+                }
                 mapping[id] = {
                   ...existing,
                   ...message,

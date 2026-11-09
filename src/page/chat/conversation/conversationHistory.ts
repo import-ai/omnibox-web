@@ -12,19 +12,43 @@ import type {
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
 
+// Timing advances independently of content revisions; never replay other fields.
+export function mergeMessageTiming(
+  existing: MessageDetail,
+  incoming: MessageDetail
+): MessageDetail {
+  if (existing.id !== incoming.id) return existing;
+  const timing = mergeAnswerTiming(
+    existing.attrs?.answer_timing,
+    incoming.attrs?.answer_timing
+  );
+  if (timing === existing.attrs?.answer_timing) return existing;
+  return { ...existing, attrs: { ...existing.attrs, answer_timing: timing } };
+}
+
 export function mergeHistoryPage(
   previous: ConversationDetail,
   page: ConversationDetail,
   replaceBranch = false,
   revisions?: Record<string, number>
 ): ConversationDetail {
+  if (previous.id !== page.id) return previous;
   if (
     revisions &&
     previous.current_node &&
     (previous.mapping[previous.current_node]?.localRevision ?? 0) !==
       (revisions[previous.current_node] ?? -1)
-  )
-    return previous;
+  ) {
+    const mapping = { ...previous.mapping };
+    let changed = false;
+    for (const [id, snapshot] of Object.entries(page.mapping)) {
+      const existing = mapping[id];
+      if (!existing) continue;
+      mapping[id] = mergeMessageTiming(existing, snapshot);
+      changed ||= mapping[id] !== existing;
+    }
+    return changed ? { ...previous, mapping } : previous;
+  }
   const mapping = replaceBranch ? {} : { ...previous.mapping };
   for (const [id, snapshot] of Object.entries(page.mapping)) {
     let message = snapshot;
@@ -50,7 +74,7 @@ export function mergeHistoryPage(
       existing &&
       (existing.localRevision ?? 0) !== (revisions[id] ?? 0)
     ) {
-      mapping[id] = existing;
+      mapping[id] = mergeMessageTiming(existing, message);
       continue;
     }
     mapping[id] =
