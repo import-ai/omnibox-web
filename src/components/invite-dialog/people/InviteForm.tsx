@@ -35,7 +35,7 @@ const formSchema = z.object({
     .min(1, 'form.email_required')
     .refine(val => isEmail(val), { message: 'form.email_invalid' }),
   role: z.string().min(2, 'invite.min').max(22, 'invite.max'),
-  permission: z.string(),
+  permission: z.string().min(1, 'invite.permission_required'),
 });
 
 interface IProps {
