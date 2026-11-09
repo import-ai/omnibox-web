@@ -24,7 +24,10 @@ export function UpgradeButton() {
   }
 
   const handleClick = () => {
-    window.open(getUpgradeLink(i18n, namespaceId), '_blank');
+    window.open(
+      getUpgradeLink(i18n, namespaceId, 'settings_sidebar'),
+      '_blank'
+    );
   };
 
   return (
