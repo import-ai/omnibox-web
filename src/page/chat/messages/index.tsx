@@ -380,6 +380,11 @@ export function Messages(props: IProps) {
 
           return (
             <ProcessDetails
+              id={
+                !item.finalMessage.message.content?.trim()
+                  ? `message-${item.finalMessage.id}`
+                  : undefined
+              }
               key={`process_${item.messages[0].id}`}
               ids={item.messages.map(message => message.id)}
               title={

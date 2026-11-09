@@ -398,6 +398,7 @@ describe('stopped answer disclosure', () => {
       expect(html).not.toContain('1m 8s');
       expect(html).not.toContain('Response time');
       expect(html.match(/<output>/g)?.length ?? 0).toBe(content ? 1 : 0);
+      expect(html.match(/id="message-answer"/g)).toHaveLength(1);
       expect(renderAnswer([JSON.parse(JSON.stringify(source))])).toBe(html);
     }
   );
