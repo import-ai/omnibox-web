@@ -383,7 +383,7 @@ export function Messages(props: IProps) {
               key={`process_${item.messages[0].id}`}
               ids={item.messages.map(message => message.id)}
               title={
-                formatAnswerDuration(item.finalMessage, t) ??
+                formatAnswerDuration(item.finalMessage, t, item.messages) ??
                 t('chat.messages.process.details')
               }
             >

@@ -3,6 +3,7 @@ import type { TFunction } from 'i18next';
 import { readAnswerTiming } from '../core/answerTiming';
 import { MessageStatus } from '../core/types/chatResponse';
 import type { MessageDetail } from '../core/types/conversation';
+import { getLegacyProcessDurationMs } from './messageGroups';
 
 function getCompletedDurationMs(message: MessageDetail) {
   const timing = readAnswerTiming(message.attrs?.answer_timing);
@@ -16,7 +17,11 @@ function getCompletedDurationMs(message: MessageDetail) {
   return timing.duration_ms;
 }
 
-export function formatAnswerDuration(message: MessageDetail, t: TFunction) {
+export function formatAnswerDuration(
+  message: MessageDetail,
+  t: TFunction,
+  processMessages: MessageDetail[] = []
+) {
   if (
     message.status !== MessageStatus.SUCCESS ||
     message.attrs?.turn_status === 'stopped' ||
@@ -25,10 +30,12 @@ export function formatAnswerDuration(message: MessageDetail, t: TFunction) {
   ) {
     return undefined;
   }
-  const durationMs = getCompletedDurationMs(message);
+  const durationMs =
+    getCompletedDurationMs(message) ??
+    getLegacyProcessDurationMs(processMessages, message);
   let duration: string;
   if (durationMs === undefined) {
-    duration = t('chat.messages.process.duration.unavailable');
+    return undefined;
   } else if (durationMs < 1000) {
     duration = t('chat.messages.process.duration.less_than_second');
   } else {

@@ -142,3 +142,26 @@ export function buildMessageIndexItems(messages: MessageDetail[]) {
 
   return result;
 }
+
+/** Preserve the original multi-message history calculation only for pre-protocol records. */
+export function getLegacyProcessDurationMs(
+  messages: MessageDetail[],
+  finalMessage: MessageDetail
+) {
+  if (
+    finalMessage.status !== MessageStatus.SUCCESS ||
+    finalMessage.attrs?.turn_status === 'stopped' ||
+    [...messages, finalMessage].some(
+      message => message.attrs?.answer_timing != null
+    )
+  )
+    return undefined;
+  const start = messages
+    .filter(message => message.id !== finalMessage.id)
+    .map(message => Date.parse(message.created_at ?? ''))
+    .find(timestamp => Number.isFinite(timestamp));
+  const end = Date.parse(finalMessage.created_at ?? '');
+  if (start === undefined || !Number.isFinite(end)) return undefined;
+  const duration = end - start;
+  return Number.isSafeInteger(duration) && duration > 0 ? duration : undefined;
+}

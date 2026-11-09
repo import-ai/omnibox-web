@@ -929,7 +929,6 @@
       "process": {
         "details": "Process details",
         "duration": {
-          "unavailable": "Duration unavailable",
           "less_than_second": "Less than 1 second",
           "hours": "{{count}}h",
           "minutes": "{{count}}m",

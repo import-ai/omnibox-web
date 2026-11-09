@@ -3,6 +3,7 @@ import type { MessageDetail } from '../core/types/conversation';
 import {
   buildMessageDisplayItems,
   buildMessageIndexItems,
+  getLegacyProcessDurationMs,
 } from './messageGroups';
 
 function buildMessage(
@@ -245,4 +246,42 @@ describe('single-node reasoning process projection', () => {
       expect(JSON.stringify(source)).toBe(before);
     }
   );
+});
+
+describe('legacy process duration compatibility', () => {
+  it('preserves existing multi-step timing but never invents single-node or invalid timing', () => {
+    const first = buildMessage({
+      id: 'first',
+      created_at: '2026-11-09T00:00:00Z',
+    });
+    const final = buildMessage({
+      id: 'final',
+      created_at: '2026-11-09T00:00:19Z',
+      updated_at: '2026-11-10T00:00:00Z',
+    });
+    expect(getLegacyProcessDurationMs([first], final)).toBe(19000);
+    expect(getLegacyProcessDurationMs([final], final)).toBeUndefined();
+    expect(
+      getLegacyProcessDurationMs([first], {
+        ...final,
+        attrs: { answer_timing: {} } as MessageDetail['attrs'],
+      })
+    ).toBeUndefined();
+    expect(
+      getLegacyProcessDurationMs([first], {
+        ...final,
+        status: MessageStatus.STOPPED,
+      })
+    ).toBeUndefined();
+    expect(
+      getLegacyProcessDurationMs([first], { ...final, created_at: 'invalid' })
+    ).toBeUndefined();
+    expect(
+      getLegacyProcessDurationMs([first], {
+        ...final,
+        created_at: first.created_at,
+      })
+    ).toBeUndefined();
+    expect(getLegacyProcessDurationMs([final], first)).toBeUndefined();
+  });
 });

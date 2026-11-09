@@ -249,10 +249,10 @@ test.each([
             { attrs: { answer_timing: {} } as unknown as MessageAttrs }
           )
         : timedAnswer(invalid);
-  expect(renderAnswer([answer])).toContain('Duration unavailable');
+  expect(renderAnswer([answer])).toContain('Process details');
 });
 
-test('does not estimate legacy multi-step duration from creation or update timestamps', () => {
+test('preserves the original legacy multi-step duration without using updated_at', () => {
   const html = renderAnswer([
     node('tool', {
       created_at: '2026-11-09T00:00:00Z',
@@ -267,7 +267,8 @@ test('does not estimate legacy multi-step duration from creation or update times
       }
     ),
   ]);
-  expect(html).toContain('Duration unavailable');
+  expect(html).toContain('1m 8s');
+  expect(html).not.toContain('Duration unavailable');
 });
 
 test.each([
@@ -278,7 +279,8 @@ test.each([
 ])('does not show completed-answer time for %s messages', status => {
   const html = renderAnswer([timedAnswer({}, { status })]);
   expect(html).not.toContain('Response time');
-  expect(html).not.toContain('Duration unavailable');
+  if (status !== MessageStatus.STOPPED)
+    expect(html).not.toContain('Process details');
 });
 
 test('preserves stopped process folding without claiming a completed duration', () => {
@@ -324,7 +326,7 @@ test('formats hours, minutes and seconds from active time despite a longer wall 
 test('localizes unavailable timing without inventing zero seconds', () => {
   mockLanguage = 'zh';
   expect(renderAnswer([timedAnswer({}, { attrs: undefined })])).toContain(
-    '耗时不可用'
+    '处理过程'
   );
 });
 
@@ -355,4 +357,16 @@ test('single reasoning uses the original disclosure and only one final answer an
   expect(html.match(/id="message-answer"/g)).toHaveLength(1);
   expect(html.match(/<output>/g)).toHaveLength(1);
   expect(html).not.toContain('Response time');
+});
+
+test('does not disguise malformed new timing as legacy timing', () => {
+  const html = renderAnswer([
+    node('tool', {
+      created_at: '2026-11-09T00:00:00Z',
+      message: { role: OpenAIMessageRole.TOOL },
+    }),
+    timedAnswer({ run_id: '' }, { created_at: '2026-11-09T00:00:19Z' }),
+  ]);
+  expect(html).toContain('Process details');
+  expect(html).not.toContain('19s');
 });

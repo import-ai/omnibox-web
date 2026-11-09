@@ -930,7 +930,6 @@
       "process": {
         "details": "处理过程",
         "duration": {
-          "unavailable": "耗时不可用",
           "less_than_second": "不足 1 秒",
           "hours": "{{count}} 小时",
           "minutes": "{{count}} 分",
