@@ -1,5 +1,6 @@
 import { MessageStatus, OpenAIMessageRole } from '../core/types/chatResponse';
 import type {
+  AnswerTiming,
   ConversationDetail,
   MessageDetail,
 } from '../core/types/conversation';
@@ -203,4 +204,173 @@ it('accepts a newer failed snapshot without retaining an earlier error with the 
     error_message: 'new failure',
     error_code: 'TOKEN_EXPIRED',
   });
+});
+
+test('accepts final timing metadata from history while retaining loaded reasoning details', () => {
+  const completeTiming = {
+    version: 1 as const,
+    answer_id: 'answer',
+    run_id: 'run',
+    status: 'complete' as const,
+    started_at: '2026-11-09T00:00:00Z',
+    completed_at: '2026-11-09T00:00:02Z',
+    duration_ms: 2000,
+  };
+  const previous = page({
+    answer: message('answer', {
+      details_loaded: true,
+      message: {
+        role: OpenAIMessageRole.ASSISTANT,
+        content: 'answer',
+        reasoning_content: 'loaded',
+      },
+      attrs: { metrics: { tokens: 7 } },
+    }),
+  });
+  const summary = page({
+    answer: message('answer', {
+      details_loaded: false,
+      has_reasoning: true,
+      attrs: { answer_timing: completeTiming },
+    }),
+  });
+  const merged = mergeHistoryPage(previous, summary);
+  expect(merged.mapping.answer.attrs).toMatchObject({
+    answer_timing: completeTiming,
+    metrics: { tokens: 7 },
+  });
+  expect(merged.mapping.answer.message.reasoning_content).toBe('loaded');
+});
+
+test.each([false, true])(
+  'retains completed timing through stale history with branch replacement %s',
+  replaceBranch => {
+    const timing = {
+      version: 1 as const,
+      answer_id: 'answer',
+      run_id: 'run',
+      started_at: '2026-11-09T00:00:00Z',
+      status: 'complete' as const,
+      completed_at: '2026-11-09T00:00:05Z',
+      duration_ms: 3000,
+    };
+    const previous = page({
+      answer: message('answer', {
+        details_loaded: false,
+        attrs: { answer_timing: timing },
+      }),
+    });
+    const stale = page({
+      answer: message('answer', {
+        updated_at: 'later',
+        status: MessageStatus.STREAMING,
+        attrs: {
+          answer_timing: {
+            version: 1,
+            answer_id: timing.answer_id,
+            run_id: timing.run_id,
+            started_at: timing.started_at,
+            status: 'running',
+          },
+        },
+      }),
+    });
+    const merged = mergeHistoryPage(previous, stale, replaceBranch).mapping
+      .answer;
+    expect(merged.attrs?.answer_timing).toEqual(timing);
+    expect(merged.status).toBe(MessageStatus.SUCCESS);
+  }
+);
+
+const runningTiming: AnswerTiming = {
+  version: 1,
+  answer_id: 'answer',
+  run_id: 'run',
+  started_at: '2026-11-09T00:00:00Z',
+  status: 'running',
+};
+const terminalTiming: AnswerTiming = {
+  ...runningTiming,
+  status: 'complete',
+  completed_at: '2026-11-09T00:00:05Z',
+  duration_ms: 5000,
+};
+
+test.each([undefined, 'answer', 'new-head'])(
+  'merges timing independently of stale revisions with current node %s',
+  currentNode => {
+    const answer = message('answer', {
+      localRevision: 2,
+      attrs: { answer_timing: runningTiming, metrics: { tokens: 7 } },
+    });
+    const previous = page(
+      { answer, 'new-head': message('new-head', { localRevision: 1 }) },
+      { current_node: currentNode, branch_leaf_id: 'new-head', offset: 20 }
+    );
+    const incoming = page(
+      {
+        answer: message('answer', {
+          message: { role: OpenAIMessageRole.ASSISTANT, content: 'stale' },
+          attrs: { answer_timing: terminalTiming, metrics: { tokens: 1 } },
+        }),
+        unrelated: message('unrelated'),
+      },
+      { current_node: 'answer' }
+    );
+    const merged = mergeHistoryPage(previous, incoming, false, { answer: 1 });
+    expect(merged.mapping.answer).toEqual({
+      ...answer,
+      attrs: { ...answer.attrs, answer_timing: terminalTiming },
+    });
+    if (currentNode) {
+      expect(merged.current_node).toBe(currentNode);
+      expect(merged.branch_leaf_id).toBe(previous.branch_leaf_id);
+      expect(merged.offset).toBe(20);
+      expect(merged.mapping.unrelated).toBeUndefined();
+    }
+  }
+);
+
+test.each([
+  { answer_id: 'other-answer' },
+  { run_id: 'other-run' },
+  { started_at: '2026-11-09T00:00:01Z' },
+  { duration_ms: -1 },
+])('rejects incompatible raced timing %j', override => {
+  const answer = message('answer', {
+    localRevision: 2,
+    attrs: { answer_timing: runningTiming },
+  });
+  const previous = page({ answer }, { current_node: 'answer' });
+  const incoming = page({
+    answer: message('answer', {
+      attrs: { answer_timing: { ...terminalTiming, ...override } },
+    }),
+  });
+  expect(mergeHistoryPage(previous, incoming, false, { answer: 1 })).toBe(
+    previous
+  );
+});
+
+test('does not merge raced timing from another conversation', () => {
+  const previous = page(
+    {
+      answer: message('answer', {
+        localRevision: 2,
+        attrs: { answer_timing: runningTiming },
+      }),
+    },
+    { current_node: 'answer' }
+  );
+  const incoming = page(
+    {
+      answer: message('answer', {
+        attrs: { answer_timing: terminalTiming },
+      }),
+    },
+    { id: 'other-conversation' }
+  );
+  expect(mergeHistoryPage(previous, incoming, false, { answer: 1 })).toBe(
+    previous
+  );
 });

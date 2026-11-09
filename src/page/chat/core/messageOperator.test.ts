@@ -1,6 +1,7 @@
 import type { SetStateAction } from 'react';
 
 import { createMessageOperator } from './messageOperator';
+import { messageProcessor } from './messageProcessor';
 import { MessageStatus, OpenAIMessageRole } from './types/chatResponse';
 import type { ConversationDetail } from './types/conversation';
 
@@ -261,3 +262,327 @@ test('stop acknowledgement includes TOOL descendants created while cancellation 
   operator.stop('a');
   expect(conversation.mapping.t.status).toBe(MessageStatus.STOPPED);
 });
+
+it.each([MessageStatus.FAILED, MessageStatus.STOPPED])(
+  'keeps %s terminal after late timing metadata and EOS',
+  status => {
+    let conversation: ConversationDetail = {
+      id: 'c',
+      current_node: 'answer',
+      mapping: {
+        answer: {
+          id: 'answer',
+          clientKey: 1,
+          parent_id: '',
+          children: [],
+          status,
+          message: { role: OpenAIMessageRole.ASSISTANT, content: 'partial' },
+          attrs: {
+            answer_timing: {
+              version: 1,
+              answer_id: 'answer',
+              run_id: 'run',
+              status: status === MessageStatus.FAILED ? 'failed' : 'stopped',
+              started_at: '2026-11-09T00:00:00Z',
+              completed_at: '2026-11-09T00:00:02Z',
+            },
+          },
+        },
+      },
+    };
+    const operator = createMessageOperator(conversation, updater => {
+      conversation = updateConversation(conversation, updater);
+    });
+    operator.update(
+      {
+        response_type: 'delta',
+        message: {},
+        attrs: {
+          answer_timing: {
+            version: 1,
+            answer_id: 'answer',
+            run_id: 'run',
+            status: 'running',
+            started_at: '2026-11-09T00:00:00Z',
+          },
+        },
+      },
+      'answer'
+    );
+    operator.done('answer');
+    expect(conversation.mapping.answer.status).toBe(status);
+    expect(conversation.mapping.answer.message.content).toBe('partial');
+    expect(conversation.mapping.answer.attrs?.answer_timing?.status).toBe(
+      status
+    );
+  }
+);
+
+test('replays metadata-only deltas on the addressed branch without changing text or the active sibling', () => {
+  const answerTiming = {
+    version: 1,
+    answer_id: 'a',
+    run_id: 'run-a',
+    status: 'complete',
+    started_at: '2026-11-09T00:00:00Z',
+    completed_at: '2026-11-09T00:01:00Z',
+    duration_ms: 8000,
+  };
+  let conversation: ConversationDetail = {
+    id: 'c',
+    current_node: 'b',
+    mapping: {
+      a: {
+        id: 'a',
+        clientKey: 1,
+        parent_id: 'q',
+        children: [],
+        status: MessageStatus.SUCCESS,
+        message: {
+          role: OpenAIMessageRole.ASSISTANT,
+          content: 'first answer',
+          reasoning_content: 'reasoning',
+        },
+      },
+      b: {
+        id: 'b',
+        clientKey: 2,
+        parent_id: 'q',
+        children: [],
+        status: MessageStatus.SUCCESS,
+        message: { role: OpenAIMessageRole.ASSISTANT, content: 'other answer' },
+      },
+    },
+  };
+  const operator = createMessageOperator(conversation, updater => {
+    conversation = updateConversation(conversation, updater);
+  });
+  const metadata = JSON.stringify({
+    response_type: 'delta',
+    id: 'a',
+    message: {},
+    attrs: { answer_timing: answerTiming },
+  });
+  messageProcessor(operator, metadata);
+  messageProcessor(operator, metadata);
+  messageProcessor(operator, JSON.stringify({ response_type: 'done' }));
+  expect(conversation.mapping.a.attrs?.answer_timing).toEqual(answerTiming);
+  expect(conversation.mapping.a.status).toBe(MessageStatus.SUCCESS);
+  expect(conversation.mapping.a.message).toMatchObject({
+    content: 'first answer',
+    reasoning_content: 'reasoning',
+  });
+  expect(conversation.mapping.b.attrs?.answer_timing).toBeUndefined();
+  expect(conversation.current_node).toBe('b');
+});
+
+it.each(['paused', 'complete', 'stopped', 'failed'] as const)(
+  'keeps %s timing through stale running delta and repeated BOS',
+  timingStatus => {
+    const timing = {
+      version: 1 as const,
+      answer_id: 'answer',
+      run_id: 'run',
+      started_at: '2026-11-09T00:00:00Z',
+      status: timingStatus,
+      ...(timingStatus === 'paused'
+        ? { duration_ms: 2000 }
+        : { completed_at: '2026-11-09T00:00:05Z' }),
+      ...(timingStatus === 'complete' ? { duration_ms: 3000 } : {}),
+    };
+    let conversation = {
+      id: 'c',
+      current_node: 'answer',
+      mapping: {
+        answer: {
+          id: 'answer',
+          clientKey: 1,
+          parent_id: '',
+          children: [],
+          status: MessageStatus.SUCCESS,
+          message: { role: OpenAIMessageRole.ASSISTANT, content: 'answer' },
+          attrs: { answer_timing: timing },
+        },
+      },
+    } as unknown as ConversationDetail;
+    const operator = createMessageOperator(conversation, updater => {
+      conversation = updateConversation(conversation, updater);
+    });
+    const running = {
+      version: 1 as const,
+      answer_id: 'answer',
+      run_id: 'run',
+      started_at: timing.started_at,
+      status: 'running' as const,
+    };
+    operator.update(
+      {
+        response_type: 'delta',
+        message: {},
+        attrs: { answer_timing: running },
+      },
+      'answer'
+    );
+    expect(conversation.mapping.answer.attrs?.answer_timing).toEqual(timing);
+    operator.add({
+      response_type: 'bos',
+      id: 'answer',
+      role: OpenAIMessageRole.ASSISTANT,
+      parentId: '',
+      attrs: { answer_timing: running },
+    });
+    expect(conversation.mapping.answer.attrs?.answer_timing).toEqual(timing);
+    expect(conversation.mapping.answer.status).toBe(MessageStatus.SUCCESS);
+  }
+);
+
+it.each(['answer_id', 'run_id', 'started_at'] as const)(
+  'rejects a timing delta bound to another %s',
+  key => {
+    const timing = {
+      version: 1 as const,
+      answer_id: 'answer',
+      run_id: 'run',
+      started_at: '2026-11-09T00:00:00Z',
+      status: 'running' as const,
+    };
+    let conversation: ConversationDetail = {
+      id: 'c',
+      current_node: 'answer',
+      mapping: {
+        answer: {
+          id: 'answer',
+          clientKey: 1,
+          parent_id: '',
+          children: [],
+          status: MessageStatus.STREAMING,
+          message: { role: OpenAIMessageRole.ASSISTANT },
+          attrs: { answer_timing: timing },
+        },
+      },
+    };
+    const operator = createMessageOperator(conversation, updater => {
+      conversation = updateConversation(conversation, updater);
+    });
+    operator.update(
+      {
+        response_type: 'delta',
+        message: {},
+        attrs: {
+          answer_timing: {
+            ...timing,
+            status: 'complete',
+            completed_at: '2026-11-09T00:00:05Z',
+            duration_ms: 5000,
+            [key]: key === 'started_at' ? '2026-11-09T00:00:01Z' : 'other',
+          },
+        },
+      },
+      'answer'
+    );
+    expect(conversation.mapping.answer.attrs?.answer_timing).toEqual(timing);
+  }
+);
+
+it('accepts server stopped timing after a local stop without accepting late content', () => {
+  const running = {
+    version: 1 as const,
+    answer_id: 'answer',
+    run_id: 'run',
+    started_at: '2026-11-09T00:00:00Z',
+    status: 'running' as const,
+  };
+  let conversation: ConversationDetail = {
+    id: 'c',
+    current_node: 'answer',
+    mapping: {
+      answer: {
+        id: 'answer',
+        clientKey: 1,
+        parent_id: '',
+        children: [],
+        status: MessageStatus.STOPPED,
+        message: { role: OpenAIMessageRole.ASSISTANT, content: 'partial' },
+        attrs: { answer_timing: running },
+      },
+    },
+  };
+  const operator = createMessageOperator(conversation, updater => {
+    conversation = updateConversation(conversation, updater);
+  });
+  const stopped = {
+    ...running,
+    status: 'stopped' as const,
+    completed_at: '2026-11-09T00:00:05Z',
+  };
+  operator.update(
+    {
+      response_type: 'delta',
+      message: { content: 'late content' },
+      attrs: { answer_timing: stopped },
+    },
+    'answer'
+  );
+  expect(conversation.mapping.answer.attrs?.answer_timing).toEqual(stopped);
+  expect(conversation.mapping.answer.message.content).toBe('partial');
+  expect(conversation.mapping.answer.status).toBe(MessageStatus.STOPPED);
+});
+
+it.each(['missing', 'running', 'complete'] as const)(
+  'recovers local stream_interrupted on EOS with %s timing',
+  timingState => {
+    let conversation: ConversationDetail = { id: 'c', mapping: {} };
+    const operator = createMessageOperator(conversation, updater => {
+      conversation = updateConversation(conversation, updater);
+    });
+    const running = {
+      version: 1 as const,
+      answer_id: 'answer',
+      run_id: 'run',
+      started_at: '2026-11-09T00:00:00Z',
+      status: 'running' as const,
+    };
+    operator.add({
+      response_type: 'bos',
+      id: 'answer',
+      role: OpenAIMessageRole.ASSISTANT,
+      parentId: '',
+      attrs: timingState === 'missing' ? undefined : { answer_timing: running },
+    });
+    operator.update(
+      { response_type: 'delta', message: { content: 'partial answer' } },
+      'answer'
+    );
+    operator.error(
+      {
+        response_type: 'error',
+        code: 'stream_interrupted',
+        message: 'Connection interrupted',
+      },
+      'answer'
+    );
+    expect(conversation.mapping.answer.status).toBe(MessageStatus.FAILED);
+    if (timingState === 'complete') {
+      operator.update(
+        {
+          response_type: 'delta',
+          message: {},
+          attrs: {
+            answer_timing: {
+              ...running,
+              status: 'complete',
+              completed_at: '2026-11-09T00:00:02Z',
+              duration_ms: 2000,
+            },
+          },
+        },
+        'answer'
+      );
+    }
+    operator.done('answer');
+    expect(conversation.mapping.answer.status).toBe(MessageStatus.SUCCESS);
+    expect(conversation.mapping.answer.message.content).toBe('partial answer');
+    expect(conversation.mapping.answer.attrs?.error_code).toBeUndefined();
+    expect(conversation.mapping.answer.attrs?.error_message).toBeUndefined();
+  }
+);
