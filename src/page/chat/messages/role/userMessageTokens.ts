@@ -3,10 +3,7 @@ import type { TFunction } from 'i18next';
 import type { ResourceMeta } from '@/interface';
 import { pathI18n, trimMiddle } from '@/lib/toolArgs.ts';
 
-import {
-  createResourceQueryText,
-  WEB_SEARCH_QUERY_TOKEN,
-} from '../../chat-input/composerQuery';
+import { WEB_SEARCH_QUERY_TOKEN } from '../../chat-input/composerQuery';
 import {
   type ChatMessageDisplayPart,
   type ChatTool,
@@ -46,6 +43,7 @@ type UserMessageTokenSegment =
   | {
       type: 'resource';
       text: string;
+      resource: PrivateSearchResource;
     }
   | {
       type: 'tool';
@@ -67,19 +65,19 @@ export type UserMessageDisplaySegment =
     };
 
 export function getUserMessageResources(tools?: ChatTool[]) {
-  const resourcesByName = new Map<string, PrivateSearchResource>();
+  const resourcesById = new Map<string, PrivateSearchResource>();
 
   (tools ?? [])
     .flatMap(tool =>
       tool.name === ToolType.PRIVATE_SEARCH ? (tool.resources ?? []) : []
     )
     .forEach(resource => {
-      if (resource.name && !resourcesByName.has(resource.name)) {
-        resourcesByName.set(resource.name, resource);
+      if (resource.id && !resourcesById.has(resource.id)) {
+        resourcesById.set(resource.id, resource);
       }
     });
 
-  return Array.from(resourcesByName.values()).sort(
+  return Array.from(resourcesById.values()).sort(
     (a, b) => b.name.length - a.name.length
   );
 }
@@ -97,8 +95,9 @@ export function hasVisibleUserMessageResources(
   const resources = getUserMessageResources(tools);
   if (resources.length === 0) return false;
 
-  const text = content ?? '';
-  return resources.some(resource => text.includes(resource.name));
+  return splitUserMessageResourceTokens(content ?? '', resources).some(
+    segment => segment.type === 'resource'
+  );
 }
 
 /** IDs to resolve for message pills / user_context tip labels. */
@@ -195,32 +194,109 @@ export function splitUserMessageResourceTokens(
     return [{ type: 'text', text }];
   }
 
-  const resourceByToken = new Map<string, PrivateSearchResource>();
-  resources.forEach(resource => {
-    resourceByToken.set(
-      createResourceQueryText(resource.name, resource.id),
-      resource
-    );
-    if (!resourceByToken.has(resource.name)) {
-      resourceByToken.set(resource.name, resource);
-    }
-  });
-  const tokens = [WEB_SEARCH_QUERY_TOKEN, ...resourceByToken.keys()].sort(
-    (a, b) => b.length - a.length
+  const resourceById = new Map(
+    resources.map(resource => [resource.id, resource])
   );
-  const pattern = new RegExp(`(${tokens.map(escapeRegExp).join('|')})`);
-  return text
-    .split(pattern)
-    .filter(Boolean)
-    .map<UserMessageTokenSegment>(part => {
-      if (part === WEB_SEARCH_QUERY_TOKEN) {
-        return { type: 'tool', tool: ToolType.WEB_SEARCH };
-      }
-      const resource = resourceByToken.get(part);
-      return resource
-        ? { type: 'resource', text: resource.name }
-        : { type: 'text', text: part };
-    });
+  const resourceByName = new Map<string, PrivateSearchResource | null>();
+  resources.forEach(resource => {
+    if (!resource.name) return;
+    const existing = resourceByName.get(resource.name);
+    resourceByName.set(
+      resource.name,
+      existing === undefined || existing?.id === resource.id ? resource : null
+    );
+  });
+  const names = Array.from(resourceByName.keys())
+    .filter(name => resourceByName.get(name))
+    .sort((a, b) => b.length - a.length);
+  const pattern = new RegExp(
+    [
+      escapeRegExp(WEB_SEARCH_QUERY_TOKEN),
+      '!?\\[',
+      ...names.map(escapeRegExp),
+    ].join('|'),
+    'g'
+  );
+  const segments: UserMessageTokenSegment[] = [];
+  const appendText = (value: string) => {
+    if (!value) return;
+    const previous = segments[segments.length - 1];
+    if (previous?.type === 'text') previous.text += value;
+    else segments.push({ type: 'text', text: value });
+  };
+  let cursor = 0;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(text))) {
+    const matchIndex = match.index;
+    appendText(text.slice(cursor, matchIndex));
+    let token = match[0];
+    if (token === WEB_SEARCH_QUERY_TOKEN) {
+      segments.push({ type: 'tool', tool: ToolType.WEB_SEARCH });
+    } else if (token === '[' || token === '![') {
+      const labelStart = matchIndex + token.length - 1;
+      const label = scanBracketedText(text, labelStart, '[', ']');
+      const hasTarget = label.closed && text[label.end] === '(';
+      const target = hasTarget
+        ? scanBracketedText(text, label.end, '(', ')')
+        : undefined;
+      // A complete bare filename may itself begin with brackets.
+      const legacyName =
+        label.closed && !hasTarget
+          ? names.find(name => text.startsWith(name, matchIndex))
+          : undefined;
+      const end = legacyName
+        ? matchIndex + legacyName.length
+        : (target?.end ?? label.end);
+      token = text.slice(matchIndex, end);
+      const targetId = target?.closed
+        ? text.slice(label.end + 1, target.end - 1)
+        : '';
+      const resource = legacyName
+        ? resourceByName.get(legacyName)
+        : !token.startsWith('!') && targetId.startsWith('#')
+          ? resourceById.get(targetId.slice(1))
+          : undefined;
+      if (resource) {
+        segments.push({
+          type: 'resource',
+          text:
+            legacyName ??
+            (text
+              .slice(labelStart + 1, label.end - 1)
+              .replace(/\\([\[\]\\])/g, '$1') ||
+              resource.name),
+          resource,
+        });
+      } else appendText(token);
+    } else {
+      const resource = resourceByName.get(token);
+      if (resource) segments.push({ type: 'resource', text: token, resource });
+      else appendText(token);
+    }
+    cursor = matchIndex + token.length;
+    pattern.lastIndex = cursor;
+  }
+  appendText(text.slice(cursor));
+  return segments;
+}
+
+// Keep nested, escaped, unknown, and incomplete Markdown spans intact before
+// attempting legacy bare-name matching inside the surrounding text.
+function scanBracketedText(
+  text: string,
+  start: number,
+  opening: string,
+  closing: string
+) {
+  let depth = 1;
+  let end = start + 1;
+  while (end < text.length && text[end] !== '\n') {
+    const char = text[end++];
+    if (char === '\\' && end < text.length && text[end] !== '\n') end++;
+    else if (char === opening) depth++;
+    else if (char === closing && --depth === 0) return { end, closed: true };
+  }
+  return { end, closed: false };
 }
 
 function escapeRegExp(value: string) {
@@ -246,8 +322,11 @@ function escapeHtml(value: string) {
   });
 }
 
-function resourceTokenHtml(resource: PrivateSearchResource) {
-  const label = escapeHtml(resource.name);
+function resourceTokenHtml(
+  resource: PrivateSearchResource,
+  text = resource.name
+) {
+  const label = escapeHtml(text);
   const resourceType =
     resource.resource_type ?? (resource.type === 'folder' ? 'folder' : 'file');
   const url =
@@ -304,10 +383,15 @@ function appendToolTokensHtml(
 
 function displayPartHtml(
   part: ChatMessageDisplayPart,
-  getToolLabel: ToolLabelGetter
+  getToolLabel: ToolLabelGetter,
+  untitledLabel: string
 ) {
   if (part.type === 'text') return escapeHtml(part.text).replace(/\n/g, '<br>');
-  if (part.type === 'resource') return resourceTokenHtml(part.resource);
+  if (part.type === 'resource')
+    return resourceTokenHtml(
+      part.resource,
+      part.resource.name || untitledLabel
+    );
   if (part.type === 'image') {
     return `<img src="${escapeHtml(part.preview_url)}" alt="${escapeHtml(part.name)}" class="max-h-40 max-w-40 rounded-md object-contain" />`;
   }
@@ -344,11 +428,12 @@ export function createUserMessageCopyHtml(
   tools?: ChatTool[],
   enableThinking = false,
   getToolLabel: ToolLabelGetter = defaultToolLabel,
-  displayParts?: ChatMessageDisplayPart[]
+  displayParts?: ChatMessageDisplayPart[],
+  untitledLabel = 'Untitled'
 ): string | undefined {
   if (hasDisplayTokens(displayParts)) {
     return displayParts
-      ?.map(part => displayPartHtml(part, getToolLabel))
+      ?.map(part => displayPartHtml(part, getToolLabel, untitledLabel))
       .join('');
   }
 
@@ -364,9 +449,6 @@ export function createUserMessageCopyHtml(
   )
     return undefined;
 
-  const resourceByName = new Map(
-    resources.map(resource => [resource.name, resource])
-  );
   const lines = text.split('\n');
   return lines
     .map((line, index) => {
@@ -375,10 +457,10 @@ export function createUserMessageCopyHtml(
           if (segment.type === 'tool')
             return toolTokenHtml(segment.tool, getToolLabel);
           if (segment.type === 'text') return escapeHtml(segment.text);
-          const resource = resourceByName.get(segment.text);
-          return resource
-            ? resourceTokenHtml(resource)
-            : escapeHtml(segment.text);
+          return resourceTokenHtml(
+            segment.resource,
+            segment.text || untitledLabel
+          );
         })
         .join('');
 
