@@ -43,6 +43,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { SpaceType } from '@/interface';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
@@ -268,7 +269,10 @@ export function SpaceSectionContent({
                           : 'pointer-events-none opacity-0 group-hover/sidebar-header:pointer-events-auto group-hover/sidebar-header:opacity-100'
                       )}
                     >
-                      <button type="button">
+                      <button
+                        onClick={() => trackButtonClick('sidebar_section_open')}
+                        type="button"
+                      >
                         <MoreHorizontal />
                       </button>
                     </SidebarMenuAction>

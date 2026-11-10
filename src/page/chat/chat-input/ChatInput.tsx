@@ -9,6 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { composerTextLayoutClassName } from './composerLayout';
@@ -66,8 +67,16 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
                   type="button"
                   aria-label={t('chat.image.preview')}
                   onClick={event => {
-                    invokerRef.current = event.currentTarget;
-                    setPreview(image);
+                    trackButtonClick('chat_image_open');
+                    const handleClick = (
+                      event: React.MouseEvent<HTMLButtonElement>
+                    ) => {
+                      invokerRef.current = event.currentTarget;
+                      setPreview(image);
+                    };
+                    if (typeof handleClick === 'function') {
+                      (handleClick as (value?: typeof event) => void)(event);
+                    }
                   }}
                 >
                   <img
@@ -81,11 +90,17 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
                   aria-label={t('chat.image.remove')}
                   className="absolute -right-1 -top-1 z-10 rounded-full bg-foreground p-0.5 text-background"
                   disabled={props.readOnly}
-                  onClick={() => {
-                    if (preview?.id === image.id) {
-                      setPreview(null);
+                  onClick={event => {
+                    trackButtonClick('chat_image_remove');
+                    const handleClick = () => {
+                      if (preview?.id === image.id) {
+                        setPreview(null);
+                      }
+                      props.onImageRemove(image.id);
+                    };
+                    if (typeof handleClick === 'function') {
+                      (handleClick as (value?: typeof event) => void)(event);
                     }
-                    props.onImageRemove(image.id);
                   }}
                 >
                   <X className="size-3" />

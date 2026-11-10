@@ -229,6 +229,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
             />
             <InviteCodeEntry />
             <Button
+              trackName="user_register_submit"
               type="submit"
               className="w-full disabled:opacity-60"
               loading={isLoading}
@@ -280,6 +281,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
                       disabled={isLoading}
                       placeholder={t('form.phone')}
                       allowedCountries={allowedCountries}
+                      trackName="user_country_open"
                     />
                   </FormControl>
                   <FormMessage />
@@ -288,6 +290,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
             />
             <InviteCodeEntry />
             <Button
+              trackName="user_register_submit"
               type="submit"
               className="w-full disabled:opacity-60"
               loading={isLoading}

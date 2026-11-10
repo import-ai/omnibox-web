@@ -78,6 +78,7 @@ export function Header(props: IProps) {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                trackName="sidebar_history_open"
                 size="icon"
                 variant="ghost"
                 onClick={onChatHistory}

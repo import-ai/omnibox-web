@@ -223,6 +223,7 @@ export default function Apple(props: IProps) {
 
   const button = (
     <Button
+      trackName="user_login_select"
       variant="outline"
       onClick={handleClick}
       disabled={

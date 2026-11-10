@@ -86,6 +86,7 @@ export function ShareSortSelector({
         <span className={cn('inline-flex', disabled && 'cursor-not-allowed')}>
           <DropdownMenuTrigger asChild>
             <Button
+              trackName="resource_sort_open"
               variant="outline"
               disabled={disabled}
               className="h-6 w-44 justify-between bg-transparent px-3 py-2 text-sm font-normal dark:bg-input/30"

@@ -43,6 +43,7 @@ export default function Invite(props: IProps) {
     withDialogOpenHandler(children, () => setOpen(true))
   ) : (
     <Button
+      trackName="sidebar_invite_open"
       size="sm"
       variant="ghost"
       className="h-8 w-full justify-start gap-1 px-2 font-medium text-muted-foreground"

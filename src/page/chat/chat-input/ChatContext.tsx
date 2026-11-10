@@ -31,6 +31,7 @@ export default function ChatContext(props: IProps) {
           key={`${item.resource.id}_${item.type}`}
           slot={
             <Button
+              trackName="chat_context_remove"
               size="icon"
               className="size-4 rounded-full bg-primary text-primary-foreground"
               onClick={() => {
@@ -50,6 +51,7 @@ export default function ChatContext(props: IProps) {
           }
         >
           <Button
+            trackName="chat_context_navigate"
             size="sm"
             variant="outline"
             onClick={() => {

@@ -57,6 +57,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
               }}
             >
               <Button
+                trackName="sidebar_quota_upgrade"
                 variant="default"
                 className="h-[30px] w-auto shrink-0 px-3 text-xs font-medium"
               >
@@ -75,6 +76,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button
+        trackName="sidebar_namespace_create"
         size="sm"
         variant="ghost"
         className="h-8 w-full justify-start gap-1 px-2 text-muted-foreground"

@@ -2,6 +2,7 @@ import { BrushCleaning, RotateCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Spinner } from '@/components/ui/Spinner';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import type { NotificationFilter } from './types';
@@ -92,7 +93,13 @@ export function NotificationToolbar({
         <button
           type="button"
           disabled={isMarkAllReadDisabled}
-          onClick={onMarkAllRead}
+          onClick={event => {
+            trackButtonClick('notification_list_confirm');
+            const handleClick = onMarkAllRead;
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
+          }}
           className={getActionClassName(isMarkAllReadDisabled)}
         >
           <BrushCleaning className="size-4 stroke-2" />
@@ -102,7 +109,13 @@ export function NotificationToolbar({
         <button
           type="button"
           disabled={isRefreshDisabled}
-          onClick={onRefresh}
+          onClick={event => {
+            trackButtonClick('notification_list_refresh');
+            const handleClick = onRefresh;
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
+          }}
           className={getActionClassName(isRefreshDisabled)}
         >
           {refreshing ? (

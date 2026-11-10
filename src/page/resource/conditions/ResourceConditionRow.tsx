@@ -94,6 +94,7 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
           {t('resource_conditions.condition_title', { index: index + 1 })}
         </p>
         <Button
+          trackName="resource_condition_remove"
           type="button"
           variant="ghost"
           size="icon"
@@ -230,6 +231,8 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
               ) : normalizedValue?.kind === 'single_date' ? (
                 <DatePicker
                   value={normalizedValue.date}
+                  trackName="resource_date_open"
+                  dayTrackName="resource_date_select"
                   placeholder={t('resource_conditions.pick_date')}
                   className={resourceConditionSelectTriggerClass}
                   onChange={value =>
@@ -243,6 +246,8 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
                 <DateRangePicker
                   startDate={normalizedValue.startDate}
                   endDate={normalizedValue.endDate}
+                  trackName="resource_date_open"
+                  dayTrackName="resource_date_select"
                   placeholder={t('resource_conditions.pick_date')}
                   displayFormat={t('resource_conditions.date_format')}
                   className={resourceConditionSelectTriggerClass}

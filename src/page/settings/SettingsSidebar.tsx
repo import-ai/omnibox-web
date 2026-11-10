@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { AppManagerIcon } from '@/assets/icons/AppManagerIcon';
 import logoUrl from '@/assets/logo.svg';
 import useConfig from '@/hooks/useConfig';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { UpgradeButton } from '@/page/sidebar/components/namespace-switcher/UpgradeButton';
 
@@ -162,7 +163,13 @@ export function SettingsSidebar({
 
             <div className="flex w-full flex-row flex-wrap gap-1 lg:flex-col lg:gap-0.5">
               <button
-                onClick={() => onChange('profile')}
+                onClick={event => {
+                  trackButtonClick('settings_section_select');
+                  const handleClick = () => onChange('profile');
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
                 aria-current={value === 'profile' ? 'page' : undefined}
                 className={cn(
                   'flex h-[30px] w-auto items-center gap-2 rounded px-2.5 py-1 text-left lg:w-full lg:gap-3',
@@ -189,7 +196,13 @@ export function SettingsSidebar({
                 return (
                   <button
                     key={item.value}
-                    onClick={() => onChange(item.value)}
+                    onClick={event => {
+                      trackButtonClick('settings_section_select');
+                      const handleClick = () => onChange(item.value);
+                      if (typeof handleClick === 'function') {
+                        (handleClick as (value?: typeof event) => void)(event);
+                      }
+                    }}
                     aria-current={isSelected ? 'page' : undefined}
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
@@ -236,7 +249,13 @@ export function SettingsSidebar({
                 return (
                   <button
                     key={item.value}
-                    onClick={() => onChange(item.value)}
+                    onClick={event => {
+                      trackButtonClick('settings_section_select');
+                      const handleClick = () => onChange(item.value);
+                      if (typeof handleClick === 'function') {
+                        (handleClick as (value?: typeof event) => void)(event);
+                      }
+                    }}
                     aria-current={isSelected ? 'page' : undefined}
                     className={cn(
                       'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
@@ -275,7 +294,13 @@ export function SettingsSidebar({
             {footerItems.map(item => (
               <button
                 key={item.value}
-                onClick={() => onChange(item.value)}
+                onClick={event => {
+                  trackButtonClick('settings_section_select');
+                  const handleClick = () => onChange(item.value);
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
                 aria-current={value === item.value ? 'page' : undefined}
                 className={cn(
                   'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',

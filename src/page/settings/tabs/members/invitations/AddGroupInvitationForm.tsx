@@ -92,7 +92,12 @@ export function AddGroupInvitationForm(props: IProps) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} loading={loading}>
+        <Button
+          trackName="settings_invitation_submit"
+          type="submit"
+          disabled={loading}
+          loading={loading}
+        >
           {t('manage.submit')}
         </Button>
       </form>

@@ -217,6 +217,7 @@ export function AddLinkPanel({
           {url.length > 0 && (
             <span className="absolute inset-y-0 right-2 flex items-center">
               <Button
+                trackName="chat_link_remove"
                 type="button"
                 variant="ghost"
                 aria-label={t('search.clear')}
@@ -238,6 +239,7 @@ export function AddLinkPanel({
             {t('chat.home.upload.save_to')}
           </Label>
           <Button
+            trackName="chat_link_select"
             type="button"
             variant="outline"
             className="h-9 w-full justify-start gap-2 pr-2 pl-3 font-normal"
@@ -261,6 +263,7 @@ export function AddLinkPanel({
         <div className="flex gap-5">
           <span className={cn('flex flex-1', saving && 'cursor-not-allowed')}>
             <Button
+              trackName="chat_link_cancel"
               type="button"
               variant="outline"
               className="h-8 w-full"
@@ -277,6 +280,7 @@ export function AddLinkPanel({
             )}
           >
             <Button
+              trackName="chat_link_save"
               type="button"
               className="h-8 w-full"
               disabled={!url.trim() || saving || !destination}

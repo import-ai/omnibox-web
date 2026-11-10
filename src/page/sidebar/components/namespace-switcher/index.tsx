@@ -108,6 +108,7 @@ export function Switcher(props: IProps) {
             {pricingEntryVariant && (
               <DropdownMenuLabel className="p-0">
                 <Button
+                  trackName="sidebar_plan_upgrade"
                   asChild
                   size="sm"
                   variant="ghost"

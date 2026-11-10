@@ -184,6 +184,7 @@ export default function SettingForm({
               </p>
             </div>
             <SettingPageButton
+              trackName="settings_namespace_edit"
               variant="outline"
               onClick={() => {
                 form.reset({ name: data.name });
@@ -228,6 +229,7 @@ export default function SettingForm({
                   />
                   <div className="flex justify-end gap-2">
                     <Button
+                      trackName="settings_namespace_cancel"
                       type="button"
                       variant="outline"
                       disabled={submiting}
@@ -236,6 +238,7 @@ export default function SettingForm({
                       {t('cancel')}
                     </Button>
                     <Button
+                      trackName="settings_namespace_save"
                       type="submit"
                       disabled={submiting}
                       loading={submiting}
@@ -267,6 +270,7 @@ export default function SettingForm({
               </p>
             </div>
             <SettingPageButton
+              trackName="settings_namespace_remove"
               variant="destructive"
               onClick={() => setLeaveDialogOpen(true)}
             >
@@ -286,6 +290,7 @@ export default function SettingForm({
                 </p>
               </div>
               <SettingPageButton
+                trackName="settings_namespace_delete"
                 variant="destructive"
                 onClick={() => setDeleteDialogOpen(true)}
               >

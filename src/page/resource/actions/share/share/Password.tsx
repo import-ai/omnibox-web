@@ -113,7 +113,11 @@ export function Password(props: PasswordProps) {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full disabled:opacity-60">
+              <Button
+                trackName="resource_password_save"
+                type="submit"
+                className="w-full disabled:opacity-60"
+              >
                 {t('share.share.save')}
               </Button>
             </form>

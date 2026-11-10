@@ -126,6 +126,7 @@ export default function ResourceTasks({}: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -152,6 +153,7 @@ export default function ResourceTasks({}: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -178,6 +180,7 @@ export default function ResourceTasks({}: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -204,6 +207,7 @@ export default function ResourceTasks({}: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -230,6 +234,7 @@ export default function ResourceTasks({}: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -254,6 +259,7 @@ export default function ResourceTasks({}: ResourceTasksProps) {
           )}
           {hasRetryable && (
             <Button
+              trackName="resource_task_retry"
               variant="secondary"
               disabled={retrying}
               onClick={() => {

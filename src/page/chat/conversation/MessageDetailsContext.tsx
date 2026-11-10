@@ -2,6 +2,7 @@ import { createContext, useContext, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/ui/button';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import type { MessageDetail } from '@/page/chat/core/types/conversation';
 
 type Loader = (
@@ -42,7 +43,17 @@ export function DetailLoadState({
   const { t } = useTranslation();
   if (error)
     return (
-      <Button variant="outline" size="sm" onClick={retry}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={event => {
+          trackButtonClick('chat_details_retry');
+          const handleClick = retry;
+          if (typeof handleClick === 'function') {
+            (handleClick as (value?: typeof event) => void)(event);
+          }
+        }}
+      >
         {t('chat.history.retry_details')}
       </Button>
     );

@@ -24,6 +24,7 @@ import { useApplicationIdentity } from '@/hooks/useApplicationIdentity';
 import useApplications from '@/hooks/useApplications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/getDocsLink.ts';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
@@ -492,7 +493,16 @@ export function ApplicationsForm({
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
-                            onClick={() => handleDocsClick(application.app_id)}
+                            onClick={event => {
+                              trackButtonClick('settings_application_open');
+                              const handleClick = () =>
+                                handleDocsClick(application.app_id);
+                              if (typeof handleClick === 'function') {
+                                (handleClick as (value?: typeof event) => void)(
+                                  event
+                                );
+                              }
+                            }}
                             className={cn(
                               sidebarToolbarIconButtonClassName,
                               'self-center hover:bg-transparent'
@@ -536,6 +546,7 @@ export function ApplicationsForm({
                   </SettingPageButton>
                 ) : isBound ? (
                   <SettingPageButton
+                    trackName="settings_binding_remove"
                     variant="outline"
                     onClick={() => {
                       setConfirmApplication(application);
@@ -547,6 +558,7 @@ export function ApplicationsForm({
                 ) : state === 'binding_in_progress' ? (
                   <div className="flex gap-2">
                     <SettingPageButton
+                      trackName="settings_binding_create"
                       onClick={() => handleBind(application)}
                       disabled={
                         bindingLoading && currentAppId === application.app_id
@@ -559,6 +571,7 @@ export function ApplicationsForm({
                       {t('applications.bind.button')}
                     </SettingPageButton>
                     <SettingPageButton
+                      trackName="settings_binding_cancel"
                       variant="outline"
                       onClick={() => {
                         setConfirmApplication(application);
@@ -570,6 +583,7 @@ export function ApplicationsForm({
                   </div>
                 ) : (
                   <SettingPageButton
+                    trackName="settings_binding_create"
                     onClick={() => handleBind(application)}
                     disabled={
                       bindingLoading && currentAppId === application.app_id
@@ -661,6 +675,7 @@ export function ApplicationsForm({
           <AlertDialogFooter>
             <AlertDialogCancel asChild>
               <Button
+                trackName="settings_binding_cancel"
                 variant="outline"
                 disabled={unbindingLoading || cancelingLoading}
               >

@@ -16,6 +16,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 interface ImagePreviewDialogProps {
   alt?: string;
@@ -92,6 +93,7 @@ export function ImagePreviewDialog({
             />
             <DialogClose asChild>
               <button
+                onClick={() => trackButtonClick('resource_image_close')}
                 ref={closeRef}
                 type="button"
                 aria-label={t('close')}

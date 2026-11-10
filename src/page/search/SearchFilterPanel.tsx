@@ -125,6 +125,7 @@ function SearchFilterConditionRow({
           {t('resource_conditions.condition_title', { index: index + 1 })}
         </p>
         <Button
+          trackName="search_filter_remove"
           type="button"
           variant="ghost"
           size="icon"
@@ -250,6 +251,8 @@ function SearchFilterConditionRow({
         ) : normalizedValue?.kind === 'single_date' ? (
           <DatePicker
             value={normalizedValue.date}
+            trackName="search_date_open"
+            dayTrackName="search_date_select"
             placeholder={t('resource_conditions.pick_date')}
             className={compactControlClass}
             onChange={value =>
@@ -263,6 +266,8 @@ function SearchFilterConditionRow({
           <DateRangePicker
             startDate={normalizedValue.startDate}
             endDate={normalizedValue.endDate}
+            trackName="search_date_open"
+            dayTrackName="search_date_select"
             placeholder={t('resource_conditions.pick_date')}
             displayFormat={t('resource_conditions.date_format')}
             className={compactControlClass}
@@ -332,6 +337,7 @@ export function SearchFilterPanel({
               namespaceId={namespaceId}
               hasPermission={currentNamespace?.is_owner !== false}
               disabledReason={t('chat.trial.not_owner')}
+              trackName="search_plan_upgrade"
             />
           )}
         </div>
@@ -385,6 +391,7 @@ export function SearchFilterPanel({
         <TooltipTrigger asChild>
           <span className="mt-5 inline-flex w-fit">
             <Button
+              trackName="search_filter_create"
               type="button"
               variant="ghost"
               className={cn(

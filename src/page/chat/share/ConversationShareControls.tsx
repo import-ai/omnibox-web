@@ -2,6 +2,7 @@ import { Check, LoaderCircle, Minus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import type { ConversationShareChannel } from '@/service/conversationShare';
 
@@ -63,7 +64,13 @@ export function ConversationShareActions({
               allSelected ? true : selectedCount > 0 ? 'mixed' : false
             }
             className="flex min-h-11 shrink-0 items-center gap-2 rounded-md outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-            onClick={onToggleAll}
+            onClick={event => {
+              trackButtonClick('chat_share_select');
+              const handleClick = onToggleAll;
+              if (typeof handleClick === 'function') {
+                (handleClick as (value?: typeof event) => void)(event);
+              }
+            }}
             role="checkbox"
             type="button"
           >
@@ -77,6 +84,7 @@ export function ConversationShareActions({
         </div>
         <div className="flex shrink-0 items-center gap-3">
           <Button
+            trackName="chat_share_cancel"
             className="h-[26px] gap-2.5 rounded-lg px-3 py-[5px] text-[13px] leading-4 shadow-none dark:bg-transparent"
             disabled={isSharing}
             onClick={onClose}
@@ -86,6 +94,7 @@ export function ConversationShareActions({
             {t('cancel')}
           </Button>
           <Button
+            trackName="chat_share_copy"
             className="h-[26px] gap-2.5 rounded-lg px-3 py-[5px] text-[13px] leading-4 shadow-none"
             disabled={disabled}
             onClick={() => onShare('copy_link')}

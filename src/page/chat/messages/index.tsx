@@ -373,6 +373,7 @@ export function Messages(props: IProps) {
               (message.attrs?.pending_query ||
                 Boolean(message.attrs?.tool_call?.decisions?.length)) && (
                 <Button
+                  trackName="chat_message_retry"
                   variant="ghost"
                   size="sm"
                   onClick={() =>

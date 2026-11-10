@@ -256,6 +256,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                         namespaceId={namespaceId}
                         hasPermission={currentNamespace?.is_owner !== false}
                         disabledReason={t('chat.trial.not_owner')}
+                        trackName="sidebar_plan_upgrade"
                       />
                     )}
                   </div>

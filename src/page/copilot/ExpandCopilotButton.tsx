@@ -17,6 +17,7 @@ export default function ExpandCopilotButton({
 
   return (
     <IconButton
+      trackName="copilot_view_expand"
       label={t('copilot.expand_view')}
       size="sm"
       tone="sidebar"

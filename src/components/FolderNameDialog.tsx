@@ -17,6 +17,8 @@ interface FolderNameDialogProps {
   initialName?: string;
   title?: string;
   confirmText?: string;
+  cancelTrackName?: string;
+  confirmTrackName?: string;
   onOpenChange: (open: boolean) => void;
   onConfirm: (folderName: string) => Promise<unknown>;
 }
@@ -26,6 +28,8 @@ export function FolderNameDialog({
   initialName = '',
   title,
   confirmText,
+  cancelTrackName,
+  confirmTrackName,
   onOpenChange,
   onConfirm,
 }: FolderNameDialogProps) {
@@ -101,12 +105,14 @@ export function FolderNameDialog({
         <DialogFooter>
           <Button
             variant="outline"
+            trackName={cancelTrackName}
             onClick={handleCancel}
             disabled={submitting}
           >
             {t('cancel')}
           </Button>
           <Button
+            trackName={confirmTrackName}
             onClick={handleConfirm}
             disabled={!folderName.trim() || submitting}
             loading={submitting}

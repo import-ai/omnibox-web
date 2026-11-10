@@ -103,7 +103,11 @@ export function BindDialog({
               </div>
             )}
             {isTelegram && (
-              <Button asChild className="w-full max-w-48">
+              <Button
+                trackName="settings_binding_open"
+                asChild
+                className="w-full max-w-48"
+              >
                 <a href={qrCodeUrl} target="_blank" rel="noreferrer">
                   <Send className="size-4" />
                   {t('applications.bind.open_telegram')}
@@ -131,6 +135,7 @@ export function BindDialog({
                 <CopyMain
                   content={bindingCode}
                   tooltip={t('applications.bind.copy_code')}
+                  trackName="settings_binding_copy"
                 />
               </div>
             </div>

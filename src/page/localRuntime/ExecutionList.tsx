@@ -17,6 +17,7 @@ import {
   TooltipTrigger,
 } from '@/components/tooltip';
 import { getRelatedTime } from '@/lib/time';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import ExecutionCard from './ExecutionCard';
 import ExecutionStatus from './ExecutionStatus';
@@ -77,7 +78,10 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
         <h3 className="text-sm font-semibold text-foreground lg:text-base">
           {t('local_runtime.executions')}
         </h3>
-        <SettingPageButton onClick={refresh}>
+        <SettingPageButton
+          trackName="local_runtime_list_refresh"
+          onClick={refresh}
+        >
           {t('common.refresh')}
         </SettingPageButton>
       </div>
@@ -114,7 +118,13 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
                 key={e.id}
                 type="button"
                 className="flex h-12 w-full items-center gap-4 border-b border-border px-4 text-left last:border-b-0 hover:bg-muted/50"
-                onClick={() => setSelectedId(e.id)}
+                onClick={event => {
+                  trackButtonClick('local_runtime_execution_select');
+                  const handleClick = () => setSelectedId(e.id);
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
               >
                 <code className="min-w-0 flex-2 truncate font-mono text-xs text-foreground">
                   {e.command}
@@ -142,6 +152,7 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
       )}
       {executions.length < total && (
         <Button
+          trackName="local_runtime_list_navigate"
           variant="outline"
           className="mt-3 self-center"
           onClick={() => setPages(v => v + 1)}

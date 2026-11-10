@@ -140,6 +140,7 @@ export function AddNamespaceInvitationForm(props: IProps) {
           )}
         />
         <Button
+          trackName="settings_member_submit"
           type="submit"
           disabled={loading}
           loading={loading}

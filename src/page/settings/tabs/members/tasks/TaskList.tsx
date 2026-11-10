@@ -231,7 +231,11 @@ export function TaskList({ namespaceId }: TaskListProps) {
             </Select>
           )}
         </div>
-        <SettingPageButton onClick={handleRefresh} disabled={loading}>
+        <SettingPageButton
+          trackName="settings_task_refresh"
+          onClick={handleRefresh}
+          disabled={loading}
+        >
           {t('common.refresh')}
         </SettingPageButton>
       </div>
@@ -264,6 +268,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
                   <Alert variant="destructive" className="text-center">
                     <AlertDescription>{error}</AlertDescription>
                     <Button
+                      trackName="settings_task_retry"
                       variant="outline"
                       onClick={handleRefresh}
                       className="mt-2"

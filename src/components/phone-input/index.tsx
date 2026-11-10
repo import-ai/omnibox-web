@@ -38,6 +38,7 @@ interface PhoneNumberInputProps {
   placeholder?: string;
   defaultCountry?: CountryCode;
   className?: string;
+  trackName?: string;
   variant?: 'default' | 'bind';
   /**
    * Optional list of allowed country codes (ISO 3166-1 alpha-2).
@@ -54,6 +55,7 @@ function PhoneNumberInput({
   placeholder,
   defaultCountry = 'CN',
   className,
+  trackName,
   allowedCountries: allowedCountriesProp,
   variant = 'default',
 }: PhoneNumberInputProps) {
@@ -182,6 +184,7 @@ function PhoneNumberInput({
             <Button
               type="button"
               variant="ghost"
+              trackName={trackName}
               className={cn(
                 'shrink-0 gap-1 rounded-l-lg rounded-r-none text-sm hover:bg-accent focus-visible:ring-0',
                 isBind

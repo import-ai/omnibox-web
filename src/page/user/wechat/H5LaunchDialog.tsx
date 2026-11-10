@@ -30,10 +30,16 @@ export function H5LaunchDialog(props: H5LaunchDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            trackName="user_login_cancel"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
             {t('login.wechat_h5_cancel')}
           </Button>
-          <Button onClick={onConfirm}>{t('login.wechat_h5_confirm')}</Button>
+          <Button trackName="user_login_confirm" onClick={onConfirm}>
+            {t('login.wechat_h5_confirm')}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

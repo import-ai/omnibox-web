@@ -55,6 +55,7 @@ export default function ChatAction(props: IActionProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
+                trackName="chat_mode_open"
                 size="sm"
                 variant="ghost"
                 className="font-normal pl-2 pr-1 mr-1"
@@ -108,6 +109,7 @@ export default function ChatAction(props: IActionProps) {
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button
+                trackName="chat_response_cancel"
                 size="icon"
                 variant="default"
                 className="rounded-full size-8"
@@ -156,6 +158,7 @@ export default function ChatAction(props: IActionProps) {
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button
+                trackName="chat_message_send"
                 size="icon"
                 onClick={onSend}
                 className="rounded-full size-8"

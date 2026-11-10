@@ -26,6 +26,7 @@ import { TableCell, TableRow } from '@/components/ui/Table';
 import { usePublicSiteOrigin } from '@/hooks/publicSiteContext';
 import { Group, Member } from '@/interface';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { useSettingsToast } from '../../../SettingsToastProvider';
@@ -117,7 +118,12 @@ export default function GroupData(props: GroupProps) {
           <TableCell>
             <div className="flex items-center">
               <CollapsibleTrigger asChild>
-                <button type="button" className="mr-2" aria-label={title}>
+                <button
+                  onClick={() => trackButtonClick('settings_group_toggle')}
+                  type="button"
+                  className="mr-2"
+                  aria-label={title}
+                >
                   <ChevronRight
                     className={`size-4 transition-transform ${fold ? 'rotate-90' : ''}`}
                   />
@@ -147,7 +153,15 @@ export default function GroupData(props: GroupProps) {
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
-                        onClick={handleCopyLink}
+                        onClick={event => {
+                          trackButtonClick('settings_group_copy');
+                          const handleClick = handleCopyLink;
+                          if (typeof handleClick === 'function') {
+                            (handleClick as (value?: typeof event) => void)(
+                              event
+                            );
+                          }
+                        }}
                         className={cn(
                           sidebarToolbarIconButtonClassName,
                           'flex items-center justify-center'
@@ -167,7 +181,13 @@ export default function GroupData(props: GroupProps) {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
-                    onClick={() => onEdit(id, title)}
+                    onClick={event => {
+                      trackButtonClick('settings_group_edit');
+                      const handleClick = () => onEdit(id, title);
+                      if (typeof handleClick === 'function') {
+                        (handleClick as (value?: typeof event) => void)(event);
+                      }
+                    }}
                     className={cn(
                       sidebarToolbarIconButtonClassName,
                       'flex items-center justify-center'
@@ -185,6 +205,7 @@ export default function GroupData(props: GroupProps) {
                   <TooltipTrigger asChild>
                     <AlertDialogTrigger asChild>
                       <button
+                        onClick={() => trackButtonClick('settings_group_open')}
                         className={cn(
                           sidebarToolbarIconButtonClassName,
                           'flex items-center justify-center hover:text-destructive'

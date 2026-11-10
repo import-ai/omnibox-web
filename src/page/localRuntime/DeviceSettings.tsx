@@ -82,6 +82,7 @@ function DeviceCard({
         </div>
         <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
           <IconButton
+            trackName="local_runtime_device_remove"
             size="sm"
             tone="sidebar"
             label={t('local_runtime.remove.label')}
@@ -101,7 +102,12 @@ function DeviceCard({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel asChild>
-                <Button variant="outline">{t('cancel')}</Button>
+                <Button
+                  trackName="local_runtime_device_cancel"
+                  variant="outline"
+                >
+                  {t('cancel')}
+                </Button>
               </AlertDialogCancel>
               <AlertDialogAction
                 variant="destructive"

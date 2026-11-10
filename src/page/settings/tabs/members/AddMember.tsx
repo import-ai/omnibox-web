@@ -134,6 +134,7 @@ export default function AddMember(props: AddMemberProps) {
       <PopoverAnchor asChild>
         <div className="w-full">
           <SettingPageButton
+            trackName="settings_member_open"
             className="mt-2 w-full"
             onClick={() => onOpen(true)}
           >
@@ -154,6 +155,8 @@ export default function AddMember(props: AddMemberProps) {
         >
           <MultipleSelector
             value={value}
+            removeTrackName="settings_member_remove"
+            clearTrackName="settings_member_delete"
             hideClearAllButton
             onChange={onChange}
             inputValue={inputValue}
@@ -169,6 +172,7 @@ export default function AddMember(props: AddMemberProps) {
             afterAddon={
               <div className="absolute top-1 right-1">
                 <Button
+                  trackName="settings_member_create"
                   size="sm"
                   disabled={loading}
                   onClick={handleAddMember}

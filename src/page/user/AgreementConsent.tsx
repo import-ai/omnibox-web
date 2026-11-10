@@ -161,10 +161,19 @@ export function AgreementConsentProvider({
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            <Button type="button" onClick={confirm}>
+            <Button
+              trackName="user_agreement_confirm"
+              type="button"
+              onClick={confirm}
+            >
               {t('login.agreement.confirm.button')}
             </Button>
-            <Button type="button" variant="outline" onClick={cancel}>
+            <Button
+              trackName="user_agreement_cancel"
+              type="button"
+              variant="outline"
+              onClick={cancel}
+            >
               {t('login.agreement.decline')}
             </Button>
           </div>

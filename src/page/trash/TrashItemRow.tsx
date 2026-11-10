@@ -25,6 +25,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
       </span>
       <div className="pointer-events-none absolute right-2 flex items-center gap-0.5 opacity-0 group-hover/trash-item:pointer-events-auto group-hover/trash-item:opacity-100">
         <IconButton
+          trackName="trash_restore_confirm"
           size="xs"
           tone="sidebar"
           label={t('trash.restore')}
@@ -34,6 +35,7 @@ export function TrashItemRow({ item, onRestore, onDelete }: TrashItemProps) {
           <Undo2 className="size-4" />
         </IconButton>
         <IconButton
+          trackName="trash_item_delete"
           size="xs"
           tone="sidebar"
           destructive

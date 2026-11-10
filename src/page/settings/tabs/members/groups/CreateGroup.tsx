@@ -29,7 +29,10 @@ export default function CreateGroup(props: IProps) {
 
   return (
     <>
-      <SettingPageButton onClick={() => onToggle(true)}>
+      <SettingPageButton
+        trackName="settings_group_create"
+        onClick={() => onToggle(true)}
+      >
         {t('manage.add')}
       </SettingPageButton>
       <Dialog open={data.open} onOpenChange={onToggle}>

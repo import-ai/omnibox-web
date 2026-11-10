@@ -115,6 +115,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                 namespaceId={namespaceId}
                 hasPermission={currentNamespace?.is_owner !== false}
                 disabledReason={t('chat.trial.not_owner')}
+                trackName="sidebar_plan_upgrade"
               />
             )}
           </div>
@@ -162,6 +163,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                       </Label>
                       {rows.length > 1 && (
                         <Button
+                          trackName="sidebar_feed_delete"
                           type="button"
                           variant="ghost"
                           className="size-6 p-0 text-muted-foreground hover:text-foreground"
@@ -195,6 +197,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
             <TooltipTrigger asChild>
               <span className="inline-flex w-fit">
                 <Button
+                  trackName="sidebar_feed_create"
                   type="button"
                   variant="ghost"
                   className={cn(

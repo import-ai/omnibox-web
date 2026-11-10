@@ -257,6 +257,8 @@ export default function InviteForm(props: InviteFormProps) {
       <div className="relative min-w-0 flex-1">
         <MultipleSelector
           onChange={handleRecipientChange}
+          removeTrackName="resource_member_remove"
+          clearTrackName="resource_member_delete"
           options={optionsReady ? options : []}
           inputValue={inputValue}
           placeholder={t('share.permissions.invite_placeholder')}
@@ -282,6 +284,7 @@ export default function InviteForm(props: InviteFormProps) {
           <div className="mt-1 flex items-center justify-between text-xs text-destructive">
             <span>{loadErrorMessage}</span>
             <Button
+              trackName="resource_member_retry"
               type="button"
               variant="ghost"
               size="sm"
@@ -305,6 +308,7 @@ export default function InviteForm(props: InviteFormProps) {
         )}
       </div>
       <Button
+        trackName="resource_member_submit"
         loading={loading}
         disabled={!visible || !optionsReady}
         onClick={handleSubmit}

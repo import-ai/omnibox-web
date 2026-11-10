@@ -27,6 +27,7 @@ export function TrashFooter({
       )}
       {hasItems && (
         <IconButton
+          trackName="trash_list_delete"
           size="sm"
           tone="sidebar"
           destructive

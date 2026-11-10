@@ -11,6 +11,7 @@ import {
   DialogPortal,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { validateInviteCode } from '@/service/inviteReferral';
 
@@ -108,7 +109,13 @@ export function InviteCodeDialog({
               type="button"
               className="absolute right-0 top-0 inline-flex size-[22px] items-center justify-center text-muted-foreground hover:text-foreground"
               aria-label={t('inviteReferral.common.close')}
-              onClick={() => onOpenChange(false)}
+              onClick={event => {
+                trackButtonClick('invite_referral_code_close');
+                const handleClick = () => onOpenChange(false);
+                if (typeof handleClick === 'function') {
+                  (handleClick as (value?: typeof event) => void)(event);
+                }
+              }}
             >
               <InviteCodeCloseIcon />
             </button>
@@ -152,6 +159,7 @@ export function InviteCodeDialog({
             ) : null}
           </div>
           <Button
+            trackName="invite_referral_code_submit"
             type="button"
             className={cn(
               'h-10 w-full rounded-lg bg-primary text-[16px] font-medium leading-normal',

@@ -20,6 +20,7 @@ export default function Scan(props: IProps) {
     <>
       <ScanForm />
       <Button
+        trackName="user_login_navigate"
         variant="outline"
         onClick={handleBack}
         className="w-full [&_svg]:size-5 [&_svg]:relative [&_svg]:top-[2px] dark:[&_svg]:fill-white"

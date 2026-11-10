@@ -534,7 +534,10 @@ export function APIKeyForm() {
           </p>
         </div>
 
-        <SettingPageButton onClick={() => handleCreateDialogOpenChange(true)}>
+        <SettingPageButton
+          trackName="settings_api_key_open"
+          onClick={() => handleCreateDialogOpenChange(true)}
+        >
           {t('create')}
         </SettingPageButton>
         <Dialog
@@ -581,6 +584,7 @@ export function APIKeyForm() {
             )}
             <DialogFooter>
               <Button
+                trackName="settings_api_key_cancel"
                 type="button"
                 variant="outline"
                 disabled={creating}
@@ -589,6 +593,7 @@ export function APIKeyForm() {
                 {t('cancel')}
               </Button>
               <Button
+                trackName="settings_api_key_create"
                 onClick={handleCreateAPIKey}
                 loading={creating}
                 variant="default"
@@ -643,6 +648,7 @@ export function APIKeyForm() {
             )}
             <DialogFooter>
               <Button
+                trackName="settings_api_key_cancel"
                 type="button"
                 variant="outline"
                 disabled={updating}
@@ -651,6 +657,7 @@ export function APIKeyForm() {
                 {t('cancel')}
               </Button>
               <Button
+                trackName="settings_api_key_save"
                 onClick={handleUpdateAPIKey}
                 loading={updating}
                 variant="default"
@@ -699,6 +706,7 @@ export function APIKeyForm() {
 
                 <div className="flex items-center gap-1 lg:gap-4">
                   <IconButton
+                    trackName="settings_api_key_toggle"
                     size="sm"
                     tone="sidebar"
                     label={
@@ -711,9 +719,13 @@ export function APIKeyForm() {
                     {visibleKeys.has(key.id) ? <EyeOff /> : <Eye />}
                   </IconButton>
 
-                  <CopyMain content={key.value} />
+                  <CopyMain
+                    content={key.value}
+                    trackName="settings_api_key_copy"
+                  />
 
                   <IconButton
+                    trackName="settings_api_key_edit"
                     size="sm"
                     tone="sidebar"
                     label={t('edit')}
@@ -732,6 +744,7 @@ export function APIKeyForm() {
                     }}
                   >
                     <IconButton
+                      trackName="settings_api_key_delete"
                       size="sm"
                       tone="sidebar"
                       label={t('delete')}
@@ -759,7 +772,11 @@ export function APIKeyForm() {
                       )}
                       <AlertDialogFooter>
                         <AlertDialogCancel asChild>
-                          <Button variant="outline" disabled={deleting}>
+                          <Button
+                            trackName="settings_api_key_cancel"
+                            variant="outline"
+                            disabled={deleting}
+                          >
                             {t('cancel')}
                           </Button>
                         </AlertDialogCancel>

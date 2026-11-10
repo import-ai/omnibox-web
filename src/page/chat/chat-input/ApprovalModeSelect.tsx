@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { composerControlHoverClass } from './composerControlClass';
@@ -39,6 +40,7 @@ export default function ApprovalModeSelect({
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
             <button
+              onClick={() => trackButtonClick('chat_approval_open')}
               type="button"
               aria-label={modeLabel}
               className={cn(

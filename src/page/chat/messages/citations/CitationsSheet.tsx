@@ -75,7 +75,7 @@ export function CitationsSheet(props: IProps) {
       }}
     >
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button trackName="chat_citation_open" variant="outline" size="sm">
           {citations.length} {t('chat.citations')}
           {plural} <ChevronRight />
         </Button>

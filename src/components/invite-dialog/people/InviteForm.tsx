@@ -231,6 +231,7 @@ export default function InviteForm(props: IProps) {
         />
         <div className="flex justify-center">
           <Button
+            trackName="settings_invitation_submit"
             type="submit"
             disabled={loading || !canInvite}
             loading={loading}

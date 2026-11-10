@@ -106,6 +106,8 @@ export default function Tags(props: IProps) {
             <MultipleSelector
               creatable
               ref={inputRef}
+              removeTrackName="resource_tag_remove"
+              clearTrackName="resource_tag_delete"
               value={tags}
               options={tags}
               inputValue={value}

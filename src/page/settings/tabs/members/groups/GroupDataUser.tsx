@@ -60,6 +60,7 @@ export default function GroupDataUser(props: GroupProps) {
               cancelText={t('cancel')}
             >
               <Button
+                trackName="settings_member_remove"
                 size="sm"
                 variant="ghost"
                 className="shrink-0 hover:bg-transparent hover:text-red-500 aria-expanded:bg-transparent data-[state=open]:bg-transparent"

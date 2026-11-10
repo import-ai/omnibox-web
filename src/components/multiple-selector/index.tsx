@@ -9,6 +9,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/Command';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 export interface Option {
@@ -91,6 +92,8 @@ interface MultipleSelectorProps {
   >;
   /** hide the clear all button. */
   hideClearAllButton?: boolean;
+  removeTrackName?: string;
+  clearTrackName?: string;
 }
 
 export interface MultipleSelectorRef {
@@ -221,6 +224,8 @@ const MultipleSelector = React.forwardRef<
       commandProps,
       inputProps,
       hideClearAllButton = false,
+      removeTrackName,
+      clearTrackName,
     }: MultipleSelectorProps,
     ref: React.Ref<MultipleSelectorRef>
   ) => {
@@ -567,7 +572,10 @@ const MultipleSelector = React.forwardRef<
                       e.preventDefault();
                       e.stopPropagation();
                     }}
-                    onClick={() => handleUnselect(option)}
+                    onClick={() => {
+                      if (removeTrackName) trackButtonClick(removeTrackName);
+                      handleUnselect(option);
+                    }}
                   >
                     <X className="h-3 w-3 text-muted-foreground hover:text-foreground" />
                   </button>
@@ -641,6 +649,7 @@ const MultipleSelector = React.forwardRef<
             <button
               type="button"
               onClick={() => {
+                if (clearTrackName) trackButtonClick(clearTrackName);
                 setSelected(selected.filter(s => s.fixed));
                 onChange?.(selected.filter(s => s.fixed));
               }}

@@ -37,6 +37,7 @@ export function SmartFolderTrashConfirmDialog(
         </DialogHeader>
         <DialogFooter>
           <Button
+            trackName="sidebar_folder_cancel"
             variant="outline"
             className="cancel-btn-outline"
             onClick={() => onOpenChange(false)}
@@ -44,6 +45,7 @@ export function SmartFolderTrashConfirmDialog(
             {t('cancel')}
           </Button>
           <Button
+            trackName="sidebar_folder_delete"
             variant="destructive"
             onClick={() => {
               onConfirm();

@@ -135,6 +135,7 @@ export default function ShareActions({
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
             <Button
+              trackName="share_menu_open"
               variant="ghost"
               size="icon"
               className={cn(sidebarToolbarIconButtonClassName, 'size-7')}

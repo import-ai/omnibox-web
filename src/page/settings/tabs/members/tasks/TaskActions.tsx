@@ -26,6 +26,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { Task } from '@/interface.ts';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 export interface TaskActionsProps {
@@ -105,6 +106,7 @@ export function TaskActions({
             <TooltipTrigger asChild>
               <AlertDialogTrigger asChild>
                 <button
+                  onClick={() => trackButtonClick('settings_task_cancel')}
                   disabled={isLoading || !canCancel}
                   className={cn(
                     sidebarToolbarIconButtonClassName,
@@ -148,7 +150,13 @@ export function TaskActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={canRerun ? handleRerun : undefined}
+              onClick={event => {
+                trackButtonClick('settings_task_retry');
+                const handleClick = canRerun ? handleRerun : undefined;
+                if (typeof handleClick === 'function') {
+                  (handleClick as (value?: typeof event) => void)(event);
+                }
+              }}
               disabled={isLoading || !canRerun}
               className={cn(
                 sidebarToolbarIconButtonClassName,

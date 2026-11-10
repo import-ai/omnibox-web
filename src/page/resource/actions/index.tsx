@@ -649,6 +649,7 @@ export default function Actions(props: IActionProps) {
           {editPage ? (
             <>
               <Button
+                trackName="resource_document_save"
                 variant="ghost"
                 size="sm"
                 onClick={handleSave}
@@ -658,6 +659,7 @@ export default function Actions(props: IActionProps) {
                 {t('header.actions.save')}
               </Button>
               <Button
+                trackName="resource_edit_cancel"
                 variant="ghost"
                 size="sm"
                 onClick={handleExitEdit}
@@ -669,6 +671,7 @@ export default function Actions(props: IActionProps) {
             </>
           ) : (
             <Button
+              trackName="resource_document_edit"
               variant="ghost"
               size="sm"
               onClick={handleEdit}
@@ -690,6 +693,7 @@ export default function Actions(props: IActionProps) {
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
               <Button
+                trackName="resource_menu_open"
                 variant="ghost"
                 size="icon"
                 className={`${sidebarToolbarIconButtonClassName} size-7`}
@@ -899,6 +903,8 @@ export default function Actions(props: IActionProps) {
       )}
       {resource?.resource_type === 'folder' && (
         <FolderNameDialog
+          cancelTrackName="resource_folder_cancel"
+          confirmTrackName="resource_folder_save"
           open={folderEditOpen}
           initialName={resource.name || ''}
           title={t('folder.edit_dialog.title')}

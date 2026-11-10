@@ -21,7 +21,12 @@ export default function Invite() {
 
   return (
     <>
-      <Button size="sm" variant="default" onClick={() => onOpen(true)}>
+      <Button
+        trackName="settings_member_create"
+        size="sm"
+        variant="default"
+        onClick={() => onOpen(true)}
+      >
         {t('invite.add')}
       </Button>
       <Dialog open={open} onOpenChange={onOpen}>

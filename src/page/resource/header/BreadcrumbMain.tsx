@@ -60,6 +60,7 @@ export default function BreadcrumbMain(props: IProps) {
                 <BreadcrumbItem className="min-w-0 shrink">
                   <BreadcrumbLink asChild>
                     <Button
+                      trackName="resource_breadcrumb_navigate"
                       variant="ghost"
                       className="h-6 max-w-28 justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
                       onClick={() => {
@@ -94,6 +95,7 @@ export default function BreadcrumbMain(props: IProps) {
         <BreadcrumbItem className="min-w-0 shrink">
           <BreadcrumbLink asChild>
             <Button
+              trackName="resource_breadcrumb_navigate"
               variant="ghost"
               className="h-6 max-w-28 justify-start overflow-hidden px-2 py-0 font-normal text-foreground sm:max-w-[240px]"
               onClick={() => {

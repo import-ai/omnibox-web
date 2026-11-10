@@ -13,6 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/omnibox/Dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { getAppDownloadUrl, isMobileDownloadClient } from './downloadQr';
@@ -31,6 +32,7 @@ export default function AppDownload() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <button
+            onClick={() => trackButtonClick('user_app_open')}
             type="button"
             className="app-download-card app-download-trigger"
           >
@@ -52,6 +54,7 @@ export default function AppDownload() {
           >
             <DialogClose asChild>
               <button
+                onClick={() => trackButtonClick('user_app_close')}
                 type="button"
                 aria-label={t('close')}
                 className="app-download-close"

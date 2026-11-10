@@ -30,6 +30,7 @@ export default function ShareAction(props: ShareActionProps) {
     <Popover>
       <PopoverTrigger asChild>
         <Button
+          trackName="resource_share_open"
           size="sm"
           variant="ghost"
           className={cn(

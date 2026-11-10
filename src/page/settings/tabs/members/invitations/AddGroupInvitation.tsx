@@ -27,7 +27,10 @@ export function AddGroupInvitation(props: IProps) {
 
   return (
     <>
-      <SettingPageButton onClick={() => onOpen(true)}>
+      <SettingPageButton
+        trackName="settings_invitation_open"
+        onClick={() => onOpen(true)}
+      >
         {t('invite.title')}
       </SettingPageButton>
       <Dialog open={open} onOpenChange={onOpen}>

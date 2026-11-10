@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import type { ResourceCommentAttachment } from '@/interface';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import {
   hasMentionCard,
   type MentionCardMember,
@@ -109,8 +110,16 @@ export function ResourceCommentBody({
           aria-expanded={expanded}
           aria-controls={contentId}
           onClick={event => {
-            event.stopPropagation();
-            setExpanded(current => !current);
+            trackButtonClick('resource_comment_toggle');
+            const handleClick = (
+              event: React.MouseEvent<HTMLButtonElement>
+            ) => {
+              event.stopPropagation();
+              setExpanded(current => !current);
+            };
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
           }}
         >
           {t(
@@ -127,9 +136,17 @@ export function ResourceCommentBody({
           aria-label={t('chat.image.preview')}
           className="omnibox-comment-message__image-button"
           onClick={event => {
-            event.stopPropagation();
-            invokerRef.current = event.currentTarget;
-            setPreview(image);
+            trackButtonClick('resource_comment_open');
+            const handleClick = (
+              event: React.MouseEvent<HTMLButtonElement>
+            ) => {
+              event.stopPropagation();
+              invokerRef.current = event.currentTarget;
+              setPreview(image);
+            };
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
           }}
         >
           <img

@@ -363,6 +363,7 @@ export function ResourceNodeContent({
                       {node.hasChildren &&
                         (nodeUI?.loading ? (
                           <Button
+                            trackName="sidebar_node_toggle"
                             size="icon"
                             variant="ghost"
                             className="size-5 cursor-pointer border-none bg-transparent shadow-none hover:bg-transparent dark:hover:bg-transparent"
@@ -376,6 +377,7 @@ export function ResourceNodeContent({
                           </Button>
                         ) : (
                           <Button
+                            trackName="sidebar_node_toggle"
                             size="icon"
                             variant="ghost"
                             className="size-5 cursor-pointer border-none bg-transparent text-muted-foreground shadow-none hover:bg-transparent dark:hover:bg-transparent"

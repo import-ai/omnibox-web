@@ -124,6 +124,7 @@ export function BatchCreateDialog({
         </div>
         <DialogFooter>
           <Button
+            trackName="sidebar_folder_cancel"
             variant="outline"
             className="bg-transparent shadow-none"
             onClick={handleCancel}
@@ -132,6 +133,7 @@ export function BatchCreateDialog({
             {t('cancel')}
           </Button>
           <Button
+            trackName="sidebar_folder_create"
             onClick={handleConfirm}
             className="shadow-none"
             disabled={!folderName.trim() || loading}

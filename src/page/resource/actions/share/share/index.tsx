@@ -203,6 +203,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
 
   const copyButton = (
     <Button
+      trackName="resource_link_copy"
       variant="outline"
       size="icon"
       onClick={handleCopy}
@@ -284,6 +285,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
         >
           <span>{t('share.share.folder_share_update_failed')}</span>
           <Button
+            trackName="resource_share_retry"
             variant="link"
             size="sm"
             className="h-auto shrink-0 p-0 text-destructive"

@@ -103,6 +103,7 @@ export default function ChatTool(props: IProps) {
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button
+                trackName="chat_tool_open"
                 size="icon"
                 variant="ghost"
                 className={cn('size-8 rounded-full', composerControlHoverClass)}

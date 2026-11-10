@@ -118,7 +118,12 @@ export function Expire(props: ExpireProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="h-6" disabled={disabled}>
+        <Button
+          trackName="resource_expire_open"
+          variant="outline"
+          className="h-6"
+          disabled={disabled}
+        >
           {expiresAt
             ? expiresAt.toLocaleString()
             : t('share.share.expire.never')}
@@ -152,7 +157,11 @@ export function Expire(props: ExpireProps) {
               className="rounded-md border shadow-xs w-full"
               disabled={{ before: addDays(startOfDay(new Date()), 1) }}
             />
-            <Button className="w-full" onClick={handleSaveDate}>
+            <Button
+              trackName="resource_expire_save"
+              className="w-full"
+              onClick={handleSaveDate}
+            >
               {t('share.share.save')}
             </Button>
           </>
@@ -183,14 +192,22 @@ export function Expire(props: ExpireProps) {
                 </SelectContent>
               </Select>
             </div>
-            <Button className="w-full" onClick={handleSaveCountdown}>
+            <Button
+              trackName="resource_expire_save"
+              className="w-full"
+              onClick={handleSaveCountdown}
+            >
               {t('share.share.save')}
             </Button>
           </>
         )}
 
         {selectedType === 'never' && (
-          <Button className="w-full" onClick={handleSaveNever}>
+          <Button
+            trackName="resource_expire_save"
+            className="w-full"
+            onClick={handleSaveNever}
+          >
             {t('share.share.save')}
           </Button>
         )}

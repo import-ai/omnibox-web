@@ -142,6 +142,7 @@ export function SidebarBrowseTabs({
                 icon={Search}
                 onClick={onSearchConversations}
                 label={t('search.search_chats')}
+                trackName="chat_search_open"
               />
               <ToolbarButton
                 icon={RotateCw}
@@ -149,11 +150,13 @@ export function SidebarBrowseTabs({
                 label={t('actions.refresh')}
                 loading={refreshingConversations}
                 disabled={!canRefreshConversations}
+                trackName="chat_history_refresh"
               />
               <ToolbarButton
                 icon={MessageCirclePlus}
                 onClick={onNewConversation}
                 label={t('chat.conversations.new_chat')}
+                trackName="chat_conversation_create"
               />
             </div>
           </div>

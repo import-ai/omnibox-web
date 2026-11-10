@@ -73,6 +73,7 @@ export function SearchDialog({
                 className={cn('flex items-center gap-3', !value && 'invisible')}
               >
                 <Button
+                  trackName="search_query_remove"
                   type="button"
                   variant="ghost"
                   className={searchFieldClearButtonClassName}
@@ -86,6 +87,7 @@ export function SearchDialog({
                 />
               </div>
               <Button
+                trackName="search_dialog_close"
                 type="button"
                 variant="ghost"
                 size="icon"

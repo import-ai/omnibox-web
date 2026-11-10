@@ -81,6 +81,7 @@ function EnabledRenewal({
       </div>
       {canCancel && (
         <Button
+          trackName="settings_renewal_cancel"
           variant="destructive"
           className="shrink-0 self-start sm:self-center"
           disabled={isProcessing}

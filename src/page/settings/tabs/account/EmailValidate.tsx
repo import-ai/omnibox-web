@@ -30,6 +30,7 @@ import {
 } from '@/lib/captcha';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { OtpInput } from '@/page/user/components/OtpInput';
 
 interface IProps {
@@ -99,7 +100,16 @@ function EmailInputStep({
                       {field.value && (
                         <button
                           type="button"
-                          onClick={() => form.setValue('email', '')}
+                          onClick={event => {
+                            trackButtonClick('settings_email_remove');
+                            const handleClick = () =>
+                              form.setValue('email', '');
+                            if (typeof handleClick === 'function') {
+                              (handleClick as (value?: typeof event) => void)(
+                                event
+                              );
+                            }
+                          }}
                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         >
                           <X className="size-5" />
@@ -117,6 +127,7 @@ function EmailInputStep({
             </div>
 
             <Button
+              trackName="settings_email_submit"
               type="submit"
               disabled={submitting}
               loading={submitting}

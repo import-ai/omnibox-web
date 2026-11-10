@@ -18,6 +18,7 @@ export function NamespaceList({
     <>
       {namespaces.map(item => (
         <Button
+          trackName="sidebar_namespace_select"
           key={item.id}
           size="default"
           variant="ghost"

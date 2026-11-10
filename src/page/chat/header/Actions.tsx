@@ -106,6 +106,7 @@ export default function Actions(props: IProps) {
       {compact && <ExpandCopilotButton namespaceId={namespaceId} />}
       {conversationsPage && onChatSearch && (
         <IconButton
+          trackName="chat_search_open"
           label={t('chat.conversations.search')}
           size="sm"
           tone="sidebar"
@@ -116,6 +117,7 @@ export default function Actions(props: IProps) {
       )}
       {conversationId && !compact && (
         <IconButton
+          trackName="chat_share_open"
           label={t('chat.share.action')}
           size="sm"
           tone="sidebar"
@@ -131,6 +133,7 @@ export default function Actions(props: IProps) {
       )}
       {!homePage && (
         <IconButton
+          trackName="chat_conversation_create"
           label={t('chat.conversations.new_chat')}
           size="sm"
           tone="sidebar"
@@ -141,6 +144,7 @@ export default function Actions(props: IProps) {
       )}
       {!conversationsPage && (compact || !conversationId) && (
         <IconButton
+          trackName="chat_history_open"
           label={t('chat.conversations.history')}
           size="sm"
           tone="sidebar"
@@ -155,6 +159,7 @@ export default function Actions(props: IProps) {
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
                 <Button
+                  trackName="chat_conversation_open"
                   variant="ghost"
                   size="icon"
                   className={cn(

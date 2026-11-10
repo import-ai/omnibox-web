@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { setGlobalCredential } from '@/page/user/util';
 
 import MetaPage from './MetaPage';
@@ -89,7 +90,13 @@ export default function AcceptInvitePage() {
                 {error}
               </p>
               <button
-                onClick={() => navigate('/user/login')}
+                onClick={event => {
+                  trackButtonClick('user_login_navigate');
+                  const handleClick = () => navigate('/user/login');
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
                 className="mt-4 text-sm text-primary hover:underline"
               >
                 {t('accept_invite.back_to_login')}

@@ -11,10 +11,11 @@ interface IProps {
   content: string;
   htmlContent?: string;
   tooltip?: string;
+  trackName?: string;
 }
 
 export default function CopyMain(props: IProps) {
-  const { content, htmlContent, tooltip } = props;
+  const { content, htmlContent, tooltip, trackName } = props;
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
@@ -56,6 +57,7 @@ export default function CopyMain(props: IProps) {
             size="icon"
             variant="ghost"
             className={`${sidebarToolbarIconButtonClassName} size-7`}
+            trackName={trackName}
             onClick={handleCopy}
           >
             <Copy />

@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import {
@@ -55,6 +56,7 @@ export function SystemNotificationDetailDialog({
           <div className="flex min-w-0 items-center gap-3">
             <DialogClose asChild>
               <button
+                onClick={() => trackButtonClick('notification_detail_navigate')}
                 type="button"
                 aria-label={t('notification_modal.back')}
                 className="inline-flex size-8 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
@@ -98,7 +100,16 @@ export function SystemNotificationDetailDialog({
                             : 'notification_modal.expand_tags'
                         )}
                         className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-border bg-background text-xs text-muted-foreground transition-colors hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-                        onClick={() => setIsTagsExpanded(value => !value)}
+                        onClick={event => {
+                          trackButtonClick('notification_tag_toggle');
+                          const handleClick = () =>
+                            setIsTagsExpanded(value => !value);
+                          if (typeof handleClick === 'function') {
+                            (handleClick as (value?: typeof event) => void)(
+                              event
+                            );
+                          }
+                        }}
                       >
                         {isTagsExpanded ? (
                           <ChevronUp className="size-4" />

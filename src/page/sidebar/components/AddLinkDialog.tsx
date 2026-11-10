@@ -144,6 +144,7 @@ export function AddLinkDialog({
             {url.length > 0 && (
               <span className="absolute inset-y-0 right-2 flex items-center">
                 <Button
+                  trackName="sidebar_link_remove"
                   type="button"
                   variant="ghost"
                   aria-label={t('search.clear')}
@@ -159,6 +160,7 @@ export function AddLinkDialog({
         </div>
         <DialogFooter>
           <Button
+            trackName="sidebar_link_cancel"
             type="button"
             variant="outline"
             onClick={handleCancel}
@@ -168,6 +170,7 @@ export function AddLinkDialog({
           </Button>
           <span className={cn(saveDisabled && 'cursor-not-allowed')}>
             <Button
+              trackName="sidebar_link_save"
               type="button"
               onClick={() => void handleConfirm()}
               disabled={saveDisabled}

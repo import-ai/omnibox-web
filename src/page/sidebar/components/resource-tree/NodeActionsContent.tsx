@@ -20,6 +20,7 @@ import {
 import { SidebarMenuAction } from '@/components/ui/Sidebar';
 import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import type { UseNodeActionsReturn } from '@/page/sidebar/hooks/useNodeActions';
@@ -93,7 +94,10 @@ export function NodeActionsContent({
                   : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'
               )}
             >
-              <button type="button">
+              <button
+                onClick={() => trackButtonClick('sidebar_resource_open')}
+                type="button"
+              >
                 <MoreHorizontal />
               </button>
             </SidebarMenuAction>
@@ -155,6 +159,8 @@ export function NodeActionsContent({
       )}
       {node.resourceType === 'folder' && (
         <FolderNameDialog
+          cancelTrackName="sidebar_folder_cancel"
+          confirmTrackName="sidebar_folder_save"
           open={actions.folderEditOpen}
           initialName={node.name || ''}
           title={t('folder.edit_dialog.title')}

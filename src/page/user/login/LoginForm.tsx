@@ -28,6 +28,7 @@ import {
   withCaptchaParam,
 } from '@/lib/captcha';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { buildUrl, cn } from '@/lib/utils';
 import { passwordSchema, phoneSchema } from '@/lib/validationSchemas';
 import { withInviteCode } from '@/page/inviteReferral/authInviteParams';
@@ -302,9 +303,18 @@ export function LoginForm({
         <Space className="text-sm justify-center">
           <button
             type="button"
-            onClick={() => {
-              emailPasswordForm.setValue('email', emailForm.getValues('email'));
-              setAuthMethod('password');
+            onClick={event => {
+              trackButtonClick('user_login_select');
+              const handleClick = () => {
+                emailPasswordForm.setValue(
+                  'email',
+                  emailForm.getValues('email')
+                );
+                setAuthMethod('password');
+              };
+              if (typeof handleClick === 'function') {
+                (handleClick as (value?: typeof event) => void)(event);
+              }
             }}
             className={linkClass}
           >
@@ -333,9 +343,18 @@ export function LoginForm({
         <Space className="text-sm justify-center">
           <button
             type="button"
-            onClick={() => {
-              emailForm.setValue('email', emailPasswordForm.getValues('email'));
-              setAuthMethod('otp');
+            onClick={event => {
+              trackButtonClick('user_login_select');
+              const handleClick = () => {
+                emailForm.setValue(
+                  'email',
+                  emailPasswordForm.getValues('email')
+                );
+                setAuthMethod('otp');
+              };
+              if (typeof handleClick === 'function') {
+                (handleClick as (value?: typeof event) => void)(event);
+              }
             }}
             className={linkClass}
           >
@@ -364,9 +383,18 @@ export function LoginForm({
         <Space className="text-sm justify-center">
           <button
             type="button"
-            onClick={() => {
-              phonePasswordForm.setValue('phone', phoneForm.getValues('phone'));
-              setAuthMethod('password');
+            onClick={event => {
+              trackButtonClick('user_login_select');
+              const handleClick = () => {
+                phonePasswordForm.setValue(
+                  'phone',
+                  phoneForm.getValues('phone')
+                );
+                setAuthMethod('password');
+              };
+              if (typeof handleClick === 'function') {
+                (handleClick as (value?: typeof event) => void)(event);
+              }
             }}
             className={linkClass}
           >
@@ -395,9 +423,18 @@ export function LoginForm({
         <Space className="text-sm justify-center">
           <button
             type="button"
-            onClick={() => {
-              phoneForm.setValue('phone', phonePasswordForm.getValues('phone'));
-              setAuthMethod('otp');
+            onClick={event => {
+              trackButtonClick('user_login_select');
+              const handleClick = () => {
+                phoneForm.setValue(
+                  'phone',
+                  phonePasswordForm.getValues('phone')
+                );
+                setAuthMethod('otp');
+              };
+              if (typeof handleClick === 'function') {
+                (handleClick as (value?: typeof event) => void)(event);
+              }
             }}
             className={linkClass}
           >
@@ -477,6 +514,7 @@ export function LoginForm({
             />
             <InviteCodeEntry />
             <Button
+              trackName="user_login_submit"
               type="submit"
               variant="default"
               className="w-full disabled:opacity-60"
@@ -553,6 +591,7 @@ export function LoginForm({
             />
             <InviteCodeEntry />
             <Button
+              trackName="user_login_submit"
               type="submit"
               variant="default"
               className="w-full disabled:opacity-60"
@@ -590,6 +629,7 @@ export function LoginForm({
                       disabled={isLoading}
                       placeholder={t('form.phone')}
                       allowedCountries={allowedCountries}
+                      trackName="user_country_open"
                     />
                   </FormControl>
                   <FormMessage />
@@ -598,6 +638,7 @@ export function LoginForm({
             />
             <InviteCodeEntry />
             <Button
+              trackName="user_login_submit"
               type="submit"
               variant="default"
               className="w-full disabled:opacity-60"
@@ -636,6 +677,7 @@ export function LoginForm({
                       disabled={isLoading}
                       placeholder={t('form.phone')}
                       allowedCountries={allowedCountries}
+                      trackName="user_country_open"
                     />
                   </FormControl>
                   <FormMessage />
@@ -665,6 +707,7 @@ export function LoginForm({
             />
             <InviteCodeEntry />
             <Button
+              trackName="user_login_submit"
               type="submit"
               variant="default"
               className="w-full disabled:opacity-60"

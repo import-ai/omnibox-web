@@ -100,6 +100,7 @@ export function ResourceConditionEditor({
         <TooltipTrigger asChild>
           <span className="inline-flex w-fit">
             <Button
+              trackName="resource_condition_create"
               type="button"
               variant="ghost"
               className={cn(
