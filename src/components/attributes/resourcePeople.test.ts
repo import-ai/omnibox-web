@@ -1,3 +1,5 @@
+import type { ResourceType } from '@/interface';
+
 import {
   liveContributorLabel,
   supportsResourcePeople,
@@ -5,16 +7,23 @@ import {
 } from './resourcePeople';
 
 describe('supportsResourcePeople', () => {
-  it.each(['doc', 'link', 'file'])('shows people for %s', resourceType => {
-    expect(supportsResourcePeople(resourceType)).toBe(true);
-  });
-
-  it.each(['folder', 'smart_folder', 'rss_folder', 'rss_item', undefined])(
-    'hides people for %s',
+  it.each<ResourceType>(['doc', 'link', 'file'])(
+    'shows people for %s',
     resourceType => {
-      expect(supportsResourcePeople(resourceType)).toBe(false);
+      expect(supportsResourcePeople(resourceType)).toBe(true);
     }
   );
+
+  const hiddenTypes: (ResourceType | undefined)[] = [
+    'folder',
+    'smart_folder',
+    'rss_folder',
+    'rss_item',
+    undefined,
+  ];
+  it.each(hiddenTypes)('hides people for %s', resourceType => {
+    expect(supportsResourcePeople(resourceType)).toBe(false);
+  });
 });
 
 describe('truncateContributorLabel', () => {
