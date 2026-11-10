@@ -81,6 +81,8 @@ export function ResourcePicker({
       return;
     }
     if (
+      loading ||
+      loadFailed ||
       controller.search ||
       locatedResourceIdRef.current === selectedResourceId
     ) {
@@ -98,6 +100,8 @@ export function ResourcePicker({
     controller.childrenById,
     controller.expandedIds,
     controller.search,
+    loadFailed,
+    loading,
     roots,
     selectedResourceId,
   ]);
