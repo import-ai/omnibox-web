@@ -475,6 +475,7 @@ export function LoginForm({
       {contactMethod === 'email' && authMethod === 'otp' && (
         <Form {...emailForm} key="email-form">
           <form
+            data-auth-page="login"
             onSubmit={event => {
               event.preventDefault();
               runWithConsent(() => {
@@ -531,6 +532,7 @@ export function LoginForm({
       {contactMethod === 'email' && authMethod === 'password' && (
         <Form {...emailPasswordForm} key="email-password-form">
           <form
+            data-auth-page="login"
             onSubmit={event => {
               event.preventDefault();
               runWithConsent(() => {
@@ -607,6 +609,7 @@ export function LoginForm({
       {contactMethod === 'phone' && authMethod === 'otp' && (
         <Form {...phoneForm} key="phone-form">
           <form
+            data-auth-page="login"
             onSubmit={event => {
               event.preventDefault();
               runWithConsent(() => {
@@ -655,6 +658,7 @@ export function LoginForm({
       {contactMethod === 'phone' && authMethod === 'password' && (
         <Form {...phonePasswordForm} key="phone-password-form">
           <form
+            data-auth-page="login"
             onSubmit={event => {
               event.preventDefault();
               runWithConsent(() => {

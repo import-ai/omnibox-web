@@ -11,6 +11,7 @@ import { http } from '@/lib/request';
 import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
 
 import { useAgreementConsent } from '../AgreementConsent';
+import { createAuthPageReturnNotifier } from '../authPageReturn';
 
 declare global {
   interface Window {
@@ -60,6 +61,7 @@ export default function Apple(props: IProps) {
   const authConfigRef = useRef<any>(null);
   const configRequestRef = useRef(0);
   const configLoadingRef = useRef(false);
+  const returnedRef = useRef<(() => void) | null>(null);
   const signingInRef = useRef(false);
 
   // Load Apple SDK
@@ -133,6 +135,7 @@ export default function Apple(props: IProps) {
 
   useEffect(() => {
     const handleSuccess = (event: CustomEvent) => {
+      returnedRef.current?.();
       const data = event.detail as AppleAuthResponse;
       http
         .post('/apple/callback', {
@@ -148,6 +151,10 @@ export default function Apple(props: IProps) {
     };
     const handleFailure = (event: CustomEvent) => {
       const errorCode = event.detail.error;
+      if (
+        ['user_cancelled_authorize', 'popup_closed_by_user'].includes(errorCode)
+      )
+        returnedRef.current?.();
       if (
         ['user_cancelled_authorize', 'popup_closed_by_user'].includes(errorCode)
       ) {
@@ -198,9 +205,17 @@ export default function Apple(props: IProps) {
         nonce: config.nonce,
         usePopup: true,
       });
+      const returned = createAuthPageReturnNotifier(mode);
+      returnedRef.current = returned;
       void Promise.resolve(window.AppleID.auth.signIn())
-        .catch(() => {
-          // The SDK failure event owns cancellation and error feedback.
+        .catch(error => {
+          if (
+            ['user_cancelled_authorize', 'popup_closed_by_user'].includes(
+              error?.error
+            )
+          )
+            returned();
+          // The SDK failure event owns error feedback.
         })
         .finally(() => {
           signingInRef.current = false;

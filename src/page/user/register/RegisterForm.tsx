@@ -191,6 +191,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
       {contactMethod === 'email' && (
         <Form {...emailForm}>
           <form
+            data-auth-page="register"
             onSubmit={event => {
               event.preventDefault();
               runWithConsent(() => {
@@ -260,6 +261,7 @@ export function RegisterForm({ children, contactMethod }: IProps) {
       {contactMethod === 'phone' && (
         <Form {...phoneForm}>
           <form
+            data-auth-page="register"
             onSubmit={event => {
               event.preventDefault();
               runWithConsent(() => {
