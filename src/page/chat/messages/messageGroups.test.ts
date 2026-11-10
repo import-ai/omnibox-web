@@ -3,7 +3,7 @@ import type { MessageDetail } from '../core/types/conversation';
 import {
   buildMessageDisplayItems,
   buildMessageIndexItems,
-  getCollapsedProcessDurationSeconds,
+  getLegacyProcessDurationMs,
 } from './messageGroups';
 
 function buildMessage(
@@ -175,52 +175,6 @@ describe('buildMessageDisplayItems', () => {
   });
 });
 
-describe('getCollapsedProcessDurationSeconds', () => {
-  it('uses process start and final answer created timestamps', () => {
-    expect(
-      getCollapsedProcessDurationSeconds(
-        [
-          buildMessage({
-            id: 'process',
-            created_at: '2026-07-04T10:00:00.000Z',
-          }),
-        ],
-        buildMessage({
-          id: 'final',
-          created_at: '2026-07-04T10:01:08.000Z',
-        })
-      )
-    ).toBe(68);
-  });
-
-  it('falls back to zero when timestamps are missing', () => {
-    expect(
-      getCollapsedProcessDurationSeconds(
-        [buildMessage({ id: 'process' })],
-        buildMessage({ id: 'final' })
-      )
-    ).toBe(0);
-  });
-
-  it('uses the first valid process timestamp', () => {
-    expect(
-      getCollapsedProcessDurationSeconds(
-        [
-          buildMessage({ id: 'missing-time' }),
-          buildMessage({
-            id: 'process',
-            created_at: '2026-07-04T10:00:00.000Z',
-          }),
-        ],
-        buildMessage({
-          id: 'final',
-          created_at: '2026-07-04T10:00:07.000Z',
-        })
-      )
-    ).toBe(7);
-  });
-});
-
 describe('buildMessageIndexItems', () => {
   it('pairs user queries with the final assistant answer', () => {
     expect(
@@ -261,4 +215,107 @@ describe('buildMessageIndexItems', () => {
       },
     ]);
   });
+});
+
+describe('single-node reasoning process projection', () => {
+  it.each([false, true])(
+    'splits live and lazy reasoning without changing stored messages (lazy=%s)',
+    lazy => {
+      const source = buildMessage({
+        id: 'single',
+        has_reasoning: lazy,
+        details_loaded: lazy ? false : undefined,
+        message: {
+          role: OpenAIMessageRole.ASSISTANT,
+          content: 'final body',
+          ...(lazy ? {} : { reasoning_content: 'thinking' }),
+        },
+      });
+      const before = JSON.stringify(source);
+      const items = buildMessageDisplayItems([source]);
+      expect(items).toHaveLength(2);
+      expect(items[0].type).toBe('collapsed_process');
+      if (items[0].type !== 'collapsed_process' || items[1].type !== 'message')
+        throw new Error('wrong projection');
+      expect(items[0].finalMessage).toBe(source);
+      expect(items[0].messages[0].id).toBe(source.id);
+      expect(items[0].messages[0].message.content).toBeUndefined();
+      expect(items[1].message.message.content).toBe('final body');
+      expect(items[1].message.message.reasoning_content).toBeUndefined();
+      expect(items[1].message.has_reasoning).toBe(false);
+      expect(JSON.stringify(source)).toBe(before);
+    }
+  );
+});
+
+describe('legacy process duration compatibility', () => {
+  it('preserves existing multi-step timing but never invents single-node or invalid timing', () => {
+    const first = buildMessage({
+      id: 'first',
+      created_at: '2026-11-09T00:00:00Z',
+    });
+    const final = buildMessage({
+      id: 'final',
+      created_at: '2026-11-09T00:00:19Z',
+      updated_at: '2026-11-10T00:00:00Z',
+    });
+    expect(getLegacyProcessDurationMs([first], final)).toBe(19000);
+    expect(getLegacyProcessDurationMs([final], final)).toBeUndefined();
+    expect(
+      getLegacyProcessDurationMs([first], {
+        ...final,
+        attrs: { answer_timing: {} } as MessageDetail['attrs'],
+      })
+    ).toBeUndefined();
+    expect(
+      getLegacyProcessDurationMs([first], {
+        ...final,
+        status: MessageStatus.STOPPED,
+      })
+    ).toBeUndefined();
+    expect(
+      getLegacyProcessDurationMs([first], { ...final, created_at: 'invalid' })
+    ).toBeUndefined();
+    expect(
+      getLegacyProcessDurationMs([first], {
+        ...final,
+        created_at: first.created_at,
+      })
+    ).toBeUndefined();
+    expect(getLegacyProcessDurationMs([final], first)).toBeUndefined();
+  });
+});
+
+describe('stopped message projections', () => {
+  it.each([
+    ['', 'thought'],
+    ['partial body', 'thought'],
+    ['', ''],
+    ['partial body', ''],
+  ])(
+    'keeps stopped process with body=%s and reasoning=%s',
+    (content, reasoning) => {
+      const source = buildMessage({
+        id: 'stopped',
+        status: MessageStatus.STOPPED,
+        message: {
+          role: OpenAIMessageRole.ASSISTANT,
+          content,
+          reasoning_content: reasoning,
+        },
+      });
+      const before = JSON.stringify(source);
+      const items = buildMessageDisplayItems([source]);
+      expect(items[0].type).toBe('collapsed_process');
+      if (items[0].type !== 'collapsed_process')
+        throw new Error('missing stopped disclosure');
+      expect(items[0].messages).toHaveLength(1);
+      expect(items[0].messages[0].message.content).toBeUndefined();
+      expect(items[0].messages[0].message.reasoning_content).toBe(reasoning);
+      expect(items.filter(x => x.type === 'message')).toHaveLength(
+        content ? 1 : 0
+      );
+      expect(JSON.stringify(source)).toBe(before);
+    }
+  );
 });

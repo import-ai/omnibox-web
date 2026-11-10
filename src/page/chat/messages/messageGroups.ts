@@ -1,4 +1,5 @@
 import { hasToolCalls } from '../conversation/conversationHistory';
+import { readAnswerTiming } from '../core/answerTiming';
 /** Groups chat messages for final-answer collapse and message index rendering. */
 import { MessageStatus, OpenAIMessageRole } from '../core/types/chatResponse';
 import type { MessageDetail } from '../core/types/conversation';
@@ -32,12 +33,20 @@ function isProcessMessage(message: MessageDetail) {
   return isResponseMessage(message) || isToolDecisionMessage(message);
 }
 
+export function isStoppedMessage(message: MessageDetail) {
+  return (
+    message.status === MessageStatus.STOPPED ||
+    message.attrs?.turn_status === 'stopped' ||
+    readAnswerTiming(message.attrs?.answer_timing)?.status === 'stopped'
+  );
+}
+
 function isFinalAnswer(message: MessageDetail) {
   return (
     message.message.role === OpenAIMessageRole.ASSISTANT &&
-    (message.status === MessageStatus.SUCCESS ||
-      message.status === MessageStatus.STOPPED) &&
-    Boolean(message.message.content?.trim()) &&
+    (isStoppedMessage(message) ||
+      (message.status === MessageStatus.SUCCESS &&
+        Boolean(message.message.content?.trim()))) &&
     !hasToolCalls(message)
   );
 }
@@ -48,26 +57,6 @@ function isUserQuery(message: MessageDetail) {
     (message.attrs?.tool_call?.decisions ?? []).length === 0 &&
     Boolean(message.message.content?.trim())
   );
-}
-
-function getTimestamp(value?: string) {
-  const timestamp = value ? new Date(value).getTime() : NaN;
-  return Number.isNaN(timestamp) ? undefined : timestamp;
-}
-
-export function getCollapsedProcessDurationSeconds(
-  messages: MessageDetail[],
-  finalMessage: MessageDetail
-) {
-  const start = messages
-    .map(message => getTimestamp(message.created_at))
-    .find(timestamp => timestamp !== undefined);
-  const end = getTimestamp(finalMessage.created_at);
-
-  if (start === undefined || end === undefined || end < start) {
-    return 0;
-  }
-  return Math.floor((end - start) / 1000);
 }
 
 export function buildMessageDisplayItems(
@@ -91,13 +80,37 @@ export function buildMessageDisplayItems(
 
     const responseMessages = messages.slice(start, index);
     const finalMessage = responseMessages[responseMessages.length - 1];
-    if (responseMessages.length > 1 && isFinalAnswer(finalMessage)) {
+    const stopped = isStoppedMessage(finalMessage);
+    const hasFinalReasoning = Boolean(
+      finalMessage.has_reasoning ||
+      finalMessage.message.reasoning_content?.trim()
+    );
+    if (
+      (responseMessages.length > 1 || hasFinalReasoning || stopped) &&
+      isFinalAnswer(finalMessage)
+    ) {
+      const processMessages = responseMessages.slice(0, -1);
+      let answerMessage = finalMessage;
+      if (hasFinalReasoning || (stopped && processMessages.length === 0)) {
+        // Project one stored message into process and answer views without changing its identity.
+        processMessages.push({
+          ...finalMessage,
+          message: { ...finalMessage.message, content: undefined },
+        });
+        answerMessage = {
+          ...finalMessage,
+          has_reasoning: false,
+          message: { ...finalMessage.message, reasoning_content: undefined },
+        };
+      }
       result.push({
         type: 'collapsed_process',
-        messages: responseMessages.slice(0, -1),
+        messages: processMessages,
         finalMessage,
       });
-      result.push({ type: 'message', message: finalMessage });
+      if (!stopped || answerMessage.message.content?.trim()) {
+        result.push({ type: 'message', message: answerMessage });
+      }
       continue;
     }
 
@@ -140,4 +153,27 @@ export function buildMessageIndexItems(messages: MessageDetail[]) {
   flush();
 
   return result;
+}
+
+/** Preserve the original multi-message history calculation only for pre-protocol records. */
+export function getLegacyProcessDurationMs(
+  messages: MessageDetail[],
+  finalMessage: MessageDetail
+) {
+  if (
+    finalMessage.status !== MessageStatus.SUCCESS ||
+    finalMessage.attrs?.turn_status === 'stopped' ||
+    [...messages, finalMessage].some(
+      message => message.attrs?.answer_timing != null
+    )
+  )
+    return undefined;
+  const start = messages
+    .filter(message => message.id !== finalMessage.id)
+    .map(message => Date.parse(message.created_at ?? ''))
+    .find(timestamp => Number.isFinite(timestamp));
+  const end = Date.parse(finalMessage.created_at ?? '');
+  if (start === undefined || !Number.isFinite(end)) return undefined;
+  const duration = end - start;
+  return Number.isSafeInteger(duration) && duration > 0 ? duration : undefined;
 }

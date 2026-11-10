@@ -928,11 +928,14 @@
         "tokens": "{{estimated}} / {{trigger}} 词元"
       },
       "process": {
+        "details": "处理过程",
         "duration": {
+          "less_than_second": "不足 1 秒",
           "hours": "{{count}} 小时",
           "minutes": "{{count}} 分",
           "seconds": "{{count}} 秒"
-        }
+        },
+        "stopped": "已停止"
       },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源",

@@ -4,10 +4,12 @@ import { type ReactNode, useState } from 'react';
 import { DetailLoadState, useMessageDetails } from './MessageDetailsContext';
 
 export function ProcessDetails({
+  id,
   ids,
   title,
   children,
 }: {
+  id?: string;
   ids: string[];
   title: string;
   children: () => ReactNode;
@@ -19,6 +21,7 @@ export function ProcessDetails({
   };
   return (
     <details
+      id={id}
       className="group border-b border-border/60 pb-3"
       onToggle={event => {
         const expanded = event.currentTarget.open;
