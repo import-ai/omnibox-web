@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/omnibox/Dialog';
-import { trackButtonClick } from '@/lib/trackButtonClick';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { getAppDownloadUrl, isMobileDownloadClient } from './downloadQr';
@@ -49,8 +49,14 @@ export default function AppDownload() {
               'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 motion-reduce:animate-none'
             )}
             onClick={event => {
-              if (event.target === event.currentTarget) setOpen(false);
+              if (event.target !== event.currentTarget) return;
+              trackButtonClick('user_overlay_close', {
+                dismiss: 'outside',
+                target: 'app',
+              });
+              setOpen(false);
             }}
+            onPointerDownOutside={onOverlayClose('user_overlay_close', 'app')}
           >
             <DialogClose asChild>
               <button

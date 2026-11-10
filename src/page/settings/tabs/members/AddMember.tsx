@@ -157,6 +157,7 @@ export default function AddMember(props: AddMemberProps) {
             value={value}
             removeTrackName="settings_member_remove"
             clearTrackName="settings_member_delete"
+            selectTrackName="settings_member_select"
             hideClearAllButton
             onChange={onChange}
             inputValue={inputValue}

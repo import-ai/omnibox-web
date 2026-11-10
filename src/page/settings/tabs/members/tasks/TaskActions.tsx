@@ -131,13 +131,19 @@ export function TaskActions({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="cancel-btn-outline">
+            <AlertDialogCancel
+              className="cancel-btn-outline"
+              onClick={() => trackButtonClick('settings_task_close')}
+            >
               {t('tasks.continue_running')}
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               disabled={isLoading}
-              onClick={handleCancel}
+              onClick={() => {
+                trackButtonClick('settings_task_confirm');
+                handleCancel();
+              }}
             >
               {isLoading && <Spinner className="mr-2" />}
               {t('tasks.confirm_cancel')}

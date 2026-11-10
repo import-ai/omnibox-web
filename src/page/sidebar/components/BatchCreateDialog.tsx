@@ -83,7 +83,11 @@ export function BatchCreateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-popover w-[480px] max-w-[90%] sm:max-w-[90%]">
+      <DialogContent
+        outsideCloseTrackName="sidebar_overlay_close"
+        outsideCloseTarget="batch"
+        className="bg-popover w-[480px] max-w-[90%] sm:max-w-[90%]"
+      >
         <DialogHeader>
           <DialogTitle>{t('batch.create_tooltip')}</DialogTitle>
         </DialogHeader>
@@ -109,6 +113,8 @@ export function BatchCreateDialog({
           <div className="flex items-center gap-2">
             <Label className="min-w-12">{t('batch.create_target_label')}</Label>
             <ResourceSelect
+              outsideCloseTrackName="sidebar_overlay_close"
+              outsideCloseTarget="resource"
               namespaceId={namespaceId}
               resourceId={targetId}
               disabledIds={disabledTargetIds}

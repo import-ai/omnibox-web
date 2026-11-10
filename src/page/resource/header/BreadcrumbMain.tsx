@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { PathItem } from '@/interface';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 
@@ -111,15 +112,25 @@ export default function BreadcrumbMain(props: IProps) {
         <BreadcrumbSeparator className="shrink-0" />
         <BreadcrumbItem className="shrink-0">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1">
+            <DropdownMenuTrigger
+              className="flex items-center gap-1"
+              onClick={() => trackButtonClick('resource_breadcrumb_open')}
+            >
               <BreadcrumbEllipsis className="size-4" />
               <span className="sr-only">Toggle menu</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
+            <DropdownMenuContent
+              onPointerDownOutside={onOverlayClose(
+                'resource_overlay_close',
+                'breadcrumb'
+              )}
+              align="start"
+            >
               {middleItems.map(item => (
                 <DropdownMenuItem
                   key={item.id}
                   onClick={() => {
+                    trackButtonClick('resource_breadcrumb_navigate');
                     navigateToResource(navigate, `/${namespaceId}/${item.id}`);
                   }}
                   className="cursor-pointer"

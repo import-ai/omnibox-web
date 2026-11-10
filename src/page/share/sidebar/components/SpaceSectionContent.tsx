@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
 } from '@/components/ui/Sidebar';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import type { TreeNode } from '@/page/share/sidebar/store';
 import { useSidebarStore } from '@/page/share/sidebar/store';
@@ -43,6 +44,7 @@ export function SpaceSectionContent({
     [nodeUI, nodes, rootNode.children]
   );
   const handleHeaderToggle = () => {
+    trackButtonClick('share_section_toggle');
     useSidebarStore.getState().toggleSpace('share');
   };
 

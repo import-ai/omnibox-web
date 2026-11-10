@@ -102,7 +102,11 @@ export function AddLinkDialog({
         if (!nextOpen) setUrl('');
       }}
     >
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        outsideCloseTrackName="sidebar_overlay_close"
+        outsideCloseTarget="link"
+        className="sm:max-w-[425px]"
+      >
         <DialogHeader>
           <DialogTitle>{t('link.create_dialog.title')}</DialogTitle>
         </DialogHeader>

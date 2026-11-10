@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
+import { trackButtonClick } from '@/lib/trackButtonClick';
+
 import type { ResourceCommentEditor } from './commentAnchors';
 import { IMAGE_COMMENT_STORED_QUOTE } from './commentQuote';
 import type { ResourceCommentsController } from './useResourceComments';
@@ -155,6 +157,7 @@ export function ImageCommentButton({
         <ResourceCommentAction
           label={t('resource_comments.add_comment')}
           onClick={() => {
+            trackButtonClick('resource_comment_create');
             controller.commentsConfig.onCreateRequest?.({
               editor,
               from: hover.from,

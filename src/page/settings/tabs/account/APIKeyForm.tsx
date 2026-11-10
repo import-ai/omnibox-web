@@ -45,6 +45,7 @@ import {
   type CreateAPIKeyDto,
 } from '@/interface';
 import { getRelatedTime } from '@/lib/time';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 import { fetchRootResources } from '@/service/resource';
@@ -479,9 +480,12 @@ export function APIKeyForm() {
                   <Checkbox
                     id={checkboxId}
                     checked={formData.permissions[target].includes(permission)}
-                    onCheckedChange={checked =>
-                      handlePermissionChange(target, permission, !!checked)
-                    }
+                    onCheckedChange={checked => {
+                      trackButtonClick('settings_api_key_select', {
+                        permission,
+                      });
+                      handlePermissionChange(target, permission, !!checked);
+                    }}
                   />
                   <Label htmlFor={checkboxId}>
                     {getPermissionTypeLabel(permission)}
@@ -544,7 +548,11 @@ export function APIKeyForm() {
           open={createDialogOpen}
           onOpenChange={handleCreateDialogOpenChange}
         >
-          <DialogContent className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
+          <DialogContent
+            outsideCloseTrackName="settings_overlay_close"
+            outsideCloseTarget="api_key"
+            className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md"
+          >
             <DialogHeader>
               <DialogTitle>{t('api_key.create.title')}</DialogTitle>
               <DialogDescription>
@@ -608,7 +616,11 @@ export function APIKeyForm() {
           open={updateDialogOpen}
           onOpenChange={handleUpdateDialogOpenChange}
         >
-          <DialogContent className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
+          <DialogContent
+            outsideCloseTrackName="settings_overlay_close"
+            outsideCloseTarget="api_key"
+            className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md"
+          >
             <DialogHeader>
               <DialogTitle>{t('api_key.update.title')}</DialogTitle>
               <DialogDescription>
@@ -785,6 +797,7 @@ export function APIKeyForm() {
                           disabled={deleting}
                           onClick={event => {
                             event.preventDefault();
+                            trackButtonClick('settings_api_key_confirm');
                             void handleDeleteAPIKey(key);
                           }}
                         >

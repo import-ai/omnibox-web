@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import type { PathItem } from '@/interface';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { fetchResource, fetchRootResources } from '@/service/resource';
 
@@ -28,6 +29,8 @@ interface IProps {
   enableManagedFolders?: boolean;
   smartFolderDisabledTooltip?: string;
   onChange: (val: string, key?: string) => void;
+  outsideCloseTrackName?: string;
+  outsideCloseTarget?: string;
 }
 
 type SelectedResource = ResourcePickerResource & { path?: PathItem[] };
@@ -46,6 +49,8 @@ export function ResourceSelect(props: IProps) {
     enableManagedFolders,
     smartFolderDisabledTooltip,
     onChange,
+    outsideCloseTrackName,
+    outsideCloseTarget,
   } = props;
   const { t } = useTranslation();
   const [open, onOpen] = useState(false);
@@ -186,6 +191,11 @@ export function ResourceSelect(props: IProps) {
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent
+        onPointerDownOutside={
+          outsideCloseTrackName && outsideCloseTarget
+            ? onOverlayClose(outsideCloseTrackName, outsideCloseTarget)
+            : undefined
+        }
         side="bottom"
         align="end"
         onCloseAutoFocus={event => {

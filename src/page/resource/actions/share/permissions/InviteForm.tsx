@@ -9,6 +9,7 @@ import Actions from '@/components/permission-action/Action';
 import { getData } from '@/components/permission-action/data';
 import type { Group, Member, Permission } from '@/interface';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import type { RecipientOption } from './recipientOptions';
 import {
@@ -259,6 +260,7 @@ export default function InviteForm(props: InviteFormProps) {
           onChange={handleRecipientChange}
           removeTrackName="resource_member_remove"
           clearTrackName="resource_member_delete"
+          selectTrackName="resource_member_select"
           options={optionsReady ? options : []}
           inputValue={inputValue}
           placeholder={t('share.permissions.invite_placeholder')}
@@ -298,8 +300,13 @@ export default function InviteForm(props: InviteFormProps) {
         {visible && (
           <Actions
             data={data}
+            outsideCloseTrackName="resource_overlay_close"
+            outsideCloseTarget="permission"
             value={permission}
             onChange={value => {
+              trackButtonClick('resource_permission_select', {
+                permission: value,
+              });
               setPermission(value);
               return Promise.resolve();
             }}

@@ -85,7 +85,11 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
         <Plus className="size-4" />
         {t('namespace.add')}
       </Button>
-      <DialogContent className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6">
+      <DialogContent
+        outsideCloseTrackName="sidebar_overlay_close"
+        outsideCloseTarget="namespace"
+        className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6"
+      >
         <DialogHeader>
           <DialogTitle>{t('namespace.add')}</DialogTitle>
           <VisuallyHidden.Root>

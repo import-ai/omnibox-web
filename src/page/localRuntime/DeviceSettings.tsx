@@ -25,6 +25,7 @@ import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
 import { getRelatedTime } from '@/lib/time';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import DeviceIdentity from './DeviceIdentity';
 import ExecutionList from './ExecutionList';
@@ -112,7 +113,10 @@ function DeviceCard({
               <AlertDialogAction
                 variant="destructive"
                 disabled={removing}
-                onClick={() => void remove()}
+                onClick={() => {
+                  trackButtonClick('local_runtime_device_confirm');
+                  void remove();
+                }}
               >
                 {removing && <Spinner className="mr-2" />}
                 {t('local_runtime.remove.confirm.button')}

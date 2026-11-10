@@ -28,6 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Role } from '@/interface';
 import isEmail from '@/lib/isEmail';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 const formSchema = z.object({
   email: z
@@ -168,7 +169,10 @@ export default function InviteForm(props: IProps) {
               <FormControl>
                 <Select
                   value={invitationRole}
-                  onValueChange={field.onChange}
+                  onValueChange={value => {
+                    trackButtonClick('settings_role_select', { role: value });
+                    field.onChange(value);
+                  }}
                   disabled={loading || !canInvite}
                 >
                   <FormControl>
@@ -176,7 +180,12 @@ export default function InviteForm(props: IProps) {
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent
+                    onPointerDownOutside={onOverlayClose(
+                      'settings_overlay_close',
+                      'invite'
+                    )}
+                  >
                     {currentUserRole === 'owner' && (
                       <SelectItem value="admin">{t('invite.admin')}</SelectItem>
                     )}
@@ -198,7 +207,12 @@ export default function InviteForm(props: IProps) {
                 <Select
                   defaultValue={field.value}
                   value={field.value}
-                  onValueChange={field.onChange}
+                  onValueChange={value => {
+                    trackButtonClick('settings_permission_select', {
+                      permission: value,
+                    });
+                    field.onChange(value);
+                  }}
                   disabled={isAdmin}
                 >
                   <FormControl>
@@ -206,7 +220,12 @@ export default function InviteForm(props: IProps) {
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent
+                    onPointerDownOutside={onOverlayClose(
+                      'settings_overlay_close',
+                      'invite'
+                    )}
+                  >
                     <SelectItem value="full_access">
                       {t('permission.full_access')}
                     </SelectItem>

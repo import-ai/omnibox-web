@@ -62,6 +62,10 @@ export default function Invite(props: IProps) {
         onOpenChange={setOpen}
         title={t('invite.add')}
         contentClassName="w-[90%] max-w-sm"
+        contentProps={{
+          outsideCloseTrackName: 'settings_overlay_close',
+          outsideCloseTarget: 'invite',
+        }}
       >
         {close => (
           <InviteForm

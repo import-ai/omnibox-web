@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { Switch } from '@/components/ui/Switch';
 import { usePublicSiteOrigin } from '@/hooks/publicSiteContext';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
@@ -54,6 +55,14 @@ export default function ShareActions({
     resource.resource_type === 'smart_folder';
 
   const handleAction = (id: string) => {
+    const menuTrackNames: Record<string, string> = {
+      copy_link: 'share_link_copy',
+      copy_content: 'share_content_copy',
+      download_as_markdown: 'share_markdown_download',
+      wide: 'share_layout_toggle',
+    };
+    const menuTrackName = menuTrackNames[id];
+    if (menuTrackName) trackButtonClick(menuTrackName);
     if (id === 'copy_link') {
       if (!publicSiteOrigin) return;
       const shareUrl = `${publicSiteOrigin}${location.pathname}${location.search}${location.hash}`;
@@ -147,6 +156,7 @@ export default function ShareActions({
         <TooltipContent>{t('common.more_actions')}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent
+        onPointerDownOutside={onOverlayClose('share_overlay_close', 'menu')}
         align="end"
         className="w-56"
         {...menuTriggerPress.contentProps}
@@ -175,7 +185,10 @@ export default function ShareActions({
         )}
         {!isFolderResource && (
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="cursor-pointer gap-2">
+            <DropdownMenuSubTrigger
+              className="cursor-pointer gap-2"
+              onClick={() => trackButtonClick('share_download_open')}
+            >
               <Download className="size-4 text-muted-foreground" />
               <span>{t('actions.download_as')}</span>
             </DropdownMenuSubTrigger>

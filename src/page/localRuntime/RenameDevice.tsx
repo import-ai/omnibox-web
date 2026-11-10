@@ -13,7 +13,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/Popover';
 import { http } from '@/lib/request';
-import { trackButtonClick } from '@/lib/trackButtonClick';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { LocalDevice } from './runtime';
@@ -96,7 +96,14 @@ export default function RenameDevice({
           )}
         </TooltipContent>
       </Tooltip>
-      <PopoverContent align="start" className="w-72 space-y-3 p-3">
+      <PopoverContent
+        onPointerDownOutside={onOverlayClose(
+          'local_runtime_overlay_close',
+          'device'
+        )}
+        align="start"
+        className="w-72 space-y-3 p-3"
+      >
         <div className="space-y-1.5">
           <Label htmlFor={`device-name-${device.id}`}>
             {t('local_runtime.device_name')}

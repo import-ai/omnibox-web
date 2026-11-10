@@ -43,7 +43,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { SpaceType } from '@/interface';
-import { trackButtonClick } from '@/lib/trackButtonClick';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
@@ -141,10 +141,12 @@ export function SpaceSectionContent({
   );
 
   const handleCreateFolder = () => {
+    trackButtonClick('sidebar_folder_create');
     useSidebarStore.getState().openCreateFolderDialog(rootId);
   };
 
   const handleCreateLink = () => {
+    trackButtonClick('sidebar_link_open');
     useSidebarStore.getState().openCreateLinkDialog(rootId);
   };
 
@@ -178,14 +180,17 @@ export function SpaceSectionContent({
   });
 
   const handleHeaderToggle = () => {
+    trackButtonClick('sidebar_section_toggle');
     useSidebarStore.getState().toggleSpace(spaceType);
   };
 
   const handleUploadClick = () => {
+    trackButtonClick('sidebar_file_upload');
     triggerGlobalFileUpload(rootId);
   };
 
   const handleCreateFile = () => {
+    trackButtonClick('sidebar_file_create');
     useSidebarStore
       .getState()
       .create(rootId, 'doc')
@@ -201,10 +206,14 @@ export function SpaceSectionContent({
   };
 
   const handleCreateSmartFolder = () => {
+    if (smartFolderDisabled) return;
+    trackButtonClick('sidebar_smart_folder_create');
     onCreateSmartFolder(spaceType);
   };
 
   const handleCreateRssFolder = () => {
+    if (rssFolderDisabled) return;
+    trackButtonClick('sidebar_feed_create');
     onCreateRssFolder(spaceType);
   };
 
@@ -279,6 +288,10 @@ export function SpaceSectionContent({
                   )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
+                  onPointerDownOutside={onOverlayClose(
+                    'sidebar_overlay_close',
+                    'space_menu'
+                  )}
                   side="right"
                   sideOffset={10}
                   align="start"
@@ -367,7 +380,12 @@ export function SpaceSectionContent({
             </div>
           </SidebarMenuButton>
         </ContextMenuTrigger>
-        <ContextMenuContent>
+        <ContextMenuContent
+          onPointerDownOutside={onOverlayClose(
+            'sidebar_overlay_close',
+            'space_menu'
+          )}
+        >
           <ContextMenuItem className={menuItemClass} onClick={handleCreateFile}>
             <FilePlus className={menuIconClass} />
             {t('actions.create_file')}

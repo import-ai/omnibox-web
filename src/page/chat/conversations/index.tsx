@@ -23,7 +23,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/Sidebar';
 import { useIsTouch } from '@/hooks/useIsTouch';
-import { trackButtonClick } from '@/lib/trackButtonClick';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
@@ -233,6 +233,7 @@ export default function ChatConversationsPage({
                                 data-conversation-id={item.id}
                                 className="flex cursor-pointer items-center pl-7"
                                 onClick={() => {
+                                  trackButtonClick('chat_conversation_select');
                                   if (onConversationSelect) {
                                     onConversationSelect(item.id);
                                   } else {
@@ -276,6 +277,10 @@ export default function ChatConversationsPage({
                                 </SidebarMenuAction>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
+                                onPointerDownOutside={onOverlayClose(
+                                  'chat_overlay_close',
+                                  'conversation_menu'
+                                )}
                                 side="right"
                                 align="start"
                                 sideOffset={10}
@@ -291,6 +296,7 @@ export default function ChatConversationsPage({
                                   className={menuItemClass}
                                   onClick={event => {
                                     event.stopPropagation();
+                                    trackButtonClick('chat_conversation_edit');
                                     onEdit({
                                       id: item.id,
                                       title: conversationTitle,
@@ -306,6 +312,9 @@ export default function ChatConversationsPage({
                                   className={menuItemClass}
                                   onClick={event => {
                                     event.stopPropagation();
+                                    trackButtonClick(
+                                      'chat_conversation_delete'
+                                    );
                                     onRemove({
                                       id: item.id,
                                       title: conversationTitle,
@@ -381,6 +390,7 @@ export default function ChatConversationsPage({
                           className="cursor-pointer group"
                           key={item.id}
                           onClick={() => {
+                            trackButtonClick('chat_conversation_select');
                             if (onConversationSelect) {
                               onConversationSelect(item.id);
                             } else {
@@ -410,6 +420,10 @@ export default function ChatConversationsPage({
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent
+                                onPointerDownOutside={onOverlayClose(
+                                  'chat_overlay_close',
+                                  'conversation_menu'
+                                )}
                                 side="bottom"
                                 align="end"
                                 className="w-auto! min-w-36"
@@ -425,6 +439,7 @@ export default function ChatConversationsPage({
                                   className={menuItemClass}
                                   onClick={event => {
                                     event.stopPropagation();
+                                    trackButtonClick('chat_conversation_edit');
                                     onEdit({
                                       id: item.id,
                                       title: conversationTitle,
@@ -440,6 +455,9 @@ export default function ChatConversationsPage({
                                   className={menuItemClass}
                                   onClick={event => {
                                     event.stopPropagation();
+                                    trackButtonClick(
+                                      'chat_conversation_delete'
+                                    );
                                     onRemove({
                                       id: item.id,
                                       title: conversationTitle,
@@ -471,6 +489,7 @@ export default function ChatConversationsPage({
                   total={data.total}
                   current={current}
                   pageSize={pageSize}
+                  trackName="chat_history_navigate"
                   onChange={onPagerChange}
                 />
               </>

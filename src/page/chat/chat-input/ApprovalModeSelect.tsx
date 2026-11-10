@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
-import { trackButtonClick } from '@/lib/trackButtonClick';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { composerControlHoverClass } from './composerControlClass';
@@ -62,6 +62,7 @@ export default function ApprovalModeSelect({
         <TooltipContent side="top">{modeLabel}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent
+        onPointerDownOutside={onOverlayClose('chat_overlay_close', 'approval')}
         side="top"
         align="start"
         className="w-72 rounded-xl p-1.5"
@@ -70,7 +71,10 @@ export default function ApprovalModeSelect({
           <DropdownMenuItem
             key={value}
             className="grid cursor-pointer grid-cols-[24px_minmax(0,1fr)_18px] items-center gap-2 rounded-md px-2 py-2"
-            onClick={() => setApprovalMode(value)}
+            onClick={() => {
+              trackButtonClick('chat_approval_select', { mode: value });
+              setApprovalMode(value);
+            }}
           >
             <Icon className="size-4 text-muted-foreground" />
             <span className="min-w-0">

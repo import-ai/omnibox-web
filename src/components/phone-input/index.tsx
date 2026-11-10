@@ -9,6 +9,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/Button';
 import { ALLOWED_PHONE_COUNTRIES } from '@/const';
+import {
+  onOverlayClose,
+  overlayCloseName,
+  trackButtonClick,
+} from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import {
@@ -196,12 +201,27 @@ function PhoneNumberInput({
               {isBind ? null : <ChevronDown className="size-3.5 opacity-50" />}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="p-0">
+          <DropdownMenuContent
+            onPointerDownOutside={
+              trackName
+                ? onOverlayClose(overlayCloseName(trackName, 'user'), 'country')
+                : undefined
+            }
+            align="start"
+            className="p-0"
+          >
             <ScrollArea className="h-[300px]">
               {allowedCountries.map(country => (
                 <DropdownMenuItem
                   key={country.code}
-                  onClick={() => handleCountryChange(country.code)}
+                  onClick={() => {
+                    if (trackName?.endsWith('_open')) {
+                      trackButtonClick(trackName.replace(/_open$/, '_select'), {
+                        country: country.code,
+                      });
+                    }
+                    handleCountryChange(country.code);
+                  }}
                   className="cursor-pointer gap-2"
                 >
                   <span className="text-base">{country.flag}</span>

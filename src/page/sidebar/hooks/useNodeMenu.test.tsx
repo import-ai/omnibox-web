@@ -12,6 +12,10 @@ import { type MenuItem, useNodeMenu } from './useNodeMenu';
 
 let node: TreeNode | undefined;
 
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+}));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));

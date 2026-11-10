@@ -23,6 +23,7 @@ import {
   UpdateShareInfoReq,
 } from '@/interface';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import type { ResourceSortOptions } from '@/service/resource';
 
 import { Expire } from './Expire';
@@ -158,6 +159,7 @@ export function ShareTabContent(props: ShareTabContentProps) {
       : '';
 
   const handleEnable = (enabled: boolean) => {
+    trackButtonClick('share_link_toggle', { enabled });
     updateShareInfo({
       enabled,
       ...(isFolder ? { all_resources: true } : {}),
@@ -165,10 +167,12 @@ export function ShareTabContent(props: ShareTabContentProps) {
   };
 
   const handleRequireLogin = (enabled: boolean) => {
+    trackButtonClick('share_login_toggle', { enabled });
     updateShareInfo({ require_login: enabled });
   };
 
   const handleOnlyCurrent = (onlyCurrent: boolean) => {
+    trackButtonClick('share_scope_toggle', { enabled: onlyCurrent });
     updateShareInfo({ all_resources: !onlyCurrent });
   };
 

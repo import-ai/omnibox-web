@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 import Loading from '@/components/loading';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import {
@@ -76,6 +77,9 @@ export function SidebarBrowseTabs({
   };
 
   const handleTabChange = (value: string) => {
+    if (value === 'resources' || value === 'chats') {
+      trackButtonClick('sidebar_tab_select', { tab: value });
+    }
     if ((value !== 'resources' && value !== 'chats') || value === activeTab) {
       return;
     }

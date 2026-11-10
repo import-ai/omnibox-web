@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 interface ConfirmDialogProps {
@@ -28,6 +29,8 @@ interface ConfirmDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void | Promise<void>;
   onCancel?: () => void;
+  cancelTrackName?: string;
+  confirmTrackName?: string;
 }
 
 export function ConfirmDialog({
@@ -45,6 +48,8 @@ export function ConfirmDialog({
   onOpenChange,
   onConfirm,
   onCancel,
+  cancelTrackName,
+  confirmTrackName,
 }: ConfirmDialogProps) {
   const { t } = useTranslation();
   const handleOpenChange = (nextOpen: boolean) => {
@@ -77,6 +82,9 @@ export function ConfirmDialog({
               'cancel-btn-outline bg-transparent shadow-none',
               cancelClassName
             )}
+            onClick={() => {
+              if (cancelTrackName) trackButtonClick(cancelTrackName);
+            }}
           >
             {cancelText ?? t('cancel')}
           </AlertDialogCancel>
@@ -84,7 +92,10 @@ export function ConfirmDialog({
             variant={variant}
             className={cn('shadow-none', confirmClassName)}
             disabled={loading}
-            onClick={onConfirm}
+            onClick={() => {
+              if (confirmTrackName) trackButtonClick(confirmTrackName);
+              void onConfirm();
+            }}
           >
             {confirmText ?? t('ok')}
           </AlertDialogAction>

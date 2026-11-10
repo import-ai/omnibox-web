@@ -5,18 +5,18 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
 import {
-  type ResourcePickerResource,
-  WorkspaceResourcePicker,
-} from '@/components/resourcePicker';
-import ResourceTypeIcon from '@/components/ResourceTypeIcon';
-import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/omnibox/Dialog';
+import {
+  type ResourcePickerResource,
+  WorkspaceResourcePicker,
+} from '@/components/resourcePicker';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
+import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import type { PathItem, Resource, ResourceMeta } from '@/interface';
@@ -293,7 +293,11 @@ export function AddLinkPanel({
         </div>
       </div>
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
-        <DialogContent className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pt-8 pb-5 sm:max-w-[480px]">
+        <DialogContent
+          outsideCloseTrackName="chat_overlay_close"
+          outsideCloseTarget="link"
+          className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pt-8 pb-5 sm:max-w-[480px]"
+        >
           <DialogHeader>
             <DialogTitle>{t('chat.tools.select_resource')}</DialogTitle>
             <DialogDescription className="sr-only">

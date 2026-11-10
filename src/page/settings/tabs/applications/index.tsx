@@ -687,6 +687,7 @@ export function ApplicationsForm({
               disabled={unbindingLoading || cancelingLoading}
               onClick={event => {
                 event.preventDefault();
+                trackButtonClick('settings_binding_confirm');
                 if (!confirmApplication) return;
                 if (confirmAction === 'cancel') {
                   void handleCancelBind(confirmApplication);

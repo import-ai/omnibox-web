@@ -37,6 +37,7 @@ interface IProps {
   onSend: () => void;
   images: ComposerChatImage[];
   onImageRemove: (imageId: string) => void;
+  surface?: 'home' | 'conversation';
 }
 
 const ChatInput = forwardRef<ChatInputHandle, IProps>(
@@ -49,6 +50,11 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
         t(`chat.tools.${tool}`),
       [t]
     );
+    const surface = props.surface ?? 'home';
+    const composerTrackName = (action: 'select' | 'edit') =>
+      surface === 'home'
+        ? `chat_home_composer_${action}`
+        : `chat_conversation_composer_${action}`;
     const composer = useChatInputComposer({
       ...props,
       getToolLabel,
@@ -137,8 +143,18 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
               'caret-foreground placeholder:text-muted-foreground selection:bg-[#117bfa]/20 selection:text-transparent'
             )}
             onBlur={composer.rememberSelection}
-            onChange={composer.handleTextChange}
-            onClick={composer.rememberSelection}
+            onChange={event => {
+              if (!props.readOnly) {
+                trackButtonClick(composerTrackName('edit'));
+              }
+              composer.handleTextChange(event);
+            }}
+            onClick={() => {
+              if (!props.readOnly) {
+                trackButtonClick(composerTrackName('select'));
+              }
+              composer.rememberSelection();
+            }}
             onCompositionEnd={() => composer.setIsComposing(false)}
             onCompositionStart={() => composer.setIsComposing(true)}
             onKeyDown={props.readOnly ? undefined : composer.handleKeyDown}

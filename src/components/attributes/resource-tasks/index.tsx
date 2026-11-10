@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { Spinner } from '@/components/ui/Spinner';
 import { Resource } from '@/interface';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 
 import { ATTRIBUTE_STYLES } from '../constants';
 import { DISPLAY_FUNCTIONS, RETRYABLE_TASK_STATUSES } from './const';
@@ -135,6 +136,10 @@ export default function ResourceTasks({}: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
@@ -162,6 +167,10 @@ export default function ResourceTasks({}: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
@@ -189,6 +198,10 @@ export default function ResourceTasks({}: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
@@ -216,6 +229,10 @@ export default function ResourceTasks({}: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
@@ -243,6 +260,10 @@ export default function ResourceTasks({}: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >

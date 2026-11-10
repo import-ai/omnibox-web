@@ -17,6 +17,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { Permission } from '@/interface';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import Action, { ActionProps } from './Action';
 import { getData, getDisabledPermissions } from './data';
@@ -82,7 +83,11 @@ export default function PermissionAction(props: IProps) {
   const removePermission = () => {
     return http.delete(basePath).then(refetch);
   };
+  const permissionTrack = resource_id ? 'resource' : 'settings';
   const handleChange = (permission: Permission) => {
+    trackButtonClick(`${permissionTrack}_permission_select`, {
+      permission,
+    });
     if (ownerSelf) {
       const newIndex = data.findIndex(item => item.value === permission);
       if (newIndex > currentPermissionIndex) {
@@ -100,9 +105,11 @@ export default function PermissionAction(props: IProps) {
     updatePermission(permission);
   };
   const handleCancel = () => {
+    trackButtonClick(`${permissionTrack}_permission_cancel`);
     onPermission('full_access');
   };
   const handleOk = () => {
+    trackButtonClick(`${permissionTrack}_permission_confirm`);
     onPermissioning(true);
     updatePermission(permission)
       .then(handleCancel)
@@ -111,6 +118,7 @@ export default function PermissionAction(props: IProps) {
       });
   };
   const handleRemove = () => {
+    trackButtonClick(`${permissionTrack}_permission_remove`);
     if (me) {
       onRemove(true);
       return;
@@ -118,6 +126,7 @@ export default function PermissionAction(props: IProps) {
     handleRemoveOk();
   };
   const handleRemoveCancel = () => {
+    trackButtonClick(`${permissionTrack}_permission_cancel`);
     onRemove(false);
   };
   const handleGrant = () => {
@@ -165,6 +174,10 @@ export default function PermissionAction(props: IProps) {
         disabled={disabled}
         disabledValues={disabledPermissions}
         className={className}
+        outsideCloseTrackName={
+          resource_id ? 'resource_overlay_close' : 'settings_overlay_close'
+        }
+        outsideCloseTarget="permission"
         onChange={handleChange}
         afterAddon={
           !canRemove || canNoAccess ? null : (
@@ -227,7 +240,12 @@ export default function PermissionAction(props: IProps) {
             </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setOwnerOnly(false)}>
+            <AlertDialogAction
+              onClick={() => {
+                trackButtonClick(`${permissionTrack}_permission_confirm`);
+                setOwnerOnly(false);
+              }}
+            >
               {t('ok')}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -244,7 +262,10 @@ export default function PermissionAction(props: IProps) {
             <AlertDialogAction
               className="w-full"
               disabled={granting}
-              onClick={handleGrantOk}
+              onClick={() => {
+                trackButtonClick(`${permissionTrack}_permission_confirm`);
+                handleGrantOk();
+              }}
             >
               {granting && <Spinner />}
               {t('permission.ok')}

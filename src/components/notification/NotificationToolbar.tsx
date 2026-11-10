@@ -38,7 +38,12 @@ function FilterTabs({ value, unreadCount, onChange, labels }: FilterTabsProps) {
         return (
           <div
             key={filter.key}
-            onClick={() => onChange(filter.key)}
+            onClick={() => {
+              trackButtonClick('notification_filter_select', {
+                filter: filter.key,
+              });
+              onChange(filter.key);
+            }}
             className={cn(
               'relative h-6 rounded px-2 py-0 text-sm leading-6 text-muted-foreground cursor-pointer transition-colors outline-hidden focus:outline-hidden focus-visible:outline-hidden focus-visible:ring-0 hover:cursor-pointer',
               isActive

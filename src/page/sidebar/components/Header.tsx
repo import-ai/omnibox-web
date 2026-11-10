@@ -22,6 +22,7 @@ import {
   useSidebar,
 } from '@/components/ui/Sidebar';
 import { useIsTouch } from '@/hooks/useIsTouch';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { trackInviteReferralHomeEntryClick } from '@/page/inviteReferral/tracking';
 import { useInviteReferralEntryExposure } from '@/page/inviteReferral/useInviteReferralEntryExposure';
@@ -47,6 +48,7 @@ export function Header(props: IProps) {
   const isTouch = useIsTouch();
   const unreadCount = useNotificationUnreadCount();
   const onChat = () => {
+    trackButtonClick('sidebar_chat_open');
     onActiveKey('chat');
   };
   const onChatHistory = () => {
@@ -103,12 +105,19 @@ export function Header(props: IProps) {
           closeClassName="mr-2"
           titleClassName="text-card-foreground pb-2 pl-2"
           title={t('notification_modal.title')}
+          contentProps={{
+            outsideCloseTrackName: 'notification_overlay_close',
+            outsideCloseTarget: 'list',
+          }}
           trigger={
             <SidebarMenuButton
               asChild
               className="h-(--sidebar-row-height) px-3"
             >
-              <div className="flex cursor-pointer items-center gap-2">
+              <div
+                className="flex cursor-pointer items-center gap-2"
+                onClick={() => trackButtonClick('notification_list_open')}
+              >
                 {unreadCount > 0 ? (
                   <BellDot className="size-4 text-muted-foreground" />
                 ) : (
@@ -134,6 +143,7 @@ export function Header(props: IProps) {
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sidebar-foreground! hover:text-sidebar-accent-foreground!"
+            onClick={() => trackButtonClick('sidebar_community_open')}
           >
             <Users className="size-4 text-muted-foreground" />
             <span>{t('notification_modal.tags.community')}</span>

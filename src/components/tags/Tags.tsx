@@ -108,6 +108,8 @@ export default function Tags(props: IProps) {
               ref={inputRef}
               removeTrackName="resource_tag_remove"
               clearTrackName="resource_tag_delete"
+              selectTrackName="resource_tag_select"
+              createTrackName="resource_tag_create"
               value={tags}
               options={tags}
               inputValue={value}

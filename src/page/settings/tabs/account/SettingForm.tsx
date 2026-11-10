@@ -42,6 +42,7 @@ import useNamespace from '@/hooks/useNamespace';
 import useNamespaces from '@/hooks/useNamespaces';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 const createFormSchema = (t: (key: string) => string) =>
   z.object({
@@ -200,7 +201,11 @@ export default function SettingForm({
               if (!submiting) setNameDialogOpen(open);
             }}
           >
-            <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
+            <DialogContent
+              outsideCloseTrackName="settings_overlay_close"
+              outsideCloseTarget="namespace"
+              className="w-[90%] max-w-md sm:max-w-md sm:w-1/2"
+            >
               <DialogHeader>
                 <DialogTitle>{t('namespace.name')}</DialogTitle>
                 <DialogDescription>
@@ -315,6 +320,7 @@ export default function SettingForm({
             <AlertDialogCancel
               className="cancel-btn-outline"
               disabled={leaving}
+              onClick={() => trackButtonClick('settings_namespace_cancel')}
             >
               {t('cancel')}
             </AlertDialogCancel>
@@ -323,6 +329,7 @@ export default function SettingForm({
               disabled={leaving}
               onClick={e => {
                 e.preventDefault();
+                trackButtonClick('settings_namespace_confirm');
                 handleLeave();
               }}
             >
@@ -344,6 +351,8 @@ export default function SettingForm({
         confirmButtonText={t('namespace.delete.button')}
         cancelButtonText={t('cancel')}
         loading={deleting}
+        cancelTrackName="settings_namespace_cancel"
+        confirmTrackName="settings_namespace_confirm"
         onConfirm={handleDelete}
       />
     </div>

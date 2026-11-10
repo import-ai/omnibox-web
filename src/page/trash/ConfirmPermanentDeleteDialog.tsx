@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 interface ConfirmPermanentDeleteDialogProps {
   open: boolean;
@@ -34,6 +35,7 @@ export function ConfirmPermanentDeleteDialog({
     : t('trash.confirm.single_description');
 
   const handleConfirm = () => {
+    trackButtonClick('trash_item_confirm');
     onConfirm();
     onOpenChange(false);
   };
@@ -46,7 +48,11 @@ export function ConfirmPermanentDeleteDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogCancel
+            onClick={() => trackButtonClick('trash_item_cancel')}
+          >
+            {t('cancel')}
+          </AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={handleConfirm}>
             {t('delete')}
           </AlertDialogAction>

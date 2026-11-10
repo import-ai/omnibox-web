@@ -18,6 +18,7 @@ import {
 } from '@/components/omnibox/Select';
 import { Calendar } from '@/components/ui/Calendar';
 import { Input } from '@/components/ui/input';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 export interface ExpireProps {
   disabled?: boolean;
@@ -78,6 +79,7 @@ export function Expire(props: ExpireProps) {
   const [countdown, setCountdown] = useState<number>(0);
 
   const handleSelectType = (type: string) => {
+    trackButtonClick('resource_expire_select', { kind: 'type' });
     const selectedType = type as ExpiresType;
     setSelectedType(selectedType);
   };
@@ -129,7 +131,11 @@ export function Expire(props: ExpireProps) {
             : t('share.share.expire.never')}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[360px] gap-4">
+      <DialogContent
+        outsideCloseTrackName="resource_overlay_close"
+        outsideCloseTarget="expire"
+        className="w-[360px] gap-4"
+      >
         <DialogTitle>{t('share.share.expire.title')}</DialogTitle>
 
         <div className="flex items-center gap-4">
@@ -138,7 +144,12 @@ export function Expire(props: ExpireProps) {
             <SelectTrigger className="w-36">
               <SelectValue placeholder={t('share.share.expire.title')} />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              onPointerDownOutside={onOverlayClose(
+                'resource_overlay_close',
+                'expire'
+              )}
+            >
               {ExpiresTypes.map(type => (
                 <SelectItem key={type} value={type}>
                   {expiresTypeToString(type)}
@@ -178,12 +189,20 @@ export function Expire(props: ExpireProps) {
               />
               <Select
                 value={selectedUnit}
-                onValueChange={value => setSelectedUnit(value as CountDownUnit)}
+                onValueChange={value => {
+                  trackButtonClick('resource_expire_select', { kind: 'unit' });
+                  setSelectedUnit(value as CountDownUnit);
+                }}
               >
                 <SelectTrigger className="w-36">
                   <SelectValue placeholder={t('share.share.countdown.unit')} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  onPointerDownOutside={onOverlayClose(
+                    'resource_overlay_close',
+                    'expire'
+                  )}
+                >
                   {CountDownUnits.map(unit => (
                     <SelectItem key={unit} value={unit}>
                       {unitToString(unit)}

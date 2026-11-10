@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import useApp from '@/hooks/useApp';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
@@ -174,6 +175,10 @@ export default function Actions(props: IProps) {
             <TooltipContent>{t('common.more_actions')}</TooltipContent>
           </Tooltip>
           <DropdownMenuContent
+            onPointerDownOutside={onOverlayClose(
+              'chat_overlay_close',
+              'conversation_menu'
+            )}
             align="end"
             className="w-56"
             {...menuTriggerPress.contentProps}
@@ -185,21 +190,30 @@ export default function Actions(props: IProps) {
           >
             <DropdownMenuItem
               className="cursor-pointer gap-2"
-              onClick={onChatCreate}
+              onClick={() => {
+                trackButtonClick('chat_conversation_create');
+                onChatCreate();
+              }}
             >
               <Plus className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.new_chat')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer gap-2"
-              onClick={onChatHistory}
+              onClick={() => {
+                trackButtonClick('chat_history_open');
+                onChatHistory();
+              }}
             >
               <History className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.history')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer gap-2"
-              onClick={() => handleAction('rename')}
+              onClick={() => {
+                trackButtonClick('chat_conversation_edit');
+                handleAction('rename');
+              }}
             >
               <SquarePen className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.rename.option')}</span>
@@ -208,7 +222,10 @@ export default function Actions(props: IProps) {
             <DropdownMenuItem
               variant="destructive"
               className="cursor-pointer gap-2"
-              onClick={() => handleAction('delete')}
+              onClick={() => {
+                trackButtonClick('chat_conversation_delete');
+                handleAction('delete');
+              }}
             >
               <Trash className="size-4" />
               <span>{t('chat.conversations.delete.option')}</span>
@@ -224,6 +241,8 @@ export default function Actions(props: IProps) {
         restoreUrl={`/namespaces/${namespaceId}/conversations/${conversationId}/restore`}
         successMessage={t('chat.conversations.deleted')}
         successDescription={t('chat.conversations.deleted_description')}
+        cancelTrackName="chat_conversation_cancel"
+        confirmTrackName="chat_conversation_confirm"
         onOpenChange={onRemove}
         onSuccess={handleDeleteSuccess}
         onRestoreSuccess={handleRestoreSuccess}

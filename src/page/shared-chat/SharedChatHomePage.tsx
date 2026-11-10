@@ -75,6 +75,7 @@ export default function SharedChatHomePage() {
           imageUploadDisabled
           imageUploadDisabledReason={t('chat.image.share_unsupported')}
           key={`share-home:${shareId}`}
+          composerSurface="home"
           messages={[]}
           navigatePrefix={`/s/${shareId}`}
           approvalModeResetKey={`share-home:${shareId}`}

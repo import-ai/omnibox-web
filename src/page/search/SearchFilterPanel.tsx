@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import type { Namespace } from '@/interface';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import type {
   ResourceCondition,
@@ -143,9 +144,10 @@ function SearchFilterConditionRow({
       <div className={searchConditionControlGridClassName}>
         <Select
           value={condition.field || ''}
-          onValueChange={value =>
-            onFieldChange(index, value as ResourceConditionField)
-          }
+          onValueChange={value => {
+            trackButtonClick('search_filter_select', { kind: 'field' });
+            onFieldChange(index, value as ResourceConditionField);
+          }}
         >
           <SelectTrigger
             className={cn(
@@ -155,7 +157,12 @@ function SearchFilterConditionRow({
           >
             <SelectValue placeholder={t('resource_conditions.select_field')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            onPointerDownOutside={onOverlayClose(
+              'search_overlay_close',
+              'filter'
+            )}
+          >
             {RESOURCE_CONDITION_FIELD_OPTIONS.map(field => (
               <SelectItem value={field} key={field}>
                 {t(`resource_conditions.fields.${field}`)}
@@ -167,16 +174,22 @@ function SearchFilterConditionRow({
         {condition.field && !isExpression ? (
           <Select
             value={condition.operator || ''}
-            onValueChange={value =>
-              onOperatorChange(index, value as ResourceConditionOperator)
-            }
+            onValueChange={value => {
+              trackButtonClick('search_filter_select', { kind: 'operator' });
+              onOperatorChange(index, value as ResourceConditionOperator);
+            }}
           >
             <SelectTrigger className={compactControlClass}>
               <SelectValue
                 placeholder={t('resource_conditions.select_operator')}
               />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              onPointerDownOutside={onOverlayClose(
+                'search_overlay_close',
+                'filter'
+              )}
+            >
               {operators.map(operator => (
                 <SelectItem value={operator} key={operator}>
                   {t(`resource_conditions.operators.${operator}`)}
@@ -229,17 +242,23 @@ function SearchFilterConditionRow({
             />
             <Select
               value={normalizedValue.unit}
-              onValueChange={value =>
+              onValueChange={value => {
+                trackButtonClick('search_filter_select', { kind: 'unit' });
                 onValueChange(index, {
                   ...normalizedValue,
                   unit: value as ResourceConditionRelativeDateUnit,
-                })
-              }
+                });
+              }}
             >
               <SelectTrigger className={compactControlClass}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                onPointerDownOutside={onOverlayClose(
+                  'search_overlay_close',
+                  'filter'
+                )}
+              >
                 {RESOURCE_CONDITION_RELATIVE_DATE_UNITS.map(unit => (
                   <SelectItem value={unit} key={unit}>
                     {t(`resource_conditions.units.${unit}`)}
@@ -349,14 +368,20 @@ export function SearchFilterPanel({
 
         <Select
           value={matchMode}
-          onValueChange={value =>
-            onMatchModeChange(value as ResourceConditionMatchMode)
-          }
+          onValueChange={value => {
+            trackButtonClick('search_filter_select', { kind: 'match' });
+            onMatchModeChange(value as ResourceConditionMatchMode);
+          }}
         >
           <SelectTrigger className={cn(compactControlClass, 'w-[103px]')}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            onPointerDownOutside={onOverlayClose(
+              'search_overlay_close',
+              'filter'
+            )}
+          >
             <SelectItem value="all">
               {t('smart_folder.match_mode.all')}
             </SelectItem>

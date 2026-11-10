@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import type { ResourceSortBy, ResourceSortOptions } from '@/service/resource';
 
@@ -66,6 +67,10 @@ export function ShareSortSelector({
           event.preventDefault();
           return;
         }
+        trackButtonClick('share_sort_select', {
+          sort_by: 'manual',
+          sort_order: 'asc',
+        });
         onChange({ sort_by: 'manual', sort_order: 'asc' });
       }}
     >
@@ -102,7 +107,11 @@ export function ShareSortSelector({
             </Button>
           </DropdownMenuTrigger>
         </span>
-        <DropdownMenuContent align="end" className="w-max">
+        <DropdownMenuContent
+          onPointerDownOutside={onOverlayClose('share_overlay_close', 'sort')}
+          align="end"
+          className="w-max"
+        >
           {flatAutomaticSortOptions.map(option => {
             const selected =
               sort.sort_by === option.sort_by &&
@@ -116,12 +125,16 @@ export function ShareSortSelector({
                   'h-9 cursor-pointer gap-2 text-popover-foreground',
                   selected && 'bg-accent'
                 )}
-                onSelect={() =>
+                onSelect={() => {
+                  trackButtonClick('share_sort_select', {
+                    sort_by: option.sort_by,
+                    sort_order: option.sort_order,
+                  });
                   onChange({
                     sort_by: option.sort_by,
                     sort_order: option.sort_order,
-                  })
-                }
+                  });
+                }}
               >
                 <span className="grid w-full grid-cols-[max-content_max-content_max-content] items-center gap-x-3">
                   <span>{t(option.fieldKey)}</span>

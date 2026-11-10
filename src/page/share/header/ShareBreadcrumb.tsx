@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { PathItem } from '@/interface';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 interface IProps {
@@ -127,15 +128,25 @@ export default function ShareBreadcrumb(props: IProps) {
         <BreadcrumbSeparator className="shrink-0" />
         <BreadcrumbItem className="shrink-0">
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex items-center gap-1">
+            <DropdownMenuTrigger
+              className="flex items-center gap-1"
+              onClick={() => trackButtonClick('share_breadcrumb_open')}
+            >
               <BreadcrumbEllipsis className="size-4" />
               <span className="sr-only">Toggle menu</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
+            <DropdownMenuContent
+              onPointerDownOutside={onOverlayClose(
+                'share_overlay_close',
+                'breadcrumb'
+              )}
+              align="start"
+            >
               {middleItems.map(item => (
                 <DropdownMenuItem
                   key={item.id}
                   onClick={() => {
+                    trackButtonClick('share_breadcrumb_navigate');
                     navigate(`/s/${shareId}/${item.id}`);
                   }}
                   className="cursor-pointer"

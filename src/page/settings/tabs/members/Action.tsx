@@ -23,6 +23,7 @@ import {
 import useApp from '@/hooks/useApp';
 import { Role } from '@/interface';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { NAMESPACE_MEMBERS_REFRESH } from '@/page/resource/mentionCard';
 
@@ -107,6 +108,7 @@ export default function Action(props: ActionProps) {
   });
 
   const handleChange = (val: Role) => {
+    trackButtonClick('settings_role_select', { role: val });
     // If owner is trying to transfer ownership, show confirmation dialog
     if (currentUserRole === 'owner' && val === 'owner') {
       setTransferOwnership(true);
@@ -144,6 +146,7 @@ export default function Action(props: ActionProps) {
     }
   };
   const handleRemove = () => {
+    trackButtonClick('settings_member_remove');
     // Cannot remove if current user cannot modify target
     if (!canModifyTarget) {
       return;
@@ -155,12 +158,15 @@ export default function Action(props: ActionProps) {
     }
   };
   const handleRemoveCancel = () => {
+    trackButtonClick('settings_member_cancel');
     onRemove(false);
   };
   const handleOwnerOnly = () => {
+    trackButtonClick('settings_member_confirm');
     setOwnerOnly(false);
   };
   const handleRemoveOk = () => {
+    trackButtonClick('settings_member_confirm');
     return http.delete(`namespaces/${namespace_id}/members/${id}`).then(() => {
       handleRemoveCancel();
       refetch();
@@ -190,6 +196,10 @@ export default function Action(props: ActionProps) {
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent
+          onPointerDownOutside={onOverlayClose(
+            'settings_overlay_close',
+            'role'
+          )}
           side="bottom"
           align="end"
           alignOffset={-10}
@@ -247,6 +257,8 @@ export default function Action(props: ActionProps) {
         confirmButtonText={t('manage.transfer_confirm')}
         cancelButtonText={t('cancel')}
         loading={transferring}
+        cancelTrackName="settings_ownership_cancel"
+        confirmTrackName="settings_ownership_confirm"
         onConfirm={handleTransferOwnership}
       />
 

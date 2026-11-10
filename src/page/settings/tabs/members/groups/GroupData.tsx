@@ -91,6 +91,7 @@ export default function GroupData(props: GroupProps) {
     if (loading) {
       return;
     }
+    trackButtonClick('settings_invitation_toggle', { enabled: checked });
     setLoading(true);
     if (checked) {
       http
@@ -227,13 +228,19 @@ export default function GroupData(props: GroupProps) {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="cancel-btn-outline">
+                    <AlertDialogCancel
+                      className="cancel-btn-outline"
+                      onClick={() => trackButtonClick('settings_group_cancel')}
+                    >
                       {t('cancel')}
                     </AlertDialogCancel>
                     <AlertDialogAction
                       variant="destructive"
                       disabled={deleting}
-                      onClick={handleDelete}
+                      onClick={() => {
+                        trackButtonClick('settings_group_confirm');
+                        handleDelete();
+                      }}
                     >
                       {t('ok')}
                     </AlertDialogAction>

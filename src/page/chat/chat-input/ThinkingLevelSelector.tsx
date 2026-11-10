@@ -15,7 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/Popover';
-import { trackButtonClick } from '@/lib/trackButtonClick';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { composerControlHoverClass } from './composerControlClass';
@@ -97,6 +97,7 @@ export default function ThinkingLevelSelector({
         </button>
       </PopoverTrigger>
       <PopoverContent
+        onPointerDownOutside={onOverlayClose('chat_overlay_close', 'thinking')}
         side="top"
         align="end"
         sideOffset={8}
@@ -268,11 +269,13 @@ export default function ThinkingLevelSelector({
                 }
                 aria-label={t('chat.thinking_level')}
                 aria-valuetext={`${edition} ${label}`}
-                onChange={event =>
-                  onChange(
-                    thinkingStep(visibleLevels[Number(event.target.value)])
-                  )
-                }
+                onChange={event => {
+                  const next = thinkingStep(
+                    visibleLevels[Number(event.target.value)]
+                  );
+                  trackButtonClick('chat_thinking_select', { level: next });
+                  onChange(next);
+                }}
                 className="relative block h-6 w-full cursor-pointer appearance-none rounded-full bg-transparent focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-default"
               />
             </div>

@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/Form';
 import { Group } from '@/interface';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 const FormSchema = z.object({
   groupId: z.string(),
@@ -72,14 +73,22 @@ export function AddGroupInvitationForm(props: IProps) {
               <FormControl>
                 <Select
                   defaultValue={field.value}
-                  onValueChange={field.onChange}
+                  onValueChange={value => {
+                    trackButtonClick('settings_group_select');
+                    field.onChange(value);
+                  }}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent
+                    onPointerDownOutside={onOverlayClose(
+                      'settings_overlay_close',
+                      'group'
+                    )}
+                  >
                     {groups.map(group => (
                       <SelectItem key={group.id} value={group.id}>
                         {group.title}

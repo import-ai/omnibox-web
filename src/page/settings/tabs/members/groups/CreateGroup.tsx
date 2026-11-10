@@ -36,7 +36,11 @@ export default function CreateGroup(props: IProps) {
         {t('manage.add')}
       </SettingPageButton>
       <Dialog open={data.open} onOpenChange={onToggle}>
-        <DialogContent className="w-[90%] max-w-sm sm:max-w-sm p-4 sm:p-6">
+        <DialogContent
+          outsideCloseTrackName="settings_overlay_close"
+          outsideCloseTarget="group"
+          className="w-[90%] max-w-sm sm:max-w-sm p-4 sm:p-6"
+        >
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <VisuallyHidden.Root>

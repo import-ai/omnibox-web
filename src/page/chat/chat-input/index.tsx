@@ -75,6 +75,7 @@ interface IProps {
   // the pending tool calls first (the sendMessage handler does that).
   textWhilePending?: boolean;
   onStop?: () => void;
+  composerSurface?: 'home' | 'conversation';
   onThinkingSelectionChange?: (
     selection: ThinkingSelection | undefined
   ) => void;
@@ -102,6 +103,7 @@ export default function ChatArea(props: IProps) {
     sendMessage,
     textWhilePending = false,
     onStop,
+    composerSurface = messages.length > 0 ? 'conversation' : 'home',
   } = props;
   const { t } = useTranslation();
   const {
@@ -439,6 +441,7 @@ export default function ChatArea(props: IProps) {
           });
         }}
         disabled={disabled}
+        surface={composerSurface}
       />
       <div className="@container/composer-toolbar flex items-center justify-between">
         <fieldset

@@ -47,6 +47,8 @@ export function SystemNotificationDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        outsideCloseTrackName="notification_overlay_close"
+        outsideCloseTarget="system"
         className={cn(
           notificationDialogContentClassName,
           '[&>button]:right-6 [&>button]:top-5 [&>button]:inline-flex [&>button]:size-8 [&>button]:items-center [&>button]:justify-center'

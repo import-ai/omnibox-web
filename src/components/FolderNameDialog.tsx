@@ -11,6 +11,7 @@ import {
 } from '@/components/omnibox/Dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
+import { overlayCloseName } from '@/lib/trackButtonClick';
 
 interface FolderNameDialogProps {
   open: boolean;
@@ -81,7 +82,15 @@ export function FolderNameDialog({
         if (!open) setFolderName('');
       }}
     >
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        className="sm:max-w-[425px]"
+        outsideCloseTrackName={
+          confirmTrackName
+            ? overlayCloseName(confirmTrackName, 'sidebar')
+            : undefined
+        }
+        outsideCloseTarget={confirmTrackName ? 'folder' : undefined}
+      >
         <DialogHeader>
           <DialogTitle>{title || t('folder.create_dialog.title')}</DialogTitle>
         </DialogHeader>

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Spinner } from '@/components/ui/Spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import Group from './groups';
 import Member from './MemberMain';
@@ -34,7 +35,14 @@ export default function ManagePeople({ canManageMembers }: ManagePeopleProps) {
   }
 
   return (
-    <Tabs value={tab} onValueChange={onTab} className="w-full">
+    <Tabs
+      value={tab}
+      onValueChange={value => {
+        trackButtonClick('settings_member_select', { tab: value });
+        onTab(value);
+      }}
+      className="w-full"
+    >
       <TabsList>
         <TabsTrigger value="member">
           {t('manage.member')} {data.member.length}

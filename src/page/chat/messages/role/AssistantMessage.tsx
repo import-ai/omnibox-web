@@ -12,6 +12,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import type { ProcessedArg } from '@/lib/toolArgs';
 import { joinArgs, processArgs } from '@/lib/toolArgs';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { ToolCallArgs } from '@/page/chat/components/ToolCallArgs';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
@@ -140,6 +141,7 @@ export function AssistantMessage(props: IProps) {
         key={'reasoning_' + message.id}
         defaultValue={lazy ? undefined : 'reasoning_' + message.id}
         onValueChange={value => {
+          trackButtonClick('chat_reasoning_toggle', { open: Boolean(value) });
           if (value) loadDetails();
         }}
         className="mb-3"
@@ -276,6 +278,7 @@ export function AssistantMessage(props: IProps) {
         key={'tool_calls' + message.id}
         defaultValue={lazy ? undefined : 'tool_calls_' + message.id}
         onValueChange={value => {
+          trackButtonClick('chat_tools_toggle', { open: Boolean(value) });
           if (value) loadDetails();
         }}
         className="mb-3"

@@ -54,6 +54,25 @@ export type ButtonTrackProps = Record<
  * `name` is `module_object_action`, for example `chat_message_send`.
  * Product buttons pass it as `trackName`. Native buttons call this directly.
  */
+/** Clicking the blank area outside a dialog, menu, or popover. */
+export function onOverlayClose(name: string, target: string) {
+  return (event: { defaultPrevented: boolean }) => {
+    if (event.defaultPrevented) return;
+    trackButtonClick(name, { dismiss: 'outside', target });
+  };
+}
+
+export function overlayCloseName(
+  sourceTrackName: string | undefined,
+  fallbackModule: (typeof BUTTON_TRACK_MODULES)[number]
+) {
+  const moduleName =
+    BUTTON_TRACK_MODULES.find(item =>
+      sourceTrackName?.startsWith(`${item}_`)
+    ) ?? fallbackModule;
+  return `${moduleName}_overlay_close`;
+}
+
 export function trackButtonClick(name: string, props?: ButtonTrackProps) {
   if (process.env.NODE_ENV !== 'production' && !isButtonTrackName(name)) {
     console.warn(

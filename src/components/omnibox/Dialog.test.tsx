@@ -1,7 +1,12 @@
 /** @jest-environment jsdom */
+import { trackButtonClick } from '@/lib/trackButtonClick';
+
 import { DialogContent } from './Dialog';
 
 jest.mock('@/lib/request', () => ({ http: {} }));
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+}));
 
 it('keeps captcha interactions inside the dialog and forwards other outside events', () => {
   const captcha = document.createElement('div');
@@ -25,4 +30,29 @@ it('keeps captcha interactions inside the dialog and forwards other outside even
     expect(onOutside).toHaveBeenCalledWith(event);
     onOutside.mockClear();
   }
+});
+
+it('records a blank-area close after the dialog accepts the outside click', () => {
+  const content = DialogContent({
+    outsideCloseTrackName: 'chat_overlay_close',
+    outsideCloseTarget: 'thinking',
+  });
+  const prevented = {
+    target: document.body,
+    defaultPrevented: true,
+    preventDefault: jest.fn(),
+  };
+  content.props.onPointerDownOutside(prevented);
+  expect(trackButtonClick).not.toHaveBeenCalled();
+
+  const event = {
+    target: document.body,
+    defaultPrevented: false,
+    preventDefault: jest.fn(),
+  };
+  content.props.onPointerDownOutside(event);
+  expect(trackButtonClick).toHaveBeenCalledWith('chat_overlay_close', {
+    dismiss: 'outside',
+    target: 'thinking',
+  });
 });

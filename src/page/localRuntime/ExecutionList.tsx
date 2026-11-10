@@ -164,7 +164,11 @@ function ExecutionHistory({ devices }: { devices: LocalDevice[] }) {
         open={!!selected}
         onOpenChange={open => !open && setSelectedId(undefined)}
       >
-        <DialogContent className="max-w-2xl sm:max-w-2xl">
+        <DialogContent
+          outsideCloseTrackName="local_runtime_overlay_close"
+          outsideCloseTarget="execution"
+          className="max-w-2xl sm:max-w-2xl"
+        >
           <DialogHeader>
             <DialogTitle>{t('local_runtime.detail')}</DialogTitle>
           </DialogHeader>

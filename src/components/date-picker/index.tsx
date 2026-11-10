@@ -19,7 +19,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/Popover';
 import { useIsMobile } from '@/hooks/useMobile';
-import { trackButtonClick } from '@/lib/trackButtonClick';
+import {
+  onOverlayClose,
+  overlayCloseName,
+  trackButtonClick,
+} from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { getNextRangeSelectionState, type RangeSelectionState } from './utils';
@@ -267,6 +271,11 @@ export function DatePicker(props: DatePickerProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        onPointerDownOutside={
+          trackName
+            ? onOverlayClose(overlayCloseName(trackName, 'resource'), 'date')
+            : undefined
+        }
         className="w-auto overflow-hidden rounded-md p-0"
         align="start"
       >
@@ -360,6 +369,11 @@ export function DateRangePicker(props: DateRangePickerProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        onPointerDownOutside={
+          trackName
+            ? onOverlayClose(overlayCloseName(trackName, 'resource'), 'date')
+            : undefined
+        }
         className="max-h-(--radix-popover-content-available-height) w-auto overflow-y-auto p-0"
         collisionPadding={16}
         align="start"

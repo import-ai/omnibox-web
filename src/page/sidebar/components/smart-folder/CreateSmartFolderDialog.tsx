@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { ResourceConditionEditor } from '@/page/resource/conditions/ResourceConditionEditor';
 import {
@@ -85,6 +86,8 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
         closeWrapperClassName="right-5 top-5"
         contentProps={{
           onContextMenu: event => event.stopPropagation(),
+          outsideCloseTrackName: 'sidebar_overlay_close',
+          outsideCloseTarget: 'smart_folder',
         }}
       >
         <div className="space-y-4">
@@ -97,6 +100,9 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                 <RadioGroup
                   value={ownerScope}
                   onValueChange={value => {
+                    trackButtonClick('sidebar_smart_folder_select', {
+                      kind: 'owner',
+                    });
                     const nextOwnerScope = value as SmartFolderOwnerScope;
                     setOwnerScope(nextOwnerScope);
                     setRootScope(getDefaultRootScope(nextOwnerScope));
@@ -137,9 +143,12 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                 </Label>
                 <Select
                   value={rootScope}
-                  onValueChange={value =>
-                    setRootScope(value as SmartFolderRootScope)
-                  }
+                  onValueChange={value => {
+                    trackButtonClick('sidebar_smart_folder_select', {
+                      kind: 'root',
+                    });
+                    setRootScope(value as SmartFolderRootScope);
+                  }}
                 >
                   <SelectTrigger
                     className={cn(
@@ -149,7 +158,12 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                   >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent
+                    onPointerDownOutside={onOverlayClose(
+                      'sidebar_overlay_close',
+                      'smart_folder'
+                    )}
+                  >
                     {rootScopeOptions.map(option => (
                       <SelectItem key={option.value} value={option.value}>
                         {t(option.labelKey)}
@@ -209,9 +223,12 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                 <div className="flex w-full flex-wrap items-center gap-x-2 gap-y-2">
                   <Select
                     value={matchMode}
-                    onValueChange={value =>
-                      setMatchMode(value as SmartFolderMatchMode)
-                    }
+                    onValueChange={value => {
+                      trackButtonClick('sidebar_smart_folder_select', {
+                        kind: 'match',
+                      });
+                      setMatchMode(value as SmartFolderMatchMode);
+                    }}
                   >
                     <SelectTrigger
                       className={cn(
@@ -221,7 +238,12 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                     >
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent
+                      onPointerDownOutside={onOverlayClose(
+                        'sidebar_overlay_close',
+                        'smart_folder'
+                      )}
+                    >
                       <SelectItem value="all">
                         {t('smart_folder.match_mode.all')}
                       </SelectItem>

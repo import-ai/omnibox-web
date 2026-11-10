@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/Table';
 import { Task } from '@/interface';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 import { TaskActions } from './TaskActions';
 import { TaskPagination } from './TaskPagination';
@@ -204,6 +205,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
   };
 
   const handleViewFilterChange = (value: 'own' | 'all') => {
+    trackButtonClick('settings_task_select', { view: value });
     setViewFilter(value);
     setCurrentPage(1); // Reset to first page when changing filter
   };
@@ -224,7 +226,12 @@ export function TaskList({ namespaceId }: TaskListProps) {
               <SelectTrigger className="w-[100px] lg:w-[120px]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                onPointerDownOutside={onOverlayClose(
+                  'settings_overlay_close',
+                  'task'
+                )}
+              >
                 <SelectItem value="own">{t('tasks.my_tasks')}</SelectItem>
                 <SelectItem value="all">{t('tasks.all_tasks')}</SelectItem>
               </SelectContent>

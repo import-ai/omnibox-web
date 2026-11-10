@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Checkbox } from '@/components/Checkbox';
 import { Separator } from '@/components/ui/Separator';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { useSelectedCount, useSidebarStore } from '@/page/sidebar/store';
 import {
@@ -79,6 +80,7 @@ export function Toolbar({
   };
 
   const handleCheckAll = () => {
+    trackButtonClick('sidebar_selection_select');
     const store = useSidebarStore.getState();
     if (checked === true) {
       store.clearSelection();

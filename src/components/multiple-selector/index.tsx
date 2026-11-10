@@ -94,6 +94,8 @@ interface MultipleSelectorProps {
   hideClearAllButton?: boolean;
   removeTrackName?: string;
   clearTrackName?: string;
+  selectTrackName?: string;
+  createTrackName?: string;
 }
 
 export interface MultipleSelectorRef {
@@ -225,6 +227,8 @@ const MultipleSelector = React.forwardRef<
       inputProps,
       hideClearAllButton = false,
       removeTrackName,
+      selectTrackName,
+      createTrackName,
       clearTrackName,
     }: MultipleSelectorProps,
     ref: React.Ref<MultipleSelectorRef>
@@ -399,6 +403,7 @@ const MultipleSelector = React.forwardRef<
             e.stopPropagation();
           }}
           onSelect={async (value: string) => {
+            if (createTrackName) trackButtonClick(createTrackName);
             if (selected.length >= maxSelected) {
               onMaxSelected?.(selected.length);
               return;
@@ -712,6 +717,9 @@ const MultipleSelector = React.forwardRef<
                                 e.stopPropagation();
                               }}
                               onSelect={() => {
+                                if (selectTrackName) {
+                                  trackButtonClick(selectTrackName);
+                                }
                                 if (selected.length >= maxSelected) {
                                   onMaxSelected?.(selected.length);
                                   return;
