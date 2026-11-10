@@ -14,6 +14,7 @@ import {
   AgreementCheckbox,
   AgreementConsentProvider,
 } from '../AgreementConsent';
+import { subscribeAuthPageReturn } from '../authPageReturn';
 import Apple from './index';
 
 jest.mock('react-router-dom', () => ({
@@ -273,3 +274,49 @@ it.each([
     expect(toast.error).toHaveBeenCalledTimes(expectedToasts);
   }
 );
+
+it('notifies actual popup cancellation once across SDK event and rejection', async () => {
+  const returned = jest.fn();
+  const unsubscribe = subscribeAuthPageReturn(returned);
+  let rejectPopup: (reason: unknown) => void = () => {};
+  jest.mocked(window.AppleID.auth.signIn).mockImplementation(
+    () =>
+      new Promise((_, reject) => {
+        rejectPopup = reject;
+      })
+  );
+  try {
+    await renderApple();
+    await resolveConfig();
+    await act(async () => button('使用 Apple 登录').click());
+    await act(async () => button('同意并继续').click());
+    expect(returned).not.toHaveBeenCalled();
+    await act(async () => {
+      document.dispatchEvent(
+        new CustomEvent('AppleIDSignInOnFailure', {
+          detail: { error: 'popup_closed_by_user' },
+        })
+      );
+      rejectPopup({ error: 'popup_closed_by_user' });
+    });
+    expect(returned).toHaveBeenCalledTimes(1);
+  } finally {
+    unsubscribe();
+  }
+});
+it('does not manufacture a popup return when Apple initialization fails', async () => {
+  const returned = jest.fn();
+  const unsubscribe = subscribeAuthPageReturn(returned);
+  jest.mocked(window.AppleID.auth.init).mockImplementation(() => {
+    throw Error('configuration');
+  });
+  try {
+    await renderApple();
+    await resolveConfig();
+    await act(async () => button('使用 Apple 登录').click());
+    await act(async () => button('同意并继续').click());
+    expect(returned).not.toHaveBeenCalled();
+  } finally {
+    unsubscribe();
+  }
+});
