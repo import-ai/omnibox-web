@@ -104,15 +104,18 @@ export default function PermissionAction(props: IProps) {
     }
     updatePermission(permission);
   };
+  const resetPermission = () => {
+    onPermission('full_access');
+  };
   const handleCancel = () => {
     trackButtonClick(`${permissionTrack}_permission_cancel`);
-    onPermission('full_access');
+    resetPermission();
   };
   const handleOk = () => {
     trackButtonClick(`${permissionTrack}_permission_confirm`);
     onPermissioning(true);
     updatePermission(permission)
-      .then(handleCancel)
+      .then(resetPermission)
       .finally(() => {
         onPermissioning(false);
       });
@@ -125,9 +128,12 @@ export default function PermissionAction(props: IProps) {
     }
     handleRemoveOk();
   };
+  const closeRemoveDialog = () => {
+    onRemove(false);
+  };
   const handleRemoveCancel = () => {
     trackButtonClick(`${permissionTrack}_permission_cancel`);
-    onRemove(false);
+    closeRemoveDialog();
   };
   const handleGrant = () => {
     onGrant(true);
@@ -145,15 +151,13 @@ export default function PermissionAction(props: IProps) {
   };
   const handleRemoveOk = () => {
     if (alertWhenDelete) {
-      handleRemoveCancel();
+      closeRemoveDialog();
       handleGrant();
       return;
     }
     onRemoveing(true);
     removePermission()
-      .then(() => {
-        handleRemoveCancel();
-      })
+      .then(closeRemoveDialog)
       .finally(() => {
         onRemoveing(false);
       });

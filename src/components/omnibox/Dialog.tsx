@@ -40,9 +40,13 @@ export function DialogContent({
           outsideCloseTrackName &&
           outsideCloseTarget
         ) {
-          trackButtonClick(outsideCloseTrackName, {
-            dismiss: 'outside',
-            target: outsideCloseTarget,
+          // Radix and onInteractOutside may still prevent dismissal.
+          queueMicrotask(() => {
+            if (event.defaultPrevented) return;
+            trackButtonClick(outsideCloseTrackName, {
+              dismiss: 'outside',
+              target: outsideCloseTarget,
+            });
           });
         }
       }}

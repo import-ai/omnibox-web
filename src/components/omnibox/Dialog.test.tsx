@@ -32,7 +32,7 @@ it('keeps captcha interactions inside the dialog and forwards other outside even
   }
 });
 
-it('records a blank-area close after the dialog accepts the outside click', () => {
+it('records a blank-area close after the dialog accepts the outside click', async () => {
   const content = DialogContent({
     outsideCloseTrackName: 'chat_overlay_close',
     outsideCloseTarget: 'thinking',
@@ -51,6 +51,7 @@ it('records a blank-area close after the dialog accepts the outside click', () =
     preventDefault: jest.fn(),
   };
   content.props.onPointerDownOutside(event);
+  await Promise.resolve();
   expect(trackButtonClick).toHaveBeenCalledWith('chat_overlay_close', {
     dismiss: 'outside',
     target: 'thinking',

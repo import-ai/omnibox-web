@@ -204,7 +204,7 @@ function BindingRow({
               disabled={unbinding}
               onClick={() => {
                 trackButtonClick('settings_binding_confirm');
-                onUnbind();
+                onUnbind?.();
               }}
             >
               {unbinding && <Spinner className="mr-2" />}

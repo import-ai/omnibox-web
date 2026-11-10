@@ -157,9 +157,12 @@ export default function Action(props: ActionProps) {
       setOwnerOnly(true);
     }
   };
+  const closeRemoveDialog = () => {
+    onRemove(false);
+  };
   const handleRemoveCancel = () => {
     trackButtonClick('settings_member_cancel');
-    onRemove(false);
+    closeRemoveDialog();
   };
   const handleOwnerOnly = () => {
     trackButtonClick('settings_member_confirm');
@@ -168,7 +171,7 @@ export default function Action(props: ActionProps) {
   const handleRemoveOk = () => {
     trackButtonClick('settings_member_confirm');
     return http.delete(`namespaces/${namespace_id}/members/${id}`).then(() => {
-      handleRemoveCancel();
+      closeRemoveDialog();
       refetch();
       app.fire(NAMESPACE_MEMBERS_REFRESH, namespace_id);
       toast.success(t('manage.member_remove_success'), {
