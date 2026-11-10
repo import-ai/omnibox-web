@@ -13,6 +13,12 @@ jest.mock('react-i18next', () => ({
     i18n: { language: 'en-US' },
   }),
 }));
+jest.mock(
+  '@/components/attributes/resource-tasks/CreditShortageActions',
+  () => ({
+    CreditShortageActions: () => <span data-testid="credit-actions" />,
+  })
+);
 jest.mock('./TaskActions', () => ({ TaskActions: () => null }));
 jest.mock('./TaskTypeBadge', () => ({ TaskTypeBadge: () => null }));
 jest.mock('./TaskStatusBadge', () => ({ TaskStatusBadge: () => null }));
@@ -54,3 +60,31 @@ test('refresh and pagination keep controls mounted while only the list loads', a
   expect(host.querySelector('[aria-current="page"]')?.textContent).toBe('2');
   act(() => root.unmount());
 });
+
+test.each([
+  ['INSUFFICIENT_CREDITS', true],
+  ['FILE_SIZE_LIMIT_EXCEEDED', false],
+])(
+  'purchase guidance is exclusive to credit shortages: %s',
+  async (failure_code, expected) => {
+    localStorage.removeItem('uid');
+    const host = document.createElement('div');
+    const root = createRoot(host);
+    jest.mocked(http.get).mockResolvedValue({
+      tasks: [
+        {
+          id: 'shortage',
+          status: 'insufficient_quota',
+          failure_code,
+          ended_at: new Date().toISOString(),
+        },
+      ],
+      total: 1,
+    });
+    await act(async () => root.render(<TaskList namespaceId="test" />));
+    expect(Boolean(host.querySelector('[data-testid="credit-actions"]'))).toBe(
+      expected
+    );
+    act(() => root.unmount());
+  }
+);

@@ -71,6 +71,18 @@ export function useAgentCredits(
     void fetchAgentCredits();
   }, [assistantMessageIds.length, enabled, fetchAgentCredits]);
 
+  useEffect(() => {
+    if (!enabled) return;
+    const refresh = () => {
+      void fetchAgentCredits().catch(() => undefined);
+    };
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      fetchGenerationRef.current += 1;
+    };
+  }, [enabled, fetchAgentCredits]);
+
   return {
     agentCredits,
   };

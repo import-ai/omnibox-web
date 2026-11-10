@@ -20,7 +20,7 @@ export function ExpandButton({ namespaceId }: ExpandButtonProps) {
   return (
     <div className="flex justify-end">
       <a
-        href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
+        href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing?namespace=${encodeURIComponent(namespaceId)}`}
         target="_blank"
         rel="noopener noreferrer"
       >

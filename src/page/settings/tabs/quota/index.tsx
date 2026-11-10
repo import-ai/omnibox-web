@@ -1,16 +1,17 @@
 import { useTranslation } from 'react-i18next';
 
+import { BillingRulesDialog } from '@/components/omnibox/BillingRulesDialog';
 import { Spinner } from '@/components/ui/Spinner';
 import useQuota from '@/hooks/useQuota';
 
+import { CreditActivity } from './CreditActivity';
 import { ExpandButton } from './ExpandButton';
 import { Expiration } from './Expiration';
 import { StorageSection } from './StorageSection';
 import {
+  formatCreditAmount,
   formatCredits,
   formatStorage,
-  formatTime,
-  formatTimeAsMinutes,
   getSubscriptionPlanLabelKey,
 } from './utils';
 
@@ -38,7 +39,6 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
 
   const segTooltip = (label: string, value: string) =>
     t('quota.tooltip_format', { label, value });
-  const pageVal = (n: number) => `${n} ${t('quota.page_unit')}`;
 
   const subscriptionLabel = t(getSubscriptionPlanLabelKey(data.premium));
 
@@ -66,7 +66,90 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
 
   const sections = [
     {
+      title: t('quota.credits_title'),
+      action: <BillingRulesDialog />,
+      current: `${formatCreditAmount(data.agent_credits.self + data.agent_credits.other_users)} / ${formatCreditAmount(data.agent_credits.total)} ${t('quota.credit_unit')}`,
+      currentTooltip: buildTotalTooltip(
+        data.agent_credits.subscription_total,
+        data.agent_credits.onetime_total,
+        formatCredits
+      ),
+      items: showOtherMembersUsage
+        ? [
+            {
+              label: t('quota.my_usage'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.my_usage'),
+                formatCredits(data.agent_credits.self)
+              ),
+            },
+            {
+              label: t('quota.other_users'),
+              color: 'bg-muted-foreground/40',
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                formatCredits(data.agent_credits.other_users)
+              ),
+            },
+          ]
+        : [
+            {
+              label: t('quota.my_usage'),
+              color: 'bg-blue-500',
+              tooltip: segTooltip(
+                t('quota.my_usage'),
+                formatCredits(data.agent_credits.self)
+              ),
+            },
+          ],
+      segments: showOtherMembersUsage
+        ? [
+            {
+              label: t('quota.my_usage'),
+              color: 'bg-blue-500',
+              percentage:
+                data.agent_credits.total > 0
+                  ? (data.agent_credits.self / data.agent_credits.total) * 100
+                  : 0,
+              tooltip: segTooltip(
+                t('quota.my_usage'),
+                formatCredits(data.agent_credits.self)
+              ),
+            },
+            {
+              label: t('quota.other'),
+              color: 'bg-muted-foreground/40',
+              percentage:
+                data.agent_credits.total > 0
+                  ? (data.agent_credits.other_users /
+                      data.agent_credits.total) *
+                    100
+                  : 0,
+              tooltip: segTooltip(
+                t('quota.other_users'),
+                formatCredits(data.agent_credits.other_users)
+              ),
+            },
+          ]
+        : [
+            {
+              label: t('quota.my_usage'),
+              color: 'bg-blue-500',
+              percentage:
+                data.agent_credits.total > 0
+                  ? (data.agent_credits.self / data.agent_credits.total) * 100
+                  : 0,
+              tooltip: segTooltip(
+                t('quota.my_usage'),
+                formatCredits(data.agent_credits.self)
+              ),
+            },
+          ],
+    },
+    {
       title: t('quota.storage_usage'),
+      action: undefined,
       current: `${formatStorage(data.storage_bytes.upload + data.storage_bytes.file + data.storage_bytes.other_users)} / ${formatStorage(data.storage_bytes.total)}`,
       currentTooltip: buildTotalTooltip(
         data.storage_bytes.subscription_total,
@@ -93,7 +176,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
             },
             {
               label: t('quota.other_users'),
-              color: 'bg-gray-300',
+              color: 'bg-muted-foreground/40',
               tooltip: segTooltip(
                 t('quota.other_users'),
                 formatStorage(data.storage_bytes.other_users)
@@ -146,7 +229,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
             },
             {
               label: t('quota.other'),
-              color: 'bg-gray-300',
+              color: 'bg-muted-foreground/40',
               percentage:
                 data.storage_bytes.total > 0
                   ? (data.storage_bytes.other_users /
@@ -186,341 +269,28 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
             },
           ],
     },
-    {
-      title: t('quota.audio_video_parse_usage'),
-      current: `${formatTime(data.video_audio_parse.video + data.video_audio_parse.audio + data.video_audio_parse.other_users)} / ${formatTimeAsMinutes(data.video_audio_parse.total)}`,
-      currentTooltip: buildTotalTooltip(
-        data.video_audio_parse.subscription_total,
-        data.video_audio_parse.onetime_total,
-        formatTimeAsMinutes
-      ),
-      items: showOtherMembersUsage
-        ? [
-            {
-              label: t('quota.audio'),
-              color: 'bg-blue-400',
-              tooltip: segTooltip(
-                t('quota.audio'),
-                formatTime(data.video_audio_parse.audio)
-              ),
-            },
-            {
-              label: t('quota.video'),
-              color: 'bg-blue-500',
-              tooltip: segTooltip(
-                t('quota.video'),
-                formatTime(data.video_audio_parse.video)
-              ),
-            },
-            {
-              label: t('quota.other_users'),
-              color: 'bg-gray-300',
-              tooltip: segTooltip(
-                t('quota.other_users'),
-                formatTime(data.video_audio_parse.other_users)
-              ),
-            },
-          ]
-        : [
-            {
-              label: t('quota.audio'),
-              color: 'bg-blue-400',
-              tooltip: segTooltip(
-                t('quota.audio'),
-                formatTime(data.video_audio_parse.audio)
-              ),
-            },
-            {
-              label: t('quota.video'),
-              color: 'bg-blue-500',
-              tooltip: segTooltip(
-                t('quota.video'),
-                formatTime(data.video_audio_parse.video)
-              ),
-            },
-          ],
-      segments: showOtherMembersUsage
-        ? [
-            {
-              label: t('quota.audio'),
-              color: 'bg-blue-400',
-              percentage:
-                data.video_audio_parse.total > 0
-                  ? (data.video_audio_parse.audio /
-                      data.video_audio_parse.total) *
-                    100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.audio'),
-                formatTime(data.video_audio_parse.audio)
-              ),
-            },
-            {
-              label: t('quota.video'),
-              color: 'bg-blue-500',
-              percentage:
-                data.video_audio_parse.total > 0
-                  ? (data.video_audio_parse.video /
-                      data.video_audio_parse.total) *
-                    100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.video'),
-                formatTime(data.video_audio_parse.video)
-              ),
-            },
-            {
-              label: t('quota.other'),
-              color: 'bg-gray-300',
-              percentage:
-                data.video_audio_parse.total > 0
-                  ? (data.video_audio_parse.other_users /
-                      data.video_audio_parse.total) *
-                    100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.other_users'),
-                formatTime(data.video_audio_parse.other_users)
-              ),
-            },
-          ]
-        : [
-            {
-              label: t('quota.audio'),
-              color: 'bg-blue-400',
-              percentage:
-                data.video_audio_parse.total > 0
-                  ? (data.video_audio_parse.audio /
-                      data.video_audio_parse.total) *
-                    100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.audio'),
-                formatTime(data.video_audio_parse.audio)
-              ),
-            },
-            {
-              label: t('quota.video'),
-              color: 'bg-blue-500',
-              percentage:
-                data.video_audio_parse.total > 0
-                  ? (data.video_audio_parse.video /
-                      data.video_audio_parse.total) *
-                    100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.video'),
-                formatTime(data.video_audio_parse.video)
-              ),
-            },
-          ],
-    },
-    {
-      title: t('quota.doc_parse_usage'),
-      current: `${pageVal(data.doc_parse.pdf + data.doc_parse.image + data.doc_parse.other_users)} / ${pageVal(data.doc_parse.total)}`,
-      currentTooltip: buildTotalTooltip(
-        data.doc_parse.subscription_total,
-        data.doc_parse.onetime_total,
-        pageVal
-      ),
-      items: showOtherMembersUsage
-        ? [
-            {
-              label: t('quota.pdf'),
-              color: 'bg-blue-400',
-              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
-            },
-            {
-              label: t('quota.image'),
-              color: 'bg-blue-500',
-              tooltip: segTooltip(
-                t('quota.image'),
-                pageVal(data.doc_parse.image)
-              ),
-            },
-            {
-              label: t('quota.other_users'),
-              color: 'bg-gray-300',
-              tooltip: segTooltip(
-                t('quota.other_users'),
-                pageVal(data.doc_parse.other_users)
-              ),
-            },
-          ]
-        : [
-            {
-              label: t('quota.pdf'),
-              color: 'bg-blue-400',
-              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
-            },
-            {
-              label: t('quota.image'),
-              color: 'bg-blue-500',
-              tooltip: segTooltip(
-                t('quota.image'),
-                pageVal(data.doc_parse.image)
-              ),
-            },
-          ],
-      segments: showOtherMembersUsage
-        ? [
-            {
-              label: t('quota.pdf'),
-              color: 'bg-blue-400',
-              percentage:
-                data.doc_parse.total > 0
-                  ? (data.doc_parse.pdf / data.doc_parse.total) * 100
-                  : 0,
-              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
-            },
-            {
-              label: t('quota.image'),
-              color: 'bg-blue-500',
-              percentage:
-                data.doc_parse.total > 0
-                  ? (data.doc_parse.image / data.doc_parse.total) * 100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.image'),
-                pageVal(data.doc_parse.image)
-              ),
-            },
-            {
-              label: t('quota.other'),
-              color: 'bg-gray-300',
-              percentage:
-                data.doc_parse.total > 0
-                  ? (data.doc_parse.other_users / data.doc_parse.total) * 100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.other_users'),
-                pageVal(data.doc_parse.other_users)
-              ),
-            },
-          ]
-        : [
-            {
-              label: t('quota.pdf'),
-              color: 'bg-blue-400',
-              percentage:
-                data.doc_parse.total > 0
-                  ? (data.doc_parse.pdf / data.doc_parse.total) * 100
-                  : 0,
-              tooltip: segTooltip(t('quota.pdf'), pageVal(data.doc_parse.pdf)),
-            },
-            {
-              label: t('quota.image'),
-              color: 'bg-blue-500',
-              percentage:
-                data.doc_parse.total > 0
-                  ? (data.doc_parse.image / data.doc_parse.total) * 100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.image'),
-                pageVal(data.doc_parse.image)
-              ),
-            },
-          ],
-    },
-    {
-      title: t('quota.agent_credits_usage'),
-      current: `${formatCredits(data.agent_credits.self + data.agent_credits.other_users)} / ${formatCredits(data.agent_credits.total)}`,
-      currentTooltip: buildTotalTooltip(
-        data.agent_credits.subscription_total,
-        data.agent_credits.onetime_total,
-        formatCredits
-      ),
-      items: showOtherMembersUsage
-        ? [
-            {
-              label: t('quota.my_usage'),
-              color: 'bg-blue-500',
-              tooltip: segTooltip(
-                t('quota.my_usage'),
-                formatCredits(data.agent_credits.self)
-              ),
-            },
-            {
-              label: t('quota.other_users'),
-              color: 'bg-gray-300',
-              tooltip: segTooltip(
-                t('quota.other_users'),
-                formatCredits(data.agent_credits.other_users)
-              ),
-            },
-          ]
-        : [
-            {
-              label: t('quota.my_usage'),
-              color: 'bg-blue-500',
-              tooltip: segTooltip(
-                t('quota.my_usage'),
-                formatCredits(data.agent_credits.self)
-              ),
-            },
-          ],
-      segments: showOtherMembersUsage
-        ? [
-            {
-              label: t('quota.my_usage'),
-              color: 'bg-blue-500',
-              percentage:
-                data.agent_credits.total > 0
-                  ? (data.agent_credits.self / data.agent_credits.total) * 100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.my_usage'),
-                formatCredits(data.agent_credits.self)
-              ),
-            },
-            {
-              label: t('quota.other'),
-              color: 'bg-gray-300',
-              percentage:
-                data.agent_credits.total > 0
-                  ? (data.agent_credits.other_users /
-                      data.agent_credits.total) *
-                    100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.other_users'),
-                formatCredits(data.agent_credits.other_users)
-              ),
-            },
-          ]
-        : [
-            {
-              label: t('quota.my_usage'),
-              color: 'bg-blue-500',
-              percentage:
-                data.agent_credits.total > 0
-                  ? (data.agent_credits.self / data.agent_credits.total) * 100
-                  : 0,
-              tooltip: segTooltip(
-                t('quota.my_usage'),
-                formatCredits(data.agent_credits.self)
-              ),
-            },
-          ],
-    },
   ];
 
   return (
     <div className="my-5">
-      <div className="space-y-5">
+      <div className="space-y-6">
         {sections.map((section, idx) => (
           <StorageSection
             key={idx}
             title={section.title}
+            action={section.action}
             current={section.current}
             currentTooltip={section.currentTooltip}
             items={section.items}
             segments={section.segments}
           />
         ))}
+      </div>
+      <div className="mt-6 flex items-center justify-between gap-4">
+        <Expiration basic={data.basic} premium={data.premium} />
         <ExpandButton namespaceId={namespaceId} />
       </div>
-      <Expiration basic={data.basic} premium={data.premium} />
+      <CreditActivity key={namespaceId} namespaceId={namespaceId} />
     </div>
   );
 }
