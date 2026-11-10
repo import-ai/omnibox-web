@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 
 import { hasToolCalls } from '../conversation/conversationHistory';
+import { mergeAnswerTimingAttrs, readAnswerTiming } from './answerTiming';
 import { createClientKey } from './clientKey';
 import {
   ChatBOSResponse,
@@ -84,8 +85,22 @@ export function createMessageOperator(
     update: (delta: ChatDeltaResponse, id?: string) => {
       setConversation(prev => {
         const message = getMessage(prev, id);
-        if (!message || message.status === MessageStatus.STOPPED) {
-          return prev;
+        if (!message) return prev;
+        if (message.status === MessageStatus.STOPPED) {
+          if (!delta.attrs?.answer_timing) return prev;
+          return {
+            ...prev,
+            mapping: {
+              ...prev.mapping,
+              [message.id]: {
+                ...message,
+                localRevision: (message.localRevision ?? 0) + 1,
+                attrs: mergeAnswerTimingAttrs(message.attrs, {
+                  answer_timing: delta.attrs.answer_timing,
+                }),
+              },
+            },
+          };
         }
 
         if (
@@ -128,8 +143,7 @@ export function createMessageOperator(
           message.status = MessageStatus.STREAMING;
         }
         if (delta.attrs) {
-          message.attrs = message.attrs || {};
-          Object.assign(message.attrs, delta.attrs);
+          message.attrs = mergeAnswerTimingAttrs(message.attrs, delta.attrs);
         }
 
         const newMapping = { ...prev.mapping, [message.id]: message };
@@ -145,6 +159,9 @@ export function createMessageOperator(
         const pendingId = chatResponse.attrs?.client_request_id;
         const pending = pendingId ? prev.mapping[pendingId] : undefined;
         const existing = pending || prev.mapping[chatResponse.id];
+        const existingTiming = readAnswerTiming(existing?.attrs?.answer_timing);
+        const preserveStatus =
+          existingTiming && existingTiming.status !== 'running';
         const message: MessageDetail = {
           id: chatResponse.id,
           localRevision: (existing?.localRevision ?? 0) + 1,
@@ -158,14 +175,19 @@ export function createMessageOperator(
             ...(existing?.message || {}),
             role: chatResponse.role,
           },
-          status: MessageStatus.PENDING,
+          status:
+            preserveStatus && existing
+              ? existing.status
+              : MessageStatus.PENDING,
           parent_id: chatResponse.parentId,
           children: existing?.children || [],
-          attrs: { ...(existing?.attrs || {}), ...(chatResponse.attrs || {}) },
+          attrs: mergeAnswerTimingAttrs(existing?.attrs, chatResponse.attrs),
         };
-        delete message.attrs?.error_message;
-        delete message.attrs?.error_code;
-        delete message.attrs?.error_status;
+        if (!preserveStatus) {
+          delete message.attrs?.error_message;
+          delete message.attrs?.error_code;
+          delete message.attrs?.error_status;
+        }
         const newMapping = { ...prev.mapping, [message.id]: message };
         if (pendingId && pendingId !== message.id) {
           delete newMapping[pendingId];
@@ -196,7 +218,12 @@ export function createMessageOperator(
     done: (id?: string) => {
       setConversation(prev => {
         const message = getMessage(prev, id);
-        if (!message || message.status === MessageStatus.STOPPED) {
+        if (
+          !message ||
+          message.status === MessageStatus.STOPPED ||
+          (message.status === MessageStatus.FAILED &&
+            readAnswerTiming(message.attrs?.answer_timing)?.status === 'failed')
+        ) {
           return prev;
         }
         message.localRevision = (message.localRevision ?? 0) + 1;
