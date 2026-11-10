@@ -23,17 +23,40 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({ namespace_id: mockNamespaceId }),
 }));
 
+jest.mock('@/components/omnibox/IconButton', () => ({
+  sidebarToolbarIconButtonClassName: '',
+}));
+
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+}));
+
 jest.mock('@/components/Button', () => ({
-  Button: ({ children, ...props }: React.ComponentProps<'button'>) => (
-    <button {...props}>{children}</button>
-  ),
+  Button: ({
+    children,
+    ...props
+  }: React.ComponentProps<'button'> & {
+    trackName?: string;
+    trackProps?: unknown;
+  }) => {
+    delete props.trackName;
+    delete props.trackProps;
+    return <button {...props}>{children}</button>;
+  },
 }));
 
 jest.mock('@/components/omnibox/SettingPageButton', () => ({
   SettingPageButton: ({
     children,
     ...props
-  }: React.ComponentProps<'button'>) => <button {...props}>{children}</button>,
+  }: React.ComponentProps<'button'> & {
+    trackName?: string;
+    trackProps?: unknown;
+  }) => {
+    delete props.trackName;
+    delete props.trackProps;
+    return <button {...props}>{children}</button>;
+  },
 }));
 
 jest.mock('@/components/tooltip', () => ({
