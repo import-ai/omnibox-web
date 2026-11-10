@@ -62,7 +62,10 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
         closeWrapperClassName="right-5 top-5"
         contentProps={{
           onContextMenu: event => event.stopPropagation(),
-          outsideCloseTrackName: 'sidebar_overlay_close',
+          closeDisabled: submitting,
+          outsideCloseTrackName: state.hasUnsavedChanges
+            ? undefined
+            : 'sidebar_overlay_close',
           outsideCloseTarget: 'feed',
         }}
       >

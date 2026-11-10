@@ -55,7 +55,7 @@ jobs:
         run: pnpm exec jest src/components/invite-dialog/people/InviteForm.test.tsx --runInBand
 
       - name: Test button click tracking
-        run: pnpm exec jest src/lib/trackButtonClick.test.ts src/components/Button.test.tsx src/components/omnibox/Dialog.test.tsx src/components/omnibox/DialogTracking.test.tsx src/components/permission-action/index.test.tsx src/page/settings/tabs/members/Action.test.tsx --runInBand
+        run: pnpm exec jest src/lib/trackButtonClick.test.ts src/lib/buttonClickDelivery.test.ts src/components/Button.test.tsx src/components/omnibox/Dialog.test.tsx src/components/omnibox/DialogTracking.test.tsx src/components/permission-action/index.test.tsx src/page/settings/SettingsButtonTracking.test.tsx src/page/settings/tabs/members/Action.test.tsx src/page/sidebar/hooks/useNodeMenu.test.tsx --runInBand
 
       - name: Test assistant binding synchronization
         run: pnpm exec jest src/hooks/useApplications.test.ts src/hooks/useApplicationSessions.test.ts src/page/settings/tabs/applications src/page/settings/SettingsBindingLifecycle.test.tsx --runInBand

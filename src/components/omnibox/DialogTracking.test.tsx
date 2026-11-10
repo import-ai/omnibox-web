@@ -2,11 +2,16 @@
 import { act, type ComponentProps, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { FolderNameDialog } from '@/components/FolderNameDialog';
+import ActionDialog from '@/components/invite-dialog/ActionDialog';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import { Dialog, DialogContent, DialogTitle } from './Dialog';
 
 jest.mock('@/lib/request', () => ({ http: {} }));
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
 
 let host: HTMLDivElement;
 let root: Root;
@@ -121,4 +126,107 @@ it('keeps captcha interaction inside without reporting a close', async () => {
   } finally {
     captcha.remove();
   }
+});
+
+it('tracks the generated close button with its target and attributes', async () => {
+  await renderDialog({ closeTrackProps: { app_id: 'telegram_bot' } });
+  const button = document.querySelector('button[data-slot="dialog-close"]');
+  if (!(button instanceof HTMLButtonElement))
+    throw new Error('Missing close button');
+  await act(async () => button.click());
+  expect(changed).toHaveBeenCalledWith(false);
+  expect(trackButtonClick).toHaveBeenCalledTimes(1);
+  expect(trackButtonClick).toHaveBeenCalledWith('settings_profile_close', {
+    app_id: 'telegram_bot',
+    dismiss: 'button',
+    target: 'profile',
+  });
+});
+
+it('blocks outside, X and Escape dismissal while the parent is saving', async () => {
+  await renderDialog({ closeDisabled: true });
+  await pointerDown(document.body);
+  const button = document.querySelector('button[data-slot="dialog-close"]');
+  if (!(button instanceof HTMLButtonElement))
+    throw new Error('Missing close button');
+  await act(async () => button.click());
+  await act(async () =>
+    document.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true,
+      })
+    )
+  );
+  expect(changed).not.toHaveBeenCalled();
+  expect(trackButtonClick).not.toHaveBeenCalled();
+  expect(document.querySelector('[role="dialog"]')).not.toBeNull();
+});
+
+it('does not report folder dismissal during a pending save', async () => {
+  let resolve!: () => void;
+  const saving = new Promise<void>(done => {
+    resolve = done;
+  });
+  await act(async () =>
+    root.render(
+      <FolderNameDialog
+        open
+        initialName="Folder"
+        onConfirm={() => saving}
+        onOpenChange={changed}
+        cancelTrackName="sidebar_folder_cancel"
+        confirmTrackName="sidebar_folder_create"
+      />
+    )
+  );
+  const save = Array.from(document.querySelectorAll('button')).find(
+    button => button.textContent === 'create'
+  );
+  if (!save) throw new Error('Missing create button');
+  await act(async () => save.click());
+  jest.mocked(trackButtonClick).mockClear();
+  await act(async () => {
+    await new Promise(done => setTimeout(done, 10));
+  });
+  await pointerDown(document.body);
+  const close = document.querySelector(
+    'button[data-slot="dialog-close"]'
+  ) as HTMLButtonElement;
+  await act(async () => close.click());
+  expect(changed).not.toHaveBeenCalled();
+  expect(trackButtonClick).not.toHaveBeenCalled();
+  expect(document.querySelector('[role="dialog"]')).not.toBeNull();
+  await act(async () => resolve());
+  expect(changed).toHaveBeenCalledWith(false);
+  expect(trackButtonClick).not.toHaveBeenCalled();
+});
+
+it('tracks the custom ActionDialog close button without double counting', async () => {
+  await act(async () =>
+    root.render(
+      <ActionDialog
+        title="Folder"
+        open
+        onOpenChange={changed}
+        contentProps={{
+          outsideCloseTrackName: 'sidebar_overlay_close',
+          outsideCloseTarget: 'smart_folder',
+        }}
+      />
+    )
+  );
+  const close = document.querySelector(
+    'div.contents [data-slot="dialog-close"]'
+  );
+  if (!(close instanceof HTMLButtonElement))
+    throw new Error('Missing custom close button');
+  await act(async () => close.click());
+  expect(changed).toHaveBeenCalledWith(false);
+  expect(trackButtonClick).toHaveBeenCalledTimes(1);
+  expect(trackButtonClick).toHaveBeenCalledWith('sidebar_smart_folder_close', {
+    dismiss: 'button',
+    target: 'smart_folder',
+  });
 });

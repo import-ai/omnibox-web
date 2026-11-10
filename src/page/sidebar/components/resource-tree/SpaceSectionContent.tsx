@@ -140,13 +140,14 @@ export function SpaceSectionContent({
     [nodeUI, nodes, rootNode.children]
   );
 
+  const entryTrackProps = { space_type: spaceType, entry: 'space_menu' };
   const handleCreateFolder = () => {
-    trackButtonClick('sidebar_folder_create');
+    trackButtonClick('sidebar_folder_create', entryTrackProps);
     useSidebarStore.getState().openCreateFolderDialog(rootId);
   };
 
   const handleCreateLink = () => {
-    trackButtonClick('sidebar_link_open');
+    trackButtonClick('sidebar_link_open', entryTrackProps);
     useSidebarStore.getState().openCreateLinkDialog(rootId);
   };
 
@@ -185,12 +186,12 @@ export function SpaceSectionContent({
   };
 
   const handleUploadClick = () => {
-    trackButtonClick('sidebar_file_upload');
+    trackButtonClick('sidebar_file_upload', entryTrackProps);
     triggerGlobalFileUpload(rootId);
   };
 
   const handleCreateFile = () => {
-    trackButtonClick('sidebar_file_create');
+    trackButtonClick('sidebar_file_create', entryTrackProps);
     useSidebarStore
       .getState()
       .create(rootId, 'doc')
@@ -207,13 +208,13 @@ export function SpaceSectionContent({
 
   const handleCreateSmartFolder = () => {
     if (smartFolderDisabled) return;
-    trackButtonClick('sidebar_smart_folder_create');
+    trackButtonClick('sidebar_smart_folder_create', entryTrackProps);
     onCreateSmartFolder(spaceType);
   };
 
   const handleCreateRssFolder = () => {
     if (rssFolderDisabled) return;
-    trackButtonClick('sidebar_feed_create');
+    trackButtonClick('sidebar_feed_create', entryTrackProps);
     onCreateRssFolder(spaceType);
   };
 

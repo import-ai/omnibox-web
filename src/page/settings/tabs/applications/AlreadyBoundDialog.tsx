@@ -36,6 +36,7 @@ export function AlreadyBoundDialog({
       <DialogContent
         outsideCloseTrackName="settings_overlay_close"
         outsideCloseTarget="binding"
+        closeTrackProps={{ app_id: appId, action: 'already_bound' }}
         className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-md sm:max-w-md"
       >
         <DialogHeader>

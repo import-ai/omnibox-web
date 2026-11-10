@@ -299,6 +299,7 @@ export function useCreateRssFolderDialogState({
 
   return {
     t,
+    hasUnsavedChanges,
     namespaceId,
     inputRef,
     linkListRef,

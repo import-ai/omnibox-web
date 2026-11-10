@@ -83,6 +83,7 @@ export function FolderNameDialog({
       }}
     >
       <DialogContent
+        closeDisabled={submitting}
         className="sm:max-w-[425px]"
         outsideCloseTrackName={
           confirmTrackName

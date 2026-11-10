@@ -64,6 +64,7 @@ export function BindDialog({
       <DialogContent
         outsideCloseTrackName="settings_overlay_close"
         outsideCloseTarget="binding"
+        closeTrackProps={{ app_id: appId, action: 'bind' }}
         className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-2xl sm:max-w-2xl"
       >
         <DialogHeader>
@@ -109,6 +110,7 @@ export function BindDialog({
             {isTelegram && (
               <Button
                 trackName="settings_binding_open"
+                trackProps={{ app_id: appId, action: 'bind' }}
                 asChild
                 className="w-full max-w-48"
               >
@@ -140,6 +142,7 @@ export function BindDialog({
                   content={bindingCode}
                   tooltip={t('applications.bind.copy_code')}
                   trackName="settings_binding_copy"
+                  trackProps={{ app_id: appId, action: 'bind' }}
                 />
               </div>
             </div>

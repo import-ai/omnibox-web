@@ -202,6 +202,7 @@ export default function SettingForm({
             }}
           >
             <DialogContent
+              closeDisabled={submiting}
               outsideCloseTrackName="settings_overlay_close"
               outsideCloseTarget="namespace"
               className="w-[90%] max-w-md sm:max-w-md sm:w-1/2"

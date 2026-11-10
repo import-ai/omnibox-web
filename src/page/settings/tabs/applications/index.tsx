@@ -494,7 +494,9 @@ export function ApplicationsForm({
                         <TooltipTrigger asChild>
                           <button
                             onClick={event => {
-                              trackButtonClick('settings_application_open');
+                              trackButtonClick('settings_application_open', {
+                                app_id: application.app_id,
+                              });
                               const handleClick = () =>
                                 handleDocsClick(application.app_id);
                               if (typeof handleClick === 'function') {
@@ -547,6 +549,10 @@ export function ApplicationsForm({
                 ) : isBound ? (
                   <SettingPageButton
                     trackName="settings_binding_remove"
+                    trackProps={{
+                      app_id: application.app_id,
+                      action: 'unbind',
+                    }}
                     variant="outline"
                     onClick={() => {
                       setConfirmApplication(application);
@@ -559,6 +565,10 @@ export function ApplicationsForm({
                   <div className="flex gap-2">
                     <SettingPageButton
                       trackName="settings_binding_create"
+                      trackProps={{
+                        app_id: application.app_id,
+                        action: 'bind',
+                      }}
                       onClick={() => handleBind(application)}
                       disabled={
                         bindingLoading && currentAppId === application.app_id
@@ -572,6 +582,10 @@ export function ApplicationsForm({
                     </SettingPageButton>
                     <SettingPageButton
                       trackName="settings_binding_cancel"
+                      trackProps={{
+                        app_id: application.app_id,
+                        action: 'cancel_bind',
+                      }}
                       variant="outline"
                       onClick={() => {
                         setConfirmApplication(application);
@@ -584,6 +598,7 @@ export function ApplicationsForm({
                 ) : (
                   <SettingPageButton
                     trackName="settings_binding_create"
+                    trackProps={{ app_id: application.app_id, action: 'bind' }}
                     onClick={() => handleBind(application)}
                     disabled={
                       bindingLoading && currentAppId === application.app_id
@@ -676,6 +691,10 @@ export function ApplicationsForm({
             <AlertDialogCancel asChild>
               <Button
                 trackName="settings_binding_cancel"
+                trackProps={{
+                  app_id: confirmApplication?.app_id,
+                  action: confirmAction === 'cancel' ? 'cancel_bind' : 'unbind',
+                }}
                 variant="outline"
                 disabled={unbindingLoading || cancelingLoading}
               >
@@ -687,8 +706,11 @@ export function ApplicationsForm({
               disabled={unbindingLoading || cancelingLoading}
               onClick={event => {
                 event.preventDefault();
-                trackButtonClick('settings_binding_confirm');
                 if (!confirmApplication) return;
+                trackButtonClick('settings_binding_confirm', {
+                  app_id: confirmApplication.app_id,
+                  action: confirmAction === 'cancel' ? 'cancel_bind' : 'unbind',
+                });
                 if (confirmAction === 'cancel') {
                   void handleCancelBind(confirmApplication);
                   return;

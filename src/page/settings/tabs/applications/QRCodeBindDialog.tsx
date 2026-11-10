@@ -59,6 +59,7 @@ export function QRCodeBindDialog({
       <DialogContent
         outsideCloseTrackName="settings_overlay_close"
         outsideCloseTarget="binding"
+        closeTrackProps={{ app_id: appId, action: 'bind' }}
         className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-md sm:max-w-md"
       >
         <DialogHeader>

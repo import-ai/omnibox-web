@@ -549,6 +549,7 @@ export function APIKeyForm() {
           onOpenChange={handleCreateDialogOpenChange}
         >
           <DialogContent
+            closeDisabled={creating}
             outsideCloseTrackName="settings_overlay_close"
             outsideCloseTarget="api_key"
             className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md"
@@ -617,6 +618,7 @@ export function APIKeyForm() {
           onOpenChange={handleUpdateDialogOpenChange}
         >
           <DialogContent
+            closeDisabled={updating}
             outsideCloseTrackName="settings_overlay_close"
             outsideCloseTarget="api_key"
             className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md"

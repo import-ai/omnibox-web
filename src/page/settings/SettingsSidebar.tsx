@@ -164,7 +164,9 @@ export function SettingsSidebar({
             <div className="flex w-full flex-row flex-wrap gap-1 lg:flex-col lg:gap-0.5">
               <button
                 onClick={event => {
-                  trackButtonClick('settings_section_select');
+                  trackButtonClick('settings_section_select', {
+                    section: 'profile',
+                  });
                   const handleClick = () => onChange('profile');
                   if (typeof handleClick === 'function') {
                     (handleClick as (value?: typeof event) => void)(event);
@@ -197,7 +199,9 @@ export function SettingsSidebar({
                   <button
                     key={item.value}
                     onClick={event => {
-                      trackButtonClick('settings_section_select');
+                      trackButtonClick('settings_section_select', {
+                        section: item.value,
+                      });
                       const handleClick = () => onChange(item.value);
                       if (typeof handleClick === 'function') {
                         (handleClick as (value?: typeof event) => void)(event);
@@ -250,7 +254,9 @@ export function SettingsSidebar({
                   <button
                     key={item.value}
                     onClick={event => {
-                      trackButtonClick('settings_section_select');
+                      trackButtonClick('settings_section_select', {
+                        section: item.value,
+                      });
                       const handleClick = () => onChange(item.value);
                       if (typeof handleClick === 'function') {
                         (handleClick as (value?: typeof event) => void)(event);
@@ -295,7 +301,9 @@ export function SettingsSidebar({
               <button
                 key={item.value}
                 onClick={event => {
-                  trackButtonClick('settings_section_select');
+                  trackButtonClick('settings_section_select', {
+                    section: item.value,
+                  });
                   const handleClick = () => onChange(item.value);
                   if (typeof handleClick === 'function') {
                     (handleClick as (value?: typeof event) => void)(event);

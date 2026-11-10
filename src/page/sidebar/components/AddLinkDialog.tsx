@@ -103,6 +103,7 @@ export function AddLinkDialog({
       }}
     >
       <DialogContent
+        closeDisabled={submitting}
         outsideCloseTrackName="sidebar_overlay_close"
         outsideCloseTarget="link"
         className="sm:max-w-[425px]"

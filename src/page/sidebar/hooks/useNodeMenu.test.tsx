@@ -4,6 +4,7 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 import type { TreeNode } from '@/page/sidebar/store/types';
 
@@ -131,6 +132,23 @@ describe('useNodeMenu', () => {
     (createFolder as { onClick?: () => void }).onClick?.();
     expect(handleCreateFolderWithDialog).toHaveBeenCalled();
   });
+
+  it.each(['private', 'teamspace'] as const)(
+    'identifies the %s resource menu entry',
+    async spaceType => {
+      node = { ...folder, spaceType };
+      storeNodes = { [folder.id]: node };
+      await act(async () => root.render(<Probe />));
+      const addLink = items.find(item => item.key === 'add_link');
+      (addLink as { onClick?: () => void }).onClick?.();
+      expect(trackButtonClick).toHaveBeenCalledWith('sidebar_link_open', {
+        item: 'add_link',
+        space_type: spaceType,
+        resource_type: 'folder',
+        entry: 'resource_menu',
+      });
+    }
+  );
 
   it('places add link after upload file on ordinary resources', async () => {
     node = { ...folder };

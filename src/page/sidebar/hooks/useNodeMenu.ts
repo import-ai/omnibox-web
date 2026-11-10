@@ -77,12 +77,21 @@ const sidebarMenuTrackNames: Record<string, string> = {
   batch_delete: 'sidebar_batch_delete',
 };
 
-function trackSidebarMenuItems(items: MenuItem[]) {
+function trackSidebarMenuItems(
+  items: MenuItem[],
+  node: UseNodeActionsReturn['node']
+) {
   return items.map(item => {
     if (item.separator) return item;
     const name = sidebarMenuTrackNames[item.key];
     if (!name) return item;
-    const track = () => trackButtonClick(name, { item: item.key });
+    const track = () =>
+      trackButtonClick(name, {
+        item: item.key,
+        space_type: node?.spaceType,
+        resource_type: node?.resourceType,
+        entry: 'resource_menu',
+      });
     return {
       ...item,
       onClick: item.onClick
@@ -127,6 +136,8 @@ export function useNodeMenu(
     disabledTip?: string;
     items: MenuItem[];
   }>(() => {
+    const trackItems = (items: MenuItem[]) =>
+      trackSidebarMenuItems(items, node);
     if (!node) {
       return {
         disabled: false,
@@ -149,7 +160,7 @@ export function useNodeMenu(
       return {
         disabled,
         disabledTip,
-        items: trackSidebarMenuItems([
+        items: trackItems([
           {
             key: 'batch_create',
             icon: FolderPlus,
@@ -190,14 +201,14 @@ export function useNodeMenu(
     if (node.readOnly) {
       return {
         disabled: false,
-        items: trackSidebarMenuItems(buildAddToChatItems(actions, t)),
+        items: trackItems(buildAddToChatItems(actions, t)),
       };
     }
 
     if (isSmartFolderChildResource(node)) {
       return {
         disabled: false,
-        items: trackSidebarMenuItems([
+        items: trackItems([
           {
             key: 'locate_source_resource',
             icon: Crosshair,
@@ -225,7 +236,7 @@ export function useNodeMenu(
     if (node.resourceType === 'smart_folder') {
       return {
         disabled: false,
-        items: trackSidebarMenuItems([
+        items: trackItems([
           {
             key: 'rename',
             icon: SquarePen,
@@ -255,7 +266,7 @@ export function useNodeMenu(
     if (node.resourceType === 'rss_folder') {
       return {
         disabled: false,
-        items: trackSidebarMenuItems([
+        items: trackItems([
           {
             key: 'rename',
             icon: SquarePen,
@@ -297,7 +308,7 @@ export function useNodeMenu(
 
     return {
       disabled: false,
-      items: trackSidebarMenuItems([
+      items: trackItems([
         {
           key: 'create_file',
           icon: FilePlus,
