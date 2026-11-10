@@ -2,6 +2,9 @@ import { track } from '@/lib/sendTrackEvent';
 
 import { isButtonTrackName, trackButtonClick } from './trackButtonClick';
 
+jest.unmock('@/lib/trackButtonClick');
+jest.unmock('./trackButtonClick');
+
 jest.mock('@/lib/sendTrackEvent', () => ({ track: jest.fn() }));
 
 const mockedTrack = jest.mocked(track);
