@@ -32,6 +32,7 @@ import { InviteCodeEntry } from '@/page/inviteReferral/InviteCodeEntry';
 import { isSupportedEmail } from '@/page/user/login/emailDomains';
 import { EmailSuggestionInput } from '@/page/user/login/EmailSuggestionInput';
 
+import { useAgreementConsent } from '../AgreementConsent';
 import type { ContactMethod } from './index';
 
 const emailSchema = z.object({
@@ -52,6 +53,7 @@ interface IProps {
 
 export function RegisterForm({ children, contactMethod }: IProps) {
   const { t } = useTranslation();
+  const { runWithConsent } = useAgreementConsent();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const emailParam = params.get('email');
@@ -189,7 +191,13 @@ export function RegisterForm({ children, contactMethod }: IProps) {
       {contactMethod === 'email' && (
         <Form {...emailForm}>
           <form
-            onSubmit={emailForm.handleSubmit(handleEmailSubmit)}
+            data-auth-page="register"
+            onSubmit={event => {
+              event.preventDefault();
+              runWithConsent(() => {
+                void emailForm.handleSubmit(handleEmailSubmit)();
+              });
+            }}
             className="space-y-4"
           >
             <FormField
@@ -252,7 +260,13 @@ export function RegisterForm({ children, contactMethod }: IProps) {
       {contactMethod === 'phone' && (
         <Form {...phoneForm}>
           <form
-            onSubmit={phoneForm.handleSubmit(handlePhoneSubmit)}
+            data-auth-page="register"
+            onSubmit={event => {
+              event.preventDefault();
+              runWithConsent(() => {
+                void phoneForm.handleSubmit(handlePhoneSubmit)();
+              });
+            }}
             className="space-y-4"
           >
             <FormField

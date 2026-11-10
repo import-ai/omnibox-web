@@ -19,6 +19,127 @@ import {
 } from './userMessageTokens';
 
 describe('user message resource tokens', () => {
+  const unnamedResources: PrivateSearchResource[] = [
+    { id: 'r1', name: '', type: 'resource' },
+    { id: 'r2', name: '', type: 'resource' },
+  ];
+  const unnamedTools: ChatTool[] = [
+    { name: ToolType.PRIVATE_SEARCH, resources: unnamedResources },
+  ];
+
+  it('retains unnamed and same-name resources by ID', () => {
+    const resources: PrivateSearchResource[] = [
+      ...unnamedResources,
+      { id: 'r3', name: 'same', type: 'resource' },
+      { id: 'r4', name: 'same', type: 'resource' },
+      unnamedResources[0],
+    ];
+    expect(
+      getUserMessageResources([{ name: ToolType.PRIVATE_SEARCH, resources }])
+        .map(resource => resource.id)
+        .sort()
+    ).toEqual(['r1', 'r2', 'r3', 'r4']);
+  });
+
+  it('restores unnamed history links with distinct resource identities', () => {
+    expect(
+      splitUserMessageResourceTokens(
+        '[未命名](#r1) 和 [未命名](#r2) 请总结',
+        getUserMessageResources(unnamedTools)
+      )
+    ).toEqual([
+      { type: 'resource', text: '未命名', resource: unnamedResources[0] },
+      { type: 'text', text: ' 和 ' },
+      { type: 'resource', text: '未命名', resource: unnamedResources[1] },
+      { type: 'text', text: ' 请总结' },
+    ]);
+  });
+
+  it('matches explicit targets independently of the recorded resource name', () => {
+    const resource: PrivateSearchResource = {
+      id: 'r1',
+      name: 'New title',
+      type: 'resource',
+    };
+    expect(
+      splitUserMessageResourceTokens('[Old title](#r1)', [resource])
+    ).toEqual([{ type: 'resource', text: 'Old title', resource }]);
+  });
+
+  it('keeps ordinary untitled text intact when empty names are present', () => {
+    const text = '未命名 是普通文字';
+    expect(splitUserMessageResourceTokens(text, unnamedResources)).toEqual([
+      { type: 'text', text },
+    ]);
+    expect(hasVisibleUserMessageResources(text, unnamedTools)).toBe(false);
+  });
+
+  it('uses explicit IDs for duplicate names and preserves ambiguous bare names', () => {
+    const resources: PrivateSearchResource[] = [
+      { id: 'r1', name: 'same', type: 'resource' },
+      { id: 'r2', name: 'same', type: 'resource' },
+    ];
+    expect(
+      splitUserMessageResourceTokens('[same](#r2) same', resources)
+    ).toEqual([
+      { type: 'resource', text: 'same', resource: resources[1] },
+      { type: 'text', text: ' same' },
+    ]);
+  });
+
+  it.each([
+    '[doc.txt](#unknown)',
+    '[doc.txt](#r1',
+    '[doc.txt](https://example.com)',
+    '[doc.txt](https://example.com/(x)/doc.txt)',
+    '[outside [doc.txt]](#unknown)',
+    '[doc.txt',
+    '![doc.txt](https://example.com/(x)/doc.txt)',
+    '[doc.txt](https://example.com/\\)doc.txt)',
+  ])('preserves unrecognized or incomplete links: %s', text => {
+    const resources: PrivateSearchResource[] = [
+      { id: 'r1', name: 'doc.txt', type: 'resource' },
+    ];
+    expect(splitUserMessageResourceTokens(text, resources)).toEqual([
+      { type: 'text', text },
+    ]);
+    expect(
+      createUserMessageCopyHtml(text, [
+        { name: ToolType.PRIVATE_SEARCH, resources },
+      ])
+    ).toBe(text);
+  });
+
+  it('keeps legacy names containing brackets and backslashes linkable', () => {
+    for (const name of ['plan [draft]\\v2.md', '[draft].md']) {
+      const resource: PrivateSearchResource = {
+        id: 'r1',
+        name,
+        type: 'resource',
+      };
+      expect(splitUserMessageResourceTokens(name, [resource])).toEqual([
+        { type: 'resource', text: name, resource },
+      ]);
+    }
+  });
+
+  it('hides the selected-resource tip when an unnamed link is actually visible', () => {
+    expect(hasVisibleUserMessageResources('[未命名](#r1)', unnamedTools)).toBe(
+      true
+    );
+  });
+
+  it('preserves each unnamed resource ID in rich copy output', () => {
+    const html = createUserMessageCopyHtml(
+      '[未命名](#r1) [未命名](#r2)',
+      unnamedTools
+    );
+    expect(html).toContain('data-resource-id="r1"');
+    expect(html).toContain('data-resource-id="r2"');
+    expect(html?.match(/data-label="未命名"/g)).toHaveLength(2);
+    expect(html).not.toContain('](#');
+  });
+
   it('renders persisted web search links inline without display cache or duplicate badges', () => {
     const text = 'Before [web_search](tool://web_search) after';
     expect(splitUserMessageResourceTokens(text, [])).toEqual([
@@ -90,7 +211,11 @@ describe('user message resource tokens', () => {
       ])
     ).toEqual([
       { type: 'text', text: 'ask ' },
-      { type: 'resource', text: 'very-long-doc.txt' },
+      {
+        type: 'resource',
+        text: 'very-long-doc.txt',
+        resource: { id: '2', name: 'very-long-doc.txt', type: 'resource' },
+      },
       { type: 'text', text: ' now' },
     ]);
   });
@@ -111,7 +236,7 @@ describe('user message resource tokens', () => {
       )
     ).toEqual([
       { type: 'text', text: 'ask ' },
-      { type: 'resource', text: 'plan [draft]\\v2.md' },
+      { type: 'resource', text: 'plan [draft]\\v2.md', resource: resources[0] },
       { type: 'text', text: ' now' },
     ]);
     expect(

@@ -34,6 +34,28 @@ export const updateCacheContent = (resourceId: string, content: string) => {
   saveCache(resourceId, cache);
 };
 
+export const clearCacheTitle = (resourceId: string) => {
+  const cache = getCache(resourceId);
+  if (cache?.title === undefined) {
+    return;
+  }
+  delete cache.title;
+  Object.keys(cache).length
+    ? saveCache(resourceId, cache)
+    : clearCache(resourceId);
+};
+
+export const clearCacheContent = (resourceId: string) => {
+  const cache = getCache(resourceId);
+  if (cache?.content === undefined) {
+    return;
+  }
+  delete cache.content;
+  Object.keys(cache).length
+    ? saveCache(resourceId, cache)
+    : clearCache(resourceId);
+};
+
 export const clearCache = (resourceId: string) => {
   localStorage.removeItem(getCacheKey(resourceId));
 };

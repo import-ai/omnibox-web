@@ -17,7 +17,7 @@ jest.mock('react-i18next', () => ({
 jest.mock('@/lib/request', () => ({
   http: { get: jest.fn(), post: jest.fn() },
 }));
-jest.mock('sonner', () => ({ toast: jest.fn() }));
+jest.mock('sonner', () => ({ toast: { success: jest.fn() } }));
 jest.mock('@/components/SupportedEmailLink', () => ({
   SupportedEmailLink: () => null,
 }));
@@ -129,7 +129,7 @@ describe('shared namespace invitation form', () => {
     });
   }
 
-  async function submit() {
+  async function submit(permissionValue: string | null = 'can_view') {
     await act(async () => {
       const input = container.querySelector('input')!;
       Object.getOwnPropertyDescriptor(
@@ -139,12 +139,17 @@ describe('shared namespace invitation form', () => {
       input.dispatchEvent(new Event('input', { bubbles: true }));
     });
     const permission = container.querySelectorAll('select')[1];
-    if (!permission.disabled) await select(permission, 'can_view');
-    await act(async () =>
+    if (!permission.disabled && permissionValue !== null) {
+      await select(permission, permissionValue);
+    }
+    await act(async () => {
       container
         .querySelector('form')!
-        .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
-    );
+        .dispatchEvent(
+          new Event('submit', { bubbles: true, cancelable: true })
+        );
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
   }
 
   it('offers and submits member only for an admin', async () => {
@@ -157,6 +162,15 @@ describe('shared namespace invitation form', () => {
       expect.objectContaining({ namespace: 'space-a', role: 'member' })
     );
     expect(onFinish).toHaveBeenCalled();
+  });
+
+  it('blocks submission when a member permission is not selected', async () => {
+    await render();
+
+    await submit(null);
+
+    expect(post).not.toHaveBeenCalled();
+    expect(onFinish).not.toHaveBeenCalled();
   });
 
   it.each(['admin', 'member'])(

@@ -2,6 +2,7 @@ import i18next from 'i18next';
 import { toast } from 'sonner';
 
 import { chatErrorDetails } from '@/lib/chatErrors';
+import { reportChatError } from '@/lib/chatErrorTracking';
 import {
   ChatImageInput,
   ChatMessageDisplayPart,
@@ -9,6 +10,12 @@ import {
 } from '@/page/chat/chat-input/types';
 
 export type ResolvableChatImage = ChatImageInput | ComposerChatImage;
+
+export interface ImageUploadTracking {
+  requestId?: string;
+  parentMessageId?: string;
+  channel?: string;
+}
 
 function isComposerChatImage(
   image: ResolvableChatImage
@@ -20,7 +27,8 @@ export async function uploadConversationImage(
   namespaceId: string,
   conversationId: string,
   file: File,
-  reportError = true
+  reportError = true,
+  tracking: ImageUploadTracking = {}
 ): Promise<ChatImageInput> {
   const formData = new FormData();
   formData.append('file[]', file);
@@ -61,6 +69,14 @@ export async function uploadConversationImage(
       url: attachment.preview_url,
     };
   } catch (error) {
+    reportChatError(error, {
+      conversationId,
+      requestId: tracking.requestId,
+      parentMessageId: tracking.parentMessageId,
+      channel: tracking.channel,
+      stage: 'upload',
+      clientState: 'uploading',
+    });
     if (reportError) toast.error(i18next.t('chat.image.upload_failed'));
     throw error;
   }
@@ -70,7 +86,8 @@ export async function resolveConversationImages(
   namespaceId: string,
   conversationId: string,
   images: ResolvableChatImage[] | undefined,
-  reportError = true
+  reportError = true,
+  tracking: ImageUploadTracking = {}
 ): Promise<ChatImageInput[]> {
   if (!images?.length) {
     return [];
@@ -83,7 +100,8 @@ export async function resolveConversationImages(
           namespaceId,
           conversationId,
           image.file,
-          reportError
+          reportError,
+          tracking
         )
       );
       continue;

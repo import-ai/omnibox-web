@@ -7,7 +7,13 @@ import {
   useState,
 } from 'react';
 
+import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
+import {
+  isStaleAnswerTiming,
+  mergeAnswerTimingAttrs,
+} from '@/page/chat/core/answerTiming';
+import { isTerminalMessageStatus } from '@/page/chat/core/types/chatResponse';
 import type {
   ConversationDetail,
   Interrupt,
@@ -15,7 +21,7 @@ import type {
 } from '@/page/chat/core/types/conversation';
 
 import { getCurrentUserId } from './conversationCache';
-import { mergeHistoryPage } from './conversationHistory';
+import { mergeHistoryPage, mergeMessageTiming } from './conversationHistory';
 
 export interface LatestMessage {
   id: string;
@@ -124,8 +130,16 @@ export default function useConversationHistory(
             return merged;
           });
         })
-        .catch(() => {
-          if (valid(token)) setHistoryError(true);
+        .catch(error => {
+          if (valid(token)) {
+            reportChatError(error, {
+              conversationId: conversation.id,
+              stage: 'history',
+              channel: 'web',
+              clientState: 'loading_history',
+            });
+            setHistoryError(true);
+          }
         })
         .finally(() => {
           if (pageRequest.current === request) pageRequest.current = null;
@@ -167,21 +181,51 @@ export default function useConversationHistory(
                 (current.current.mapping[id]?.localRevision ?? 0) ===
                 revisions.get(id)
               )
-                detailCache.current.set(id, message);
+                detailCache.current.set(id, {
+                  ...message,
+                  attrs: mergeAnswerTimingAttrs(
+                    current.current.mapping[id]?.attrs,
+                    message.attrs
+                  ),
+                });
             }
             setConversation(prev => {
               const mapping = { ...prev.mapping };
               for (const [id, message] of Object.entries(response.mapping)) {
                 const existing = mapping[id];
-                if (
-                  !existing ||
-                  (existing.localRevision ?? 0) !== revisions.get(id)
-                )
+                if (!existing) continue;
+                if ((existing.localRevision ?? 0) !== revisions.get(id)) {
+                  mapping[id] = mergeMessageTiming(existing, message);
                   continue;
-                mapping[id] = { ...existing, ...message, details_loaded: true };
+                }
+                mapping[id] = {
+                  ...existing,
+                  ...message,
+                  attrs: mergeAnswerTimingAttrs(existing.attrs, message.attrs),
+                  status:
+                    isTerminalMessageStatus(existing.status) &&
+                    isStaleAnswerTiming(
+                      existing.attrs?.answer_timing,
+                      message.attrs?.answer_timing
+                    )
+                      ? existing.status
+                      : message.status,
+                  details_loaded: true,
+                };
               }
               return { ...prev, mapping };
             });
+          })
+          .catch(error => {
+            if (valid(token)) {
+              reportChatError(error, {
+                conversationId: conversation.id,
+                stage: 'history',
+                channel: 'web',
+                clientState: 'loading_details',
+              });
+            }
+            throw error;
           })
           .finally(() => {
             for (const id of batch)
@@ -246,9 +290,20 @@ export default function useConversationHistory(
         message.localRevision ?? 0,
       ])
     );
-    const page: ConversationDetail = await http.get(baseUrl, {
-      params: { branch_leaf_id: before.current_node },
-    });
+    let page: ConversationDetail;
+    try {
+      page = await http.get(baseUrl, {
+        params: { branch_leaf_id: before.current_node },
+      });
+    } catch (error) {
+      reportChatError(error, {
+        conversationId: conversation.id,
+        stage: 'history',
+        channel: 'web',
+        clientState: 'refreshing_history',
+      });
+      throw error;
+    }
     if (!valid(token)) return;
     setConversation(prev => mergeHistoryPage(prev, page, false, revisions));
   };
@@ -261,10 +316,22 @@ export default function useConversationHistory(
   ): Promise<{ message: LatestMessage; adopt: () => void } | undefined> => {
     const token = generation.current;
     const before = current.current;
-    const page: ConversationDetail = await http.get(baseUrl, {
-      params: { branch_node_id: nodeId },
-      mute: true,
-    });
+    let page: ConversationDetail;
+    try {
+      page = await http.get(baseUrl, {
+        params: { branch_node_id: nodeId },
+        mute: true,
+      });
+    } catch (error) {
+      reportChatError(error, {
+        conversationId: conversation.id,
+        stage: 'history',
+        channel: 'web',
+        clientState: 'loading_latest_history',
+        userVisible: false,
+      });
+      throw error;
+    }
     if (!valid(token) || !page.current_node) return undefined;
     const message = latestMessageOf(
       page.mapping[page.current_node],
@@ -294,10 +361,22 @@ export default function useConversationHistory(
   const mergeBranch = async (leafId: string) => {
     const token = generation.current;
     const before = current.current;
-    const page: ConversationDetail = await http.get(baseUrl, {
-      params: { branch_leaf_id: leafId },
-      mute: true,
-    });
+    let page: ConversationDetail;
+    try {
+      page = await http.get(baseUrl, {
+        params: { branch_leaf_id: leafId },
+        mute: true,
+      });
+    } catch (error) {
+      reportChatError(error, {
+        conversationId: conversation.id,
+        stage: 'history',
+        channel: 'web',
+        clientState: 'merging_history',
+        userVisible: false,
+      });
+      throw error;
+    }
     if (!valid(token)) return;
     setConversation(prev => {
       if (prev.id !== before.id) return prev;

@@ -59,6 +59,10 @@ export function createStreamTransport(
         if (isAborted) return;
         const token = localStorage.getItem('token') || '';
         controller = new AbortController();
+        const requestId =
+          typeof body.client_request_id === 'string'
+            ? body.client_request_id
+            : undefined;
         const response = await fetch(url, {
           method: 'POST',
           headers: {
@@ -66,6 +70,7 @@ export function createStreamTransport(
             'X-Client-Platform': 'web',
             'X-Timezone':
               Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+            ...(requestId ? { 'X-Request-Id': requestId } : {}),
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(body),

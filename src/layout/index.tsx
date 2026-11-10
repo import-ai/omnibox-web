@@ -30,6 +30,7 @@ import {
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { establishServerSession } from '@/page/user/session';
+import { useAuthPageExposure } from '@/page/user/useAuthPageExposure';
 import {
   CREDENTIAL_CHANGED_EVENT,
   removeGlobalCredential,
@@ -68,6 +69,8 @@ export default function Layout() {
   const authEpochRef = useRef(0);
   const isMobile = useIsMobile();
   const { config, loading: configLoading } = useConfig();
+
+  useAuthPageExposure(loc.pathname, sessionChecked && !uid);
 
   useEffect(() => {
     let active = true;

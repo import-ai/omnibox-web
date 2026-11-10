@@ -324,6 +324,7 @@
     "member": "成员",
     "min": "至少 2 个字符",
     "max": "最多 64 个字符",
+    "permission_required": "请选择成员权限",
     "submit": "保存",
     "button": "发送邀请",
     "success": "邀请已发送",
@@ -438,6 +439,15 @@
     "apple_signin_failed": "Apple 登录失败",
     "apple_sdk_not_loaded": "Apple SDK 未加载",
     "or_continue": "或",
+    "agreement": {
+      "checkbox_label": "我已阅读并同意<terms>《用户协议》</terms>和<privacy>《隐私政策》</privacy>。",
+      "confirm": {
+        "title": "服务协议和隐私政策等指引",
+        "description": "进入下一步前，请先阅读并同意 OmniBox 的<terms>《用户协议》</terms>、<privacy>《隐私政策》</privacy>",
+        "button": "同意并继续"
+      },
+      "decline": "不同意"
+    },
     "agree_our_rule": "继续之前，请先阅读并同意我们的",
     "service": "用户协议",
     "and": "和",
@@ -918,11 +928,14 @@
         "tokens": "{{estimated}} / {{trigger}} 词元"
       },
       "process": {
+        "details": "处理过程",
         "duration": {
+          "less_than_second": "不足 1 秒",
           "hours": "{{count}} 小时",
           "minutes": "{{count}} 分",
           "seconds": "{{count}} 秒"
-        }
+        },
+        "stopped": "已停止"
       },
       "user_context": {
         "selected_resources": "选择了 {{count}} 个资源",
