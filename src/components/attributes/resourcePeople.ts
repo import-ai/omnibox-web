@@ -1,5 +1,11 @@
 export const CONTRIBUTOR_LABEL_MAX_LENGTH = 16;
 
+export function supportsResourcePeople(resourceType?: string): boolean {
+  return (
+    resourceType === 'doc' || resourceType === 'link' || resourceType === 'file'
+  );
+}
+
 export function truncateContributorLabel(
   label: string,
   maxLength = CONTRIBUTOR_LABEL_MAX_LENGTH

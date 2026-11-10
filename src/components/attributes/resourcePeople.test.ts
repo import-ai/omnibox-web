@@ -1,7 +1,21 @@
 import {
   liveContributorLabel,
+  supportsResourcePeople,
   truncateContributorLabel,
 } from './resourcePeople';
+
+describe('supportsResourcePeople', () => {
+  it.each(['doc', 'link', 'file'])('shows people for %s', resourceType => {
+    expect(supportsResourcePeople(resourceType)).toBe(true);
+  });
+
+  it.each(['folder', 'smart_folder', 'rss_folder', 'rss_item', undefined])(
+    'hides people for %s',
+    resourceType => {
+      expect(supportsResourcePeople(resourceType)).toBe(false);
+    }
+  );
+});
 
 describe('truncateContributorLabel', () => {
   it('keeps a short name and counts unicode characters', () => {
