@@ -129,7 +129,7 @@ export function Header(props: IProps) {
       <SidebarMenuItem>
         <SidebarMenuButton asChild className="h-(--sidebar-row-height) px-3">
           <a
-            href="https://www.omnibox.pro/community/"
+            href="/community/"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-sidebar-foreground! hover:text-sidebar-accent-foreground!"
