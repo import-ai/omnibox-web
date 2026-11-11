@@ -1909,6 +1909,25 @@
       }
     ],
     "columns": ["Thinking level", "Input", "Cached input", "Output"],
-    "levels": ["Light / Medium", "High / Maximum"]
+    "levels": ["Light / Medium", "High / Maximum"],
+    "subtitle": "How credits are spent, issued and expire",
+    "acknowledge": "Got it",
+    "parsing": [
+      {
+        "name": "Web parsing",
+        "rate": "5 credits / page",
+        "description": "Charged only after text is parsed successfully. Saving links, selected text, adding titles or viewing existing text is free."
+      },
+      {
+        "name": "Audio / video",
+        "rate": "5 credits / minute",
+        "description": "Billed by original duration at 1/12 credit per second, rounded up to a whole second. Audio within a video is not charged twice."
+      },
+      {
+        "name": "PDF / images",
+        "rate": "0.4 credits / page",
+        "description": "Each image counts as one page. PDFs are billed by the pages submitted for parsing."
+      }
+    ]
   }
 }

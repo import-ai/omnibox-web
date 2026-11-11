@@ -273,7 +273,7 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
 
   return (
     <div className="my-5">
-      <div className="space-y-6">
+      <div className="space-y-5 [&>div+div]:border-t [&>div+div]:border-border [&>div+div]:pt-5">
         {sections.map((section, idx) => (
           <StorageSection
             key={idx}
@@ -286,10 +286,10 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
           />
         ))}
       </div>
-      <div className="mt-6 flex items-center justify-between gap-4">
-        <Expiration basic={data.basic} premium={data.premium} />
+      <div className="mb-3 mt-5 flex justify-end">
         <ExpandButton namespaceId={namespaceId} />
       </div>
+      <Expiration basic={data.basic} premium={data.premium} />
       <CreditActivity key={namespaceId} namespaceId={namespaceId} />
     </div>
   );

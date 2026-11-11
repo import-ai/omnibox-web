@@ -1,6 +1,8 @@
+import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import PaginationMain from '@/components/pagination';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
@@ -15,7 +17,7 @@ interface Activity {
 }
 
 export function CreditActivity({ namespaceId }: { namespaceId: string }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [page, setPage] = useState(1);
   const [data, setData] = useState<{ items: Activity[]; total: number } | null>(
     null
@@ -48,15 +50,22 @@ export function CreditActivity({ namespaceId }: { namespaceId: string }) {
   }, [namespaceId, page, refresh]);
   return (
     <section
-      className="mt-6 border-t border-border pt-6 text-foreground"
+      className="mt-5 border-t border-border pt-5 text-foreground"
       aria-busy={loading}
     >
-      <h3 className="mb-4 text-sm font-medium">{t('quota.ledger_title')}</h3>
+      <h3 className="mb-3 text-sm font-medium">{t('quota.ledger_title')}</h3>
       {loading ? (
         <Spinner className="mx-auto my-6 size-5 text-muted-foreground" />
       ) : !data ? (
         <p className="text-sm text-muted-foreground">
           {t('quota.ledger_failed')}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setRefresh(value => value + 1)}
+          >
+            {t('retry')}
+          </Button>
         </p>
       ) : (
         <>
@@ -79,10 +88,12 @@ export function CreditActivity({ namespaceId }: { namespaceId: string }) {
                     className="text-xs text-muted-foreground"
                     dateTime={item.occurred_at}
                   >
-                    {new Date(item.occurred_at).toLocaleString(i18n.language)}
+                    {format(new Date(item.occurred_at), 'yyyy-MM-dd HH:mm:ss')}
                   </time>
                 </div>
-                <span className="text-sm tabular-nums">
+                <span
+                  className={`text-sm font-medium tabular-nums ${item.amount > 0 ? 'text-blue-500' : ''}`}
+                >
                   {item.amount > 0 ? '+' : '−'}
                   {formatCreditAmount(Math.abs(item.amount))}
                 </span>

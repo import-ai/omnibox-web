@@ -20,7 +20,7 @@ export function Expiration({ basic, premium }: IProps) {
   const label =
     premium && !premium.expired ? 'quota.premium_period' : 'quota.basic_period';
   return (
-    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
       <span>
         {t(label)}
         {formatExpiration(active.expired, active.expire_date, t)}
