@@ -7,6 +7,7 @@ import { Button } from '@/components/Button';
 import { cn } from '@/lib/utils';
 import type { InviteOverview, InviteTask } from '@/service/inviteReferral';
 
+import { CreditsHelp } from './CreditsHelp';
 import { InviteNote } from './InviteNote';
 import { InviteRuleArrow } from './InviteRuleArrow';
 import {
@@ -178,9 +179,12 @@ export function InviteActivityPanel({
             </div>
             {rewardRules.length > 0 ? (
               <div className="mt-4">
-                <h2 className="text-sm font-medium">
-                  {t('inviteReferral.rewards.title')}
-                </h2>
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-medium">
+                    {t('inviteReferral.rewards.title')}
+                  </h2>
+                  <CreditsHelp />
+                </div>
                 <div className="mt-4 overflow-hidden rounded-lg border border-border">
                   <div className="grid grid-cols-2">
                     <div className="border-r border-border px-3 py-3 text-center text-sm font-medium dark:border-border">
