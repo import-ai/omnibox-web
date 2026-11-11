@@ -68,7 +68,9 @@ describe('FooterSidebar', () => {
       namespaceId: 'namespace-1',
     });
 
-    expect(html).toContain('href="/zh-cn/pricing?namespace=namespace-1"');
+    expect(html).toContain(
+      'href="/zh-cn/pricing?namespace=namespace-1&amp;entry=sidebar_footer"'
+    );
     expect(html).toContain('text-blue-500');
     expect(mockTranslate).toHaveBeenCalledWith('footer.upgrade');
     expect(html).not.toContain('href="/community/"');
@@ -86,7 +88,9 @@ describe('FooterSidebar', () => {
       namespaceId: 'namespace-1',
     });
 
-    expect(html).toContain('href="/zh-cn/pricing?namespace=namespace-1"');
+    expect(html).toContain(
+      'href="/zh-cn/pricing?namespace=namespace-1&amp;entry=sidebar_footer"'
+    );
     expect(html).toContain('viewBox="0 0 24 24"');
     expect(html).toContain('stroke="currentColor"');
     expect(html).not.toContain('text-blue-500');
@@ -122,7 +126,9 @@ describe('FooterSidebar', () => {
       namespaceId: 'namespace-2',
     });
 
-    expect(html).toContain('href="/zh-cn/pricing?namespace=namespace-2"');
+    expect(html).toContain(
+      'href="/zh-cn/pricing?namespace=namespace-2&amp;entry=sidebar_footer"'
+    );
   });
 
   it('keeps feedback for non-commercial deployments', () => {

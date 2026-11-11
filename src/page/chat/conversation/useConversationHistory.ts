@@ -9,6 +9,11 @@ import {
 
 import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
+import {
+  isStaleAnswerTiming,
+  mergeAnswerTimingAttrs,
+} from '@/page/chat/core/answerTiming';
+import { isTerminalMessageStatus } from '@/page/chat/core/types/chatResponse';
 import type {
   ConversationDetail,
   Interrupt,
@@ -16,7 +21,7 @@ import type {
 } from '@/page/chat/core/types/conversation';
 
 import { getCurrentUserId } from './conversationCache';
-import { mergeHistoryPage } from './conversationHistory';
+import { mergeHistoryPage, mergeMessageTiming } from './conversationHistory';
 
 export interface LatestMessage {
   id: string;
@@ -176,18 +181,37 @@ export default function useConversationHistory(
                 (current.current.mapping[id]?.localRevision ?? 0) ===
                 revisions.get(id)
               )
-                detailCache.current.set(id, message);
+                detailCache.current.set(id, {
+                  ...message,
+                  attrs: mergeAnswerTimingAttrs(
+                    current.current.mapping[id]?.attrs,
+                    message.attrs
+                  ),
+                });
             }
             setConversation(prev => {
               const mapping = { ...prev.mapping };
               for (const [id, message] of Object.entries(response.mapping)) {
                 const existing = mapping[id];
-                if (
-                  !existing ||
-                  (existing.localRevision ?? 0) !== revisions.get(id)
-                )
+                if (!existing) continue;
+                if ((existing.localRevision ?? 0) !== revisions.get(id)) {
+                  mapping[id] = mergeMessageTiming(existing, message);
                   continue;
-                mapping[id] = { ...existing, ...message, details_loaded: true };
+                }
+                mapping[id] = {
+                  ...existing,
+                  ...message,
+                  attrs: mergeAnswerTimingAttrs(existing.attrs, message.attrs),
+                  status:
+                    isTerminalMessageStatus(existing.status) &&
+                    isStaleAnswerTiming(
+                      existing.attrs?.answer_timing,
+                      message.attrs?.answer_timing
+                    )
+                      ? existing.status
+                      : message.status,
+                  details_loaded: true,
+                };
               }
               return { ...prev, mapping };
             });

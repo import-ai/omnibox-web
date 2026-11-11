@@ -927,11 +927,14 @@
         "tokens": "{{estimated}} / {{trigger}} tokens"
       },
       "process": {
+        "details": "Process details",
         "duration": {
+          "less_than_second": "Less than 1 second",
           "hours": "{{count}}h",
           "minutes": "{{count}}m",
           "seconds": "{{count}}s"
-        }
+        },
+        "stopped": "Stopped"
       },
       "user_context": {
         "selected_resources": "{{count}} Resources Selected",
