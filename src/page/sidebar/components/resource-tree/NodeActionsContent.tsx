@@ -174,6 +174,7 @@ export function NodeActionsContent({
       {node.resourceType === 'folder' && (
         <FolderNameDialog
           open={actions.folderEditOpen}
+          resourceId={nodeId}
           initialName={node.name || ''}
           title={t('folder.edit_dialog.title')}
           confirmText={t('folder.edit_dialog.submit')}

@@ -900,6 +900,7 @@ export default function Actions(props: IActionProps) {
       {resource?.resource_type === 'folder' && (
         <FolderNameDialog
           open={folderEditOpen}
+          resourceId={resource.id}
           initialName={resource.name || ''}
           title={t('folder.edit_dialog.title')}
           confirmText={t('folder.edit_dialog.submit')}

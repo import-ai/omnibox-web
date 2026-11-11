@@ -96,7 +96,7 @@ it('keeps annotation and document activations separate when switching comment mo
       'POST',
       '/namespaces/ns/resources/resource/comment-threads/t/comments'
     )['x-omnibox-action-id']
-  ).toBe(`${scope}-1`);
+  ).toBe(`${scope}-3`);
 });
 
 it('tracks explicit URL collection but excludes reads, internal ingestion, and compressed collection', () => {
@@ -110,4 +110,52 @@ it('tracks explicit URL collection but excludes reads, internal ingestion, and c
   expect(
     behaviorRequestKind('POST', '/api/v1/namespaces/ns/wizard/collect/gzip')
   ).toBeUndefined();
+});
+
+for (const type of ['annotation_comment', 'document_comment'] as const) {
+  it(
+    'starts a new ' + type + ' action for a new submission after midnight',
+    () => {
+      jest.useFakeTimers({ now: Date.parse('2026-11-11T15:59:00Z') });
+      try {
+        const url = '/namespaces/ns/resources/midnight/comment-threads';
+        const body = {
+          type: type === 'document_comment' ? 'document' : 'inline',
+        };
+        beginCommentActivation('midnight', type);
+        const first = behaviorRequestHeaders('POST', url, body);
+        jest.setSystemTime(new Date('2026-11-11T16:01:00Z'));
+        const second = behaviorRequestHeaders('POST', url, body);
+        expect(second['x-omnibox-action-id']).not.toBe(
+          first['x-omnibox-action-id']
+        );
+        expect(second['x-omnibox-action-started-at']).toBe(
+          '2026-11-11T16:01:00.000Z'
+        );
+        expect(first['x-omnibox-action-started-at']).toBe(
+          '2026-11-11T15:59:00.000Z'
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    }
+  );
+}
+it('does not reuse an unconsumed activation from yesterday or another account', () => {
+  jest.useFakeTimers({ now: Date.parse('2026-11-11T15:59:00Z') });
+  try {
+    const url = '/namespaces/ns/resources/stale/comment-threads';
+    beginCommentActivation('stale', 'annotation_comment');
+    jest.setSystemTime(new Date('2026-11-11T16:01:00Z'));
+    expect(
+      behaviorRequestHeaders('POST', url)['x-omnibox-action-started-at']
+    ).toBe('2026-11-11T16:01:00.000Z');
+    beginCommentActivation('stale', 'annotation_comment');
+    scope = 'different-account';
+    expect(behaviorRequestHeaders('POST', url)['x-omnibox-action-id']).toBe(
+      'different-account-4'
+    );
+  } finally {
+    jest.useRealTimers();
+  }
 });

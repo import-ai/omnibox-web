@@ -10,7 +10,10 @@ let markEditorInput: ((resourceId: string) => void) | undefined;
 const uploads = new Map<string, { scope: string; headers: Headers }>();
 const edits = new Map<string, { scope: string; headers: Headers }>();
 const actions = new Map<string, string>();
-const comments = new Map<string, { scope: string; headers: Headers }>();
+const comments = new Map<
+  string,
+  { scope: string; day: number; headers: Headers }
+>();
 let begin:
   | ((
       type: RequestActionType,
@@ -50,7 +53,11 @@ export function beginCommentActivation(
   type: 'annotation_comment' | 'document_comment'
 ) {
   const headers = begin?.(type, { resource_id: resourceId }) || {};
-  bounded(comments, resourceId + ':' + type, { scope: scope(), headers });
+  bounded(comments, resourceId + ':' + type, {
+    scope: scope(),
+    day: Math.floor((Date.now() + 28_800_000) / 86_400_000),
+    headers,
+  });
 }
 export function rememberBehaviorUpload(
   url: string,
@@ -141,7 +148,14 @@ export function behaviorRequestHeaders(
   const comment = commentResource
     ? comments.get(commentResource[1] + ':' + type)
     : undefined;
-  if (comment?.scope === scope()) return comment.headers;
+  if (commentResource) {
+    comments.delete(commentResource[1] + ':' + type);
+    if (
+      comment?.scope === scope() &&
+      comment.day === Math.floor((Date.now() + 28_800_000) / 86_400_000)
+    )
+      return comment.headers;
+  }
   const resourceId = url.split('?')[0].split('/').pop() || '';
   const edit = type === 'resource_edit' ? edits.get(resourceId) : undefined;
   if (
