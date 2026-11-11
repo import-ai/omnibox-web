@@ -70,9 +70,6 @@ export default function Actions(props: IProps) {
     navigateToResource(navigate, `/${namespaceId}/chat/conversations`);
   };
 
-  const handleRestoreSuccess = (response: any) => {
-    navigateToResource(navigate, `/${namespaceId}/chat/${response.id}`);
-  };
   const onChatHistory = () => {
     if (onChatHistoryOverride) {
       onChatHistoryOverride();
@@ -216,12 +213,10 @@ export default function Actions(props: IProps) {
         targetName={t('chat.conversations.name')}
         itemTitle={chatTitle}
         deleteUrl={`/namespaces/${namespaceId}/conversations/${conversationId}`}
-        restoreUrl={`/namespaces/${namespaceId}/conversations/${conversationId}/restore`}
         successMessage={t('chat.conversations.deleted')}
         successDescription={t('chat.conversations.deleted_description')}
         onOpenChange={onRemove}
         onSuccess={handleDeleteSuccess}
-        onRestoreSuccess={handleRestoreSuccess}
       />
     </div>
   );

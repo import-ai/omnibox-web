@@ -58,6 +58,14 @@ export default function ConfirmDeleteDialog(props: IProps) {
       .then(() => {
         onSuccess?.();
 
+        if (!restoreUrl) {
+          toast.success(successMessage, {
+            description: successDescription,
+            position: 'bottom-right',
+          });
+          return;
+        }
+
         // show success message
         const toastOptions: {
           description?: string;
