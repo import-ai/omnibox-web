@@ -2,7 +2,7 @@
 import { act, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { behaviorRequestHeaders } from './behaviorRequest';
+import { beginEditorInput, behaviorRequestHeaders } from './behaviorRequest';
 import {
   behavior,
   configureBehaviorTracking,
@@ -82,4 +82,90 @@ it('uses the opt-in native bridge and native platform for H5 business writes, wi
       props: { action_type: 'document_comment' },
     },
   });
+});
+
+it('marks genuine input once per editor visit while preserving the daily save identity', async () => {
+  jest.useFakeTimers({ now: Date.parse('2026-11-11T04:00:00Z') });
+  localStorage.setItem('uid', 'editor-visit-user');
+  jest.spyOn(document, 'hasFocus').mockReturnValue(true);
+  Object.defineProperty(document, 'visibilityState', {
+    configurable: true,
+    value: 'visible',
+  });
+  const send = jest.fn<Promise<void>, [string, Record<string, unknown>]>(() =>
+    Promise.resolve()
+  );
+  configureBehaviorTracking(true, send);
+  function Editor() {
+    useBehaviorSurface({
+      scope: 'editor',
+      target: 'resource_detail',
+      props: { resource_id: 'editor-resource' },
+    });
+    return (
+      <div onInputCapture={() => beginEditorInput('editor-resource')}>
+        <input />
+      </div>
+    );
+  }
+  const host = document.createElement('div');
+  document.body.append(host);
+  const saves: Record<string, string>[] = [];
+  try {
+    for (let visit = 0; visit < 3; visit++) {
+      const root = createRoot(host);
+      await act(async () => {
+        root.render(<Editor />);
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(1000);
+      });
+      if (visit < 2) {
+        await act(async () => {
+          host
+            .querySelector('input')!
+            .dispatchEvent(new Event('input', { bubbles: true }));
+          host
+            .querySelector('input')!
+            .dispatchEvent(new Event('input', { bubbles: true }));
+        });
+        saves.push(
+          behaviorRequestHeaders(
+            'PATCH',
+            '/namespaces/ns/resources/editor-resource',
+            { content: 'changed' }
+          )
+        );
+      }
+      await act(async () => {
+        jest.advanceTimersByTime(2000);
+      });
+      await act(async () => {
+        root.unmount();
+        jest.runAllTicks();
+      });
+    }
+    const durations = send.mock.calls
+      .filter(([name]) => name === 'active_duration')
+      .map(([, props]) => [props.duration_ms, props.has_input]);
+    expect(durations).toEqual([
+      [1000, false],
+      [2000, true],
+      [1000, false],
+      [2000, true],
+      [3000, false],
+    ]);
+    expect(
+      send.mock.calls.filter(([name]) => name === 'editor_input')
+    ).toHaveLength(2);
+    expect(
+      send.mock.calls.filter(([name]) => name === 'core_action_start')
+    ).toHaveLength(1);
+    expect(saves[1]).toEqual(saves[0]);
+    expect(behavior.visits.size).toBe(0);
+  } finally {
+    host.remove();
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  }
 });

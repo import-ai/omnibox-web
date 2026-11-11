@@ -194,13 +194,14 @@ export function coreActionHeaders(
   };
 }
 
-registerBehaviorRequestStarter((type, props) => {
-  if (type === 'resource_edit' && props.resource_id) {
-    behavior.markEditorInput(props.resource_id);
-    behavior.emit('editor_input', {
-      resource_id: props.resource_id,
-      has_input: true,
-    });
+registerBehaviorRequestStarter(
+  (type, props) => coreActionHeaders(behavior.startAction(type, props)),
+  identity,
+  resourceId => {
+    if (behavior.markEditorInput(resourceId))
+      behavior.emit('editor_input', {
+        resource_id: resourceId,
+        has_input: true,
+      });
   }
-  return coreActionHeaders(behavior.startAction(type, props));
-}, identity);
+);

@@ -98,3 +98,16 @@ it('keeps annotation and document activations separate when switching comment mo
     )['x-omnibox-action-id']
   ).toBe(`${scope}-1`);
 });
+
+it('tracks explicit URL collection but excludes reads, internal ingestion, and compressed collection', () => {
+  const path = '/api/v1/namespaces/ns/wizard/collect/url';
+  expect(behaviorRequestKind('POST', path)).toBe('resource_add');
+  expect(behaviorRequestHeaders('POST', path)['x-omnibox-action-type']).toBe(
+    'resource_add'
+  );
+  expect(behaviorRequestKind('GET', path)).toBeUndefined();
+  expect(behaviorRequestKind('POST', '/internal' + path)).toBeUndefined();
+  expect(
+    behaviorRequestKind('POST', '/api/v1/namespaces/ns/wizard/collect/gzip')
+  ).toBeUndefined();
+});

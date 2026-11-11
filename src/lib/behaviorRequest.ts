@@ -6,6 +6,7 @@ export type RequestActionType =
   | 'document_comment';
 type Headers = Record<string, string>;
 let scope = () => '';
+let markEditorInput: ((resourceId: string) => void) | undefined;
 const uploads = new Map<string, { scope: string; headers: Headers }>();
 const edits = new Map<string, { scope: string; headers: Headers }>();
 const actions = new Map<string, string>();
@@ -18,10 +19,12 @@ let begin:
   | undefined;
 export function registerBehaviorRequestStarter(
   start: typeof begin,
-  identity: () => string
+  identity: () => string,
+  onEditorInput?: (resourceId: string) => void
 ) {
   begin = start;
   scope = identity;
+  markEditorInput = onEditorInput;
 }
 function bounded<T>(map: Map<string, T>, key: string, value: T) {
   map.delete(key);
@@ -29,6 +32,7 @@ function bounded<T>(map: Map<string, T>, key: string, value: T) {
   if (map.size > 100) map.delete(map.keys().next().value!);
 }
 export function beginEditorInput(resourceId: string) {
+  markEditorInput?.(resourceId);
   const existing = edits.get(resourceId);
   if (
     existing?.scope ===
@@ -84,6 +88,11 @@ export function behaviorRequestKind(
   const data =
     body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
   const verb = method.toUpperCase();
+  if (
+    verb === 'POST' &&
+    /^\/namespaces\/[^/]+\/wizard\/collect\/url$/.test(path)
+  )
+    return 'resource_add';
   if (
     verb === 'POST' &&
     /^\/namespaces\/[^/]+\/resources(?:\/batch-folder|\/files)?$/.test(path)

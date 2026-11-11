@@ -82,7 +82,11 @@ function nextDay(at: number) {
 export class BehaviorTracker {
   readonly visits = new Set<BehaviorVisit>();
   markEditorInput(resourceId: string) {
-    this.visits.forEach(visit => visit.input(resourceId));
+    let changed = false;
+    this.visits.forEach(visit => {
+      if (visit.input(resourceId)) changed = true;
+    });
+    return changed;
   }
   constructor(readonly dependencies: BehaviorDependencies) {}
   emit(
@@ -194,10 +198,11 @@ export class BehaviorVisit {
       this.options.props?.resource_id !== resourceId ||
       this.hasInput
     )
-      return;
+      return false;
     this.tick('input');
     this.flush('input', this.lastWall);
     this.hasInput = true;
+    return true;
   }
   private props() {
     return {
