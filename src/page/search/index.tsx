@@ -19,6 +19,7 @@ import {
   searchDialogBodyClassName,
   searchLayoutSeparatorClassName,
 } from './searchLayout';
+import { appendSearchItems, SearchPageCursor } from './searchPagination';
 import {
   SearchRecentResource,
   SearchResourceResult,
@@ -45,6 +46,11 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const [hasMore, setHasMore] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState<'retry' | 'restart' | null>(null);
+  const [restartKey, setRestartKey] = useState(0);
+  const sessionRef = useRef(new SearchPageCursor());
+  const continuationAttempts = useRef(0);
+  const inFlight = useRef(false);
   const [loadingRecents, setLoadingRecents] = useState(false);
   const [matchMode, setMatchMode] = useState<ResourceConditionMatchMode>('all');
   const [recents, setRecents] = useState<SearchRecentResource[]>([]);
@@ -87,26 +93,38 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
 
   const fetchSearchPage = useCallback(
     async (offset: number, requestId: number) => {
-      const data = await http.post(
-        `/namespaces/${namespaceId}/search`,
+      const cursor = sessionRef.current;
+      const payload = cursor.request(
         buildSearchRequestPayload(keywords, conditions, matchMode, {
-          offset,
           limit: SEARCH_PAGE_SIZE,
         }),
-        { mute: offset > 0 }
+        !!keywords.trim()
       );
-
-      if (searchRequestIdRef.current !== requestId) {
-        return;
+      try {
+        const data = await http.post(
+          `/namespaces/${namespaceId}/search`,
+          payload,
+          { mute: true }
+        );
+        if (searchRequestIdRef.current !== requestId) return;
+        const more = cursor.accept(data);
+        setItems(current =>
+          offset === 0 ? data.items : appendSearchItems(current, data.items)
+        );
+        setHasMore(more);
+        setLoadError(null);
+      } catch (error) {
+        if (searchRequestIdRef.current !== requestId) return;
+        const code = (error as any)?.response?.data?.code;
+        const restart = [
+          'search_session_expired',
+          'search_session_invalidated',
+          'search_judgment_failed',
+        ].includes(code);
+        setLoadError(restart ? 'restart' : 'retry');
+        if (restart || code === 'search_judgment_failed') setHasMore(false);
+        throw error;
       }
-
-      const nextItems = Array.isArray(data?.items) ? data.items : [];
-      const total =
-        typeof data?.total === 'number' ? data.total : nextItems.length;
-      setItems(current =>
-        offset === 0 ? nextItems : [...current, ...nextItems]
-      );
-      setHasMore(offset + nextItems.length < total);
     },
     [conditions, keywords, matchMode, namespaceId]
   );
@@ -173,6 +191,10 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
 
     const requestId = searchRequestIdRef.current + 1;
     searchRequestIdRef.current = requestId;
+    sessionRef.current = new SearchPageCursor();
+    continuationAttempts.current = 0;
+    inFlight.current = false;
+    setLoadError(null);
     setItems([]);
     setHasMore(false);
     setLoadingInitial(true);
@@ -192,15 +214,21 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           }
         });
     }, 300);
-  }, [fetchSearchPage, shouldRefreshSearch]);
+  }, [fetchSearchPage, shouldRefreshSearch, restartKey]);
 
   const handleLoadMore = useCallback(() => {
-    if (!shouldSearch || !hasMore || loadingMore) {
+    if (
+      !shouldSearch ||
+      (!hasMore && loadError !== 'retry') ||
+      loadingMore ||
+      inFlight.current
+    ) {
       return;
     }
 
     const requestId = searchRequestIdRef.current;
-    const offset = items.length;
+    const offset = sessionRef.current.offset;
+    inFlight.current = true;
     setLoadingMore(true);
     fetchSearchPage(offset, requestId)
       .catch(err => {
@@ -212,10 +240,39 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
       })
       .finally(() => {
         if (searchRequestIdRef.current === requestId) {
+          inFlight.current = false;
           setLoadingMore(false);
         }
       });
-  }, [fetchSearchPage, hasMore, items.length, loadingMore, shouldSearch]);
+  }, [fetchSearchPage, hasMore, loadError, loadingMore, shouldSearch]);
+
+  useEffect(() => {
+    if (
+      !open ||
+      !shouldSearch ||
+      !hasMore ||
+      loadingInitial ||
+      loadingMore ||
+      loadError ||
+      items.length ||
+      continuationAttempts.current >= 2
+    )
+      return;
+    const timer = setTimeout(() => {
+      continuationAttempts.current += 1;
+      handleLoadMore();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [
+    open,
+    shouldSearch,
+    hasMore,
+    loadingInitial,
+    loadingMore,
+    loadError,
+    items.length,
+    handleLoadMore,
+  ]);
 
   useEffect(() => {
     if (!open) return;
@@ -291,6 +348,9 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
             loadingRecents={loadingRecents}
             namespaceId={namespaceId}
             loadingMore={loadingMore}
+            hasMore={hasMore}
+            loadError={loadError}
+            onRestart={() => setRestartKey(key => key + 1)}
             onLoadMore={handleLoadMore}
             onAnchorClick={onSearchResultAnchorClick}
             onNavigate={handleNavigate}

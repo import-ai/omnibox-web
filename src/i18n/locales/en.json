@@ -1192,6 +1192,10 @@
     "more_pages": "More Pages"
   },
   "search": {
+    "session_expired": "This search cannot continue. Please search again.",
+    "load_failed": "Search could not continue. Please retry.",
+    "restart": "Search again",
+    "retry": "Retry",
     "title": "Search",
     "placeholder": "Search resources",
     "clear": "Clear",

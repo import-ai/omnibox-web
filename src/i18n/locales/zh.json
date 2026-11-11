@@ -1194,6 +1194,10 @@
     "more_pages": "更多"
   },
   "search": {
+    "session_expired": "本次搜索无法继续，请重新搜索",
+    "load_failed": "暂时无法继续搜索，请重试",
+    "restart": "重新搜索",
+    "retry": "重试",
     "title": "搜索",
     "placeholder": "搜索资源",
     "clear": "清除",
