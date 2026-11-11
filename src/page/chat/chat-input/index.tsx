@@ -449,6 +449,7 @@ export default function ChatArea(props: IProps) {
           className="flex min-w-0 items-center gap-2"
         >
           <ChatTool
+            surface={composerSurface}
             thinkingSelectorEnabled={Boolean(selection)}
             tools={composerTools}
             renderResourcePicker={renderResourcePicker ?? defaultResourcePicker}
@@ -468,6 +469,7 @@ export default function ChatArea(props: IProps) {
             }
           />
           <ApprovalModeSelect
+            surface={composerSurface}
             approvalMode={approvalMode}
             setApprovalMode={setSelectedApprovalMode}
           />
@@ -478,6 +480,7 @@ export default function ChatArea(props: IProps) {
           )}
           {thinkingConfig && selection && (
             <ThinkingLevelSelector
+              surface={composerSurface}
               group={thinkingGroup}
               onGroupChange={next => {
                 if (basicUnsupported && next === 'basic') return;
@@ -501,6 +504,7 @@ export default function ChatArea(props: IProps) {
             />
           )}
           <ChatAction
+            surface={composerSurface}
             onSend={handleSend}
             onStop={onStop}
             disabled={disabled}

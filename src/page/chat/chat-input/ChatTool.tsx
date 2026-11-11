@@ -49,6 +49,7 @@ const datasource = [
 ];
 
 interface IProps {
+  surface?: 'home' | 'conversation';
   tools: Array<ToolType>;
   thinkingSelectorEnabled?: boolean;
   renderResourcePicker?: (
@@ -65,6 +66,7 @@ interface IProps {
 export default function ChatTool(props: IProps) {
   const {
     tools,
+    surface,
     renderResourcePicker,
     onBeforeOpen,
     onToolToggle,
@@ -89,7 +91,7 @@ export default function ChatTool(props: IProps) {
         imageUploadDisabled
           ? undefined
           : () => {
-              trackButtonClick('chat_image_upload');
+              trackButtonClick('chat_image_upload', { surface });
               imageInputRef.current?.click();
             }
       }
@@ -104,12 +106,15 @@ export default function ChatTool(props: IProps) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu
+        onOpenChange={open => {
+          if (open) trackButtonClick('chat_tool_open', { surface });
+        }}
+      >
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
               <Button
-                trackName="chat_tool_open"
                 size="icon"
                 variant="ghost"
                 className={cn('size-8 rounded-full', composerControlHoverClass)}
@@ -141,7 +146,7 @@ export default function ChatTool(props: IProps) {
                 resourceDialogOpenedByPointerRef.current = false;
               }}
               onClick={() => {
-                trackButtonClick('chat_resource_open');
+                trackButtonClick('chat_resource_open', { surface });
                 setResourceDialogOpen(true);
               }}
             >
@@ -171,7 +176,10 @@ export default function ChatTool(props: IProps) {
                 key={value}
                 className="cursor-pointer gap-2 rounded-lg px-2 py-2"
                 onClick={() => {
-                  trackButtonClick('chat_tool_toggle', { tool: value });
+                  trackButtonClick('chat_tool_toggle', {
+                    surface,
+                    tool: value,
+                  });
                   onToolToggle(value);
                 }}
               >

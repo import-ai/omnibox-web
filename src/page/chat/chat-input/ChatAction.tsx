@@ -23,6 +23,7 @@ import { ChatMode } from '@/page/chat/chat-input/types';
 import type { StreamState } from '@/page/chat/conversation/chatStreamRecovery';
 
 interface IActionProps {
+  surface?: 'home' | 'conversation';
   disabled: boolean;
   disabledReason?: string;
   onSend: () => void;
@@ -39,6 +40,7 @@ export default function ChatAction(props: IActionProps) {
   const [stopping, setStopping] = useState(false);
   const {
     disabled,
+    surface,
     disabledReason,
     onSend,
     onStop,
@@ -57,6 +59,7 @@ export default function ChatAction(props: IActionProps) {
             <DropdownMenuTrigger asChild>
               <Button
                 trackName="chat_mode_open"
+                trackProps={{ surface }}
                 size="sm"
                 variant="ghost"
                 className="font-normal pl-2 pr-1 mr-1"
@@ -77,7 +80,10 @@ export default function ChatAction(props: IActionProps) {
                 checked={mode === ChatMode.ASK}
                 className="[&_svg]:text-blue-500! [&_path]:text-blue-500!"
                 onCheckedChange={() => {
-                  trackButtonClick('chat_mode_select', { mode: ChatMode.ASK });
+                  trackButtonClick('chat_mode_select', {
+                    surface,
+                    mode: ChatMode.ASK,
+                  });
                   setMode(ChatMode.ASK);
                 }}
               >
@@ -88,6 +94,7 @@ export default function ChatAction(props: IActionProps) {
                 className="[&_svg]:text-blue-500! [&_path]:text-blue-500!"
                 onCheckedChange={() => {
                   trackButtonClick('chat_mode_select', {
+                    surface,
                     mode: ChatMode.WRITE,
                   });
                   setMode(ChatMode.WRITE);
@@ -126,6 +133,7 @@ export default function ChatAction(props: IActionProps) {
             <TooltipTrigger asChild>
               <Button
                 trackName="chat_response_cancel"
+                trackProps={{ surface }}
                 size="icon"
                 variant="default"
                 className="rounded-full size-8"
@@ -175,6 +183,7 @@ export default function ChatAction(props: IActionProps) {
             <TooltipTrigger asChild>
               <Button
                 trackName="chat_message_send"
+                trackProps={{ surface }}
                 size="icon"
                 onClick={onSend}
                 className="rounded-full size-8"
