@@ -67,7 +67,7 @@ jobs:
         run: pnpm exec jest src/page/user --runInBand
 
       - name: Test non-button behavior tracking
-        run: pnpm exec jest src/lib/behaviorEngine.test.ts src/lib/behaviorRequest.test.ts src/lib/behaviorTracking.test.tsx src/lib/sendTrackEvent.behavior.test.ts --runInBand
+        run: pnpm exec jest src/lib/behaviorEngine.test.ts src/lib/behaviorRequest.test.ts src/lib/behaviorTracking.test.tsx src/lib/sendTrackEvent.behavior.test.ts src/page/chat/chat-input/ThinkingLevelSelector.exposure.test.tsx --runInBand
 
       - name: Test chat error telemetry
         run: pnpm exec jest src/lib/chatErrorTracking.test.ts src/lib/traceOutbox.test.ts src/lib/sendTrackEvent.retry.test.ts src/lib/sendTrackEvent.chat.test.ts src/lib/request.traceScope.test.ts src/components/omnibox/ChatErrorText.test.tsx src/page/chat/messages/MessageFailureFeedback.test.tsx --runInBand
