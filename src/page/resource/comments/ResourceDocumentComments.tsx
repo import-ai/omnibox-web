@@ -4,6 +4,8 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { beginCommentActivation } from '@/lib/behaviorRequest';
+import { trackInputActivation } from '@/lib/behaviorTracking';
 import { cn } from '@/lib/utils';
 
 import { ResourceCommentInput } from './ResourceCommentInput';
@@ -149,6 +151,17 @@ export function ResourceDocumentComments({
           }
         >
           <form
+            onFocusCapture={event => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                beginCommentActivation(
+                  controller.resourceId,
+                  'document_comment'
+                );
+                trackInputActivation('document_comment', {
+                  resource_id: controller.resourceId,
+                });
+              }
+            }}
             className={'omnibox-comment-composer'}
             data-has-draft={hasDraft ? '' : undefined}
             onSubmit={event => {

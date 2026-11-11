@@ -2,6 +2,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { BehaviorExposure } from '@/components/BehaviorExposure';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
@@ -113,22 +114,39 @@ export function NodeActionsContent({
 
             const Icon = item.icon;
             const menuItem = (
-              <DropdownMenuItem
+              <BehaviorExposure
                 key={item.key}
-                variant={item.destructive ? 'destructive' : 'default'}
-                className={cn(
-                  menuItemClass,
-                  item.disabled &&
-                    'cursor-not-allowed text-muted-foreground opacity-50'
-                )}
-                onClick={item.disabled ? undefined : item.onClick}
-                onSelect={item.onSelect}
-                disabled={item.disabled && !item.disabledTip}
-                aria-disabled={item.disabled}
+                target="resource_creation_entry"
+                active={[
+                  'create_file',
+                  'create_folder',
+                  'create_rss_folder',
+                  'upload_file',
+                  'add_link',
+                ].includes(item.key)}
+                props={{
+                  entry: item.key,
+                  space_type: node.spaceType,
+                  location: 'child_menu',
+                }}
               >
-                <Icon className={menuIconClass} />
-                {item.label}
-              </DropdownMenuItem>
+                <DropdownMenuItem
+                  key={item.key}
+                  variant={item.destructive ? 'destructive' : 'default'}
+                  className={cn(
+                    menuItemClass,
+                    item.disabled &&
+                      'cursor-not-allowed text-muted-foreground opacity-50'
+                  )}
+                  onClick={item.disabled ? undefined : item.onClick}
+                  onSelect={item.onSelect}
+                  disabled={item.disabled && !item.disabledTip}
+                  aria-disabled={item.disabled}
+                >
+                  <Icon className={menuIconClass} />
+                  {item.label}
+                </DropdownMenuItem>
+              </BehaviorExposure>
             );
 
             if (item.disabled && item.disabledTip) {

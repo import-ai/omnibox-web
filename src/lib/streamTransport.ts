@@ -1,3 +1,4 @@
+import { behaviorRequestHeaders } from '@/lib/behaviorRequest';
 import { chatErrorDetails, isChatCancellation } from '@/lib/chatErrors';
 
 function networkFailure(error: unknown, code: string) {
@@ -15,6 +16,7 @@ export function createStreamTransport(
   cancelUrl: string,
   onOpen?: () => void
 ) {
+  let behaviorHeaders: Record<string, string> | undefined;
   let isAborted = false;
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
   let controller: AbortController | undefined;
@@ -57,6 +59,7 @@ export function createStreamTransport(
     start: async () => {
       try {
         if (isAborted) return;
+        behaviorHeaders ??= behaviorRequestHeaders('POST', url, body);
         const token = localStorage.getItem('token') || '';
         controller = new AbortController();
         const requestId =
@@ -66,8 +69,9 @@ export function createStreamTransport(
         const response = await fetch(url, {
           method: 'POST',
           headers: {
+            ...behaviorHeaders,
             'Content-Type': 'application/json',
-            'X-Client-Platform': 'web',
+            'X-Client-Platform': behaviorHeaders['X-Client-Platform'] || 'web',
             'X-Timezone':
               Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
             ...(requestId ? { 'X-Request-Id': requestId } : {}),

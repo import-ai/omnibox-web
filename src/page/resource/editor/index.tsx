@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
 import useTheme from '@/hooks/useTheme';
 import type { Resource } from '@/interface';
+import { beginEditorInput } from '@/lib/behaviorRequest';
 import {
   clearCacheTitle,
   getCache,
@@ -327,6 +328,7 @@ export default function Editor(props: IEditorProps) {
 
   return (
     <div
+      onInputCapture={() => beginEditorInput(resource.id)}
       className={`resource-editable-page relative ${
         wide ? 'resource-editable-page--wide' : ''
       }`}

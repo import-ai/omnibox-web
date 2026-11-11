@@ -23,6 +23,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useApplicationIdentity } from '@/hooks/useApplicationIdentity';
 import useApplications from '@/hooks/useApplications';
 import { Application } from '@/interface';
+import { useBehaviorSurface } from '@/lib/behaviorTracking';
 import { getDocsLink } from '@/lib/getDocsLink.ts';
 import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
@@ -123,6 +124,14 @@ export function ApplicationsForm({
   const [bindingCode, setBindingCode] = useState('');
   const [qrcodeContent, setQrcodeContent] = useState('');
   const [currentAppId, setCurrentAppId] = useState<string>('');
+  useBehaviorSurface({ scope: 'surface', target: 'applications', active });
+  useBehaviorSurface({
+    scope: 'surface',
+    target: 'application_binding',
+    active:
+      active && (bindDialogOpen || qrBindDialogOpen || alreadyBoundDialogOpen),
+    props: { app_id: currentAppId },
+  });
   const [currentBindingApplication, setCurrentBindingApplication] =
     useState<Application | null>(null);
   const [confirmApplication, setConfirmApplication] =

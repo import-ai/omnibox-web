@@ -112,7 +112,65 @@ function getChatErrorOutbox() {
   return chatErrorOutbox;
 }
 
+const BEHAVIOR_EVENTS = new Set([
+  'ui_exposure',
+  'active_duration',
+  'input_activation',
+  'editor_input',
+  'core_action_start',
+  'core_action_result',
+  'onboarding_recording_result',
+]);
+let behaviorOutbox: TraceOutbox | undefined;
+function getBehaviorOutbox() {
+  if (!behaviorOutbox) {
+    behaviorOutbox = new TraceOutbox({
+      read: async () => localStorage.getItem('omnibox_behavior_outbox'),
+      write: async value => {
+        localStorage.setItem('omnibox_behavior_outbox', value);
+      },
+      scope: chatScope,
+      preserveOccurredAt: true,
+      online: () => navigator.onLine !== false,
+      send: async (queued, scope) => {
+        const name = queued.behavior_event;
+        const props = { ...queued };
+        delete props.behavior_event;
+        delete props.dedupe_key;
+        const finger = await getVisitorId().catch(() => undefined);
+        if (chatScope() !== scope) throw new Error('Trace scope changed');
+        await http.post(
+          '/trace',
+          { events: [{ name, props: { ...props, finger, platform: 'web' } }] },
+          {
+            mute: true,
+            skipAuthRedirect: true,
+            timeout: 10_000,
+            traceScopeValid: () => chatScope() === scope,
+          }
+        );
+      },
+    });
+    const flush = () => {
+      void behaviorOutbox?.flush();
+    };
+    window.addEventListener('online', flush);
+    window.addEventListener('omnibox:credential-changed', flush);
+    window.addEventListener('storage', flush);
+    document.addEventListener('visibilitychange', flush);
+  }
+  return behaviorOutbox;
+}
+
 export async function track(name: string, payload: Attributes = {}) {
+  if (BEHAVIOR_EVENTS.has(name)) {
+    if (typeof window === 'undefined') return;
+    return getBehaviorOutbox().enqueue({
+      ...payload,
+      behavior_event: name,
+      dedupe_key: payload.event_id,
+    });
+  }
   if (name === 'chat_error') {
     if (typeof window === 'undefined') return;
     return getChatErrorOutbox().enqueue({

@@ -13,6 +13,7 @@ import {
   BreadcrumbItem,
   BreadcrumbList,
 } from '@/components/ui/Breadcrumb';
+import { markBehaviorLeave } from '@/lib/behaviorNavigation';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { cn } from '@/lib/utils';
 import ConversationSearchDialog from '@/page/chat/conversations/ConversationSearchDialog';
@@ -214,10 +215,10 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
   const modal = !split;
   const visible = ready && open;
   const panelWidth = useFrozenPanelWidth(visible, layout.panelWidth);
-  const handleClose = useCallback(
-    () => close(namespaceId),
-    [close, namespaceId]
-  );
+  const handleClose = useCallback(() => {
+    markBehaviorLeave('conversation', 'close_panel');
+    close(namespaceId);
+  }, [close, namespaceId]);
 
   useEffect(() => {
     // Split: measure workspace via the empty gap (Sidebar-style spacer).

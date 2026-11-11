@@ -9,6 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import { trackInputActivation } from '@/lib/behaviorTracking';
 import { cn } from '@/lib/utils';
 
 import { composerTextLayoutClassName } from './composerLayout';
@@ -121,6 +122,9 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
               composerTextLayoutClassName,
               'caret-foreground placeholder:text-muted-foreground selection:bg-[#117bfa]/20 selection:text-transparent'
             )}
+            onFocus={() => {
+              if (!props.readOnly) trackInputActivation('ai_composer');
+            }}
             onBlur={composer.rememberSelection}
             onChange={composer.handleTextChange}
             onClick={composer.rememberSelection}

@@ -1,9 +1,14 @@
 import useConfig from '@/hooks/useConfig';
+import { useBehaviorSurface } from '@/lib/behaviorTracking';
 import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import useContext from '@/page/chat/conversation/useContext';
 import { useConversationShare } from '@/page/chat/share/useConversationShare';
 import { useConversationShareEvents } from '@/page/chat/share/useConversationShareEvents';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 import { ConversationExecutionsProvider } from '@/page/localRuntime/ConversationExecutions';
 
 import {
@@ -15,6 +20,15 @@ export default function ChatConversationPage() {
   const { config } = useConfig();
   const { compact } = useChatRouteParams();
   const context = useContext();
+  const copilotOpen = useCopilotStore(
+    state => getCopilotWorkspace(state, context.namespaceId).open
+  );
+  useBehaviorSurface({
+    scope: 'conversation',
+    target: compact ? 'copilot' : 'conversation',
+    active: !context.accessDenied && (!compact || copilotOpen),
+    props: { conversation_id: context.conversation.id },
+  });
   const conversationShare = useConversationShare({
     conversation: context.conversation,
     isGenerating: context.loading,

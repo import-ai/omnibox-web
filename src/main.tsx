@@ -1,4 +1,12 @@
+import { configureBehaviorTracking } from '@/lib/behaviorTracking';
+import { track } from '@/lib/sendTrackEvent';
+
 import { mountApp } from './Bootstrap';
+
+configureBehaviorTracking(
+  import.meta.env.VITE_NON_BUTTON_TRACKING_ENABLED !== 'false',
+  track
+);
 
 mountApp(document.getElementById('root')!);
 
