@@ -204,7 +204,6 @@ export function InviteActivityPanel({
                       </div>
                       <div className="flex items-center justify-center gap-1 px-3 py-3 text-center text-xs font-normal text-blue-500">
                         <span>{rule.reward_text}</span>
-                        <CreditsHelp taskCode={rule.task_code} />
                       </div>
                     </div>
                   ))}

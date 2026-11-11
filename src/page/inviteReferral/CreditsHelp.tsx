@@ -26,9 +26,9 @@ export function CreditsHelp({ taskCode }: { taskCode: string }) {
         aria-label={t('inviteReferral.creditsHelp.label', { amount })}
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex shrink-0 items-center gap-1 text-xs text-blue-500"
+        className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground"
       >
-        <CircleHelp className="size-4" aria-hidden />
+        <CircleHelp className="size-4" strokeWidth={1.8} aria-hidden />
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
