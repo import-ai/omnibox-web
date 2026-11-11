@@ -115,6 +115,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                 namespaceId={namespaceId}
                 hasPermission={currentNamespace?.is_owner !== false}
                 disabledReason={t('chat.trial.not_owner')}
+                entry="rss_folder_dialog"
               />
             )}
           </div>
