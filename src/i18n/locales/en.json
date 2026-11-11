@@ -1491,15 +1491,14 @@
       "hours": "hrs"
     },
     "credits_title": "Credits",
-    "storage_separate": "Storage is billed separately and does not use credits",
     "ledger_title": "Credit activity",
     "ledger_empty": "No credit activity yet",
     "ledger_failed": "Could not load credit activity. Please try again later.",
     "ledger_total": "20 per page · {{total}} total",
     "activity_types": {
       "reward": "Reward credits",
-      "subscription": "Subscription grant",
-      "topup": "Credit top-up",
+      "subscription": "Subscription credits",
+      "topup": "Top-up",
       "pdf": "PDF parsing",
       "image": "Image parsing",
       "audio": "Audio parsing",
@@ -1510,7 +1509,9 @@
       "legacy_usage": "Legacy task charge",
       "legacy_refund": "Legacy task refund"
     },
-    "view_usage": "View usage"
+    "view_usage": "View usage",
+    "ledger_detail": "Details",
+    "ledger_change": "Credit change"
   },
   "resource_conditions": {
     "conditions": "Match conditions",
@@ -1873,11 +1874,11 @@
     "go_pricing": "Go to pricing"
   },
   "billing_rules": {
-    "title": "Billing rules",
+    "title": "Credit billing rules",
     "sections": [
       {
         "title": "Using credits",
-        "body": "Web, audio/video, PDF/image parsing and Agent 2.1 share the current namespace’s credits. Cloud storage is billed separately."
+        "body": "Web, audio/video, PDF/image parsing and Agent 2.1 share the current namespace’s credits."
       },
       {
         "title": "Parsing rates",
@@ -1897,7 +1898,7 @@
       },
       {
         "title": "Deduction order",
-        "body": "Credits expiring soonest are used first. Subscription credits take priority when expiry times match; permanent credits are used last. Parsing that finishes in a later period is settled against the grant reserved when the task began."
+        "body": "Deduction priority: monthly subscription credits are used before top-up credits.\nParsing that finishes in a later period is settled against the grant reserved when the task began."
       },
       {
         "title": "Display and refunds",

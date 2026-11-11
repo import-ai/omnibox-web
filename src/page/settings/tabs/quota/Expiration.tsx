@@ -16,16 +16,18 @@ interface IProps {
 export function Expiration({ basic, premium }: IProps) {
   const { t } = useTranslation();
 
-  const active = premium && !premium.expired ? premium : basic;
-  const label =
-    premium && !premium.expired ? 'quota.premium_period' : 'quota.basic_period';
   return (
-    <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+    <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+      {premium && (
+        <span>
+          {t('quota.premium_period')}
+          {formatExpiration(premium.expired, premium.expire_date, t)}
+        </span>
+      )}
       <span>
-        {t(label)}
-        {formatExpiration(active.expired, active.expire_date, t)}
+        {t('quota.basic_period')}
+        {formatExpiration(basic.expired, basic.expire_date, t)}
       </span>
-      <span>{t('quota.storage_separate')}</span>
     </div>
   );
 }

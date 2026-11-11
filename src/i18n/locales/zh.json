@@ -1493,15 +1493,14 @@
       "hours": "小时"
     },
     "credits_title": "积分",
-    "storage_separate": "云存储独立计费，不消耗积分",
     "ledger_title": "积分明细",
     "ledger_empty": "暂无积分明细",
     "ledger_failed": "积分明细加载失败，请稍后重试",
     "ledger_total": "每页 20 条 · 共 {{total}} 条",
     "activity_types": {
       "reward": "奖励积分",
-      "subscription": "订阅积分发放",
-      "topup": "积分加油包",
+      "subscription": "订阅积分",
+      "topup": "加油包",
       "pdf": "PDF 解析",
       "image": "图片解析",
       "audio": "音频解析",
@@ -1512,7 +1511,9 @@
       "legacy_usage": "历史任务扣除",
       "legacy_refund": "历史任务退回"
     },
-    "view_usage": "查看用量"
+    "view_usage": "查看用量",
+    "ledger_detail": "明细",
+    "ledger_change": "积分变动"
   },
   "resource_conditions": {
     "conditions": "匹配下列条件",
@@ -1875,11 +1876,11 @@
     "go_pricing": "前往开通页"
   },
   "billing_rules": {
-    "title": "计费规则",
+    "title": "积分计费规则",
     "sections": [
       {
         "title": "积分如何使用",
-        "body": "网页、音视频、图文解析和 Agent 2.1 均使用当前空间的积分。云存储单独计费，不扣积分。"
+        "body": "网页、音视频、图文解析和 Agent 2.1 均使用当前空间的积分。"
       },
       {
         "title": "解析计费",
@@ -1899,7 +1900,7 @@
       },
       {
         "title": "扣除顺序",
-        "body": "优先使用最早到期的积分；到期时间相同时，先用订阅积分。永久积分最后使用。解析跨月完成时，仍使用任务发起时对应的积分包结算。"
+        "body": "优先抵扣：系统优先消耗每月订阅额度，再消耗加油包\n解析跨月完成时，仍使用任务发起时对应的积分包结算。"
       },
       {
         "title": "积分显示与退款",
