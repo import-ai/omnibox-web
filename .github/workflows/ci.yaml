@@ -51,6 +51,9 @@ jobs:
       - name: Run lint
         run: pnpm run lint
 
+      - name: Test credit usage and ledger pagination
+        run: pnpm exec jest src/page/settings/tabs/quota --runInBand
+
       - name: Test invite permission validation
         run: pnpm exec jest src/components/invite-dialog/people/InviteForm.test.tsx --runInBand
 

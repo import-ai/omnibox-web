@@ -1103,8 +1103,8 @@
       }
     },
     "agent_credits": {
-      "text": "Agent 2.1 credits used up. Switched to Agent 1.1. Purchase credits to restore.",
-      "compact_text": "Switched to Agent 1.1",
+      "text": "Credits are exhausted. Switch to Agent 1.1 or buy credits.",
+      "compact_text": "Insufficient credits",
       "compact_tooltip": "Agent 2.1 credits used up",
       "not_owner": "Please contact the namespace owner to purchase credits",
       "expand_button": "Purchase",
@@ -1316,6 +1316,8 @@
     "time_error_minutes": "Failed: costs {{minutes}} min",
     "time_timeout_seconds": "Timeout: costs {{seconds}} sec",
     "time_timeout_minutes": "Timeout: costs {{minutes}} min",
+    "time_insufficient_credits": "Insufficient credits: {{time}}",
+    "time_file_limit": "File processing limit exceeded: {{time}}",
     "time_insufficient_quota": "Insufficient quota: {{time}}",
     "time_canceled": "Canceled: {{time}}",
     "functions": {
@@ -1473,7 +1475,7 @@
     "pdf": "PDF",
     "image": "Image",
     "other": "Other",
-    "expand_button": "Purchase",
+    "expand_button": "Buy",
     "basic_period": "Namespace validity period: ",
     "premium_period": "Pro validity period: ",
     "days_remaining": "{{days}} days remaining (expires {{date}})",
@@ -1487,7 +1489,29 @@
       "seconds": "sec",
       "minutes": "min",
       "hours": "hrs"
-    }
+    },
+    "credits_title": "Credits",
+    "ledger_title": "Credit activity",
+    "ledger_empty": "No credit activity yet",
+    "ledger_failed": "Could not load credit activity. Please try again later.",
+    "ledger_total": "20 per page · {{total}} total",
+    "activity_types": {
+      "reward": "Reward credits",
+      "subscription": "Subscription credits",
+      "topup": "Top-up",
+      "pdf": "PDF parsing",
+      "image": "Image parsing",
+      "audio": "Audio parsing",
+      "video": "Video parsing",
+      "web": "Web parsing",
+      "agent": "Agent 2.1",
+      "refund": "Credit refund",
+      "legacy_usage": "Legacy task charge",
+      "legacy_refund": "Legacy task refund"
+    },
+    "view_usage": "View usage",
+    "ledger_detail": "Details",
+    "ledger_change": "Credit change"
   },
   "resource_conditions": {
     "conditions": "Match conditions",
@@ -1686,7 +1710,7 @@
       "skip": "Skip",
       "submit": "Bind and claim",
       "description": "Bind your phone to verify your identity and receive invite rewards.",
-      "bubble": "Link phone, get 120 min free parsing."
+      "bubble": "Link your phone to receive 600 credits."
     },
     "code": {
       "entry": "Have an invite code? Enter >",
@@ -1744,6 +1768,17 @@
       "emptyTitle": "Nothing here yet",
       "task": "Task",
       "rewardColumn": "Reward received"
+    },
+    "creditsHelp": {
+      "title": "What are credits?",
+      "description": "Credits are your allowance for OmniBox AI features, including AI chat and document, image, audio, and video parsing.",
+      "note": "These examples each assume use of a single feature and cannot be combined.",
+      "rewards": "Reward credits never expire and do not count toward your subscription allowance. Subscription credits are used before reward credits.",
+      "details": "Credit and usage history: Settings → Usage",
+      "confirm": "Got it",
+      "examples600": "What can 600 credits do?\nParse 120 minutes of audio or video\nOr parse 1,500 PDF pages\nOr generate approximately 5.37 million Chinese characters of AI output",
+      "examples1000": "What can 1,000 credits do?\nParse 200 minutes of audio or video\nOr parse 2,500 PDF pages\nOr generate approximately 8.96 million Chinese characters of AI output",
+      "label": "View benefits for {{amount}} credits"
     }
   },
   "desktop_auth": {
@@ -1848,5 +1883,63 @@
     "too_frequent": "Too many attempts. Please try again later.",
     "failed": "Could not open the page. Go back to the OmniBox official account and tap the link again.",
     "go_pricing": "Go to pricing"
+  },
+  "billing_rules": {
+    "title": "Credit billing rules",
+    "sections": [
+      {
+        "title": "Using credits",
+        "body": "Web, audio/video, PDF/image parsing and Agent 2.1 share the current namespace’s credits."
+      },
+      {
+        "title": "Parsing rates",
+        "body": "Web: 5 credits per successful extraction of article content. Saving a link, clipping selected text, adding a title, or viewing existing content is free.\n\nAudio/video: 5 credits per minute of original duration, at 1/12 credit per second. Fractional seconds round up. Audio in a video is not charged twice.\n\nPDF/images: 0.4 credits per page. Each image counts as one page; PDFs are charged for pages submitted for parsing."
+      },
+      {
+        "title": "Agent 2.1",
+        "body": "Credits per 1 million tokens"
+      },
+      {
+        "title": "When credits are charged",
+        "body": "Parsing is charged only after content is delivered. Failed, canceled and timed-out tasks are free. Batch items settle separately. Retries of the same task are charged once; requesting a new parse with a new result is charged again. Agent settlement timing is unchanged."
+      },
+      {
+        "title": "Credit validity",
+        "body": "Basic receives 100 credits per month; Pro receives 4,300. Monthly, quarterly and annual plans grant credits for 1, 3 and 12 months respectively. Each monthly grant expires at the end of its period. Top-ups arrive once payment is confirmed and never expire."
+      },
+      {
+        "title": "Deduction order",
+        "body": "Deduction priority: monthly subscription credits are used before top-up credits.\nParsing that finishes in a later period is settled against the grant reserved when the task began."
+      },
+      {
+        "title": "Display and refunds",
+        "body": "Each transaction is calculated from total usage and rounded up to 0.000001 credit. Values display two decimals; nonzero amounts below 0.01 display as < 0.01. Successful refunds revoke the order’s unused credits and future grants. Used credits follow the purchase channel’s refund rules."
+      },
+      {
+        "title": "Migrating previous allowances",
+        "body": "Existing Agent credits transfer 1:1. Remaining audio/video seconds ÷ 12 and PDF/image pages ÷ 2.5 are each rounded up to 0.000001 credit. Original expiry dates are preserved. Storage is unchanged. Historical tasks and orders retain their original rules."
+      }
+    ],
+    "columns": ["Thinking level", "Input", "Cached input", "Output"],
+    "levels": ["Light / Medium", "High / Maximum"],
+    "subtitle": "How credits are spent, issued and expire",
+    "acknowledge": "Got it",
+    "parsing": [
+      {
+        "name": "Web parsing",
+        "rate": "5 credits / page",
+        "description": "Charged only after text is parsed successfully. Saving links, selected text, adding titles or viewing existing text is free."
+      },
+      {
+        "name": "Audio / video",
+        "rate": "5 credits / minute",
+        "description": "Billed by original duration at 1/12 credit per second, rounded up to a whole second. Audio within a video is not charged twice."
+      },
+      {
+        "name": "PDF / images",
+        "rate": "0.4 credits / page",
+        "description": "Each image counts as one page. PDFs are billed by the pages submitted for parsing."
+      }
+    ]
   }
 }

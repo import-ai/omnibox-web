@@ -13,6 +13,7 @@ import { Resource } from '@/interface';
 
 import { ATTRIBUTE_STYLES } from '../constants';
 import { DISPLAY_FUNCTIONS, RETRYABLE_TASK_STATUSES } from './const';
+import { CreditShortageActions } from './CreditShortageActions';
 import { useResourceTasks } from './ResourceTasksContext';
 import { TaskTag } from './TaskTag';
 import {
@@ -29,7 +30,7 @@ interface ResourceTasksProps {
   onResource: (resource: Resource) => void;
 }
 
-export default function ResourceTasks({}: ResourceTasksProps) {
+export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
   const { t } = useTranslation();
   const { tasks, loading, error, retrying, hasRetryable, retry } =
     useResourceTasks();
@@ -252,6 +253,9 @@ export default function ResourceTasks({}: ResourceTasksProps) {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
+          {failedTasks.some(
+            task => task.failure_code === 'INSUFFICIENT_CREDITS'
+          ) && <CreditShortageActions namespaceId={namespaceId} />}
           {hasRetryable && (
             <Button
               variant="secondary"

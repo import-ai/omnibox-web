@@ -131,6 +131,7 @@ const codes: Record<string, ChatErrorName> = {
   attachment_not_found: 'attachment_unavailable',
   storage_quota_exceeded: 'storage_full',
   insufficient_credits: 'credits_exhausted',
+  insufficient_agent_credits: 'credits_exhausted',
   share_not_found: 'share_unavailable',
   share_chat_not_allowed: 'share_unavailable',
   stream_connection_failed: 'connection_interrupted',
