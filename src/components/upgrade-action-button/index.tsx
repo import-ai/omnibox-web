@@ -26,6 +26,7 @@ interface UpgradeActionButtonProps {
   className?: string;
   labelKey?: string;
   trackName?: string;
+  entry?: string;
 }
 
 export function UpgradeUsageTooltip({
@@ -67,6 +68,7 @@ export function UpgradeActionButton({
   className = 'text-sm h-5',
   labelKey = 'namespace.upgrade',
   trackName,
+  entry,
 }: UpgradeActionButtonProps) {
   const { t, i18n } = useTranslation();
 
@@ -75,7 +77,7 @@ export function UpgradeActionButton({
       return;
     }
 
-    window.open(getUpgradeLink(i18n, namespaceId), '_blank');
+    window.open(getUpgradeLink(i18n, namespaceId, entry), '_blank');
   };
 
   const button = (

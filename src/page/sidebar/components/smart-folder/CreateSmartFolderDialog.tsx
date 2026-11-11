@@ -282,6 +282,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                         hasPermission={currentNamespace?.is_owner !== false}
                         disabledReason={t('chat.trial.not_owner')}
                         trackName="sidebar_plan_upgrade"
+                        entry="smart_folder_dialog"
                       />
                     )}
                   </div>

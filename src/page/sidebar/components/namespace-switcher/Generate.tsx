@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/omnibox/Dialog';
 import useConfig from '@/hooks/useConfig';
+import { getUpgradeLink } from '@/lib/upgradeLink';
 import GenerateForm from '@/page/settings/tabs/account/GenerateForm';
 
 interface GenerateProps {
@@ -48,7 +49,9 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
           },
           action: (
             <a
-              href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing?tab=purchase_space`}
+              href={getUpgradeLink(i18n, undefined, 'namespace_create', {
+                tab: 'purchase_space',
+              })}
               target="_blank"
               rel="noopener noreferrer"
               className="toast-button"

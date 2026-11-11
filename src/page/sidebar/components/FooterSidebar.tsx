@@ -52,7 +52,7 @@ export function FooterSidebar(props: IProps) {
                 <CrownIcon />
               ),
             label: t(`footer.${pricingEntryVariant}`),
-            href: getUpgradeLink(i18n, namespaceId),
+            href: getUpgradeLink(i18n, namespaceId, 'sidebar_footer'),
           }
         : undefined;
 

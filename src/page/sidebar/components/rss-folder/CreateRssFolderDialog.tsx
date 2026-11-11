@@ -121,6 +121,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                 hasPermission={currentNamespace?.is_owner !== false}
                 disabledReason={t('chat.trial.not_owner')}
                 trackName="sidebar_plan_upgrade"
+                entry="rss_folder_dialog"
               />
             )}
           </div>

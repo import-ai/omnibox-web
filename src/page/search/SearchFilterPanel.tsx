@@ -357,6 +357,7 @@ export function SearchFilterPanel({
               hasPermission={currentNamespace?.is_owner !== false}
               disabledReason={t('chat.trial.not_owner')}
               trackName="search_plan_upgrade"
+              entry="search_filter"
             />
           )}
         </div>
