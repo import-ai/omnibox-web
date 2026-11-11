@@ -120,6 +120,27 @@ export async function track(name: string, payload: Attributes = {}) {
       user_id: chatUserId(),
     });
   }
+  if (name === 'login_page_view' || name === 'registration_page_view') {
+    const finger = await getVisitorId().catch(() => undefined);
+    const event = { name, props: { ...payload, finger } };
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        await http.post(
+          '/trace',
+          { events: [event] },
+          {
+            mute: true,
+            skipAuthRedirect: true,
+            timeout: 10_000,
+          }
+        );
+        return;
+      } catch (error) {
+        if (attempt === 1) throw error;
+      }
+    }
+    return;
+  }
   const { once = false, userId, ...props } = payload;
 
   const visitorId = await getVisitorId();
