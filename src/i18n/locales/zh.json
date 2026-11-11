@@ -1513,7 +1513,10 @@
     },
     "view_usage": "查看用量",
     "ledger_detail": "明细",
-    "ledger_change": "积分变动"
+    "ledger_change": "积分变动",
+    "my_activity": "我的明细",
+    "all_activity": "所有明细",
+    "activity_thinking": "（{{level}}）"
   },
   "resource_conditions": {
     "conditions": "匹配下列条件",

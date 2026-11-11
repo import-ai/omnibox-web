@@ -1511,7 +1511,10 @@
     },
     "view_usage": "View usage",
     "ledger_detail": "Details",
-    "ledger_change": "Credit change"
+    "ledger_change": "Credit change",
+    "my_activity": "My activity",
+    "all_activity": "All activity",
+    "activity_thinking": "({{level}})"
   },
   "resource_conditions": {
     "conditions": "Match conditions",

@@ -3,6 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/omnibox/Select';
+import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import PaginationMain from '@/components/pagination';
 import { Spinner } from '@/components/ui/Spinner';
 import {
@@ -20,12 +28,15 @@ import { formatCreditAmount } from './utils';
 interface Activity {
   id: string;
   event_type: string;
+  thinking_level?: string | null;
   occurred_at: string;
   amount: number;
 }
 
 export function CreditActivity({ namespaceId }: { namespaceId: string }) {
   const { t } = useTranslation();
+  const [scope, setScope] = useState<'own' | 'all'>('own');
+  const [canViewAll, setCanViewAll] = useState(false);
   const [page, setPage] = useState(1);
   const tableRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -37,21 +48,26 @@ export function CreditActivity({ namespaceId }: { namespaceId: string }) {
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0);
   useEffect(() => {
-    const onFocus = () => setRefresh(value => value + 1);
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, []);
-  useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
     http
       .get(`/namespaces/${namespaceId}/usages/credits/activity`, {
-        params: { offset: (page - 1) * 20, limit: 20 },
+        params: { offset: (page - 1) * 20, limit: 20, scope },
         signal: controller.signal,
       })
-      .then((result: { items: Activity[]; total: number }) => {
-        if (!controller.signal.aborted) setData(result);
-      })
+      .then(
+        (result: {
+          items: Activity[];
+          total: number;
+          can_view_all?: boolean;
+        }) => {
+          if (!controller.signal.aborted) {
+            setData(result);
+            setCanViewAll(result.can_view_all === true);
+            if (!result.can_view_all) setScope('own');
+          }
+        }
+      )
       .catch(() => {
         if (!controller.signal.aborted) setData(null);
       })
@@ -59,13 +75,43 @@ export function CreditActivity({ namespaceId }: { namespaceId: string }) {
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [namespaceId, page, refresh]);
+  }, [namespaceId, page, refresh, scope]);
   return (
     <section
       className="mt-5 border-t border-border pt-5 text-foreground"
       aria-busy={loading}
     >
       <h3 className="mb-3 text-sm font-medium">{t('quota.ledger_title')}</h3>
+      <div className="mb-3 flex items-center justify-between gap-2">
+        {canViewAll ? (
+          <Select
+            value={scope}
+            onValueChange={(value: 'own' | 'all') => {
+              setScope(value);
+              setPage(1);
+            }}
+            disabled={loading}
+          >
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="own">{t('quota.my_activity')}</SelectItem>
+              <SelectItem value="all">{t('quota.all_activity')}</SelectItem>
+            </SelectContent>
+          </Select>
+        ) : (
+          <span className="text-sm text-muted-foreground">
+            {t('quota.my_activity')}
+          </span>
+        )}
+        <SettingPageButton
+          disabled={loading}
+          onClick={() => setRefresh(value => value + 1)}
+        >
+          {t('common.refresh')}
+        </SettingPageButton>
+      </div>
       <div
         ref={tableRef}
         className="h-[260px] overflow-auto rounded-md border border-border [&>[data-slot=table-container]]:overflow-visible"
@@ -102,7 +148,7 @@ export function CreditActivity({ namespaceId }: { namespaceId: string }) {
                 </TableCell>
               </TableRow>
             ) : data.items.length === 0 ? (
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableCell
                   colSpan={2}
                   className="h-40 text-center text-muted-foreground"
@@ -116,6 +162,16 @@ export function CreditActivity({ namespaceId }: { namespaceId: string }) {
                   <TableCell>
                     <p className="text-sm leading-[21px]">
                       {t(`quota.activity_types.${item.event_type}`)}
+                      {item.event_type === 'agent' && item.thinking_level && (
+                        <>
+                          {' '}
+                          {t('quota.activity_thinking', {
+                            level: t(`chat.thinking.${item.thinking_level}`, {
+                              defaultValue: item.thinking_level,
+                            }),
+                          })}
+                        </>
+                      )}
                     </p>
                     <time
                       className="mt-1 block text-xs leading-[18px] text-muted-foreground"
