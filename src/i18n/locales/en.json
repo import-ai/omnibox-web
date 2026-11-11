@@ -1772,11 +1772,13 @@
     "creditsHelp": {
       "title": "What are credits?",
       "description": "Credits are your allowance for OmniBox AI features, including AI chat and document, image, audio, and video parsing.",
-      "examples": "What can 600 credits do?\nParse 120 minutes of audio or video\nOr parse 1,500 PDF pages\nOr generate approximately 5.37 million Chinese characters of AI output",
       "note": "These examples each assume use of a single feature and cannot be combined.",
       "rewards": "Reward credits never expire and do not count toward your subscription allowance. Subscription credits are used before reward credits.",
       "details": "Credit and usage history: Settings → Usage",
-      "confirm": "Got it"
+      "confirm": "Got it",
+      "examples600": "What can 600 credits do?\nParse 120 minutes of audio or video\nOr parse 1,500 PDF pages\nOr generate approximately 5.37 million Chinese characters of AI output",
+      "examples1000": "What can 1,000 credits do?\nParse 200 minutes of audio or video\nOr parse 2,500 PDF pages\nOr generate approximately 8.96 million Chinese characters of AI output",
+      "label": "View benefits for {{amount}} credits"
     }
   },
   "desktop_auth": {

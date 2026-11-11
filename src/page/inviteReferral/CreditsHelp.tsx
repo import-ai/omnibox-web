@@ -10,18 +10,25 @@ import {
   DialogTitle,
 } from '@/components/omnibox/Dialog';
 
-export function CreditsHelp() {
+export function CreditsHelp({ taskCode }: { taskCode: string }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const amount =
+    taskCode === 'phone_bound'
+      ? 600
+      : taskCode === 'file_conversation_completed'
+        ? 1000
+        : null;
+  if (!amount) return null;
   return (
     <>
       <button
+        aria-label={t('inviteReferral.creditsHelp.label', { amount })}
         type="button"
         onClick={() => setOpen(true)}
         className="inline-flex shrink-0 items-center gap-1 text-xs text-blue-500"
       >
         <CircleHelp className="size-4" aria-hidden />
-        {t('inviteReferral.creditsHelp.title')}
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
@@ -33,7 +40,7 @@ export function CreditsHelp() {
             {t('inviteReferral.creditsHelp.description')}
           </DialogDescription>
           <p className="whitespace-pre-line text-sm leading-6 text-blue-500">
-            {t('inviteReferral.creditsHelp.examples')}
+            {t(`inviteReferral.creditsHelp.examples${amount}`)}
           </p>
           {(['note', 'rewards', 'details'] as const).map(key => (
             <p key={key} className="text-sm leading-6">
