@@ -332,6 +332,7 @@ export function SearchFilterPanel({
               namespaceId={namespaceId}
               hasPermission={currentNamespace?.is_owner !== false}
               disabledReason={t('chat.trial.not_owner')}
+              entry="search_filter"
             />
           )}
         </div>

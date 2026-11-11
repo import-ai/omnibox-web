@@ -114,7 +114,11 @@ export function Switcher(props: IProps) {
                   className="h-8 w-full justify-start gap-1 px-2 text-blue-500 hover:text-blue-500"
                 >
                   <a
-                    href={getUpgradeLink(i18n, namespaceId)}
+                    href={getUpgradeLink(
+                      i18n,
+                      namespaceId,
+                      'namespace_switcher'
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={() => setDropdownOpen(false)}

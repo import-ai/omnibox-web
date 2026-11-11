@@ -10,4 +10,16 @@ describe('getUpgradeLink', () => {
       '/zh-cn/pricing?namespace=namespace-1'
     );
   });
+
+  it('includes the pricing entry and extra tab parameter', () => {
+    const i18nInstance = { language: 'zh-CN' } as i18n;
+
+    expect(
+      getUpgradeLink(i18nInstance, 'namespace-1', 'namespace_create', {
+        tab: 'purchase_space',
+      })
+    ).toBe(
+      '/zh-cn/pricing?namespace=namespace-1&entry=namespace_create&tab=purchase_space'
+    );
+  });
 });
