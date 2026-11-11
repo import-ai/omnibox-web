@@ -49,6 +49,7 @@ export function AgentCredits({
         disabledReason={t('chat.agent_credits.not_owner')}
         className="h-5 shrink-0 text-sm"
         labelKey="chat.agent_credits.expand_button"
+        entry="chat_agent_credits"
       />
     </div>
   );

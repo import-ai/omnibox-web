@@ -23,6 +23,7 @@ interface UpgradeActionButtonProps {
   disabledReason?: string;
   className?: string;
   labelKey?: string;
+  entry?: string;
 }
 
 export function UpgradeUsageTooltip({
@@ -56,6 +57,7 @@ export function UpgradeActionButton({
   disabledReason,
   className = 'text-sm h-5',
   labelKey = 'namespace.upgrade',
+  entry,
 }: UpgradeActionButtonProps) {
   const { t, i18n } = useTranslation();
 
@@ -64,7 +66,7 @@ export function UpgradeActionButton({
       return;
     }
 
-    window.open(getUpgradeLink(i18n, namespaceId), '_blank');
+    window.open(getUpgradeLink(i18n, namespaceId, entry), '_blank');
   };
 
   const button = (
