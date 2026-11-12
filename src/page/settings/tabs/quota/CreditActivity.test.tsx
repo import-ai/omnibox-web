@@ -52,7 +52,11 @@ it('keeps outer scroll and pagination while fetching the next page, resetting on
       container.querySelector('[aria-label="Go to next page"]') as HTMLElement
     ).click()
   );
-  expect(get.mock.calls[1][1].params).toEqual({ offset: 20, limit: 20 });
+  expect(get.mock.calls[1][1].params).toEqual({
+    offset: 20,
+    limit: 20,
+    scope: 'own',
+  });
   expect(viewport.scrollTop).toBe(0);
   expect(container.scrollTop).toBe(230);
   expect(container.querySelector('nav')).not.toBeNull();
@@ -63,5 +67,29 @@ it('keeps outer scroll and pagination while fetching the next page, resetting on
   expect(container.querySelector('section')?.getAttribute('aria-busy')).toBe(
     'false'
   );
+  await act(async () => root.unmount());
+});
+
+it('does not refetch on focus and keeps the empty state unfilled', async () => {
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const get = http.get as jest.Mock;
+  get
+    .mockReset()
+    .mockResolvedValue({ items: [], total: 0, can_view_all: false });
+  await act(async () => root.render(<CreditActivity namespaceId="test" />));
+  expect(get.mock.calls[0][1].params.scope).toBe('own');
+  await act(async () => {
+    window.dispatchEvent(new Event('focus'));
+  });
+  expect(get).toHaveBeenCalledTimes(1);
+  expect(container.querySelector('tbody tr')?.className).toContain(
+    'hover:bg-transparent'
+  );
+  const refresh = [...container.querySelectorAll('button')].find(
+    button => button.textContent === 'common.refresh'
+  );
+  await act(async () => refresh!.click());
+  expect(get).toHaveBeenCalledTimes(2);
   await act(async () => root.unmount());
 });

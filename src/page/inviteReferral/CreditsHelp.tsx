@@ -39,9 +39,19 @@ export function CreditsHelp({ taskCode }: { taskCode: string }) {
           <DialogDescription className="text-sm text-foreground">
             {t('inviteReferral.creditsHelp.description')}
           </DialogDescription>
-          <p className="whitespace-pre-line text-sm leading-6 text-blue-500">
-            {t(`inviteReferral.creditsHelp.examples${amount}`)}
-          </p>
+          <div className="text-sm leading-6 text-foreground">
+            <p>
+              {t(`inviteReferral.creditsHelp.examples${amount}`).split('\n')[0]}
+            </p>
+            <ol className="mt-1 list-decimal space-y-1 pl-5">
+              {t(`inviteReferral.creditsHelp.examples${amount}`)
+                .split('\n')
+                .slice(1)
+                .map(example => (
+                  <li key={example}>{example}</li>
+                ))}
+            </ol>
+          </div>
           {(['note', 'rewards', 'details'] as const).map(key => (
             <p key={key} className="text-sm leading-6">
               {t(`inviteReferral.creditsHelp.${key}`)}
