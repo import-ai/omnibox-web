@@ -62,7 +62,13 @@ export function ResourceSelect(props: IProps) {
   const [triggerWidth, setTriggerWidth] = useState<number>();
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen && resourceId && !data && !fetching) {
+    if (
+      nextOpen &&
+      resourceId &&
+      !(includePersonalAndTeam && resourceId === 'personal_and_team') &&
+      (data?.id !== resourceId || !data.path?.length) &&
+      !fetching
+    ) {
       setReloadToken(current => current + 1);
     }
     if (nextOpen) {
@@ -71,8 +77,15 @@ export function ResourceSelect(props: IProps) {
     onOpen(nextOpen);
   };
   const handleChange = (resource: ResourcePickerResource) => {
-    requestControllerRef.current?.abort();
-    onData(resource);
+    if (resource.id !== resourceId) {
+      requestControllerRef.current?.abort();
+      onFetching(false);
+    }
+    onData(current =>
+      current?.id === resource.id
+        ? { ...current, ...resource, path: current.path }
+        : resource
+    );
     onChange(resource.id, 'resourceId');
     onOpen(false);
   };

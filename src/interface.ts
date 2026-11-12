@@ -426,6 +426,7 @@ export type TaskType =
   | 'upsert_message_index';
 
 export interface Task {
+  failure_code?: string;
   id: string;
   status: TaskStatus;
   function: TaskType;

@@ -3,6 +3,7 @@ import { enUS, zhCN } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { CreditShortageActions } from '@/components/attributes/resource-tasks/CreditShortageActions';
 import { Button } from '@/components/Button';
 import Loading from '@/components/loading';
 import {
@@ -127,9 +128,20 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
     if (task.status === 'insufficient_quota' && task.ended_at) {
       const endedAt = new Date(task.ended_at);
-      return t('tasks.time_insufficient_quota', {
-        time: formatDistanceToNow(endedAt, { locale, addSuffix: true }),
-      });
+      return t(
+        task.failure_code === 'INSUFFICIENT_CREDITS'
+          ? 'tasks.time_insufficient_credits'
+          : [
+                'FILE_SIZE_LIMIT_EXCEEDED',
+                'DOC_PARSE_LIMIT_EXCEEDED',
+                'VIDEO_AUDIO_PARSE_LIMIT_EXCEEDED',
+              ].includes(task.failure_code ?? '')
+            ? 'tasks.time_file_limit'
+            : 'tasks.time_insufficient_quota',
+        {
+          time: formatDistanceToNow(endedAt, { locale, addSuffix: true }),
+        }
+      );
     }
 
     return '-';
@@ -355,7 +367,11 @@ export function TaskList({ namespaceId }: TaskListProps) {
                   </TableCell>
 
                   <TableCell>
-                    <div className="flex justify-end">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      {task.status === 'insufficient_quota' &&
+                        task.failure_code === 'INSUFFICIENT_CREDITS' && (
+                          <CreditShortageActions namespaceId={namespaceId} />
+                        )}
                       <TaskActions
                         task={task}
                         namespaceId={namespaceId}

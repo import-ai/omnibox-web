@@ -23,7 +23,6 @@ export default function RemoveHistory(props: IProps) {
       targetName={t('chat.conversations.name')}
       itemTitle={data.title}
       deleteUrl={`namespaces/${namespaceId}/conversations/${data.id}`}
-      restoreUrl={`/namespaces/${namespaceId}/conversations/${data.id}/restore`}
       successMessage={t('chat.conversations.deleted')}
       successDescription={t('chat.conversations.deleted_description')}
       cancelTrackName="chat_conversation_cancel"
