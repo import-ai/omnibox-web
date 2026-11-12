@@ -2,6 +2,7 @@ import { CreatedTimeAttribute } from '@/components/attributes/CreatedTimeAttribu
 import { FilenameAttribute } from '@/components/attributes/FilenameAttribute';
 import { Metadata } from '@/components/attributes/Metadata';
 import { PublishedTimeAttribute } from '@/components/attributes/PublishedTimeAttribute';
+import { supportsResourcePeople } from '@/components/attributes/resourcePeople';
 import { ResourceContributors } from '@/components/attributes/ResourcePeopleAttribute';
 import { UrlAttribute } from '@/components/attributes/UrlAttribute';
 import Tag from '@/components/tags';
@@ -19,6 +20,13 @@ export default function Attributes(props: IProps) {
   const { resource, namespaceId, onResource, readOnly } = props;
   const shouldRenderResourceTasks =
     !!onResource && resource.resource_type !== 'smart_folder';
+  const people = supportsResourcePeople(resource.resource_type) ? (
+    <ResourceContributors
+      namespaceId={namespaceId}
+      creator={resource.creator}
+      collaborators={resource.collaborators}
+    />
+  ) : null;
 
   // A read-only resource carries no user-owned attributes: no tags to edit, no
   // tasks to run. Show only the metadata the feed itself supplied, and link to
@@ -57,6 +65,7 @@ export default function Attributes(props: IProps) {
         {resource.created_at && (
           <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
+        {people}
         {shouldRenderResourceTasks && (
           <ResourceTasks
             resource={resource}
@@ -86,6 +95,7 @@ export default function Attributes(props: IProps) {
           {resource.created_at && (
             <CreatedTimeAttribute createdAt={resource.created_at} />
           )}
+          {people}
           {resource.attrs?.metadata && (
             <Metadata metadata={resource.attrs.metadata} />
           )}
@@ -109,6 +119,7 @@ export default function Attributes(props: IProps) {
         {resource.created_at && (
           <CreatedTimeAttribute createdAt={resource.created_at} />
         )}
+        {people}
         {shouldRenderResourceTasks && (
           <ResourceTasks
             resource={resource}
@@ -135,13 +146,7 @@ export default function Attributes(props: IProps) {
       {resource.created_at && (
         <CreatedTimeAttribute createdAt={resource.created_at} />
       )}
-      {resource.resource_type === 'doc' && (
-        <ResourceContributors
-          namespaceId={namespaceId}
-          creator={resource.creator}
-          collaborators={resource.collaborators}
-        />
-      )}
+      {people}
       {shouldRenderResourceTasks && (
         <ResourceTasks
           resource={resource}

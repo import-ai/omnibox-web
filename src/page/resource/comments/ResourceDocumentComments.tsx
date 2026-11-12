@@ -4,6 +4,9 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { beginCommentActivation } from '@/lib/behaviorRequest';
+import { trackInputActivation } from '@/lib/behaviorTracking';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { ResourceCommentInput } from './ResourceCommentInput';
@@ -74,17 +77,29 @@ export function ResourceDocumentComments({
                                 )}
                                 disabled={controller.submitting}
                                 onClick={event => {
-                                  event.stopPropagation();
-                                  const url = new URL(window.location.href);
-                                  url.hash = 'comment-' + thread.id;
-                                  navigator.clipboard
-                                    ?.writeText(url.toString())
-                                    .then(() =>
-                                      toast(t('actions.copy_link_success'), {
-                                        position: 'bottom-right',
-                                      })
-                                    )
-                                    .catch(() => undefined);
+                                  trackButtonClick('resource_comment_copy');
+                                  const handleClick = (
+                                    event: React.MouseEvent<HTMLButtonElement>
+                                  ) => {
+                                    event.stopPropagation();
+                                    const url = new URL(window.location.href);
+                                    url.hash = 'comment-' + thread.id;
+                                    navigator.clipboard
+                                      ?.writeText(url.toString())
+                                      .then(() =>
+                                        toast(t('actions.copy_link_success'), {
+                                          position: 'bottom-right',
+                                        })
+                                      )
+                                      .catch(() => undefined);
+                                  };
+                                  if (typeof handleClick === 'function') {
+                                    (
+                                      handleClick as (
+                                        value?: typeof event
+                                      ) => void
+                                    )(event);
+                                  }
                                 }}
                               >
                                 <Link2 aria-hidden />
@@ -105,10 +120,24 @@ export function ResourceDocumentComments({
                                   )}
                                   disabled={controller.submitting}
                                   onClick={event => {
-                                    event.stopPropagation();
-                                    controller
-                                      .setThreadResolved(thread.id, true)
-                                      .catch(() => undefined);
+                                    trackButtonClick(
+                                      'resource_comment_confirm'
+                                    );
+                                    const handleClick = (
+                                      event: React.MouseEvent<HTMLButtonElement>
+                                    ) => {
+                                      event.stopPropagation();
+                                      controller
+                                        .setThreadResolved(thread.id, true)
+                                        .catch(() => undefined);
+                                    };
+                                    if (typeof handleClick === 'function') {
+                                      (
+                                        handleClick as (
+                                          value?: typeof event
+                                        ) => void
+                                      )(event);
+                                    }
                                   }}
                                 >
                                   <Check aria-hidden />
@@ -129,6 +158,7 @@ export function ResourceDocumentComments({
           </div>
           {controller.documentHasMore ? (
             <Button
+              trackName="resource_comment_navigate"
               type={'button'}
               variant={'outline'}
               disabled={controller.documentLoadingMore}
@@ -149,6 +179,17 @@ export function ResourceDocumentComments({
           }
         >
           <form
+            onFocusCapture={event => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                beginCommentActivation(
+                  controller.resourceId,
+                  'document_comment'
+                );
+                trackInputActivation('document_comment', {
+                  resource_id: controller.resourceId,
+                });
+              }
+            }}
             className={'omnibox-comment-composer'}
             data-has-draft={hasDraft ? '' : undefined}
             onSubmit={event => {
@@ -164,6 +205,7 @@ export function ResourceDocumentComments({
             {hasDraft ? (
               <div className={'omnibox-comment-composer__actions'}>
                 <Button
+                  trackName="resource_comment_cancel"
                   type={'button'}
                   size={'sm'}
                   variant={'outline'}
@@ -174,6 +216,7 @@ export function ResourceDocumentComments({
                   {t('resource_comments.cancel')}
                 </Button>
                 <Button
+                  trackName="resource_comment_submit"
                   type={'submit'}
                   size={'sm'}
                   className={'omnibox-comment-submit'}

@@ -12,6 +12,7 @@ interface OutboxOptions {
   scope: () => string;
   send: (props: TraceProps, scope: string) => Promise<void>;
   online?: () => boolean;
+  preserveOccurredAt?: boolean;
 }
 
 const MAX_EVENTS = 100;
@@ -95,7 +96,12 @@ export class TraceOutbox {
       this.pending.push({
         scope,
         occurredAt,
-        props: { ...props, occurred_at: occurredAt },
+        props: {
+          ...props,
+          occurred_at: this.options.preserveOccurredAt
+            ? (props.occurred_at ?? occurredAt)
+            : occurredAt,
+        },
       });
       this.prune();
       await this.persist();

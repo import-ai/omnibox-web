@@ -10,6 +10,7 @@ import {
 import useApp from '@/hooks/useApp';
 import { USER_UPDATED_EVENT } from '@/hooks/userEvents';
 import type { Resource } from '@/interface';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import CopilotToggleButton from '@/page/copilot/CopilotToggleButton';
 import { NAMESPACE_MEMBERS_REFRESH } from '@/page/resource/mentionCard';
@@ -236,7 +237,12 @@ export default function ResourceHistoryPanel({
         ) : failed ? (
           <div className="space-y-3 py-8 text-center text-sm text-muted-foreground">
             <p>{t('resource.history.load_failed')}</p>
-            <Button onClick={retry} size="sm" variant="outline">
+            <Button
+              trackName="resource_history_retry"
+              onClick={retry}
+              size="sm"
+              variant="outline"
+            >
               {t('resource.history.retry')}
             </Button>
           </div>
@@ -261,7 +267,13 @@ export default function ResourceHistoryPanel({
                     active && 'bg-accent'
                   )}
                   key={revision.id}
-                  onClick={() => chooseRevision(revision.id)}
+                  onClick={event => {
+                    trackButtonClick('resource_history_select');
+                    const handleClick = () => chooseRevision(revision.id);
+                    if (typeof handleClick === 'function') {
+                      (handleClick as (value?: typeof event) => void)(event);
+                    }
+                  }}
                   type="button"
                 >
                   <span className="flex w-full items-center gap-2">

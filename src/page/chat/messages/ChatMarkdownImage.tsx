@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import { resolveChatImageUrl } from './chatImageUrl';
@@ -39,8 +40,14 @@ export function ChatMarkdownImage({
         aria-label={t('chat.image.preview')}
         className="max-w-full cursor-zoom-in rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
         onClick={event => {
-          invokerRef.current = event.currentTarget;
-          setPreviewUrl(url);
+          trackButtonClick('chat_image_open');
+          const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+            invokerRef.current = event.currentTarget;
+            setPreviewUrl(url);
+          };
+          if (typeof handleClick === 'function') {
+            (handleClick as (value?: typeof event) => void)(event);
+          }
         }}
       >
         <img

@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Checkbox } from '@/components/Checkbox';
 import { Separator } from '@/components/ui/Separator';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { useSelectedCount, useSidebarStore } from '@/page/sidebar/store';
 import {
@@ -79,6 +80,7 @@ export function Toolbar({
   };
 
   const handleCheckAll = () => {
+    trackButtonClick('sidebar_selection_select');
     const store = useSidebarStore.getState();
     if (checked === true) {
       store.clearSelection();
@@ -118,18 +120,21 @@ export function Toolbar({
               onClick={onBatchCreate}
               label={t('batch.create_tooltip')}
               disabledLabel={disabledLabel || unsupportedLabel('create')}
+              trackName="sidebar_batch_create"
             />
             <ToolbarButton
               icon={Move}
               onClick={onBatchMove}
               label={t('batch.move_tooltip')}
               disabledLabel={disabledLabel || unsupportedLabel('move')}
+              trackName="sidebar_move_open"
             />
             <ToolbarButton
               icon={MessageSquarePlus}
               onClick={onAddToChat}
               label={t('batch.add_to_chat_tooltip')}
               disabledLabel={disabledLabel}
+              trackName="sidebar_chat_select"
             />
             <ToolbarButton
               icon={Trash}
@@ -137,12 +142,14 @@ export function Toolbar({
               destructive
               label={t('batch.delete_tooltip')}
               disabledLabel={disabledLabel || unsupportedLabel('delete')}
+              trackName="sidebar_batch_delete"
             />
             <Separator orientation="vertical" className="h-4 bg-border" />
             <ToolbarButton
               icon={X}
               onClick={onDeselectAll}
               label={t('batch.exit_tooltip')}
+              trackName="sidebar_selection_cancel"
             />
           </div>
         ) : (
@@ -151,6 +158,7 @@ export function Toolbar({
               icon={Search}
               onClick={onSearchResources}
               label={t('search.search_resources')}
+              trackName="sidebar_search_open"
             />
             <ToolbarButton
               icon={Crosshair}
@@ -161,17 +169,20 @@ export function Toolbar({
                   ? t('actions.locate_resource_unavailable')
                   : undefined
               }
+              trackName="sidebar_resource_navigate"
             />
             <ToolbarButton
               icon={RotateCw}
               onClick={onRefreshResources}
               label={t('actions.refresh')}
               loading={refreshingResources}
+              trackName="sidebar_tree_refresh"
             />
             <ToolbarButton
               icon={ListCheck}
               onClick={toggleSelectionMode}
               label={t('batch.multi_select')}
+              trackName="sidebar_selection_toggle"
             />
           </div>
         )}

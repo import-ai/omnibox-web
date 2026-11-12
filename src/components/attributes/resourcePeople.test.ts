@@ -1,7 +1,30 @@
+import type { ResourceType } from '@/interface';
+
 import {
   liveContributorLabel,
+  supportsResourcePeople,
   truncateContributorLabel,
 } from './resourcePeople';
+
+describe('supportsResourcePeople', () => {
+  it.each<ResourceType>(['doc', 'link', 'file'])(
+    'shows people for %s',
+    resourceType => {
+      expect(supportsResourcePeople(resourceType)).toBe(true);
+    }
+  );
+
+  const hiddenTypes: (ResourceType | undefined)[] = [
+    'folder',
+    'smart_folder',
+    'rss_folder',
+    'rss_item',
+    undefined,
+  ];
+  it.each(hiddenTypes)('hides people for %s', resourceType => {
+    expect(supportsResourcePeople(resourceType)).toBe(false);
+  });
+});
 
 describe('truncateContributorLabel', () => {
   it('keeps a short name and counts unicode characters', () => {

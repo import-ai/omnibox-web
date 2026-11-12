@@ -1451,7 +1451,7 @@
     "auto_delete_notice": "回收站中超过 {{days}} 天的资源将自动删除",
     "restore": "恢复",
     "delete_permanently": "立即删除",
-    "clear_all": "清倒",
+    "clear_all": "清空",
     "confirm": {
       "single_title": "永久删除",
       "single_description": "确定要永久删除此资源吗？删除后将无法撤回",

@@ -11,6 +11,7 @@ import {
 } from 'react';
 
 import { Input, type InputProps } from '@/components/input';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { getEmailSuggestions } from './emailDomains';
@@ -53,6 +54,7 @@ export const EmailSuggestionInput = forwardRef<
   };
 
   const selectEmail = (email: string) => {
+    trackButtonClick('user_email_select');
     onChange(email);
     setIsOpen(false);
   };

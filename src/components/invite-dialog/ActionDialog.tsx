@@ -5,12 +5,14 @@ import { type ReactNode, useState } from 'react';
 import {
   Dialog,
   DialogClose,
+  dialogCloseTrackName,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/omnibox/Dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 interface ActionDialogProps {
@@ -57,6 +59,22 @@ export default function ActionDialog(props: ActionDialogProps) {
         <div className="contents">
           <div className={cn('absolute right-4 top-4', closeWrapperClassName)}>
             <DialogClose
+              onClick={event => {
+                if (contentProps?.closeDisabled) {
+                  event.preventDefault();
+                  return;
+                }
+                const name = dialogCloseTrackName(
+                  contentProps?.outsideCloseTrackName,
+                  contentProps?.outsideCloseTarget
+                );
+                if (name && !event.defaultPrevented)
+                  trackButtonClick(name, {
+                    ...contentProps?.closeTrackProps,
+                    dismiss: 'button',
+                    target: contentProps?.outsideCloseTarget,
+                  });
+              }}
               className={cn(
                 'rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-0 focus:ring-offset-0 focus-visible:outline-hidden focus-visible:ring-0 focus-visible:ring-offset-0 disabled:pointer-events-none data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground',
                 closeClassName

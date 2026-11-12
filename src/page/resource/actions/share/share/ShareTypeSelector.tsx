@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from '@/components/omnibox/Select';
 import { ShareType, shareTypeToString } from '@/interface';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 export interface ShareTypeProps {
   disabled?: boolean;
@@ -20,11 +21,20 @@ export function ShareTypeSelector(props: ShareTypeProps) {
   const shareTypes: ShareType[] = ['doc_only', 'chat_only', 'all'];
 
   return (
-    <Select disabled={disabled} value={shareType} onValueChange={onChange}>
+    <Select
+      disabled={disabled}
+      value={shareType}
+      onValueChange={value => {
+        trackButtonClick('resource_share_select', { share_type: value });
+        onChange?.(value as ShareType);
+      }}
+    >
       <SelectTrigger className="w-36 h-6">
         <SelectValue placeholder={t('share.share.ai_chat')} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent
+        onPointerDownOutside={onOverlayClose('resource_overlay_close', 'share')}
+      >
         {shareTypes.map(type => (
           <SelectItem key={type} value={type}>
             {shareTypeToString(type)}

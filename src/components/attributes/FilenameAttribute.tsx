@@ -83,6 +83,7 @@ function FilenameAttributeValue({
         </span>
       </div>
       <Button
+        trackName="resource_filename_edit"
         ref={invokerRef}
         variant="ghost"
         loading={loading}

@@ -19,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 interface AgreementConsent {
   agreed: boolean;
@@ -82,7 +83,10 @@ export function AgreementCheckbox() {
         id={id}
         className="mt-0.5"
         checked={agreed}
-        onCheckedChange={value => setAgreed(value === true)}
+        onCheckedChange={value => {
+          trackButtonClick('user_agreement_toggle', { agreed: value === true });
+          setAgreed(value === true);
+        }}
         aria-labelledby={`${id}-label`}
       />
       <label id={`${id}-label`} htmlFor={id} className="cursor-pointer">
@@ -146,6 +150,10 @@ export function AgreementConsentProvider({
       {children}
       <Dialog open={open} onOpenChange={value => !value && cancel()}>
         <DialogContent
+          onPointerDownOutside={onOverlayClose(
+            'user_overlay_close',
+            'agreement'
+          )}
           className="w-[85%] max-w-sm sm:max-w-sm"
           showCloseButton={false}
         >
@@ -161,10 +169,19 @@ export function AgreementConsentProvider({
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            <Button type="button" onClick={confirm}>
+            <Button
+              trackName="user_agreement_confirm"
+              type="button"
+              onClick={confirm}
+            >
               {t('login.agreement.confirm.button')}
             </Button>
-            <Button type="button" variant="outline" onClick={cancel}>
+            <Button
+              trackName="user_agreement_cancel"
+              type="button"
+              variant="outline"
+              onClick={cancel}
+            >
               {t('login.agreement.decline')}
             </Button>
           </div>

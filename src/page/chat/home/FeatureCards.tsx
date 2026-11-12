@@ -6,6 +6,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ExtensionIcon } from '@/assets/icons/ExtensionIcon';
+import { BehaviorExposure } from '@/components/BehaviorExposure';
 import { Button } from '@/components/Button';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import {
@@ -34,11 +35,13 @@ const importActionWidthLabel = 'Extension';
 function ImportActionButton({
   tooltip,
   tooltipDelay,
+  behaviorEntry,
   children,
   ...props
 }: React.ComponentProps<typeof Button> & {
   tooltip: React.ReactNode;
   tooltipDelay?: number;
+  behaviorEntry?: string;
 }) {
   return (
     <div className="relative">
@@ -55,15 +58,21 @@ function ImportActionButton({
       </Button>
       <Tooltip delayDuration={tooltipDelay}>
         <TooltipTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            {...props}
-            className="absolute inset-0"
+          <BehaviorExposure
+            target="resource_creation_entry"
+            active={!!behaviorEntry}
+            props={{ entry: behaviorEntry, location: 'home' }}
           >
-            {children}
-          </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              {...props}
+              className="absolute inset-0"
+            >
+              {children}
+            </Button>
+          </BehaviorExposure>
         </TooltipTrigger>
         <TooltipContent>{tooltip}</TooltipContent>
       </Tooltip>
@@ -225,6 +234,7 @@ export default function FeatureCards() {
               >
                 {uploading ? (
                   <ImportActionButton
+                    behaviorEntry="upload_file"
                     tooltip={progress || t('chat.home.upload.local_tooltip')}
                     tooltipDelay={0}
                     disabled
@@ -234,7 +244,9 @@ export default function FeatureCards() {
                   </ImportActionButton>
                 ) : (
                   <ImportActionButton
+                    behaviorEntry="upload_file"
                     tooltip={t('chat.home.upload.local_tooltip')}
+                    trackName="chat_file_upload"
                     onClick={() => openFilePicker(fileInputRef.current)}
                   >
                     <FileUp className="size-4 text-red-500" />
@@ -242,7 +254,9 @@ export default function FeatureCards() {
                   </ImportActionButton>
                 )}
                 <ImportActionButton
+                  behaviorEntry="add_link"
                   tooltip={t('chat.home.upload.link_tooltip')}
+                  trackName="chat_link_open"
                   onClick={() => setLinkMode(true)}
                 >
                   <Link className="size-4 text-blue-500" />
@@ -250,6 +264,7 @@ export default function FeatureCards() {
                 </ImportActionButton>
                 <ImportActionButton
                   tooltip={t('chat.home.upload.wechat_tooltip')}
+                  trackName="chat_wechat_open"
                   onClick={handleWeChatClick}
                 >
                   <MessageCircle className="size-4 text-green-500" />
@@ -257,6 +272,7 @@ export default function FeatureCards() {
                 </ImportActionButton>
                 <ImportActionButton
                   tooltip={t('chat.home.upload.browser_tooltip')}
+                  trackName="chat_extension_open"
                   onClick={handleBrowserClick}
                 >
                   <ExtensionIcon />

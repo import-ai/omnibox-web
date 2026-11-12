@@ -1,6 +1,7 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { ConversationShareSelectionControl } from './ConversationShareControls';
@@ -20,6 +21,7 @@ export function ConversationShareMessageRow({
   const toggle = (event?: MouseEvent) => {
     event?.preventDefault();
     event?.stopPropagation();
+    trackButtonClick('chat_share_select');
     onToggle(groupId);
   };
 
@@ -35,6 +37,7 @@ export function ConversationShareMessageRow({
       onKeyDown={event => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
+        trackButtonClick('chat_share_select');
         onToggle(groupId);
       }}
       role="checkbox"

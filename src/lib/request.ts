@@ -10,6 +10,10 @@ import { isUndefined } from 'lodash-es';
 import { toast } from 'sonner';
 
 import { API_BASE_URL } from '@/const';
+import {
+  behaviorRequestHeaders,
+  rememberBehaviorUpload,
+} from '@/lib/behaviorRequest';
 import { detectBrowserLanguage } from '@/lib/detectLanguage';
 import { removeGlobalCredential } from '@/page/user/util';
 
@@ -57,6 +61,27 @@ request.interceptors.request.use(
       config.headers['X-Timezone'] = timeZone;
     }
     config.headers['From'] = 'web';
+    if (!config.headers['x-omnibox-action-id']) {
+      const payload =
+        typeof config.data === 'string'
+          ? (() => {
+              try {
+                return JSON.parse(config.data);
+              } catch {
+                return undefined;
+              }
+            })()
+          : config.data;
+      Object.assign(
+        config.headers,
+        behaviorRequestHeaders(
+          config.method || 'GET',
+          config.url || '',
+          payload
+        )
+      );
+    }
+
     if (!config.headers['Content-Type']) {
       config.headers['Content-Type'] = 'application/json';
     }
@@ -85,6 +110,11 @@ function handleTokenError(redirect: boolean) {
 
 request.interceptors.response.use(
   (response: AxiosResponse) => {
+    rememberBehaviorUpload(
+      response.config.url || '',
+      response.config.headers as Record<string, string>,
+      response.data
+    );
     return response.data;
   },
   (error: AxiosError) => {

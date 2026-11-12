@@ -57,17 +57,26 @@ jobs:
       - name: Test invite permission validation
         run: pnpm exec jest src/components/invite-dialog/people/InviteForm.test.tsx --runInBand
 
+      - name: Test button click tracking
+        run: pnpm exec jest src/lib/trackButtonClick.test.ts src/lib/buttonClickDelivery.test.ts src/components/Button.test.tsx src/page/chat/chat-input/ComposerButtonTracking.test.tsx src/page/chat/chat-input/ChatArea.test.tsx src/components/omnibox/Dialog.test.tsx src/components/omnibox/DialogTracking.test.tsx src/components/permission-action/index.test.tsx src/page/settings/SettingsButtonTracking.test.tsx src/page/settings/tabs/members/Action.test.tsx src/page/sidebar/hooks/useNodeMenu.test.tsx --runInBand
+
       - name: Test assistant binding synchronization
         run: pnpm exec jest src/hooks/useApplications.test.ts src/hooks/useApplicationSessions.test.ts src/page/settings/tabs/applications src/page/settings/SettingsBindingLifecycle.test.tsx --runInBand
 
       - name: Test docs appearance synchronization
         run: pnpm exec jest src/lib/docsAppearance.test.ts src/layout/index.test.tsx src/layout/authStorage.test.ts --runInBand
 
+      - name: Test namespace member count refresh
+        run: pnpm exec jest src/hooks/useNamespaceMember.test.tsx --runInBand
+
       - name: Test anonymous captcha entry
         run: pnpm exec jest src/page/captcha/CaptchaPage.test.tsx src/hooks/useCaptcha.test.tsx src/lib/captcha.test.ts --runInBand
 
       - name: Test auth agreement consent
         run: pnpm exec jest src/page/user --runInBand
+
+      - name: Test non-button behavior tracking
+        run: pnpm exec jest src/components/BehaviorExposure.test.tsx src/page/chat/home/FeatureCards.test.tsx src/lib/behaviorEngine.test.ts src/lib/behaviorRequest.test.ts src/lib/behaviorTracking.test.tsx src/lib/sendTrackEvent.behavior.test.ts src/page/chat/chat-input/ThinkingLevelSelector.exposure.test.tsx --runInBand
 
       - name: Test chat error telemetry
         run: pnpm exec jest src/lib/chatErrorTracking.test.ts src/lib/traceOutbox.test.ts src/lib/sendTrackEvent.retry.test.ts src/lib/sendTrackEvent.chat.test.ts src/lib/request.traceScope.test.ts src/components/omnibox/ChatErrorText.test.tsx src/page/chat/messages/MessageFailureFeedback.test.tsx --runInBand

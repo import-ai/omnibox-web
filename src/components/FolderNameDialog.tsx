@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
@@ -11,12 +11,18 @@ import {
 } from '@/components/omnibox/Dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
+import { beginEditorInput } from '@/lib/behaviorRequest';
+import { useBehaviorSurface } from '@/lib/behaviorTracking';
+import { overlayCloseName } from '@/lib/trackButtonClick';
 
 interface FolderNameDialogProps {
   open: boolean;
   initialName?: string;
+  resourceId?: string;
   title?: string;
   confirmText?: string;
+  cancelTrackName?: string;
+  confirmTrackName?: string;
   onOpenChange: (open: boolean) => void;
   onConfirm: (folderName: string) => Promise<unknown>;
 }
@@ -24,8 +30,11 @@ interface FolderNameDialogProps {
 export function FolderNameDialog({
   open,
   initialName = '',
+  resourceId,
   title,
   confirmText,
+  cancelTrackName,
+  confirmTrackName,
   onOpenChange,
   onConfirm,
 }: FolderNameDialogProps) {
@@ -77,11 +86,20 @@ export function FolderNameDialog({
         if (!open) setFolderName('');
       }}
     >
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        closeDisabled={submitting}
+        className="sm:max-w-[425px]"
+        outsideCloseTrackName={
+          confirmTrackName
+            ? overlayCloseName(confirmTrackName, 'sidebar')
+            : undefined
+        }
+        outsideCloseTarget={confirmTrackName ? 'folder' : undefined}
+      >
         <DialogHeader>
           <DialogTitle>{title || t('folder.create_dialog.title')}</DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-4 py-4">
+        <FolderEditSurface open={open} resourceId={resourceId}>
           <div className="flex flex-col gap-2">
             <Label htmlFor="folder-name">
               {t('folder.create_dialog.name')}
@@ -89,7 +107,10 @@ export function FolderNameDialog({
             <Input
               id="folder-name"
               value={folderName}
-              onChange={e => setFolderName(e.target.value)}
+              onChange={e => {
+                setFolderName(e.target.value);
+                if (resourceId) beginEditorInput(resourceId);
+              }}
               onKeyDown={handleKeyDown}
               placeholder={t('folder.create_dialog.placeholder')}
               className="border-line"
@@ -97,16 +118,18 @@ export function FolderNameDialog({
               disabled={submitting}
             />
           </div>
-        </div>
+        </FolderEditSurface>
         <DialogFooter>
           <Button
             variant="outline"
+            trackName={cancelTrackName}
             onClick={handleCancel}
             disabled={submitting}
           >
             {t('cancel')}
           </Button>
           <Button
+            trackName={confirmTrackName}
             onClick={handleConfirm}
             disabled={!folderName.trim() || submitting}
             loading={submitting}
@@ -116,5 +139,29 @@ export function FolderNameDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function FolderEditSurface({
+  open,
+  resourceId,
+  children,
+}: {
+  open: boolean;
+  resourceId?: string;
+  children: ReactNode;
+}) {
+  const editorRef = useRef<HTMLDivElement>(null);
+  useBehaviorSurface({
+    scope: 'editor',
+    target: 'resource_detail',
+    active: open && !!resourceId,
+    elementRef: editorRef,
+    props: { resource_id: resourceId, resource_type: 'folder' },
+  });
+  return (
+    <div ref={editorRef} className="flex flex-col gap-4 py-4">
+      {children}
+    </div>
   );
 }

@@ -2,6 +2,8 @@ import { type UIEvent, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { trackButtonClick } from '@/lib/trackButtonClick';
+
 import { useNotifications } from './hooks/useNotifications';
 import { NotificationDetailDialog } from './NotificationDetailDialog';
 import { NotificationEmptyState } from './NotificationEmptyState';
@@ -61,6 +63,7 @@ function Notification({ onClose }: { onClose?: () => void }) {
   // Handle notification click behavior based on the configured action type.
   const handleOpenDetail = useCallback(
     async (item: NotificationItem) => {
+      trackButtonClick('notification_item_open');
       const shouldMarkRead = item.status === 'unread';
       const { url } = item?.target || {};
       const source = item?.target?.type;

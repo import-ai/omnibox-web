@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/Sidebar';
 import { Spinner } from '@/components/ui/Spinner';
 import { useIsMobile } from '@/hooks/useMobile';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { getShareResourceNavigationTarget } from '@/page/share/sidebar/navigation';
 import type { TreeNode } from '@/page/share/sidebar/store';
@@ -95,6 +96,7 @@ export function ResourceNodeContent({
   };
 
   const handleActive = () => {
+    trackButtonClick('share_resource_select');
     if (canExpand) {
       if (isActive) {
         handleExpand();
@@ -174,6 +176,7 @@ export function ResourceNodeContent({
                           </Button>
                         ) : (
                           <Button
+                            trackName="share_node_toggle"
                             size="icon"
                             variant="ghost"
                             className="size-5 cursor-pointer border-none bg-transparent text-muted-foreground shadow-none hover:bg-transparent dark:hover:bg-transparent"

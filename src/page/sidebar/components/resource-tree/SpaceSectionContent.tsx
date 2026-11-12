@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
 import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
+import { BehaviorExposure } from '@/components/BehaviorExposure';
 import { ContextMenuContent } from '@/components/ContextMenuContent';
 import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import {
@@ -43,6 +44,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { SpaceType } from '@/interface';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
@@ -139,11 +141,14 @@ export function SpaceSectionContent({
     [nodeUI, nodes, rootNode.children]
   );
 
+  const entryTrackProps = { space_type: spaceType, entry: 'space_menu' };
   const handleCreateFolder = () => {
+    trackButtonClick('sidebar_folder_create', entryTrackProps);
     useSidebarStore.getState().openCreateFolderDialog(rootId);
   };
 
   const handleCreateLink = () => {
+    trackButtonClick('sidebar_link_open', entryTrackProps);
     useSidebarStore.getState().openCreateLinkDialog(rootId);
   };
 
@@ -177,14 +182,17 @@ export function SpaceSectionContent({
   });
 
   const handleHeaderToggle = () => {
+    trackButtonClick('sidebar_section_toggle');
     useSidebarStore.getState().toggleSpace(spaceType);
   };
 
   const handleUploadClick = () => {
+    trackButtonClick('sidebar_file_upload', entryTrackProps);
     triggerGlobalFileUpload(rootId);
   };
 
   const handleCreateFile = () => {
+    trackButtonClick('sidebar_file_create', entryTrackProps);
     useSidebarStore
       .getState()
       .create(rootId, 'doc')
@@ -200,10 +208,14 @@ export function SpaceSectionContent({
   };
 
   const handleCreateSmartFolder = () => {
+    if (smartFolderDisabled) return;
+    trackButtonClick('sidebar_smart_folder_create', entryTrackProps);
     onCreateSmartFolder(spaceType);
   };
 
   const handleCreateRssFolder = () => {
+    if (rssFolderDisabled) return;
+    trackButtonClick('sidebar_feed_create', entryTrackProps);
     onCreateRssFolder(spaceType);
   };
 
@@ -268,91 +280,152 @@ export function SpaceSectionContent({
                           : 'pointer-events-none opacity-0 group-hover/sidebar-header:pointer-events-auto group-hover/sidebar-header:opacity-100'
                       )}
                     >
-                      <button type="button">
+                      <button
+                        onClick={() => trackButtonClick('sidebar_section_open')}
+                        type="button"
+                      >
                         <MoreHorizontal />
                       </button>
                     </SidebarMenuAction>
                   )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
+                  onPointerDownOutside={onOverlayClose(
+                    'sidebar_overlay_close',
+                    'space_menu'
+                  )}
                   side="right"
                   sideOffset={10}
                   align="start"
                   className="w-auto! min-w-36"
                   {...menuTriggerPress.contentProps}
                 >
-                  <DropdownMenuItem
-                    className={menuItemClass}
-                    onClick={handleCreateFile}
+                  <BehaviorExposure
+                    target="resource_creation_entry"
+                    props={{
+                      entry: 'create_file',
+                      space_type: spaceType,
+                      location: 'root_menu',
+                    }}
                   >
-                    <FilePlus className={menuIconClass} />
-                    {t('actions.create_file')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className={menuItemClass}
-                    onClick={handleCreateFolder}
-                  >
-                    <FolderPlus className={menuIconClass} />
-                    {t('actions.create_folder')}
-                  </DropdownMenuItem>
-                  <DisabledMenuTooltip content={rssFolderDisabledTip}>
                     <DropdownMenuItem
-                      className={cn(
-                        menuItemClass,
-                        rssFolderDisabled &&
-                          'cursor-not-allowed text-muted-foreground opacity-50'
-                      )}
-                      onClick={
-                        rssFolderDisabled ? undefined : handleCreateRssFolder
-                      }
-                      onSelect={event => {
-                        if (rssFolderDisabled) {
-                          event.preventDefault();
-                        }
-                      }}
-                      aria-disabled={rssFolderDisabled}
+                      className={menuItemClass}
+                      onClick={handleCreateFile}
                     >
-                      <RssFolderDefaultIcon className={menuIconClass} />
-                      {t('actions.create_rss_folder')}
+                      <FilePlus className={menuIconClass} />
+                      {t('actions.create_file')}
                     </DropdownMenuItem>
+                  </BehaviorExposure>
+                  <BehaviorExposure
+                    target="resource_creation_entry"
+                    props={{
+                      entry: 'create_folder',
+                      space_type: spaceType,
+                      location: 'root_menu',
+                    }}
+                  >
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateFolder}
+                    >
+                      <FolderPlus className={menuIconClass} />
+                      {t('actions.create_folder')}
+                    </DropdownMenuItem>
+                  </BehaviorExposure>
+                  <DisabledMenuTooltip content={rssFolderDisabledTip}>
+                    <BehaviorExposure
+                      target="resource_creation_entry"
+                      props={{
+                        entry: 'create_rss_folder',
+                        space_type: spaceType,
+                        location: 'root_menu',
+                      }}
+                    >
+                      <DropdownMenuItem
+                        className={cn(
+                          menuItemClass,
+                          rssFolderDisabled &&
+                            'cursor-not-allowed text-muted-foreground opacity-50'
+                        )}
+                        onClick={
+                          rssFolderDisabled ? undefined : handleCreateRssFolder
+                        }
+                        onSelect={event => {
+                          if (rssFolderDisabled) {
+                            event.preventDefault();
+                          }
+                        }}
+                        aria-disabled={rssFolderDisabled}
+                      >
+                        <RssFolderDefaultIcon className={menuIconClass} />
+                        {t('actions.create_rss_folder')}
+                      </DropdownMenuItem>
+                    </BehaviorExposure>
                   </DisabledMenuTooltip>
                   <DisabledMenuTooltip content={smartFolderDisabledTip}>
-                    <DropdownMenuItem
-                      className={cn(
-                        menuItemClass,
-                        smartFolderDisabled &&
-                          'cursor-not-allowed text-muted-foreground opacity-50'
-                      )}
-                      onClick={
-                        smartFolderDisabled
-                          ? undefined
-                          : handleCreateSmartFolder
-                      }
-                      onSelect={event => {
-                        if (smartFolderDisabled) {
-                          event.preventDefault();
-                        }
+                    <BehaviorExposure
+                      target="resource_creation_entry"
+                      props={{
+                        entry: 'create_smart_folder',
+                        space_type: spaceType,
+                        location: 'root_menu',
                       }}
-                      aria-disabled={smartFolderDisabled}
                     >
-                      <SmartFolderDefaultIcon className={menuIconClass} />
-                      {t('actions.create_smart_folder')}
-                    </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className={cn(
+                          menuItemClass,
+                          smartFolderDisabled &&
+                            'cursor-not-allowed text-muted-foreground opacity-50'
+                        )}
+                        onClick={
+                          smartFolderDisabled
+                            ? undefined
+                            : handleCreateSmartFolder
+                        }
+                        onSelect={event => {
+                          if (smartFolderDisabled) {
+                            event.preventDefault();
+                          }
+                        }}
+                        aria-disabled={smartFolderDisabled}
+                      >
+                        <SmartFolderDefaultIcon className={menuIconClass} />
+                        {t('actions.create_smart_folder')}
+                      </DropdownMenuItem>
+                    </BehaviorExposure>
                   </DisabledMenuTooltip>
-                  <DropdownMenuItem
-                    className={menuItemClass}
-                    onClick={handleUploadClick}
+                  <BehaviorExposure
+                    target="resource_creation_entry"
+                    props={{
+                      entry: 'upload_file',
+                      space_type: spaceType,
+                      location: 'root_menu',
+                    }}
                   >
-                    <FileUp className={menuIconClass} />
-                    {t('actions.upload_file')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className={menuItemClass}
-                    onClick={handleCreateLink}
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleUploadClick}
+                    >
+                      <FileUp className={menuIconClass} />
+                      {t('actions.upload_file')}
+                    </DropdownMenuItem>
+                  </BehaviorExposure>
+                  <BehaviorExposure
+                    target="resource_creation_entry"
+                    props={{
+                      entry: 'add_link',
+                      space_type: spaceType,
+                      location: 'root_menu',
+                    }}
                   >
-                    <Link className={menuIconClass} />
-                    {t('actions.add_link')}
-                  </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateLink}
+                    >
+                      <Link className={menuIconClass} />
+                      {t('actions.add_link')}
+                    </DropdownMenuItem>
+                  </BehaviorExposure>
                   <ResourceSortMenu
                     value={resourceSort}
                     disabled={sorting}
@@ -363,69 +436,134 @@ export function SpaceSectionContent({
             </div>
           </SidebarMenuButton>
         </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem className={menuItemClass} onClick={handleCreateFile}>
-            <FilePlus className={menuIconClass} />
-            {t('actions.create_file')}
-          </ContextMenuItem>
-          <ContextMenuItem
-            className={menuItemClass}
-            onClick={handleCreateFolder}
+        <ContextMenuContent
+          onPointerDownOutside={onOverlayClose(
+            'sidebar_overlay_close',
+            'space_menu'
+          )}
+        >
+          <BehaviorExposure
+            target="resource_creation_entry"
+            props={{
+              entry: 'create_file',
+              space_type: spaceType,
+              location: 'root_menu',
+            }}
           >
-            <FolderPlus className={menuIconClass} />
-            {t('actions.create_folder')}
-          </ContextMenuItem>
-          <DisabledMenuTooltip content={rssFolderDisabledTip}>
             <ContextMenuItem
-              className={cn(
-                menuItemClass,
-                rssFolderDisabled &&
-                  'cursor-not-allowed text-muted-foreground opacity-50'
-              )}
-              onClick={rssFolderDisabled ? undefined : handleCreateRssFolder}
-              onSelect={event => {
-                if (rssFolderDisabled) {
-                  event.preventDefault();
-                }
-              }}
-              aria-disabled={rssFolderDisabled}
+              className={menuItemClass}
+              onClick={handleCreateFile}
             >
-              <RssFolderDefaultIcon className={menuIconClass} />
-              {t('actions.create_rss_folder')}
+              <FilePlus className={menuIconClass} />
+              {t('actions.create_file')}
             </ContextMenuItem>
+          </BehaviorExposure>
+          <BehaviorExposure
+            target="resource_creation_entry"
+            props={{
+              entry: 'create_folder',
+              space_type: spaceType,
+              location: 'root_menu',
+            }}
+          >
+            <ContextMenuItem
+              className={menuItemClass}
+              onClick={handleCreateFolder}
+            >
+              <FolderPlus className={menuIconClass} />
+              {t('actions.create_folder')}
+            </ContextMenuItem>
+          </BehaviorExposure>
+          <DisabledMenuTooltip content={rssFolderDisabledTip}>
+            <BehaviorExposure
+              target="resource_creation_entry"
+              props={{
+                entry: 'create_rss_folder',
+                space_type: spaceType,
+                location: 'root_menu',
+              }}
+            >
+              <ContextMenuItem
+                className={cn(
+                  menuItemClass,
+                  rssFolderDisabled &&
+                    'cursor-not-allowed text-muted-foreground opacity-50'
+                )}
+                onClick={rssFolderDisabled ? undefined : handleCreateRssFolder}
+                onSelect={event => {
+                  if (rssFolderDisabled) {
+                    event.preventDefault();
+                  }
+                }}
+                aria-disabled={rssFolderDisabled}
+              >
+                <RssFolderDefaultIcon className={menuIconClass} />
+                {t('actions.create_rss_folder')}
+              </ContextMenuItem>
+            </BehaviorExposure>
           </DisabledMenuTooltip>
           <DisabledMenuTooltip content={smartFolderDisabledTip}>
-            <ContextMenuItem
-              className={cn(
-                menuItemClass,
-                smartFolderDisabled &&
-                  'cursor-not-allowed text-muted-foreground opacity-50'
-              )}
-              onClick={
-                smartFolderDisabled ? undefined : handleCreateSmartFolder
-              }
-              onSelect={event => {
-                if (smartFolderDisabled) {
-                  event.preventDefault();
-                }
+            <BehaviorExposure
+              target="resource_creation_entry"
+              props={{
+                entry: 'create_smart_folder',
+                space_type: spaceType,
+                location: 'root_menu',
               }}
-              aria-disabled={smartFolderDisabled}
             >
-              <SmartFolderDefaultIcon className={menuIconClass} />
-              {t('actions.create_smart_folder')}
-            </ContextMenuItem>
+              <ContextMenuItem
+                className={cn(
+                  menuItemClass,
+                  smartFolderDisabled &&
+                    'cursor-not-allowed text-muted-foreground opacity-50'
+                )}
+                onClick={
+                  smartFolderDisabled ? undefined : handleCreateSmartFolder
+                }
+                onSelect={event => {
+                  if (smartFolderDisabled) {
+                    event.preventDefault();
+                  }
+                }}
+                aria-disabled={smartFolderDisabled}
+              >
+                <SmartFolderDefaultIcon className={menuIconClass} />
+                {t('actions.create_smart_folder')}
+              </ContextMenuItem>
+            </BehaviorExposure>
           </DisabledMenuTooltip>
-          <ContextMenuItem
-            className={menuItemClass}
-            onClick={handleUploadClick}
+          <BehaviorExposure
+            target="resource_creation_entry"
+            props={{
+              entry: 'upload_file',
+              space_type: spaceType,
+              location: 'root_menu',
+            }}
           >
-            <FileUp className={menuIconClass} />
-            {t('actions.upload_file')}
-          </ContextMenuItem>
-          <ContextMenuItem className={menuItemClass} onClick={handleCreateLink}>
-            <Link className={menuIconClass} />
-            {t('actions.add_link')}
-          </ContextMenuItem>
+            <ContextMenuItem
+              className={menuItemClass}
+              onClick={handleUploadClick}
+            >
+              <FileUp className={menuIconClass} />
+              {t('actions.upload_file')}
+            </ContextMenuItem>
+          </BehaviorExposure>
+          <BehaviorExposure
+            target="resource_creation_entry"
+            props={{
+              entry: 'add_link',
+              space_type: spaceType,
+              location: 'root_menu',
+            }}
+          >
+            <ContextMenuItem
+              className={menuItemClass}
+              onClick={handleCreateLink}
+            >
+              <Link className={menuIconClass} />
+              {t('actions.add_link')}
+            </ContextMenuItem>
+          </BehaviorExposure>
           <ResourceSortMenu
             variant="context"
             value={resourceSort}

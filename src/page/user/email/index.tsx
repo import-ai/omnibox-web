@@ -24,6 +24,7 @@ export default function Email({
 
   const button = (
     <Button
+      trackName="user_login_select"
       variant="outline"
       onClick={onClick}
       aria-label={label}

@@ -13,6 +13,7 @@ import { SidebarTriggerButton } from '@/components/SidebarTriggerButton';
 import { useSidebar } from '@/components/ui/Sidebar';
 import { Skeleton } from '@/components/ui/Skeleton';
 import useApp from '@/hooks/useApp';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import {
   fetchInviteOverview,
@@ -149,7 +150,13 @@ export function InviteReferralContent() {
                 type="button"
                 aria-label={t('login.back')}
                 className="flex size-11 items-center justify-center rounded-md focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={closeRecords}
+                onClick={event => {
+                  trackButtonClick('invite_referral_page_navigate');
+                  const handleClick = closeRecords;
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
               >
                 <ChevronLeft className="size-5" />
               </button>
@@ -158,7 +165,13 @@ export function InviteReferralContent() {
                 type="button"
                 aria-label={t('login.back')}
                 className="flex size-11 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={goHome}
+                onClick={event => {
+                  trackButtonClick('invite_referral_page_navigate');
+                  const handleClick = goHome;
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
               >
                 <ChevronLeft className="size-5" />
               </button>
@@ -178,7 +191,13 @@ export function InviteReferralContent() {
               <button
                 type="button"
                 className="flex min-h-11 items-end pb-1 text-xs font-medium focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={openRecords}
+                onClick={event => {
+                  trackButtonClick('invite_referral_page_select');
+                  const handleClick = openRecords;
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
               >
                 {t('inviteReferral.records.subtitle')}
               </button>
@@ -194,7 +213,13 @@ export function InviteReferralContent() {
                 type="button"
                 aria-label={t('login.back')}
                 className="flex size-8 items-center justify-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                onClick={goHome}
+                onClick={event => {
+                  trackButtonClick('invite_referral_page_navigate');
+                  const handleClick = goHome;
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
               >
                 <ChevronLeft className="size-5" />
               </button>
@@ -218,7 +243,12 @@ export function InviteReferralContent() {
           <p className="text-center text-sm text-muted-foreground">
             {t('inviteReferral.loadFailed')}
           </p>
-          <Button type="button" variant="outline" onClick={() => void load()}>
+          <Button
+            trackName="invite_referral_page_retry"
+            type="button"
+            variant="outline"
+            onClick={() => void load()}
+          >
             {t('inviteReferral.common.retry')}
           </Button>
         </div>

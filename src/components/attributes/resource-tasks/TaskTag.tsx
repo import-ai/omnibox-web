@@ -19,6 +19,7 @@ export function TaskTag({ type, variant = 'outline' }: TaskTagProps) {
 
   return (
     <Button
+      trackName="resource_task_select"
       variant={variant}
       className="h-6 gap-0.5 rounded-lg bg-transparent px-2 py-0 text-xs text-foreground"
     >

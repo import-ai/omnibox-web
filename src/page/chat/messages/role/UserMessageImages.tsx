@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import type { UserMessageImagePart } from './userMessageTokens';
 
@@ -26,8 +27,16 @@ export function UserMessageImages({
             aria-label={t('chat.image.preview')}
             className="relative"
             onClick={event => {
-              invokerRef.current = event.currentTarget;
-              setPreview(image);
+              trackButtonClick('chat_image_open');
+              const handleClick = (
+                event: React.MouseEvent<HTMLButtonElement>
+              ) => {
+                invokerRef.current = event.currentTarget;
+                setPreview(image);
+              };
+              if (typeof handleClick === 'function') {
+                (handleClick as (value?: typeof event) => void)(event);
+              }
             }}
           >
             <img

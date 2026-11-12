@@ -74,6 +74,7 @@ export default function InviteRedirectPage() {
           )}
         </div>
         <Button
+          trackName="invite_referral_invitation_confirm"
           className="w-full"
           loading={isAccepting}
           onClick={acceptInvitation}

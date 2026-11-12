@@ -27,6 +27,10 @@ import {
 
 let params = new URLSearchParams();
 const navigate = jest.fn();
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+}));
 jest.mock('react-router-dom', () => ({
   useNavigate: () => navigate,
   useSearchParams: () => [params],

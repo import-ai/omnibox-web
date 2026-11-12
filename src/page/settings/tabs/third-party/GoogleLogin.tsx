@@ -18,7 +18,10 @@ export function GoogleLogin() {
   };
 
   return (
-    <SettingPageButton onClick={loginWithGoogle}>
+    <SettingPageButton
+      trackName="settings_binding_create"
+      onClick={loginWithGoogle}
+    >
       {t('setting.bind_btn')}
     </SettingPageButton>
   );

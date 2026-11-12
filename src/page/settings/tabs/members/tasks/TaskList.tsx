@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/Table';
 import { Task } from '@/interface';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 import { TaskActions } from './TaskActions';
 import { TaskPagination } from './TaskPagination';
@@ -216,6 +217,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
   };
 
   const handleViewFilterChange = (value: 'own' | 'all') => {
+    trackButtonClick('settings_task_select', { view: value });
     setViewFilter(value);
     setCurrentPage(1); // Reset to first page when changing filter
   };
@@ -236,14 +238,23 @@ export function TaskList({ namespaceId }: TaskListProps) {
               <SelectTrigger className="w-[100px] lg:w-[120px]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                onPointerDownOutside={onOverlayClose(
+                  'settings_overlay_close',
+                  'task'
+                )}
+              >
                 <SelectItem value="own">{t('tasks.my_tasks')}</SelectItem>
                 <SelectItem value="all">{t('tasks.all_tasks')}</SelectItem>
               </SelectContent>
             </Select>
           )}
         </div>
-        <SettingPageButton onClick={handleRefresh} disabled={loading}>
+        <SettingPageButton
+          trackName="settings_task_refresh"
+          onClick={handleRefresh}
+          disabled={loading}
+        >
           {t('common.refresh')}
         </SettingPageButton>
       </div>
@@ -276,6 +287,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
                   <Alert variant="destructive" className="text-center">
                     <AlertDescription>{error}</AlertDescription>
                     <Button
+                      trackName="settings_task_retry"
                       variant="outline"
                       onClick={handleRefresh}
                       className="mt-2"

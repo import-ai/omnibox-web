@@ -12,6 +12,7 @@ import {
 import useTheme from '@/hooks/useTheme';
 import { fonts, resolveFont } from '@/lib/fonts';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 export default function Font() {
   const { t } = useTranslation();
@@ -20,6 +21,7 @@ export default function Font() {
   const selected = resolveFont(theme.font);
 
   const selectFont = async (value: string) => {
+    trackButtonClick('settings_font_select', { font: value });
     const font = resolveFont(value);
     if (saving || font === selected) return;
     setSaving(true);
@@ -52,7 +54,14 @@ export default function Font() {
         <SelectTrigger className="w-[120px] px-2 lg:w-[180px] lg:px-3">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent position="popper" className="w-[120px] lg:w-[180px]">
+        <SelectContent
+          onPointerDownOutside={onOverlayClose(
+            'settings_overlay_close',
+            'font'
+          )}
+          position="popper"
+          className="w-[120px] lg:w-[180px]"
+        >
           {fonts.map(font => (
             <SelectItem
               key={font.name}
