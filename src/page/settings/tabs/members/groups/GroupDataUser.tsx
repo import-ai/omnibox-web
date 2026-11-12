@@ -58,8 +58,11 @@ export default function GroupDataUser(props: GroupProps) {
               onOk={() => onRemove(item.id)}
               okText={t('ok')}
               cancelText={t('cancel')}
+              cancelTrackName="settings_member_cancel"
+              confirmTrackName="settings_member_confirm"
             >
               <Button
+                trackName="settings_member_remove"
                 size="sm"
                 variant="ghost"
                 className="shrink-0 hover:bg-transparent hover:text-red-500 aria-expanded:bg-transparent data-[state=open]:bg-transparent"

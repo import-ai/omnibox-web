@@ -19,6 +19,7 @@ export interface StorageItem {
 export interface StorageSectionProps {
   title: string;
   current: string;
+  action?: React.ReactNode;
   currentTooltip?: React.ReactNode;
   items: StorageItem[];
   segments: QuotaProgressSegment[];
@@ -27,14 +28,18 @@ export interface StorageSectionProps {
 export function StorageSection({
   title,
   current,
+  action,
   currentTooltip,
   items,
   segments,
 }: StorageSectionProps) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-foreground">{title}</h2>
+        <div className="flex items-center gap-1">
+          <h2 className="text-sm font-medium text-foreground">{title}</h2>
+          {action}
+        </div>
         {currentTooltip ? (
           <TooltipProvider delayDuration={200}>
             <Tooltip>

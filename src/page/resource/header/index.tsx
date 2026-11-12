@@ -92,6 +92,7 @@ export default function Header(props: IActionProps) {
               {historyAuthorName ? ` · ${historyAuthorName}` : ''}
             </span>
             <Button
+              trackName="resource_version_open"
               onClick={onViewCurrent}
               size="sm"
               type="button"
@@ -103,6 +104,7 @@ export default function Header(props: IActionProps) {
             </Button>
             {onRestore ? (
               <Button
+                trackName="resource_version_confirm"
                 disabled={restoring}
                 onClick={onRestore}
                 size="sm"
@@ -126,6 +128,7 @@ export default function Header(props: IActionProps) {
         !props.editPage &&
         !historyActive ? (
           <IconButton
+            trackName="resource_history_open"
             label={t('resource.history.tooltip')}
             size="sm"
             tone="sidebar"

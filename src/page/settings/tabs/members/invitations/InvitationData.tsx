@@ -28,10 +28,19 @@ export function InvitationData(props: InvitationProps) {
   return (
     <TableRow key={invitation.id}>
       <TableCell>{groupTitle}</TableCell>
-      <Button size="sm" onClick={handleReceiveLink}>
+      <Button
+        trackName="settings_invitation_copy"
+        size="sm"
+        onClick={handleReceiveLink}
+      >
         {t('actions.copy_link')}
       </Button>
-      <Button size="sm" variant="destructive" onClick={handleDelete}>
+      <Button
+        trackName="settings_invitation_delete"
+        size="sm"
+        variant="destructive"
+        onClick={handleDelete}
+      >
         {t('manage.delete')}
       </Button>
     </TableRow>

@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/Separator';
 import useConfig from '@/hooks/useConfig';
 import useUser from '@/hooks/useUser';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import DeviceSettings from '@/page/localRuntime/DeviceSettings';
 import PeopleForm from '@/page/people';
 import TasksManagement from '@/page/settings/tabs/members/tasks';
@@ -200,7 +201,13 @@ export default function SettingWrapper({
 
         {/* Close button */}
         <button
-          onClick={onClose}
+          onClick={event => {
+            trackButtonClick('settings_dialog_close');
+            const handleClick = onClose;
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
+          }}
           className="absolute right-4 top-3.5 z-10 text-foreground opacity-70 transition-opacity hover:opacity-100"
         >
           <X className="size-4" />

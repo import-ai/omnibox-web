@@ -35,6 +35,7 @@ function ResourceSelectButton({
 
   return (
     <Button
+      trackName="resource_picker_select"
       type="button"
       variant={selected ? 'secondary' : 'ghost'}
       disabled={resource.disabled}
@@ -88,6 +89,7 @@ export function ResourcePickerRow({
     >
       {canExpand ? (
         <Button
+          trackName="resource_picker_toggle"
           type="button"
           size="icon"
           variant="ghost"

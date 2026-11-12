@@ -22,6 +22,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { deleteResource } from '@/lib/deleteResource';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import type { TreeNode } from '@/page/sidebar/store';
 
@@ -156,6 +157,7 @@ export function TrashPanel() {
   }, [open]);
 
   const handleSystemToggle = useCallback(() => {
+    trackButtonClick('trash_section_toggle');
     setSystemOpen(current => {
       const nextOpen = !current;
       if (!nextOpen) {
@@ -233,6 +235,10 @@ export function TrashPanel() {
                     </SidebarMenuButton>
                   </PopoverTrigger>
                   <PopoverContent
+                    onPointerDownOutside={onOverlayClose(
+                      'trash_overlay_close',
+                      'item'
+                    )}
                     className="flex w-[min(20rem,calc(100vw-2rem))] max-h-(--radix-popover-content-available-height) flex-col overflow-hidden p-3"
                     side={placement.side}
                     align={placement.align}

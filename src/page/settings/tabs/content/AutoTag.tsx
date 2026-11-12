@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Spinner } from '@/components/ui/Spinner';
 import { Switch } from '@/components/ui/Switch';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 export default function AutoTag() {
   const { t } = useTranslation();
@@ -34,6 +35,7 @@ export default function AutoTag() {
   }, []);
 
   const handleToggle = async (checked: boolean) => {
+    trackButtonClick('settings_autotag_toggle', { enabled: checked });
     setIsEnabled(checked);
     setSaving(true);
     try {

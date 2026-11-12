@@ -84,6 +84,15 @@ export function FooterSidebar(props: IProps) {
         <IconButton
           key={item.key}
           label={item.label}
+          trackName={
+            {
+              docs: 'sidebar_docs_open',
+              contact: 'sidebar_contact_open',
+              download: 'sidebar_app_open',
+              feedback: 'sidebar_feedback_open',
+              pricing: 'sidebar_plan_upgrade',
+            }[item.key]
+          }
           tone="sidebar"
           className="size-8 cursor-pointer px-0 [&_svg]:size-5!"
           asChild={Boolean(item.href)}

@@ -235,6 +235,7 @@ export default function FeatureCards() {
                 ) : (
                   <ImportActionButton
                     tooltip={t('chat.home.upload.local_tooltip')}
+                    trackName="chat_file_upload"
                     onClick={() => openFilePicker(fileInputRef.current)}
                   >
                     <FileUp className="size-4 text-red-500" />
@@ -243,6 +244,7 @@ export default function FeatureCards() {
                 )}
                 <ImportActionButton
                   tooltip={t('chat.home.upload.link_tooltip')}
+                  trackName="chat_link_open"
                   onClick={() => setLinkMode(true)}
                 >
                   <Link className="size-4 text-blue-500" />
@@ -250,6 +252,7 @@ export default function FeatureCards() {
                 </ImportActionButton>
                 <ImportActionButton
                   tooltip={t('chat.home.upload.wechat_tooltip')}
+                  trackName="chat_wechat_open"
                   onClick={handleWeChatClick}
                 >
                   <MessageCircle className="size-4 text-green-500" />
@@ -257,6 +260,7 @@ export default function FeatureCards() {
                 </ImportActionButton>
                 <ImportActionButton
                   tooltip={t('chat.home.upload.browser_tooltip')}
+                  trackName="chat_extension_open"
                   onClick={handleBrowserClick}
                 >
                   <ExtensionIcon />

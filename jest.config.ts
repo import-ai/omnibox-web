@@ -11,6 +11,7 @@ const config: Config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
+  setupFilesAfterEnv: ['<rootDir>/src/setupJest.ts'],
   transform: {
     '^.+/uuid/.+\\.js$': ['ts-jest', { tsconfig: { allowJs: true } }],
     '^.+\\.(ts|tsx)$': [

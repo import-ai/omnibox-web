@@ -106,6 +106,7 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(
           <div className="absolute right-2 flex items-center gap-2">
             {canRenderClear && (
               <Button
+                trackName="search_query_remove"
                 type="button"
                 variant="ghost"
                 aria-label={clearLabel}

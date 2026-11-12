@@ -53,6 +53,7 @@ export default function SaveMain(props: IProps) {
 
   return (
     <IconButton
+      trackName="chat_message_save"
       size="sm"
       tone="sidebar"
       label={t('chat.messages.actions.save')}

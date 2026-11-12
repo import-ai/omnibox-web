@@ -24,6 +24,7 @@ import {
 // import useFeaturePreviews from '@/hooks/useFeaturePreviews';
 import { Namespace } from '@/interface';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 import { getUpgradeLink } from '@/lib/upgradeLink';
 import { cn } from '@/lib/utils';
 import { SettingButton } from '@/page/settings/SettingButton';
@@ -86,6 +87,10 @@ export function Switcher(props: IProps) {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
+            onPointerDownOutside={onOverlayClose(
+              'sidebar_overlay_close',
+              'namespace'
+            )}
             align="start"
             side="bottom"
             sideOffset={4}
@@ -108,6 +113,7 @@ export function Switcher(props: IProps) {
             {pricingEntryVariant && (
               <DropdownMenuLabel className="p-0">
                 <Button
+                  trackName="sidebar_plan_upgrade"
                   asChild
                   size="sm"
                   variant="ghost"

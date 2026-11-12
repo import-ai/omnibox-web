@@ -11,6 +11,7 @@ import {
   DialogPortal,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { validateInviteCode } from '@/service/inviteReferral';
 
@@ -95,6 +96,10 @@ export function InviteCodeDialog({
       <DialogPortal>
         <DialogOverlay className="bg-black/50" />
         <DialogPrimitive.Content
+          onPointerDownOutside={onOverlayClose(
+            'invite_referral_overlay_close',
+            'code'
+          )}
           className={cn(
             'fixed left-1/2 top-1/2 z-50 w-[335px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 rounded-[18px] border-0 bg-popover p-[18px] shadow-[0px_10px_14px_rgba(0,0,0,0.16)] outline-hidden',
             'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]'
@@ -108,7 +113,13 @@ export function InviteCodeDialog({
               type="button"
               className="absolute right-0 top-0 inline-flex size-[22px] items-center justify-center text-muted-foreground hover:text-foreground"
               aria-label={t('inviteReferral.common.close')}
-              onClick={() => onOpenChange(false)}
+              onClick={event => {
+                trackButtonClick('invite_referral_code_close');
+                const handleClick = () => onOpenChange(false);
+                if (typeof handleClick === 'function') {
+                  (handleClick as (value?: typeof event) => void)(event);
+                }
+              }}
             >
               <InviteCodeCloseIcon />
             </button>
@@ -152,6 +163,7 @@ export function InviteCodeDialog({
             ) : null}
           </div>
           <Button
+            trackName="invite_referral_code_submit"
             type="button"
             className={cn(
               'h-10 w-full rounded-lg bg-primary text-[16px] font-medium leading-normal',

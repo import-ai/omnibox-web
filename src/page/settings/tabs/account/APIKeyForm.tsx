@@ -45,6 +45,7 @@ import {
   type CreateAPIKeyDto,
 } from '@/interface';
 import { getRelatedTime } from '@/lib/time';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 import { fetchRootResources } from '@/service/resource';
@@ -479,9 +480,12 @@ export function APIKeyForm() {
                   <Checkbox
                     id={checkboxId}
                     checked={formData.permissions[target].includes(permission)}
-                    onCheckedChange={checked =>
-                      handlePermissionChange(target, permission, !!checked)
-                    }
+                    onCheckedChange={checked => {
+                      trackButtonClick('settings_api_key_select', {
+                        permission,
+                      });
+                      handlePermissionChange(target, permission, !!checked);
+                    }}
                   />
                   <Label htmlFor={checkboxId}>
                     {getPermissionTypeLabel(permission)}
@@ -534,14 +538,22 @@ export function APIKeyForm() {
           </p>
         </div>
 
-        <SettingPageButton onClick={() => handleCreateDialogOpenChange(true)}>
+        <SettingPageButton
+          trackName="settings_api_key_open"
+          onClick={() => handleCreateDialogOpenChange(true)}
+        >
           {t('create')}
         </SettingPageButton>
         <Dialog
           open={createDialogOpen}
           onOpenChange={handleCreateDialogOpenChange}
         >
-          <DialogContent className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
+          <DialogContent
+            closeDisabled={creating}
+            outsideCloseTrackName="settings_overlay_close"
+            outsideCloseTarget="api_key"
+            className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md"
+          >
             <DialogHeader>
               <DialogTitle>{t('api_key.create.title')}</DialogTitle>
               <DialogDescription>
@@ -581,6 +593,7 @@ export function APIKeyForm() {
             )}
             <DialogFooter>
               <Button
+                trackName="settings_api_key_cancel"
                 type="button"
                 variant="outline"
                 disabled={creating}
@@ -589,6 +602,7 @@ export function APIKeyForm() {
                 {t('cancel')}
               </Button>
               <Button
+                trackName="settings_api_key_create"
                 onClick={handleCreateAPIKey}
                 loading={creating}
                 variant="default"
@@ -603,7 +617,12 @@ export function APIKeyForm() {
           open={updateDialogOpen}
           onOpenChange={handleUpdateDialogOpenChange}
         >
-          <DialogContent className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md">
+          <DialogContent
+            closeDisabled={updating}
+            outsideCloseTrackName="settings_overlay_close"
+            outsideCloseTarget="api_key"
+            className="w-[90%] max-w-2xl sm:max-w-2xl max-h-[90svh] overflow-y-auto rounded-md"
+          >
             <DialogHeader>
               <DialogTitle>{t('api_key.update.title')}</DialogTitle>
               <DialogDescription>
@@ -643,6 +662,7 @@ export function APIKeyForm() {
             )}
             <DialogFooter>
               <Button
+                trackName="settings_api_key_cancel"
                 type="button"
                 variant="outline"
                 disabled={updating}
@@ -651,6 +671,7 @@ export function APIKeyForm() {
                 {t('cancel')}
               </Button>
               <Button
+                trackName="settings_api_key_save"
                 onClick={handleUpdateAPIKey}
                 loading={updating}
                 variant="default"
@@ -699,6 +720,7 @@ export function APIKeyForm() {
 
                 <div className="flex items-center gap-1 lg:gap-4">
                   <IconButton
+                    trackName="settings_api_key_toggle"
                     size="sm"
                     tone="sidebar"
                     label={
@@ -711,9 +733,13 @@ export function APIKeyForm() {
                     {visibleKeys.has(key.id) ? <EyeOff /> : <Eye />}
                   </IconButton>
 
-                  <CopyMain content={key.value} />
+                  <CopyMain
+                    content={key.value}
+                    trackName="settings_api_key_copy"
+                  />
 
                   <IconButton
+                    trackName="settings_api_key_edit"
                     size="sm"
                     tone="sidebar"
                     label={t('edit')}
@@ -732,6 +758,7 @@ export function APIKeyForm() {
                     }}
                   >
                     <IconButton
+                      trackName="settings_api_key_delete"
                       size="sm"
                       tone="sidebar"
                       label={t('delete')}
@@ -759,7 +786,11 @@ export function APIKeyForm() {
                       )}
                       <AlertDialogFooter>
                         <AlertDialogCancel asChild>
-                          <Button variant="outline" disabled={deleting}>
+                          <Button
+                            trackName="settings_api_key_cancel"
+                            variant="outline"
+                            disabled={deleting}
+                          >
                             {t('cancel')}
                           </Button>
                         </AlertDialogCancel>
@@ -768,6 +799,7 @@ export function APIKeyForm() {
                           disabled={deleting}
                           onClick={event => {
                             event.preventDefault();
+                            trackButtonClick('settings_api_key_confirm');
                             void handleDeleteAPIKey(key);
                           }}
                         >

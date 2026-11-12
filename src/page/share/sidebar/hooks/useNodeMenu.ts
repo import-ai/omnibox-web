@@ -2,6 +2,8 @@ import { MessageSquarePlus, MessageSquareQuote } from 'lucide-react';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { trackButtonClick } from '@/lib/trackButtonClick';
+
 import type { UseNodeActionsReturn } from './useNodeActions';
 
 export type CreateFolderMode = 'direct' | 'dialog';
@@ -22,7 +24,17 @@ export function useNodeMenu(actions: UseNodeActionsReturn): MenuItem[] {
 
   const menuItems = useMemo(() => {
     if (!node) return [];
-    return buildAddToChatItems(actions, t);
+    return buildAddToChatItems(actions, t).map(item => {
+      if (item.separator || !item.onClick) return item;
+      const onClick = item.onClick;
+      return {
+        ...item,
+        onClick: () => {
+          trackButtonClick('share_chat_select', { item: item.key });
+          onClick();
+        },
+      };
+    });
   }, [actions, t, node]);
 
   return menuItems;

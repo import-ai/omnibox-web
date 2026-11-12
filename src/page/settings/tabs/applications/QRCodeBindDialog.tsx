@@ -56,7 +56,12 @@ export function QRCodeBindDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-md sm:max-w-md">
+      <DialogContent
+        outsideCloseTrackName="settings_overlay_close"
+        outsideCloseTarget="binding"
+        closeTrackProps={{ app_id: appId, action: 'bind' }}
+        className="w-[90%] max-h-[90svh] overflow-y-auto rounded-md max-w-md sm:max-w-md"
+      >
         <DialogHeader>
           <DialogTitle>
             {t('applications.qr_bind.title', { app_name: appName })}

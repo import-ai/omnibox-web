@@ -27,6 +27,7 @@ export function Logout() {
 
   return (
     <Button
+      trackName="user_session_remove"
       size="sm"
       variant="ghost"
       loading={loading}

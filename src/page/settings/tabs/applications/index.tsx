@@ -24,6 +24,7 @@ import { useApplicationIdentity } from '@/hooks/useApplicationIdentity';
 import useApplications from '@/hooks/useApplications';
 import { Application } from '@/interface';
 import { getDocsLink } from '@/lib/getDocsLink.ts';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
@@ -91,10 +92,12 @@ function isQRCodeBinding(appId: string): boolean {
   return appId === 'wechat_clawbot';
 }
 
-// Apps without a docs page
-function hasDocs(appId: string): boolean {
-  return appId !== 'telegram_bot' && appId !== WECHAT_OA_APP_ID;
-}
+const APPLICATION_DOC_PATHS: Record<string, string> = {
+  wechat_bot: 'wechat-assistant',
+  qq_bot: 'qq-assistant',
+  wechat_clawbot: 'wechat-clawbot',
+  [WECHAT_OA_APP_ID]: 'wechat-ai-assistant',
+};
 
 interface ApplicationsFormProps {
   active?: boolean;
@@ -401,9 +404,10 @@ export function ApplicationsForm({
   };
 
   const handleDocsClick = (appId: string) => {
-    const url = getDocsLink(`/applications/${appId}`, i18n.language)
-      .replace('_bot', '-assistant')
-      .replace('_clawbot', '-clawbot');
+    const docPath = APPLICATION_DOC_PATHS[appId];
+    if (!docPath) return;
+
+    const url = getDocsLink(`/applications/${docPath}`, i18n.language);
     window.open(url, '_blank');
   };
 
@@ -466,6 +470,7 @@ export function ApplicationsForm({
           displayedApplications.map((application: Application) => {
             const state = getApplicationState(application);
             const isBound = state === 'bound';
+            const docPath = APPLICATION_DOC_PATHS[application.app_id];
 
             let appDisplayName: string;
             let hasError = false;
@@ -488,11 +493,24 @@ export function ApplicationsForm({
                     <span className="text-sm font-medium leading-5 text-foreground">
                       {appDisplayName}
                     </span>
-                    {!hasError && hasDocs(application.app_id) && (
+                    {!hasError && docPath && (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
-                            onClick={() => handleDocsClick(application.app_id)}
+                            type="button"
+                            aria-label={t('footer.docs')}
+                            onClick={event => {
+                              trackButtonClick('settings_application_open', {
+                                app_id: application.app_id,
+                              });
+                              const handleClick = () =>
+                                handleDocsClick(application.app_id);
+                              if (typeof handleClick === 'function') {
+                                (handleClick as (value?: typeof event) => void)(
+                                  event
+                                );
+                              }
+                            }}
                             className={cn(
                               sidebarToolbarIconButtonClassName,
                               'self-center hover:bg-transparent'
@@ -536,6 +554,11 @@ export function ApplicationsForm({
                   </SettingPageButton>
                 ) : isBound ? (
                   <SettingPageButton
+                    trackName="settings_binding_remove"
+                    trackProps={{
+                      app_id: application.app_id,
+                      action: 'unbind',
+                    }}
                     variant="outline"
                     onClick={() => {
                       setConfirmApplication(application);
@@ -547,6 +570,11 @@ export function ApplicationsForm({
                 ) : state === 'binding_in_progress' ? (
                   <div className="flex gap-2">
                     <SettingPageButton
+                      trackName="settings_binding_create"
+                      trackProps={{
+                        app_id: application.app_id,
+                        action: 'bind',
+                      }}
                       onClick={() => handleBind(application)}
                       disabled={
                         bindingLoading && currentAppId === application.app_id
@@ -559,6 +587,11 @@ export function ApplicationsForm({
                       {t('applications.bind.button')}
                     </SettingPageButton>
                     <SettingPageButton
+                      trackName="settings_binding_cancel"
+                      trackProps={{
+                        app_id: application.app_id,
+                        action: 'cancel_bind',
+                      }}
                       variant="outline"
                       onClick={() => {
                         setConfirmApplication(application);
@@ -570,6 +603,8 @@ export function ApplicationsForm({
                   </div>
                 ) : (
                   <SettingPageButton
+                    trackName="settings_binding_create"
+                    trackProps={{ app_id: application.app_id, action: 'bind' }}
                     onClick={() => handleBind(application)}
                     disabled={
                       bindingLoading && currentAppId === application.app_id
@@ -661,6 +696,11 @@ export function ApplicationsForm({
           <AlertDialogFooter>
             <AlertDialogCancel asChild>
               <Button
+                trackName="settings_binding_cancel"
+                trackProps={{
+                  app_id: confirmApplication?.app_id,
+                  action: confirmAction === 'cancel' ? 'cancel_bind' : 'unbind',
+                }}
                 variant="outline"
                 disabled={unbindingLoading || cancelingLoading}
               >
@@ -673,6 +713,10 @@ export function ApplicationsForm({
               onClick={event => {
                 event.preventDefault();
                 if (!confirmApplication) return;
+                trackButtonClick('settings_binding_confirm', {
+                  app_id: confirmApplication.app_id,
+                  action: confirmAction === 'cancel' ? 'cancel_bind' : 'unbind',
+                });
                 if (confirmAction === 'cancel') {
                   void handleCancelBind(confirmApplication);
                   return;

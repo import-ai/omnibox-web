@@ -9,6 +9,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/Button';
 import { ALLOWED_PHONE_COUNTRIES } from '@/const';
+import {
+  onOverlayClose,
+  overlayCloseName,
+  trackButtonClick,
+} from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import {
@@ -38,6 +43,7 @@ interface PhoneNumberInputProps {
   placeholder?: string;
   defaultCountry?: CountryCode;
   className?: string;
+  trackName?: string;
   variant?: 'default' | 'bind';
   /**
    * Optional list of allowed country codes (ISO 3166-1 alpha-2).
@@ -54,6 +60,7 @@ function PhoneNumberInput({
   placeholder,
   defaultCountry = 'CN',
   className,
+  trackName,
   allowedCountries: allowedCountriesProp,
   variant = 'default',
 }: PhoneNumberInputProps) {
@@ -182,6 +189,7 @@ function PhoneNumberInput({
             <Button
               type="button"
               variant="ghost"
+              trackName={trackName}
               className={cn(
                 'shrink-0 gap-1 rounded-l-lg rounded-r-none text-sm hover:bg-accent focus-visible:ring-0',
                 isBind
@@ -193,12 +201,27 @@ function PhoneNumberInput({
               {isBind ? null : <ChevronDown className="size-3.5 opacity-50" />}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="p-0">
+          <DropdownMenuContent
+            onPointerDownOutside={
+              trackName
+                ? onOverlayClose(overlayCloseName(trackName, 'user'), 'country')
+                : undefined
+            }
+            align="start"
+            className="p-0"
+          >
             <ScrollArea className="h-[300px]">
               {allowedCountries.map(country => (
                 <DropdownMenuItem
                   key={country.code}
-                  onClick={() => handleCountryChange(country.code)}
+                  onClick={() => {
+                    if (trackName?.endsWith('_open')) {
+                      trackButtonClick(trackName.replace(/_open$/, '_select'), {
+                        country: country.code,
+                      });
+                    }
+                    handleCountryChange(country.code);
+                  }}
                   className="cursor-pointer gap-2"
                 >
                   <span className="text-base">{country.flag}</span>

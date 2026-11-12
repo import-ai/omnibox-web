@@ -118,7 +118,7 @@ export default function OAuthAuthorizePage() {
           </p>
         )}
         {callback ? (
-          <Button asChild className="w-full">
+          <Button trackName="oauth_desktop_navigate" asChild className="w-full">
             <a href={callback}>{t('desktop_auth.return')}</a>
           </Button>
         ) : (
@@ -142,10 +142,15 @@ export default function OAuthAuthorizePage() {
                   </p>
                 </div>
               </div>
-              <Button onClick={authorize} loading={pending}>
+              <Button
+                trackName="oauth_desktop_confirm"
+                onClick={authorize}
+                loading={pending}
+              >
                 {t('desktop_auth.confirm')}
               </Button>
               <Button
+                trackName="oauth_account_navigate"
                 variant="outline"
                 disabled={pending}
                 onClick={() => {
