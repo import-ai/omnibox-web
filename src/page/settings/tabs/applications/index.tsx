@@ -92,10 +92,12 @@ function isQRCodeBinding(appId: string): boolean {
   return appId === 'wechat_clawbot';
 }
 
-// Apps without a docs page
-function hasDocs(appId: string): boolean {
-  return appId !== 'telegram_bot' && appId !== WECHAT_OA_APP_ID;
-}
+const APPLICATION_DOC_PATHS: Record<string, string> = {
+  wechat_bot: 'wechat-assistant',
+  qq_bot: 'qq-assistant',
+  wechat_clawbot: 'wechat-clawbot',
+  [WECHAT_OA_APP_ID]: 'wechat-ai-assistant',
+};
 
 interface ApplicationsFormProps {
   active?: boolean;
@@ -402,9 +404,10 @@ export function ApplicationsForm({
   };
 
   const handleDocsClick = (appId: string) => {
-    const url = getDocsLink(`/applications/${appId}`, i18n.language)
-      .replace('_bot', '-assistant')
-      .replace('_clawbot', '-clawbot');
+    const docPath = APPLICATION_DOC_PATHS[appId];
+    if (!docPath) return;
+
+    const url = getDocsLink(`/applications/${docPath}`, i18n.language);
     window.open(url, '_blank');
   };
 
@@ -467,6 +470,7 @@ export function ApplicationsForm({
           displayedApplications.map((application: Application) => {
             const state = getApplicationState(application);
             const isBound = state === 'bound';
+            const docPath = APPLICATION_DOC_PATHS[application.app_id];
 
             let appDisplayName: string;
             let hasError = false;
@@ -489,10 +493,12 @@ export function ApplicationsForm({
                     <span className="text-sm font-medium leading-5 text-foreground">
                       {appDisplayName}
                     </span>
-                    {!hasError && hasDocs(application.app_id) && (
+                    {!hasError && docPath && (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
+                            type="button"
+                            aria-label={t('footer.docs')}
                             onClick={event => {
                               trackButtonClick('settings_application_open', {
                                 app_id: application.app_id,
