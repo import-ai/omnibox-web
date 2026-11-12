@@ -341,6 +341,7 @@ export default function Folder(props: IProps) {
           {!loadAll && hasMore && (
             <div className="pb-4 flex justify-center">
               <Button
+                trackName="resource_list_navigate"
                 variant="secondary"
                 className="block w-full"
                 onClick={loadMore}

@@ -41,6 +41,7 @@ export default function Google(props: IProps) {
 
   const button = (
     <Button
+      trackName="user_login_select"
       variant="outline"
       onClick={() => runWithConsent(loginWithGoogle)}
       aria-label={iconOnly ? label : undefined}

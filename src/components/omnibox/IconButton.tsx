@@ -8,6 +8,7 @@ import {
   TooltipTrigger,
 } from '@/components/tooltip';
 import { Button } from '@/components/ui/button';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 const iconButtonSizes = {
   xs: 'size-5 rounded-sm',
@@ -49,6 +50,7 @@ const IconButton = React.forwardRef<
     size?: IconButtonSize;
     tone: IconButtonTone;
     destructive?: boolean;
+    trackName?: string;
   }
 >(function IconButton(
   {
@@ -59,6 +61,8 @@ const IconButton = React.forwardRef<
     className,
     children,
     disabled,
+    trackName,
+    onClick,
     ...props
   },
   ref
@@ -78,6 +82,12 @@ const IconButton = React.forwardRef<
         className
       )}
       {...props}
+      onClick={event => {
+        if (trackName && !disabled) {
+          trackButtonClick(trackName);
+        }
+        onClick?.(event);
+      }}
     >
       {children}
     </Button>

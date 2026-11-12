@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/Popover';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { LocalDevice } from './runtime';
@@ -52,6 +53,7 @@ export default function RenameDevice({
   const renameButton = (
     <PopoverTrigger asChild>
       <button
+        onClick={() => trackButtonClick('local_runtime_device_edit')}
         type="button"
         disabled={unavailable}
         aria-label={t('local_runtime.rename')}
@@ -94,7 +96,14 @@ export default function RenameDevice({
           )}
         </TooltipContent>
       </Tooltip>
-      <PopoverContent align="start" className="w-72 space-y-3 p-3">
+      <PopoverContent
+        onPointerDownOutside={onOverlayClose(
+          'local_runtime_overlay_close',
+          'device'
+        )}
+        align="start"
+        className="w-72 space-y-3 p-3"
+      >
         <div className="space-y-1.5">
           <Label htmlFor={`device-name-${device.id}`}>
             {t('local_runtime.device_name')}
@@ -132,6 +141,7 @@ export default function RenameDevice({
         )}
         <div className="flex justify-end">
           <Button
+            trackName="local_runtime_device_save"
             className="h-8"
             disabled={saving || unavailable || !name.trim()}
             onClick={() => void save()}

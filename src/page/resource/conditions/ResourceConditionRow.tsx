@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/omnibox/Select';
 import { Input } from '@/components/ui/input';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import {
@@ -94,6 +95,7 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
           {t('resource_conditions.condition_title', { index: index + 1 })}
         </p>
         <Button
+          trackName="resource_condition_remove"
           type="button"
           variant="ghost"
           size="icon"
@@ -111,16 +113,22 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
         <div className="min-w-0 sm:min-w-28 sm:flex-[0.72_1_120px]">
           <Select
             value={condition.field || ''}
-            onValueChange={value =>
-              onFieldChange(index, value as ResourceConditionField)
-            }
+            onValueChange={value => {
+              trackButtonClick('resource_condition_select', { kind: 'field' });
+              onFieldChange(index, value as ResourceConditionField);
+            }}
           >
             <SelectTrigger className={resourceConditionSelectTriggerClass}>
               <SelectValue
                 placeholder={t('resource_conditions.select_field')}
               />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              onPointerDownOutside={onOverlayClose(
+                'resource_overlay_close',
+                'condition'
+              )}
+            >
               {RESOURCE_CONDITION_FIELD_OPTIONS.map(field => (
                 <SelectItem value={field} key={field}>
                   {t(`resource_conditions.fields.${field}`)}
@@ -134,9 +142,12 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
           {condition.field && !isExpression ? (
             <Select
               value={condition.operator || ''}
-              onValueChange={value =>
-                onOperatorChange(index, value as ResourceConditionOperator)
-              }
+              onValueChange={value => {
+                trackButtonClick('resource_condition_select', {
+                  kind: 'operator',
+                });
+                onOperatorChange(index, value as ResourceConditionOperator);
+              }}
             >
               <SelectTrigger
                 className={cn(resourceConditionSelectTriggerClass, 'sm:w-auto')}
@@ -145,7 +156,12 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
                   placeholder={t('resource_conditions.select_operator')}
                 />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'condition'
+                )}
+              >
                 {operators.map(operator => (
                   <SelectItem value={operator} key={operator}>
                     {t(`resource_conditions.operators.${operator}`)}
@@ -206,19 +222,27 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
                   />
                   <Select
                     value={normalizedValue.unit}
-                    onValueChange={value =>
+                    onValueChange={value => {
+                      trackButtonClick('resource_condition_select', {
+                        kind: 'unit',
+                      });
                       onValueChange(index, {
                         ...normalizedValue,
                         unit: value as ResourceConditionRelativeDateUnit,
-                      })
-                    }
+                      });
+                    }}
                   >
                     <SelectTrigger
                       className={resourceConditionSelectTriggerClass}
                     >
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent
+                      onPointerDownOutside={onOverlayClose(
+                        'resource_overlay_close',
+                        'condition'
+                      )}
+                    >
                       {RESOURCE_CONDITION_RELATIVE_DATE_UNITS.map(unit => (
                         <SelectItem value={unit} key={unit}>
                           {t(`resource_conditions.units.${unit}`)}
@@ -230,6 +254,8 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
               ) : normalizedValue?.kind === 'single_date' ? (
                 <DatePicker
                   value={normalizedValue.date}
+                  trackName="resource_date_open"
+                  dayTrackName="resource_date_select"
                   placeholder={t('resource_conditions.pick_date')}
                   className={resourceConditionSelectTriggerClass}
                   onChange={value =>
@@ -243,6 +269,8 @@ export function ResourceConditionRow(props: ResourceConditionRowProps) {
                 <DateRangePicker
                   startDate={normalizedValue.startDate}
                   endDate={normalizedValue.endDate}
+                  trackName="resource_date_open"
+                  dayTrackName="resource_date_select"
                   placeholder={t('resource_conditions.pick_date')}
                   displayFormat={t('resource_conditions.date_format')}
                   className={resourceConditionSelectTriggerClass}

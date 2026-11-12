@@ -33,6 +33,7 @@ export function ResourceCommentsToggleButton({
   };
   return (
     <IconButton
+      trackName="resource_comment_toggle"
       type="button"
       size="sm"
       tone="sidebar"

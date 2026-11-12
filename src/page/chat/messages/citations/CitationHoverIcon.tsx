@@ -64,6 +64,7 @@ export function CitationHoverIcon(props: CitationIconProps) {
     >
       <HoverCardTrigger asChild>
         <Button
+          trackName="chat_citation_open"
           variant="link"
           className="px-0 py-0 h-auto align-baseline hover:no-underline"
           onClick={e => {

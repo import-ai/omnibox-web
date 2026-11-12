@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { getUpgradeLink } from '@/lib/upgradeLink';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +16,7 @@ interface UpgradeUsageTooltipProps {
   tooltipItems: string[];
   tooltipSide?: TooltipSide;
   triggerClassName?: string;
+  trackName?: string;
 }
 
 interface UpgradeActionButtonProps {
@@ -23,6 +25,8 @@ interface UpgradeActionButtonProps {
   disabledReason?: string;
   className?: string;
   labelKey?: string;
+  trackName?: string;
+  entry?: string;
 }
 
 export function UpgradeUsageTooltip({
@@ -31,13 +35,20 @@ export function UpgradeUsageTooltip({
   tooltipItems,
   tooltipSide = 'left',
   triggerClassName = 'text-muted-foreground cursor-default',
+  trackName,
 }: UpgradeUsageTooltipProps) {
   const { t } = useTranslation();
 
   return (
     <Tooltip delayDuration={0}>
       <TooltipTrigger asChild>
-        <button type="button" className={cn(triggerClassName, 'text-sm')}>
+        <button
+          type="button"
+          className={cn(triggerClassName, 'text-sm')}
+          onClick={() => {
+            if (trackName) trackButtonClick(trackName);
+          }}
+        >
           {t(textKey, textValues)}
         </button>
       </TooltipTrigger>
@@ -56,6 +67,8 @@ export function UpgradeActionButton({
   disabledReason,
   className = 'text-sm h-5',
   labelKey = 'namespace.upgrade',
+  trackName,
+  entry,
 }: UpgradeActionButtonProps) {
   const { t, i18n } = useTranslation();
 
@@ -64,7 +77,7 @@ export function UpgradeActionButton({
       return;
     }
 
-    window.open(getUpgradeLink(i18n, namespaceId), '_blank');
+    window.open(getUpgradeLink(i18n, namespaceId, entry), '_blank');
   };
 
   const button = (
@@ -73,6 +86,7 @@ export function UpgradeActionButton({
       variant="default"
       size="sm"
       className={className}
+      trackName={trackName}
       onClick={handleClick}
       disabled={!hasPermission}
     >

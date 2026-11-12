@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 interface ConfirmInputDialogProps {
   open: boolean;
@@ -28,6 +29,8 @@ interface ConfirmInputDialogProps {
   loading?: boolean;
   onConfirm: () => void | Promise<void>;
   trigger?: React.ReactNode;
+  cancelTrackName?: string;
+  confirmTrackName?: string;
 }
 
 export function ConfirmInputDialog({
@@ -43,6 +46,8 @@ export function ConfirmInputDialog({
   loading = false,
   onConfirm,
   trigger,
+  cancelTrackName,
+  confirmTrackName,
 }: ConfirmInputDialogProps) {
   const [inputValue, setInputValue] = useState('');
 
@@ -58,6 +63,7 @@ export function ConfirmInputDialog({
   const handleConfirm = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!isConfirmDisabled) {
+      if (confirmTrackName) trackButtonClick(confirmTrackName);
       onConfirm();
     }
   };
@@ -92,7 +98,13 @@ export function ConfirmInputDialog({
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel disabled={loading} className="cancel-btn-outline">
+        <AlertDialogCancel
+          disabled={loading}
+          className="cancel-btn-outline"
+          onClick={() => {
+            if (cancelTrackName) trackButtonClick(cancelTrackName);
+          }}
+        >
           {cancelButtonText}
         </AlertDialogCancel>
         <AlertDialogAction

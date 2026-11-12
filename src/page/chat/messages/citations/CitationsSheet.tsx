@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/Sheet';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 import { type Citation } from '@/page/chat/core/types/chatResponse';
 import { CitationCard } from '@/page/chat/messages/citations/CitationCard';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
@@ -75,12 +76,15 @@ export function CitationsSheet(props: IProps) {
       }}
     >
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button trackName="chat_citation_open" variant="outline" size="sm">
           {citations.length} {t('chat.citations')}
           {plural} <ChevronRight />
         </Button>
       </SheetTrigger>
-      <SheetContent className="p-0">
+      <SheetContent
+        onPointerDownOutside={onOverlayClose('chat_overlay_close', 'citation')}
+        className="p-0"
+      >
         <SheetHeader className="px-4 py-3">
           <SheetTitle>{t('chat.citations_results')}</SheetTitle>
           <VisuallyHidden.Root>

@@ -50,6 +50,8 @@ export function DeleteAccountDialog({
       confirmButtonText={t('setting.delete_account.confirm_button')}
       cancelButtonText={t('cancel')}
       loading={submitting}
+      cancelTrackName="user_account_cancel"
+      confirmTrackName="user_account_confirm"
       onConfirm={handleInitiateDeletion}
     />
   );

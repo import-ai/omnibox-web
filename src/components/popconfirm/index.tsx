@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 interface IProps {
   title: string;
@@ -20,6 +21,8 @@ interface IProps {
   children: React.ReactNode;
   onCancel?: () => void;
   onOk?: () => void;
+  cancelTrackName?: string;
+  confirmTrackName?: string;
 }
 
 export default function MainAlertDialog(props: IProps) {
@@ -31,6 +34,8 @@ export default function MainAlertDialog(props: IProps) {
     onOk,
     okText = 'Confirm',
     cancelText = 'Cancel',
+    cancelTrackName,
+    confirmTrackName,
   } = props;
 
   return (
@@ -44,8 +49,21 @@ export default function MainAlertDialog(props: IProps) {
           )}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={onCancel}>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={onOk}>
+          <AlertDialogCancel
+            onClick={() => {
+              if (cancelTrackName) trackButtonClick(cancelTrackName);
+              onCancel?.();
+            }}
+          >
+            {cancelText}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            onClick={() => {
+              if (confirmTrackName) trackButtonClick(confirmTrackName);
+              onOk?.();
+            }}
+          >
             {okText}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -419,6 +419,7 @@ export function ResourceCommentThreadList({
           style={{ top: Math.max(0, contentHeight - 80) }}
         >
           <Button
+            trackName="resource_comment_navigate"
             type="button"
             variant="outline"
             className="w-full"

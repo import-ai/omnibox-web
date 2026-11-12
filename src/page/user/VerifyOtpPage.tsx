@@ -8,6 +8,7 @@ import { formatPhone } from '@/components/phone-input/utils.ts';
 import { useCaptcha } from '@/hooks/useCaptcha';
 import { captchaResultFromError, withCaptchaParam } from '@/lib/captcha';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { buildUrl } from '@/lib/utils';
 import {
   restoreInviteFromUrl,
@@ -244,7 +245,13 @@ export default function VerifyOtpPage() {
           <div className="text-sm text-muted-foreground">
             {t('verify_otp.didnt_receive')}{' '}
             <button
-              onClick={handleResend}
+              onClick={event => {
+                trackButtonClick('user_code_retry');
+                const handleClick = handleResend;
+                if (typeof handleClick === 'function') {
+                  (handleClick as (value?: typeof event) => void)(event);
+                }
+              }}
               disabled={!canResend || isResending || captcha.running}
               className="text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -257,19 +264,24 @@ export default function VerifyOtpPage() {
           </div>
 
           <button
-            onClick={() =>
-              navigate(
-                buildUrl(
-                  '/user/login',
-                  withInviteCode({
-                    email: isPhoneVerification ? undefined : email,
-                    phone: isPhoneVerification ? phone : undefined,
-                    mode: isPhoneVerification ? 'phone' : 'email',
-                    redirect,
-                  })
-                )
-              )
-            }
+            onClick={event => {
+              trackButtonClick('user_login_navigate');
+              const handleClick = () =>
+                navigate(
+                  buildUrl(
+                    '/user/login',
+                    withInviteCode({
+                      email: isPhoneVerification ? undefined : email,
+                      phone: isPhoneVerification ? phone : undefined,
+                      mode: isPhoneVerification ? 'phone' : 'email',
+                      redirect,
+                    })
+                  )
+                );
+              if (typeof handleClick === 'function') {
+                (handleClick as (value?: typeof event) => void)(event);
+              }
+            }}
             className="text-sm text-muted-foreground hover:underline"
           >
             {t('verify_otp.back_to_login')}

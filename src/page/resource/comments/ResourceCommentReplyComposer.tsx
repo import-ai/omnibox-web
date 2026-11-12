@@ -7,6 +7,7 @@ import { useAutosizeTextArea } from '@/components/autosize-textarea';
 import { Button } from '@/components/Button';
 import { Textarea } from '@/components/ui/textarea';
 import type { ResourceCommentAttachment } from '@/interface';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import { CommentMentionField } from './CommentMentionField';
 import { CommentMentionMenu } from './CommentMentionMenu';
@@ -152,7 +153,13 @@ export function ResourceCommentReplyComposer({
               className="omnibox-comment-image-remove"
               aria-label={t('resource_comments.remove_image')}
               title={t('resource_comments.remove_image')}
-              onClick={clearImage}
+              onClick={event => {
+                trackButtonClick('resource_comment_remove');
+                const handleClick = clearImage;
+                if (typeof handleClick === 'function') {
+                  (handleClick as (value?: typeof event) => void)(event);
+                }
+              }}
             >
               <X aria-hidden="true" strokeWidth={2} />
             </button>
@@ -187,6 +194,7 @@ export function ResourceCommentReplyComposer({
       </div>
       <div className="omnibox-comment-reply__actions">
         <Button
+          trackName="resource_comment_cancel"
           type="button"
           size="sm"
           variant="outline"
@@ -199,6 +207,7 @@ export function ResourceCommentReplyComposer({
           {t('resource_comments.cancel')}
         </Button>
         <Button
+          trackName="resource_comment_submit"
           type="button"
           size="sm"
           className="omnibox-comment-submit"

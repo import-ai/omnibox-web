@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { SettingPageButton } from '@/components/omnibox/SettingPageButton';
 import useProNamespaces from '@/hooks/useProNamespaces';
+import { getUpgradeLink } from '@/lib/upgradeLink';
 
 interface ExpandButtonProps {
   namespaceId: string;
@@ -20,11 +21,13 @@ export function ExpandButton({ namespaceId }: ExpandButtonProps) {
   return (
     <div className="flex justify-end">
       <a
-        href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing`}
+        href={getUpgradeLink(i18n, namespaceId, 'settings_usage')}
         target="_blank"
         rel="noopener noreferrer"
       >
-        <SettingPageButton>{t('quota.expand_button')}</SettingPageButton>
+        <SettingPageButton trackName="settings_quota_upgrade">
+          {t('quota.expand_button')}
+        </SettingPageButton>
       </a>
     </div>
   );
