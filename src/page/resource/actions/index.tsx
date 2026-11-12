@@ -930,6 +930,7 @@ export default function Actions(props: IActionProps) {
           cancelTrackName="resource_folder_cancel"
           confirmTrackName="resource_folder_save"
           open={folderEditOpen}
+          resourceId={resource.id}
           initialName={resource.name || ''}
           title={t('folder.edit_dialog.title')}
           confirmText={t('folder.edit_dialog.submit')}

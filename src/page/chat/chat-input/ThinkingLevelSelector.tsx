@@ -1,9 +1,10 @@
 import './thinkingLevelSelector.css';
 
 import { Check, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
-import { useState } from 'react';
+import { type ComponentProps, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { BehaviorExposure } from '@/components/BehaviorExposure';
 import {
   Tooltip,
   TooltipContent,
@@ -39,6 +40,18 @@ interface Props {
   basicUnsupported?: boolean;
 }
 
+function ModelStrengthPanel({
+  active,
+  children,
+  ...props
+}: ComponentProps<typeof PopoverContent> & { active: boolean }) {
+  return (
+    <BehaviorExposure target="model_strength_panel" active={active}>
+      <PopoverContent {...props}>{children}</PopoverContent>
+    </BehaviorExposure>
+  );
+}
+
 export default function ThinkingLevelSelector({
   config,
   surface,
@@ -53,6 +66,7 @@ export default function ThinkingLevelSelector({
 }: Props) {
   const { t } = useTranslation();
   const [modelsOpen, setModelsOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(false);
   const options = config[group];
   if (!options) return null;
   const visibleLevels = options.levels.filter(item => {
@@ -80,7 +94,9 @@ export default function ThinkingLevelSelector({
   const title = group === 'default' ? `${edition} ${label}` : label;
   return (
     <Popover
+      open={panelOpen}
       onOpenChange={open => {
+        setPanelOpen(open);
         if (!open) setModelsOpen(false);
       }}
     >
@@ -98,7 +114,8 @@ export default function ThinkingLevelSelector({
           {edition} {label}
         </button>
       </PopoverTrigger>
-      <PopoverContent
+      <ModelStrengthPanel
+        active={panelOpen}
         onPointerDownOutside={onOverlayClose('chat_overlay_close', 'thinking')}
         side="top"
         align="end"
@@ -286,7 +303,7 @@ export default function ThinkingLevelSelector({
             </div>
           </>
         )}
-      </PopoverContent>
+      </ModelStrengthPanel>
     </Popover>
   );
 }

@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import useApp from '@/hooks/useApp';
+import { markBehaviorLeave } from '@/lib/behaviorNavigation';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
@@ -72,6 +73,7 @@ export default function Actions(props: IProps) {
   };
 
   const onChatHistory = () => {
+    markBehaviorLeave('conversation', 'history');
     if (onChatHistoryOverride) {
       onChatHistoryOverride();
       return;
@@ -79,6 +81,7 @@ export default function Actions(props: IProps) {
     navigateToResource(navigate, `/${namespaceId}/chat/conversations`);
   };
   const onChatCreate = () => {
+    markBehaviorLeave('conversation', 'new_conversation');
     if (onChatCreateOverride) {
       onChatCreateOverride();
       return;

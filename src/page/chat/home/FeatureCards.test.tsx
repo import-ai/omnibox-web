@@ -1,11 +1,12 @@
 /** @jest-environment jsdom */
 
-import * as React from 'react';
 import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import FeatureCards from './FeatureCards';
 
@@ -47,22 +48,6 @@ jest.mock('@/const', () => ({
   ALLOW_FILE_EXTENSIONS: '.txt',
 }));
 
-jest.mock('@/components/Button', () => ({
-  Button: ({
-    children,
-    onClick,
-  }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
-    <button onClick={onClick}>{children}</button>
-  ),
-}));
-
-jest.mock('@/components/tooltip', () => ({
-  Tooltip: ({ children }: React.PropsWithChildren) => <>{children}</>,
-  TooltipProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
-  TooltipTrigger: ({ children }: React.PropsWithChildren) => <>{children}</>,
-  TooltipContent: ({ children }: React.PropsWithChildren) => <>{children}</>,
-}));
-
 jest.mock('@/components/ui/Card', () => ({
   Card: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
   CardContent: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
@@ -75,10 +60,18 @@ jest.mock('@/components/ui/Spinner', () => ({
 }));
 
 jest.mock('./AddLinkPanel', () => ({
-  AddLinkPanel: () => null,
+  AddLinkPanel: () => <input aria-label="Link panel" />,
 }));
 
-Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+Object.assign(globalThis, {
+  IS_REACT_ACT_ENVIRONMENT: true,
+  ResizeObserver: class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+});
+jest.mock('@/lib/behaviorTracking', () => ({ useBehaviorSurface: jest.fn() }));
 
 describe('FeatureCards', () => {
   let container: HTMLDivElement;
@@ -95,6 +88,53 @@ describe('FeatureCards', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+  });
+
+  it('opens the file picker from the local upload entry', async () => {
+    await act(async () => root.render(<FeatureCards />));
+    const button = [...container.querySelectorAll('button')].find(
+      button => button.textContent === 'chat.home.upload.local'
+    )!;
+    await act(async () => button.click());
+    expect(openFilePicker).toHaveBeenCalledWith(
+      container.querySelector('input[type=file]')
+    );
+    expect(trackButtonClick).toHaveBeenCalledWith(
+      'chat_file_upload',
+      expect.any(Object)
+    );
+  });
+
+  it('opens the link panel from the add link entry', async () => {
+    await act(async () => root.render(<FeatureCards />));
+    const button = [...container.querySelectorAll('button')].find(
+      button => button.textContent === 'chat.home.upload.link'
+    )!;
+    await act(async () => button.click());
+    expect(
+      container.querySelector('input[aria-label="Link panel"]')
+    ).not.toBeNull();
+    expect(trackButtonClick).toHaveBeenCalledWith(
+      'chat_link_open',
+      expect.any(Object)
+    );
+  });
+
+  it('opens browser extension help from the extension entry', async () => {
+    const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+    try {
+      await act(async () => root.render(<FeatureCards />));
+      const button = [...container.querySelectorAll('button')].find(
+        button => button.textContent === 'chat.home.upload.browser'
+      )!;
+      await act(async () => button.click());
+      expect(open).toHaveBeenCalledWith(
+        '/docs/zh-cn/browser-extension',
+        '_blank'
+      );
+    } finally {
+      open.mockRestore();
+    }
   });
 
   it('opens WeChat AI assistant binding from the WeChat entry', async () => {

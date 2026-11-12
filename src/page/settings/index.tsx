@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/omnibox/Dialog';
 import useApp from '@/hooks/useApp';
+import { useBehaviorSurface } from '@/lib/behaviorTracking';
 
 import SettingWrapper from './SettingWrapper';
 
@@ -30,6 +31,7 @@ export default function Setting() {
   const { t } = useTranslation();
   const app = useApp();
   const [open, setOpen] = useState(false);
+  useBehaviorSurface({ scope: 'surface', target: 'settings', active: open });
   const [initialTab, setInitialTab] = useState<string | undefined>();
   const [autoAction, setAutoAction] =
     useState<OpenSettingsPayload['autoAction']>();
