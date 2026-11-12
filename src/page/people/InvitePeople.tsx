@@ -13,6 +13,7 @@ import {
 import { Switch } from '@/components/ui/Switch';
 import { usePublicSiteOrigin } from '@/hooks/publicSiteContext';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { useSettingsToast } from '@/page/settings/SettingsToastProvider';
 
 import { AddNamespaceInvitationForm } from './AddNamespaceInvitationForm';
@@ -30,6 +31,7 @@ export default function InvitePeople(props: IProps) {
   const publicSiteOrigin = usePublicSiteOrigin();
   const [open, setOpen] = useState(false);
   const handleCopy = () => {
+    trackButtonClick('settings_invite_copy');
     if (!publicSiteOrigin) {
       showToast(t('share.share.url_unavailable'), 'error');
       return;
@@ -58,6 +60,7 @@ export default function InvitePeople(props: IProps) {
     }
   };
   const handleCheckedChange = (value: boolean) => {
+    trackButtonClick('settings_invite_toggle', { enabled: value });
     if (value) {
       setOpen(true);
     } else {
@@ -72,7 +75,11 @@ export default function InvitePeople(props: IProps) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[90%] max-w-sm sm:max-w-sm p-4 sm:p-6">
+        <DialogContent
+          outsideCloseTrackName="settings_overlay_close"
+          outsideCloseTarget="invite"
+          className="w-[90%] max-w-sm sm:max-w-sm p-4 sm:p-6"
+        >
           <DialogHeader>
             <DialogTitle>{t('invite.title')}</DialogTitle>
             <VisuallyHidden.Root>

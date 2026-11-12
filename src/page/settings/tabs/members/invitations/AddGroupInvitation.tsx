@@ -27,11 +27,18 @@ export function AddGroupInvitation(props: IProps) {
 
   return (
     <>
-      <SettingPageButton onClick={() => onOpen(true)}>
+      <SettingPageButton
+        trackName="settings_invitation_open"
+        onClick={() => onOpen(true)}
+      >
         {t('invite.title')}
       </SettingPageButton>
       <Dialog open={open} onOpenChange={onOpen}>
-        <DialogContent className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6">
+        <DialogContent
+          outsideCloseTrackName="settings_overlay_close"
+          outsideCloseTarget="invitation"
+          className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6"
+        >
           <DialogHeader>
             <DialogTitle>{t('invite.title')}</DialogTitle>
             <VisuallyHidden.Root>

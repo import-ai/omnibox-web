@@ -26,6 +26,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { Task } from '@/interface.ts';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 export interface TaskActionsProps {
@@ -105,6 +106,7 @@ export function TaskActions({
             <TooltipTrigger asChild>
               <AlertDialogTrigger asChild>
                 <button
+                  onClick={() => trackButtonClick('settings_task_cancel')}
                   disabled={isLoading || !canCancel}
                   className={cn(
                     sidebarToolbarIconButtonClassName,
@@ -129,13 +131,19 @@ export function TaskActions({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="cancel-btn-outline">
+            <AlertDialogCancel
+              className="cancel-btn-outline"
+              onClick={() => trackButtonClick('settings_task_close')}
+            >
               {t('tasks.continue_running')}
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               disabled={isLoading}
-              onClick={handleCancel}
+              onClick={() => {
+                trackButtonClick('settings_task_confirm');
+                handleCancel();
+              }}
             >
               {isLoading && <Spinner className="mr-2" />}
               {t('tasks.confirm_cancel')}
@@ -148,7 +156,13 @@ export function TaskActions({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={canRerun ? handleRerun : undefined}
+              onClick={event => {
+                trackButtonClick('settings_task_retry');
+                const handleClick = canRerun ? handleRerun : undefined;
+                if (typeof handleClick === 'function') {
+                  (handleClick as (value?: typeof event) => void)(event);
+                }
+              }}
               disabled={isLoading || !canRerun}
               className={cn(
                 sidebarToolbarIconButtonClassName,

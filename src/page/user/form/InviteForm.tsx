@@ -123,6 +123,7 @@ export function InviteForm() {
       <div className="text-center text-sm space-y-4">
         <p>{t('invite.please_login_first')}</p>
         <Button
+          trackName="user_login_navigate"
           className="w-full"
           onClick={() =>
             navigate(
@@ -158,6 +159,7 @@ export function InviteForm() {
         {t('invite.join', { user: data.username, namespace: data.namespace })}
       </div>
       <Button
+        trackName="user_namespace_submit"
         type="submit"
         className="w-full disabled:opacity-60"
         loading={isLoading}

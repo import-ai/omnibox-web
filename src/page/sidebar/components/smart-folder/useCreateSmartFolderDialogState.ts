@@ -330,6 +330,7 @@ export function useCreateSmartFolderDialogState({
 
   return {
     t,
+    hasUnsavedChanges,
     namespaceId,
     inputRef,
     conditionListRef,

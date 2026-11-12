@@ -50,6 +50,7 @@ import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
 import { openFilePicker } from '@/lib/openFilePicker';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { cn } from '@/lib/utils';
 import { clearCache } from '@/page/resource/editor/cache';
@@ -316,6 +317,22 @@ export default function Actions(props: IActionProps) {
     });
   };
   const handleAction = (id: string) => {
+    const menuTrackNames: Record<string, string> = {
+      wide: 'resource_layout_toggle',
+      copy_link: 'resource_link_copy',
+      copy_content: 'resource_content_copy',
+      duplicate: 'resource_document_create',
+      download: 'resource_file_download',
+      download_as_png: 'resource_image_download',
+      download_as_markdown: 'resource_markdown_download',
+      retry: 'resource_task_retry',
+      move_to: 'resource_move_open',
+      move_to_trash: 'resource_document_delete',
+      import: 'resource_file_upload',
+      add_link: 'resource_link_open',
+    };
+    const menuTrackName = menuTrackNames[id];
+    if (menuTrackName) trackButtonClick(menuTrackName);
     if (id === 'wide') {
       onWide(!wide);
       return;
@@ -649,6 +666,7 @@ export default function Actions(props: IActionProps) {
           {editPage ? (
             <>
               <Button
+                trackName="resource_document_save"
                 variant="ghost"
                 size="sm"
                 onClick={handleSave}
@@ -658,6 +676,7 @@ export default function Actions(props: IActionProps) {
                 {t('header.actions.save')}
               </Button>
               <Button
+                trackName="resource_edit_cancel"
                 variant="ghost"
                 size="sm"
                 onClick={handleExitEdit}
@@ -669,6 +688,7 @@ export default function Actions(props: IActionProps) {
             </>
           ) : (
             <Button
+              trackName="resource_document_edit"
               variant="ghost"
               size="sm"
               onClick={handleEdit}
@@ -690,6 +710,7 @@ export default function Actions(props: IActionProps) {
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
               <Button
+                trackName="resource_menu_open"
                 variant="ghost"
                 size="icon"
                 className={`${sidebarToolbarIconButtonClassName} size-7`}
@@ -701,6 +722,10 @@ export default function Actions(props: IActionProps) {
           <TooltipContent>{t('common.more_actions')}</TooltipContent>
         </Tooltip>
         <DropdownMenuContent
+          onPointerDownOutside={onOverlayClose(
+            'resource_overlay_close',
+            'menu'
+          )}
           align="end"
           className="w-48 max-w-[calc(100vw-24px)] sm:w-56 animate-none! fade-in-0! fade-out-0! zoom-in-100! zoom-out-100! slide-in-from-top-0! slide-in-from-bottom-0! slide-in-from-left-0! slide-in-from-right-0!"
           {...menuTriggerPress.contentProps}
@@ -736,7 +761,10 @@ export default function Actions(props: IActionProps) {
           )}
           {!editPage && canUseFileLikeActions && (
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="cursor-pointer gap-2">
+              <DropdownMenuSubTrigger
+                className="cursor-pointer gap-2"
+                onClick={() => trackButtonClick('resource_download_open')}
+              >
                 <Download className="size-4 text-muted-foreground" />
                 <span>{t('actions.download_as')}</span>
               </DropdownMenuSubTrigger>
@@ -899,6 +927,8 @@ export default function Actions(props: IActionProps) {
       )}
       {resource?.resource_type === 'folder' && (
         <FolderNameDialog
+          cancelTrackName="resource_folder_cancel"
+          confirmTrackName="resource_folder_save"
           open={folderEditOpen}
           resourceId={resource.id}
           initialName={resource.name || ''}

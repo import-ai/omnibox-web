@@ -6,6 +6,11 @@ import { createRoot } from 'react-dom/client';
 import LoginPage from './login';
 import RegisterPage from './register';
 
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+}));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));

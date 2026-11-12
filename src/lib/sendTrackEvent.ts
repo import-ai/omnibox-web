@@ -201,7 +201,10 @@ export async function track(name: string, payload: Attributes = {}) {
   }
   const { once = false, userId, ...props } = payload;
 
-  const visitorId = await getVisitorId();
+  const visitorId =
+    name === 'button_click'
+      ? await getVisitorId().catch(() => undefined)
+      : await getVisitorId();
 
   // Dealing with many to many relationships
   const key = userId ? `${userId}_${visitorId}` : name;

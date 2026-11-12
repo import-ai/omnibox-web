@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/Popover';
 import { useIsMobile } from '@/hooks/useMobile';
 import { ResourceType } from '@/interface';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import ShareTabs from './ShareTabs';
@@ -30,6 +31,7 @@ export default function ShareAction(props: ShareActionProps) {
     <Popover>
       <PopoverTrigger asChild>
         <Button
+          trackName="resource_share_open"
           size="sm"
           variant="ghost"
           className={cn(
@@ -44,6 +46,7 @@ export default function ShareAction(props: ShareActionProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        onPointerDownOutside={onOverlayClose('resource_overlay_close', 'share')}
         side="bottom"
         align={isMobile ? 'center' : 'end'}
         alignOffset={isMobile ? 0 : -106}

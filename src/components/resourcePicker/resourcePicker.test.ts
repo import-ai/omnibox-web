@@ -195,6 +195,35 @@ describe('resource picker defaults', () => {
     expect(loadChildren).toHaveBeenCalledTimes(2);
   });
 
+  it.each(['private-root', 'team-root'])(
+    'expands %s after the combined scope entry',
+    async rootId => {
+      const roots = [
+        resource('personal_and_team', 'folder'),
+        resource('private-root', 'folder', true),
+        resource('team-root', 'folder', true),
+      ];
+      const loadChildren = jest.fn(async (node: ResourceMeta) =>
+        node.id === rootId
+          ? [resource('parent', 'folder', true)]
+          : [resource('selected', 'doc')]
+      );
+
+      const result = await expandResourceNodesByIds(
+        roots,
+        [rootId, 'parent'],
+        loadChildren
+      );
+
+      expect([...result.expandedIds]).toEqual([rootId, 'parent']);
+      expect(result.childrenById.parent).toEqual([resource('selected', 'doc')]);
+      expect(loadChildren.mock.calls.map(([node]) => node.id)).toEqual([
+        rootId,
+        'parent',
+      ]);
+    }
+  );
+
   it('does not expand unrelated roots while a selected path is unavailable', () => {
     const roots = [
       resource('private-root', 'folder'),

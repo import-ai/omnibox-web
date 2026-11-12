@@ -37,6 +37,7 @@ export default function Contact() {
         description={t('setting.contact.discord_description')}
         button={
           <SettingPageButton
+            trackName="settings_contact_open"
             asChild
             variant="outline"
             className="text-foreground!"

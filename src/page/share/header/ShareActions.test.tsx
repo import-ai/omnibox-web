@@ -8,6 +8,11 @@ import { PublicSiteOriginContext } from '@/hooks/publicSiteContext';
 
 import ShareActions from './ShareActions';
 
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+}));
+
 jest.mock('copy-to-clipboard', () => ({
   __esModule: true,
   default: jest.fn(() => true),

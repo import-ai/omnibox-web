@@ -43,6 +43,7 @@ export default function Invite(props: IProps) {
     withDialogOpenHandler(children, () => setOpen(true))
   ) : (
     <Button
+      trackName="sidebar_invite_open"
       size="sm"
       variant="ghost"
       className="h-8 w-full justify-start gap-1 px-2 font-medium text-muted-foreground"
@@ -61,6 +62,10 @@ export default function Invite(props: IProps) {
         onOpenChange={setOpen}
         title={t('invite.add')}
         contentClassName="w-[90%] max-w-sm"
+        contentProps={{
+          outsideCloseTrackName: 'settings_overlay_close',
+          outsideCloseTarget: 'invite',
+        }}
       >
         {close => (
           <InviteForm

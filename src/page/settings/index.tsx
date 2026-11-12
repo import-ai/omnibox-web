@@ -61,7 +61,11 @@ export default function Setting() {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex h-[85vh] max-h-[517px] w-[90vw] max-w-[858px] sm:max-w-[858px] flex-col gap-0 overflow-hidden rounded-[12px]! border-0 p-0 sm:h-[80vh] sm:w-[85vw] lg:h-[517px] lg:w-[858px] [&>button]:hidden">
+      <DialogContent
+        outsideCloseTrackName="settings_overlay_close"
+        outsideCloseTarget="settings"
+        className="flex h-[85vh] max-h-[517px] w-[90vw] max-w-[858px] sm:max-w-[858px] flex-col gap-0 overflow-hidden rounded-[12px]! border-0 p-0 sm:h-[80vh] sm:w-[85vw] lg:h-[517px] lg:w-[858px] [&>button]:hidden"
+      >
         <VisuallyHidden.Root>
           <DialogHeader>
             <DialogTitle>{t('setting.title')}</DialogTitle>

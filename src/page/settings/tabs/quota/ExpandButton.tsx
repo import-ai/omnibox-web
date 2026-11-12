@@ -25,7 +25,9 @@ export function ExpandButton({ namespaceId }: ExpandButtonProps) {
         target="_blank"
         rel="noopener noreferrer"
       >
-        <SettingPageButton>{t('quota.expand_button')}</SettingPageButton>
+        <SettingPageButton trackName="settings_quota_upgrade">
+          {t('quota.expand_button')}
+        </SettingPageButton>
       </a>
     </div>
   );

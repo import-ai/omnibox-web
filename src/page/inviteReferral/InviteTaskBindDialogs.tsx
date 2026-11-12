@@ -9,7 +9,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/omnibox/Dialog';
 import useApplications from '@/hooks/useApplications';
 import useUser from '@/hooks/useUser';
 import PhoneValidate from '@/page/settings/tabs/account/PhoneValidate';
@@ -52,7 +52,11 @@ export function InviteTaskBindDialogs({
   return (
     <>
       <Dialog open={phoneOpen} onOpenChange={onPhoneOpenChange}>
-        <DialogContent className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
+        <DialogContent
+          outsideCloseTrackName="invite_referral_overlay_close"
+          outsideCloseTarget="phone"
+          className="w-[90%] max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]"
+        >
           <VisuallyHidden>
             <DialogHeader>
               <DialogTitle>{t('phone.input_phone')}</DialogTitle>

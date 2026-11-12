@@ -113,7 +113,7 @@ export async function expandResourceNodesByIds<T extends ExpandableResource>(
     );
   };
 
-  await Promise.all(roots.map(expandRecursive));
+  await Promise.all(roots.map(root => expandRecursive(root)));
 
   return { childrenById, expandedIds };
 }

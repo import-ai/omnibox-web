@@ -22,7 +22,11 @@ export function H5LaunchDialog(props: H5LaunchDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm sm:max-w-sm">
+      <DialogContent
+        outsideCloseTrackName="user_overlay_close"
+        outsideCloseTarget="wechat"
+        className="max-w-sm sm:max-w-sm"
+      >
         <DialogHeader>
           <DialogTitle>{t('login.wechat_h5_title')}</DialogTitle>
           <DialogDescription>
@@ -30,10 +34,16 @@ export function H5LaunchDialog(props: H5LaunchDialogProps) {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button
+            trackName="user_login_cancel"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
             {t('login.wechat_h5_cancel')}
           </Button>
-          <Button onClick={onConfirm}>{t('login.wechat_h5_confirm')}</Button>
+          <Button trackName="user_login_confirm" onClick={onConfirm}>
+            {t('login.wechat_h5_confirm')}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

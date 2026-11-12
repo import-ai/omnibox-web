@@ -7,6 +7,11 @@ import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 
 import LoginPage from './index';
 
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+}));
+
 const navigate = jest.fn();
 let searchParams = new URLSearchParams();
 

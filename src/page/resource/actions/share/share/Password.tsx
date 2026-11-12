@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/Form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/Switch';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { passwordSchema } from '@/lib/validationSchemas';
 
 export interface PasswordProps {
@@ -58,6 +59,7 @@ export function Password(props: PasswordProps) {
   };
 
   const handleChecked = (checked: boolean) => {
+    trackButtonClick('share_password_toggle', { enabled: checked });
     if (checked) {
       setOpen(true);
     } else if (onSave) {
@@ -72,7 +74,10 @@ export function Password(props: PasswordProps) {
         onCheckedChange={handleChecked}
       />
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent
+          outsideCloseTrackName="resource_overlay_close"
+          outsideCloseTarget="password"
+        >
           <DialogTitle>Password</DialogTitle>
           <Form {...form}>
             <form
@@ -113,7 +118,11 @@ export function Password(props: PasswordProps) {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full disabled:opacity-60">
+              <Button
+                trackName="resource_password_save"
+                type="submit"
+                className="w-full disabled:opacity-60"
+              >
                 {t('share.share.save')}
               </Button>
             </form>

@@ -182,6 +182,7 @@ export function AppleLogin({ onSuccess }: AppleLoginProps) {
 
   return (
     <SettingPageButton
+      trackName="settings_binding_create"
       onClick={loginWithApple}
       disabled={!sdkLoaded || loading}
     >

@@ -40,6 +40,7 @@ import {
   withCaptchaParam,
 } from '@/lib/captcha';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { phoneSchema } from '@/lib/validationSchemas';
 import { OtpInput } from '@/page/user/components/OtpInput';
@@ -231,7 +232,13 @@ export function InvitePhoneBindingDialog({
                 <button
                   type="button"
                   className="absolute right-[18px] top-[15px] z-30 text-[14px] font-normal leading-[23px] text-muted-foreground hover:text-foreground"
-                  onClick={skip}
+                  onClick={event => {
+                    trackButtonClick('invite_referral_phone_close');
+                    const handleClick = skip;
+                    if (typeof handleClick === 'function') {
+                      (handleClick as (value?: typeof event) => void)(event);
+                    }
+                  }}
                 >
                   {t('inviteReferral.phoneBinding.skip')}
                 </button>
@@ -297,6 +304,7 @@ export function InvitePhoneBindingDialog({
                                 <PhoneNumberInput
                                   value={field.value as never}
                                   onChange={field.onChange}
+                                  trackName="invite_referral_country_open"
                                   disabled={sending}
                                   placeholder={t('phone.enter_phone')}
                                   allowedCountries={allowedCountries}
@@ -309,6 +317,7 @@ export function InvitePhoneBindingDialog({
                           )}
                         />
                         <Button
+                          trackName="invite_referral_phone_submit"
                           type="submit"
                           className="mt-5 h-[49px] w-full rounded-lg bg-primary text-[14px] font-medium"
                           loading={sending}
@@ -345,6 +354,7 @@ export function InvitePhoneBindingDialog({
                         />
                       </div>
                       <Button
+                        trackName="invite_referral_phone_confirm"
                         type="button"
                         className="mt-[30px] h-[49px] w-full rounded-lg bg-primary text-[15px] font-medium leading-[23px]"
                         loading={submitting}
@@ -361,7 +371,15 @@ export function InvitePhoneBindingDialog({
                           <button
                             type="button"
                             className="font-medium text-foreground hover:underline"
-                            onClick={() => void handleResendCode()}
+                            onClick={event => {
+                              trackButtonClick('invite_referral_phone_retry');
+                              const handleClick = () => void handleResendCode();
+                              if (typeof handleClick === 'function') {
+                                (handleClick as (value?: typeof event) => void)(
+                                  event
+                                );
+                              }
+                            }}
                             disabled={isResending || captcha.running}
                           >
                             {t('phone.resend')}

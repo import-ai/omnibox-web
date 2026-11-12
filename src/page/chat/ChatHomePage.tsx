@@ -290,6 +290,7 @@ export default function ChatHomePage() {
               thinkingSelectionRef.current = selection;
             }}
             key={chatHomeDraftScope}
+            composerSurface="home"
             messages={[]}
             namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}

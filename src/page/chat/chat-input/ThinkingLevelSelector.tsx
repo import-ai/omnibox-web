@@ -16,6 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/Popover';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { composerControlHoverClass } from './composerControlClass';
@@ -27,6 +28,7 @@ import {
 } from './useThinkingLevel';
 
 interface Props {
+  surface?: 'home' | 'conversation';
   config: ThinkingConfig;
   group: ThinkingGroup;
   onGroupChange: (group: ThinkingGroup) => void;
@@ -52,6 +54,7 @@ function ModelStrengthPanel({
 
 export default function ThinkingLevelSelector({
   config,
+  surface,
   group,
   onGroupChange,
   value,
@@ -99,6 +102,7 @@ export default function ThinkingLevelSelector({
     >
       <PopoverTrigger asChild>
         <button
+          onClick={() => trackButtonClick('chat_thinking_open', { surface })}
           type="button"
           disabled={disabled}
           aria-label={`${t('chat.thinking_level')}: ${edition} ${label}`}
@@ -112,6 +116,7 @@ export default function ThinkingLevelSelector({
       </PopoverTrigger>
       <ModelStrengthPanel
         active={panelOpen}
+        onPointerDownOutside={onOverlayClose('chat_overlay_close', 'thinking')}
         side="top"
         align="end"
         sideOffset={8}
@@ -121,7 +126,13 @@ export default function ThinkingLevelSelector({
           <div className="space-y-1">
             <button
               type="button"
-              onClick={() => setModelsOpen(false)}
+              onClick={event => {
+                trackButtonClick('chat_model_close', { surface });
+                const handleClick = () => setModelsOpen(false);
+                if (typeof handleClick === 'function') {
+                  (handleClick as (value?: typeof event) => void)(event);
+                }
+              }}
               className="mb-2 flex items-center gap-2 p-2 text-sm text-muted-foreground"
             >
               <ChevronLeft className="size-4" />
@@ -142,9 +153,15 @@ export default function ThinkingLevelSelector({
                     disabled={Boolean(disabledReason)}
                     aria-pressed={group === item}
                     className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-left text-sm hover:bg-accent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
-                    onClick={() => {
-                      onGroupChange(item);
-                      setModelsOpen(false);
+                    onClick={event => {
+                      trackButtonClick('chat_model_select', { surface });
+                      const handleClick = () => {
+                        onGroupChange(item);
+                        setModelsOpen(false);
+                      };
+                      if (typeof handleClick === 'function') {
+                        (handleClick as (value?: typeof event) => void)(event);
+                      }
                     }}
                   >
                     <span>
@@ -182,7 +199,13 @@ export default function ThinkingLevelSelector({
                 type="button"
                 aria-label={t('chat.model_tier')}
                 disabled={disabled}
-                onClick={() => setModelsOpen(true)}
+                onClick={event => {
+                  trackButtonClick('chat_model_open', { surface });
+                  const handleClick = () => setModelsOpen(true);
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
                 className="rounded-xl px-1 py-1 hover:bg-accent"
               >
                 <span className="flex items-center justify-center gap-1 text-base font-medium text-[#3098ff]">
@@ -201,7 +224,15 @@ export default function ThinkingLevelSelector({
                         type="button"
                         disabled={disabled}
                         aria-label={t('chat.restore_default')}
-                        onClick={() => onGroupChange('default')}
+                        onClick={event => {
+                          trackButtonClick('chat_model_refresh', { surface });
+                          const handleClick = () => onGroupChange('default');
+                          if (typeof handleClick === 'function') {
+                            (handleClick as (value?: typeof event) => void)(
+                              event
+                            );
+                          }
+                        }}
                         className={cn(
                           'rounded-full p-1.5',
                           composerControlHoverClass
@@ -257,11 +288,16 @@ export default function ThinkingLevelSelector({
                 }
                 aria-label={t('chat.thinking_level')}
                 aria-valuetext={`${edition} ${label}`}
-                onChange={event =>
-                  onChange(
-                    thinkingStep(visibleLevels[Number(event.target.value)])
-                  )
-                }
+                onChange={event => {
+                  const next = thinkingStep(
+                    visibleLevels[Number(event.target.value)]
+                  );
+                  trackButtonClick('chat_thinking_select', {
+                    surface,
+                    level: next,
+                  });
+                  onChange(next);
+                }}
                 className="relative block h-6 w-full cursor-pointer appearance-none rounded-full bg-transparent focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-default"
               />
             </div>

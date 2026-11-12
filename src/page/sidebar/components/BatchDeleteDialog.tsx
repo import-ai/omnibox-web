@@ -42,6 +42,8 @@ export default function BatchDeleteDialog({
       confirmText={t('batch.delete')}
       loading={loading}
       variant="destructive"
+      cancelTrackName="sidebar_batch_cancel"
+      confirmTrackName="sidebar_batch_confirm"
       onOpenChange={nextOpen => {
         if (!nextOpen) {
           onCancel();

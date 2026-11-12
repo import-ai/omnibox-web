@@ -44,6 +44,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { SpaceType } from '@/interface';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
@@ -140,11 +141,14 @@ export function SpaceSectionContent({
     [nodeUI, nodes, rootNode.children]
   );
 
+  const entryTrackProps = { space_type: spaceType, entry: 'space_menu' };
   const handleCreateFolder = () => {
+    trackButtonClick('sidebar_folder_create', entryTrackProps);
     useSidebarStore.getState().openCreateFolderDialog(rootId);
   };
 
   const handleCreateLink = () => {
+    trackButtonClick('sidebar_link_open', entryTrackProps);
     useSidebarStore.getState().openCreateLinkDialog(rootId);
   };
 
@@ -178,14 +182,17 @@ export function SpaceSectionContent({
   });
 
   const handleHeaderToggle = () => {
+    trackButtonClick('sidebar_section_toggle');
     useSidebarStore.getState().toggleSpace(spaceType);
   };
 
   const handleUploadClick = () => {
+    trackButtonClick('sidebar_file_upload', entryTrackProps);
     triggerGlobalFileUpload(rootId);
   };
 
   const handleCreateFile = () => {
+    trackButtonClick('sidebar_file_create', entryTrackProps);
     useSidebarStore
       .getState()
       .create(rootId, 'doc')
@@ -201,10 +208,14 @@ export function SpaceSectionContent({
   };
 
   const handleCreateSmartFolder = () => {
+    if (smartFolderDisabled) return;
+    trackButtonClick('sidebar_smart_folder_create', entryTrackProps);
     onCreateSmartFolder(spaceType);
   };
 
   const handleCreateRssFolder = () => {
+    if (rssFolderDisabled) return;
+    trackButtonClick('sidebar_feed_create', entryTrackProps);
     onCreateRssFolder(spaceType);
   };
 
@@ -269,13 +280,20 @@ export function SpaceSectionContent({
                           : 'pointer-events-none opacity-0 group-hover/sidebar-header:pointer-events-auto group-hover/sidebar-header:opacity-100'
                       )}
                     >
-                      <button type="button">
+                      <button
+                        onClick={() => trackButtonClick('sidebar_section_open')}
+                        type="button"
+                      >
                         <MoreHorizontal />
                       </button>
                     </SidebarMenuAction>
                   )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
+                  onPointerDownOutside={onOverlayClose(
+                    'sidebar_overlay_close',
+                    'space_menu'
+                  )}
                   side="right"
                   sideOffset={10}
                   align="start"
@@ -418,7 +436,12 @@ export function SpaceSectionContent({
             </div>
           </SidebarMenuButton>
         </ContextMenuTrigger>
-        <ContextMenuContent>
+        <ContextMenuContent
+          onPointerDownOutside={onOverlayClose(
+            'sidebar_overlay_close',
+            'space_menu'
+          )}
+        >
           <BehaviorExposure
             target="resource_creation_entry"
             props={{

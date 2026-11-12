@@ -63,7 +63,9 @@ export default function MemberMain(props: MemberProps) {
         />
         {canManageMembers && (
           <Invite onFinish={refetch}>
-            <SettingPageButton>{t('manage.add')}</SettingPageButton>
+            <SettingPageButton trackName="settings_member_create">
+              {t('manage.add')}
+            </SettingPageButton>
           </Invite>
         )}
       </div>

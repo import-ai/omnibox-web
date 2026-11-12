@@ -75,6 +75,7 @@ interface IProps {
   // the pending tool calls first (the sendMessage handler does that).
   textWhilePending?: boolean;
   onStop?: () => void;
+  composerSurface?: 'home' | 'conversation';
   onThinkingSelectionChange?: (
     selection: ThinkingSelection | undefined
   ) => void;
@@ -102,6 +103,7 @@ export default function ChatArea(props: IProps) {
     sendMessage,
     textWhilePending = false,
     onStop,
+    composerSurface = messages.length > 0 ? 'conversation' : 'home',
   } = props;
   const { t } = useTranslation();
   const {
@@ -439,6 +441,7 @@ export default function ChatArea(props: IProps) {
           });
         }}
         disabled={disabled}
+        surface={composerSurface}
       />
       <div className="@container/composer-toolbar flex items-center justify-between">
         <fieldset
@@ -446,6 +449,7 @@ export default function ChatArea(props: IProps) {
           className="flex min-w-0 items-center gap-2"
         >
           <ChatTool
+            surface={composerSurface}
             thinkingSelectorEnabled={Boolean(selection)}
             tools={composerTools}
             renderResourcePicker={renderResourcePicker ?? defaultResourcePicker}
@@ -465,6 +469,7 @@ export default function ChatArea(props: IProps) {
             }
           />
           <ApprovalModeSelect
+            surface={composerSurface}
             approvalMode={approvalMode}
             setApprovalMode={setSelectedApprovalMode}
           />
@@ -475,6 +480,7 @@ export default function ChatArea(props: IProps) {
           )}
           {thinkingConfig && selection && (
             <ThinkingLevelSelector
+              surface={composerSurface}
               group={thinkingGroup}
               onGroupChange={next => {
                 if (basicUnsupported && next === 'basic') return;
@@ -498,6 +504,7 @@ export default function ChatArea(props: IProps) {
             />
           )}
           <ChatAction
+            surface={composerSurface}
             onSend={handleSend}
             onStop={onStop}
             disabled={disabled}

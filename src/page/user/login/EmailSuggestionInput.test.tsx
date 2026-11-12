@@ -5,6 +5,11 @@ import { createRoot, type Root } from 'react-dom/client';
 
 import { EmailSuggestionInput } from './EmailSuggestionInput';
 
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+}));
+
 jest.mock('lucide-react', () => ({
   Mail: () => null,
 }));

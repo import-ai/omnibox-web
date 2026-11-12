@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 interface ManualSortConfirmDialogProps {
   open: boolean;
@@ -45,13 +46,20 @@ export function ManualSortConfirmDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={loading} onClick={onCancel}>
+          <AlertDialogCancel
+            disabled={loading}
+            onClick={() => {
+              trackButtonClick('sidebar_sort_cancel');
+              onCancel();
+            }}
+          >
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             disabled={loading}
             onClick={event => {
               event.preventDefault();
+              trackButtonClick('sidebar_sort_confirm');
               void onConfirm();
             }}
           >

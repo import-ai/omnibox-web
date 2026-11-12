@@ -18,10 +18,12 @@ import {
 import { Separator } from '@/components/ui/Separator';
 import { Spinner } from '@/components/ui/Spinner';
 import { FORCE_ASK } from '@/const';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { ChatMode } from '@/page/chat/chat-input/types';
 import type { StreamState } from '@/page/chat/conversation/chatStreamRecovery';
 
 interface IActionProps {
+  surface?: 'home' | 'conversation';
   disabled: boolean;
   disabledReason?: string;
   onSend: () => void;
@@ -38,6 +40,7 @@ export default function ChatAction(props: IActionProps) {
   const [stopping, setStopping] = useState(false);
   const {
     disabled,
+    surface,
     disabledReason,
     onSend,
     onStop,
@@ -55,6 +58,8 @@ export default function ChatAction(props: IActionProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
+                trackName="chat_mode_open"
+                trackProps={{ surface }}
                 size="sm"
                 variant="ghost"
                 className="font-normal pl-2 pr-1 mr-1"
@@ -63,18 +68,37 @@ export default function ChatAction(props: IActionProps) {
                 <ChevronDown />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="bottom" align="end">
+            <DropdownMenuContent
+              onPointerDownOutside={onOverlayClose(
+                'chat_overlay_close',
+                'mode'
+              )}
+              side="bottom"
+              align="end"
+            >
               <DropdownMenuCheckboxItem
                 checked={mode === ChatMode.ASK}
                 className="[&_svg]:text-blue-500! [&_path]:text-blue-500!"
-                onCheckedChange={() => setMode(ChatMode.ASK)}
+                onCheckedChange={() => {
+                  trackButtonClick('chat_mode_select', {
+                    surface,
+                    mode: ChatMode.ASK,
+                  });
+                  setMode(ChatMode.ASK);
+                }}
               >
                 {t('chat.action.mode.ask')}
               </DropdownMenuCheckboxItem>
               <DropdownMenuCheckboxItem
                 checked={mode === ChatMode.WRITE}
                 className="[&_svg]:text-blue-500! [&_path]:text-blue-500!"
-                onCheckedChange={() => setMode(ChatMode.WRITE)}
+                onCheckedChange={() => {
+                  trackButtonClick('chat_mode_select', {
+                    surface,
+                    mode: ChatMode.WRITE,
+                  });
+                  setMode(ChatMode.WRITE);
+                }}
               >
                 {t('chat.action.mode.write')}
               </DropdownMenuCheckboxItem>
@@ -108,6 +132,8 @@ export default function ChatAction(props: IActionProps) {
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button
+                trackName="chat_response_cancel"
+                trackProps={{ surface }}
                 size="icon"
                 variant="default"
                 className="rounded-full size-8"
@@ -156,6 +182,8 @@ export default function ChatAction(props: IActionProps) {
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button
+                trackName="chat_message_send"
+                trackProps={{ surface }}
                 size="icon"
                 onClick={onSend}
                 className="rounded-full size-8"

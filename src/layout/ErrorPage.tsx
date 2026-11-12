@@ -24,7 +24,7 @@ export default function ErrorPage() {
             )}
           </AlertDescription>
         </Alert>
-        <Button asChild>
+        <Button trackName="user_home_navigate" asChild>
           <a href="/">{t('back_to_front')}</a>
         </Button>
       </div>

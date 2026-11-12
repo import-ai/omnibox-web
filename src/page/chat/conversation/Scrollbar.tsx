@@ -153,6 +153,7 @@ export default function Scrollbar(props: IProps) {
           {props.hasMore && (
             <div className="flex justify-center pb-4">
               <Button
+                trackName="chat_history_navigate"
                 variant="outline"
                 size="sm"
                 disabled={props.loadingOlder}
@@ -172,6 +173,7 @@ export default function Scrollbar(props: IProps) {
         </div>
       </div>
       <Button
+        trackName="chat_transcript_navigate"
         aria-hidden={!showScrollToBottom}
         aria-label={scrollToBottomLabel}
         className={cn(

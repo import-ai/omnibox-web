@@ -53,6 +53,12 @@ interface QuotaState {
 }
 
 export default function useQuota(namespaceId: string) {
+  const [refresh, setRefresh] = useState(0);
+  useEffect(() => {
+    const onFocus = () => setRefresh(value => value + 1);
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, []);
   const [state, setState] = useState<QuotaState>({
     namespaceId,
     data: null,
@@ -83,7 +89,7 @@ export default function useQuota(namespaceId: string) {
       active = false;
       source.cancel();
     };
-  }, [namespaceId]);
+  }, [namespaceId, refresh]);
 
   if (state.namespaceId !== namespaceId) {
     return { data: null, loading: true };

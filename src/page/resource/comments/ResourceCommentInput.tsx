@@ -6,6 +6,7 @@ import {
   AutosizeTextarea,
   type AutosizeTextAreaRef,
 } from '@/components/autosize-textarea';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import { CommentMentionField } from './CommentMentionField';
 import { CommentMentionMenu } from './CommentMentionMenu';
@@ -80,7 +81,13 @@ export function ResourceCommentInput({
             disabled={disabled}
             aria-label={t('resource_comments.remove_image')}
             title={t('resource_comments.remove_image')}
-            onClick={draft.clearImage}
+            onClick={event => {
+              trackButtonClick('resource_comment_remove');
+              const handleClick = draft.clearImage;
+              if (typeof handleClick === 'function') {
+                (handleClick as (value?: typeof event) => void)(event);
+              }
+            }}
           >
             <X aria-hidden strokeWidth={2} />
           </button>

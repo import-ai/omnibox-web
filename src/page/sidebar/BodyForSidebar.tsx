@@ -789,6 +789,8 @@ export function BodyForSidebar(props: IProps) {
         onConfirm={handleConfirmSmartFolderDelete}
       />
       <FolderNameDialog
+        cancelTrackName="sidebar_folder_cancel"
+        confirmTrackName="sidebar_folder_create"
         open={!!createFolderTargetId}
         onOpenChange={open => {
           if (!open) {

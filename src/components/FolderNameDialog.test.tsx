@@ -14,6 +14,12 @@ import { behavior, configureBehaviorTracking } from '@/lib/behaviorTracking';
 
 import { FolderNameDialog } from './FolderNameDialog';
 
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+  overlayCloseName: () => 'sidebar_overlay_close',
+}));
+
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
