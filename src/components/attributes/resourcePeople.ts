@@ -1,4 +1,12 @@
+import type { ResourceType } from '@/interface';
+
 export const CONTRIBUTOR_LABEL_MAX_LENGTH = 16;
+
+export function supportsResourcePeople(resourceType?: ResourceType): boolean {
+  return (
+    resourceType === 'doc' || resourceType === 'link' || resourceType === 'file'
+  );
+}
 
 export function truncateContributorLabel(
   label: string,

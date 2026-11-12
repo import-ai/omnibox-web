@@ -575,4 +575,25 @@ describe('ApplicationsForm auto binding', () => {
     ).toBeNull();
     expect(mockShowToast).not.toHaveBeenCalled();
   });
+
+  it('opens the WeChat AI assistant help page from the relative docs link', async () => {
+    mockApplications([application()]);
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+
+    await act(async () => root.render(<ApplicationsForm />));
+
+    const docsButton = container.querySelector<HTMLButtonElement>(
+      '[aria-label="footer.docs"]'
+    );
+    expect(docsButton).not.toBeNull();
+    expect(container.textContent).toContain('footer.docs');
+
+    await act(async () => docsButton?.click());
+
+    expect(openSpy).toHaveBeenCalledWith(
+      '/docs/zh-cn/applications/wechat-ai-assistant',
+      '_blank'
+    );
+    openSpy.mockRestore();
+  });
 });

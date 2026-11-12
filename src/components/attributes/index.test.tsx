@@ -169,6 +169,78 @@ describe('Attributes', () => {
     ).toBeNull();
   });
 
+  it.each([
+    ['link', { url: 'https://example.com/article' }],
+    ['file', { original_name: 'meeting.m4a' }],
+  ])('shows people for a team %s resource', async (resourceType, attrs) => {
+    await act(async () => {
+      root.render(
+        <Attributes
+          namespaceId="namespace-1"
+          resource={
+            {
+              id: `${resourceType}-1`,
+              name: 'Resource',
+              parent_id: 'team-root',
+              resource_type: resourceType,
+              space_type: 'teamspace',
+              has_children: false,
+              created_at: '2026-01-02T03:04:05Z',
+              attrs,
+              creator: {
+                label: 'Lizhi（lizhi）',
+                initial: 'L',
+                tone: '0',
+                interactive: true,
+              },
+              collaborators: [],
+            } as unknown as Resource
+          }
+        />
+      );
+    });
+
+    const creator = container.querySelector('[data-testid="resource-creator"]');
+    expect(creator?.textContent).toContain('Lizhi（lizhi）');
+    expect(
+      container.querySelector('[data-testid="resource-collaborators"]')
+    ).toBeNull();
+  });
+
+  it('shows people on a shared file without hover cards', async () => {
+    await act(async () => {
+      root.render(
+        <Attributes
+          namespaceId="namespace-1"
+          readOnly
+          resource={
+            {
+              id: 'file-1',
+              name: 'Recording',
+              parent_id: 'team-root',
+              resource_type: 'file',
+              space_type: 'teamspace',
+              has_children: false,
+              created_at: '2026-01-02T03:04:05Z',
+              attrs: { original_name: 'meeting.m4a' },
+              creator: {
+                label: 'Lizhi',
+                initial: 'L',
+                tone: '0',
+                interactive: false,
+              },
+              collaborators: [],
+            } as unknown as Resource
+          }
+        />
+      );
+    });
+
+    const creator = container.querySelector('[data-testid="resource-creator"]');
+    expect(creator?.textContent).toContain('Lizhi');
+    expect(creator?.querySelector('[data-type="mention"]')).toBeNull();
+  });
+
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
