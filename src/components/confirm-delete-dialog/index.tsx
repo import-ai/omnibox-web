@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/Spinner';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 interface IProps {
   open: boolean;
@@ -30,6 +31,8 @@ interface IProps {
   onSuccess?: () => void;
   onRestoreSuccess?: (response?: any) => void;
   onError?: (error: any) => void;
+  cancelTrackName?: string;
+  confirmTrackName?: string;
 }
 
 export default function ConfirmDeleteDialog(props: IProps) {
@@ -46,6 +49,8 @@ export default function ConfirmDeleteDialog(props: IProps) {
     onSuccess,
     onRestoreSuccess,
     onError,
+    cancelTrackName,
+    confirmTrackName,
   } = props;
 
   const { t } = useTranslation();
@@ -129,13 +134,21 @@ export default function ConfirmDeleteDialog(props: IProps) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="cancel-btn-outline">
+          <AlertDialogCancel
+            className="cancel-btn-outline"
+            onClick={() => {
+              if (cancelTrackName) trackButtonClick(cancelTrackName);
+            }}
+          >
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
             variant="destructive"
             disabled={loading}
-            onClick={handleConfirm}
+            onClick={() => {
+              if (confirmTrackName) trackButtonClick(confirmTrackName);
+              handleConfirm();
+            }}
           >
             {loading && <Spinner className="mr-2" />}
             {t('delete')}

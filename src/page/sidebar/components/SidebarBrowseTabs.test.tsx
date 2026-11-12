@@ -27,6 +27,9 @@ jest.mock('@/components/loading', () => ({
 }));
 jest.mock('@/components/tooltip', () => ({
   Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   TooltipTrigger: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
@@ -446,21 +449,24 @@ it('places refresh between search and new chat and reloads conversations', async
       'actions.refresh',
       'chat.conversations.new_chat',
     ]);
-    const refreshButton = container.querySelector(
-      'button[aria-label="actions.refresh"]'
-    );
-    if (!(refreshButton instanceof HTMLButtonElement)) {
-      throw new Error('Refresh button is missing');
-    }
-    expect(refreshButton.disabled).toBe(false);
-    await act(async () => refreshButton.click());
+    const refreshButton = () => {
+      const button = container.querySelector(
+        'button[aria-label="actions.refresh"]'
+      );
+      if (!(button instanceof HTMLButtonElement)) {
+        throw new Error('Refresh button is missing');
+      }
+      return button;
+    };
+    expect(refreshButton().disabled).toBe(false);
+    await act(async () => refreshButton().click());
     expect(refreshConversations).toHaveBeenCalledTimes(1);
-    expect(refreshButton.disabled).toBe(true);
-    expect(refreshButton.getAttribute('aria-label')).toBe('actions.refresh');
-    await act(async () => refreshButton.click());
+    expect(refreshButton().disabled).toBe(true);
+    expect(refreshButton().getAttribute('aria-label')).toBe('actions.refresh');
+    await act(async () => refreshButton().click());
     expect(refreshConversations).toHaveBeenCalledTimes(1);
     await act(async () => resolveRefresh?.());
-    expect(refreshButton.disabled).toBe(false);
+    expect(refreshButton().disabled).toBe(false);
   } finally {
     await act(async () => root.unmount());
     container.remove();

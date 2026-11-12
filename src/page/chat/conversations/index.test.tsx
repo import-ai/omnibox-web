@@ -4,6 +4,11 @@ import { createRoot } from 'react-dom/client';
 
 import ChatConversationsPage from './index';
 
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+}));
+
 const onEdit = jest.fn();
 const onRemove = jest.fn();
 const onConversationSelect = jest.fn();

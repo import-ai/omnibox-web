@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import useApp from '@/hooks/useApp';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
@@ -103,6 +104,7 @@ export default function Actions(props: IProps) {
       {compact && <ExpandCopilotButton namespaceId={namespaceId} />}
       {conversationsPage && onChatSearch && (
         <IconButton
+          trackName="chat_search_open"
           label={t('chat.conversations.search')}
           size="sm"
           tone="sidebar"
@@ -113,6 +115,7 @@ export default function Actions(props: IProps) {
       )}
       {conversationId && !compact && (
         <IconButton
+          trackName="chat_share_open"
           label={t('chat.share.action')}
           size="sm"
           tone="sidebar"
@@ -128,6 +131,7 @@ export default function Actions(props: IProps) {
       )}
       {!homePage && (
         <IconButton
+          trackName="chat_conversation_create"
           label={t('chat.conversations.new_chat')}
           size="sm"
           tone="sidebar"
@@ -138,6 +142,7 @@ export default function Actions(props: IProps) {
       )}
       {!conversationsPage && (compact || !conversationId) && (
         <IconButton
+          trackName="chat_history_open"
           label={t('chat.conversations.history')}
           size="sm"
           tone="sidebar"
@@ -152,6 +157,7 @@ export default function Actions(props: IProps) {
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
                 <Button
+                  trackName="chat_conversation_open"
                   variant="ghost"
                   size="icon"
                   className={cn(
@@ -166,6 +172,10 @@ export default function Actions(props: IProps) {
             <TooltipContent>{t('common.more_actions')}</TooltipContent>
           </Tooltip>
           <DropdownMenuContent
+            onPointerDownOutside={onOverlayClose(
+              'chat_overlay_close',
+              'conversation_menu'
+            )}
             align="end"
             className="w-56"
             {...menuTriggerPress.contentProps}
@@ -177,21 +187,30 @@ export default function Actions(props: IProps) {
           >
             <DropdownMenuItem
               className="cursor-pointer gap-2"
-              onClick={onChatCreate}
+              onClick={() => {
+                trackButtonClick('chat_conversation_create');
+                onChatCreate();
+              }}
             >
               <Plus className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.new_chat')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer gap-2"
-              onClick={onChatHistory}
+              onClick={() => {
+                trackButtonClick('chat_history_open');
+                onChatHistory();
+              }}
             >
               <History className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.history')}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer gap-2"
-              onClick={() => handleAction('rename')}
+              onClick={() => {
+                trackButtonClick('chat_conversation_edit');
+                handleAction('rename');
+              }}
             >
               <SquarePen className="size-4 text-muted-foreground" />
               <span>{t('chat.conversations.rename.option')}</span>
@@ -200,7 +219,10 @@ export default function Actions(props: IProps) {
             <DropdownMenuItem
               variant="destructive"
               className="cursor-pointer gap-2"
-              onClick={() => handleAction('delete')}
+              onClick={() => {
+                trackButtonClick('chat_conversation_delete');
+                handleAction('delete');
+              }}
             >
               <Trash className="size-4" />
               <span>{t('chat.conversations.delete.option')}</span>
@@ -215,6 +237,8 @@ export default function Actions(props: IProps) {
         deleteUrl={`/namespaces/${namespaceId}/conversations/${conversationId}`}
         successMessage={t('chat.conversations.deleted')}
         successDescription={t('chat.conversations.deleted_description')}
+        cancelTrackName="chat_conversation_cancel"
+        confirmTrackName="chat_conversation_confirm"
         onOpenChange={onRemove}
         onSuccess={handleDeleteSuccess}
       />

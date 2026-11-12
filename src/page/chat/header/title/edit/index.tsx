@@ -29,6 +29,8 @@ export default function editHistory(props: IProps) {
   return (
     <Dialog open={data.open} onOpenChange={onOpenChange}>
       <DialogContent
+        outsideCloseTrackName="chat_overlay_close"
+        outsideCloseTarget="title"
         className="w-[90%] sm:w-1/2 max-w-7xl sm:max-w-7xl p-4 sm:p-6"
         onOpenAutoFocus={event => {
           const input = (

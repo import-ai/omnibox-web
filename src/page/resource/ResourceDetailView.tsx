@@ -291,6 +291,8 @@ function ResourceDetailContent({
         confirmText={t('resource.history.restore_confirm')}
         cancelText={t('resource.history.restore_cancel')}
         loading={restoring}
+        cancelTrackName="resource_history_cancel"
+        confirmTrackName="resource_history_confirm"
         onOpenChange={setRestoreOpen}
         onConfirm={async () => {
           if (!selectedRevision) return;

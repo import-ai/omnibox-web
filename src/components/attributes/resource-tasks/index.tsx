@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { Spinner } from '@/components/ui/Spinner';
 import { Resource } from '@/interface';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 
 import { ATTRIBUTE_STYLES } from '../constants';
 import { DISPLAY_FUNCTIONS, RETRYABLE_TASK_STATUSES } from './const';
@@ -127,6 +128,7 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -135,6 +137,10 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
@@ -153,6 +159,7 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -161,6 +168,10 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
@@ -179,6 +190,7 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -187,6 +199,10 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
@@ -205,6 +221,7 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -213,6 +230,10 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
@@ -231,6 +252,7 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  trackName="resource_task_open"
                   variant="secondary"
                   className="h-6 gap-1 rounded-lg border border-border bg-transparent px-2 py-0 text-xs text-muted-foreground"
                 >
@@ -239,6 +261,10 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
+                onPointerDownOutside={onOverlayClose(
+                  'resource_overlay_close',
+                  'task'
+                )}
                 side="bottom"
                 className="flex max-h-[90px] min-w-[93px] flex-col gap-[5px] overflow-y-auto p-[3px]"
               >
@@ -258,6 +284,7 @@ export default function ResourceTasks({ namespaceId }: ResourceTasksProps) {
           ) && <CreditShortageActions namespaceId={namespaceId} />}
           {hasRetryable && (
             <Button
+              trackName="resource_task_retry"
               variant="secondary"
               disabled={retrying}
               onClick={() => {

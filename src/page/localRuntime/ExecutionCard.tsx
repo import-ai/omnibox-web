@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
 import { Alert, AlertTitle } from '@/components/ui/Alert';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
 import { ChatResourceLink } from '@/page/chat/components/ChatResourceLink';
@@ -249,7 +250,13 @@ export default function ExecutionCard({
           type="button"
           className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
           aria-expanded={open}
-          onClick={() => setOpen(!open)}
+          onClick={event => {
+            trackButtonClick('local_runtime_execution_toggle');
+            const handleClick = () => setOpen(!open);
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
+          }}
         >
           {t(open ? 'local_runtime.hide_output' : 'local_runtime.show_output')}
           <ChevronDown
@@ -268,6 +275,7 @@ export default function ExecutionCard({
             ) : (
               <>
                 <Button
+                  trackName="local_runtime_execution_cancel"
                   size="sm"
                   variant="outline"
                   disabled={busy}
@@ -278,6 +286,7 @@ export default function ExecutionCard({
                   {t('local_runtime.reject')}
                 </Button>
                 <Button
+                  trackName="local_runtime_execution_confirm"
                   size="sm"
                   disabled={busy}
                   onClick={() =>
@@ -290,6 +299,7 @@ export default function ExecutionCard({
             ))}
           {!terminal.has(e.status) && e.status !== 'awaiting_approval' && (
             <Button
+              trackName="local_runtime_run_cancel"
               size="sm"
               variant="outline"
               disabled={busy || e.status === 'cancel_requested'}

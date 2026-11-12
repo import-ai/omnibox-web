@@ -21,6 +21,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import { useIsMobile } from '@/hooks/useMobile';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { RssItemFeedBadge } from '@/page/sidebar/components/rss-folder/RssItemFeedBadge';
@@ -257,6 +258,7 @@ export function ResourceNodeContent({
     clickTimeoutRef.current = window.setTimeout(() => {
       clickTimeoutRef.current = null;
       if (useSidebarStore.getState().selectionMode) return;
+      trackButtonClick('sidebar_resource_select');
       handleActive();
     }, CLICK_DEBOUNCE_DELAY);
   };
@@ -266,6 +268,7 @@ export function ResourceNodeContent({
     e.stopPropagation();
     if (selectionMode || node.readOnly) return;
     clearPendingClick();
+    trackButtonClick('sidebar_resource_edit');
     startRename();
   };
 
@@ -274,6 +277,7 @@ export function ResourceNodeContent({
     event.stopPropagation();
     if (isEditing || !isSelectable) return;
     clearPendingClick();
+    trackButtonClick('sidebar_selection_select');
     const state = useSidebarStore.getState();
     state.toggleSelection(
       nodeId,
@@ -363,6 +367,7 @@ export function ResourceNodeContent({
                       {node.hasChildren &&
                         (nodeUI?.loading ? (
                           <Button
+                            trackName="sidebar_node_toggle"
                             size="icon"
                             variant="ghost"
                             className="size-5 cursor-pointer border-none bg-transparent shadow-none hover:bg-transparent dark:hover:bg-transparent"
@@ -376,6 +381,7 @@ export function ResourceNodeContent({
                           </Button>
                         ) : (
                           <Button
+                            trackName="sidebar_node_toggle"
                             size="icon"
                             variant="ghost"
                             className="size-5 cursor-pointer border-none bg-transparent text-muted-foreground shadow-none hover:bg-transparent dark:hover:bg-transparent"

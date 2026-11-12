@@ -17,6 +17,7 @@ export function SidebarNav(props: SidebarNavProps) {
     <nav className="flex flex-wrap gap-1 lg:flex-col">
       {items.map(item => (
         <Button
+          trackName="user_section_select"
           key={item.value}
           variant="ghost"
           onClick={() => onChange(item.value)}

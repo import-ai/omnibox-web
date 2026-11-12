@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { MentionAvatar } from '@/page/resource/MentionAvatar';
 
 import type { CommentMentionUser } from './commentMentions';
@@ -71,7 +72,13 @@ export function CommentMentionMenu({
                 data-active-state={itemIndex === spec.selected ? 'on' : 'off'}
                 data-user-id={user.id}
                 onMouseDown={event => event.preventDefault()}
-                onClick={() => spec.onPick(user)}
+                onClick={event => {
+                  trackButtonClick('resource_mention_select');
+                  const handleClick = () => spec.onPick(user);
+                  if (typeof handleClick === 'function') {
+                    (handleClick as (value?: typeof event) => void)(event);
+                  }
+                }}
               >
                 <MentionAvatar
                   initial={Array.from(user.name)[0]?.toLocaleUpperCase() || ''}

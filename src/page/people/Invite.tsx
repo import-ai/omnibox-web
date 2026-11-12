@@ -21,11 +21,20 @@ export default function Invite() {
 
   return (
     <>
-      <Button size="sm" variant="default" onClick={() => onOpen(true)}>
+      <Button
+        trackName="settings_member_create"
+        size="sm"
+        variant="default"
+        onClick={() => onOpen(true)}
+      >
         {t('invite.add')}
       </Button>
       <Dialog open={open} onOpenChange={onOpen}>
-        <DialogContent className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6">
+        <DialogContent
+          outsideCloseTrackName="settings_overlay_close"
+          outsideCloseTarget="invite"
+          className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6"
+        >
           <DialogHeader>
             <DialogTitle>{t('invite.add')}</DialogTitle>
             <VisuallyHidden.Root>

@@ -19,6 +19,7 @@ export function SmartFolderDialogFooter(props: SmartFolderDialogFooterProps) {
   return (
     <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end sm:space-x-2">
       <Button
+        trackName="sidebar_folder_cancel"
         variant="outline"
         className="h-9 w-full rounded-lg px-4 sm:w-auto"
         onClick={onCancel}
@@ -27,6 +28,7 @@ export function SmartFolderDialogFooter(props: SmartFolderDialogFooterProps) {
         {t('cancel')}
       </Button>
       <Button
+        trackName="sidebar_folder_save"
         className="h-9 w-full rounded-lg px-4 sm:w-auto"
         onClick={onConfirm}
         disabled={!name.trim() || !canSubmit || submitting}

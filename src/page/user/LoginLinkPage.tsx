@@ -89,7 +89,7 @@ export default function LoginLinkPage() {
           <p className="text-sm text-muted-foreground">
             {t(FAILURE_MESSAGES[failure])}
           </p>
-          <Button asChild>
+          <Button trackName="user_pricing_navigate" asChild>
             <a href={PRICING_PATH}>{t('login_link.go_pricing')}</a>
           </Button>
         </div>

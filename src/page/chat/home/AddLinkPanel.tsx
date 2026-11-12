@@ -5,18 +5,18 @@ import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
 import {
-  type ResourcePickerResource,
-  WorkspaceResourcePicker,
-} from '@/components/resourcePicker';
-import ResourceTypeIcon from '@/components/ResourceTypeIcon';
-import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/omnibox/Dialog';
+import {
+  type ResourcePickerResource,
+  WorkspaceResourcePicker,
+} from '@/components/resourcePicker';
+import ResourceTypeIcon from '@/components/ResourceTypeIcon';
+import { searchFieldClearButtonClassName } from '@/components/search/SearchField';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import type { PathItem, Resource, ResourceMeta } from '@/interface';
@@ -217,6 +217,7 @@ export function AddLinkPanel({
           {url.length > 0 && (
             <span className="absolute inset-y-0 right-2 flex items-center">
               <Button
+                trackName="chat_link_remove"
                 type="button"
                 variant="ghost"
                 aria-label={t('search.clear')}
@@ -238,6 +239,7 @@ export function AddLinkPanel({
             {t('chat.home.upload.save_to')}
           </Label>
           <Button
+            trackName="chat_link_select"
             type="button"
             variant="outline"
             className="h-9 w-full justify-start gap-2 pr-2 pl-3 font-normal"
@@ -261,6 +263,7 @@ export function AddLinkPanel({
         <div className="flex gap-5">
           <span className={cn('flex flex-1', saving && 'cursor-not-allowed')}>
             <Button
+              trackName="chat_link_cancel"
               type="button"
               variant="outline"
               className="h-8 w-full"
@@ -277,6 +280,7 @@ export function AddLinkPanel({
             )}
           >
             <Button
+              trackName="chat_link_save"
               type="button"
               className="h-8 w-full"
               disabled={!url.trim() || saving || !destination}
@@ -289,7 +293,11 @@ export function AddLinkPanel({
         </div>
       </div>
       <Dialog open={pickerOpen} onOpenChange={setPickerOpen}>
-        <DialogContent className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pt-8 pb-5 sm:max-w-[480px]">
+        <DialogContent
+          outsideCloseTrackName="chat_overlay_close"
+          outsideCloseTarget="link"
+          className="w-[480px] max-w-[90%] gap-2 overflow-hidden bg-popover px-4 pt-8 pb-5 sm:max-w-[480px]"
+        >
           <DialogHeader>
             <DialogTitle>{t('chat.tools.select_resource')}</DialogTitle>
             <DialogDescription className="sr-only">

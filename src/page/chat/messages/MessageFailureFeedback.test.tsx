@@ -17,6 +17,10 @@ import type { MessageDetail } from '@/page/chat/core/types/conversation';
 
 import { Messages } from './index';
 
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+}));
 jest.mock('react-router-dom', () => ({ useParams: () => ({}) }));
 jest.mock('@/page/share/ShareChatOnlyContext', () => ({
   useShareChatOnly: () => false,

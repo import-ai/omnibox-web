@@ -42,6 +42,7 @@ import useNamespace from '@/hooks/useNamespace';
 import useNamespaces from '@/hooks/useNamespaces';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 const createFormSchema = (t: (key: string) => string) =>
   z.object({
@@ -184,6 +185,7 @@ export default function SettingForm({
               </p>
             </div>
             <SettingPageButton
+              trackName="settings_namespace_edit"
               variant="outline"
               onClick={() => {
                 form.reset({ name: data.name });
@@ -199,7 +201,12 @@ export default function SettingForm({
               if (!submiting) setNameDialogOpen(open);
             }}
           >
-            <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
+            <DialogContent
+              closeDisabled={submiting}
+              outsideCloseTrackName="settings_overlay_close"
+              outsideCloseTarget="namespace"
+              className="w-[90%] max-w-md sm:max-w-md sm:w-1/2"
+            >
               <DialogHeader>
                 <DialogTitle>{t('namespace.name')}</DialogTitle>
                 <DialogDescription>
@@ -228,6 +235,7 @@ export default function SettingForm({
                   />
                   <div className="flex justify-end gap-2">
                     <Button
+                      trackName="settings_namespace_cancel"
                       type="button"
                       variant="outline"
                       disabled={submiting}
@@ -236,6 +244,7 @@ export default function SettingForm({
                       {t('cancel')}
                     </Button>
                     <Button
+                      trackName="settings_namespace_save"
                       type="submit"
                       disabled={submiting}
                       loading={submiting}
@@ -267,6 +276,7 @@ export default function SettingForm({
               </p>
             </div>
             <SettingPageButton
+              trackName="settings_namespace_remove"
               variant="destructive"
               onClick={() => setLeaveDialogOpen(true)}
             >
@@ -286,6 +296,7 @@ export default function SettingForm({
                 </p>
               </div>
               <SettingPageButton
+                trackName="settings_namespace_delete"
                 variant="destructive"
                 onClick={() => setDeleteDialogOpen(true)}
               >
@@ -310,6 +321,7 @@ export default function SettingForm({
             <AlertDialogCancel
               className="cancel-btn-outline"
               disabled={leaving}
+              onClick={() => trackButtonClick('settings_namespace_cancel')}
             >
               {t('cancel')}
             </AlertDialogCancel>
@@ -318,6 +330,7 @@ export default function SettingForm({
               disabled={leaving}
               onClick={e => {
                 e.preventDefault();
+                trackButtonClick('settings_namespace_confirm');
                 handleLeave();
               }}
             >
@@ -339,6 +352,8 @@ export default function SettingForm({
         confirmButtonText={t('namespace.delete.button')}
         cancelButtonText={t('cancel')}
         loading={deleting}
+        cancelTrackName="settings_namespace_cancel"
+        confirmTrackName="settings_namespace_confirm"
         onConfirm={handleDelete}
       />
     </div>

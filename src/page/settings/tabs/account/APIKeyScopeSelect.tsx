@@ -23,6 +23,8 @@ export function APIKeyScopeSelect({
   return (
     <>
       <ResourceSelect
+        outsideCloseTrackName="settings_overlay_close"
+        outsideCloseTarget="resource"
         includePersonalAndTeam
         enableManagedFolders
         namespaceId={namespaceId}

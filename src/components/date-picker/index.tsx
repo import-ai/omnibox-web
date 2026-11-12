@@ -19,6 +19,11 @@ import {
   PopoverTrigger,
 } from '@/components/ui/Popover';
 import { useIsMobile } from '@/hooks/useMobile';
+import {
+  onOverlayClose,
+  overlayCloseName,
+  trackButtonClick,
+} from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { getNextRangeSelectionState, type RangeSelectionState } from './utils';
@@ -29,6 +34,8 @@ interface DatePickerProps {
   placeholder?: string;
   value: string;
   onChange: (value: string) => void;
+  trackName?: string;
+  dayTrackName?: string;
 }
 
 interface DateRangePickerProps {
@@ -38,6 +45,8 @@ interface DateRangePickerProps {
   placeholder?: string;
   startDate: string;
   endDate: string;
+  trackName?: string;
+  dayTrackName?: string;
   onChange: (value: { startDate: string; endDate: string }) => void;
 }
 
@@ -165,10 +174,12 @@ function RangeDayButton({
   modifiers,
   range,
   weekStartsOn,
+  trackName,
   ...props
 }: ComponentProps<typeof DayButton> & {
   range?: DateRange;
   weekStartsOn: number;
+  trackName?: string;
 }) {
   const defaultClassNames = getDefaultClassNames();
   const ref = useRef<HTMLButtonElement>(null);
@@ -203,6 +214,7 @@ function RangeDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
+      trackName={trackName}
       data-day={day.date.toLocaleDateString()}
       data-selected-single={
         (modifiers.selected || modifiers.range_start) &&
@@ -227,7 +239,15 @@ function RangeDayButton({
 }
 
 export function DatePicker(props: DatePickerProps) {
-  const { className, disabled, placeholder, value, onChange } = props;
+  const {
+    className,
+    disabled,
+    placeholder,
+    value,
+    onChange,
+    trackName,
+    dayTrackName,
+  } = props;
   const { i18n } = useTranslation();
   const selectedDate = useMemo(() => parseDate(value), [value]);
   const calendarLocale = i18n.language?.startsWith('zh') ? zhCN : enUS;
@@ -239,6 +259,7 @@ export function DatePicker(props: DatePickerProps) {
           type="button"
           variant="outline"
           disabled={disabled}
+          trackName={trackName}
           className={cn(
             'w-full justify-between font-normal',
             !value && 'text-muted-foreground',
@@ -250,6 +271,11 @@ export function DatePicker(props: DatePickerProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        onPointerDownOutside={
+          trackName
+            ? onOverlayClose(overlayCloseName(trackName, 'resource'), 'date')
+            : undefined
+        }
         className="w-auto overflow-hidden rounded-md p-0"
         align="start"
       >
@@ -261,6 +287,7 @@ export function DatePicker(props: DatePickerProps) {
             if (!date) {
               return;
             }
+            if (dayTrackName) trackButtonClick(dayTrackName);
 
             const nextMonth = `${date.getMonth() + 1}`.padStart(2, '0');
             const nextDay = `${date.getDate()}`.padStart(2, '0');
@@ -283,6 +310,8 @@ export function DateRangePicker(props: DateRangePickerProps) {
     startDate,
     endDate,
     onChange,
+    trackName,
+    dayTrackName,
   } = props;
   const { i18n } = useTranslation();
   const calendarLocale = i18n.language?.startsWith('zh') ? zhCN : enUS;
@@ -324,6 +353,7 @@ export function DateRangePicker(props: DateRangePickerProps) {
           type="button"
           variant="outline"
           disabled={disabled}
+          trackName={trackName}
           data-empty={!visibleRange?.from}
           className={cn(
             'w-full min-w-0 justify-start text-left font-normal data-[empty=true]:text-muted-foreground',
@@ -339,6 +369,11 @@ export function DateRangePicker(props: DateRangePickerProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent
+        onPointerDownOutside={
+          trackName
+            ? onOverlayClose(overlayCloseName(trackName, 'resource'), 'date')
+            : undefined
+        }
         className="max-h-(--radix-popover-content-available-height) w-auto overflow-y-auto p-0"
         collisionPadding={16}
         align="start"
@@ -362,6 +397,7 @@ export function DateRangePicker(props: DateRangePickerProps) {
                 {...dayButtonProps}
                 range={visibleRange}
                 weekStartsOn={weekStartsOn}
+                trackName={dayTrackName}
               />
             ),
           }}

@@ -41,7 +41,7 @@ jest.mock('@/components/resourcePicker', () => ({
   },
 }));
 
-jest.mock('@/components/ui/dialog', () => ({
+jest.mock('@/components/omnibox/Dialog', () => ({
   Dialog: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   DialogContent: ({ children }: { children: ReactNode }) => (
     <div>{children}</div>

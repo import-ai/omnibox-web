@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import type { Namespace } from '@/interface';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import type {
   ResourceCondition,
@@ -125,6 +126,7 @@ function SearchFilterConditionRow({
           {t('resource_conditions.condition_title', { index: index + 1 })}
         </p>
         <Button
+          trackName="search_filter_remove"
           type="button"
           variant="ghost"
           size="icon"
@@ -142,9 +144,10 @@ function SearchFilterConditionRow({
       <div className={searchConditionControlGridClassName}>
         <Select
           value={condition.field || ''}
-          onValueChange={value =>
-            onFieldChange(index, value as ResourceConditionField)
-          }
+          onValueChange={value => {
+            trackButtonClick('search_filter_select', { kind: 'field' });
+            onFieldChange(index, value as ResourceConditionField);
+          }}
         >
           <SelectTrigger
             className={cn(
@@ -154,7 +157,12 @@ function SearchFilterConditionRow({
           >
             <SelectValue placeholder={t('resource_conditions.select_field')} />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            onPointerDownOutside={onOverlayClose(
+              'search_overlay_close',
+              'filter'
+            )}
+          >
             {RESOURCE_CONDITION_FIELD_OPTIONS.map(field => (
               <SelectItem value={field} key={field}>
                 {t(`resource_conditions.fields.${field}`)}
@@ -166,16 +174,22 @@ function SearchFilterConditionRow({
         {condition.field && !isExpression ? (
           <Select
             value={condition.operator || ''}
-            onValueChange={value =>
-              onOperatorChange(index, value as ResourceConditionOperator)
-            }
+            onValueChange={value => {
+              trackButtonClick('search_filter_select', { kind: 'operator' });
+              onOperatorChange(index, value as ResourceConditionOperator);
+            }}
           >
             <SelectTrigger className={compactControlClass}>
               <SelectValue
                 placeholder={t('resource_conditions.select_operator')}
               />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent
+              onPointerDownOutside={onOverlayClose(
+                'search_overlay_close',
+                'filter'
+              )}
+            >
               {operators.map(operator => (
                 <SelectItem value={operator} key={operator}>
                   {t(`resource_conditions.operators.${operator}`)}
@@ -228,17 +242,23 @@ function SearchFilterConditionRow({
             />
             <Select
               value={normalizedValue.unit}
-              onValueChange={value =>
+              onValueChange={value => {
+                trackButtonClick('search_filter_select', { kind: 'unit' });
                 onValueChange(index, {
                   ...normalizedValue,
                   unit: value as ResourceConditionRelativeDateUnit,
-                })
-              }
+                });
+              }}
             >
               <SelectTrigger className={compactControlClass}>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                onPointerDownOutside={onOverlayClose(
+                  'search_overlay_close',
+                  'filter'
+                )}
+              >
                 {RESOURCE_CONDITION_RELATIVE_DATE_UNITS.map(unit => (
                   <SelectItem value={unit} key={unit}>
                     {t(`resource_conditions.units.${unit}`)}
@@ -250,6 +270,8 @@ function SearchFilterConditionRow({
         ) : normalizedValue?.kind === 'single_date' ? (
           <DatePicker
             value={normalizedValue.date}
+            trackName="search_date_open"
+            dayTrackName="search_date_select"
             placeholder={t('resource_conditions.pick_date')}
             className={compactControlClass}
             onChange={value =>
@@ -263,6 +285,8 @@ function SearchFilterConditionRow({
           <DateRangePicker
             startDate={normalizedValue.startDate}
             endDate={normalizedValue.endDate}
+            trackName="search_date_open"
+            dayTrackName="search_date_select"
             placeholder={t('resource_conditions.pick_date')}
             displayFormat={t('resource_conditions.date_format')}
             className={compactControlClass}
@@ -332,6 +356,7 @@ export function SearchFilterPanel({
               namespaceId={namespaceId}
               hasPermission={currentNamespace?.is_owner !== false}
               disabledReason={t('chat.trial.not_owner')}
+              trackName="search_plan_upgrade"
               entry="search_filter"
             />
           )}
@@ -344,14 +369,20 @@ export function SearchFilterPanel({
 
         <Select
           value={matchMode}
-          onValueChange={value =>
-            onMatchModeChange(value as ResourceConditionMatchMode)
-          }
+          onValueChange={value => {
+            trackButtonClick('search_filter_select', { kind: 'match' });
+            onMatchModeChange(value as ResourceConditionMatchMode);
+          }}
         >
           <SelectTrigger className={cn(compactControlClass, 'w-[103px]')}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent
+            onPointerDownOutside={onOverlayClose(
+              'search_overlay_close',
+              'filter'
+            )}
+          >
             <SelectItem value="all">
               {t('smart_folder.match_mode.all')}
             </SelectItem>
@@ -386,6 +417,7 @@ export function SearchFilterPanel({
         <TooltipTrigger asChild>
           <span className="mt-5 inline-flex w-fit">
             <Button
+              trackName="search_filter_create"
               type="button"
               variant="ghost"
               className={cn(

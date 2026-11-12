@@ -21,6 +21,7 @@ export function ThemeToggle() {
 
   return (
     <IconButton
+      trackName="sidebar_theme_toggle"
       size="sm"
       tone="sidebar"
       label={t('toggle_theme')}
