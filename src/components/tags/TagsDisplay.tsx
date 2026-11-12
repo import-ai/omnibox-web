@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Option } from '@/components/multiple-selector';
 import Space from '@/components/space';
 import { Badge } from '@/components/ui/Badge';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 interface IProps {
   data: Array<Option>;
@@ -27,7 +28,10 @@ export function TagsDisplay(props: IProps) {
     }
     return (
       <Space
-        onClick={onEdit}
+        onClick={() => {
+          trackButtonClick('resource_tag_edit');
+          onEdit();
+        }}
         className="flex-wrap min-h-6 cursor-pointer gap-y-4"
       >
         <Badge
@@ -46,7 +50,14 @@ export function TagsDisplay(props: IProps) {
 
   return (
     <Space
-      onClick={readOnly ? undefined : onEdit}
+      onClick={
+        readOnly
+          ? undefined
+          : () => {
+              trackButtonClick('resource_tag_edit');
+              onEdit();
+            }
+      }
       className={`flex-wrap min-h-6 gap-y-4 ${readOnly ? 'cursor-default' : 'cursor-pointer'}`}
     >
       {displayedTags.map(tag => (
@@ -64,6 +75,7 @@ export function TagsDisplay(props: IProps) {
           className="border-border text-muted-foreground font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-0.5"
           onClick={e => {
             e.stopPropagation();
+            trackButtonClick('resource_tag_expand');
             setIsExpanded(true);
           }}
         >
@@ -76,6 +88,7 @@ export function TagsDisplay(props: IProps) {
           className="border-border text-muted-foreground font-normal rounded-full min-w-[24px] min-h-[24px] justify-center px-0 py-0.5"
           onClick={e => {
             e.stopPropagation();
+            trackButtonClick('resource_tag_collapse');
             setIsExpanded(false);
           }}
         >

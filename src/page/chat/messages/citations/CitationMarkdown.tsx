@@ -185,6 +185,7 @@ export function CitationMarkdown(props: IProps) {
             {hasSiblings && (
               <>
                 <Button
+                  trackName="chat_citation_navigate"
                   size="icon"
                   variant="ghost"
                   className="p-0 w-4 h-7"
@@ -197,6 +198,7 @@ export function CitationMarkdown(props: IProps) {
                   {(currentIndex ?? 0) + 1}/{siblingsLength}
                 </span>
                 <Button
+                  trackName="chat_citation_navigate"
                   size="icon"
                   variant="ghost"
                   className="p-0 w-4 h-7"
@@ -210,6 +212,7 @@ export function CitationMarkdown(props: IProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  trackName="chat_message_retry"
                   size="icon"
                   variant="ghost"
                   className={`${sidebarToolbarIconButtonClassName} size-7`}
@@ -225,12 +228,13 @@ export function CitationMarkdown(props: IProps) {
                 <p>{t('chat.messages.actions.regenerate')}</p>
               </TooltipContent>
             </Tooltip>
-            <Copy content={copyContent} />
+            <Copy content={copyContent} trackName="chat_message_copy" />
             <Save conversation={conversation} content={copyContent} />
             {onShare && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    trackName="chat_share_open"
                     aria-label={t('chat.share.action')}
                     className={`${sidebarToolbarIconButtonClassName} size-7`}
                     onClick={() => onShare(messageId)}

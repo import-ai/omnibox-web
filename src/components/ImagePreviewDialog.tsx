@@ -16,6 +16,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 interface ImagePreviewDialogProps {
   alt?: string;
@@ -48,6 +49,8 @@ export function ImagePreviewDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        outsideCloseTrackName="resource_overlay_close"
+        outsideCloseTarget="image"
         data-image-preview=""
         className="fixed left-0 top-0 flex h-full w-full max-w-none sm:max-w-none translate-x-0 translate-y-0 items-center justify-center gap-0 border-0 bg-transparent p-0 shadow-none motion-reduce:animate-none [&>button:last-child]:hidden"
         style={
@@ -74,7 +77,10 @@ export function ImagePreviewDialog({
         onEscapeKeyDown={event => event.stopPropagation()}
         onClick={event => {
           event.stopPropagation();
-          if (event.target === event.currentTarget) onOpenChange(false);
+          if (event.target === event.currentTarget) {
+            trackButtonClick('resource_image_close');
+            onOpenChange(false);
+          }
         }}
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
@@ -88,10 +94,14 @@ export function ImagePreviewDialog({
               referrerPolicy={open ? referrerPolicy : retained.referrerPolicy}
               alt={title}
               className="max-h-[85vh] w-full cursor-zoom-out rounded-md object-contain"
-              onClick={() => onOpenChange(false)}
+              onClick={() => {
+                trackButtonClick('resource_image_close');
+                onOpenChange(false);
+              }}
             />
             <DialogClose asChild>
               <button
+                onClick={() => trackButtonClick('resource_image_close')}
                 ref={closeRef}
                 type="button"
                 aria-label={t('close')}

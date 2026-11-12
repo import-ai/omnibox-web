@@ -100,6 +100,7 @@ export default function CopilotHome({ namespaceId }: CopilotHomeProps) {
               agentCredits.agent_credits_remain <= 0
             }
             loading={false}
+            composerSurface="home"
             messages={[]}
             namespaceId={namespaceId}
             navigatePrefix={`/${namespaceId}`}

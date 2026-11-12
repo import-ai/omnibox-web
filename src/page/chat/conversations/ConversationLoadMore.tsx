@@ -46,7 +46,12 @@ export default function ConversationLoadMore({
     <div ref={sentinelRef} className="flex min-h-8 items-center justify-center">
       {loading ? <Spinner className="size-4" /> : null}
       {hasError && !loading ? (
-        <Button variant="ghost" size="sm" onClick={onLoadMore}>
+        <Button
+          trackName="chat_history_retry"
+          variant="ghost"
+          size="sm"
+          onClick={onLoadMore}
+        >
           {t('common.retry')}
         </Button>
       ) : null}

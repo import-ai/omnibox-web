@@ -13,6 +13,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import useUser from '@/hooks/useUser';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import type { ConversationSummary } from '@/page/chat/core/types/conversation';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import {
@@ -199,6 +200,8 @@ export default function ConversationSearchDialog({
       clearLabel={t('search.clear')}
       closeLabel={t('close')}
       contentClassName="sm:max-w-[920px]"
+      outsideCloseTrackName="chat_overlay_close"
+      outsideCloseTarget="conversation_search"
     >
       <div className="min-h-0 flex-1">
         <CommandList className={searchResultListClassName}>
@@ -239,6 +242,7 @@ export default function ConversationSearchDialog({
                     value={item.id}
                     className={searchResultItemClassName}
                     onSelect={() => {
+                      trackButtonClick('chat_conversation_select');
                       if (!shouldSkipNavigate()) openConversation(item.id);
                     }}
                   >
@@ -272,6 +276,7 @@ export default function ConversationSearchDialog({
                     value={`${item.conversation_id}-${item.message_id}`}
                     className={searchResultItemClassName}
                     onSelect={() => {
+                      trackButtonClick('chat_conversation_select');
                       if (!shouldSkipNavigate()) {
                         openConversation(item.conversation_id, item.message_id);
                       }

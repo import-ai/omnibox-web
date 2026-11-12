@@ -22,11 +22,13 @@ jest.mock('./ThinkingLevelSelector', () => ({
     onGroupChange,
     group,
     basicUnsupported,
+    surface,
   }: {
     onChange: (level: string) => void;
     onGroupChange: (group: string) => void;
     group?: string;
     basicUnsupported?: boolean;
+    surface?: string;
   }) => (
     <>
       <button data-testid="select-high" onClick={() => onChange('basic.high')}>
@@ -38,7 +40,9 @@ jest.mock('./ThinkingLevelSelector', () => ({
       >
         Default
       </button>
-      <span data-testid="thinking-group">{group}</span>
+      <span data-testid="thinking-group" data-surface={surface}>
+        {group}
+      </span>
       <span data-testid="basic-unsupported">
         {String(Boolean(basicUnsupported))}
       </span>
@@ -85,7 +89,9 @@ jest.mock('@/page/chat/chatStore', () => ({
 
 jest.mock('./ApprovalModeSelect', () => ({
   __esModule: true,
-  default: () => null,
+  default: ({ surface }: { surface?: string }) => (
+    <span data-testid="approval" data-surface={surface} />
+  ),
 }));
 jest.mock('./ContextCapacityIndicator', () => ({
   __esModule: true,
@@ -170,13 +176,16 @@ jest.mock('./ChatTool', () => ({
   __esModule: true,
   default: ({
     imageUploadDisabled,
+    surface,
     onImageSelect,
   }: {
     imageUploadDisabled?: boolean;
+    surface?: string;
     onImageSelect: (files: File[]) => void;
   }) => (
     <button
       data-testid="add-image"
+      data-surface={surface}
       disabled={imageUploadDisabled}
       onClick={() =>
         onImageSelect([new File(['image'], 'image.png', { type: 'image/png' })])
@@ -192,15 +201,18 @@ jest.mock('./ChatAction', () => ({
   default: ({
     disabled,
     disabledReason,
+    surface,
     onSend,
   }: {
     disabled: boolean;
     disabledReason?: string;
+    surface?: string;
     onSend: () => void;
   }) => (
     <button
       data-disabled-reason={disabledReason}
       data-testid="send"
+      data-surface={surface}
       disabled={disabled}
       onClick={onSend}
     >
@@ -251,6 +263,37 @@ describe('ChatArea', () => {
     jest.clearAllMocks();
   });
 
+  it.each(['home', 'conversation'] as const)(
+    'passes explicit %s context to every shared control, even before messages load',
+    async surface => {
+      (http.get as jest.Mock).mockResolvedValue({
+        basic: {
+          default: { edition: 'basic', level: 'low' },
+          levels: [{ edition: 'basic', level: 'low' }],
+        },
+      });
+      await act(async () =>
+        root.render(
+          <ChatArea
+            composerSurface={surface}
+            loading={false}
+            messages={[]}
+            navigatePrefix="/namespace-a"
+            selectedResources={[]}
+            setSelectedResources={jest.fn()}
+            sendMessage={jest.fn()}
+          />
+        )
+      );
+      for (const id of ['add-image', 'approval', 'thinking-group', 'send']) {
+        expect(
+          container
+            .querySelector(`[data-testid="${id}"]`)
+            ?.getAttribute('data-surface')
+        ).toBe(surface);
+      }
+    }
+  );
   it('sends the selected Basic strength after typing and remembers it', async () => {
     (http.get as jest.Mock).mockResolvedValueOnce({
       basic: {

@@ -12,6 +12,7 @@ import {
 import useTheme from '@/hooks/useTheme';
 import { type ColorThemeName, colorThemes } from '@/lib/colorThemes';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 export default function ColorTheme() {
   const { t } = useTranslation();
@@ -21,6 +22,7 @@ export default function ColorTheme() {
     colorThemes.find(item => item.name === theme.colorTheme) ?? colorThemes[0];
 
   const selectTheme = async (name: ColorThemeName) => {
+    trackButtonClick('settings_theme_select', { theme: name });
     if (saving || name === selected.name) return;
     const previous = selected.name;
     setSaving(true);
@@ -60,6 +62,10 @@ export default function ColorTheme() {
           </span>
         </SelectTrigger>
         <SelectContent
+          onPointerDownOutside={onOverlayClose(
+            'settings_overlay_close',
+            'theme'
+          )}
           position="popper"
           className="max-h-72 w-[120px] lg:w-[180px]"
         >

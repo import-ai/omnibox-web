@@ -25,6 +25,10 @@ jest.mock('@/hooks/useQuota', () => ({
 
 const renderedSections: StorageSectionProps[] = [];
 
+jest.mock('./CreditActivity', () => ({ CreditActivity: () => null }));
+jest.mock('@/components/omnibox/BillingRulesDialog', () => ({
+  BillingRulesDialog: () => null,
+}));
 jest.mock('./ExpandButton', () => ({ ExpandButton: () => null }));
 jest.mock('./Expiration', () => ({ Expiration: () => null }));
 jest.mock('./StorageSection', () => ({
@@ -113,7 +117,7 @@ describe('RemainQuota', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  it('renders the agent credits section after the doc parse one', async () => {
+  it('renders unified credits before storage', async () => {
     mockUseQuota.mockReturnValue({
       data: usage({
         agent_credits: {
@@ -132,16 +136,12 @@ describe('RemainQuota', () => {
     );
 
     expect(renderedSections.map(s => s.title)).toEqual([
+      'quota.credits_title',
       'quota.storage_usage',
-      'quota.audio_video_parse_usage',
-      'quota.doc_parse_usage',
-      'quota.agent_credits_usage',
     ]);
 
-    const credits = renderedSections[3];
-    expect(credits.current).toBe(
-      '1.2 quota.credit_unit / 6,800 quota.credit_unit'
-    );
+    const credits = renderedSections[0];
+    expect(credits.current).toBe('1.20 / 6,800.00 quota.credit_unit');
     expect(credits.currentTooltip).not.toBeUndefined();
     expect(credits.segments).toEqual([
       {
@@ -172,13 +172,11 @@ describe('RemainQuota', () => {
       root.render(<RemainQuota namespaceId="namespace-a" />)
     );
 
-    const credits = renderedSections[3];
-    expect(credits.current).toBe(
-      '2 quota.credit_unit / 6,800 quota.credit_unit'
-    );
+    const credits = renderedSections[0];
+    expect(credits.current).toBe('2.00 / 6,800.00 quota.credit_unit');
     expect(credits.segments.map(s => s.color)).toEqual([
       'bg-blue-500',
-      'bg-gray-300',
+      'bg-muted-foreground/40',
     ]);
     expect(credits.items.map(i => i.label)).toEqual([
       'quota.my_usage',

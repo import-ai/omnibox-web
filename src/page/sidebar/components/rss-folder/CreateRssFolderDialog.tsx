@@ -62,6 +62,11 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
         closeWrapperClassName="right-5 top-5"
         contentProps={{
           onContextMenu: event => event.stopPropagation(),
+          closeDisabled: submitting,
+          outsideCloseTrackName: state.hasUnsavedChanges
+            ? undefined
+            : 'sidebar_overlay_close',
+          outsideCloseTarget: 'feed',
         }}
       >
         <div className="space-y-4">
@@ -115,6 +120,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                 namespaceId={namespaceId}
                 hasPermission={currentNamespace?.is_owner !== false}
                 disabledReason={t('chat.trial.not_owner')}
+                trackName="sidebar_plan_upgrade"
                 entry="rss_folder_dialog"
               />
             )}
@@ -163,6 +169,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                       </Label>
                       {rows.length > 1 && (
                         <Button
+                          trackName="sidebar_feed_delete"
                           type="button"
                           variant="ghost"
                           className="size-6 p-0 text-muted-foreground hover:text-foreground"
@@ -196,6 +203,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
             <TooltipTrigger asChild>
               <span className="inline-flex w-fit">
                 <Button
+                  trackName="sidebar_feed_create"
                   type="button"
                   variant="ghost"
                   className={cn(

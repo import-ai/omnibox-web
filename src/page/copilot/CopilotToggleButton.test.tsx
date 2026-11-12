@@ -22,6 +22,9 @@ jest.mock('@/assets/icons/ChatIcon', () => ({
 
 jest.mock('@/components/tooltip', () => ({
   Tooltip: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => (
+    <>{children}</>
+  ),
   TooltipContent: () => null,
   TooltipTrigger: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>

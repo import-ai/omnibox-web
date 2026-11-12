@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/omnibox/Select';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 export default function Language() {
   const { i18n, t } = useTranslation();
@@ -17,6 +18,7 @@ export default function Language() {
     { label: 'English', value: 'en-US' },
   ];
   const toggleLanguage = (lang: string) => {
+    trackButtonClick('settings_language_select', { language: lang });
     i18n.changeLanguage(lang).then(() => {
       http.post('/user/option', {
         name: 'language',
@@ -45,7 +47,14 @@ export default function Language() {
         <SelectTrigger className="w-[120px] px-2 lg:w-[180px] lg:px-3">
           <SelectValue placeholder={selectedLabel} />
         </SelectTrigger>
-        <SelectContent position="popper" className="w-[120px] lg:w-[180px]">
+        <SelectContent
+          onPointerDownOutside={onOverlayClose(
+            'settings_overlay_close',
+            'language'
+          )}
+          position="popper"
+          className="w-[120px] lg:w-[180px]"
+        >
           {data.map(item => (
             <SelectItem key={item.value} value={item.value}>
               {item.label}

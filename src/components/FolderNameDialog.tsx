@@ -11,12 +11,15 @@ import {
 } from '@/components/omnibox/Dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
+import { overlayCloseName } from '@/lib/trackButtonClick';
 
 interface FolderNameDialogProps {
   open: boolean;
   initialName?: string;
   title?: string;
   confirmText?: string;
+  cancelTrackName?: string;
+  confirmTrackName?: string;
   onOpenChange: (open: boolean) => void;
   onConfirm: (folderName: string) => Promise<unknown>;
 }
@@ -26,6 +29,8 @@ export function FolderNameDialog({
   initialName = '',
   title,
   confirmText,
+  cancelTrackName,
+  confirmTrackName,
   onOpenChange,
   onConfirm,
 }: FolderNameDialogProps) {
@@ -77,7 +82,16 @@ export function FolderNameDialog({
         if (!open) setFolderName('');
       }}
     >
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        closeDisabled={submitting}
+        className="sm:max-w-[425px]"
+        outsideCloseTrackName={
+          confirmTrackName
+            ? overlayCloseName(confirmTrackName, 'sidebar')
+            : undefined
+        }
+        outsideCloseTarget={confirmTrackName ? 'folder' : undefined}
+      >
         <DialogHeader>
           <DialogTitle>{title || t('folder.create_dialog.title')}</DialogTitle>
         </DialogHeader>
@@ -101,12 +115,14 @@ export function FolderNameDialog({
         <DialogFooter>
           <Button
             variant="outline"
+            trackName={cancelTrackName}
             onClick={handleCancel}
             disabled={submitting}
           >
             {t('cancel')}
           </Button>
           <Button
+            trackName={confirmTrackName}
             onClick={handleConfirm}
             disabled={!folderName.trim() || submitting}
             loading={submitting}

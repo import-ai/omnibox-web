@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/Switch';
 import useFeaturePreviews, {
   FeaturePreviewFeature,
 } from '@/hooks/useFeaturePreviews';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 export function FeaturePreviewsForm() {
   const { t } = useTranslation();
@@ -20,6 +21,7 @@ export function FeaturePreviewsForm() {
     )?.enabled ?? false;
 
   const handleToggle = async (checked: boolean) => {
+    trackButtonClick('settings_preview_toggle', { enabled: checked });
     setSaving(true);
     try {
       await updateFeaturePreview(FeaturePreviewFeature.EDITOR_V2, checked);

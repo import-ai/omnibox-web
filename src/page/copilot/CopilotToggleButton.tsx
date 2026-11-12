@@ -54,6 +54,7 @@ export default function CopilotToggleButton({
 
   return (
     <IconButton
+      trackName="copilot_panel_toggle"
       label={tooltipLabel}
       aria-label={label}
       size="sm"

@@ -20,6 +20,9 @@ import {
 
 import { UserMessage } from './role/UserMessage';
 
+jest.mock('@/lib/request', () => ({
+  http: { get: jest.fn(), post: jest.fn() },
+}));
 jest.mock('react-router-dom', () => ({
   useParams: () => ({
     conversation_id: 'conversation-a',

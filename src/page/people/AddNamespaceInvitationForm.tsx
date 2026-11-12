@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from '@/components/ui/Form';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 interface IProps {
   namespaceId: string;
@@ -81,14 +82,22 @@ export function AddNamespaceInvitationForm(props: IProps) {
               <FormControl>
                 <Select
                   defaultValue={field.value}
-                  onValueChange={field.onChange}
+                  onValueChange={value => {
+                    trackButtonClick('settings_role_select', { role: value });
+                    field.onChange(value);
+                  }}
                 >
                   <FormControl>
                     <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent
+                    onPointerDownOutside={onOverlayClose(
+                      'settings_overlay_close',
+                      'invite'
+                    )}
+                  >
                     <SelectItem value="admin">{t('invite.admin')}</SelectItem>
                     <SelectItem value="member">{t('invite.member')}</SelectItem>
                   </SelectContent>
@@ -108,7 +117,12 @@ export function AddNamespaceInvitationForm(props: IProps) {
                 <Select
                   defaultValue={field.value}
                   value={field.value}
-                  onValueChange={field.onChange}
+                  onValueChange={value => {
+                    trackButtonClick('settings_permission_select', {
+                      permission: value,
+                    });
+                    field.onChange(value);
+                  }}
                   disabled={isAdmin}
                 >
                   <FormControl>
@@ -116,7 +130,12 @@ export function AddNamespaceInvitationForm(props: IProps) {
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent
+                    onPointerDownOutside={onOverlayClose(
+                      'settings_overlay_close',
+                      'invite'
+                    )}
+                  >
                     <SelectItem value="full_access">
                       {t('permission.full_access')}
                     </SelectItem>
@@ -140,6 +159,7 @@ export function AddNamespaceInvitationForm(props: IProps) {
           )}
         />
         <Button
+          trackName="settings_member_submit"
           type="submit"
           disabled={loading}
           loading={loading}

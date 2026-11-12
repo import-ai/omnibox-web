@@ -37,14 +37,20 @@ export function WechatLogin(props: IProps) {
 
   if (isPhone && !isWeChat) {
     return (
-      <SettingPageButton onClick={alertDisableWeChatLogin}>
+      <SettingPageButton
+        trackName="settings_binding_create"
+        onClick={alertDisableWeChatLogin}
+      >
         {t('setting.bind_btn')}
       </SettingPageButton>
     );
   }
 
   return (
-    <SettingPageButton onClick={loginWithWeChat}>
+    <SettingPageButton
+      trackName="settings_binding_create"
+      onClick={loginWithWeChat}
+    >
       {t('setting.bind_btn')}
     </SettingPageButton>
   );

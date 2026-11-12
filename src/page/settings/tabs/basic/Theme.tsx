@@ -95,6 +95,7 @@ export default function Theme() {
           const selected = item.value === theme.skin;
           return (
             <Button
+              trackName="settings_theme_select"
               key={item.value}
               type="button"
               variant="ghost"

@@ -7,6 +7,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/ContextMenu';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 import { useNodeActions } from '@/page/share/sidebar/hooks/useNodeActions';
 import { useNodeMenu } from '@/page/share/sidebar/hooks/useNodeMenu';
 
@@ -60,7 +61,12 @@ export default function NodeContextMenu({
   return (
     <ContextMenu onOpenChange={setContextOpen}>
       <ContextMenuTrigger>{children}</ContextMenuTrigger>
-      <ContextMenuContent>
+      <ContextMenuContent
+        onPointerDownOutside={onOverlayClose(
+          'share_overlay_close',
+          'resource_menu'
+        )}
+      >
         {menuItems.map(item => {
           if (item.separator) {
             return <ContextMenuSeparator key={item.key} />;

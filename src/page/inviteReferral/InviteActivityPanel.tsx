@@ -7,6 +7,7 @@ import { Button } from '@/components/Button';
 import { cn } from '@/lib/utils';
 import type { InviteOverview, InviteTask } from '@/service/inviteReferral';
 
+import { CreditsHelp } from './CreditsHelp';
 import { InviteNote } from './InviteNote';
 import { InviteRuleArrow } from './InviteRuleArrow';
 import {
@@ -85,9 +86,10 @@ function NewcomerTasks({
                 </div>
                 <div className="ml-3 min-w-0 flex-1">
                   <p className="text-sm font-medium leading-5">{task.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {task.reward_text}
-                  </p>
+                  <div className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                    <span>{task.reward_text}</span>
+                    <CreditsHelp taskCode={task.task_code} />
+                  </div>
                 </div>
                 <Button
                   type="button"
@@ -178,9 +180,11 @@ export function InviteActivityPanel({
             </div>
             {rewardRules.length > 0 ? (
               <div className="mt-4">
-                <h2 className="text-sm font-medium">
-                  {t('inviteReferral.rewards.title')}
-                </h2>
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-medium">
+                    {t('inviteReferral.rewards.title')}
+                  </h2>
+                </div>
                 <div className="mt-4 overflow-hidden rounded-lg border border-border">
                   <div className="grid grid-cols-2">
                     <div className="border-r border-border px-3 py-3 text-center text-sm font-medium dark:border-border">
@@ -198,8 +202,8 @@ export function InviteActivityPanel({
                       <div className="flex items-center justify-center border-r border-border px-3 py-3 text-center text-xs dark:border-border">
                         {rule.task_text}
                       </div>
-                      <div className="flex items-center justify-center px-3 py-3 text-center text-xs font-normal text-blue-500">
-                        {rule.reward_text}
+                      <div className="flex items-center justify-center gap-1 px-3 py-3 text-center text-xs font-normal text-blue-500">
+                        <span>{rule.reward_text}</span>
                       </div>
                     </div>
                   ))}

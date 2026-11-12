@@ -8,6 +8,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/ContextMenu';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import { useNodeActions } from '@/page/sidebar/hooks/useNodeActions';
@@ -78,6 +79,10 @@ export default function NodeContextMenu({
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent
+          onPointerDownOutside={onOverlayClose(
+            'sidebar_overlay_close',
+            'resource_menu'
+          )}
           className={cn(menu.disabledTip && 'cursor-not-allowed')}
         >
           <DisabledMenuTooltip side="top" content={menu.disabledTip}>

@@ -21,6 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 import useApp from '@/hooks/useApp';
 import { Member } from '@/interface';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { NAMESPACE_MEMBERS_REFRESH } from '@/page/resource/mentionCard';
 
@@ -142,6 +143,7 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
               <button
+                onClick={() => trackButtonClick('settings_member_edit')}
                 type="button"
                 className={cn(
                   buttonPressClassName,
@@ -162,6 +164,10 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
           <TooltipContent side="top">{tooltipLabel}</TooltipContent>
         </Tooltip>
         <PopoverContent
+          onPointerDownOutside={onOverlayClose(
+            'settings_overlay_close',
+            'member'
+          )}
           align="start"
           className="w-72 space-y-3 p-3"
           onOpenAutoFocus={focusEditorFieldAtEnd}
@@ -211,6 +217,7 @@ export default function MemberDisplayEditor(props: MemberDisplayEditorProps) {
           )}
           <div className="flex justify-end">
             <Button
+              trackName="settings_member_save"
               type="button"
               className="h-8"
               disabled={saving}

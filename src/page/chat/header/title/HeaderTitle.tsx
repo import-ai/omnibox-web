@@ -62,6 +62,7 @@ export default function HeaderTitle(props: IProps) {
       <span className="max-w-[400px] line-clamp-1">{data}</span>
       {editable && (
         <Button
+          trackName="chat_title_edit"
           size="icon"
           variant="ghost"
           onClick={onEditTitle}

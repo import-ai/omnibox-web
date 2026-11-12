@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 export function ResourceCommentDraftImage({ src }: { src: string }) {
   const { t } = useTranslation();
@@ -16,8 +17,14 @@ export function ResourceCommentDraftImage({ src }: { src: string }) {
         className="omnibox-comment-draft-image"
         aria-label={t('chat.image.preview')}
         onClick={event => {
-          event.stopPropagation();
-          setOpen(true);
+          trackButtonClick('resource_comment_open');
+          const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+            event.stopPropagation();
+            setOpen(true);
+          };
+          if (typeof handleClick === 'function') {
+            (handleClick as (value?: typeof event) => void)(event);
+          }
         }}
       >
         <img src={src} alt="" />

@@ -3,6 +3,7 @@ import { enUS, zhCN } from 'date-fns/locale';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { CreditShortageActions } from '@/components/attributes/resource-tasks/CreditShortageActions';
 import { Button } from '@/components/Button';
 import Loading from '@/components/loading';
 import {
@@ -30,6 +31,7 @@ import {
 } from '@/components/ui/Table';
 import { Task } from '@/interface';
 import { http } from '@/lib/request';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 
 import { TaskActions } from './TaskActions';
 import { TaskPagination } from './TaskPagination';
@@ -126,9 +128,20 @@ export function TaskList({ namespaceId }: TaskListProps) {
 
     if (task.status === 'insufficient_quota' && task.ended_at) {
       const endedAt = new Date(task.ended_at);
-      return t('tasks.time_insufficient_quota', {
-        time: formatDistanceToNow(endedAt, { locale, addSuffix: true }),
-      });
+      return t(
+        task.failure_code === 'INSUFFICIENT_CREDITS'
+          ? 'tasks.time_insufficient_credits'
+          : [
+                'FILE_SIZE_LIMIT_EXCEEDED',
+                'DOC_PARSE_LIMIT_EXCEEDED',
+                'VIDEO_AUDIO_PARSE_LIMIT_EXCEEDED',
+              ].includes(task.failure_code ?? '')
+            ? 'tasks.time_file_limit'
+            : 'tasks.time_insufficient_quota',
+        {
+          time: formatDistanceToNow(endedAt, { locale, addSuffix: true }),
+        }
+      );
     }
 
     return '-';
@@ -204,6 +217,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
   };
 
   const handleViewFilterChange = (value: 'own' | 'all') => {
+    trackButtonClick('settings_task_select', { view: value });
     setViewFilter(value);
     setCurrentPage(1); // Reset to first page when changing filter
   };
@@ -224,14 +238,23 @@ export function TaskList({ namespaceId }: TaskListProps) {
               <SelectTrigger className="w-[100px] lg:w-[120px]">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                onPointerDownOutside={onOverlayClose(
+                  'settings_overlay_close',
+                  'task'
+                )}
+              >
                 <SelectItem value="own">{t('tasks.my_tasks')}</SelectItem>
                 <SelectItem value="all">{t('tasks.all_tasks')}</SelectItem>
               </SelectContent>
             </Select>
           )}
         </div>
-        <SettingPageButton onClick={handleRefresh} disabled={loading}>
+        <SettingPageButton
+          trackName="settings_task_refresh"
+          onClick={handleRefresh}
+          disabled={loading}
+        >
           {t('common.refresh')}
         </SettingPageButton>
       </div>
@@ -264,6 +287,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
                   <Alert variant="destructive" className="text-center">
                     <AlertDescription>{error}</AlertDescription>
                     <Button
+                      trackName="settings_task_retry"
                       variant="outline"
                       onClick={handleRefresh}
                       className="mt-2"
@@ -343,7 +367,11 @@ export function TaskList({ namespaceId }: TaskListProps) {
                   </TableCell>
 
                   <TableCell>
-                    <div className="flex justify-end">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      {task.status === 'insufficient_quota' &&
+                        task.failure_code === 'INSUFFICIENT_CREDITS' && (
+                          <CreditShortageActions namespaceId={namespaceId} />
+                        )}
                       <TaskActions
                         task={task}
                         namespaceId={namespaceId}
