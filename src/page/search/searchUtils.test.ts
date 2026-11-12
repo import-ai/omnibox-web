@@ -1,5 +1,8 @@
 import {
   buildSearchPreview,
+  buildSearchRequestPayload,
+  createSearchRequestId,
+  isSearchJudgmentFailedError,
   isSearchPendingError,
   retrySearchPending,
   toSearchPreviewText,
@@ -85,5 +88,61 @@ describe('search pending retry', () => {
       })
     ).rejects.toMatchObject({ message: 'search_pending' });
     expect(cancelled).toHaveBeenCalledTimes(1);
+  });
+
+  it('recognizes a terminal judgment failure without retrying it', async () => {
+    expect(
+      isSearchJudgmentFailedError(wireError('SEARCH_JUDGMENT_FAILED'))
+    ).toBe(true);
+    expect(isSearchJudgmentFailedError(wireError('search_pending'))).toBe(
+      false
+    );
+    expect(isSearchJudgmentFailedError(new Error('network'))).toBe(false);
+
+    const failed = jest
+      .fn()
+      .mockRejectedValue(wireError('search_judgment_failed'));
+    await expect(
+      retrySearchPending(failed, { delayMs: 0 })
+    ).rejects.toMatchObject({ message: 'search_judgment_failed' });
+    expect(failed).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('search request payload', () => {
+  it('keeps the V1 payload unchanged by default', () => {
+    const payload = buildSearchRequestPayload('q', [], 'all', {
+      offset: 0,
+      limit: 20,
+    });
+
+    expect(payload).toMatchObject({ query: 'q', offset: 0, limit: 20 });
+    expect(payload).not.toHaveProperty('pagination_version');
+    expect(payload).not.toHaveProperty('request_id');
+  });
+
+  it('adds session identifiers for a V2 request', () => {
+    const payload = buildSearchRequestPayload('q', [], 'all', {
+      offset: 20,
+      limit: 20,
+      paginationVersion: 2,
+      requestId: 'request-1',
+      searchId: 'search-1',
+    });
+
+    expect(payload).toMatchObject({
+      pagination_version: 2,
+      request_id: 'request-1',
+      search_id: 'search-1',
+    });
+  });
+
+  it('creates distinct request identifiers', () => {
+    const first = createSearchRequestId();
+    const second = createSearchRequestId();
+
+    expect(first).toBeTruthy();
+    expect(second).toBeTruthy();
+    expect(first).not.toBe(second);
   });
 });

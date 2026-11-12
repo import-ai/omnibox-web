@@ -1202,6 +1202,8 @@
     "search_chats": "Search chat history",
     "no_results": "No results",
     "pending": "Search is still processing. Please try again in a moment.",
+    "judgment_failed": "This search could not be completed because the relevance check failed.",
+    "retry": "Try again",
     "filters": {
       "title": "Filter",
       "all": "All",

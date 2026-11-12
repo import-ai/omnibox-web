@@ -21,6 +21,7 @@ import {
 } from './searchResultLayout';
 import {
   buildSearchPreview,
+  type SearchNotice,
   shouldShowRecentResourcesEmpty,
   shouldShowRecentResourcesLoading,
   shouldShowSearchLoading,
@@ -33,10 +34,11 @@ interface SearchResultListProps {
   loadingRecents: boolean;
   namespaceId?: string;
   loadingMore: boolean;
+  notice: SearchNotice | null;
   onAnchorClick: MouseEventHandler<HTMLAnchorElement>;
   onLoadMore: () => void;
   onNavigate: (path: string, target: 'chat' | 'resource') => void;
-  pending: boolean;
+  onRetry: () => void;
   recents: SearchRecentResource[];
   resources: SearchResourceResult[];
   showRecents: boolean;
@@ -97,6 +99,25 @@ export function SearchNoResults({ label }: { label?: string }) {
   );
 }
 
+function SearchRetryNotice({ onRetry }: { onRetry: () => void }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-3">
+      <p className="text-base font-normal leading-normal text-muted-foreground">
+        {t('search.judgment_failed')}
+      </p>
+      <button
+        type="button"
+        className="rounded-md border border-input px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+        onClick={onRetry}
+      >
+        {t('search.retry')}
+      </button>
+    </div>
+  );
+}
+
 function ResourceResultContent({
   resource,
   title,
@@ -121,20 +142,25 @@ export function SearchResultList({
   loadingRecents,
   namespaceId,
   loadingMore,
+  notice,
   onAnchorClick,
   onLoadMore,
   onNavigate,
-  pending,
+  onRetry,
   recents,
   resources,
   showRecents,
   shouldSkipNavigate,
 }: SearchResultListProps) {
   const { t } = useTranslation();
+  const showNoticeEmpty =
+    !showRecents && notice !== null && resources.length === 0;
+  const showNoticeFooter =
+    !showRecents && notice !== null && resources.length > 0;
   const showNoResults =
-    !pending &&
+    !showNoticeEmpty &&
+    !showNoticeFooter &&
     shouldShowSearchNoResults(showRecents, resources.length, 0, loadingInitial);
-  const showPending = !showRecents && pending && resources.length === 0;
   const showLoading = shouldShowSearchLoading(
     !showRecents,
     loadingInitial,
@@ -168,7 +194,15 @@ export function SearchResultList({
         </div>
       ) : null}
       {showNoResults ? <SearchNoResults /> : null}
-      {showPending ? <SearchNoResults label={t('search.pending')} /> : null}
+      {showNoticeEmpty && notice === 'pending' ? (
+        <SearchNoResults label={t('search.pending')} />
+      ) : null}
+      {showNoticeEmpty && notice === 'failed' ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 text-center">
+          <SearchEmptyIcon />
+          <SearchRetryNotice onRetry={onRetry} />
+        </div>
+      ) : null}
 
       {showRecents && (
         <CommandGroup
@@ -288,6 +322,19 @@ export function SearchResultList({
           })}
         </CommandGroup>
       )}
+
+      {showNoticeFooter ? (
+        <div className="flex flex-col items-center justify-center gap-3 px-4 py-6 text-center">
+          {notice === 'pending' ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Spinner className="size-4" />
+              <span>{t('search.pending')}</span>
+            </div>
+          ) : (
+            <SearchRetryNotice onRetry={onRetry} />
+          )}
+        </div>
+      ) : null}
 
       {loadingMore ? (
         <div className="flex h-10 items-center justify-center text-muted-foreground">

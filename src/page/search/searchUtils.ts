@@ -16,11 +16,34 @@ export const SEARCH_PAGE_SIZE = 20;
 export const SEARCH_PENDING_RETRIES = 3;
 export const SEARCH_PENDING_RETRY_DELAY_MS = 500;
 
+export type SearchNotice = 'pending' | 'failed';
+
 /** V1 search answers an empty page with work remaining as search_pending. */
 export function isSearchPendingError(error: unknown) {
+  return getSearchErrorCode(error) === 'search_pending';
+}
+
+/** The relevance judge exhausted its attempts; the session cannot continue. */
+export function isSearchJudgmentFailedError(error: unknown) {
+  return getSearchErrorCode(error) === 'search_judgment_failed';
+}
+
+function getSearchErrorCode(error: unknown) {
   const code = (error as AxiosError<{ code?: string }>)?.response?.data?.code;
 
-  return typeof code === 'string' && code.toLowerCase() === 'search_pending';
+  return typeof code === 'string' ? code.toLowerCase() : '';
+}
+
+/** The V2 wire protocol identifies a session and continuation explicitly. */
+export function createSearchRequestId() {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
 /**
@@ -136,17 +159,34 @@ export function buildSearchRequestPayload(
   query: string,
   conditions: ResourceCondition[],
   matchMode: ResourceConditionMatchMode,
-  pagination: { limit?: number; offset?: number } = {}
+  pagination: {
+    limit?: number;
+    offset?: number;
+    paginationVersion?: number;
+    requestId?: string;
+    searchId?: string;
+  } = {}
 ) {
   const payload = toResourceConditionApiPayload({
     matchMode,
     conditions: getCompleteSearchConditions(conditions),
   });
 
-  return {
+  const request = {
     query: query.trim(),
     offset: pagination.offset ?? 0,
     limit: pagination.limit ?? SEARCH_PAGE_SIZE,
     ...payload,
+  };
+
+  if (pagination.paginationVersion !== 2) {
+    return request;
+  }
+
+  return {
+    ...request,
+    pagination_version: 2,
+    request_id: pagination.requestId,
+    ...(pagination.searchId ? { search_id: pagination.searchId } : {}),
   };
 }

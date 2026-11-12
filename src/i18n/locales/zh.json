@@ -1204,6 +1204,8 @@
     "search_chats": "搜索聊天历史",
     "no_results": "暂无匹配资源",
     "pending": "搜索仍在处理中，请稍后再试。",
+    "judgment_failed": "相关性判定失败，本次搜索未能完成。",
+    "retry": "重试",
     "filters": {
       "title": "筛选",
       "all": "全部",

@@ -26,9 +26,14 @@ import {
 } from './SearchResultList';
 import {
   buildSearchRequestPayload,
+  createSearchRequestId,
+  isSearchJudgmentFailedError,
   isSearchPendingError,
   retrySearchPending,
   SEARCH_PAGE_SIZE,
+  SEARCH_PENDING_RETRIES,
+  SEARCH_PENDING_RETRY_DELAY_MS,
+  type SearchNotice,
   shouldRefreshSearchRequest,
   shouldRunSearchRequest,
 } from './searchUtils';
@@ -45,7 +50,8 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const [keywords, setKeywords] = useState('');
   const [items, setItems] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(false);
-  const [searchPending, setSearchPending] = useState(false);
+  const [searchNotice, setSearchNotice] = useState<SearchNotice | null>(null);
+  const [searchEpoch, setSearchEpoch] = useState(0);
   const [loadingInitial, setLoadingInitial] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadingRecents, setLoadingRecents] = useState(false);
@@ -53,6 +59,11 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const [recents, setRecents] = useState<SearchRecentResource[]>([]);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const searchRequestIdRef = useRef(0);
+  const searchModeRef = useRef<'v1' | 'v2'>('v1');
+  const v2SessionRef = useRef<{ searchId?: string; nextOffset: number } | null>(
+    null
+  );
+  const retryRequestedRef = useRef(false);
   const skipNavigateAfterModifierClickRef = useRef(false);
   const namespaceId = params.namespace_id;
   const { config, loading: configLoading } = useConfig();
@@ -90,6 +101,66 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
 
   const fetchSearchPage = useCallback(
     async (offset: number, requestId: number) => {
+      const isCancelled = () => searchRequestIdRef.current !== requestId;
+      const muteCodes = ['search_pending', 'search_judgment_failed'];
+
+      if (searchModeRef.current === 'v2') {
+        let session = v2SessionRef.current;
+        let nextOffset = offset;
+
+        for (let attempt = 0; ; attempt += 1) {
+          const data = await http.post(
+            `/namespaces/${namespaceId}/search`,
+            buildSearchRequestPayload(keywords, conditions, matchMode, {
+              offset: nextOffset,
+              limit: SEARCH_PAGE_SIZE,
+              paginationVersion: 2,
+              requestId: createSearchRequestId(),
+              searchId: session?.searchId,
+            }),
+            { mute: true, muteCodes }
+          );
+
+          if (isCancelled()) {
+            return;
+          }
+
+          const nextItems = Array.isArray(data?.items) ? data.items : [];
+          const hasMore = data?.has_more === true;
+          const continuedOffset =
+            typeof data?.next_offset === 'number'
+              ? data.next_offset
+              : nextOffset;
+          v2SessionRef.current = {
+            searchId:
+              typeof data?.search_id === 'string'
+                ? data.search_id
+                : session?.searchId,
+            nextOffset: continuedOffset,
+          };
+          session = v2SessionRef.current;
+          const stillProcessing = nextItems.length === 0 && hasMore;
+
+          if (stillProcessing && attempt < SEARCH_PENDING_RETRIES) {
+            nextOffset = continuedOffset;
+            await new Promise(resolve => {
+              setTimeout(resolve, SEARCH_PENDING_RETRY_DELAY_MS);
+            });
+            if (isCancelled()) {
+              return;
+            }
+            continue;
+          }
+
+          setItems(current =>
+            offset === 0 ? nextItems : [...current, ...nextItems]
+          );
+          setHasMore(hasMore);
+          setSearchNotice(stillProcessing ? 'pending' : null);
+          return;
+        }
+      }
+
       const data = await retrySearchPending(
         () =>
           http.post(
@@ -98,12 +169,15 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
               offset,
               limit: SEARCH_PAGE_SIZE,
             }),
-            { mute: offset > 0, muteCodes: ['search_pending'] }
+            {
+              mute: offset > 0,
+              muteCodes,
+            }
           ),
-        { isCancelled: () => searchRequestIdRef.current !== requestId }
+        { isCancelled }
       );
 
-      if (searchRequestIdRef.current !== requestId) {
+      if (isCancelled()) {
         return;
       }
 
@@ -114,6 +188,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
         offset === 0 ? nextItems : [...current, ...nextItems]
       );
       setHasMore(offset + nextItems.length < total);
+      setSearchNotice(null);
     },
     [conditions, keywords, matchMode, namespaceId]
   );
@@ -169,11 +244,16 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
       setLoadingInitial(false);
     }
 
+    const retry = retryRequestedRef.current;
+
     if (!shouldRefreshSearch) {
+      retryRequestedRef.current = false;
       searchRequestIdRef.current += 1;
+      searchModeRef.current = 'v1';
+      v2SessionRef.current = null;
       setItems([]);
       setHasMore(false);
-      setSearchPending(false);
+      setSearchNotice(null);
       setLoadingInitial(false);
       setLoadingMore(false);
       return;
@@ -183,10 +263,13 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     searchRequestIdRef.current = requestId;
     setItems([]);
     setHasMore(false);
-    setSearchPending(false);
+    setSearchNotice(null);
     setLoadingInitial(true);
     setLoadingMore(false);
     debounceTimeout.current = setTimeout(() => {
+      retryRequestedRef.current = false;
+      searchModeRef.current = retry ? 'v2' : 'v1';
+      v2SessionRef.current = null;
       fetchSearchPage(0, requestId)
         .catch(err => {
           if (searchRequestIdRef.current !== requestId) {
@@ -194,7 +277,9 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           }
 
           if (isSearchPendingError(err)) {
-            setSearchPending(true);
+            setSearchNotice('pending');
+          } else if (isSearchJudgmentFailedError(err)) {
+            setSearchNotice('failed');
           }
           console.error(err);
         })
@@ -204,15 +289,23 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           }
         });
     }, 300);
-  }, [fetchSearchPage, shouldRefreshSearch]);
+  }, [fetchSearchPage, shouldRefreshSearch, searchEpoch]);
+
+  const handleRetrySearch = useCallback(() => {
+    retryRequestedRef.current = true;
+    setSearchNotice(null);
+    setItems([]);
+    setHasMore(false);
+    setSearchEpoch(epoch => epoch + 1);
+  }, []);
 
   const handleLoadMore = useCallback(() => {
-    if (!shouldSearch || !hasMore || loadingMore) {
+    if (!shouldSearch || !hasMore || loadingMore || searchNotice === 'failed') {
       return;
     }
 
     const requestId = searchRequestIdRef.current;
-    const offset = items.length;
+    const offset = v2SessionRef.current?.nextOffset ?? items.length;
     setLoadingMore(true);
     fetchSearchPage(offset, requestId)
       .catch(err => {
@@ -220,6 +313,11 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           return;
         }
 
+        if (isSearchPendingError(err)) {
+          setSearchNotice('pending');
+        } else if (isSearchJudgmentFailedError(err)) {
+          setSearchNotice('failed');
+        }
         console.error(err);
       })
       .finally(() => {
@@ -227,7 +325,14 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
           setLoadingMore(false);
         }
       });
-  }, [fetchSearchPage, hasMore, items.length, loadingMore, shouldSearch]);
+  }, [
+    fetchSearchPage,
+    hasMore,
+    items.length,
+    loadingMore,
+    searchNotice,
+    shouldSearch,
+  ]);
 
   useEffect(() => {
     if (!open) return;
@@ -306,7 +411,8 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
             onLoadMore={handleLoadMore}
             onAnchorClick={onSearchResultAnchorClick}
             onNavigate={handleNavigate}
-            pending={searchPending}
+            notice={searchNotice}
+            onRetry={handleRetrySearch}
             recents={recents}
             resources={resources}
             showRecents={showRecents}
