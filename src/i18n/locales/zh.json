@@ -1203,6 +1203,7 @@
     "search_resources": "搜索资源",
     "search_chats": "搜索聊天历史",
     "no_results": "暂无匹配资源",
+    "pending": "搜索仍在处理中，请稍后再试。",
     "filters": {
       "title": "筛选",
       "all": "全部",

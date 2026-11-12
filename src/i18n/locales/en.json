@@ -1201,6 +1201,7 @@
     "search_resources": "Search resources",
     "search_chats": "Search chat history",
     "no_results": "No results",
+    "pending": "Search is still processing. Please try again in a moment.",
     "filters": {
       "title": "Filter",
       "all": "All",

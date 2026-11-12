@@ -36,6 +36,7 @@ interface SearchResultListProps {
   onAnchorClick: MouseEventHandler<HTMLAnchorElement>;
   onLoadMore: () => void;
   onNavigate: (path: string, target: 'chat' | 'resource') => void;
+  pending: boolean;
   recents: SearchRecentResource[];
   resources: SearchResourceResult[];
   showRecents: boolean;
@@ -123,18 +124,17 @@ export function SearchResultList({
   onAnchorClick,
   onLoadMore,
   onNavigate,
+  pending,
   recents,
   resources,
   showRecents,
   shouldSkipNavigate,
 }: SearchResultListProps) {
   const { t } = useTranslation();
-  const showNoResults = shouldShowSearchNoResults(
-    showRecents,
-    resources.length,
-    0,
-    loadingInitial
-  );
+  const showNoResults =
+    !pending &&
+    shouldShowSearchNoResults(showRecents, resources.length, 0, loadingInitial);
+  const showPending = !showRecents && pending && resources.length === 0;
   const showLoading = shouldShowSearchLoading(
     !showRecents,
     loadingInitial,
@@ -168,6 +168,7 @@ export function SearchResultList({
         </div>
       ) : null}
       {showNoResults ? <SearchNoResults /> : null}
+      {showPending ? <SearchNoResults label={t('search.pending')} /> : null}
 
       {showRecents && (
         <CommandGroup

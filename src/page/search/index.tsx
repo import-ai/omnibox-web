@@ -26,6 +26,8 @@ import {
 } from './SearchResultList';
 import {
   buildSearchRequestPayload,
+  isSearchPendingError,
+  retrySearchPending,
   SEARCH_PAGE_SIZE,
   shouldRefreshSearchRequest,
   shouldRunSearchRequest,
@@ -43,6 +45,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
   const [keywords, setKeywords] = useState('');
   const [items, setItems] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(false);
+  const [searchPending, setSearchPending] = useState(false);
   const [loadingInitial, setLoadingInitial] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [loadingRecents, setLoadingRecents] = useState(false);
@@ -87,13 +90,17 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
 
   const fetchSearchPage = useCallback(
     async (offset: number, requestId: number) => {
-      const data = await http.post(
-        `/namespaces/${namespaceId}/search`,
-        buildSearchRequestPayload(keywords, conditions, matchMode, {
-          offset,
-          limit: SEARCH_PAGE_SIZE,
-        }),
-        { mute: offset > 0 }
+      const data = await retrySearchPending(
+        () =>
+          http.post(
+            `/namespaces/${namespaceId}/search`,
+            buildSearchRequestPayload(keywords, conditions, matchMode, {
+              offset,
+              limit: SEARCH_PAGE_SIZE,
+            }),
+            { mute: offset > 0, muteCodes: ['search_pending'] }
+          ),
+        { isCancelled: () => searchRequestIdRef.current !== requestId }
       );
 
       if (searchRequestIdRef.current !== requestId) {
@@ -166,6 +173,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
       searchRequestIdRef.current += 1;
       setItems([]);
       setHasMore(false);
+      setSearchPending(false);
       setLoadingInitial(false);
       setLoadingMore(false);
       return;
@@ -175,6 +183,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
     searchRequestIdRef.current = requestId;
     setItems([]);
     setHasMore(false);
+    setSearchPending(false);
     setLoadingInitial(true);
     setLoadingMore(false);
     debounceTimeout.current = setTimeout(() => {
@@ -184,6 +193,9 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
             return;
           }
 
+          if (isSearchPendingError(err)) {
+            setSearchPending(true);
+          }
           console.error(err);
         })
         .finally(() => {
@@ -294,6 +306,7 @@ export default function SearchMenu({ open, onOpenChange }: IProps) {
             onLoadMore={handleLoadMore}
             onAnchorClick={onSearchResultAnchorClick}
             onNavigate={handleNavigate}
+            pending={searchPending}
             recents={recents}
             resources={resources}
             showRecents={showRecents}

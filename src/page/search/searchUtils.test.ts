@@ -1,4 +1,9 @@
-import { buildSearchPreview, toSearchPreviewText } from './searchUtils';
+import {
+  buildSearchPreview,
+  isSearchPendingError,
+  retrySearchPending,
+  toSearchPreviewText,
+} from './searchUtils';
 
 describe('search preview', () => {
   it('treats markdown as-is for preview text', () => {
@@ -28,5 +33,57 @@ describe('search preview', () => {
   it('returns empty string for empty content', () => {
     expect(buildSearchPreview('')).toBe('');
     expect(buildSearchPreview(undefined)).toBe('');
+  });
+});
+
+describe('search pending retry', () => {
+  const wireError = (code: string) =>
+    Object.assign(new Error(code), { response: { data: { code } } });
+
+  it('recognizes the pending business code case-insensitively', () => {
+    expect(isSearchPendingError(wireError('SEARCH_PENDING'))).toBe(true);
+    expect(isSearchPendingError(wireError('search_pending'))).toBe(true);
+    expect(isSearchPendingError(wireError('search_capacity'))).toBe(false);
+    expect(isSearchPendingError(new Error('network'))).toBe(false);
+    expect(isSearchPendingError(null)).toBe(false);
+  });
+
+  it('retries a pending page until the server returns one', async () => {
+    const request = jest
+      .fn()
+      .mockRejectedValueOnce(wireError('search_pending'))
+      .mockRejectedValueOnce(wireError('search_pending'))
+      .mockResolvedValue({ items: [{ id: 'a' }] });
+
+    await expect(retrySearchPending(request, { delayMs: 0 })).resolves.toEqual({
+      items: [{ id: 'a' }],
+    });
+    expect(request).toHaveBeenCalledTimes(3);
+  });
+
+  it('stops after the bounded attempt count', async () => {
+    const request = jest.fn().mockRejectedValue(wireError('search_pending'));
+
+    await expect(
+      retrySearchPending(request, { retries: 2, delayMs: 0 })
+    ).rejects.toMatchObject({ message: 'search_pending' });
+    expect(request).toHaveBeenCalledTimes(3);
+  });
+
+  it('reports other failures and cancelled searches immediately', async () => {
+    const failed = jest.fn().mockRejectedValue(wireError('search_capacity'));
+    await expect(
+      retrySearchPending(failed, { delayMs: 0 })
+    ).rejects.toMatchObject({ message: 'search_capacity' });
+    expect(failed).toHaveBeenCalledTimes(1);
+
+    const cancelled = jest.fn().mockRejectedValue(wireError('search_pending'));
+    await expect(
+      retrySearchPending(cancelled, {
+        delayMs: 0,
+        isCancelled: () => true,
+      })
+    ).rejects.toMatchObject({ message: 'search_pending' });
+    expect(cancelled).toHaveBeenCalledTimes(1);
   });
 });
