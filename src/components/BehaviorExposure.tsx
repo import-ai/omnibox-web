@@ -1,5 +1,5 @@
+import { Slot } from 'radix-ui';
 import {
-  cloneElement,
   forwardRef,
   type HTMLAttributes,
   type ReactElement,
@@ -15,7 +15,7 @@ type ExposureProps = Omit<HTMLAttributes<HTMLElement>, 'children'> & {
   target: string;
   props?: BehaviorProps;
   active?: boolean;
-  children: ReactElement<{ ref?: (node: HTMLElement | null) => void }>;
+  children: ReactElement;
 };
 /** Measure the actual portalled item and preserve Radix's injected trigger props/ref. */
 export const BehaviorExposure = forwardRef<HTMLElement, ExposureProps>(
@@ -28,7 +28,7 @@ export const BehaviorExposure = forwardRef<HTMLElement, ExposureProps>(
     const ref = useCallback(
       (element: HTMLElement | null) => {
         setNode(element);
-        if (typeof forwardedRef === 'function') forwardedRef(element);
+        if (typeof forwardedRef === 'function') return forwardedRef(element);
         else if (forwardedRef) forwardedRef.current = element;
       },
       [forwardedRef]
@@ -63,6 +63,10 @@ export const BehaviorExposure = forwardRef<HTMLElement, ExposureProps>(
       },
       active: active && !!node && visible,
     });
-    return cloneElement(children, { ...injected, ref });
+    return (
+      <Slot.Root {...injected} ref={ref}>
+        {children}
+      </Slot.Root>
+    );
   }
 );
