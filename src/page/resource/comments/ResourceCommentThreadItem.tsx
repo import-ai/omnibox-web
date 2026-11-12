@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import type { ResourceCommentThread } from '@/interface';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import { imageCommentLabel } from './commentQuote';
 import {
@@ -178,7 +179,13 @@ export function ResourceCommentThreadItem({
           <button
             type="button"
             className="omnibox-comment-thread__quote"
-            onClick={handleQuoteClick}
+            onClick={event => {
+              trackButtonClick('resource_comment_navigate');
+              const handleClick = handleQuoteClick;
+              if (typeof handleClick === 'function') {
+                (handleClick as (value?: typeof event) => void)(event);
+              }
+            }}
           >
             <span>{t('resource_comments.quote_label')}</span>
             <q>
@@ -202,9 +209,17 @@ export function ResourceCommentThreadItem({
                   type="button"
                   aria-label={t('resource_comments.next_thread')}
                   disabled={!nextThreadId}
-                  onClick={() => {
-                    if (nextThreadId) {
-                      controller.focusThread(nextThreadId, { align: 'start' });
+                  onClick={event => {
+                    trackButtonClick('resource_comment_navigate');
+                    const handleClick = () => {
+                      if (nextThreadId) {
+                        controller.focusThread(nextThreadId, {
+                          align: 'start',
+                        });
+                      }
+                    };
+                    if (typeof handleClick === 'function') {
+                      (handleClick as (value?: typeof event) => void)(event);
                     }
                   }}
                 >
@@ -221,11 +236,17 @@ export function ResourceCommentThreadItem({
                   type="button"
                   aria-label={t('resource_comments.previous_thread')}
                   disabled={!previousThreadId}
-                  onClick={() => {
-                    if (previousThreadId) {
-                      controller.focusThread(previousThreadId, {
-                        align: 'start',
-                      });
+                  onClick={event => {
+                    trackButtonClick('resource_comment_navigate');
+                    const handleClick = () => {
+                      if (previousThreadId) {
+                        controller.focusThread(previousThreadId, {
+                          align: 'start',
+                        });
+                      }
+                    };
+                    if (typeof handleClick === 'function') {
+                      (handleClick as (value?: typeof event) => void)(event);
                     }
                   }}
                 >
@@ -241,7 +262,13 @@ export function ResourceCommentThreadItem({
                 <button
                   type="button"
                   aria-label={t('resource_comments.copy_thread_link')}
-                  onClick={handleCopyLink}
+                  onClick={event => {
+                    trackButtonClick('resource_comment_copy');
+                    const handleClick = handleCopyLink;
+                    if (typeof handleClick === 'function') {
+                      (handleClick as (value?: typeof event) => void)(event);
+                    }
+                  }}
                 >
                   <Link2 aria-hidden="true" strokeWidth={1.75} />
                 </button>
@@ -262,10 +289,16 @@ export function ResourceCommentThreadItem({
                         : t('resource_comments.resolve')
                     }
                     disabled={controller.submitting}
-                    onClick={() => {
-                      controller
-                        .setThreadResolved(thread.id, !thread.resolved)
-                        .catch(() => undefined);
+                    onClick={event => {
+                      trackButtonClick('resource_comment_toggle');
+                      const handleClick = () => {
+                        controller
+                          .setThreadResolved(thread.id, !thread.resolved)
+                          .catch(() => undefined);
+                      };
+                      if (typeof handleClick === 'function') {
+                        (handleClick as (value?: typeof event) => void)(event);
+                      }
                     }}
                   >
                     <Check aria-hidden="true" strokeWidth={1.75} />

@@ -27,6 +27,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import type { ResourceMeta } from '@/interface';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { ToolType } from '@/page/chat/chat-input/types';
 
@@ -48,6 +49,7 @@ const datasource = [
 ];
 
 interface IProps {
+  surface?: 'home' | 'conversation';
   tools: Array<ToolType>;
   thinkingSelectorEnabled?: boolean;
   renderResourcePicker?: (
@@ -64,6 +66,7 @@ interface IProps {
 export default function ChatTool(props: IProps) {
   const {
     tools,
+    surface,
     renderResourcePicker,
     onBeforeOpen,
     onToolToggle,
@@ -85,7 +88,12 @@ export default function ChatTool(props: IProps) {
       )}
       aria-disabled={imageUploadDisabled}
       onClick={
-        imageUploadDisabled ? undefined : () => imageInputRef.current?.click()
+        imageUploadDisabled
+          ? undefined
+          : () => {
+              trackButtonClick('chat_image_upload', { surface });
+              imageInputRef.current?.click();
+            }
       }
       onSelect={event => {
         if (imageUploadDisabled) event.preventDefault();
@@ -98,7 +106,11 @@ export default function ChatTool(props: IProps) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu
+        onOpenChange={open => {
+          if (open) trackButtonClick('chat_tool_open', { surface });
+        }}
+      >
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
             <DropdownMenuTrigger asChild>
@@ -115,7 +127,12 @@ export default function ChatTool(props: IProps) {
           </TooltipTrigger>
           <TooltipContent>{t('chat.tools.more')}</TooltipContent>
         </Tooltip>
-        <DropdownMenuContent side="top" align="start" className="w-52 p-1">
+        <DropdownMenuContent
+          onPointerDownOutside={onOverlayClose('chat_overlay_close', 'tool')}
+          side="top"
+          align="start"
+          className="w-52 p-1"
+        >
           <div className="px-2 py-1 text-xs text-muted-foreground">
             {t('chat.tools.add')}
           </div>
@@ -128,7 +145,10 @@ export default function ChatTool(props: IProps) {
               onKeyDown={() => {
                 resourceDialogOpenedByPointerRef.current = false;
               }}
-              onClick={() => setResourceDialogOpen(true)}
+              onClick={() => {
+                trackButtonClick('chat_resource_open', { surface });
+                setResourceDialogOpen(true);
+              }}
             >
               <FileSearch className="size-4 text-muted-foreground" />
               <span className="flex-1">{t('chat.tools.select_resource')}</span>
@@ -155,7 +175,13 @@ export default function ChatTool(props: IProps) {
               <DropdownMenuItem
                 key={value}
                 className="cursor-pointer gap-2 rounded-lg px-2 py-2"
-                onClick={() => onToolToggle(value)}
+                onClick={() => {
+                  trackButtonClick('chat_tool_toggle', {
+                    surface,
+                    tool: value,
+                  });
+                  onToolToggle(value);
+                }}
               >
                 <Icon className="size-4 text-muted-foreground" />
                 <span className="flex-1">{t('chat.tools.' + label)}</span>
@@ -188,6 +214,8 @@ export default function ChatTool(props: IProps) {
           }}
         >
           <DialogContent
+            outsideCloseTrackName="chat_overlay_close"
+            outsideCloseTarget="resource"
             ref={resourceDialogRef}
             tabIndex={-1}
             onOpenAutoFocus={event => {

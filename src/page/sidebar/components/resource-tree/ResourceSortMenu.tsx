@@ -13,6 +13,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from '@/components/ui/DropdownMenu';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import type { ResourceSortOptions } from '@/service/resource';
 
@@ -82,7 +83,13 @@ export function ResourceSortMenu({
 
   return (
     <MenuSub>
-      <MenuSubTrigger disabled={disabled} className={menuItemClass}>
+      <MenuSubTrigger
+        disabled={disabled}
+        className={menuItemClass}
+        onClick={() => {
+          if (!disabled) trackButtonClick('sidebar_sort_open');
+        }}
+      >
         <ArrowUpDown className={menuIconClass} />
         {t('sidebar.sort.menu')}
       </MenuSubTrigger>
@@ -98,12 +105,16 @@ export function ResourceSortMenu({
               disabled={disabled}
               aria-current={selected ? 'true' : undefined}
               className={cn(menuItemClass, 'h-9', selected && 'bg-accent')}
-              onSelect={() =>
+              onSelect={() => {
+                trackButtonClick('sidebar_sort_select', {
+                  sort_by: option.sort_by,
+                  sort_order: option.sort_order,
+                });
                 onChange({
                   sort_by: option.sort_by,
                   sort_order: option.sort_order,
-                })
-              }
+                });
+              }}
             >
               <span className="grid w-full grid-cols-[max-content_max-content_max-content] items-center gap-x-3">
                 <span>{t(option.fieldKey)}</span>
@@ -125,7 +136,13 @@ export function ResourceSortMenu({
             'h-9',
             value.sort_by === 'manual' && 'bg-accent'
           )}
-          onSelect={() => onChange({ sort_by: 'manual', sort_order: 'asc' })}
+          onSelect={() => {
+            trackButtonClick('sidebar_sort_select', {
+              sort_by: 'manual',
+              sort_order: 'asc',
+            });
+            onChange({ sort_by: 'manual', sort_order: 'asc' });
+          }}
         >
           <span className="flex w-full items-center justify-between gap-x-3">
             <span>{t('sidebar.sort.manual')}</span>

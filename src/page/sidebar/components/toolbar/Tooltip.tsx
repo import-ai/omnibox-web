@@ -10,6 +10,7 @@ interface IProps {
   loading?: boolean;
   disabled?: boolean;
   destructive?: boolean;
+  trackName?: string;
 }
 
 export function ToolbarButton({
@@ -21,6 +22,7 @@ export function ToolbarButton({
   loading,
   disabled = false,
   destructive = false,
+  trackName,
 }: IProps) {
   const unavailable = !!disabledLabel || loading || disabled;
 
@@ -30,6 +32,7 @@ export function ToolbarButton({
       tone="sidebar"
       destructive={destructive}
       label={disabledLabel || label}
+      trackName={trackName}
       onClick={onClick}
       disabled={unavailable}
     >

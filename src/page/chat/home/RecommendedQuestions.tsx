@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import HomeMascot from './HomeMascot';
@@ -124,7 +125,13 @@ export default function RecommendedQuestions({
     >
       <button
         type="button"
-        onClick={handleNextQuestion}
+        onClick={event => {
+          trackButtonClick('chat_question_navigate');
+          const handleClick = handleNextQuestion;
+          if (typeof handleClick === 'function') {
+            (handleClick as (value?: typeof event) => void)(event);
+          }
+        }}
         disabled={transitionPhase !== 'idle'}
         aria-label={t('chat.home.nextRecommendedQuestion')}
         className={cn(
@@ -137,7 +144,13 @@ export default function RecommendedQuestions({
       <div className={cn('min-w-0 flex-1', compact && 'ml-4')}>
         <button
           type="button"
-          onClick={handleSelect}
+          onClick={event => {
+            trackButtonClick('chat_question_select');
+            const handleClick = handleSelect;
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
+          }}
           disabled={!question || transitionPhase !== 'idle'}
           className={cn(
             'group relative mb-4 flex min-h-12 w-fit min-w-recommended-question max-w-recommended-question items-center rounded-full text-left text-sm font-normal leading-recommended-question text-muted-foreground transition-opacity duration-150 motion-reduce:transition-none focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',

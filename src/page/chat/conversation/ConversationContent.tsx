@@ -150,6 +150,7 @@ export function ConversationFooter({
         )}
         <ChatArea
           key={context.conversation.id}
+          composerSurface="conversation"
           selectedResources={context.selectedResources}
           setSelectedResources={context.setSelectedResources}
           messages={context.messages}

@@ -2,6 +2,7 @@ import { BrushCleaning, RotateCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Spinner } from '@/components/ui/Spinner';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import type { NotificationFilter } from './types';
@@ -37,7 +38,12 @@ function FilterTabs({ value, unreadCount, onChange, labels }: FilterTabsProps) {
         return (
           <div
             key={filter.key}
-            onClick={() => onChange(filter.key)}
+            onClick={() => {
+              trackButtonClick('notification_filter_select', {
+                filter: filter.key,
+              });
+              onChange(filter.key);
+            }}
             className={cn(
               'relative h-6 rounded px-2 py-0 text-sm leading-6 text-muted-foreground cursor-pointer transition-colors outline-hidden focus:outline-hidden focus-visible:outline-hidden focus-visible:ring-0 hover:cursor-pointer',
               isActive
@@ -92,7 +98,13 @@ export function NotificationToolbar({
         <button
           type="button"
           disabled={isMarkAllReadDisabled}
-          onClick={onMarkAllRead}
+          onClick={event => {
+            trackButtonClick('notification_list_confirm');
+            const handleClick = onMarkAllRead;
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
+          }}
           className={getActionClassName(isMarkAllReadDisabled)}
         >
           <BrushCleaning className="size-4 stroke-2" />
@@ -102,7 +114,13 @@ export function NotificationToolbar({
         <button
           type="button"
           disabled={isRefreshDisabled}
-          onClick={onRefresh}
+          onClick={event => {
+            trackButtonClick('notification_list_refresh');
+            const handleClick = onRefresh;
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
+          }}
           className={getActionClassName(isRefreshDisabled)}
         >
           {refreshing ? (

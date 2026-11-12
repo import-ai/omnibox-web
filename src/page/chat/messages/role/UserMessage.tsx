@@ -230,10 +230,16 @@ export function UserMessage(props: IProps) {
                 autoFocus
               />
               <div className="flex gap-2 justify-end">
-                <Button size="sm" variant="outline" onClick={handleCancel}>
+                <Button
+                  trackName="chat_message_cancel"
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCancel}
+                >
                   {t('chat.messages.actions.cancel_edit')}
                 </Button>
                 <Button
+                  trackName="chat_message_save"
                   size="sm"
                   onClick={handleSave}
                   disabled={!editedContent.trim()}
@@ -356,6 +362,7 @@ export function UserMessage(props: IProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  trackName="chat_message_edit"
                   size="icon"
                   variant="ghost"
                   className={`${sidebarToolbarIconButtonClassName} size-7`}
@@ -373,11 +380,13 @@ export function UserMessage(props: IProps) {
             content={openAIMessage.content || ''}
             htmlContent={copyHtml}
             tooltip={t('chat.messages.actions.copy_simple')}
+            trackName="chat_message_copy"
           />
           {onShare && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
+                  trackName="chat_share_open"
                   aria-label={t('chat.share.action')}
                   className={`${sidebarToolbarIconButtonClassName} size-7`}
                   onClick={() => onShare(message.id)}
@@ -394,6 +403,7 @@ export function UserMessage(props: IProps) {
           {hasSiblings && (
             <>
               <Button
+                trackName="chat_message_navigate"
                 size="icon"
                 variant="ghost"
                 className="p-0 w-4 h-7"
@@ -406,6 +416,7 @@ export function UserMessage(props: IProps) {
                 {currentIndex + 1}/{siblings.length}
               </span>
               <Button
+                trackName="chat_message_navigate"
                 size="icon"
                 variant="ghost"
                 className="p-0 w-4 h-7"

@@ -52,6 +52,7 @@ import useUser from '@/hooks/useUser';
 import { UserBinding } from '@/interface';
 import { isEmoji } from '@/lib/emoji';
 import { http } from '@/lib/request';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils.ts';
 import { optionalPasswordSchema } from '@/lib/validationSchemas';
 import { SettingsInfoRow as InfoRow } from '@/page/settings/components/SettingsInfoRow';
@@ -110,6 +111,7 @@ function SectionHeader({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
+                onClick={() => trackButtonClick('settings_help_open')}
                 variant="ghost"
                 size="sm"
                 className={cn(
@@ -163,6 +165,7 @@ function BindingRow({
         button={
           isBound ? (
             <SettingPageButton
+              trackName="settings_binding_remove"
               variant="outline"
               onClick={() => setConfirmOpen(true)}
             >
@@ -170,7 +173,9 @@ function BindingRow({
             </SettingPageButton>
           ) : (
             onBind || (
-              <SettingPageButton>{t('setting.bind_btn')}</SettingPageButton>
+              <SettingPageButton trackName="settings_binding_create">
+                {t('setting.bind_btn')}
+              </SettingPageButton>
             )
           )
         }
@@ -188,13 +193,19 @@ function BindingRow({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="cancel-btn-outline">
+            <AlertDialogCancel
+              className="cancel-btn-outline"
+              onClick={() => trackButtonClick('settings_binding_cancel')}
+            >
               {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               disabled={unbinding}
-              onClick={onUnbind}
+              onClick={() => {
+                trackButtonClick('settings_binding_confirm');
+                onUnbind?.();
+              }}
             >
               {unbinding && <Spinner className="mr-2" />}
               {t('setting.third_party_account.confirm_unbind')}
@@ -400,6 +411,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
           description={t('setting.option_descriptions.username')}
           button={
             <SettingPageButton
+              trackName="settings_username_edit"
               variant="outline"
               onClick={() => setUsernameDialogOpen(true)}
             >
@@ -415,6 +427,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
           description={t('setting.option_descriptions.password')}
           button={
             <SettingPageButton
+              trackName="settings_password_edit"
               variant="outline"
               onClick={() => setPasswordDialogOpen(true)}
             >
@@ -437,6 +450,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
           description={t('setting.option_descriptions.phone')}
           button={
             <SettingPageButton
+              trackName="settings_phone_edit"
               variant={phoneBinding?.id ? 'outline' : 'default'}
               onClick={() => setPhoneDialogOpen(true)}
             >
@@ -451,6 +465,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
           description={t('setting.option_descriptions.email')}
           button={
             <SettingPageButton
+              trackName="settings_email_edit"
               variant="outline"
               onClick={() => setEmailDialogOpen(true)}
             >
@@ -497,7 +512,11 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
 
         {/* Username Change Dialog */}
         <Dialog open={usernameDialogOpen} onOpenChange={setUsernameDialogOpen}>
-          <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
+          <DialogContent
+            outsideCloseTrackName="settings_overlay_close"
+            outsideCloseTarget="username"
+            className="w-[90%] max-w-md sm:max-w-md sm:w-1/2"
+          >
             <DialogHeader>
               <DialogTitle>{t('form.username')}</DialogTitle>
               <VisuallyHidden.Root>
@@ -528,11 +547,22 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setUsernameDialogOpen(false)}
+                    onClick={event => {
+                      trackButtonClick('settings_username_cancel');
+                      const handleClick = () => setUsernameDialogOpen(false);
+                      if (typeof handleClick === 'function') {
+                        (handleClick as (value?: typeof event) => void)(event);
+                      }
+                    }}
                   >
                     {t('cancel')}
                   </Button>
-                  <Button type="submit" disabled={submitting} size="sm">
+                  <Button
+                    onClick={() => trackButtonClick('settings_username_save')}
+                    type="submit"
+                    disabled={submitting}
+                    size="sm"
+                  >
                     {submitting ? <Spinner /> : t('ok')}
                   </Button>
                 </div>
@@ -553,7 +583,11 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
             }
           }}
         >
-          <DialogContent className="w-[90%] max-w-md sm:max-w-md sm:w-1/2">
+          <DialogContent
+            outsideCloseTrackName="settings_overlay_close"
+            outsideCloseTarget="password"
+            className="w-[90%] max-w-md sm:max-w-md sm:w-1/2"
+          >
             <DialogHeader>
               <DialogTitle>{t('form.password')}</DialogTitle>
               <VisuallyHidden.Root>
@@ -583,7 +617,16 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                           />
                           <button
                             type="button"
-                            onClick={() => setShowPassword(!showPassword)}
+                            onClick={event => {
+                              trackButtonClick('settings_password_toggle');
+                              const handleClick = () =>
+                                setShowPassword(!showPassword);
+                              if (typeof handleClick === 'function') {
+                                (handleClick as (value?: typeof event) => void)(
+                                  event
+                                );
+                              }
+                            }}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                           >
                             {showPassword ? (
@@ -615,9 +658,16 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                           />
                           <button
                             type="button"
-                            onClick={() =>
-                              setShowPasswordRepeat(!showPasswordRepeat)
-                            }
+                            onClick={event => {
+                              trackButtonClick('settings_password_toggle');
+                              const handleClick = () =>
+                                setShowPasswordRepeat(!showPasswordRepeat);
+                              if (typeof handleClick === 'function') {
+                                (handleClick as (value?: typeof event) => void)(
+                                  event
+                                );
+                              }
+                            }}
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
                           >
                             {showPasswordRepeat ? (
@@ -637,16 +687,27 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      setPasswordDialogOpen(false);
-                      passwordForm.reset();
-                      setShowPassword(false);
-                      setShowPasswordRepeat(false);
+                    onClick={event => {
+                      trackButtonClick('settings_password_cancel');
+                      const handleClick = () => {
+                        setPasswordDialogOpen(false);
+                        passwordForm.reset();
+                        setShowPassword(false);
+                        setShowPasswordRepeat(false);
+                      };
+                      if (typeof handleClick === 'function') {
+                        (handleClick as (value?: typeof event) => void)(event);
+                      }
                     }}
                   >
                     {t('cancel')}
                   </Button>
-                  <Button type="submit" disabled={submitting} size="sm">
+                  <Button
+                    onClick={() => trackButtonClick('settings_password_save')}
+                    type="submit"
+                    disabled={submitting}
+                    size="sm"
+                  >
                     {submitting ? <Spinner /> : t('ok')}
                   </Button>
                 </div>
@@ -657,7 +718,11 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
 
         {/* Email Validation Dialog */}
         <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
-          <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]">
+          <DialogContent
+            outsideCloseTrackName="settings_overlay_close"
+            outsideCloseTarget="email"
+            className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none lg:w-[445px]"
+          >
             <VisuallyHidden.Root>
               <DialogHeader>
                 <DialogTitle>{t('email.validate')}</DialogTitle>
@@ -672,7 +737,11 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
 
         {/* Phone Binding Dialog */}
         <Dialog open={phoneDialogOpen} onOpenChange={setPhoneDialogOpen}>
-          <DialogContent className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]">
+          <DialogContent
+            outsideCloseTrackName="settings_overlay_close"
+            outsideCloseTarget="phone"
+            className="w-[90%] max-w-[445px] sm:max-w-[445px] border-none bg-transparent p-0 shadow-none dark:bg-transparent lg:w-[445px]"
+          >
             <VisuallyHidden.Root>
               <DialogHeader>
                 <DialogTitle>{t('phone.input_phone')}</DialogTitle>
@@ -704,6 +773,7 @@ export default function ProfileForm({ autoAction }: ProfileFormProps) {
           description={t('setting.delete_account.section_description')}
           button={
             <SettingPageButton
+              trackName="settings_account_delete"
               variant="destructive"
               onClick={() => setDeleteAccountOpen(true)}
             >

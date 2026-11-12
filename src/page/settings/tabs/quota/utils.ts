@@ -99,6 +99,16 @@ export function formatCredits(credits: number) {
   return `${renderHundredths(creditHundredths(credits, CREDIT_SCALE))} ${unit}`;
 }
 
+export function formatCreditAmount(microcredits: number) {
+  const value = microcredits / CREDIT_SCALE;
+  if (value !== 0 && Math.abs(value) < 0.01)
+    return value < 0 ? '−< 0.01' : '< 0.01';
+  return value.toLocaleString(i18next.language, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 export function getSubscriptionPlanLabelKey(premium?: UsageExpirationLike) {
   return premium && !premium.expired
     ? 'quota.premium_plan'

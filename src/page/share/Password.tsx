@@ -64,6 +64,7 @@ export function Password(props: PasswordProps) {
           )}
         />
         <Button
+          trackName="share_password_submit"
           type="submit"
           loading={loading}
           className="w-full disabled:opacity-60"

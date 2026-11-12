@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { UpgradeIcon } from '@/assets/icons/UpgradeIcon';
 import useProNamespaces from '@/hooks/useProNamespaces';
 import { NamespaceTier } from '@/interface';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { getUpgradeLink } from '@/lib/upgradeLink';
 import { cn } from '@/lib/utils';
 
@@ -24,12 +25,18 @@ export function UpgradeButton() {
   }
 
   const handleClick = () => {
-    window.open(getUpgradeLink(i18n, namespaceId), '_blank');
+    window.open(
+      getUpgradeLink(i18n, namespaceId, 'settings_sidebar'),
+      '_blank'
+    );
   };
 
   return (
     <button
-      onClick={handleClick}
+      onClick={() => {
+        trackButtonClick('sidebar_plan_upgrade');
+        handleClick();
+      }}
       className={cn(
         'flex h-[30px] w-auto items-center gap-3 rounded px-3 text-left lg:w-full',
         'hover:bg-sidebar-accent'

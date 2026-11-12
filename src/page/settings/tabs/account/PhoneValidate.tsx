@@ -97,6 +97,7 @@ function PhoneInputStep({
                       placeholder={t('phone.enter_phone')}
                       allowedCountries={allowedCountries}
                       className="border-line"
+                      trackName="settings_country_open"
                     />
                   </FormControl>
                   <FormMessage />
@@ -105,6 +106,7 @@ function PhoneInputStep({
             />
 
             <Button
+              trackName="settings_phone_submit"
               type="submit"
               disabled={submitting}
               loading={submitting}

@@ -60,6 +60,18 @@ it.each(['en', 'zh'] as const)(
   }
 );
 
+it('keeps the QR code on a bordered white surface', () => {
+  const container = document.createElement('div');
+  container.innerHTML = renderToStaticMarkup(<Contact />);
+  const qrContainer = container.querySelector('img')?.parentElement;
+
+  expect(qrContainer?.classList.contains('border')).toBe(true);
+  expect(qrContainer?.classList.contains('border-input')).toBe(true);
+  expect(qrContainer?.classList.contains('bg-white')).toBe(true);
+  expect(qrContainer?.classList.contains('p-[5px]')).toBe(true);
+  expect(qrContainer?.classList.contains('shadow-xs')).toBe(true);
+});
+
 it('keeps the new English and Chinese locale keys parallel and complete', () => {
   expect(Object.keys(en.setting.contact).sort()).toEqual(
     Object.keys(zh.setting.contact).sort()

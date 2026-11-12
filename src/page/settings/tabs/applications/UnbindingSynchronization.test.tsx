@@ -35,9 +35,17 @@ jest.mock('@/components/omnibox/IconButton', () => ({
   sidebarToolbarIconButtonClassName: '',
 }));
 jest.mock('@/components/Button', () => ({
-  Button: ({ children, ...props }: ComponentProps<'button'>) => (
-    <button {...props}>{children}</button>
-  ),
+  Button: ({
+    children,
+    ...props
+  }: ComponentProps<'button'> & {
+    trackName?: string;
+    trackProps?: unknown;
+  }) => {
+    delete props.trackName;
+    delete props.trackProps;
+    return <button {...props}>{children}</button>;
+  },
 }));
 jest.mock('@/components/omnibox/SettingPageButton', () => ({
   SettingPageButton: ({

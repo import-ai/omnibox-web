@@ -14,6 +14,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Spinner } from '@/components/ui/Spinner';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import {
   type AutoRenewal,
@@ -81,6 +82,7 @@ function EnabledRenewal({
       </div>
       {canCancel && (
         <Button
+          trackName="settings_renewal_cancel"
           variant="destructive"
           className="shrink-0 self-start sm:self-center"
           disabled={isProcessing}
@@ -155,7 +157,10 @@ function CancelDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={canceling}>
+          <AlertDialogCancel
+            disabled={canceling}
+            onClick={() => trackButtonClick('settings_renewal_cancel')}
+          >
             {t('cancel')}
           </AlertDialogCancel>
           <AlertDialogAction
@@ -163,6 +168,7 @@ function CancelDialog({
             disabled={canceling}
             onClick={event => {
               event.preventDefault();
+              trackButtonClick('settings_renewal_confirm');
               handleCancel();
             }}
           >

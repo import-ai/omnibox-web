@@ -14,6 +14,7 @@ import { Button } from '@/components/Button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Textarea } from '@/components/ui/textarea';
 import type { ResourceComment } from '@/interface';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import { CommentMentionField } from './CommentMentionField';
 import { CommentMentionMenu } from './CommentMentionMenu';
@@ -205,8 +206,18 @@ export function ResourceCommentItem({
                       aria-label={t('resource_comments.edit')}
                       disabled={controller.submitting}
                       onClick={event => {
-                        event.stopPropagation();
-                        startEditing();
+                        trackButtonClick('resource_comment_edit');
+                        const handleClick = (
+                          event: React.MouseEvent<HTMLButtonElement>
+                        ) => {
+                          event.stopPropagation();
+                          startEditing();
+                        };
+                        if (typeof handleClick === 'function') {
+                          (handleClick as (value?: typeof event) => void)(
+                            event
+                          );
+                        }
                       }}
                     >
                       <Pencil aria-hidden="true" />
@@ -224,10 +235,20 @@ export function ResourceCommentItem({
                       aria-label={t('resource_comments.delete')}
                       disabled={controller.submitting}
                       onClick={event => {
-                        event.stopPropagation();
-                        controller
-                          .removeComment(threadId, comment.id)
-                          .catch(() => undefined);
+                        trackButtonClick('resource_comment_delete');
+                        const handleClick = (
+                          event: React.MouseEvent<HTMLButtonElement>
+                        ) => {
+                          event.stopPropagation();
+                          controller
+                            .removeComment(threadId, comment.id)
+                            .catch(() => undefined);
+                        };
+                        if (typeof handleClick === 'function') {
+                          (handleClick as (value?: typeof event) => void)(
+                            event
+                          );
+                        }
                       }}
                     >
                       <Trash aria-hidden="true" />
@@ -304,13 +325,21 @@ export function ResourceCommentItem({
                         className="omnibox-comment-image-remove"
                         aria-label={t('resource_comments.remove_image')}
                         title={t('resource_comments.remove_image')}
-                        onClick={() => {
-                          if (pendingUrlsRef.current.delete(image.url)) {
-                            URL.revokeObjectURL(image.url);
+                        onClick={event => {
+                          trackButtonClick('resource_comment_remove');
+                          const handleClick = () => {
+                            if (pendingUrlsRef.current.delete(image.url)) {
+                              URL.revokeObjectURL(image.url);
+                            }
+                            setEditImages(current =>
+                              current.filter(item => item.url !== image.url)
+                            );
+                          };
+                          if (typeof handleClick === 'function') {
+                            (handleClick as (value?: typeof event) => void)(
+                              event
+                            );
                           }
-                          setEditImages(current =>
-                            current.filter(item => item.url !== image.url)
-                          );
                         }}
                       >
                         <X aria-hidden="true" strokeWidth={2} />
@@ -348,6 +377,7 @@ export function ResourceCommentItem({
             </div>
             <div>
               <Button
+                trackName="resource_comment_cancel"
                 type="button"
                 size="sm"
                 variant="outline"
@@ -357,6 +387,7 @@ export function ResourceCommentItem({
                 {t('resource_comments.cancel')}
               </Button>
               <Button
+                trackName="resource_comment_save"
                 type="button"
                 size="sm"
                 className="omnibox-comment-submit"

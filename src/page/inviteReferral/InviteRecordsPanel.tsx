@@ -89,7 +89,12 @@ export function InviteRecordsPanel({
           <p className="text-center text-sm text-muted-foreground">
             {t('inviteReferral.records.loadFailed')}
           </p>
-          <Button type="button" variant="outline" onClick={() => void load()}>
+          <Button
+            trackName="invite_referral_record_retry"
+            type="button"
+            variant="outline"
+            onClick={() => void load()}
+          >
             {t('inviteReferral.common.retry')}
           </Button>
         </div>

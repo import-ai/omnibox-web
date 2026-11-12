@@ -26,7 +26,11 @@ export function Wrapper(props: IProps) {
     return (
       <>
         <Dialog open={open} onOpenChange={onOpen}>
-          <DialogContent className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6">
+          <DialogContent
+            outsideCloseTrackName="settings_overlay_close"
+            outsideCloseTarget="account"
+            className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6"
+          >
             <DialogHeader className="hidden">
               <DialogTitle></DialogTitle>
               <DialogDescription></DialogDescription>

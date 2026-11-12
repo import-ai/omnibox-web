@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
+import { trackButtonClick } from '@/lib/trackButtonClick';
+
 import { restoreInviteFromUrl, updateInviteParams } from './authInviteParams';
 import { InviteCodeDialog } from './InviteCodeDialog';
 import {
@@ -30,7 +32,13 @@ export function InviteCodeEntry() {
       <button
         type="button"
         className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:underline"
-        onClick={() => setOpen(true)}
+        onClick={event => {
+          trackButtonClick('invite_referral_code_open');
+          const handleClick = () => setOpen(true);
+          if (typeof handleClick === 'function') {
+            (handleClick as (value?: typeof event) => void)(event);
+          }
+        }}
       >
         {code
           ? t('inviteReferral.code.confirmed', { code })

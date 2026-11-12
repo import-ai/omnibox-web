@@ -176,6 +176,7 @@ export function ResourceCommentComposer({
         ) : null}
         <div className="omnibox-comment-composer__actions">
           <Button
+            trackName="resource_comment_cancel"
             type="button"
             size="sm"
             variant="outline"
@@ -185,6 +186,7 @@ export function ResourceCommentComposer({
             {t('resource_comments.cancel')}
           </Button>
           <Button
+            trackName="resource_comment_submit"
             type="submit"
             size="sm"
             className="omnibox-comment-submit"

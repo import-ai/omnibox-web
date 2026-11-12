@@ -21,7 +21,11 @@ export function NotificationDetailDialog({
 }: NotificationDetailDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl sm:max-w-2xl border-border bg-popover">
+      <DialogContent
+        outsideCloseTrackName="notification_overlay_close"
+        outsideCloseTarget="detail"
+        className="max-w-2xl sm:max-w-2xl border-border bg-popover"
+      >
         <DialogHeader>
           <DialogTitle className="text-left text-foreground">
             {detail?.title}

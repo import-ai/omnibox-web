@@ -79,7 +79,12 @@ export default function EditForm(props: IProps) {
           )}
         />
         <div className="flex justify-end">
-          <Button type="submit" disabled={loading} loading={loading}>
+          <Button
+            trackName="chat_conversation_save"
+            type="submit"
+            disabled={loading}
+            loading={loading}
+          >
             {t('ok')}
           </Button>
         </div>

@@ -6,15 +6,18 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/Button';
 import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import type { ButtonTrackProps } from '@/lib/trackButtonClick';
 
 interface IProps {
   content: string;
   htmlContent?: string;
   tooltip?: string;
+  trackName?: string;
+  trackProps?: ButtonTrackProps;
 }
 
 export default function CopyMain(props: IProps) {
-  const { content, htmlContent, tooltip } = props;
+  const { content, htmlContent, tooltip, trackName, trackProps } = props;
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
@@ -56,6 +59,8 @@ export default function CopyMain(props: IProps) {
             size="icon"
             variant="ghost"
             className={`${sidebarToolbarIconButtonClassName} size-7`}
+            trackName={trackName}
+            trackProps={trackProps}
             onClick={handleCopy}
           >
             <Copy />

@@ -89,6 +89,7 @@ export default function WeChat(props: IProps) {
 
   const button = (
     <Button
+      trackName="user_login_select"
       variant="outline"
       onClick={() =>
         runWithConsent(() => {

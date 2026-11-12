@@ -27,7 +27,7 @@ export default function Contact() {
         label={t('setting.contact.wechat_title')}
         description={t('setting.contact.wechat_description')}
       />
-      <div className="ml-10 mt-3 w-36 max-w-[calc(100%-2.5rem)] overflow-hidden rounded-sm bg-white p-1.5">
+      <div className="ml-10 mt-3 w-36 max-w-[calc(100%-2.5rem)] overflow-hidden rounded-sm border border-input bg-white p-[5px] shadow-xs">
         <WechatGroupQrCode alt={t('setting.contact.wechat_qr_alt')} />
       </div>
       <Separator className="my-6" />
@@ -37,6 +37,7 @@ export default function Contact() {
         description={t('setting.contact.discord_description')}
         button={
           <SettingPageButton
+            trackName="settings_contact_open"
             asChild
             variant="outline"
             className="text-foreground!"
