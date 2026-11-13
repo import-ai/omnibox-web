@@ -2,6 +2,7 @@ import { Loader2 } from 'lucide-react';
 import type { MouseEventHandler, UIEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Button } from '@/components/Button';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import {
   CommandGroup,
@@ -34,6 +35,9 @@ interface SearchResultListProps {
   loadingRecents: boolean;
   namespaceId?: string;
   loadingMore: boolean;
+  hasMore: boolean;
+  loadError: 'retry' | 'restart' | null;
+  onRestart: () => void;
   onAnchorClick: MouseEventHandler<HTMLAnchorElement>;
   onLoadMore: () => void;
   onNavigate: (path: string, target: 'chat' | 'resource') => void;
@@ -121,6 +125,9 @@ export function SearchResultList({
   loadingRecents,
   namespaceId,
   loadingMore,
+  hasMore,
+  loadError,
+  onRestart,
   onAnchorClick,
   onLoadMore,
   onNavigate,
@@ -130,12 +137,10 @@ export function SearchResultList({
   shouldSkipNavigate,
 }: SearchResultListProps) {
   const { t } = useTranslation();
-  const showNoResults = shouldShowSearchNoResults(
-    showRecents,
-    resources.length,
-    0,
-    loadingInitial
-  );
+  const showNoResults =
+    !hasMore &&
+    !loadError &&
+    shouldShowSearchNoResults(showRecents, resources.length, 0, loadingInitial);
   const showLoading = shouldShowSearchLoading(
     !showRecents,
     loadingInitial,
@@ -291,6 +296,36 @@ export function SearchResultList({
         </CommandGroup>
       )}
 
+      {!showRecents &&
+      !loadingInitial &&
+      !loadingMore &&
+      (hasMore || loadError) ? (
+        <div className="flex flex-col items-center gap-2 p-3">
+          {loadError ? (
+            <p role="alert" className="text-sm text-muted-foreground">
+              {t(
+                loadError === 'restart'
+                  ? 'search.session_expired'
+                  : 'search.load_failed'
+              )}
+            </p>
+          ) : null}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={loadError === 'restart' ? onRestart : onLoadMore}
+          >
+            {t(
+              loadError === 'restart'
+                ? 'search.restart'
+                : loadError
+                  ? 'search.retry'
+                  : 'load_more'
+            )}
+          </Button>
+        </div>
+      ) : null}
       {loadingMore ? (
         <div className="flex h-10 items-center justify-center text-muted-foreground">
           <Loader2 className="size-4 animate-spin" />
