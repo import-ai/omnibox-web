@@ -13,7 +13,9 @@ import {
   BreadcrumbItem,
   BreadcrumbList,
 } from '@/components/ui/Breadcrumb';
+import { markBehaviorLeave } from '@/lib/behaviorNavigation';
 import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import ConversationSearchDialog from '@/page/chat/conversations/ConversationSearchDialog';
 import Actions from '@/page/chat/header/Actions';
@@ -214,10 +216,10 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
   const modal = !split;
   const visible = ready && open;
   const panelWidth = useFrozenPanelWidth(visible, layout.panelWidth);
-  const handleClose = useCallback(
-    () => close(namespaceId),
-    [close, namespaceId]
-  );
+  const handleClose = useCallback(() => {
+    markBehaviorLeave('conversation', 'close_panel');
+    close(namespaceId);
+  }, [close, namespaceId]);
 
   useEffect(() => {
     // Split: measure workspace via the empty gap (Sidebar-style spacer).
@@ -262,7 +264,13 @@ export default function CopilotPanel({ namespaceId }: CopilotPanelProps) {
         <button
           aria-label={t('right_sidebar.collapse')}
           className="fixed inset-0 z-40 cursor-default bg-black/20 motion-safe:animate-in motion-safe:fade-in-0"
-          onClick={handleClose}
+          onClick={event => {
+            trackButtonClick('copilot_panel_collapse');
+            const handleClick = handleClose;
+            if (typeof handleClick === 'function') {
+              (handleClick as (value?: typeof event) => void)(event);
+            }
+          }}
           type="button"
         />
       )}

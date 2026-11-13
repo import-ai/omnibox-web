@@ -11,6 +11,7 @@ import { Toaster } from '@/components/ui/Toaster';
 import useConfig from '@/hooks/useConfig';
 import { useIsMobile } from '@/hooks/useMobile';
 import useTheme from '@/hooks/useTheme';
+import { useBehaviorSurface } from '@/lib/behaviorTracking';
 import { resolveColorTheme } from '@/lib/colorThemes';
 import {
   getPendingDocsAppearance,
@@ -53,6 +54,7 @@ function clearUserWorkspaceState() {
 
 export default function Layout() {
   const loc = useLocation();
+  useBehaviorSurface({ scope: 'global', target: 'app', exposure: false });
   const params = useParams();
   const navigate = useNavigate();
   const { i18n } = useTranslation();

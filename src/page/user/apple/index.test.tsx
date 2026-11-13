@@ -17,6 +17,10 @@ import {
 import { subscribeAuthPageReturn } from '../authPageReturn';
 import Apple from './index';
 
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+}));
 jest.mock('react-router-dom', () => ({
   useSearchParams: () => [new URLSearchParams()],
 }));

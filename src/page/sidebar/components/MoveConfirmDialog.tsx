@@ -31,6 +31,8 @@ export function MoveConfirmDialog({
       description={t('batch.move_confirm_description')}
       confirmText={t('batch.move_confirm')}
       loading={loading}
+      cancelTrackName="sidebar_move_cancel"
+      confirmTrackName="sidebar_move_confirm"
       onOpenChange={onOpenChange}
       onConfirm={onConfirm}
     />

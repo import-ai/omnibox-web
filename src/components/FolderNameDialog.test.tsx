@@ -10,7 +10,15 @@ import {
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { behavior, configureBehaviorTracking } from '@/lib/behaviorTracking';
+
 import { FolderNameDialog } from './FolderNameDialog';
+
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+  onOverlayClose: () => jest.fn(),
+  overlayCloseName: () => 'sidebar_overlay_close',
+}));
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -31,7 +39,17 @@ jest.mock('@/components/Button', () => ({
 jest.mock('@/components/omnibox/Dialog', () => ({
   Dialog: ({ open, children }: { open: boolean; children: ReactNode }) =>
     open ? children : null,
-  DialogContent: ({ children }: { children: ReactNode }) => children,
+  DialogContent: ({
+    children,
+    ref,
+  }: {
+    children: ReactNode;
+    ref?: import('react').Ref<HTMLDivElement>;
+  }) => (
+    <div ref={ref} data-editor>
+      {children}
+    </div>
+  ),
   DialogFooter: ({ children }: { children: ReactNode }) => children,
   DialogHeader: ({ children }: { children: ReactNode }) => children,
   DialogTitle: ({ children }: { children: ReactNode }) => children,
@@ -137,4 +155,101 @@ describe('FolderNameDialog', () => {
     expect(input.disabled).toBe(false);
     expect(confirmButton.disabled).toBe(false);
   });
+});
+
+it('records input and dwell on canceled folder edits, including repeated visits and an untouched visit', async () => {
+  jest.useFakeTimers({ now: Date.parse('2026-11-11T04:00:00Z') });
+  localStorage.setItem('uid', 'folder-editor');
+  jest.spyOn(document, 'hasFocus').mockReturnValue(true);
+  Object.defineProperty(document, 'visibilityState', {
+    configurable: true,
+    value: 'visible',
+  });
+  jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+    x: 0,
+    y: 0,
+    top: 0,
+    left: 0,
+    right: 100,
+    bottom: 100,
+    width: 100,
+    height: 100,
+    toJSON() {},
+  });
+  const events: { name: string; props: Record<string, unknown> }[] = [];
+  configureBehaviorTracking(true, async (name, props) => {
+    events.push({ name, props });
+  });
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  const previousElementFromPoint = document.elementFromPoint;
+  document.elementFromPoint = () => container.querySelector('input');
+  const root = createRoot(container);
+  const onConfirm = jest.fn(async () => {});
+  try {
+    for (let visit = 0; visit < 3; visit++) {
+      const props = {
+        open: true,
+        initialName: 'folder',
+        resourceId: 'folder-edit-regression',
+        onConfirm,
+        onOpenChange: jest.fn(),
+      };
+      await act(async () => root.render(<FolderNameDialog {...props} />));
+      if (visit < 2)
+        await act(async () => {
+          const input = container.querySelector('input')!;
+          Object.getOwnPropertyDescriptor(
+            HTMLInputElement.prototype,
+            'value'
+          )!.set!.call(input, 'renamed');
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        });
+      await act(async () => jest.advanceTimersByTime(4000));
+      await act(async () => container.querySelector('button')!.click());
+      expect(props.onOpenChange).toHaveBeenCalledWith(false);
+      await act(async () =>
+        root.render(<FolderNameDialog {...props} open={false} />)
+      );
+      await act(async () => jest.runAllTicks());
+    }
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(events.filter(e => e.name === 'editor_input')).toHaveLength(2);
+    expect(events.filter(e => e.name === 'core_action_start')).toHaveLength(1);
+    const dwell = events.filter(
+      e => e.name === 'active_duration' && e.props.scope === 'editor'
+    );
+    expect(dwell.map(e => e.props.has_input)).toEqual([true, true, false]);
+    expect(dwell.map(e => e.props.duration_ms)).toEqual([4000, 4000, 4000]);
+    const before = events.length;
+    await act(async () =>
+      root.render(
+        <FolderNameDialog
+          open
+          initialName=""
+          onConfirm={onConfirm}
+          onOpenChange={() => {}}
+        />
+      )
+    );
+    await act(async () => jest.advanceTimersByTime(1000));
+    await act(async () =>
+      root.render(
+        <FolderNameDialog
+          open={false}
+          onConfirm={onConfirm}
+          onOpenChange={() => {}}
+        />
+      )
+    );
+    expect(events).toHaveLength(before);
+  } finally {
+    await act(async () => root.unmount());
+    configureBehaviorTracking(false, async () => {});
+    behavior.visits.forEach(visit => visit.discard());
+    document.elementFromPoint = previousElementFromPoint;
+    container.remove();
+    jest.restoreAllMocks();
+    jest.useRealTimers();
+  }
 });

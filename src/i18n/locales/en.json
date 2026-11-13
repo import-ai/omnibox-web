@@ -1103,10 +1103,10 @@
       }
     },
     "agent_credits": {
-      "text": "Agent 2.1 credits used up. Switched to Agent 1.1. Purchase credits to restore.",
-      "compact_text": "Switched to Agent 1.1",
-      "compact_tooltip": "Agent 2.1 credits used up",
-      "not_owner": "Please contact the namespace owner to purchase credits",
+      "text": "Kibble is exhausted. Switch to Agent 1.1 or buy Kibble.",
+      "compact_text": "Insufficient Kibble",
+      "compact_tooltip": "Agent 2.1 Kibble used up",
+      "not_owner": "Please contact the namespace owner to purchase Kibble",
       "expand_button": "Purchase",
       "tooltip": {
         "base": "Buy or upgrade to keep using Agent 2.1"
@@ -1168,7 +1168,7 @@
       "unsupported_file": "This file type is not supported. Please choose another file.",
       "attachment_unavailable": "The attachment is unavailable or does not belong to this conversation.",
       "storage_full": "Storage is full. Delete some files or upgrade your plan.",
-      "credits_exhausted": "Not enough credits. Switch to Agent 1.1 or add credits.",
+      "credits_exhausted": "Not enough Kibble. Switch to Agent 1.1 or add Kibble.",
       "namespace_not_found": "Namespace not found. Refresh and try again.",
       "private_root_unavailable": "Could not access your private space. Refresh and try again.",
       "tool_failed": "The tool action encountered an error. Check the execution result.",
@@ -1319,6 +1319,8 @@
     "time_error_minutes": "Failed: costs {{minutes}} min",
     "time_timeout_seconds": "Timeout: costs {{seconds}} sec",
     "time_timeout_minutes": "Timeout: costs {{minutes}} min",
+    "time_insufficient_credits": "Insufficient Kibble: {{time}}",
+    "time_file_limit": "File processing limit exceeded: {{time}}",
     "time_insufficient_quota": "Insufficient quota: {{time}}",
     "time_canceled": "Canceled: {{time}}",
     "functions": {
@@ -1462,7 +1464,7 @@
     "clear_success": "Trash emptied"
   },
   "quota": {
-    "description": "View resource usage, credit balances, and expiration dates for this space.",
+    "description": "View resource usage, Kibble balances, and expiration dates for this space.",
     "storage_usage": "Storage",
     "upload": "Upload",
     "file": "File",
@@ -1472,16 +1474,16 @@
     "audio": "Audio",
     "video": "Video",
     "doc_parse_usage": "PDF / Image Parse",
-    "agent_credits_usage": "Agent 2.1 Credits",
+    "agent_credits_usage": "Agent 2.1 Kibble",
     "pdf": "PDF",
     "image": "Image",
     "other": "Other",
-    "expand_button": "Purchase",
+    "expand_button": "Buy",
     "basic_period": "Namespace validity period: ",
     "premium_period": "Pro validity period: ",
     "days_remaining": "{{days}} days remaining (expires {{date}})",
     "page_unit": "pages",
-    "credit_unit": "credits",
+    "credit_unit": "Kibble",
     "tooltip_format": "{{label}}: {{value}}",
     "basic_plan": "Basic: ",
     "premium_plan": "Pro: ",
@@ -1490,7 +1492,32 @@
       "seconds": "sec",
       "minutes": "min",
       "hours": "hrs"
-    }
+    },
+    "credits_title": "Kibble",
+    "ledger_title": "Kibble activity",
+    "ledger_empty": "No Kibble activity yet",
+    "ledger_failed": "Could not load Kibble activity. Please try again later.",
+    "ledger_total": "20 per page · {{total}} total",
+    "activity_types": {
+      "reward": "Reward Kibble",
+      "subscription": "Subscription Kibble",
+      "topup": "Top-up",
+      "pdf": "PDF parsing",
+      "image": "Image parsing",
+      "audio": "Audio parsing",
+      "video": "Video parsing",
+      "web": "Web parsing",
+      "agent": "Agent 2.1",
+      "refund": "Kibble refund",
+      "legacy_usage": "Legacy task charge",
+      "legacy_refund": "Legacy task refund"
+    },
+    "view_usage": "View usage",
+    "ledger_detail": "Details",
+    "ledger_change": "Kibble change",
+    "my_activity": "My activity",
+    "all_activity": "All activity",
+    "activity_thinking": "({{level}})"
   },
   "resource_conditions": {
     "conditions": "Match conditions",
@@ -1689,7 +1716,7 @@
       "skip": "Skip",
       "submit": "Bind and claim",
       "description": "Bind your phone to verify your identity and receive invite rewards.",
-      "bubble": "Link phone, get 120 min free parsing."
+      "bubble": "Link your phone to receive 600 Kibble."
     },
     "code": {
       "entry": "Have an invite code? Enter >",
@@ -1747,6 +1774,17 @@
       "emptyTitle": "Nothing here yet",
       "task": "Task",
       "rewardColumn": "Reward received"
+    },
+    "creditsHelp": {
+      "title": "What is Kibble?",
+      "description": "Kibble is your allowance for OmniBox AI features, including AI chat and document, image, audio, and video parsing.",
+      "note": "These examples each assume use of a single feature and cannot be combined.",
+      "rewards": "Reward Kibble never expires and does not count toward your subscription allowance. Subscription Kibble is used before reward Kibble.",
+      "details": "Kibble and usage history: Settings → Usage",
+      "confirm": "Got it",
+      "examples600": "What can 600 Kibble do?\nParse 120 minutes of audio or video\nOr parse 1,500 PDF pages\nOr generate approximately 5.37 million Chinese characters of AI output",
+      "examples1000": "What can 1,000 Kibble do?\nParse 200 minutes of audio or video\nOr parse 2,500 PDF pages\nOr generate approximately 8.96 million Chinese characters of AI output",
+      "label": "View benefits for {{amount}} Kibble"
     }
   },
   "desktop_auth": {
@@ -1851,5 +1889,63 @@
     "too_frequent": "Too many attempts. Please try again later.",
     "failed": "Could not open the page. Go back to the OmniBox official account and tap the link again.",
     "go_pricing": "Go to pricing"
+  },
+  "billing_rules": {
+    "title": "Kibble billing rules",
+    "sections": [
+      {
+        "title": "Using Kibble",
+        "body": "Web, audio/video, PDF/image parsing and Agent 2.1 share the current namespace’s Kibble."
+      },
+      {
+        "title": "Parsing rates",
+        "body": "Web: 5 Kibble per successful extraction of article content. Saving a link, clipping selected text, adding a title, or viewing existing content is free.\n\nAudio/video: 5 Kibble per minute of original duration, at 1/12 Kibble per second. Fractional seconds round up. Audio in a video is not charged twice.\n\nPDF/images: 0.4 Kibble per page. Each image counts as one page; PDFs are charged for pages submitted for parsing."
+      },
+      {
+        "title": "Agent 2.1",
+        "body": "Kibble per 1 million tokens"
+      },
+      {
+        "title": "When Kibble is charged",
+        "body": "Parsing is charged only after content is delivered. Failed, canceled and timed-out tasks are free. Batch items settle separately. Retries of the same task are charged once; requesting a new parse with a new result is charged again. Agent settlement timing is unchanged."
+      },
+      {
+        "title": "Kibble validity",
+        "body": "Basic receives 100 Kibble per month; Pro receives 4,300. Monthly, quarterly and annual plans grant Kibble for 1, 3 and 12 months respectively. Each monthly grant expires at the end of its period. Top-ups arrive once payment is confirmed and never expire."
+      },
+      {
+        "title": "Deduction order",
+        "body": "Deduction priority: monthly subscription Kibble is used before top-up Kibble.\nParsing that finishes in a later period is settled against the grant reserved when the task began."
+      },
+      {
+        "title": "Display and refunds",
+        "body": "Each transaction is calculated from total usage and rounded up to 0.000001 Kibble. Values display two decimals; nonzero amounts below 0.01 display as < 0.01. Successful refunds revoke the order’s unused Kibble and future grants. Used Kibble follows the purchase channel’s refund rules."
+      },
+      {
+        "title": "Migrating previous allowances",
+        "body": "Existing Agent Kibble transfers 1:1. Remaining audio/video seconds ÷ 12 and PDF/image pages ÷ 2.5 are each rounded up to 0.000001 Kibble. Original expiry dates are preserved. Storage is unchanged. Historical tasks and orders retain their original rules."
+      }
+    ],
+    "columns": ["Thinking level", "Input", "Cached input", "Output"],
+    "levels": ["Light / Medium", "High / Maximum"],
+    "subtitle": "How Kibble is spent, issued and expires",
+    "acknowledge": "Got it",
+    "parsing": [
+      {
+        "name": "Web parsing",
+        "rate": "5 Kibble / page",
+        "description": "Charged only after text is parsed successfully. Saving links, selected text, adding titles or viewing existing text is free."
+      },
+      {
+        "name": "Audio / video",
+        "rate": "5 Kibble / minute",
+        "description": "Billed by original duration at 1/12 Kibble per second, rounded up to a whole second. Audio within a video is not charged twice."
+      },
+      {
+        "name": "PDF / images",
+        "rate": "0.4 Kibble / page",
+        "description": "Each image counts as one page. PDFs are billed by the pages submitted for parsing."
+      }
+    ]
   }
 }

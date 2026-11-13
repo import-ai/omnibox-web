@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDragLayer } from 'react-dnd';
 
+import { BehaviorExposure } from '@/components/BehaviorExposure';
 import { ContextMenuContent } from '@/components/ContextMenuContent';
 import {
   ContextMenu,
@@ -8,6 +9,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/ContextMenu';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
 import { useNodeActions } from '@/page/sidebar/hooks/useNodeActions';
@@ -78,6 +80,10 @@ export default function NodeContextMenu({
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent
+          onPointerDownOutside={onOverlayClose(
+            'sidebar_overlay_close',
+            'resource_menu'
+          )}
           className={cn(menu.disabledTip && 'cursor-not-allowed')}
         >
           <DisabledMenuTooltip side="top" content={menu.disabledTip}>
@@ -89,22 +95,39 @@ export default function NodeContextMenu({
 
                 const Icon = item.icon;
                 const menuItem = (
-                  <ContextMenuItem
+                  <BehaviorExposure
                     key={item.key}
-                    variant={item.destructive ? 'destructive' : 'default'}
-                    className={cn(
-                      menuItemClass,
-                      item.disabled &&
-                        'cursor-not-allowed text-muted-foreground opacity-50'
-                    )}
-                    onClick={item.disabled ? undefined : item.onClick}
-                    onSelect={item.onSelect}
-                    disabled={item.disabled && !item.disabledTip}
-                    aria-disabled={item.disabled}
+                    target="resource_creation_entry"
+                    active={[
+                      'create_file',
+                      'create_folder',
+                      'create_rss_folder',
+                      'upload_file',
+                      'add_link',
+                    ].includes(item.key)}
+                    props={{
+                      entry: item.key,
+                      space_type: node.spaceType,
+                      location: 'child_context_menu',
+                    }}
                   >
-                    <Icon className={menuIconClass} />
-                    {item.label}
-                  </ContextMenuItem>
+                    <ContextMenuItem
+                      key={item.key}
+                      variant={item.destructive ? 'destructive' : 'default'}
+                      className={cn(
+                        menuItemClass,
+                        item.disabled &&
+                          'cursor-not-allowed text-muted-foreground opacity-50'
+                      )}
+                      onClick={item.disabled ? undefined : item.onClick}
+                      onSelect={item.onSelect}
+                      disabled={item.disabled && !item.disabledTip}
+                      aria-disabled={item.disabled}
+                    >
+                      <Icon className={menuIconClass} />
+                      {item.label}
+                    </ContextMenuItem>
+                  </BehaviorExposure>
                 );
 
                 if (item.disabled && item.disabledTip) {

@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Spinner } from '@/components/ui/Spinner';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 
@@ -57,12 +58,14 @@ export function ResourceCommentsSheet({
         : 'open';
   const filterLabel = t('resource_comments.filter');
   const changeFilter = (value: string) => {
+    trackButtonClick('resource_comment_select', { filter: value });
     controller.setResolved(value === 'all' ? undefined : value === 'resolved');
   };
   const content = (
     <>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border/60 px-3">
         <IconButton
+          trackName="resource_comment_collapse"
           type="button"
           size="sm"
           tone="sidebar"
@@ -80,6 +83,7 @@ export function ResourceCommentsSheet({
             <TooltipTrigger asChild>
               <DropdownMenuTrigger asChild {...menuTriggerPress.triggerProps}>
                 <Button
+                  trackName="resource_comment_open"
                   type="button"
                   variant="ghost"
                   size="icon"
@@ -93,6 +97,10 @@ export function ResourceCommentsSheet({
             <TooltipContent>{filterLabel}</TooltipContent>
           </Tooltip>
           <DropdownMenuContent
+            onPointerDownOutside={onOverlayClose(
+              'resource_overlay_close',
+              'comment'
+            )}
             align="end"
             className="w-44"
             aria-label={filterLabel}

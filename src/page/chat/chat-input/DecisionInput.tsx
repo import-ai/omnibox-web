@@ -21,6 +21,7 @@ import {
 import { ScrollArea, ScrollBar } from '@/components/ui/ScrollArea';
 import { Spinner } from '@/components/ui/Spinner';
 import { processArgs } from '@/lib/toolArgs';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils.ts';
 import {
   ApprovalMode,
@@ -407,6 +408,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
 
           return (
             <Button
+              trackName="chat_decision_select"
               key={decisionType}
               variant="outline"
               size="sm"
@@ -435,6 +437,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
         <CardFooter className="flex flex-wrap gap-3 p-3 items-center justify-between">
           <div className="min-w-0 flex-1 flex items-center gap-2">
             <Button
+              trackName="chat_decision_navigate"
               variant="ghost"
               size="icon"
               className="size-7 shrink-0"
@@ -476,9 +479,17 @@ export default function DecisionInput(props: IDecisionInputProps) {
                         isCurrent ? 'w-5 h-2' : 'w-2 h-2',
                         dotColor
                       )}
-                      onClick={() => {
-                        if (!loading) {
-                          setActiveCardIndex(idx);
+                      onClick={event => {
+                        trackButtonClick('chat_decision_navigate');
+                        const handleClick = () => {
+                          if (!loading) {
+                            setActiveCardIndex(idx);
+                          }
+                        };
+                        if (typeof handleClick === 'function') {
+                          (handleClick as (value?: typeof event) => void)(
+                            event
+                          );
                         }
                       }}
                       disabled={loading}
@@ -491,6 +502,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
             </ScrollArea>
 
             <Button
+              trackName="chat_decision_navigate"
               variant="ghost"
               size="icon"
               className="size-8 shrink-0"
@@ -519,6 +531,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
             ) : (
               <>
                 <Button
+                  trackName="chat_decision_confirm"
                   variant="outline"
                   size="sm"
                   className="h-8 rounded-lg px-3 text-xs text-green-700 hover:text-green-700! dark:text-green-300 dark:hover:text-green-300!"
@@ -529,6 +542,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                   {t('chat.decision.approve_all')}
                 </Button>
                 <Button
+                  trackName="chat_decision_cancel"
                   variant="outline"
                   size="sm"
                   className="h-8 rounded-lg px-3 text-xs text-red-700 hover:text-red-700! dark:text-red-300 dark:hover:text-red-300!"
@@ -539,6 +553,7 @@ export default function DecisionInput(props: IDecisionInputProps) {
                   {t('chat.decision.reject_all')}
                 </Button>
                 <Button
+                  trackName="chat_decision_submit"
                   onClick={handleSubmit}
                   size="sm"
                   className="rounded-lg size-8"

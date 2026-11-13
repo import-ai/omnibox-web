@@ -453,6 +453,7 @@ export default function SharedChatConversationPage() {
             imageUploadDisabled
             imageUploadDisabledReason={t('chat.image.share_unsupported')}
             key={conversation.id}
+            composerSurface="conversation"
             messages={messages}
             navigatePrefix={`/s/${shareId}`}
             initialApprovalMode={initialApprovalMode}

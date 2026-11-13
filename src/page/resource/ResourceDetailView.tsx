@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/Separator';
 import { SidebarInset, useSidebar } from '@/components/ui/Sidebar';
 import type { IUseResource } from '@/hooks/userResource';
 import useWide from '@/hooks/useWide';
+import { useBehaviorSurface } from '@/lib/behaviorTracking';
 import { cn } from '@/lib/utils';
 import {
   getCopilotWorkspace,
@@ -68,6 +69,7 @@ function ResourceDetailContent({
   } = resourceProps;
   const resourceMatchesTarget = resource?.id === resourceId;
   const currentResource = resourceMatchesTarget ? resource : null;
+
   const revisionId = new URLSearchParams(window.location.search).get(
     'revision'
   );
@@ -144,8 +146,36 @@ function ResourceDetailContent({
   const copilotOpen = copilotWorkspace.open;
   const [copilotLayoutOpen, setCopilotLayoutOpen] = useState(copilotOpen);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  useBehaviorSurface({
+    scope: editPage ? 'editor' : 'resource',
+    target: 'resource_detail',
+    elementRef: scrollContainerRef,
+    active: !!currentResource && !loading && !forbidden && !notFound,
+    reading:
+      !editPage &&
+      !!currentResource &&
+      !['folder', 'rss_folder', 'smart_folder'].includes(
+        currentResource.resource_type
+      ),
+    props: {
+      resource_id: resourceId,
+      resource_type: currentResource?.resource_type,
+    },
+  });
   const commentsPanel = useResourceCommentsPanel();
   const commentsPanelOpen = commentsPanel?.panelOpen ?? false;
+  useBehaviorSurface({
+    scope: 'surface',
+    target: 'annotation_comments',
+    active:
+      commentsPanelOpen &&
+      !!currentResource &&
+      !loading &&
+      !forbidden &&
+      !notFound,
+    commentAction: 'annotation_comment',
+    props: { resource_id: resourceId },
+  });
   const closeCommentsPanel = commentsPanel?.setPanelOpen;
   const isFolderResource = isFolderLikeResourceType(
     currentResource?.resource_type
@@ -291,6 +321,8 @@ function ResourceDetailContent({
         confirmText={t('resource.history.restore_confirm')}
         cancelText={t('resource.history.restore_cancel')}
         loading={restoring}
+        cancelTrackName="resource_history_cancel"
+        confirmTrackName="resource_history_confirm"
         onOpenChange={setRestoreOpen}
         onConfirm={async () => {
           if (!selectedRevision) return;

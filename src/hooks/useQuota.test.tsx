@@ -136,4 +136,13 @@ describe('useQuota', () => {
     });
     expect(current).toEqual({ data: latestUsage, loading: false });
   });
+  it('retains loaded usage and performs no request when the window regains focus', async () => {
+    const data = usage(123);
+    (http.get as jest.Mock).mockResolvedValue(data);
+    await act(async () => root.render(<Probe namespaceId="namespace-a" />));
+    expect(current).toEqual({ data, loading: false });
+    await act(async () => window.dispatchEvent(new Event('focus')));
+    expect(current).toEqual({ data, loading: false });
+    expect(http.get).toHaveBeenCalledTimes(1);
+  });
 });

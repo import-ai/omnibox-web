@@ -29,6 +29,7 @@ export default function DeviceIdentity({
           <Copy
             content={device.id}
             tooltip={t('local_runtime.copy_device_id')}
+            trackName="local_runtime_device_copy"
           />
         </div>
       </div>

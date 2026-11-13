@@ -560,6 +560,7 @@ export function useResourceComments({
   });
 
   return {
+    resourceId: resource.id,
     mentionDisplayNames: mentionNames,
     activeThread,
     activeThreadId,

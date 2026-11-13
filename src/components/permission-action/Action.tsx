@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
 import { Permission } from '@/interface';
+import { onOverlayClose } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 export interface ActionProps {
@@ -22,6 +23,8 @@ export interface ActionProps {
     description?: string;
   }>;
   disabledValues?: Permission[];
+  outsideCloseTrackName?: string;
+  outsideCloseTarget?: string;
 }
 
 export default function Action(props: ActionProps) {
@@ -33,6 +36,8 @@ export default function Action(props: ActionProps) {
     afterAddon,
     value,
     onChange,
+    outsideCloseTrackName,
+    outsideCloseTarget,
   } = props;
   const { t } = useTranslation();
   const target = data.find(item => item.value === value);
@@ -54,6 +59,11 @@ export default function Action(props: ActionProps) {
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent
+        onPointerDownOutside={
+          outsideCloseTrackName && outsideCloseTarget
+            ? onOverlayClose(outsideCloseTrackName, outsideCloseTarget)
+            : undefined
+        }
         side="bottom"
         align="end"
         alignOffset={-10}

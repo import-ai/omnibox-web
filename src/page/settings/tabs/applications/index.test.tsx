@@ -23,17 +23,40 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({ namespace_id: mockNamespaceId }),
 }));
 
+jest.mock('@/components/omnibox/IconButton', () => ({
+  sidebarToolbarIconButtonClassName: '',
+}));
+
+jest.mock('@/lib/trackButtonClick', () => ({
+  trackButtonClick: jest.fn(),
+}));
+
 jest.mock('@/components/Button', () => ({
-  Button: ({ children, ...props }: React.ComponentProps<'button'>) => (
-    <button {...props}>{children}</button>
-  ),
+  Button: ({
+    children,
+    ...props
+  }: React.ComponentProps<'button'> & {
+    trackName?: string;
+    trackProps?: unknown;
+  }) => {
+    delete props.trackName;
+    delete props.trackProps;
+    return <button {...props}>{children}</button>;
+  },
 }));
 
 jest.mock('@/components/omnibox/SettingPageButton', () => ({
   SettingPageButton: ({
     children,
     ...props
-  }: React.ComponentProps<'button'>) => <button {...props}>{children}</button>,
+  }: React.ComponentProps<'button'> & {
+    trackName?: string;
+    trackProps?: unknown;
+  }) => {
+    delete props.trackName;
+    delete props.trackProps;
+    return <button {...props}>{children}</button>;
+  },
 }));
 
 jest.mock('@/components/tooltip', () => ({
@@ -551,5 +574,26 @@ describe('ApplicationsForm auto binding', () => {
       container.querySelector('[data-testid="qr-code-dialog"]')
     ).toBeNull();
     expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('opens the WeChat AI assistant help page from the relative docs link', async () => {
+    mockApplications([application()]);
+    const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+
+    await act(async () => root.render(<ApplicationsForm />));
+
+    const docsButton = container.querySelector<HTMLButtonElement>(
+      '[aria-label="footer.docs"]'
+    );
+    expect(docsButton).not.toBeNull();
+    expect(container.textContent).toContain('footer.docs');
+
+    await act(async () => docsButton?.click());
+
+    expect(openSpy).toHaveBeenCalledWith(
+      '/docs/zh-cn/applications/wechat-ai-assistant',
+      '_blank'
+    );
+    openSpy.mockRestore();
   });
 });

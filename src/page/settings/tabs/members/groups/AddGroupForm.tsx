@@ -100,6 +100,7 @@ export default function AddGroupForm(props: IProps) {
         />
         <div className="flex justify-center">
           <Button
+            trackName="settings_group_submit"
             type="submit"
             disabled={loading}
             loading={loading}

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/Command';
 import { Spinner } from '@/components/ui/Spinner';
 import type { Resource, ResourceMeta } from '@/interface';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import { SearchResultAnchor, SearchResultContent } from './SearchResultItem';
 import {
@@ -250,6 +251,7 @@ export function SearchResultList({
                     value={item.id}
                     className={searchResultItemClassName}
                     onSelect={() => {
+                      trackButtonClick('search_result_select');
                       if (shouldSkipNavigate()) {
                         return;
                       }
@@ -300,6 +302,7 @@ export function SearchResultList({
                 value={resourceId}
                 className={searchResultItemClassName}
                 onSelect={() => {
+                  trackButtonClick('search_result_select');
                   if (shouldSkipNavigate()) {
                     return;
                   }

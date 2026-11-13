@@ -26,7 +26,11 @@ export function SmartFolderTrashConfirmDialog(
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[520px] sm:max-w-[520px] [&>button]:hidden">
+      <DialogContent
+        outsideCloseTrackName="sidebar_overlay_close"
+        outsideCloseTarget="smart_folder"
+        className="max-w-[520px] sm:max-w-[520px] [&>button]:hidden"
+      >
         <DialogHeader>
           <DialogTitle className="pb-2">
             {t('smart_folder.trash.title', { count })}
@@ -37,6 +41,7 @@ export function SmartFolderTrashConfirmDialog(
         </DialogHeader>
         <DialogFooter>
           <Button
+            trackName="sidebar_folder_cancel"
             variant="outline"
             className="cancel-btn-outline"
             onClick={() => onOpenChange(false)}
@@ -44,6 +49,7 @@ export function SmartFolderTrashConfirmDialog(
             {t('cancel')}
           </Button>
           <Button
+            trackName="sidebar_folder_delete"
             variant="destructive"
             onClick={() => {
               onConfirm();

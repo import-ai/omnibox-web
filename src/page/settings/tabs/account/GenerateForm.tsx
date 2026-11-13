@@ -87,7 +87,12 @@ export default function GenerateForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={loading} loading={loading}>
+        <Button
+          trackName="settings_namespace_submit"
+          type="submit"
+          disabled={loading}
+          loading={loading}
+        >
           {t('namespace.submit')}
         </Button>
       </form>

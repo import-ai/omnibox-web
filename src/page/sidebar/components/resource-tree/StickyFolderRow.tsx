@@ -3,6 +3,7 @@ import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { useStickyFolder } from '@/page/sidebar/hooks/useStickyFolder';
 import { useSidebarStore } from '@/page/sidebar/store';
 
@@ -44,7 +45,13 @@ export default function StickyFolderRow({
         className="pointer-events-auto flex size-5 shrink-0 cursor-pointer items-center justify-center rounded text-muted-foreground hover:bg-sidebar-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
         aria-label={t('sidebar.collapse_folder', { name })}
         aria-expanded={true}
-        onClick={() => collapse(node.id)}
+        onClick={event => {
+          trackButtonClick('sidebar_folder_toggle');
+          const handleClick = () => collapse(node.id);
+          if (typeof handleClick === 'function') {
+            (handleClick as (value?: typeof event) => void)(event);
+          }
+        }}
       >
         <ChevronDown className="size-4" />
       </button>
@@ -54,7 +61,13 @@ export default function StickyFolderRow({
         className="pointer-events-auto min-w-0 flex-1 truncate rounded text-left focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
         aria-label={t('sidebar.locate_folder', { name })}
         title={name}
-        onClick={() => locate(node.id)}
+        onClick={event => {
+          trackButtonClick('sidebar_folder_navigate');
+          const handleClick = () => locate(node.id);
+          if (typeof handleClick === 'function') {
+            (handleClick as (value?: typeof event) => void)(event);
+          }
+        }}
       >
         {name}
       </button>

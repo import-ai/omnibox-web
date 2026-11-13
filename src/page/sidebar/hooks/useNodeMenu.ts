@@ -17,6 +17,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 import { getRssFolderQuotaTooltipKey } from '@/page/sidebar/rssFolderQuota';
 
@@ -57,6 +58,58 @@ export interface MenuSeparatorItem {
   separator: true;
 }
 
+const sidebarMenuTrackNames: Record<string, string> = {
+  create_file: 'sidebar_file_create',
+  create_folder: 'sidebar_folder_create',
+  create_rss_folder: 'sidebar_feed_create',
+  upload_file: 'sidebar_file_upload',
+  add_link: 'sidebar_link_open',
+  rename: 'sidebar_resource_edit',
+  edit: 'sidebar_resource_edit',
+  move_to: 'sidebar_move_open',
+  add_all_to_context: 'sidebar_chat_select',
+  add_it_to_context: 'sidebar_chat_select',
+  delete: 'sidebar_resource_delete',
+  locate_source_resource: 'sidebar_resource_navigate',
+  batch_create: 'sidebar_batch_create',
+  batch_move: 'sidebar_move_open',
+  batch_add_to_chat: 'sidebar_chat_select',
+  batch_delete: 'sidebar_batch_delete',
+};
+
+function trackSidebarMenuItems(
+  items: MenuItem[],
+  node: UseNodeActionsReturn['node']
+) {
+  return items.map(item => {
+    if (item.separator) return item;
+    const name = sidebarMenuTrackNames[item.key];
+    if (!name) return item;
+    const track = () =>
+      trackButtonClick(name, {
+        item: item.key,
+        space_type: node?.spaceType,
+        resource_type: node?.resourceType,
+        entry: 'resource_menu',
+      });
+    return {
+      ...item,
+      onClick: item.onClick
+        ? () => {
+            track();
+            item.onClick?.();
+          }
+        : item.onClick,
+      onSelect: item.onSelect
+        ? () => {
+            track();
+            item.onSelect?.();
+          }
+        : item.onSelect,
+    };
+  });
+}
+
 export function useNodeMenu(
   actions: UseNodeActionsReturn,
   onRename?: () => void,
@@ -83,6 +136,8 @@ export function useNodeMenu(
     disabledTip?: string;
     items: MenuItem[];
   }>(() => {
+    const trackItems = (items: MenuItem[]) =>
+      trackSidebarMenuItems(items, node);
     if (!node) {
       return {
         disabled: false,
@@ -105,7 +160,7 @@ export function useNodeMenu(
       return {
         disabled,
         disabledTip,
-        items: [
+        items: trackItems([
           {
             key: 'batch_create',
             icon: FolderPlus,
@@ -138,7 +193,7 @@ export function useNodeMenu(
             ...unsupported('delete'),
             onClick: batchActions?.onDelete,
           },
-        ],
+        ]),
       };
     }
 
@@ -146,14 +201,14 @@ export function useNodeMenu(
     if (node.readOnly) {
       return {
         disabled: false,
-        items: buildAddToChatItems(actions, t),
+        items: trackItems(buildAddToChatItems(actions, t)),
       };
     }
 
     if (isSmartFolderChildResource(node)) {
       return {
         disabled: false,
-        items: [
+        items: trackItems([
           {
             key: 'locate_source_resource',
             icon: Crosshair,
@@ -174,14 +229,14 @@ export function useNodeMenu(
           },
           { key: 'separator_1', separator: true },
           ...buildAddToChatItems(actions, t),
-        ],
+        ]),
       };
     }
 
     if (node.resourceType === 'smart_folder') {
       return {
         disabled: false,
-        items: [
+        items: trackItems([
           {
             key: 'rename',
             icon: SquarePen,
@@ -204,14 +259,14 @@ export function useNodeMenu(
             destructive: true,
             onClick: actions.handleDelete,
           },
-        ],
+        ]),
       };
     }
 
     if (node.resourceType === 'rss_folder') {
       return {
         disabled: false,
-        items: [
+        items: trackItems([
           {
             key: 'rename',
             icon: SquarePen,
@@ -240,7 +295,7 @@ export function useNodeMenu(
             destructive: true,
             onClick: actions.handleDelete,
           },
-        ],
+        ]),
       };
     }
 
@@ -253,7 +308,7 @@ export function useNodeMenu(
 
     return {
       disabled: false,
-      items: [
+      items: trackItems([
         {
           key: 'create_file',
           icon: FilePlus,
@@ -315,7 +370,7 @@ export function useNodeMenu(
           destructive: true,
           onClick: actions.handleDelete,
         },
-      ],
+      ]),
     };
   }, [
     actions,

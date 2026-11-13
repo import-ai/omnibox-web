@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 interface SmartFolderUnsavedDialogProps {
   open: boolean;
@@ -33,10 +34,20 @@ export function SmartFolderUnsavedDialog(props: SmartFolderUnsavedDialogProps) {
           </AlertDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="cancel-btn-outline">
+          <AlertDialogCancel
+            className="cancel-btn-outline"
+            onClick={() => trackButtonClick('sidebar_folder_cancel')}
+          >
             {t('cancel')}
           </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>{t('ok')}</AlertDialogAction>
+          <AlertDialogAction
+            onClick={() => {
+              trackButtonClick('sidebar_folder_confirm');
+              onConfirm();
+            }}
+          >
+            {t('ok')}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

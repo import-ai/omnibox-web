@@ -11,6 +11,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/Pagination';
 import { useIsMobile } from '@/hooks/useMobile';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 interface PaginationProps {
@@ -18,6 +19,7 @@ interface PaginationProps {
   current?: number;
   pageSize?: number;
   onChange?: (page: number, pageSize: number) => void;
+  trackName?: string;
 }
 
 export default function PaginationMain({
@@ -25,12 +27,14 @@ export default function PaginationMain({
   current = 1,
   pageSize = 10,
   onChange,
+  trackName,
 }: PaginationProps) {
   const isMobile = useIsMobile();
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(current);
   const totalPages = Math.ceil(total / pageSize);
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (page: number, direction: string) => {
+    if (trackName) trackButtonClick(trackName, { direction });
     setCurrentPage(page);
     onChange && onChange(page, pageSize);
   };
@@ -71,7 +75,9 @@ export default function PaginationMain({
         <PaginationItem>
           <PaginationPrevious
             text={t('pagination.prev')}
-            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+            onClick={() =>
+              currentPage > 1 && handlePageChange(currentPage - 1, 'prev')
+            }
             className={cn('text-black dark:text-white', {
               'pointer-events-none opacity-50': currentPage <= 1,
               'cursor-pointer': currentPage > 1,
@@ -93,7 +99,7 @@ export default function PaginationMain({
                 })}
                 onClick={e => {
                   e.preventDefault();
-                  handlePageChange(pageNumber as number);
+                  handlePageChange(pageNumber as number, 'page');
                 }}
                 isActive={currentPage === pageNumber}
               >
@@ -106,7 +112,8 @@ export default function PaginationMain({
           <PaginationNext
             text={t('pagination.next')}
             onClick={() =>
-              currentPage < totalPages && handlePageChange(currentPage + 1)
+              currentPage < totalPages &&
+              handlePageChange(currentPage + 1, 'next')
             }
             className={cn('text-black dark:text-white', {
               'pointer-events-none opacity-50': currentPage >= totalPages,

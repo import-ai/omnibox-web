@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/omnibox/Dialog';
 import useConfig from '@/hooks/useConfig';
+import { getUpgradeLink } from '@/lib/upgradeLink';
 import GenerateForm from '@/page/settings/tabs/account/GenerateForm';
 
 interface GenerateProps {
@@ -48,7 +49,9 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
           },
           action: (
             <a
-              href={`/${i18n.language === 'en-US' ? 'en' : 'zh-cn'}/pricing?tab=purchase_space`}
+              href={getUpgradeLink(i18n, undefined, 'namespace_create', {
+                tab: 'purchase_space',
+              })}
               target="_blank"
               rel="noopener noreferrer"
               className="toast-button"
@@ -57,6 +60,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
               }}
             >
               <Button
+                trackName="sidebar_quota_upgrade"
                 variant="default"
                 className="h-[30px] w-auto shrink-0 px-3 text-xs font-medium"
               >
@@ -75,6 +79,7 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <Button
+        trackName="sidebar_namespace_create"
         size="sm"
         variant="ghost"
         className="h-8 w-full justify-start gap-1 px-2 text-muted-foreground"
@@ -83,7 +88,11 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
         <Plus className="size-4" />
         {t('namespace.add')}
       </Button>
-      <DialogContent className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6">
+      <DialogContent
+        outsideCloseTrackName="sidebar_overlay_close"
+        outsideCloseTarget="namespace"
+        className="w-[90%] max-w-7xl sm:max-w-7xl p-4 sm:w-1/2 sm:p-6"
+      >
         <DialogHeader>
           <DialogTitle>{t('namespace.add')}</DialogTitle>
           <VisuallyHidden.Root>

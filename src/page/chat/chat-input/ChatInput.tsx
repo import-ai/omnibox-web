@@ -9,6 +9,8 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import { trackInputActivation } from '@/lib/behaviorTracking';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { composerTextLayoutClassName } from './composerLayout';
@@ -36,6 +38,7 @@ interface IProps {
   onSend: () => void;
   images: ComposerChatImage[];
   onImageRemove: (imageId: string) => void;
+  surface?: 'home' | 'conversation';
 }
 
 const ChatInput = forwardRef<ChatInputHandle, IProps>(
@@ -48,6 +51,11 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
         t(`chat.tools.${tool}`),
       [t]
     );
+    const surface = props.surface ?? 'home';
+    const composerTrackName = (action: 'select' | 'edit') =>
+      surface === 'home'
+        ? `chat_home_composer_${action}`
+        : `chat_conversation_composer_${action}`;
     const composer = useChatInputComposer({
       ...props,
       getToolLabel,
@@ -66,8 +74,16 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
                   type="button"
                   aria-label={t('chat.image.preview')}
                   onClick={event => {
-                    invokerRef.current = event.currentTarget;
-                    setPreview(image);
+                    trackButtonClick('chat_image_open');
+                    const handleClick = (
+                      event: React.MouseEvent<HTMLButtonElement>
+                    ) => {
+                      invokerRef.current = event.currentTarget;
+                      setPreview(image);
+                    };
+                    if (typeof handleClick === 'function') {
+                      (handleClick as (value?: typeof event) => void)(event);
+                    }
                   }}
                 >
                   <img
@@ -81,11 +97,17 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
                   aria-label={t('chat.image.remove')}
                   className="absolute -right-1 -top-1 z-10 rounded-full bg-foreground p-0.5 text-background"
                   disabled={props.readOnly}
-                  onClick={() => {
-                    if (preview?.id === image.id) {
-                      setPreview(null);
+                  onClick={event => {
+                    trackButtonClick('chat_image_remove');
+                    const handleClick = () => {
+                      if (preview?.id === image.id) {
+                        setPreview(null);
+                      }
+                      props.onImageRemove(image.id);
+                    };
+                    if (typeof handleClick === 'function') {
+                      (handleClick as (value?: typeof event) => void)(event);
                     }
-                    props.onImageRemove(image.id);
                   }}
                 >
                   <X className="size-3" />
@@ -121,9 +143,22 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
               composerTextLayoutClassName,
               'caret-foreground placeholder:text-muted-foreground selection:bg-[#117bfa]/20 selection:text-transparent'
             )}
+            onFocus={() => {
+              if (!props.readOnly) trackInputActivation('ai_composer');
+            }}
             onBlur={composer.rememberSelection}
-            onChange={composer.handleTextChange}
-            onClick={composer.rememberSelection}
+            onChange={event => {
+              if (!props.readOnly) {
+                trackButtonClick(composerTrackName('edit'));
+              }
+              composer.handleTextChange(event);
+            }}
+            onClick={() => {
+              if (!props.readOnly) {
+                trackButtonClick(composerTrackName('select'));
+              }
+              composer.rememberSelection();
+            }}
             onCompositionEnd={() => composer.setIsComposing(false)}
             onCompositionStart={() => composer.setIsComposing(true)}
             onKeyDown={props.readOnly ? undefined : composer.handleKeyDown}

@@ -32,6 +32,7 @@ export function LanguageToggle() {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            trackName="sidebar_language_toggle"
             size="icon"
             variant="ghost"
             className={cn(sidebarToolbarIconButtonClassName, 'size-7')}

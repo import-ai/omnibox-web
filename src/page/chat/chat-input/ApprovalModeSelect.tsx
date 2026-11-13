@@ -8,18 +8,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/DropdownMenu';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 
 import { composerControlHoverClass } from './composerControlClass';
 import type { ApprovalMode } from './types';
 
 interface ApprovalModeSelectProps {
+  surface?: 'home' | 'conversation';
   approvalMode: ApprovalMode;
   setApprovalMode: (mode: ApprovalMode) => void;
 }
 
 export default function ApprovalModeSelect({
   approvalMode,
+  surface,
   setApprovalMode,
 }: ApprovalModeSelectProps) {
   const { t } = useTranslation();
@@ -34,7 +37,11 @@ export default function ApprovalModeSelect({
   const modeLabel = t(`chat.decision.mode.${approvalMode}`);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      onOpenChange={open => {
+        if (open) trackButtonClick('chat_approval_open', { surface });
+      }}
+    >
       <Tooltip delayDuration={0}>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
@@ -60,6 +67,7 @@ export default function ApprovalModeSelect({
         <TooltipContent side="top">{modeLabel}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent
+        onPointerDownOutside={onOverlayClose('chat_overlay_close', 'approval')}
         side="top"
         align="start"
         className="w-72 rounded-xl p-1.5"
@@ -68,7 +76,13 @@ export default function ApprovalModeSelect({
           <DropdownMenuItem
             key={value}
             className="grid cursor-pointer grid-cols-[24px_minmax(0,1fr)_18px] items-center gap-2 rounded-md px-2 py-2"
-            onClick={() => setApprovalMode(value)}
+            onClick={() => {
+              trackButtonClick('chat_approval_select', {
+                surface,
+                mode: value,
+              });
+              setApprovalMode(value);
+            }}
           >
             <Icon className="size-4 text-muted-foreground" />
             <span className="min-w-0">

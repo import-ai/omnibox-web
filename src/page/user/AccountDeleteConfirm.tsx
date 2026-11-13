@@ -93,7 +93,10 @@ export default function AccountDeleteConfirm() {
           <p className="text-balance text-sm text-muted-foreground">
             {errorMessage}
           </p>
-          <Button onClick={() => navigate('/user/login')}>
+          <Button
+            trackName="user_login_navigate"
+            onClick={() => navigate('/user/login')}
+          >
             {t('setting.delete_account.back_to_login')}
           </Button>
         </div>

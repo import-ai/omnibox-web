@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/DropdownMenu';
 import { SidebarMenuAction } from '@/components/ui/Sidebar';
 import { useIsTouch } from '@/hooks/useIsTouch';
+import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import type { UseNodeActionsReturn } from '@/page/share/sidebar/hooks/useNodeActions';
 import { useNodeMenu } from '@/page/share/sidebar/hooks/useNodeMenu';
@@ -42,12 +43,19 @@ export function NodeActionsContent({ actions }: NodeActionsContentProps) {
               : 'pointer-events-none opacity-0 group-hover/sidebar-item:pointer-events-auto group-hover/sidebar-item:opacity-100'
           )}
         >
-          <button type="button">
+          <button
+            onClick={() => trackButtonClick('share_menu_open')}
+            type="button"
+          >
             <MoreHorizontal />
           </button>
         </SidebarMenuAction>
       </DropdownMenuTrigger>
       <DropdownMenuContent
+        onPointerDownOutside={onOverlayClose(
+          'share_overlay_close',
+          'resource_menu'
+        )}
         side="right"
         align="start"
         sideOffset={10}

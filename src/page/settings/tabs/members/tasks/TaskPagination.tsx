@@ -9,6 +9,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/Pagination';
+import { trackButtonClick } from '@/lib/trackButtonClick';
 
 export interface TaskPaginationProps {
   currentPage: number;
@@ -63,8 +64,12 @@ export function TaskPagination({
     page: number
   ) => {
     event.preventDefault();
-    if (page >= 1 && page <= totalPages && page !== currentPage)
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      trackButtonClick('settings_task_navigate', {
+        direction: page < currentPage ? 'prev' : 'next',
+      });
       onPageChange(page);
+    }
   };
 
   return (
