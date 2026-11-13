@@ -366,6 +366,53 @@
   background-color: #6b6524 !important;
 }
 
+/* The editor keeps an image in its loading state until the browser reports a
+   terminal load event. Render an explicit fallback so a denied attachment does
+   not leave the reader with an indefinite spinner. */
+.resource-readonly-editor
+  .tiptap-image[data-image-load-failed='true']
+  .tiptap-image-container {
+  width: min(100%, 28rem) !important;
+}
+
+.resource-readonly-editor
+  .tiptap-image[data-image-load-failed='true']
+  .tiptap-image-content {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 9rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--muted) 55%, transparent);
+}
+
+.resource-readonly-editor
+  .tiptap-image[data-image-load-failed='true']
+  .tiptap-image-content::after {
+  content: attr(data-image-error-label);
+  padding: 1rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.resource-readonly-editor
+  .tiptap-image[data-image-load-failed='true']
+  .tiptap-image-content
+  > div[aria-hidden='true'] {
+  display: none !important;
+}
+
+.resource-readonly-editor
+  .tiptap-image[data-image-load-failed='true']
+  .tiptap-image-img {
+  visibility: hidden;
+}
+
 /* Mention chips look interactive; keep a pointer even inside contenteditable. */
 .resource-readonly-editor span[data-type='mention'],
 .resource-editable-editor span[data-type='mention'] {

@@ -33,6 +33,7 @@ interface IProps {
   navigationPrefix?: string;
   rssFeedNames?: boolean;
   commentsNamespaceId?: string;
+  shareId?: string;
 }
 
 interface PageContentProps extends IProps {
@@ -55,6 +56,7 @@ function PageContent(props: PageContentProps) {
     apiPrefix,
     navigationPrefix,
     rssFeedNames,
+    shareId,
   } = props;
   const { t } = useTranslation();
   const folderLike = isFolderLikeResourceType(resource.resource_type);
@@ -153,6 +155,7 @@ function PageContent(props: PageContentProps) {
           comments={comments}
           namespaceId={props.commentsNamespaceId ?? namespaceId}
           resource={resource}
+          shareId={shareId}
           showToc={showToc}
           scrollToLine={scrollToLine}
           wide={wide}
