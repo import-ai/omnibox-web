@@ -96,7 +96,11 @@ describe('RemainQuota', () => {
   });
 
   it('shows loading without rendering a placeholder plan', async () => {
-    mockUseQuota.mockReturnValue({ data: null, loading: true });
+    mockUseQuota.mockReturnValue({
+      data: null,
+      loading: true,
+      refresh: jest.fn(),
+    });
 
     await act(async () =>
       root.render(<RemainQuota namespaceId="namespace-a" />)
@@ -108,7 +112,11 @@ describe('RemainQuota', () => {
   });
 
   it('renders no quota details when loading fails', async () => {
-    mockUseQuota.mockReturnValue({ data: null, loading: false });
+    mockUseQuota.mockReturnValue({
+      data: null,
+      loading: false,
+      refresh: jest.fn(),
+    });
 
     await act(async () =>
       root.render(<RemainQuota namespaceId="namespace-a" />)
@@ -129,6 +137,7 @@ describe('RemainQuota', () => {
         },
       }),
       loading: false,
+      refresh: jest.fn(),
     });
 
     await act(async () =>
@@ -166,6 +175,7 @@ describe('RemainQuota', () => {
         show_members_usage: true,
       }),
       loading: false,
+      refresh: jest.fn(),
     });
 
     await act(async () =>

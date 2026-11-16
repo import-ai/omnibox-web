@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
 
@@ -52,45 +52,112 @@ interface QuotaState {
   loading: boolean;
 }
 
+interface ActiveRequest {
+  namespaceId: string;
+  source: axios.CancelTokenSource;
+  promise: Promise<void>;
+}
+
 export default function useQuota(namespaceId: string) {
-  const [state, setState] = useState<QuotaState>({
+  const [state, setState] = useState<QuotaState>(() => ({
     namespaceId,
     data: null,
     loading: true,
-  });
+  }));
+  const activeRequest = useRef<ActiveRequest | null>(null);
+  const namespaceRef = useRef(namespaceId);
+  const mountedRef = useRef(true);
+  namespaceRef.current = namespaceId;
+
+  const fetchQuota = useCallback(
+    (background = false, force = false) => {
+      const targetNamespace = namespaceId;
+      const inFlight = activeRequest.current;
+      if (!force && inFlight?.namespaceId === targetNamespace) {
+        return inFlight.promise;
+      }
+
+      inFlight?.source.cancel();
+      const source = axios.CancelToken.source();
+      if (!background) {
+        setState(current =>
+          current.namespaceId === targetNamespace
+            ? { ...current, loading: current.data === null }
+            : { namespaceId: targetNamespace, data: null, loading: true }
+        );
+      }
+
+      const promise = http
+        .get(`/namespaces/${targetNamespace}/usages`, {
+          cancelToken: source.token,
+        })
+        .then((data: UsageData) => {
+          if (
+            mountedRef.current &&
+            namespaceRef.current === targetNamespace &&
+            activeRequest.current?.source === source
+          ) {
+            setState({ namespaceId: targetNamespace, data, loading: false });
+          }
+        })
+        .catch(error => {
+          if (
+            !axios.isCancel(error) &&
+            mountedRef.current &&
+            namespaceRef.current === targetNamespace &&
+            activeRequest.current?.source === source
+          ) {
+            setState(current =>
+              current.namespaceId === targetNamespace
+                ? { ...current, loading: false }
+                : current
+            );
+          }
+        })
+        .finally(() => {
+          if (activeRequest.current?.source === source) {
+            activeRequest.current = null;
+          }
+        });
+
+      activeRequest.current = {
+        namespaceId: targetNamespace,
+        source,
+        promise,
+      };
+      return promise;
+    },
+    [namespaceId]
+  );
+  const refresh = useCallback(
+    (options?: { force?: boolean }) => fetchQuota(true, options?.force),
+    [fetchQuota]
+  );
 
   useEffect(() => {
-    const source = axios.CancelToken.source();
-    let active = true;
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
+  useEffect(() => {
     setState({ namespaceId, data: null, loading: true });
-    http
-      .get(`/namespaces/${namespaceId}/usages`, {
-        cancelToken: source.token,
-      })
-      .then((data: UsageData) => {
-        if (active) {
-          setState({ namespaceId, data, loading: false });
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setState({ namespaceId, data: null, loading: false });
-        }
-      });
+    void fetchQuota();
 
     return () => {
-      active = false;
-      source.cancel();
+      activeRequest.current?.source.cancel();
+      activeRequest.current = null;
     };
-  }, [namespaceId]);
+  }, [fetchQuota, namespaceId]);
 
   if (state.namespaceId !== namespaceId) {
-    return { data: null, loading: true };
+    return { data: null, loading: true, refresh };
   }
 
   return {
     data: state.data,
     loading: state.loading,
+    refresh,
   };
 }
