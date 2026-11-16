@@ -2,6 +2,8 @@ import { fromMarkdown } from 'mdast-util-from-markdown';
 import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { gfm } from 'micromark-extension-gfm';
 
+import { normalizeCopyBodyEditorSyntax } from './copyBodyEditorSyntax';
+
 type MarkdownNode = {
   type: string;
   value?: string;
@@ -24,7 +26,9 @@ const parse = (source: string): MarkdownNode =>
 
 /** Serialize the body, not its Markdown or rich-text presentation. */
 export function copyBodyPlainText(markdown: string): string {
-  const source = removeStyleWrappers(markdown);
+  const source = removeStyleWrappers(
+    normalizeCopyBodyEditorSyntax(markdown, parse(markdown))
+  );
   const tree = parse(source);
   const definitions = new Map<string, string>();
   const visit = (node: MarkdownNode) => {
@@ -44,15 +48,27 @@ export function copyBodyPlainText(markdown: string): string {
     for (let index = 0; index < nodes.length; index += 1) {
       const node = nodes[index];
       const opening =
-        node.type === 'html' && /^<(code|pre|a)\b/i.exec(node.value ?? '');
+        node.type === 'html' &&
+        /^<(code|pre|a|script|style|template|noscript)\b/i.exec(
+          node.value ?? ''
+        );
       if (opening) {
         const tag = opening[1].toLowerCase();
-        const end = nodes.findIndex(
-          (candidate, offset) =>
-            offset > index &&
-            candidate.type === 'html' &&
-            new RegExp(`^<\\/${tag}\\s*>`, 'i').test(candidate.value ?? '')
+        let depth = 1;
+        const end = nodes.findIndex((candidate, offset) => {
+          if (offset <= index || candidate.type !== 'html') return false;
+          const value = candidate.value ?? '';
+          if (tag === 'template' && /^<template\b/i.test(value)) depth += 1;
+          if (new RegExp(`^<\\/${tag}\\s*>`, 'i').test(value)) depth -= 1;
+          return depth === 0;
+        });
+        const hidden = ['script', 'style', 'template', 'noscript'].includes(
+          tag
         );
+        if (hidden) {
+          index = end === -1 ? nodes.length : end;
+          continue;
+        }
         if (end !== -1) {
           if (tag === 'a') {
             const element = new DOMParser().parseFromString(
@@ -114,6 +130,38 @@ export function copyBodyPlainText(markdown: string): string {
       children: Array.from(doc.body.childNodes).map(htmlNode),
     });
   };
+  const htmlTable = (table: HTMLTableElement): string => {
+    const rows = Array.from(table.rows);
+    const grid: string[][] = rows.map(() => []);
+    rows.forEach((row, rowIndex) => {
+      let column = 0;
+      for (const cell of Array.from(row.cells)) {
+        while (grid[rowIndex][column] !== undefined) column += 1;
+        const groupEnd = rows.findIndex(
+          (candidate, index) =>
+            index > rowIndex && candidate.parentElement !== row.parentElement
+        );
+        const remaining = (groupEnd === -1 ? rows.length : groupEnd) - rowIndex;
+        const rowSpan = Math.min(cell.rowSpan || remaining, remaining);
+        for (let y = 0; y < rowSpan; y += 1) {
+          for (let x = 0; x < cell.colSpan; x += 1) {
+            grid[rowIndex + y][column + x] = '';
+          }
+        }
+        grid[rowIndex][column] = render({
+          type: 'tableCell',
+          children: Array.from(cell.childNodes).map(htmlNode),
+        });
+        column += cell.colSpan;
+      }
+    });
+    const width = Math.max(0, ...grid.map(row => row.length));
+    return grid
+      .map(row =>
+        Array.from({ length: width }, (_, i) => row[i] ?? '').join('\t')
+      )
+      .join('\n');
+  };
   const htmlNode = (node: Node): MarkdownNode => {
     if (node.nodeType === 3)
       return { type: 'text', value: node.nodeValue ?? '' };
@@ -134,6 +182,8 @@ export function copyBodyPlainText(markdown: string): string {
         alt: el.getAttribute('alt') ?? '',
         url: el.getAttribute('src') ?? '',
       };
+    if (tag === 'table')
+      return { type: 'tableText', value: htmlTable(el as HTMLTableElement) };
     const children = Array.from(el.childNodes)
       .filter(
         child =>
@@ -221,6 +271,7 @@ export function copyBodyPlainText(markdown: string): string {
       case 'text':
       case 'inlineCode':
       case 'code':
+      case 'tableText':
         return node.value ?? '';
       case 'break':
         return '\n';

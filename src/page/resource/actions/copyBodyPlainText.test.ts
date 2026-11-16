@@ -124,6 +124,95 @@ describe('copyBodyPlainText', () => {
       '图片描述（https://example.com/a.png）',
     ],
     ['正文\n\n---\n\n结束', '正文\n\n结束'],
+    [
+      ':::block-style {textAlign="center" indent="2"}\n\n**正文**\n\n:::',
+      '正文',
+    ],
+    [':::block-style\n正文\n:::', '正文'],
+    [
+      ':::block-style {backgroundColor="yellow"}\n\n第一段\n\n:::block-style {textAlign="right"}\n\n第二段\n\n:::\n\n:::',
+      '第一段\n\n第二段',
+    ],
+    [':::block-style {indent="2"}\n\n- 一\n- 二\n\n:::', '- 一\n- 二'],
+    ['E = mc^2^ and ^**重点**^', 'E = mc2 and 重点'],
+    ['H~2~O 与 ~~删除线~~', 'H2O 与 删除线'],
+    ['^[@ id="u1" label="Alice"]^', '@Alice'],
+    ['[@ id="u1" label="==Alice== &copy;"]', '@==Alice== &copy;'],
+    ['`H~2~O` 和 \\~保留\\~', 'H~2~O 和 ~保留~'],
+    ['hey [@ id="u1" label="Alice"] please review', 'hey @Alice please review'],
+    ["[@ label='张三' id='u1']", '@张三'],
+    ['[@ id="u1"]', '@u1'],
+    ['[@ id="u1" label="**Alice**"]', '@**Alice**'],
+    [
+      '\\^保留\\^ 和 \\[@ id="u1" label="Alice"]',
+      '^保留^ 和 [@ id="u1" label="Alice"]',
+    ],
+    [
+      '&#94;保留&#94; 和 &#91;@ id="u1" label="Alice"]',
+      '^保留^ 和 [@ id="u1" label="Alice"]',
+    ],
+    ['`^上标^ [@ id="u1" label="Alice"]`', '^上标^ [@ id="u1" label="Alice"]'],
+    [
+      '```md\n:::block-style {indent="2"}\n^上标^ [@ id="u1" label="Alice"]\n:::\n```',
+      ':::block-style {indent="2"}\n^上标^ [@ id="u1" label="Alice"]\n:::',
+    ],
+    [
+      ':::block-style {indent="2"}\n\n未闭合',
+      ':::block-style {indent="2"}\n\n未闭合',
+    ],
+    [
+      '[链接](https://example.com/^path^)',
+      '链接（https://example.com/^path^）',
+    ],
+    [
+      '<table><tr><th>A</th><th>B</th><th>C</th></tr><tr><td colspan="2">AB</td><td>C值</td></tr></table>',
+      'A\tB\tC\nAB\t\tC值',
+    ],
+    [
+      '<table><tr><th>A</th><th>B</th></tr><tr><td rowspan="2">A值</td><td>B1</td></tr><tr><td>B2</td></tr></table>',
+      'A\tB\nA值\tB1\n\tB2',
+    ],
+    [
+      '<table><tr><td rowspan="2" colspan="2">AB</td><td>C1</td></tr><tr><td>C2</td></tr></table>',
+      'AB\t\tC1\n\t\tC2',
+    ],
+    [
+      '<table><thead><tr><th>A</th><th>B</th></tr></thead><tbody><tr><td>A1</td><td rowspan="2">B值</td></tr><tr><td>A2</td></tr></tbody></table>',
+      'A\tB\nA1\tB值\nA2\t',
+    ],
+    ['正文<script>window.bad = 1</script>结尾', '正文结尾'],
+    [
+      '<code>^上标^ [@ id="u1" label="Alice"]</code>',
+      '^上标^ [@ id="u1" label="Alice"]',
+    ],
+    [
+      '前<code>^上标^ [@ id="u1" label="Alice"]</code>后',
+      '前^上标^ [@ id="u1" label="Alice"]后',
+    ],
+    ['https://example.com/^path^', 'https://example.com/^path^'],
+    [
+      ':::block-style {indent="2"}\n\n```md\n:::\n^代码^\n```\n\n正文\n\n:::',
+      ':::\n^代码^\n\n正文',
+    ],
+    [
+      '<table><tbody><tr><td rowspan="0">A</td><td>B1</td></tr><tr><td>B2</td></tr></tbody><tbody><tr><td>A3</td><td>B3</td></tr></tbody></table>',
+      'A\tB1\n\tB2\nA3\tB3',
+    ],
+    [
+      '<table><tr><td colspan="bogus">A</td><td rowspan="-1">B</td></tr><tr><td>C</td><td>D</td></tr></table>',
+      'A\tB\nC\tD',
+    ],
+    ['正文<template>一<template>二</template>三</template>结尾', '正文结尾'],
+    ['正文<script>未闭合', '正文'],
+    ['&lt;script&gt;原样&lt;/script&gt;', '<script>原样</script>'],
+    ['正文<style>b{color:red}</style>结尾', '正文结尾'],
+    ['正文<template><b>隐藏</b></template>结尾', '正文结尾'],
+    ['正文<noscript>隐藏</noscript>结尾', '正文结尾'],
+    ['正文<script>\nwindow.bad = 1\n</script>结尾', '正文结尾'],
+    [
+      '`<script>原样</script>` 与 `<style>原样</style>`',
+      '<script>原样</script> 与 <style>原样</style>',
+    ],
     ['[text-color color="red"][/text-color]', ''],
     ['', ''],
   ])('serializes %s', (source, expected) => {
