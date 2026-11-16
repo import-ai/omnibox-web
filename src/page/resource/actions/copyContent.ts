@@ -1,7 +1,7 @@
 import copy from 'copy-to-clipboard';
 import { toast } from 'sonner';
 
-import { copyBodyMarkdown } from './copyBodyMarkdown';
+import { copyBodyPlainText } from './copyBodyPlainText';
 
 type TranslateCopyContent = (
   key:
@@ -21,7 +21,7 @@ export async function copyContentToClipboard(
 
   let text: string;
   try {
-    text = copyBodyMarkdown(markdown);
+    text = copyBodyPlainText(markdown);
   } catch {
     toast.error(t('copy.fail'), { position: 'bottom-right' });
     return;

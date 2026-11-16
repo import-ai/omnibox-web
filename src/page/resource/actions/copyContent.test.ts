@@ -3,7 +3,7 @@
 import copy from 'copy-to-clipboard';
 import { toast } from 'sonner';
 
-import * as bodyMarkdown from './copyBodyMarkdown';
+import * as bodyMarkdown from './copyBodyPlainText';
 import { copyContentToClipboard } from './copyContent';
 
 jest.mock('copy-to-clipboard', () => ({
@@ -17,6 +17,16 @@ jest.mock('sonner', () => ({
   },
 }));
 // Keep the production parser; only bypass Jest's CommonJS module loader.
+jest.mock('mdast-util-gfm', () =>
+  process.getBuiltinModule('node:module').createRequire(__filename)(
+    'mdast-util-gfm'
+  )
+);
+jest.mock('micromark-extension-gfm', () =>
+  process.getBuiltinModule('node:module').createRequire(__filename)(
+    'micromark-extension-gfm'
+  )
+);
 jest.mock('mdast-util-from-markdown', () => {
   const { createRequire } = process.getBuiltinModule('node:module');
   return createRequire(__filename)('mdast-util-from-markdown');
@@ -46,7 +56,7 @@ describe('copyContentToClipboard', () => {
 
     await copyContentToClipboard('# RSS article', t);
 
-    expect(writeText).toHaveBeenCalledWith('# RSS article');
+    expect(writeText).toHaveBeenCalledWith('RSS article');
     expect(mockedCopy).not.toHaveBeenCalled();
     expect(mockedToast.success).toHaveBeenCalledWith(
       'actions.copy_content_success',
@@ -67,7 +77,7 @@ describe('copyContentToClipboard', () => {
     await copyContentToClipboard('# RSS article', t);
 
     expect(mockedCopy).toHaveBeenCalledWith(
-      '# RSS article',
+      'RSS article',
       expect.objectContaining({ format: 'text/plain' })
     );
     expect(mockedToast.success).toHaveBeenCalledWith(
@@ -90,7 +100,7 @@ describe('copyContentToClipboard', () => {
       t
     );
 
-    expect(writeText).toHaveBeenCalledWith('**微信 AI 对话助手**');
+    expect(writeText).toHaveBeenCalledWith('微信 AI 对话助手');
   });
 
   it('uses the same clean body in the fallback and its plain-text payload', async () => {
@@ -139,7 +149,7 @@ describe('copyContentToClipboard', () => {
       configurable: true,
       value: { writeText },
     });
-    jest.spyOn(bodyMarkdown, 'copyBodyMarkdown').mockImplementationOnce(() => {
+    jest.spyOn(bodyMarkdown, 'copyBodyPlainText').mockImplementationOnce(() => {
       throw new Error('parse failed');
     });
 
