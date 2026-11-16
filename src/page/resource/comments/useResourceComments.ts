@@ -12,6 +12,7 @@ import type {
 } from '@/interface';
 import { rewriteThreadMentionLabels } from '@/page/resource/mentionLabels';
 
+import { installActiveCommentHighlight } from './activeCommentHighlight';
 import {
   collectResourceCommentAnchors,
   type ResourceCommentAnchorSync,
@@ -258,6 +259,7 @@ export function useResourceComments({
 
   const registerEditor = useCallback((editor: ResourceCommentEditor) => {
     installImageCommentPlugin(editor);
+    installActiveCommentHighlight(editor);
     setRegisteredEditor(editor);
     restoreResourceCommentAnchors(editor, anchorThreadsRef.current);
   }, []);
@@ -552,6 +554,7 @@ export function useResourceComments({
 
   useCommentHighlight({
     root: panel?.rootElement,
+    editor: registeredEditor,
     activeThreadId:
       activeThread && isInlineCommentThread(activeThread)
         ? activeThreadId
