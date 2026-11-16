@@ -13,10 +13,13 @@ export function normalizeCopyBodyEditorSyntax(
   source: string,
   tree: SyntaxNode
 ): string {
-  const textRanges: SourceRange[] = [];
+  const textRanges: Array<SourceRange & { container: number }> = [];
+  let containerId = 0;
   const protectedRanges: SourceRange[] = [];
   const htmlCode: Array<{ tag: string; start: number }> = [];
-  const visit = (node: SyntaxNode) => {
+  const visit = (node: SyntaxNode, container = 0) => {
+    if (node.type === 'blockquote' || node.type === 'listItem')
+      container = ++containerId;
     const start = node.position?.start.offset;
     const end = node.position?.end.offset;
     if (start !== undefined && end !== undefined) {
@@ -41,9 +44,9 @@ export function normalizeCopyBodyEditorSyntax(
         protectedRanges.push({ start, end });
         return;
       }
-      if (node.type === 'text') textRanges.push({ start, end });
+      if (node.type === 'text') textRanges.push({ start, end, container });
     }
-    node.children?.forEach(visit);
+    node.children?.forEach(child => visit(child, container));
   };
   visit(tree);
   htmlCode.forEach(({ start }) =>
@@ -60,22 +63,59 @@ export function normalizeCopyBodyEditorSyntax(
     textRanges.some(range => start >= range.start && start < range.end) &&
     !protectedRanges.some(range => start < range.end && end > range.start);
   const edits: Edit[] = [];
-  const blocks: Array<{ range: SourceRange; styled: boolean }> = [];
-  for (const match of source.matchAll(/^:::([\w-]*)([^\r\n]*)$/gm)) {
+  const openingEnd = (end: number, prefix: string): number => {
+    if (!/(?:[-+*]|\d+[.)])[ \t]/.test(prefix)) return end;
+    const continuation = prefix.replace(/(?:[-+*]|\d+[.)])(?=[ \t])/g, marker =>
+      ' '.repeat(marker.length)
+    );
+    let cursor = end;
+    while (cursor < source.length) {
+      const next = source.indexOf('\n', cursor);
+      if (next === -1) break;
+      const start = next + 1;
+      const lineEnd = source.indexOf('\n', start);
+      const line = source
+        .slice(start, lineEnd === -1 ? source.length : lineEnd)
+        .replace(/\r$/, '');
+      if (/^(?:[ \t]*>[ \t]?)*[ \t]*$/.test(line)) {
+        if (lineEnd === -1) break;
+        cursor = lineEnd;
+        continue;
+      }
+      // Keep the list marker attached to its first body block after removing the wrapper.
+      return line.startsWith(continuation) ? start + continuation.length : end;
+    }
+    return end;
+  };
+  const blocks = new Map<
+    number,
+    Array<{ range: SourceRange; styled: boolean }>
+  >();
+  for (const match of source.matchAll(/:::([\w-]*)([^\r\n]*)$/gm)) {
     const start = match.index;
     const end = start + match[0].length;
     if (!eligible(start, end)) continue;
+    const prefix = source.slice(source.lastIndexOf('\n', start - 1) + 1, start);
+    if (!/^(?:(?:[ \t]*>[ \t]?)|[ \t]+|(?:[-+*]|\d+[.)])[ \t]+)*$/.test(prefix))
+      continue;
+    // Pair delimiters only inside their original Markdown container.
+    const container = textRanges.find(
+      range => start >= range.start && start < range.end
+    )!.container;
+    const stack = blocks.get(container) ?? [];
+    blocks.set(container, stack);
     if (match[1]) {
       // Track other block types so their closing delimiters are not stolen.
       if (match[2].trimEnd().endsWith(':::')) continue;
-      blocks.push({
-        range: { start, end },
-        styled:
-          match[1] === 'block-style' &&
-          /^(?:[ \t]+\{[^}]*\})?[ \t]*$/.test(match[2]),
+      const styled =
+        match[1] === 'block-style' &&
+        /^(?:[ \t]+\{[^}]*\})?[ \t]*$/.test(match[2]);
+      stack.push({
+        range: { start, end: styled ? openingEnd(end, prefix) : end },
+        styled,
       });
     } else if (!match[2].trim()) {
-      const opening = blocks.pop();
+      const opening = stack.pop();
       if (opening?.styled)
         edits.push({ ...opening.range, value: '' }, { start, end, value: '' });
     }
