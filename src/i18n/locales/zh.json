@@ -1337,6 +1337,7 @@
       "file_reader_image": "图片解析",
       "message_index": "消息索引",
       "upsert_message_index": "消息索引",
+      "update_memory": "更新记忆",
       "delete_conversation": "删除对话",
       "extract_tags": "生成标签",
       "generate_title": "生成标题",
