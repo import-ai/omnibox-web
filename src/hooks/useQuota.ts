@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type CancelTokenSource } from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
@@ -54,7 +54,7 @@ interface QuotaState {
 
 interface ActiveRequest {
   namespaceId: string;
-  source: axios.CancelTokenSource;
+  source: CancelTokenSource;
   promise: Promise<void>;
 }
 
