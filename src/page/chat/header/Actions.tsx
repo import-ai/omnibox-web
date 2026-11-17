@@ -34,7 +34,9 @@ import { cn } from '@/lib/utils';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import {
   clearDeletedConversationState,
+  getCachedConversationOrderIds,
   resolveAdjacentConversationId,
+  selectAvailableAdjacentConversationId,
 } from '@/page/chat/conversations/conversationNavigation';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
@@ -95,6 +97,9 @@ export default function Actions(props: IProps) {
     const nextConversation =
       nextConversationsRef.current.get(target.conversationId) ??
       Promise.resolve(null);
+    const navigationConversationIds = getCachedConversationOrderIds(
+      target.namespaceId
+    );
     nextConversationsRef.current.delete(target.conversationId);
     clearDeletedConversationState(target.namespaceId, target.conversationId);
     app.fire('chat:conversation:deleted', {
@@ -114,11 +119,17 @@ export default function Actions(props: IProps) {
       ) {
         return;
       }
+      const availableConversationId = selectAvailableAdjacentConversationId(
+        target.namespaceId,
+        target.conversationId,
+        navigationConversationIds,
+        nextConversationId
+      );
       resetCopilot(target.namespaceId);
       navigateToResource(
         navigate,
-        nextConversationId
-          ? `/${target.namespaceId}/chat/${nextConversationId}`
+        availableConversationId
+          ? `/${target.namespaceId}/chat/${availableConversationId}`
           : `/${target.namespaceId}/chat`
       );
     });

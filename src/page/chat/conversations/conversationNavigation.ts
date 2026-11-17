@@ -19,6 +19,7 @@ interface ConversationOrderSnapshot {
 
 const conversationOrders = new Map<string, ConversationOrderSnapshot>();
 const conversationOrderVersions = new Map<string, number>();
+const deletedConversations = new Map<string, Set<string>>();
 const FETCH_PAGE_SIZE = 100;
 const MAX_FETCH_PAGES = 20;
 
@@ -55,6 +56,49 @@ export function rememberConversationOrder(
   });
 }
 
+/** Check whether a conversation was successfully deleted in this user scope. */
+export function isConversationDeleted(
+  namespaceId: string,
+  conversationId: string
+) {
+  if (!namespaceId || !conversationId) return false;
+  return (
+    deletedConversations
+      .get(conversationOrderKey(namespaceId))
+      ?.has(conversationId) ?? false
+  );
+}
+
+export function getCachedConversationOrderIds(namespaceId: string) {
+  if (!namespaceId) return [];
+  return [
+    ...(conversationOrders.get(conversationOrderKey(namespaceId))?.ids ?? []),
+  ];
+}
+
+/**
+ * Prefer the resolved candidate when it is still alive, then fall back to the
+ * nearest surviving item in the supplied order.
+ */
+export function selectAvailableAdjacentConversationId(
+  namespaceId: string,
+  conversationId: string,
+  orderedIds: readonly string[],
+  candidateConversationId: string | null
+) {
+  if (
+    candidateConversationId &&
+    candidateConversationId !== conversationId &&
+    !isConversationDeleted(namespaceId, candidateConversationId)
+  ) {
+    return candidateConversationId;
+  }
+  const remainingConversationIds = orderedIds.filter(
+    id => id === conversationId || !isConversationDeleted(namespaceId, id)
+  );
+  return adjacentConversationId(remainingConversationIds, conversationId);
+}
+
 export function forgetConversationFromOrder(
   namespaceId: string,
   conversationId: string
@@ -75,6 +119,10 @@ export function clearDeletedConversationState(
   namespaceId: string,
   conversationId: string
 ) {
+  const key = conversationOrderKey(namespaceId);
+  const deletedIds = deletedConversations.get(key) ?? new Set<string>();
+  deletedIds.add(conversationId);
+  deletedConversations.set(key, deletedIds);
   const scope = { userId: getCurrentUserId(), namespaceId };
   clearCachedConversation(scope, conversationId);
   clearChatInputDraft(conversationId);

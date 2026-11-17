@@ -10,8 +10,10 @@ import {
   adjacentConversationId,
   clearDeletedConversationState,
   forgetConversationFromOrder,
+  isConversationDeleted,
   rememberConversationOrder,
   resolveAdjacentConversationId,
+  selectAvailableAdjacentConversationId,
 } from './conversationNavigation';
 
 jest.mock('@/lib/request', () => ({ http: { get: jest.fn() } }));
@@ -30,6 +32,38 @@ it('prefers the next conversation and falls back to the previous one', () => {
   expect(adjacentConversationId(['new', 'current'], 'current')).toBe('new');
   expect(adjacentConversationId(['current'], 'current')).toBeNull();
   expect(adjacentConversationId(['new', 'old'], 'current')).toBeNull();
+});
+
+it('prefers an alive resolved candidate over a loaded previous item', () => {
+  expect(
+    selectAvailableAdjacentConversationId(
+      'space-next-page',
+      'current',
+      ['previous', 'current'],
+      'next-page'
+    )
+  ).toBe('next-page');
+});
+
+it('falls back to the next surviving item when the candidate was deleted', () => {
+  rememberConversationOrder(
+    'space-candidate-deleted',
+    [{ id: 'current' }, { id: 'deleted-next' }, { id: 'surviving-next' }],
+    true
+  );
+  clearDeletedConversationState('space-candidate-deleted', 'deleted-next');
+
+  expect(isConversationDeleted('space-candidate-deleted', 'deleted-next')).toBe(
+    true
+  );
+  expect(
+    selectAvailableAdjacentConversationId(
+      'space-candidate-deleted',
+      'current',
+      ['current', 'surviving-next'],
+      'deleted-next'
+    )
+  ).toBe('surviving-next');
 });
 
 it('uses the loaded conversation order without another request', async () => {
@@ -126,6 +160,14 @@ it('removes a deleted conversation from the loaded order', async () => {
     resolveAdjacentConversationId('space-c', 'current')
   ).resolves.toBe(null);
   expect(get).toHaveBeenCalledTimes(1);
+});
+
+it('scopes deletion markers to the user who deleted the conversation', () => {
+  clearDeletedConversationState('space-deleted-user', 'current');
+  expect(isConversationDeleted('space-deleted-user', 'current')).toBe(true);
+
+  localStorage.setItem('uid', 'user-b');
+  expect(isConversationDeleted('space-deleted-user', 'current')).toBe(false);
 });
 
 it('clears provisional and cached order data when the conversation is deleted', async () => {

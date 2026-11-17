@@ -14,6 +14,10 @@ import { http } from '@/lib/request';
 import Actions from '@/page/chat/header/Actions';
 import { useCopilotStore } from '@/page/copilot/copilotStore';
 
+import {
+  clearDeletedConversationState,
+  rememberConversationOrder,
+} from './conversationNavigation';
 import RemoveHistory from './RemoveHistory';
 
 const navigate = jest.fn();
@@ -230,6 +234,36 @@ describe('confirmed conversation deletion', () => {
     await click('delete');
 
     expect(navigate).toHaveBeenCalledWith(expectedPath, {
+      flushSync: true,
+    });
+  });
+
+  it('avoids a target deleted through another entry before header deletion finishes', async () => {
+    rememberConversationOrder(
+      'space',
+      [
+        { id: 'conversation' },
+        { id: 'next-conversation' },
+        { id: 'after-conversation' },
+      ],
+      true
+    );
+    let resolveDelete!: (value: object) => void;
+    jest.mocked(http.delete).mockReturnValueOnce(
+      new Promise(resolve => {
+        resolveDelete = resolve;
+      })
+    );
+
+    await open('header');
+    await click('delete');
+    clearDeletedConversationState('space', 'next-conversation');
+    await act(async () => resolveDelete({}));
+
+    expect(navigate).toHaveBeenCalledWith('/space/chat/after-conversation', {
+      flushSync: true,
+    });
+    expect(navigate).not.toHaveBeenCalledWith('/space/chat/next-conversation', {
       flushSync: true,
     });
   });

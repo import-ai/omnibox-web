@@ -7,6 +7,7 @@ import { useCopilotStore } from '@/page/copilot/copilotStore';
 import {
   adjacentConversationId,
   clearDeletedConversationState,
+  isConversationDeleted,
   resolveAdjacentConversationId,
 } from './conversationNavigation';
 import ChatConversationsPage from './index';
@@ -156,6 +157,7 @@ jest.mock('@/page/chat/conversations/useContext', () => ({
 jest.mock('@/page/chat/conversations/conversationNavigation', () => ({
   adjacentConversationId: jest.fn(),
   clearDeletedConversationState: jest.fn(),
+  isConversationDeleted: jest.fn(),
   resolveAdjacentConversationId: jest.fn(),
 }));
 
@@ -192,6 +194,7 @@ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(adjacentConversationId).mockReset();
+  jest.mocked(isConversationDeleted).mockReset().mockReturnValue(false);
   jest
     .mocked(resolveAdjacentConversationId)
     .mockReset()
@@ -410,6 +413,11 @@ it('skips a pending target deleted before the active conversation deletion finis
     mockConversations = mockConversations.filter(
       conversation => conversation.id !== 'conversation-2'
     );
+    jest
+      .mocked(isConversationDeleted)
+      .mockImplementation(
+        (_namespaceId, conversationId) => conversationId === 'conversation-2'
+      );
     mockRemove = {
       id: 'conversation-2',
       title: 'Concurrently deleted conversation',
@@ -434,6 +442,87 @@ it('skips a pending target deleted before the active conversation deletion finis
       state: { fromSidebar: true },
       flushSync: true,
     });
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('prefers the resolved next-page conversation over a loaded previous item', async () => {
+  jest
+    .mocked(adjacentConversationId)
+    .mockReturnValueOnce('previous-conversation');
+  jest
+    .mocked(resolveAdjacentConversationId)
+    .mockResolvedValue('next-page-conversation');
+  mockConversations = [
+    {
+      id: 'previous-conversation',
+      title: 'Previous conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'conversation-1',
+      title: 'Last loaded conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+  ];
+  mockRemove = {
+    id: 'conversation-1',
+    title: 'Last loaded conversation',
+    open: true,
+  };
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const currentConversation = container.querySelector(
+      '[data-conversation-id="conversation-1"]'
+    );
+    if (!(currentConversation instanceof HTMLElement)) {
+      throw new Error('Current conversation is missing');
+    }
+    const remove = Array.from(
+      currentConversation.parentElement?.querySelectorAll('button') ?? []
+    ).find(button => button.textContent === 'chat.conversations.delete.option');
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(navigate).toHaveBeenCalledWith(
+      '/space/chat/next-page-conversation',
+      {
+        state: { fromSidebar: true },
+        flushSync: true,
+      }
+    );
+    expect(navigate).not.toHaveBeenCalledWith(
+      '/space/chat/previous-conversation',
+      {
+        state: { fromSidebar: true },
+        flushSync: true,
+      }
+    );
   } finally {
     await act(async () => root.unmount());
     container.remove();

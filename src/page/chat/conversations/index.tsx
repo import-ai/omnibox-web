@@ -29,6 +29,7 @@ import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
 import {
   adjacentConversationId,
   clearDeletedConversationState,
+  isConversationDeleted,
   resolveAdjacentConversationId,
 } from '@/page/chat/conversations/conversationNavigation';
 import {
@@ -122,7 +123,6 @@ export default function ChatConversationsPage({
   const pendingDeletionsRef = useRef(
     new Map<string, PendingConversationDeletion>()
   );
-  const deletedConversationIdsRef = useRef(new Map<string, Set<string>>());
   const conversationIdsRef = useRef<string[]>([]);
   const locationRef = useRef(location);
   const namespaceIdRef = useRef(namespaceId);
@@ -167,14 +167,6 @@ export default function ChatConversationsPage({
     pendingDeletionsRef.current.delete(removedConversationId);
 
     const deletionNamespaceId = pendingDeletion?.namespaceId ?? namespaceId;
-    const deletedConversationIds =
-      deletedConversationIdsRef.current.get(deletionNamespaceId) ??
-      new Set<string>();
-    deletedConversationIds.add(removedConversationId);
-    deletedConversationIdsRef.current.set(
-      deletionNamespaceId,
-      deletedConversationIds
-    );
     clearDeletedConversationState(deletionNamespaceId, removedConversationId);
     onRemoveDone(removedConversationId);
 
@@ -182,6 +174,13 @@ export default function ChatConversationsPage({
     const selectAvailableNextConversation = (
       candidateConversationId: string | null
     ) => {
+      if (
+        candidateConversationId &&
+        candidateConversationId !== removedConversationId &&
+        !isConversationDeleted(deletionNamespaceId, candidateConversationId)
+      ) {
+        return candidateConversationId;
+      }
       const latestConversationIds = conversationIdsRef.current;
       const navigationConversationIds = latestConversationIds.includes(
         removedConversationId
@@ -191,17 +190,12 @@ export default function ChatConversationsPage({
       const remainingConversationIds = navigationConversationIds.filter(
         conversationId =>
           conversationId === removedConversationId ||
-          !deletedConversationIds.has(conversationId)
+          !isConversationDeleted(deletionNamespaceId, conversationId)
       );
-      const adjacentId = adjacentConversationId(
+      return adjacentConversationId(
         remainingConversationIds,
         removedConversationId
       );
-      if (adjacentId) return adjacentId;
-      return candidateConversationId &&
-        !deletedConversationIds.has(candidateConversationId)
-        ? candidateConversationId
-        : null;
     };
     const navigateAfterDeletion = (nextConversationId: string | null) => {
       if (namespaceIdRef.current !== deletionNamespaceId) {
