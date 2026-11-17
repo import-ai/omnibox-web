@@ -84,6 +84,9 @@ jobs:
       - name: Test chat stream recovery
         run: pnpm exec jest src/lib/chatErrors.test.ts src/lib/streamTransport.test.ts src/page/chat/conversation src/page/chat/core src/page/shared-chat src/page/chat/messages/index.test.tsx src/page/chat/messages/messageGroups.test.ts --runInBand
 
+      - name: Test shared resource image attachments
+        run: pnpm exec jest src/page/resource/shareAttachmentUrls.test.ts src/page/resource/useResourceImageFailures.test.tsx src/page/shared-resource/index.test.tsx --runInBand
+
       - name: Test invite referral tracking
         run: pnpm exec jest src/page/inviteReferral/InviteReferralEntryExposure.test.tsx src/page/inviteReferral/tracking.test.ts src/lib/sendTrackEvent.test.ts --runInBand
 
