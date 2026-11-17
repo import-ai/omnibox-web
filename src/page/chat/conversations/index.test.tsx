@@ -2,6 +2,14 @@
 import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { useCopilotStore } from '@/page/copilot/copilotStore';
+
+import {
+  adjacentConversationId,
+  clearDeletedConversationState,
+  isConversationDeleted,
+  resolveAdjacentConversationId,
+} from './conversationNavigation';
 import ChatConversationsPage from './index';
 
 jest.mock('@/lib/trackButtonClick', () => ({
@@ -11,15 +19,31 @@ jest.mock('@/lib/trackButtonClick', () => ({
 
 const onEdit = jest.fn();
 const onRemove = jest.fn();
+const onRemoveDone = jest.fn();
 const onConversationSelect = jest.fn();
 const onPagerChange = jest.fn();
 const scrollIntoView = jest.fn();
 const navigate = jest.fn();
 let mockLocation: {
+  key: string;
   pathname: string;
   state: { fromSidebar?: boolean } | null;
-} = { pathname: '/space/chat/conversation-1', state: null };
+} = {
+  key: 'initial',
+  pathname: '/space/chat/conversation-1',
+  state: null,
+};
 let mockConversationId = 'conversation-1';
+let mockConversations:
+  | Array<{
+      id: string;
+      title: string;
+      user_content: string;
+      assistant_content: string;
+      created_at: string;
+    }>
+  | undefined;
+let mockRemove = { id: '', title: '', open: false };
 let observeIntersection:
   ((entries: { isIntersecting: boolean }[]) => void) | undefined;
 let mockLoading = false;
@@ -93,11 +117,11 @@ jest.mock('@/components/ui/DropdownMenu', () => {
 });
 jest.mock('@/page/chat/conversations/useContext', () => ({
   __esModule: true,
-  default: () => ({
+  default: (namespaceIdOverride?: string) => ({
     list: {
       data: {
         total: 30,
-        data: [
+        data: mockConversations ?? [
           {
             id: mockConversationId,
             title: '美甲做做',
@@ -120,14 +144,21 @@ jest.mock('@/page/chat/conversations/useContext', () => ({
     },
     edit: { id: '', title: '', open: false },
     onEdit,
-    remove: { id: '', title: '', open: false },
+    remove: mockRemove,
     onRemove,
     onEditDone: jest.fn(),
-    namespaceId: 'space',
+    namespaceId: namespaceIdOverride ?? 'space',
     onEditChange: jest.fn(),
-    onRemoveDone: jest.fn(),
+    onRemoveDone,
     onRemoveChange: jest.fn(),
   }),
+}));
+
+jest.mock('@/page/chat/conversations/conversationNavigation', () => ({
+  adjacentConversationId: jest.fn(),
+  clearDeletedConversationState: jest.fn(),
+  isConversationDeleted: jest.fn(),
+  resolveAdjacentConversationId: jest.fn(),
 }));
 
 jest.mock('@/page/chat/conversations/edit', () => ({
@@ -137,7 +168,21 @@ jest.mock('@/page/chat/conversations/edit', () => ({
 
 jest.mock('@/page/chat/conversations/RemoveHistory', () => ({
   __esModule: true,
-  default: () => null,
+  default: ({
+    onFinish,
+    onOpenChange,
+  }: {
+    onFinish: () => void;
+    onOpenChange: (open: boolean) => void;
+  }) => (
+    <button
+      data-testid="finish-remove"
+      onClick={() => {
+        onOpenChange(false);
+        onFinish();
+      }}
+    />
+  ),
 }));
 
 jest.mock('../utils', () => ({
@@ -148,9 +193,22 @@ Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockLocation = { pathname: '/space/chat/conversation-1', state: null };
+  jest.mocked(adjacentConversationId).mockReset();
+  jest.mocked(isConversationDeleted).mockReset().mockReturnValue(false);
+  jest
+    .mocked(resolveAdjacentConversationId)
+    .mockReset()
+    .mockResolvedValue(null);
+  useCopilotStore.getState().reset('space');
+  mockLocation = {
+    key: 'initial',
+    pathname: '/space/chat/conversation-1',
+    state: null,
+  };
   Object.assign(globalThis, { CSS: { escape: (value: string) => value } });
   mockConversationId = 'conversation-1';
+  mockConversations = undefined;
+  mockRemove = { id: '', title: '', open: false };
   mockLoading = false;
   mockLoadingMore = false;
   HTMLElement.prototype.scrollIntoView = scrollIntoView;
@@ -222,6 +280,941 @@ it('renders compact conversations as title-only rows with resource menu icons', 
     }
     await act(async () => title.click());
     expect(onConversationSelect).toHaveBeenCalledWith('conversation-1');
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('opens the next conversation after deleting the active sidebar conversation', async () => {
+  jest
+    .mocked(resolveAdjacentConversationId)
+    .mockResolvedValue('conversation-2');
+  mockRemove = { id: 'conversation-1', title: '美甲做做', open: true };
+  useCopilotStore
+    .getState()
+    .showResourceBesideConversation('space', 'conversation-1', 'resource-1');
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const remove = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'chat.conversations.delete.option'
+    );
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(resolveAdjacentConversationId).toHaveBeenCalledWith(
+      'space',
+      'conversation-1'
+    );
+    expect(onRemoveDone).toHaveBeenCalledTimes(1);
+    expect(useCopilotStore.getState().workspaces.space).toBeUndefined();
+    expect(navigate).toHaveBeenCalledWith('/space/chat/conversation-2', {
+      state: { fromSidebar: true },
+      flushSync: true,
+    });
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('skips a pending target deleted before the active conversation deletion finishes', async () => {
+  jest
+    .mocked(adjacentConversationId)
+    .mockReturnValueOnce('conversation-2')
+    .mockReturnValueOnce('conversation-3')
+    .mockReturnValueOnce('conversation-3');
+  mockConversations = [
+    {
+      id: 'conversation-1',
+      title: 'Route conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'conversation-2',
+      title: 'Concurrently deleted conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'conversation-3',
+      title: 'Remaining conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+  ];
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const renderPage = () =>
+    root.render(
+      <ChatConversationsPage
+        compact
+        namespaceId="space"
+        activeConversationId="conversation-1"
+      />
+    );
+  const clickDelete = async (conversationId: string) => {
+    const conversation = container.querySelector(
+      `[data-conversation-id="${conversationId}"]`
+    );
+    if (!(conversation instanceof HTMLElement)) {
+      throw new Error(`Conversation ${conversationId} is missing`);
+    }
+    const remove = Array.from(
+      conversation.parentElement?.querySelectorAll('button') ?? []
+    ).find(button => button.textContent === 'chat.conversations.delete.option');
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error(`Delete action for ${conversationId} is missing`);
+    }
+    await act(async () => remove.click());
+  };
+  const finishDelete = async () => {
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+  };
+  try {
+    await act(async () => renderPage());
+
+    await clickDelete('conversation-1');
+    mockRemove = {
+      id: 'conversation-1',
+      title: 'Route conversation',
+      open: true,
+    };
+    await act(async () => renderPage());
+
+    await clickDelete('conversation-2');
+    mockConversations = mockConversations.filter(
+      conversation => conversation.id !== 'conversation-2'
+    );
+    jest
+      .mocked(isConversationDeleted)
+      .mockImplementation(
+        (_namespaceId, conversationId) => conversationId === 'conversation-2'
+      );
+    mockRemove = {
+      id: 'conversation-2',
+      title: 'Concurrently deleted conversation',
+      open: true,
+    };
+    await act(async () => renderPage());
+    await finishDelete();
+
+    mockRemove = {
+      id: 'conversation-1',
+      title: 'Route conversation',
+      open: true,
+    };
+    await act(async () => renderPage());
+    await finishDelete();
+
+    expect(navigate).toHaveBeenCalledWith('/space/chat/conversation-3', {
+      state: { fromSidebar: true },
+      flushSync: true,
+    });
+    expect(navigate).not.toHaveBeenCalledWith('/space/chat/conversation-2', {
+      state: { fromSidebar: true },
+      flushSync: true,
+    });
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('prefers the resolved next-page conversation over a loaded previous item', async () => {
+  jest
+    .mocked(adjacentConversationId)
+    .mockReturnValueOnce('previous-conversation');
+  jest
+    .mocked(resolveAdjacentConversationId)
+    .mockResolvedValue('next-page-conversation');
+  mockConversations = [
+    {
+      id: 'previous-conversation',
+      title: 'Previous conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'conversation-1',
+      title: 'Last loaded conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+  ];
+  mockRemove = {
+    id: 'conversation-1',
+    title: 'Last loaded conversation',
+    open: true,
+  };
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const currentConversation = container.querySelector(
+      '[data-conversation-id="conversation-1"]'
+    );
+    if (!(currentConversation instanceof HTMLElement)) {
+      throw new Error('Current conversation is missing');
+    }
+    const remove = Array.from(
+      currentConversation.parentElement?.querySelectorAll('button') ?? []
+    ).find(button => button.textContent === 'chat.conversations.delete.option');
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(navigate).toHaveBeenCalledWith(
+      '/space/chat/next-page-conversation',
+      {
+        state: { fromSidebar: true },
+        flushSync: true,
+      }
+    );
+    expect(navigate).not.toHaveBeenCalledWith(
+      '/space/chat/previous-conversation',
+      {
+        state: { fromSidebar: true },
+        flushSync: true,
+      }
+    );
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('opens the next split conversation in the normal layout', async () => {
+  mockConversationId = 'conversation-2';
+  mockRemove = {
+    id: 'conversation-2',
+    title: 'Split conversation',
+    open: true,
+  };
+  jest
+    .mocked(resolveAdjacentConversationId)
+    .mockResolvedValue('conversation-3');
+  useCopilotStore
+    .getState()
+    .showResourceBesideConversation('space', 'conversation-2', 'resource-1');
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const remove = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'chat.conversations.delete.option'
+    );
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(resolveAdjacentConversationId).toHaveBeenCalledWith(
+      'space',
+      'conversation-2'
+    );
+    expect(useCopilotStore.getState().workspaces.space).toBeUndefined();
+    expect(navigate).toHaveBeenCalledWith('/space/chat/conversation-3', {
+      state: { fromSidebar: true },
+      flushSync: true,
+    });
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('does not navigate after the user leaves the deleted conversation context', async () => {
+  let resolveNextConversation!: (value: string | null) => void;
+  jest.mocked(resolveAdjacentConversationId).mockReturnValue(
+    new Promise(resolve => {
+      resolveNextConversation = resolve;
+    })
+  );
+  mockRemove = { id: 'conversation-1', title: '美甲做做', open: true };
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const renderConversation = (conversationId: string) =>
+    root.render(
+      <ChatConversationsPage
+        compact
+        namespaceId="space"
+        activeConversationId={conversationId}
+      />
+    );
+  try {
+    await act(async () => renderConversation('conversation-1'));
+
+    const remove = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'chat.conversations.delete.option'
+    );
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    mockLocation = {
+      key: 'conversation-2',
+      pathname: '/space/chat/conversation-2',
+      state: null,
+    };
+    await act(async () => renderConversation('conversation-2'));
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+    await act(async () => resolveNextConversation('conversation-2'));
+
+    expect(clearDeletedConversationState).toHaveBeenCalledWith(
+      'space',
+      'conversation-1'
+    );
+    expect(onRemoveDone).toHaveBeenCalledTimes(1);
+    expect(navigate).not.toHaveBeenCalled();
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('leaves the deleted conversation when the user returns before navigation resolves', async () => {
+  let resolveNextConversation!: (value: string | null) => void;
+  jest.mocked(resolveAdjacentConversationId).mockReturnValue(
+    new Promise(resolve => {
+      resolveNextConversation = resolve;
+    })
+  );
+  mockRemove = { id: 'conversation-1', title: '美甲做做', open: true };
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const renderConversation = (conversationId: string) =>
+    root.render(
+      <ChatConversationsPage
+        compact
+        namespaceId="space"
+        activeConversationId={conversationId}
+      />
+    );
+  try {
+    await act(async () => renderConversation('conversation-1'));
+
+    const remove = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'chat.conversations.delete.option'
+    );
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    mockLocation = {
+      key: 'conversation-2',
+      pathname: '/space/chat/conversation-2',
+      state: null,
+    };
+    await act(async () => renderConversation('conversation-2'));
+    mockLocation = {
+      key: 'conversation-1-returned',
+      pathname: '/space/chat/conversation-1',
+      state: null,
+    };
+    await act(async () => renderConversation('conversation-1'));
+    await act(async () => resolveNextConversation('conversation-2'));
+
+    expect(navigate).toHaveBeenCalledWith('/space/chat/conversation-2', {
+      state: { fromSidebar: true },
+      flushSync: true,
+    });
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('leaves a previously inactive conversation if it becomes current before deletion completes', async () => {
+  jest.mocked(adjacentConversationId).mockReturnValue('conversation-2');
+  mockConversations = [
+    {
+      id: 'conversation-1',
+      title: 'First conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'conversation-2',
+      title: 'Second conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+  ];
+  mockRemove = {
+    id: 'conversation-1',
+    title: 'First conversation',
+    open: true,
+  };
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const renderConversation = (conversationId: string) =>
+    root.render(
+      <ChatConversationsPage
+        compact
+        namespaceId="space"
+        activeConversationId={conversationId}
+      />
+    );
+  try {
+    await act(async () => renderConversation('conversation-2'));
+
+    const firstConversation = container.querySelector(
+      '[data-conversation-id="conversation-1"]'
+    );
+    if (!(firstConversation instanceof HTMLElement)) {
+      throw new Error('First conversation is missing');
+    }
+    const remove = Array.from(
+      firstConversation.parentElement?.querySelectorAll('button') ?? []
+    ).find(button => button.textContent === 'chat.conversations.delete.option');
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('First conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    mockLocation = {
+      key: 'conversation-1',
+      pathname: '/space/chat/conversation-1',
+      state: null,
+    };
+    await act(async () => renderConversation('conversation-1'));
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(navigate).toHaveBeenCalledWith('/space/chat/conversation-2', {
+      state: { fromSidebar: true },
+      flushSync: true,
+    });
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('closes a deleted split conversation without overriding a later route', async () => {
+  let resolveNextConversation!: (value: string | null) => void;
+  jest.mocked(resolveAdjacentConversationId).mockReturnValue(
+    new Promise(resolve => {
+      resolveNextConversation = resolve;
+    })
+  );
+  mockRemove = {
+    id: 'conversation-2',
+    title: 'Split conversation',
+    open: true,
+  };
+  mockConversationId = 'conversation-2';
+  useCopilotStore
+    .getState()
+    .showResourceBesideConversation('space', 'conversation-2', 'resource-1');
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  const renderConversation = (conversationId: string) =>
+    root.render(
+      <ChatConversationsPage
+        compact
+        namespaceId="space"
+        activeConversationId={conversationId}
+      />
+    );
+  try {
+    await act(async () => renderConversation('conversation-1'));
+
+    const remove = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'chat.conversations.delete.option'
+    );
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    mockLocation = {
+      key: 'conversation-3',
+      pathname: '/space/chat/conversation-3',
+      state: null,
+    };
+    await act(async () => renderConversation('conversation-3'));
+    await act(async () => resolveNextConversation('conversation-3'));
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(useCopilotStore.getState().workspaces.space).toBeUndefined();
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('repairs the route when the hidden route conversation is deleted in split view', async () => {
+  mockRemove = {
+    id: 'conversation-1',
+    title: 'Route conversation',
+    open: true,
+  };
+  mockConversations = [
+    {
+      id: 'conversation-1',
+      title: 'Route conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'conversation-2',
+      title: 'Split conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+  ];
+  useCopilotStore
+    .getState()
+    .showResourceBesideConversation('space', 'conversation-2', 'resource-1');
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const routeConversation = container.querySelector(
+      '[data-conversation-id="conversation-1"]'
+    );
+    if (!(routeConversation instanceof HTMLElement)) {
+      throw new Error('Route conversation is missing');
+    }
+    const remove = Array.from(
+      routeConversation.parentElement?.querySelectorAll('button') ?? []
+    ).find(button => button.textContent === 'chat.conversations.delete.option');
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Route conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(navigate).toHaveBeenCalledWith('/space/chat/conversation-2', {
+      flushSync: true,
+    });
+    expect(useCopilotStore.getState().workspaces.space).toBeDefined();
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('highlights the conversation actually displayed in split view', async () => {
+  mockConversations = [
+    {
+      id: 'conversation-1',
+      title: 'Route conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'conversation-2',
+      title: 'Split conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+  ];
+  useCopilotStore
+    .getState()
+    .showResourceBesideConversation('space', 'conversation-2', 'resource-1');
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const routeConversation = container.querySelector(
+      '[data-conversation-id="conversation-1"]'
+    );
+    const splitConversation = container.querySelector(
+      '[data-conversation-id="conversation-2"]'
+    );
+    if (
+      !(routeConversation instanceof HTMLElement) ||
+      !(splitConversation instanceof HTMLElement)
+    ) {
+      throw new Error('Conversation rows are missing');
+    }
+    expect(
+      routeConversation.parentElement?.classList.contains('bg-sidebar-accent')
+    ).toBe(false);
+    expect(
+      splitConversation.parentElement?.classList.contains('bg-sidebar-accent')
+    ).toBe(true);
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('opens chat home after deleting the only active sidebar conversation', async () => {
+  jest.mocked(resolveAdjacentConversationId).mockResolvedValue(null);
+  mockRemove = { id: 'conversation-1', title: '美甲做做', open: true };
+  useCopilotStore
+    .getState()
+    .showResourceBesideConversation('space', 'conversation-1', 'resource-1');
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const remove = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'chat.conversations.delete.option'
+    );
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(useCopilotStore.getState().workspaces.space).toBeUndefined();
+    expect(navigate).toHaveBeenCalledWith('/space/chat', {
+      state: { fromSidebar: true },
+      flushSync: true,
+    });
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('clears a deleted non-active conversation without navigating', async () => {
+  mockRemove = { id: 'conversation-2', title: '另一个对话', open: true };
+  useCopilotStore
+    .getState()
+    .showResourceBesideConversation('space', 'conversation-1', 'resource-1');
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(clearDeletedConversationState).toHaveBeenCalledWith(
+      'space',
+      'conversation-2'
+    );
+    expect(onRemoveDone).toHaveBeenCalledTimes(1);
+    expect(useCopilotStore.getState().workspaces.space).toBeDefined();
+    expect(navigate).not.toHaveBeenCalled();
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('highlights the route conversation when Copilot is closed with a preview retained', async () => {
+  mockConversations = [
+    {
+      id: 'conversation-1',
+      title: 'Route conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'conversation-2',
+      title: 'Split conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+  ];
+  useCopilotStore.getState().showConversation('space', 'conversation-2');
+  useCopilotStore.getState().close('space');
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const routeConversation = container.querySelector(
+      '[data-conversation-id="conversation-1"]'
+    );
+    const splitConversation = container.querySelector(
+      '[data-conversation-id="conversation-2"]'
+    );
+    if (
+      !(routeConversation instanceof HTMLElement) ||
+      !(splitConversation instanceof HTMLElement)
+    ) {
+      throw new Error('Conversation rows are missing');
+    }
+    expect(
+      routeConversation.parentElement?.classList.contains('bg-sidebar-accent')
+    ).toBe(true);
+    expect(
+      splitConversation.parentElement?.classList.contains('bg-sidebar-accent')
+    ).toBe(false);
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('clears a hidden Copilot conversation when it is deleted while closed', async () => {
+  jest.mocked(resolveAdjacentConversationId).mockResolvedValue(null);
+  mockRemove = {
+    id: 'conversation-2',
+    title: 'Hidden split conversation',
+    open: true,
+  };
+  mockConversations = [
+    {
+      id: 'conversation-1',
+      title: 'Route conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: 'conversation-2',
+      title: 'Hidden split conversation',
+      user_content: '',
+      assistant_content: '',
+      created_at: new Date().toISOString(),
+    },
+  ];
+  useCopilotStore
+    .getState()
+    .showResourceBesideConversation('space', 'conversation-2', 'resource-1');
+  useCopilotStore.getState().close('space');
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const hiddenConversation = container.querySelector(
+      '[data-conversation-id="conversation-2"]'
+    );
+    if (!(hiddenConversation instanceof HTMLElement)) {
+      throw new Error('Hidden conversation is missing');
+    }
+    const remove = Array.from(
+      hiddenConversation.parentElement?.querySelectorAll('button') ?? []
+    ).find(button => button.textContent === 'chat.conversations.delete.option');
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Hidden conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(onRemoveDone).toHaveBeenCalledWith('conversation-2');
+    expect(useCopilotStore.getState().workspaces.space).toBeUndefined();
+    expect(navigate).not.toHaveBeenCalled();
+  } finally {
+    await act(async () => root.unmount());
+    container.remove();
+  }
+});
+
+it('clears the deletion namespace captured before switching spaces', async () => {
+  mockRemove = {
+    id: 'conversation-1',
+    title: 'Route conversation',
+    open: true,
+  };
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="space"
+          activeConversationId="conversation-1"
+        />
+      )
+    );
+
+    const remove = Array.from(container.querySelectorAll('button')).find(
+      button => button.textContent === 'chat.conversations.delete.option'
+    );
+    if (!(remove instanceof HTMLButtonElement)) {
+      throw new Error('Conversation delete action is missing');
+    }
+    await act(async () => remove.click());
+
+    mockLocation = {
+      key: 'other-space',
+      pathname: '/other/chat/conversation-other',
+      state: null,
+    };
+    await act(async () =>
+      root.render(
+        <ChatConversationsPage
+          compact
+          namespaceId="other"
+          activeConversationId="conversation-other"
+        />
+      )
+    );
+
+    const finish = container.querySelector('[data-testid="finish-remove"]');
+    if (!(finish instanceof HTMLButtonElement)) {
+      throw new Error('Delete success callback is missing');
+    }
+    await act(async () => finish.click());
+
+    expect(clearDeletedConversationState).toHaveBeenCalledWith(
+      'space',
+      'conversation-1'
+    );
+    expect(onRemoveDone).toHaveBeenCalledWith('conversation-1');
+    expect(navigate).not.toHaveBeenCalled();
   } finally {
     await act(async () => root.unmount());
     container.remove();

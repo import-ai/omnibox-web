@@ -18,6 +18,11 @@ import type {
   ConversationTitleGeneratedPayload,
 } from '@/page/chat/core/types/conversation';
 
+import {
+  forgetConversationFromOrder,
+  rememberConversationOrder,
+} from './conversationNavigation';
+
 interface ConversationPage {
   total: number;
   data: ConversationSummary[];
@@ -28,6 +33,11 @@ interface ProvisionalConversationPayload {
   namespaceId: string;
   conversation?: ProvisionalConversation;
   clearId?: string;
+}
+
+interface ConversationDeletedPayload {
+  namespaceId: string;
+  conversationId: string;
 }
 
 export default function useContext(
@@ -71,6 +81,46 @@ export default function useContext(
   );
   const [data, onData] = useState<ConversationPage>(() =>
     withProvisional({ total: 0, data: [] })
+  );
+  const setConversationData = useCallback(
+    (
+      next:
+        ConversationPage | ((previous: ConversationPage) => ConversationPage)
+    ) => {
+      onData(previous => {
+        const value = typeof next === 'function' ? next(previous) : next;
+        if (compact) {
+          rememberConversationOrder(
+            namespaceId,
+            value.data,
+            nextOffsetRef.current >= value.total
+          );
+        }
+        return value;
+      });
+    },
+    [compact, namespaceId]
+  );
+  const removeConversation = useCallback(
+    (conversationId: string) => {
+      if (!conversationId) return;
+      pendingTitlesRef.current.delete(conversationId);
+      clearProvisionalConversation(
+        { userId: getCurrentUserId(), namespaceId },
+        conversationId
+      );
+      forgetConversationFromOrder(namespaceId, conversationId);
+      const withoutConversation = (page: ConversationPage) => {
+        if (!page.data.some(item => item.id === conversationId)) return page;
+        return {
+          total: Math.max(0, page.total - 1),
+          data: page.data.filter(item => item.id !== conversationId),
+        };
+      };
+      serverPageRef.current = withoutConversation(serverPageRef.current);
+      setConversationData(withoutConversation);
+    },
+    [namespaceId, setConversationData]
   );
   const [edit, onEdit] = useState<{
     id: string;
@@ -135,7 +185,7 @@ export default function useContext(
             }
           });
           const pendingTitles = [...pendingTitlesRef.current.values()];
-          onData(previous => {
+          setConversationData(previous => {
             let base: ConversationPage;
             if (!append && pendingTitles.length === 0) {
               base = response;
@@ -175,7 +225,7 @@ export default function useContext(
           if (isConversationAccessDenied(error)) {
             pendingTitlesRef.current.clear();
             serverPageRef.current = { total: 0, data: [] };
-            onData({ total: 0, data: [] });
+            setConversationData({ total: 0, data: [] });
             setAccessDenied(true);
           }
         })
@@ -188,7 +238,14 @@ export default function useContext(
         })
         .then(() => undefined);
     },
-    [compact, current, namespaceId, pageSize, withProvisional]
+    [
+      compact,
+      current,
+      namespaceId,
+      pageSize,
+      setConversationData,
+      withProvisional,
+    ]
   );
   const refetch = useCallback(() => fetchPage(), [fetchPage]);
   const retry = useCallback(
@@ -209,9 +266,13 @@ export default function useContext(
     onEdit({ id: '', title: '', open: false });
     refetch();
   };
-  const onRemoveDone = () => {
-    pendingTitlesRef.current.delete(remove.id);
-    onRemove({ id: '', title: '', open: false });
+  const onRemoveDone = (conversationId = remove.id) => {
+    removeConversation(conversationId);
+    onRemove(previous =>
+      previous.id === conversationId
+        ? { id: '', title: '', open: false }
+        : previous
+    );
     refetch();
   };
   const onEditChange = (open: boolean) => {
@@ -248,7 +309,7 @@ export default function useContext(
             conversation.id
           );
           pendingTitlesRef.current.set(conversation.id, conversation);
-          onData(previous => {
+          setConversationData(previous => {
             const exists = previous.data.some(
               item => item.id === conversation.id
             );
@@ -267,7 +328,7 @@ export default function useContext(
         fetchPage();
       }
     );
-  }, [app, compact, fetchPage, namespaceId]);
+  }, [app, compact, fetchPage, namespaceId, setConversationData]);
 
   useEffect(() => {
     return app.on(
@@ -286,10 +347,23 @@ export default function useContext(
         } else if (payload.conversation) {
           rememberProvisionalConversation(scope, payload.conversation);
         }
-        onData(withProvisional(serverPageRef.current));
+        setConversationData(withProvisional(serverPageRef.current));
       }
     );
-  }, [app, compact, namespaceId, withProvisional]);
+  }, [app, compact, namespaceId, setConversationData, withProvisional]);
+
+  useEffect(() => {
+    return app.on(
+      'chat:conversation:deleted',
+      (payload: ConversationDeletedPayload) => {
+        if (payload.namespaceId !== namespaceId) {
+          return;
+        }
+        removeConversation(payload.conversationId);
+        fetchPage();
+      }
+    );
+  }, [app, fetchPage, namespaceId, removeConversation]);
 
   return {
     list: {

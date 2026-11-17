@@ -26,6 +26,16 @@ import { useIsTouch } from '@/hooks/useIsTouch';
 import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import UnauthorizedPage from '@/page/auth/UnauthorizedPage';
+import {
+  adjacentConversationId,
+  clearDeletedConversationState,
+  isConversationDeleted,
+  resolveAdjacentConversationId,
+} from '@/page/chat/conversations/conversationNavigation';
+import {
+  getCopilotWorkspace,
+  useCopilotStore,
+} from '@/page/copilot/copilotStore';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
 import {
@@ -49,6 +59,13 @@ interface ChatConversationsPageProps {
   onBindRefresh?: (refresh: (() => Promise<void>) | null) => void;
 }
 
+interface PendingConversationDeletion {
+  namespaceId: string;
+  conversationIds: string[];
+  nextConversation: Promise<string | null>;
+  pathname: string;
+}
+
 export default function ChatConversationsPage({
   compact = false,
   namespaceId: namespaceIdOverride,
@@ -61,6 +78,7 @@ export default function ChatConversationsPage({
   const location = useLocation();
   const { t, i18n } = useTranslation();
   const isTouch = useIsTouch();
+  const resetCopilot = useCopilotStore(state => state.reset);
   const menuTriggerPress = useMenuTriggerPress();
   const {
     list: {
@@ -87,7 +105,176 @@ export default function ChatConversationsPage({
     onRemoveChange,
   } = useContext(namespaceIdOverride, compact);
 
+  const copilotWorkspace = useCopilotStore(state =>
+    getCopilotWorkspace(state, namespaceId)
+  );
+  const copilotConversationId =
+    copilotWorkspace.view === 'conversation'
+      ? copilotWorkspace.conversationId
+      : null;
+  const splitConversationId =
+    copilotWorkspace.open && copilotWorkspace.previewResourceId
+      ? copilotConversationId
+      : null;
   const handleLoadMore = () => onPagerChange(current + 1);
+  const visibleConversationId = compact
+    ? (splitConversationId ?? activeConversationId)
+    : activeConversationId;
+  const pendingDeletionsRef = useRef(
+    new Map<string, PendingConversationDeletion>()
+  );
+  const conversationIdsRef = useRef<string[]>([]);
+  const locationRef = useRef(location);
+  const namespaceIdRef = useRef(namespaceId);
+  const activeConversationIdRef = useRef(activeConversationId);
+  const visibleConversationIdRef = useRef(visibleConversationId);
+  const copilotConversationIdRef = useRef(copilotConversationId);
+  conversationIdsRef.current = data.data.map(conversation => conversation.id);
+  locationRef.current = location;
+  namespaceIdRef.current = namespaceId;
+  activeConversationIdRef.current = activeConversationId;
+  visibleConversationIdRef.current = visibleConversationId;
+  copilotConversationIdRef.current = copilotConversationId;
+
+  const handleConversationRemove = (conversationId: string, title: string) => {
+    const visibleIds = data.data.map(conversation => conversation.id);
+    const visibleIndex = visibleIds.indexOf(conversationId);
+    const adjacentId = adjacentConversationId(visibleIds, conversationId);
+    if (compact) {
+      const nextConversation =
+        visibleIndex >= 0 && (visibleIndex < visibleIds.length - 1 || !hasMore)
+          ? Promise.resolve(adjacentId)
+          : resolveAdjacentConversationId(namespaceId, conversationId).catch(
+              () => adjacentId
+            );
+      pendingDeletionsRef.current.set(conversationId, {
+        namespaceId,
+        conversationIds: visibleIds,
+        nextConversation,
+        pathname: location.pathname,
+      });
+    } else {
+      pendingDeletionsRef.current.delete(conversationId);
+    }
+    onRemove({ id: conversationId, title, open: true });
+  };
+
+  const handleConversationRemoveDone = () => {
+    const removedConversationId = remove.id;
+    const pendingDeletion = pendingDeletionsRef.current.get(
+      removedConversationId
+    );
+    pendingDeletionsRef.current.delete(removedConversationId);
+
+    const deletionNamespaceId = pendingDeletion?.namespaceId ?? namespaceId;
+    clearDeletedConversationState(deletionNamespaceId, removedConversationId);
+    onRemoveDone(removedConversationId);
+
+    if (!pendingDeletion) return;
+    const selectAvailableNextConversation = (
+      candidateConversationId: string | null
+    ) => {
+      if (
+        candidateConversationId &&
+        candidateConversationId !== removedConversationId &&
+        !isConversationDeleted(deletionNamespaceId, candidateConversationId)
+      ) {
+        return candidateConversationId;
+      }
+      const latestConversationIds = conversationIdsRef.current;
+      const navigationConversationIds = latestConversationIds.includes(
+        removedConversationId
+      )
+        ? latestConversationIds
+        : pendingDeletion.conversationIds;
+      const remainingConversationIds = navigationConversationIds.filter(
+        conversationId =>
+          conversationId === removedConversationId ||
+          !isConversationDeleted(deletionNamespaceId, conversationId)
+      );
+      return adjacentConversationId(
+        remainingConversationIds,
+        removedConversationId
+      );
+    };
+    const navigateAfterDeletion = (nextConversationId: string | null) => {
+      if (namespaceIdRef.current !== deletionNamespaceId) {
+        return;
+      }
+      const currentVisibleConversationId = visibleConversationIdRef.current;
+      const targetStillVisible =
+        currentVisibleConversationId === removedConversationId;
+      const routeTargetsDeletedConversation =
+        activeConversationIdRef.current === removedConversationId;
+      const sameContext =
+        locationRef.current.pathname === pendingDeletion.pathname &&
+        targetStillVisible;
+
+      if (!routeTargetsDeletedConversation && !sameContext) {
+        if (
+          targetStillVisible ||
+          copilotConversationIdRef.current === removedConversationId
+        ) {
+          resetCopilot(deletionNamespaceId);
+        }
+        return;
+      }
+      if (
+        routeTargetsDeletedConversation &&
+        currentVisibleConversationId &&
+        !targetStillVisible
+      ) {
+        navigateToResource(
+          navigate,
+          `/${deletionNamespaceId}/chat/${currentVisibleConversationId}`
+        );
+        return;
+      }
+      resetCopilot(deletionNamespaceId);
+      navigateToResource(
+        navigate,
+        nextConversationId
+          ? `/${deletionNamespaceId}/chat/${nextConversationId}`
+          : `/${deletionNamespaceId}/chat`,
+        { state: { fromSidebar: true } }
+      );
+    };
+    if (namespaceIdRef.current !== deletionNamespaceId) {
+      return;
+    }
+    const currentVisibleConversationId = visibleConversationIdRef.current;
+    const targetStillVisible =
+      currentVisibleConversationId === removedConversationId;
+    const routeTargetsDeletedConversation =
+      activeConversationIdRef.current === removedConversationId;
+    const sameContext =
+      locationRef.current.pathname === pendingDeletion.pathname &&
+      targetStillVisible;
+
+    if (!routeTargetsDeletedConversation && !sameContext) {
+      if (
+        targetStillVisible ||
+        copilotConversationIdRef.current === removedConversationId
+      ) {
+        resetCopilot(deletionNamespaceId);
+      }
+      return;
+    }
+    if (
+      routeTargetsDeletedConversation &&
+      currentVisibleConversationId &&
+      !targetStillVisible
+    ) {
+      navigateAfterDeletion(null);
+      return;
+    }
+
+    void pendingDeletion.nextConversation.then(candidateConversationId =>
+      navigateAfterDeletion(
+        selectAvailableNextConversation(candidateConversationId)
+      )
+    );
+  };
 
   useLayoutEffect(() => {
     if (!onBindRefresh) {
@@ -100,19 +287,19 @@ export default function ChatConversationsPage({
   const locatedConversationRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
-    if (!compact || !isSidebarVisible || !activeConversationId) {
+    if (!compact || !isSidebarVisible || !visibleConversationId) {
       locatedConversationRef.current = undefined;
       return;
     }
     if (location.state?.fromSidebar === true) {
-      locatedConversationRef.current = activeConversationId;
+      locatedConversationRef.current = visibleConversationId;
       navigate(location.pathname, {
         replace: true,
         state: { ...location.state, fromSidebar: undefined },
       });
       return;
     }
-    if (locatedConversationRef.current === activeConversationId) {
+    if (locatedConversationRef.current === visibleConversationId) {
       return;
     }
     if (activeConversationRef.current) {
@@ -138,11 +325,11 @@ export default function ChatConversationsPage({
       }
       const controller = new AbortController();
       centerSidebarElement(
-        `[data-conversation-id="${CSS.escape(activeConversationId)}"]`,
+        `[data-conversation-id="${CSS.escape(visibleConversationId)}"]`,
         { options: { signal: controller.signal } }
       ).then(() => {
         if (!controller.signal.aborted) {
-          locatedConversationRef.current = activeConversationId;
+          locatedConversationRef.current = visibleConversationId;
         }
       });
       return () => controller.abort();
@@ -152,7 +339,7 @@ export default function ChatConversationsPage({
   }, [
     compact,
     isSidebarVisible,
-    activeConversationId,
+    visibleConversationId,
     data,
     loading,
     hasLoadError,
@@ -178,7 +365,7 @@ export default function ChatConversationsPage({
       />
       <RemoveHistory
         data={remove}
-        onFinish={onRemoveDone}
+        onFinish={handleConversationRemoveDone}
         namespaceId={namespaceId}
         onOpenChange={onRemoveChange}
       />
@@ -205,7 +392,7 @@ export default function ChatConversationsPage({
                         item.title ||
                         item.user_content ||
                         t('chat.conversations.new');
-                      const isActive = activeConversationId === item.id;
+                      const isActive = visibleConversationId === item.id;
                       return (
                         <SidebarMenuItem
                           key={item.id}
@@ -315,11 +502,10 @@ export default function ChatConversationsPage({
                                     trackButtonClick(
                                       'chat_conversation_delete'
                                     );
-                                    onRemove({
-                                      id: item.id,
-                                      title: conversationTitle,
-                                      open: true,
-                                    });
+                                    handleConversationRemove(
+                                      item.id,
+                                      conversationTitle
+                                    );
                                   }}
                                 >
                                   <Trash className={menuIconClass} />
@@ -458,11 +644,10 @@ export default function ChatConversationsPage({
                                     trackButtonClick(
                                       'chat_conversation_delete'
                                     );
-                                    onRemove({
-                                      id: item.id,
-                                      title: conversationTitle,
-                                      open: true,
-                                    });
+                                    handleConversationRemove(
+                                      item.id,
+                                      conversationTitle
+                                    );
                                   }}
                                 >
                                   <Trash className={menuIconClass} />
