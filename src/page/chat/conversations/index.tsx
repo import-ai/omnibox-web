@@ -60,6 +60,7 @@ interface ChatConversationsPageProps {
 
 interface PendingConversationDeletion {
   namespaceId: string;
+  conversationIds: string[];
   nextConversation: Promise<string | null>;
   pathname: string;
 }
@@ -121,11 +122,14 @@ export default function ChatConversationsPage({
   const pendingDeletionsRef = useRef(
     new Map<string, PendingConversationDeletion>()
   );
+  const deletedConversationIdsRef = useRef(new Map<string, Set<string>>());
+  const conversationIdsRef = useRef<string[]>([]);
   const locationRef = useRef(location);
   const namespaceIdRef = useRef(namespaceId);
   const activeConversationIdRef = useRef(activeConversationId);
   const visibleConversationIdRef = useRef(visibleConversationId);
   const copilotConversationIdRef = useRef(copilotConversationId);
+  conversationIdsRef.current = data.data.map(conversation => conversation.id);
   locationRef.current = location;
   namespaceIdRef.current = namespaceId;
   activeConversationIdRef.current = activeConversationId;
@@ -145,6 +149,7 @@ export default function ChatConversationsPage({
             );
       pendingDeletionsRef.current.set(conversationId, {
         namespaceId,
+        conversationIds: visibleIds,
         nextConversation,
         pathname: location.pathname,
       });
@@ -162,10 +167,42 @@ export default function ChatConversationsPage({
     pendingDeletionsRef.current.delete(removedConversationId);
 
     const deletionNamespaceId = pendingDeletion?.namespaceId ?? namespaceId;
+    const deletedConversationIds =
+      deletedConversationIdsRef.current.get(deletionNamespaceId) ??
+      new Set<string>();
+    deletedConversationIds.add(removedConversationId);
+    deletedConversationIdsRef.current.set(
+      deletionNamespaceId,
+      deletedConversationIds
+    );
     clearDeletedConversationState(deletionNamespaceId, removedConversationId);
     onRemoveDone(removedConversationId);
 
     if (!pendingDeletion) return;
+    const selectAvailableNextConversation = (
+      candidateConversationId: string | null
+    ) => {
+      const latestConversationIds = conversationIdsRef.current;
+      const navigationConversationIds = latestConversationIds.includes(
+        removedConversationId
+      )
+        ? latestConversationIds
+        : pendingDeletion.conversationIds;
+      const remainingConversationIds = navigationConversationIds.filter(
+        conversationId =>
+          conversationId === removedConversationId ||
+          !deletedConversationIds.has(conversationId)
+      );
+      const adjacentId = adjacentConversationId(
+        remainingConversationIds,
+        removedConversationId
+      );
+      if (adjacentId) return adjacentId;
+      return candidateConversationId &&
+        !deletedConversationIds.has(candidateConversationId)
+        ? candidateConversationId
+        : null;
+    };
     const navigateAfterDeletion = (nextConversationId: string | null) => {
       if (namespaceIdRef.current !== deletionNamespaceId) {
         return;
@@ -238,7 +275,11 @@ export default function ChatConversationsPage({
       return;
     }
 
-    void pendingDeletion.nextConversation.then(navigateAfterDeletion);
+    void pendingDeletion.nextConversation.then(candidateConversationId =>
+      navigateAfterDeletion(
+        selectAvailableNextConversation(candidateConversationId)
+      )
+    );
   };
 
   useLayoutEffect(() => {
