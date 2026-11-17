@@ -109,6 +109,25 @@ describe('ThinkingLevelSelector', () => {
     }
   });
 
+  it('keeps Agent 2.1 clickable when only the credits are exhausted', async () => {
+    const onProLocked = jest.fn();
+    const { container, root } = await renderSelector({
+      group: 'default',
+      proLocked: true,
+      onProLocked,
+    });
+    try {
+      const pro = [...container.querySelectorAll('button')].find(button =>
+        button.textContent?.includes('chat.model.pro')
+      );
+      expect(pro?.disabled).toBe(false);
+      await act(async () => pro?.click());
+      expect(onProLocked).toHaveBeenCalledTimes(1);
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
+
   it('disables Agent 1.1 with a tooltip when the composer has images', async () => {
     const { container, root } = await renderSelector({
       group: 'pro',

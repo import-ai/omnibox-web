@@ -18,6 +18,8 @@ import { ResourceConditionRow } from './ResourceConditionRow';
 interface ResourceConditionEditorProps {
   addButtonTooltip?: string;
   canAddCondition: boolean;
+  /** Keep the add button clickable at the limit so the caller can show a paywall. */
+  canUpgrade?: boolean;
   conditionErrors: Record<number, string>;
   conditionListRef?: RefObject<HTMLDivElement | null>;
   conditions: ResourceCondition[];
@@ -38,6 +40,7 @@ interface ResourceConditionEditorProps {
 export function ResourceConditionEditor({
   addButtonTooltip,
   canAddCondition,
+  canUpgrade = false,
   conditionErrors,
   conditionListRef,
   conditions,
@@ -108,7 +111,7 @@ export function ResourceConditionEditor({
                 'h-8 gap-1 px-0 text-sm font-normal'
               )}
               onClick={() => onAddCondition(conditions.length - 1)}
-              disabled={!canAddCondition}
+              disabled={!canAddCondition && !canUpgrade}
             >
               <Plus className="size-4" />
               {t('resource_conditions.add_condition')}

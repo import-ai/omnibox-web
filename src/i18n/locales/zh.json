@@ -6,6 +6,70 @@
   "rename": "重命名",
   "cancel": "取消",
   "close": "关闭",
+  "paywall": {
+    "brand": "小黑 OmniBox",
+    "non_owner_title": "请联系空间所有者升级",
+    "acknowledge": "我知道了",
+    "storage_limit": {
+      "basic": {
+        "title": "已达 5 GB 存储上限",
+        "description": "升级高级版解锁更大空间",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达 50 GB 存储上限",
+        "description": "想存入更多内容，前往投喂小黑",
+        "cta": "购买加油包"
+      }
+    },
+    "credits_limit": {
+      "basic": {
+        "title": "猫粮吃光啦！",
+        "description": "升级高级版，以获得更多猫粮",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "猫粮吃光啦！",
+        "description": "想要投喂小黑，前往购买更多",
+        "cta": "购买加油包"
+      }
+    },
+    "namespace_create": {
+      "title": "已达创建上限",
+      "description": "前往购买更多空间",
+      "cta": "购买新空间"
+    },
+    "search_filter_limit": {
+      "title": "已达 3 条筛选上限",
+      "description": "升级高级版解锁更多筛选条件",
+      "cta": "了解高级版"
+    },
+    "smart_filter_limit": {
+      "title": "已达 3 条筛选上限",
+      "description": "升级高级版解锁更多筛选条件",
+      "cta": "了解高级版"
+    },
+    "rss_link_limit": {
+      "title": "已达订阅链接上限",
+      "description": "升级高级版解锁更多",
+      "cta": "了解高级版"
+    },
+    "smart_folder_limit": {
+      "title": "已达智能文件夹数量上限",
+      "description": "升级高级版解锁更多",
+      "cta": "了解高级版"
+    },
+    "rss_folder_limit": {
+      "title": "已达订阅文件夹数量上限",
+      "description": "升级高级版解锁更多",
+      "cta": "了解高级版"
+    },
+    "namespace_expired": {
+      "title": "空间已到期",
+      "description": "请续费或购买新空间",
+      "cta": "了解高级版"
+    }
+  },
   "ok": "确定",
   "undo": "撤销",
   "no_pages_inside": "内无页面",
@@ -1104,14 +1168,12 @@
       }
     },
     "agent_credits": {
-      "text": "猫粮已用尽，可切换至 Agent 1.1 或购买猫粮",
-      "compact_text": "猫粮不足",
-      "compact_tooltip": "猫粮不足",
+      "compact_text": "猫粮已用尽",
+      "compact_tooltip": "已切换至 Agent 1.1",
       "not_owner": "请联系空间所有者购买猫粮",
       "expand_button": "购买",
-      "tooltip": {
-        "base": "购买或升级后可继续使用 Agent 2.1"
-      }
+      "upgrade_button": "升级",
+      "buy_button": "购买"
     },
     "trial": {
       "not_owner": "请联系空间所有者进行升级"

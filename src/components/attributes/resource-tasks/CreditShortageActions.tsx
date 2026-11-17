@@ -1,8 +1,11 @@
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import useApp from '@/hooks/useApp';
+import { useNamespaceInfo } from '@/hooks/useNamespaceInfo';
+import { NamespaceTier } from '@/interface';
 import { useNamespaceRole } from '@/lib/useNamespaceRole';
 
 export function CreditShortageActions({
@@ -12,7 +15,15 @@ export function CreditShortageActions({
 }) {
   const { t } = useTranslation();
   const app = useApp();
+  const { showPaywall } = usePaywall();
+  const { namespace } = useNamespaceInfo(namespaceId);
   const { role } = useNamespaceRole(namespaceId);
+  const isOwner = namespace?.is_owner ?? role === 'owner';
+  const tier = namespace?.tier ?? NamespaceTier.BASIC;
+  const labelKey =
+    tier === NamespaceTier.PREMIUM
+      ? 'chat.agent_credits.buy_button'
+      : 'chat.agent_credits.upgrade_button';
   return (
     <span className="inline-flex items-center gap-2">
       <Button
@@ -25,10 +36,18 @@ export function CreditShortageActions({
       </Button>
       <UpgradeActionButton
         namespaceId={namespaceId}
-        hasPermission={role === 'owner'}
+        hasPermission={isOwner}
         disabledReason={t('chat.agent_credits.not_owner')}
-        labelKey="chat.agent_credits.expand_button"
-        className="h-6 text-xs"
+        onDeniedPress={() =>
+          showPaywall('credits_limit', {
+            namespaceId,
+            tier,
+            isOwner: false,
+            trigger: 'chat_credit_shortage',
+          })
+        }
+        labelKey={labelKey}
+        className="h-6 bg-blue-500 text-xs text-white hover:bg-blue-600"
       />
     </span>
   );

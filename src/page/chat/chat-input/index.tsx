@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
 import { normalizeResourceMeta } from '@/lib/resourceMeta';
@@ -105,6 +106,7 @@ export default function ChatArea(props: IProps) {
     composerSurface = messages.length > 0 ? 'conversation' : 'home',
   } = props;
   const { t } = useTranslation();
+  const { showPaywall } = usePaywall();
   const {
     config: thinkingConfig,
     selection,
@@ -487,7 +489,14 @@ export default function ChatArea(props: IProps) {
               group={thinkingGroup}
               onGroupChange={next => {
                 if (basicUnsupported && next === 'basic') return;
-                if ((proLocked || proUnsupported) && next === 'pro') return;
+                if (proUnsupported && next === 'pro') return;
+                if (proLocked && next === 'pro') {
+                  showPaywall('credits_limit', {
+                    namespaceId,
+                    trigger: 'chat_thinking_pro',
+                  });
+                  return;
+                }
                 const step = availableThinkingStep(thinkingConfig?.[next], {
                   pro: next === 'default' && (proLocked || proUnsupported),
                   basic: next === 'default' && basicUnsupported,
@@ -498,12 +507,25 @@ export default function ChatArea(props: IProps) {
               value={selection}
               onChange={next => {
                 if (basicUnsupported && next.startsWith('basic.')) return;
+                if (proLocked && next.startsWith('pro.')) {
+                  showPaywall('credits_limit', {
+                    namespaceId,
+                    trigger: 'chat_thinking_pro',
+                  });
+                  return;
+                }
                 changeLevel(next);
               }}
               onLevelCommit={next => {
                 if (basicUnsupported && next.startsWith('basic.')) return;
                 commitLevel(next);
               }}
+              onProLocked={() =>
+                showPaywall('credits_limit', {
+                  namespaceId,
+                  trigger: 'chat_thinking_pro',
+                })
+              }
               proLocked={proLocked}
               proUnsupported={proUnsupported}
               basicUnsupported={basicUnsupported}

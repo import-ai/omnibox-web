@@ -13,14 +13,29 @@ export interface MeNamespaceResponseDto {
 
 export function useNamespaceRole(namespaceId?: string) {
   const [role, setRole] = useState<Role>('member');
+  const [settledFor, setSettledFor] = useState<string | null>(null);
   useEffect(() => {
+    let active = true;
+    setSettledFor(null);
     if (namespaceId) {
       http
         .get(`namespaces/${namespaceId}/me`)
-        .then((response: MeNamespaceResponseDto) => setRole(response.role));
+        .then((response: MeNamespaceResponseDto) => {
+          if (active) setRole(response.role);
+        })
+        .catch(() => {
+          if (active) setRole('member');
+        })
+        .finally(() => {
+          if (active) setSettledFor(namespaceId);
+        });
     }
+    return () => {
+      active = false;
+    };
   }, [namespaceId]);
   return {
     role,
+    loading: !!namespaceId && settledFor !== namespaceId,
   };
 }

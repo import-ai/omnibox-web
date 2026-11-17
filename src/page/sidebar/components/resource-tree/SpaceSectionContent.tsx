@@ -15,6 +15,7 @@ import { SmartFolderDefaultIcon } from '@/assets/icons/SmartFolderDefaultIcon';
 import { BehaviorExposure } from '@/components/BehaviorExposure';
 import { ContextMenuContent } from '@/components/ContextMenuContent';
 import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import {
   Tooltip,
   TooltipContent,
@@ -43,17 +44,14 @@ import {
 } from '@/components/ui/Sidebar';
 import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
-import { SpaceType } from '@/interface';
+import { type Namespace, SpaceType } from '@/interface';
 import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
 import { useSpaceDrop } from '@/page/sidebar/hooks/useSpaceDrop';
-import {
-  getRssFolderQuotaTooltipKey,
-  type RssFolderQuotaExhausted,
-} from '@/page/sidebar/rssFolderQuota';
+import type { RssFolderQuotaExhausted } from '@/page/sidebar/rssFolderQuota';
 import type { TreeNode } from '@/page/sidebar/store';
 import { useSidebarStore } from '@/page/sidebar/store';
 import { isManagedChildrenNode } from '@/page/sidebar/store/utils';
@@ -64,7 +62,6 @@ import {
 import { flattenExpandedResources } from '@/page/sidebar/virtualResourceTree';
 import type { ResourceSortOptions } from '@/service/resource';
 
-import { DisabledMenuTooltip } from './DisabledMenuTooltip';
 import { useMenuTriggerPress } from './menuTriggerPress';
 import ResourceNode from './ResourceNode';
 import { ResourceSortMenu } from './ResourceSortMenu';
@@ -116,6 +113,7 @@ export function SpaceSectionContent({
   onResourceSortChange,
 }: SpaceSectionContentProps) {
   const { t } = useTranslation();
+  const { showPaywall } = usePaywall();
   const navigate = useNavigate();
   const isTouch = useIsTouch();
   const menuTriggerPress = useMenuTriggerPress();
@@ -153,23 +151,7 @@ export function SpaceSectionContent({
   };
 
   const smartFolderDisabled = smartFolderQuotaExhausted[spaceType] === true;
-  const smartFolderDisabledTip = smartFolderDisabled
-    ? t(
-        spaceType === 'teamspace'
-          ? 'smart_folder.create.team_quota_exhausted'
-          : 'smart_folder.create.personal_quota_exhausted'
-      )
-    : undefined;
-
   const rssFolderDisabled = rssFolderQuotaExhausted[spaceType] === true;
-  const rssFolderTooltipKey = getRssFolderQuotaTooltipKey(
-    hasTeamspace,
-    rssFolderQuotaExhausted,
-    spaceType
-  );
-  const rssFolderDisabledTip = rssFolderTooltipKey
-    ? t(rssFolderTooltipKey)
-    : undefined;
 
   const {
     ref: dropRef,
@@ -208,13 +190,29 @@ export function SpaceSectionContent({
   };
 
   const handleCreateSmartFolder = () => {
-    if (smartFolderDisabled) return;
+    if (smartFolderDisabled) {
+      showPaywall('smart_folder_limit', {
+        namespaceId,
+        tier: currentNamespace?.tier,
+        isOwner: currentNamespace?.is_owner,
+        trigger: 'sidebar_smart_folder_create',
+      });
+      return;
+    }
     trackButtonClick('sidebar_smart_folder_create', entryTrackProps);
     onCreateSmartFolder(spaceType);
   };
 
   const handleCreateRssFolder = () => {
-    if (rssFolderDisabled) return;
+    if (rssFolderDisabled) {
+      showPaywall('rss_folder_limit', {
+        namespaceId,
+        tier: currentNamespace?.tier,
+        isOwner: currentNamespace?.is_owner,
+        trigger: 'sidebar_rss_folder_create',
+      });
+      return;
+    }
     trackButtonClick('sidebar_feed_create', entryTrackProps);
     onCreateRssFolder(spaceType);
   };
@@ -332,68 +330,38 @@ export function SpaceSectionContent({
                       {t('actions.create_folder')}
                     </DropdownMenuItem>
                   </BehaviorExposure>
-                  <DisabledMenuTooltip content={rssFolderDisabledTip}>
-                    <BehaviorExposure
-                      target="resource_creation_entry"
-                      props={{
-                        entry: 'create_rss_folder',
-                        space_type: spaceType,
-                        location: 'root_menu',
-                      }}
+                  <BehaviorExposure
+                    target="resource_creation_entry"
+                    props={{
+                      entry: 'create_rss_folder',
+                      space_type: spaceType,
+                      location: 'root_menu',
+                    }}
+                  >
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateRssFolder}
                     >
-                      <DropdownMenuItem
-                        className={cn(
-                          menuItemClass,
-                          rssFolderDisabled &&
-                            'cursor-not-allowed text-muted-foreground opacity-50'
-                        )}
-                        onClick={
-                          rssFolderDisabled ? undefined : handleCreateRssFolder
-                        }
-                        onSelect={event => {
-                          if (rssFolderDisabled) {
-                            event.preventDefault();
-                          }
-                        }}
-                        aria-disabled={rssFolderDisabled}
-                      >
-                        <RssFolderDefaultIcon className={menuIconClass} />
-                        {t('actions.create_rss_folder')}
-                      </DropdownMenuItem>
-                    </BehaviorExposure>
-                  </DisabledMenuTooltip>
-                  <DisabledMenuTooltip content={smartFolderDisabledTip}>
-                    <BehaviorExposure
-                      target="resource_creation_entry"
-                      props={{
-                        entry: 'create_smart_folder',
-                        space_type: spaceType,
-                        location: 'root_menu',
-                      }}
+                      <RssFolderDefaultIcon className={menuIconClass} />
+                      {t('actions.create_rss_folder')}
+                    </DropdownMenuItem>
+                  </BehaviorExposure>
+                  <BehaviorExposure
+                    target="resource_creation_entry"
+                    props={{
+                      entry: 'create_smart_folder',
+                      space_type: spaceType,
+                      location: 'root_menu',
+                    }}
+                  >
+                    <DropdownMenuItem
+                      className={menuItemClass}
+                      onClick={handleCreateSmartFolder}
                     >
-                      <DropdownMenuItem
-                        className={cn(
-                          menuItemClass,
-                          smartFolderDisabled &&
-                            'cursor-not-allowed text-muted-foreground opacity-50'
-                        )}
-                        onClick={
-                          smartFolderDisabled
-                            ? undefined
-                            : handleCreateSmartFolder
-                        }
-                        onSelect={event => {
-                          if (smartFolderDisabled) {
-                            event.preventDefault();
-                          }
-                        }}
-                        aria-disabled={smartFolderDisabled}
-                      >
-                        <SmartFolderDefaultIcon className={menuIconClass} />
-                        {t('actions.create_smart_folder')}
-                      </DropdownMenuItem>
-                    </BehaviorExposure>
-                  </DisabledMenuTooltip>
+                      <SmartFolderDefaultIcon className={menuIconClass} />
+                      {t('actions.create_smart_folder')}
+                    </DropdownMenuItem>
+                  </BehaviorExposure>
                   <BehaviorExposure
                     target="resource_creation_entry"
                     props={{
@@ -474,64 +442,38 @@ export function SpaceSectionContent({
               {t('actions.create_folder')}
             </ContextMenuItem>
           </BehaviorExposure>
-          <DisabledMenuTooltip content={rssFolderDisabledTip}>
-            <BehaviorExposure
-              target="resource_creation_entry"
-              props={{
-                entry: 'create_rss_folder',
-                space_type: spaceType,
-                location: 'root_menu',
-              }}
+          <BehaviorExposure
+            target="resource_creation_entry"
+            props={{
+              entry: 'create_rss_folder',
+              space_type: spaceType,
+              location: 'root_menu',
+            }}
+          >
+            <ContextMenuItem
+              className={menuItemClass}
+              onClick={handleCreateRssFolder}
             >
-              <ContextMenuItem
-                className={cn(
-                  menuItemClass,
-                  rssFolderDisabled &&
-                    'cursor-not-allowed text-muted-foreground opacity-50'
-                )}
-                onClick={rssFolderDisabled ? undefined : handleCreateRssFolder}
-                onSelect={event => {
-                  if (rssFolderDisabled) {
-                    event.preventDefault();
-                  }
-                }}
-                aria-disabled={rssFolderDisabled}
-              >
-                <RssFolderDefaultIcon className={menuIconClass} />
-                {t('actions.create_rss_folder')}
-              </ContextMenuItem>
-            </BehaviorExposure>
-          </DisabledMenuTooltip>
-          <DisabledMenuTooltip content={smartFolderDisabledTip}>
-            <BehaviorExposure
-              target="resource_creation_entry"
-              props={{
-                entry: 'create_smart_folder',
-                space_type: spaceType,
-                location: 'root_menu',
-              }}
+              <RssFolderDefaultIcon className={menuIconClass} />
+              {t('actions.create_rss_folder')}
+            </ContextMenuItem>
+          </BehaviorExposure>
+          <BehaviorExposure
+            target="resource_creation_entry"
+            props={{
+              entry: 'create_smart_folder',
+              space_type: spaceType,
+              location: 'root_menu',
+            }}
+          >
+            <ContextMenuItem
+              className={menuItemClass}
+              onClick={handleCreateSmartFolder}
             >
-              <ContextMenuItem
-                className={cn(
-                  menuItemClass,
-                  smartFolderDisabled &&
-                    'cursor-not-allowed text-muted-foreground opacity-50'
-                )}
-                onClick={
-                  smartFolderDisabled ? undefined : handleCreateSmartFolder
-                }
-                onSelect={event => {
-                  if (smartFolderDisabled) {
-                    event.preventDefault();
-                  }
-                }}
-                aria-disabled={smartFolderDisabled}
-              >
-                <SmartFolderDefaultIcon className={menuIconClass} />
-                {t('actions.create_smart_folder')}
-              </ContextMenuItem>
-            </BehaviorExposure>
-          </DisabledMenuTooltip>
+              <SmartFolderDefaultIcon className={menuIconClass} />
+              {t('actions.create_smart_folder')}
+            </ContextMenuItem>
+          </BehaviorExposure>
           <BehaviorExposure
             target="resource_creation_entry"
             props={{

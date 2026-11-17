@@ -6,6 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/omnibox/Select';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
@@ -34,6 +35,7 @@ import { useCreateSmartFolderDialogState } from './useCreateSmartFolderDialogSta
 
 export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
   const { open, hasTeamspace = true, confirmText, currentNamespace } = props;
+  const { showPaywall } = usePaywall();
   const state = useCreateSmartFolderDialogState(props);
   const {
     t,
@@ -212,6 +214,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
               conditionErrors={conditionErrors}
               conditionListRef={conditionListRef}
               canAddCondition={canAddCondition}
+              canUpgrade={showUpgradeButton}
               addButtonTooltip={disableAddMessage}
               headerClassName={cn(
                 resourceConditionNameRowClass,
@@ -281,6 +284,14 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                         namespaceId={namespaceId}
                         hasPermission={currentNamespace?.is_owner !== false}
                         disabledReason={t('chat.trial.not_owner')}
+                        onDeniedPress={() =>
+                          showPaywall('smart_filter_limit', {
+                            namespaceId,
+                            tier: currentNamespace?.tier,
+                            isOwner: false,
+                            trigger: 'smart_folder_filter_upgrade',
+                          })
+                        }
                         trackName="sidebar_plan_upgrade"
                         entry="smart_folder_dialog"
                       />

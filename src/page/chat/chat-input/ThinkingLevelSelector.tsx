@@ -32,6 +32,7 @@ interface Props {
   config: ThinkingConfig;
   group: ThinkingGroup;
   onGroupChange: (group: ThinkingGroup) => void;
+  onProLocked?: () => void;
   value: ThinkingSelection;
   onChange: (level: string) => void;
   onLevelCommit?: (level: string) => void;
@@ -58,6 +59,7 @@ export default function ThinkingLevelSelector({
   surface,
   group,
   onGroupChange,
+  onProLocked,
   value,
   onChange,
   onLevelCommit,
@@ -73,7 +75,7 @@ export default function ThinkingLevelSelector({
   if (!options) return null;
   const visibleLevels = options.levels.filter(item => {
     if (group !== 'default') return true;
-    if ((proLocked || proUnsupported) && item.edition === 'pro') return false;
+    if (proUnsupported && item.edition === 'pro') return false;
     if (basicUnsupported && item.edition === 'basic') return false;
     return true;
   });
@@ -148,7 +150,7 @@ export default function ThinkingLevelSelector({
               .filter(item => config[item])
               .map(item => {
                 const disabledReason =
-                  (proLocked || proUnsupported) && item === 'pro'
+                  proUnsupported && item === 'pro'
                     ? t('chat.agent_credits.compact_tooltip')
                     : basicUnsupported && item === 'basic'
                       ? t('chat.image.agent_1_1_unsupported')
@@ -161,6 +163,11 @@ export default function ThinkingLevelSelector({
                     className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-left text-sm hover:bg-accent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={event => {
                       trackButtonClick('chat_model_select', { surface });
+                      if (proLocked && item === 'pro') {
+                        onProLocked?.();
+                        setModelsOpen(false);
+                        return;
+                      }
                       const handleClick = () => {
                         onGroupChange(item);
                         setModelsOpen(false);
@@ -302,6 +309,10 @@ export default function ThinkingLevelSelector({
                     surface,
                     level: next,
                   });
+                  if (proLocked && next.startsWith('pro.')) {
+                    onProLocked?.();
+                    return;
+                  }
                   onChange(next);
                 }}
                 onPointerUp={event => commitSliderValue(event.currentTarget)}

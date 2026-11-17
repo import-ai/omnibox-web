@@ -1,9 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
+import { usePaywall } from '@/components/paywall/paywallContext';
 import {
   UpgradeActionButton,
   UpgradeUsageTooltip,
 } from '@/components/upgrade-action-button';
+import { useNamespaceInfo } from '@/hooks/useNamespaceInfo';
+import { NamespaceTier } from '@/interface';
 import { useNamespaceRole } from '@/lib/useNamespaceRole.ts';
 import { cn } from '@/lib/utils';
 import type { AgentCreditsResponseDto } from '@/page/chat/agent-credits/useAgentCredits';
@@ -18,8 +21,15 @@ export function AgentCredits({
   compact?: boolean;
 }) {
   const { t } = useTranslation();
+  const { showPaywall } = usePaywall();
+  const { namespace } = useNamespaceInfo(namespaceId);
   const { role } = useNamespaceRole(namespaceId);
-  const hasUpgradePermission: boolean = role === 'owner';
+  const tier = namespace?.tier ?? NamespaceTier.BASIC;
+  const isOwner = namespace?.is_owner ?? role === 'owner';
+  const labelKey =
+    tier === NamespaceTier.PREMIUM
+      ? 'chat.agent_credits.buy_button'
+      : 'chat.agent_credits.upgrade_button';
 
   if (!agentCredits || agentCredits.agent_credits_remain > 0) {
     return null;
@@ -39,18 +49,26 @@ export function AgentCredits({
       {!compact && (
         <div className="hidden min-w-0 text-right sm:block">
           <UpgradeUsageTooltip
-            textKey="chat.agent_credits.text"
-            tooltipItems={[t('chat.agent_credits.tooltip.base')]}
+            textKey="chat.agent_credits.compact_text"
+            tooltipItems={[t('chat.agent_credits.compact_tooltip')]}
             trackName="chat_usage_open"
           />
         </div>
       )}
       <UpgradeActionButton
         namespaceId={namespaceId}
-        hasPermission={hasUpgradePermission}
+        hasPermission={isOwner}
         disabledReason={t('chat.agent_credits.not_owner')}
-        className="h-5 shrink-0 text-sm"
-        labelKey="chat.agent_credits.expand_button"
+        onDeniedPress={() =>
+          showPaywall('credits_limit', {
+            namespaceId,
+            tier,
+            isOwner: false,
+            trigger: 'chat_agent_credits',
+          })
+        }
+        className="h-5 shrink-0 bg-blue-500 text-sm text-white hover:bg-blue-600"
+        labelKey={labelKey}
         trackName="chat_plan_upgrade"
         entry="chat_agent_credits"
       />

@@ -3,6 +3,7 @@ import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/Button';
 import ActionDialog from '@/components/invite-dialog/ActionDialog';
 import { iconButtonHoverClassName } from '@/components/omnibox/IconButton';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
@@ -21,6 +22,7 @@ import { useCreateRssFolderDialogState } from './useCreateRssFolderDialogState';
 export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
   const { open, confirmText, currentNamespace } = props;
   const state = useCreateRssFolderDialogState(props);
+  const { showPaywall } = usePaywall();
   const {
     t,
     namespaceId,
@@ -120,6 +122,14 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                 namespaceId={namespaceId}
                 hasPermission={currentNamespace?.is_owner !== false}
                 disabledReason={t('chat.trial.not_owner')}
+                onDeniedPress={() =>
+                  showPaywall('rss_link_limit', {
+                    namespaceId,
+                    tier: currentNamespace?.tier,
+                    isOwner: false,
+                    trigger: 'rss_folder_upgrade',
+                  })
+                }
                 trackName="sidebar_plan_upgrade"
                 entry="rss_folder_dialog"
               />
@@ -210,8 +220,21 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                     iconButtonHoverClassName,
                     'h-8 gap-1 px-0 text-sm font-normal'
                   )}
-                  onClick={addLink}
-                  disabled={!canAddLink}
+                  onClick={() => {
+                    if (!canAddLink) {
+                      if (showUpgradeButton) {
+                        showPaywall('rss_link_limit', {
+                          namespaceId,
+                          tier: currentNamespace?.tier,
+                          isOwner: currentNamespace?.is_owner,
+                          trigger: 'rss_folder_add_link',
+                        });
+                      }
+                      return;
+                    }
+                    addLink();
+                  }}
+                  disabled={!canAddLink && !showUpgradeButton}
                 >
                   <Plus className="size-4" />
                   {t('rss_folder.create.add_link')}

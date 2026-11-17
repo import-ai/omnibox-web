@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/omnibox/Select';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { UpgradeActionButton } from '@/components/upgrade-action-button';
@@ -320,11 +321,26 @@ export function SearchFilterPanel({
   remainingConditionCount,
 }: SearchFilterPanelProps) {
   const { t } = useTranslation();
+  const { showPaywall } = usePaywall();
   const showUpgradeButton =
     maxConditionCount <= getConditionLimitValue('basic');
   const addButtonTooltip = t(
     getSearchConditionLimitMessageKey(maxConditionCount)
   );
+
+  const handleAddCondition = () => {
+    if (canAddCondition) {
+      onAddCondition();
+      return;
+    }
+    if (!showUpgradeButton) return;
+    showPaywall('search_filter_limit', {
+      namespaceId,
+      tier: currentNamespace?.tier,
+      isOwner: currentNamespace?.is_owner,
+      trigger: 'search_filter',
+    });
+  };
 
   return (
     <aside className={searchFilterPanelClassName}>
@@ -356,6 +372,14 @@ export function SearchFilterPanel({
               namespaceId={namespaceId}
               hasPermission={currentNamespace?.is_owner !== false}
               disabledReason={t('chat.trial.not_owner')}
+              onDeniedPress={() =>
+                showPaywall('search_filter_limit', {
+                  namespaceId,
+                  tier: currentNamespace?.tier,
+                  isOwner: false,
+                  trigger: 'search_filter_upgrade',
+                })
+              }
               trackName="search_plan_upgrade"
               entry="search_filter"
             />
@@ -424,8 +448,8 @@ export function SearchFilterPanel({
                 iconButtonHoverClassName,
                 'h-5 w-fit gap-1 px-0 text-sm font-normal'
               )}
-              disabled={!canAddCondition}
-              onClick={onAddCondition}
+              disabled={!canAddCondition && !showUpgradeButton}
+              onClick={handleAddCondition}
             >
               <Plus className="size-4" />
               {t('resource_conditions.add_condition')}

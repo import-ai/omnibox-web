@@ -6,6 +6,70 @@
   "rename": "Rename",
   "cancel": "Cancel",
   "close": "Close",
+  "paywall": {
+    "brand": "OmniBox",
+    "non_owner_title": "Contact the namespace owner to upgrade",
+    "acknowledge": "Got it",
+    "storage_limit": {
+      "basic": {
+        "title": "You've reached the 5 GB storage limit",
+        "description": "Upgrade to Premium to unlock more space",
+        "cta": "Explore Premium"
+      },
+      "premium": {
+        "title": "You've reached the 50 GB storage limit",
+        "description": "To save more, feed the black cat",
+        "cta": "Buy a Kibble Pack"
+      }
+    },
+    "credits_limit": {
+      "basic": {
+        "title": "Kibble's all gone!",
+        "description": "Upgrade to Premium for more Kibble",
+        "cta": "Explore Premium"
+      },
+      "premium": {
+        "title": "Kibble's all gone!",
+        "description": "To feed the black cat, buy more Kibble",
+        "cta": "Buy a Kibble Pack"
+      }
+    },
+    "namespace_create": {
+      "title": "Namespace limit reached",
+      "description": "Purchase more namespaces",
+      "cta": "Buy a namespace"
+    },
+    "search_filter_limit": {
+      "title": "3-filter limit reached",
+      "description": "Upgrade to Premium for more filters",
+      "cta": "Explore Premium"
+    },
+    "smart_filter_limit": {
+      "title": "3-filter limit reached",
+      "description": "Upgrade to Premium for more filters",
+      "cta": "Explore Premium"
+    },
+    "rss_link_limit": {
+      "title": "Subscription link limit reached",
+      "description": "Upgrade to Premium to unlock more",
+      "cta": "Explore Premium"
+    },
+    "smart_folder_limit": {
+      "title": "Smart folder limit reached",
+      "description": "Upgrade to Premium to unlock more",
+      "cta": "Explore Premium"
+    },
+    "rss_folder_limit": {
+      "title": "Subscription folder limit reached",
+      "description": "Upgrade to Premium to unlock more",
+      "cta": "Explore Premium"
+    },
+    "namespace_expired": {
+      "title": "Namespace expired",
+      "description": "Renew or purchase a new namespace",
+      "cta": "Explore Premium"
+    }
+  },
   "ok": "OK",
   "undo": "Undo",
   "no_pages_inside": "No pages inside",
@@ -1103,14 +1167,12 @@
       }
     },
     "agent_credits": {
-      "text": "Kibble is exhausted. Switch to Agent 1.1 or buy Kibble.",
-      "compact_text": "Insufficient Kibble",
-      "compact_tooltip": "Agent 2.1 Kibble used up",
+      "compact_text": "Kibble used up",
+      "compact_tooltip": "Switched to Agent 1.1",
       "not_owner": "Please contact the namespace owner to purchase Kibble",
       "expand_button": "Purchase",
-      "tooltip": {
-        "base": "Buy or upgrade to keep using Agent 2.1"
-      }
+      "upgrade_button": "Upgrade",
+      "buy_button": "Buy"
     },
     "trial": {
       "not_owner": "Please contact namespace owner to upgrade"
