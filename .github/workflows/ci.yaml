@@ -72,6 +72,9 @@ jobs:
       - name: Test namespace member count refresh
         run: pnpm exec jest src/hooks/useNamespaceMember.test.tsx --runInBand
 
+      - name: Test task type labels
+        run: pnpm exec jest src/page/settings/tabs/members/tasks/TaskTypeBadge.test.tsx src/page/settings/tabs/members/tasks/TaskList.test.tsx --runInBand
+
       - name: Test anonymous captcha entry
         run: pnpm exec jest src/page/captcha/CaptchaPage.test.tsx src/hooks/useCaptcha.test.tsx src/lib/captcha.test.ts --runInBand
 

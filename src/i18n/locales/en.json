@@ -1335,6 +1335,7 @@
       "file_reader_image": "Image Parsing",
       "message_index": "Message Index",
       "upsert_message_index": "Message Index",
+      "update_memory": "Update Memory",
       "delete_conversation": "Delete Chat",
       "extract_tags": "Gen Tags",
       "generate_title": "Gen Title",
