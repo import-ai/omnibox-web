@@ -128,6 +128,110 @@ it('refreshes the loaded range after a rename or deletion', async () => {
   expect(context().list.data.data[0].id).toBe('chat-1');
 });
 
+it('removes a deleted conversation immediately and refreshes the list', async () => {
+  rememberProvisionalConversation(
+    { userId: 'user-a', namespaceId: 'space' },
+    {
+      id: 'chat-0',
+      title: 'Provisional chat',
+      created_at: '2026-11-16T00:00:00.000Z',
+    }
+  );
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(1, 9, 24));
+  await act(async () => {
+    mockApp.fire('chat:conversation:deleted', {
+      namespaceId: 'space',
+      conversationId: 'chat-0',
+    });
+  });
+
+  expect(context().list.data.data[0].id).toBe('chat-1');
+  expect(context().list.data.data).toHaveLength(9);
+  expect(context().list.data.data.some(item => item.id === 'chat-0')).toBe(
+    false
+  );
+  expect(context().list.data.total).toBe(24);
+  expect(get.mock.calls[3][0]).toContain('offset=0&limit=10');
+});
+
+it('keeps a deleted conversation out while provisional updates race the refresh', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+
+  let resolveRefresh!: (value: ReturnType<typeof page>) => void;
+  get.mockResolvedValueOnce({}).mockReturnValueOnce(
+    new Promise(resolve => {
+      resolveRefresh = resolve;
+    })
+  );
+  await act(async () => {
+    mockApp.fire('chat:conversation:deleted', {
+      namespaceId: 'space',
+      conversationId: 'chat-0',
+    });
+  });
+  await act(async () => {
+    mockApp.fire('chat:conversation:provisional', {
+      namespaceId: 'space',
+      userId: 'user-a',
+      conversation: {
+        id: 'chat-new',
+        title: 'New chat',
+        created_at: '2026-11-16T00:00:00.000Z',
+      },
+    });
+  });
+
+  expect(context().list.data.data[0].id).toBe('chat-new');
+  expect(context().list.data.data.some(item => item.id === 'chat-0')).toBe(
+    false
+  );
+  await act(async () => resolveRefresh(page(1, 9, 24)));
+});
+
+it('removes the sidebar conversation before its refresh finishes', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+
+  let resolveRefresh!: (value: ReturnType<typeof page>) => void;
+  get.mockResolvedValueOnce({}).mockReturnValueOnce(
+    new Promise(resolve => {
+      resolveRefresh = resolve;
+    })
+  );
+  await act(async () => context().onRemoveDone('chat-0'));
+
+  expect(context().list.data.data[0].id).toBe('chat-1');
+  expect(context().list.data.data.some(item => item.id === 'chat-0')).toBe(
+    false
+  );
+  expect(context().remove.open).toBe(false);
+  await act(async () => resolveRefresh(page(1, 9, 24)));
+});
+
+it('does not close a newer delete dialog when an earlier deletion finishes', async () => {
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => root.render(<Probe />));
+
+  await act(async () => {
+    context().onRemove({ id: 'chat-1', title: 'Chat 1', open: true });
+  });
+  await act(async () => {
+    context().onRemove({ id: 'chat-2', title: 'Chat 2', open: true });
+  });
+  get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
+  await act(async () => context().onRemoveDone('chat-1'));
+
+  expect(context().remove).toEqual({
+    id: 'chat-2',
+    title: 'Chat 2',
+    open: true,
+  });
+});
+
 it('keeps ordinary pagination on the standalone history page', async () => {
   get.mockResolvedValueOnce({}).mockResolvedValueOnce(page(0, 10));
   await act(async () => root.render(<Probe compact={false} />));

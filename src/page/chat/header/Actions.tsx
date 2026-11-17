@@ -32,7 +32,12 @@ import { resetChatForNamespaceSwitch } from '@/lib/chatBridge';
 import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { clearChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
+import {
+  clearDeletedConversationState,
+  resolveAdjacentConversationId,
+} from '@/page/chat/conversations/conversationNavigation';
 import { CONVERSATION_SHARE_OPEN_EVENT } from '@/page/chat/share/conversationShareEvents';
+import { useCopilotStore } from '@/page/copilot/copilotStore';
 import ExpandCopilotButton from '@/page/copilot/ExpandCopilotButton';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { useMenuTriggerPress } from '@/page/sidebar/components/resource-tree/menuTriggerPress';
@@ -47,6 +52,12 @@ interface IProps {
   onChatCreate?: () => void;
   onChatHistory?: () => void;
   onChatSearch?: () => void;
+}
+
+interface DeleteTarget {
+  conversationId: string;
+  namespaceId: string;
+  title: string;
 }
 
 export default function Actions(props: IProps) {
@@ -64,12 +75,53 @@ export default function Actions(props: IProps) {
   const app = useApp();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [remove, onRemove] = useState(false);
+  const resetCopilot = useCopilotStore(state => state.reset);
+  const [removeTarget, setRemoveTarget] = useState<DeleteTarget | null>(null);
+  const [removeOpen, setRemoveOpen] = useState(false);
   const menuTriggerPress = useMenuTriggerPress();
   const renaming = useRef(false);
+  const nextConversationsRef = useRef(
+    new Map<string, Promise<string | null>>()
+  );
+  const namespaceIdRef = useRef(namespaceId);
+  const visibleConversationId = conversationId;
+  const visibleConversationIdRef = useRef(visibleConversationId);
+  namespaceIdRef.current = namespaceId;
+  visibleConversationIdRef.current = visibleConversationId;
 
   const handleDeleteSuccess = () => {
-    navigateToResource(navigate, `/${namespaceId}/chat/conversations`);
+    if (!removeTarget) return;
+    const target = removeTarget;
+    const nextConversation =
+      nextConversationsRef.current.get(target.conversationId) ??
+      Promise.resolve(null);
+    nextConversationsRef.current.delete(target.conversationId);
+    clearDeletedConversationState(target.namespaceId, target.conversationId);
+    app.fire('chat:conversation:deleted', {
+      namespaceId: target.namespaceId,
+      conversationId: target.conversationId,
+    });
+    if (
+      visibleConversationIdRef.current !== target.conversationId ||
+      namespaceIdRef.current !== target.namespaceId
+    ) {
+      return;
+    }
+    void nextConversation.then(nextConversationId => {
+      if (
+        visibleConversationIdRef.current !== target.conversationId ||
+        namespaceIdRef.current !== target.namespaceId
+      ) {
+        return;
+      }
+      resetCopilot(target.namespaceId);
+      navigateToResource(
+        navigate,
+        nextConversationId
+          ? `/${target.namespaceId}/chat/${nextConversationId}`
+          : `/${target.namespaceId}/chat`
+      );
+    });
   };
 
   const onChatHistory = () => {
@@ -97,7 +149,19 @@ export default function Actions(props: IProps) {
       return;
     }
     if (id === 'delete') {
-      onRemove(true);
+      const target = {
+        conversationId,
+        namespaceId,
+        title: chatTitle,
+      };
+      setRemoveTarget(target);
+      nextConversationsRef.current.set(
+        conversationId,
+        resolveAdjacentConversationId(namespaceId, conversationId).catch(
+          () => null
+        )
+      );
+      setRemoveOpen(true);
       return;
     }
   };
@@ -234,15 +298,15 @@ export default function Actions(props: IProps) {
         </DropdownMenu>
       )}
       <ConfirmDeleteDialog
-        open={remove}
+        open={removeOpen}
         targetName={t('chat.conversations.name')}
-        itemTitle={chatTitle}
-        deleteUrl={`/namespaces/${namespaceId}/conversations/${conversationId}`}
+        itemTitle={removeTarget?.title ?? ''}
+        deleteUrl={`/namespaces/${removeTarget?.namespaceId ?? namespaceId}/conversations/${removeTarget?.conversationId ?? ''}`}
         successMessage={t('chat.conversations.deleted')}
         successDescription={t('chat.conversations.deleted_description')}
         cancelTrackName="chat_conversation_cancel"
         confirmTrackName="chat_conversation_confirm"
-        onOpenChange={onRemove}
+        onOpenChange={setRemoveOpen}
         onSuccess={handleDeleteSuccess}
       />
     </div>

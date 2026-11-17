@@ -12,12 +12,14 @@ import en from '@/i18n/locales/en.json';
 import zh from '@/i18n/locales/zh.json';
 import { http } from '@/lib/request';
 import Actions from '@/page/chat/header/Actions';
+import { useCopilotStore } from '@/page/copilot/copilotStore';
 
 import RemoveHistory from './RemoveHistory';
 
 const navigate = jest.fn();
 const onFinish = jest.fn();
 const onOpenChange = jest.fn();
+const mockFire = jest.fn();
 
 jest.mock('react', () => {
   const react = jest.requireActual<typeof import('react')>('react');
@@ -26,7 +28,7 @@ jest.mock('react', () => {
 jest.mock('react-router-dom', () => ({ useNavigate: () => navigate }));
 jest.mock('@/hooks/useApp', () => ({
   __esModule: true,
-  default: () => ({ fire: jest.fn() }),
+  default: () => ({ fire: mockFire }),
 }));
 jest.mock('@/lib/chatBridge', () => ({
   resetChatForNamespaceSwitch: jest.fn(),
@@ -36,7 +38,7 @@ jest.mock('@/page/copilot/ExpandCopilotButton', () => ({
   default: () => null,
 }));
 jest.mock('@/lib/request', () => ({
-  http: { delete: jest.fn(), post: jest.fn() },
+  http: { delete: jest.fn(), get: jest.fn(), post: jest.fn() },
 }));
 jest.mock('sonner', () => ({
   toast: Object.assign(jest.fn(), { success: jest.fn(), error: jest.fn() }),
@@ -54,6 +56,7 @@ Object.assign(globalThis, {
 describe('confirmed conversation deletion', () => {
   let container: HTMLDivElement;
   let root: Root;
+  let userSequence = 0;
   const i18n = createInstance();
 
   beforeAll(async () => {
@@ -68,7 +71,18 @@ describe('confirmed conversation deletion', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    userSequence += 1;
+    localStorage.setItem('uid', `user-${userSequence}`);
+    useCopilotStore.getState().reset('space');
     jest.mocked(http.delete).mockResolvedValue({});
+    jest.mocked(http.get).mockResolvedValue({
+      total: 3,
+      data: [
+        { id: 'conversation', title: 'Test conversation' },
+        { id: 'next-conversation', title: 'Next conversation' },
+        { id: 'previous-conversation', title: 'Previous conversation' },
+      ],
+    });
     jest.mocked(http.post).mockResolvedValue({ id: 'conversation' });
     container = document.createElement('div');
     document.body.append(container);
@@ -80,7 +94,12 @@ describe('confirmed conversation deletion', () => {
     container.remove();
   });
 
-  async function open(entry: 'header' | 'history', language = 'en') {
+  async function open(
+    entry: 'header' | 'history',
+    language = 'en',
+    conversationId = 'conversation',
+    title = 'Test conversation'
+  ) {
     await act(async () => {
       await i18n.changeLanguage(language);
       root.render(
@@ -90,15 +109,15 @@ describe('confirmed conversation deletion', () => {
               <Actions
                 homePage={false}
                 conversationsPage={false}
-                chatTitle="Test conversation"
+                chatTitle={title}
                 namespaceId="space"
-                conversationId="conversation"
+                conversationId={conversationId}
               />
             ) : (
               <RemoveHistory
                 data={{
-                  id: 'conversation',
-                  title: 'Test conversation',
+                  id: conversationId,
+                  title,
                   open: true,
                 }}
                 namespaceId="space"
@@ -174,7 +193,11 @@ describe('confirmed conversation deletion', () => {
       );
       expect(http.post).not.toHaveBeenCalled();
       if (entry === 'header') {
-        expect(navigate).toHaveBeenCalledWith('/space/chat/conversations', {
+        expect(mockFire).toHaveBeenCalledWith('chat:conversation:deleted', {
+          namespaceId: 'space',
+          conversationId: 'conversation',
+        });
+        expect(navigate).toHaveBeenCalledWith('/space/chat/next-conversation', {
           flushSync: true,
         });
       } else {
@@ -182,6 +205,215 @@ describe('confirmed conversation deletion', () => {
       }
     }
   );
+
+  it.each([
+    [
+      'falls back to the previous conversation at the end of the list',
+      [
+        { id: 'previous-conversation', title: 'Previous conversation' },
+        { id: 'conversation', title: 'Test conversation' },
+      ],
+      '/space/chat/previous-conversation',
+    ],
+    [
+      'opens chat home when the deleted conversation is the only one',
+      [{ id: 'conversation', title: 'Test conversation' }],
+      '/space/chat',
+    ],
+  ] as const)('%s', async (_case, conversations, expectedPath) => {
+    jest.mocked(http.get).mockResolvedValueOnce({
+      total: conversations.length,
+      data: conversations,
+    });
+
+    await open('header');
+    await click('delete');
+
+    expect(navigate).toHaveBeenCalledWith(expectedPath, {
+      flushSync: true,
+    });
+  });
+
+  it('keeps only the latest overlapping delete navigation', async () => {
+    let resolveFirstOrder!: (value: object) => void;
+    let resolveSecondOrder!: (value: object) => void;
+    jest
+      .mocked(http.get)
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveFirstOrder = resolve;
+        })
+      )
+      .mockReturnValueOnce(
+        new Promise(resolve => {
+          resolveSecondOrder = resolve;
+        })
+      );
+
+    await open('header');
+    await click('delete');
+    await open('header', 'en', 'next-conversation', 'Next conversation');
+    await click('delete');
+
+    expect(http.delete).toHaveBeenNthCalledWith(
+      1,
+      '/namespaces/space/conversations/conversation'
+    );
+    expect(http.delete).toHaveBeenNthCalledWith(
+      2,
+      '/namespaces/space/conversations/next-conversation'
+    );
+
+    const conversations = {
+      total: 3,
+      data: [
+        { id: 'conversation', title: 'Test conversation' },
+        { id: 'next-conversation', title: 'Next conversation' },
+        { id: 'previous-conversation', title: 'Previous conversation' },
+      ],
+    };
+    await act(async () => resolveSecondOrder(conversations));
+    await act(async () => resolveFirstOrder(conversations));
+
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith('/space/chat/previous-conversation', {
+      flushSync: true,
+    });
+    expect(mockFire).toHaveBeenCalledWith('chat:conversation:deleted', {
+      namespaceId: 'space',
+      conversationId: 'conversation',
+    });
+    expect(mockFire).toHaveBeenCalledWith('chat:conversation:deleted', {
+      namespaceId: 'space',
+      conversationId: 'next-conversation',
+    });
+  });
+
+  it('freezes the delete target while the confirmation dialog is open', async () => {
+    await open('header');
+
+    await act(async () => {
+      root.render(
+        <I18nextProvider i18n={i18n}>
+          <TooltipProvider>
+            <Actions
+              homePage={false}
+              conversationsPage={false}
+              chatTitle="Next conversation"
+              namespaceId="space"
+              conversationId="next-conversation"
+            />
+          </TooltipProvider>
+        </I18nextProvider>
+      );
+    });
+
+    expect(
+      document.querySelector('[role="alertdialog"]')?.textContent
+    ).toContain('Test conversation');
+    await click('delete');
+
+    expect(http.delete).toHaveBeenCalledWith(
+      '/namespaces/space/conversations/conversation'
+    );
+    expect(navigate).not.toHaveBeenCalled();
+    expect(mockFire).toHaveBeenCalledWith('chat:conversation:deleted', {
+      namespaceId: 'space',
+      conversationId: 'conversation',
+    });
+  });
+
+  it('does not navigate when the user leaves before adjacent resolution', async () => {
+    let resolveConversationOrder!: (value: object) => void;
+    jest.mocked(http.get).mockReturnValueOnce(
+      new Promise(resolve => {
+        resolveConversationOrder = resolve;
+      })
+    );
+    await open('header');
+    await click('delete');
+
+    expect(mockFire).toHaveBeenCalledWith('chat:conversation:deleted', {
+      namespaceId: 'space',
+      conversationId: 'conversation',
+    });
+    await act(async () => {
+      root.render(
+        <I18nextProvider i18n={i18n}>
+          <TooltipProvider>
+            <Actions
+              homePage={false}
+              conversationsPage={false}
+              chatTitle="Next conversation"
+              namespaceId="space"
+              conversationId="next-conversation"
+            />
+          </TooltipProvider>
+        </I18nextProvider>
+      );
+    });
+
+    await act(async () => {
+      resolveConversationOrder({
+        total: 3,
+        data: [
+          { id: 'conversation', title: 'Test conversation' },
+          { id: 'next-conversation', title: 'Next conversation' },
+          { id: 'previous-conversation', title: 'Previous conversation' },
+        ],
+      });
+    });
+
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('leaves the deleted conversation when the user returns before navigation resolves', async () => {
+    let resolveConversationOrder!: (value: object) => void;
+    jest.mocked(http.get).mockReturnValueOnce(
+      new Promise(resolve => {
+        resolveConversationOrder = resolve;
+      })
+    );
+    await open('header');
+    await click('delete');
+
+    const renderConversation = async (
+      conversationId: string,
+      title: string
+    ) => {
+      await act(async () => {
+        root.render(
+          <I18nextProvider i18n={i18n}>
+            <TooltipProvider>
+              <Actions
+                homePage={false}
+                conversationsPage={false}
+                chatTitle={title}
+                namespaceId="space"
+                conversationId={conversationId}
+              />
+            </TooltipProvider>
+          </I18nextProvider>
+        );
+      });
+    };
+    await renderConversation('next-conversation', 'Next conversation');
+    await renderConversation('conversation', 'Test conversation');
+    await act(async () => {
+      resolveConversationOrder({
+        total: 3,
+        data: [
+          { id: 'conversation', title: 'Test conversation' },
+          { id: 'next-conversation', title: 'Next conversation' },
+          { id: 'previous-conversation', title: 'Previous conversation' },
+        ],
+      });
+    });
+
+    expect(navigate).toHaveBeenCalledWith('/space/chat/next-conversation', {
+      flushSync: true,
+    });
+  });
 
   describe.each(['header', 'history'] as const)('%s entry', entry => {
     it('cancels without deleting or reporting success', async () => {
