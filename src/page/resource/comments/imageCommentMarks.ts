@@ -2,6 +2,7 @@ import { NodeSelection, Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 
 import { resourceImagePreviewKey } from '../imagePreviewPlugin';
+import { getActiveCommentHighlight } from './activeCommentHighlight';
 import type { ResourceCommentEditor } from './commentAnchors';
 
 export interface ImageCommentMark {
@@ -130,6 +131,7 @@ function clearPaintedComment(element: HTMLElement) {
   element.removeAttribute(THREADS_ATTR);
   element.removeAttribute('data-resource-comment-resolved');
   element.removeAttribute(PAINTED_COMMENT);
+  element.removeAttribute('data-comment-highlight');
   element.classList.remove(
     'tiptap-thread',
     'tiptap-thread--block',
@@ -178,6 +180,15 @@ function paintImageCommentDom(view: EditorViewLike) {
     host.setAttribute('data-resource-comment-thread', primary.threadId);
     host.setAttribute(THREADS_ATTR, threadIds);
     host.setAttribute(PAINTED_COMMENT, '');
+    const highlight = getActiveCommentHighlight(view.state);
+    if (highlight && marks.some(mark => mark.threadId === highlight.threadId)) {
+      host.setAttribute(
+        'data-comment-highlight',
+        highlight.resolved ? 'resolved' : 'open'
+      );
+    } else {
+      host.removeAttribute('data-comment-highlight');
+    }
     if (resolved) {
       host.setAttribute('data-resource-comment-resolved', 'true');
     } else {
@@ -365,12 +376,23 @@ function ensureImageCommentPlugin(editor: ResourceCommentEditor) {
           const decorations = Array.from(grouped.values()).map(marks => {
             const { primary, threadIds, resolved } =
               imageCommentDomState(marks);
+            const highlight = getActiveCommentHighlight(state);
+            const highlighted =
+              highlight &&
+              marks.some(mark => mark.threadId === highlight.threadId);
             return Decoration.node(primary.from, primary.to, {
               class: resolved
                 ? 'tiptap-thread tiptap-thread--block tiptap-thread--resolved'
                 : 'tiptap-thread tiptap-thread--block tiptap-thread--unresolved',
               'data-resource-comment-thread': primary.threadId,
               [THREADS_ATTR]: threadIds,
+              ...(highlighted
+                ? {
+                    'data-comment-highlight': highlight.resolved
+                      ? 'resolved'
+                      : 'open',
+                  }
+                : {}),
               ...(resolved ? { 'data-resource-comment-resolved': 'true' } : {}),
             });
           });

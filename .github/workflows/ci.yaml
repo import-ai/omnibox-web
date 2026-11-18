@@ -96,6 +96,9 @@ jobs:
       - name: Test shared resource image attachments
         run: pnpm exec jest src/page/resource/shareAttachmentUrls.test.ts src/page/resource/useResourceImageFailures.test.tsx src/page/shared-resource/index.test.tsx --runInBand
 
+      - name: Test resource comment regressions
+        run: pnpm exec jest src/page/resource/comments --runInBand
+
       - name: Test invite referral tracking
         run: pnpm exec jest src/page/inviteReferral/InviteReferralEntryExposure.test.tsx src/page/inviteReferral/tracking.test.ts src/lib/sendTrackEvent.test.ts --runInBand
 
