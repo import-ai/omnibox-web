@@ -45,6 +45,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import { useIsTouch } from '@/hooks/useIsTouch';
 import { type Namespace, SpaceType } from '@/interface';
+import { isStorageQuotaError } from '@/lib/paywallErrors';
 import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
@@ -183,15 +184,26 @@ export function SpaceSectionContent({
     trackButtonClick('sidebar_file_create', entryTrackProps);
     useSidebarStore
       .getState()
-      .create(rootId, 'doc')
+      .create(rootId, 'doc', undefined, {
+        muteCodes: ['storage_quota_exceeded'],
+      })
       .then(async id => {
         navigateToResource(navigate, `/${namespaceId}/${id}/edit`, {
           state: newFileEditorLocationState(),
         });
         await locateSidebarResource(id);
       })
-      .catch(() => {
-        // request.ts handles backend error toasts.
+      .catch(error => {
+        if (!isStorageQuotaError(error)) return;
+        showPaywall(
+          currentNamespace?.expired ? 'namespace_expired' : 'storage_limit',
+          {
+            namespaceId,
+            tier: currentNamespace?.tier,
+            isOwner: currentNamespace?.is_owner,
+            trigger: 'sidebar_file_create',
+          }
+        );
       });
   };
 

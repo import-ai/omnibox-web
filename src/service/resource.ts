@@ -165,8 +165,16 @@ export function searchResources(
     );
 }
 
-export function createResource(namespaceId: string, payload: CreatePayload) {
-  return http.post<Resource>(`/namespaces/${namespaceId}/resources`, payload);
+export function createResource(
+  namespaceId: string,
+  payload: CreatePayload,
+  config?: RequestConfig
+) {
+  return http.post<Resource>(
+    `/namespaces/${namespaceId}/resources`,
+    payload,
+    config
+  );
 }
 
 export function deleteResource(namespaceId: string, id: string) {

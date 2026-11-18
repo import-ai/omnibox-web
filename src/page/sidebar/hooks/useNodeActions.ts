@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/useMobile';
 import type { Namespace, Resource } from '@/interface';
 import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
 import { deleteResource } from '@/lib/deleteResource';
+import { isStorageQuotaError } from '@/lib/paywallErrors';
 import { http } from '@/lib/request';
 import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
@@ -120,7 +121,9 @@ export function useNodeActions(
 
     useSidebarStore
       .getState()
-      .create(nodeId, 'doc')
+      .create(nodeId, 'doc', undefined, {
+        muteCodes: ['storage_quota_exceeded'],
+      })
       .then(async id => {
         navigateToResource(navigate, `/${namespaceId}/${id}/edit`, {
           state: newFileEditorLocationState(),
@@ -128,8 +131,17 @@ export function useNodeActions(
         await locateSidebarResource(id);
         if (isMobile) setOpenMobile(false);
       })
-      .catch(() => {
-        // request.ts handles backend error toasts.
+      .catch(error => {
+        if (!isStorageQuotaError(error)) return;
+        showPaywall(
+          currentNamespace?.expired ? 'namespace_expired' : 'storage_limit',
+          {
+            namespaceId,
+            tier: currentNamespace?.tier,
+            isOwner: currentNamespace?.is_owner,
+            trigger: 'sidebar_file_create',
+          }
+        );
       });
   };
 
