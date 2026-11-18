@@ -6,7 +6,8 @@ jest.mock('@/hooks/useApp', () => ({
 }));
 const mockApp = { on: () => () => undefined };
 
-import { act, useCallback, useState } from 'react';
+import { Editor, Mark, Node } from '@tiptap/core';
+import { act, useCallback, useEffect, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { useLocation } from 'react-router-dom';
 
@@ -19,6 +20,7 @@ import {
   listResourceCommentThreads,
 } from '@/service/resourceComments';
 
+import { installActiveCommentHighlight } from './activeCommentHighlight';
 import { useResourceCommentsPanel } from './ResourceCommentsContext';
 import { useCommentHighlight } from './useCommentHighlight';
 import {
@@ -92,6 +94,64 @@ function Fixture({
   available?: ResourceCommentThread[];
   showMarkers?: boolean;
 }) {
+  const [editor] = useState(() => {
+    const instance = new Editor({
+      extensions: [
+        Node.create({ name: 'doc', topNode: true, content: 'block+' }),
+        Node.create({ name: 'text', group: 'inline' }),
+        Node.create({
+          name: 'paragraph',
+          group: 'block',
+          content: 'inline*',
+          renderHTML: () => ['p', 0],
+        }),
+        Mark.create({ name: 'bold', renderHTML: () => ['strong', 0] }),
+        Mark.create({
+          name: 'resourceComment',
+          addAttributes: () => ({
+            threadId: {
+              default: null,
+              renderHTML: attrs => ({
+                'data-resource-comment-thread': attrs.threadId,
+              }),
+            },
+          }),
+          renderHTML: ({ HTMLAttributes }) => ['span', HTMLAttributes, 0],
+        }),
+      ],
+    });
+    installActiveCommentHighlight(instance);
+    return instance;
+  });
+  useEffect(() => () => editor.destroy(), [editor]);
+  useEffect(() => {
+    editor.commands.setContent({
+      type: 'doc',
+      content:
+        showMarkers && available.length
+          ? available.map(thread => ({
+              type: 'paragraph',
+              content: [
+                {
+                  type: 'text',
+                  text: 'Quoted text',
+                  marks: [
+                    { type: 'resourceComment', attrs: { threadId: thread.id } },
+                  ],
+                },
+                {
+                  type: 'text',
+                  text: 'More quoted text',
+                  marks: [
+                    { type: 'bold' },
+                    { type: 'resourceComment', attrs: { threadId: thread.id } },
+                  ],
+                },
+              ],
+            }))
+          : [{ type: 'paragraph' }],
+    });
+  }, [editor, available, showMarkers]);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const openThread = useCallback((id: string) => {
     opened(id);
@@ -110,23 +170,20 @@ function Fixture({
   const panel = useResourceCommentsPanel();
   useCommentHighlight({
     root: panel?.rootElement,
+    editor: ready ? editor : null,
     activeThreadId,
     resolved:
       available.find(thread => thread.id === activeThreadId)?.resolved ?? false,
   });
   return (
     <>
-      <div data-resource-scroll className="tiptap ProseMirror">
-        {showMarkers &&
-          available.map(thread => (
-            <p key={thread.id}>
-              <span data-resource-comment-thread={thread.id}>Quoted text</span>
-              <span data-resource-comment-thread={thread.id}>
-                <strong>More quoted text</strong>
-              </span>
-            </p>
-          ))}
-      </div>
+      <div
+        data-resource-scroll
+        ref={element => {
+          if (element && !element.contains(editor.view.dom))
+            element.append(editor.view.dom);
+        }}
+      />
       <div data-comments-scroll>
         {available.map(thread => (
           <div key={thread.id}>
@@ -205,11 +262,12 @@ describe('comment link navigation', () => {
   const card = (id = 'target') =>
     container.querySelector<HTMLElement>(`[data-thread-id="${id}"]`);
   const highlightedQuotes = (id = 'target') =>
-    container.querySelectorAll(
-      `[data-resource-comment-thread="${id}"][data-comment-highlight]`
+    Array.from(container.querySelectorAll('[data-comment-highlight]')).filter(
+      element => element.closest(`[data-resource-comment-thread="${id}"]`)
     );
 
   beforeEach(() => {
+    document.elementFromPoint = () => null;
     jest.useFakeTimers();
     container = document.createElement('div');
     document.body.append(container);

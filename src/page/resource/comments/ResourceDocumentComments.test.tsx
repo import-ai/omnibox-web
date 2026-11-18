@@ -12,7 +12,7 @@ jest.mock('react', () => {
   const react = jest.requireActual('react');
   return { ...react, default: react };
 });
-jest.mock('@/components/button', () =>
+jest.mock('@/components/Button', () =>
   jest.requireActual('@/components/ui/button')
 );
 jest.mock('@/lib/captcha', () => ({}));

@@ -12,6 +12,7 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import { Button } from '@/components/ui/button';
 import useTheme from '@/hooks/useTheme';
 import { Resource, SharedResource } from '@/interface';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,8 @@ import {
   useResourceComments,
 } from './comments/useResourceComments';
 import { parseScrollToLine } from './scrollToLine';
+import { rewriteShareAttachmentUrls } from './shareAttachmentUrls';
+import { useResourceImageFailures } from './useResourceImageFailures';
 import { useResourceImagePreview } from './useResourceImagePreview';
 import { isFolderLikeResourceType } from './useResourcePaneLayout';
 import { embedImage, getReadonlyResourceEditorKey } from './utils';
@@ -41,6 +44,7 @@ interface IProps {
   commentsDisabled?: boolean;
   resource: Resource | SharedResource;
   namespaceId?: string;
+  shareId?: string;
   showToc?: boolean;
   scrollToLine?: number;
   wide?: boolean;
@@ -63,13 +67,16 @@ const ResourceOmniboxEditor =
 function getResourceEditorContent(
   resource: Resource | SharedResource,
   linkBase?: string,
-  namesById: Record<string, string> = {}
+  namesById: Record<string, string> = {},
+  shareId?: string
 ): TiptapJsonContent {
-  return normalizeResourceEditorContent(
+  const content = normalizeResourceEditorContent(
     contentToTiptapJson(resolveMentionLabels(embedImage(resource), namesById), {
       linkBase,
     })
   );
+  if (!shareId) return content;
+  return rewriteShareAttachmentUrls(content, shareId, resource.id);
 }
 
 interface OmniboxRenderProps extends IProps {
@@ -81,6 +88,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
     resource,
     comments,
     namespaceId,
+    shareId,
     linkBase,
     scrollToLine: requestedLine,
     showToc = true,
@@ -108,6 +116,11 @@ function OmniboxRender(props: OmniboxRenderProps) {
   const search = searchParams.get('query');
   const [isScrollLineVisible, setIsScrollLineVisible] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { failedImageCount, retryFailedImages } = useResourceImageFailures(
+    containerRef,
+    t('chat.image.load_failed'),
+    `${shareId ?? ''}:${getReadonlyResourceEditorKey(resource)}`
+  );
   const { registerImagePreview, imagePreviewProps } = useResourceImagePreview(
     `read:${namespaceId ?? ''}:${getReadonlyResourceEditorKey(resource)}`,
     containerRef
@@ -120,8 +133,8 @@ function OmniboxRender(props: OmniboxRenderProps) {
     [registerImagePreview, props.commentsDisabled, comments.registerEditor]
   );
   const content = useMemo(
-    () => getResourceEditorContent(resource, linkBase, namesById),
-    [namesById, linkBase, resource]
+    () => getResourceEditorContent(resource, linkBase, namesById, shareId),
+    [namesById, linkBase, resource, shareId]
   );
   const targetScrollToLine = requestedLine ?? parseScrollToLine(location.hash);
   const scrollToLine = isScrollLineVisible ? targetScrollToLine : undefined;
@@ -188,6 +201,22 @@ function OmniboxRender(props: OmniboxRenderProps) {
       className={editorClassName}
     >
       <ImagePreviewDialog {...imagePreviewProps} />
+      {failedImageCount > 0 ? (
+        <div
+          role="alert"
+          className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
+        >
+          <span>{t('chat.image.load_failed')}</span>
+          <Button
+            type="button"
+            variant="outline"
+            size="xs"
+            onClick={retryFailedImages}
+          >
+            {t('actions.retry')}
+          </Button>
+        </div>
+      ) : null}
       {props.commentsDisabled ? null : (
         <ImageCommentButton controller={comments} />
       )}

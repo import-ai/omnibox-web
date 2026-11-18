@@ -28,9 +28,9 @@ import {
 import type { StreamState } from '@/page/chat/conversation/chatStreamRecovery';
 import { PendingDecisionNotRejected } from '@/page/chat/conversation/pendingDecisionSend';
 import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
-import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
 import type { TreeNode } from '@/page/sidebar/store';
 
+import AgentCreditsIndicator from './AgentCreditsIndicator';
 import ApprovalModeSelect from './ApprovalModeSelect';
 import ChatAction from './ChatAction';
 import { CHAT_IMAGE_TYPES } from './chatImages';
@@ -41,7 +41,6 @@ import {
 } from './chatInputDraft';
 import { beginChatSubmissionPreparation } from './chatSubmissionStore';
 import ChatTool from './ChatTool';
-import ContextCapacityIndicator from './ContextCapacityIndicator';
 import ThinkingLevelSelector from './ThinkingLevelSelector';
 import { useChatAreaDraftLifecycle } from './useChatAreaDraftLifecycle';
 import {
@@ -109,7 +108,9 @@ export default function ChatArea(props: IProps) {
   const {
     config: thinkingConfig,
     selection,
+    committedSelection,
     changeLevel,
+    commitLevel,
     group: thinkingGroup,
     changeGroup,
     proLocked,
@@ -197,7 +198,6 @@ export default function ChatArea(props: IProps) {
     }
   }, [selection?.edition, composerTools, inputRef]);
 
-  const contextCompactCapacity = getLatestContextCompactCapacity(messages);
   const defaultResourcePicker = namespaceId
     ? (onSelect: (resource: ResourceMeta) => void) => (
         <WorkspaceResourcePicker
@@ -475,8 +475,11 @@ export default function ChatArea(props: IProps) {
           />
         </fieldset>
         <div className="flex items-center gap-2">
-          {contextCompactCapacity && (
-            <ContextCapacityIndicator capacity={contextCompactCapacity} />
+          {namespaceId && committedSelection?.edition === 'pro' && (
+            <AgentCreditsIndicator
+              namespaceId={namespaceId}
+              isGenerating={loading}
+            />
           )}
           {thinkingConfig && selection && (
             <ThinkingLevelSelector
@@ -496,6 +499,10 @@ export default function ChatArea(props: IProps) {
               onChange={next => {
                 if (basicUnsupported && next.startsWith('basic.')) return;
                 changeLevel(next);
+              }}
+              onLevelCommit={next => {
+                if (basicUnsupported && next.startsWith('basic.')) return;
+                commitLevel(next);
               }}
               proLocked={proLocked}
               proUnsupported={proUnsupported}
