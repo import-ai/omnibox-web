@@ -73,13 +73,29 @@ export function stepImageViewerZoom(
   fit: number,
   direction: -1 | 1
 ): number | null {
-  const minimum = Math.min(fit, ZOOM_LEVELS[0]);
+  const firstFixedLevel = ZOOM_LEVELS[0];
   const tolerance = current * 1e-10;
-  if (direction === 1)
-    return ZOOM_LEVELS.find(level => level > current + tolerance) ?? null;
-  for (let index = ZOOM_LEVELS.length - 1; index >= 0; index--) {
-    const level = ZOOM_LEVELS[index];
-    if (level < current - tolerance) return level;
+  if (direction === -1) {
+    for (let index = ZOOM_LEVELS.length - 1; index >= 0; index--) {
+      const level = ZOOM_LEVELS[index];
+      if (level < current - tolerance) return level;
+    }
   }
-  return minimum < current - tolerance ? minimum : null;
+
+  let previous: number | null = null;
+  for (
+    let level = fit;
+    level > 0 && level < firstFixedLevel - firstFixedLevel * 1e-10;
+    level *= 1.25
+  ) {
+    if (direction === 1 && level > current + tolerance) return level;
+    if (direction === -1) {
+      if (level >= current - tolerance) break;
+      previous = level;
+    }
+  }
+
+  return direction === 1
+    ? (ZOOM_LEVELS.find(level => level > current + tolerance) ?? null)
+    : previous;
 }

@@ -35,9 +35,32 @@ it('steps to the next fixed zoom level in either direction from a fitted ratio',
 it('disables zoom at its limits without rounding up a very small initial fit', () => {
   expect(stepImageViewerZoom(0.1, 0.544, -1)).toBeNull();
   expect(stepImageViewerZoom(4, 0.544, 1)).toBeNull();
-  expect(stepImageViewerZoom(0.043, 0.043, -1)).toBeNull();
-  expect(stepImageViewerZoom(0.043, 0.043, 1)).toBe(0.1);
-  expect(stepImageViewerZoom(0.1, 0.043, -1)).toBe(0.043);
+});
+
+it('adds reversible zoom steps below 10% for a narrow, high-resolution preview', () => {
+  const { fit } = getImageViewerLayout(
+    { width: 7680, height: 30720 },
+    { width: 360, height: 680, dialogHeight: 740 },
+    0,
+    null
+  );
+  expect(fit).toBeCloseTo(0.0421875);
+  expect(stepImageViewerZoom(fit, fit, -1)).toBeNull();
+
+  const levels = [fit, fit * 1.25, fit * 1.25 ** 2, fit * 1.25 ** 3, 0.1];
+  for (let index = 1; index < levels.length; index++) {
+    const previous = levels[index - 1];
+    const current = levels[index];
+    expect(stepImageViewerZoom(previous, fit, 1)).toBeCloseTo(current, 10);
+    expect(stepImageViewerZoom(current, fit, -1)).toBeCloseTo(previous, 10);
+  }
+  expect(stepImageViewerZoom(0.1, fit, 1)).toBe(0.15);
+  expect(stepImageViewerZoom(0.15, fit, -1)).toBe(0.1);
+});
+
+it('joins the fixed scale without inserting a duplicate 10% step', () => {
+  expect(stepImageViewerZoom(0.08, 0.08, 1)).toBe(0.1);
+  expect(stepImageViewerZoom(0.1, 0.08, -1)).toBe(0.08);
 });
 
 it('uses the original fitted bounds for ordinary images when the toolbar has space', () => {
