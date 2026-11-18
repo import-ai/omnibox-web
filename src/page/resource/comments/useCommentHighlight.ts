@@ -1,9 +1,12 @@
-import { useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 
+import { setActiveCommentHighlight } from './activeCommentHighlight';
+import type { ResourceCommentEditor } from './commentAnchors';
 import { elementHasCommentThread } from './imageCommentMarks';
 
 interface UseCommentHighlightOptions {
   root: HTMLElement | null | undefined;
+  editor?: ResourceCommentEditor | null;
   activeThreadId: string | null;
   resolved: boolean;
 }
@@ -12,9 +15,29 @@ const RESOLVED_HIGHLIGHT_DURATION_MS = 1000;
 
 export function useCommentHighlight({
   root,
+  editor,
   activeThreadId,
   resolved,
 }: UseCommentHighlightOptions): void {
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    setActiveCommentHighlight(
+      editor,
+      activeThreadId ? { threadId: activeThreadId, resolved } : null
+    );
+    const timeout =
+      activeThreadId && resolved
+        ? setTimeout(
+            () => setActiveCommentHighlight(editor, null),
+            RESOLVED_HIGHLIGHT_DURATION_MS
+          )
+        : undefined;
+    return () => {
+      clearTimeout(timeout);
+      setActiveCommentHighlight(editor, null);
+    };
+  }, [editor, activeThreadId, resolved]);
+
   useLayoutEffect(() => {
     if (!root || !activeThreadId) {
       return;
@@ -27,7 +50,7 @@ export function useCommentHighlight({
       });
       highlighted.clear();
     };
-    // Editor transactions may replace a quote's DOM while its comment stays selected.
+    // Non-editor renderers may replace a quote while its comment stays selected.
     const observer = new MutationObserver(() => update());
     const update = () => {
       highlighted.forEach(quote => {
@@ -42,9 +65,13 @@ export function useCommentHighlight({
       root
         .querySelectorAll<HTMLElement>('[data-resource-comment-thread]')
         .forEach(quote => {
-          if (elementHasCommentThread(quote, activeThreadId)) {
+          // Live editor DOM belongs to ProseMirror, including read-only views.
+          // This fallback only paints content rendered outside an editor.
+          if (
+            !quote.closest('.ProseMirror') &&
+            elementHasCommentThread(quote, activeThreadId)
+          ) {
             const highlight = resolved ? 'resolved' : 'open';
-            // Caption marks are observed by ProseMirror and must settle after a redraw.
             if (quote.dataset.commentHighlight !== highlight) {
               quote.dataset.commentHighlight = highlight;
             }

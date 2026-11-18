@@ -259,6 +259,7 @@ describe('comment selection', () => {
 
   afterEach(async () => {
     await act(async () => root.unmount());
+    window.getSelection()?.removeAllRanges();
     container.remove();
     jest.restoreAllMocks();
     jest.clearAllMocks();
@@ -319,6 +320,36 @@ describe('comment selection', () => {
         '[aria-label="resource_comments.next_thread"]'
       )?.disabled
     ).toBe(true);
+  });
+
+  it('preserves a drag selection without activating the card or focusing a reply', async () => {
+    const text = card('b').querySelector('.omnibox-comment-thread__messages')!;
+    await act(async () => {
+      text.dispatchEvent(
+        new MouseEvent('pointerdown', { bubbles: true, button: 0 })
+      );
+    });
+    const selection = window.getSelection()!;
+    const range = document.createRange();
+    range.selectNodeContents(text);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    const selectedText = selection.toString();
+    expect(selectedText).toContain('Comment b');
+    const focus = jest.spyOn(HTMLElement.prototype, 'focus');
+    await act(async () => {
+      text.dispatchEvent(new MouseEvent('click', { bubbles: true, detail: 1 }));
+    });
+    await settle();
+    expect(selection.toString()).toBe(selectedText);
+    expect(card('b').hasAttribute('data-selected')).toBe(false);
+    expect(card('b').querySelector('textarea')).toBeNull();
+    expect(focus).not.toHaveBeenCalled();
+
+    selection.removeAllRanges();
+    await click('b');
+    expect(card('b').hasAttribute('data-selected')).toBe(true);
+    expect(document.activeElement).toBe(card('b').querySelector('textarea'));
   });
 
   it('selects without scrolling even when the quote is outside the viewport', async () => {
