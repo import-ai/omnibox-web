@@ -17,8 +17,9 @@ export function CreditShortageActions({
   const app = useApp();
   const { showPaywall } = usePaywall();
   const { namespace } = useNamespaceInfo(namespaceId);
-  const { role } = useNamespaceRole(namespaceId);
+  const { role, loading: roleLoading } = useNamespaceRole(namespaceId);
   const isOwner = namespace?.is_owner ?? role === 'owner';
+  const ownerResolved = namespace?.is_owner !== undefined || !roleLoading;
   const tier = namespace?.tier ?? NamespaceTier.BASIC;
   const labelKey =
     tier === NamespaceTier.PREMIUM
@@ -38,13 +39,16 @@ export function CreditShortageActions({
         namespaceId={namespaceId}
         hasPermission={isOwner}
         disabledReason={t('chat.agent_credits.not_owner')}
-        onDeniedPress={() =>
-          showPaywall('credits_limit', {
-            namespaceId,
-            tier,
-            isOwner: false,
-            trigger: 'chat_credit_shortage',
-          })
+        onDeniedPress={
+          ownerResolved
+            ? () =>
+                showPaywall('credits_limit', {
+                  namespaceId,
+                  tier,
+                  isOwner,
+                  trigger: 'chat_credit_shortage',
+                })
+            : undefined
         }
         labelKey={labelKey}
         className="h-6 bg-blue-500 text-xs text-white hover:bg-blue-600"

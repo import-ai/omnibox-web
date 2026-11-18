@@ -33,4 +33,6 @@ export interface PaywallSceneDefinition {
   priority: number;
   entry: string;
   tiered: boolean;
+  /** Premium fair-use caps have nothing to buy; the CTA only acknowledges. */
+  premiumUpgrade?: boolean;
 }

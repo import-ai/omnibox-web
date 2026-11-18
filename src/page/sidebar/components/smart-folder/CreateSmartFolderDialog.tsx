@@ -214,7 +214,6 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
               conditionErrors={conditionErrors}
               conditionListRef={conditionListRef}
               canAddCondition={canAddCondition}
-              canUpgrade={showUpgradeButton}
               addButtonTooltip={disableAddMessage}
               headerClassName={cn(
                 resourceConditionNameRowClass,
@@ -288,7 +287,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                           showPaywall('smart_filter_limit', {
                             namespaceId,
                             tier: currentNamespace?.tier,
-                            isOwner: false,
+                            isOwner: currentNamespace?.is_owner,
                             trigger: 'smart_folder_filter_upgrade',
                           })
                         }

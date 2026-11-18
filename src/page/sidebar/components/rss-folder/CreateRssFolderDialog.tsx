@@ -126,7 +126,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                   showPaywall('rss_link_limit', {
                     namespaceId,
                     tier: currentNamespace?.tier,
-                    isOwner: false,
+                    isOwner: currentNamespace?.is_owner,
                     trigger: 'rss_folder_upgrade',
                   })
                 }
@@ -222,19 +222,16 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                   )}
                   onClick={() => {
                     if (!canAddLink) {
-                      if (showUpgradeButton) {
-                        showPaywall('rss_link_limit', {
-                          namespaceId,
-                          tier: currentNamespace?.tier,
-                          isOwner: currentNamespace?.is_owner,
-                          trigger: 'rss_folder_add_link',
-                        });
-                      }
+                      showPaywall('rss_link_limit', {
+                        namespaceId,
+                        tier: currentNamespace?.tier,
+                        isOwner: currentNamespace?.is_owner,
+                        trigger: 'rss_folder_add_link',
+                      });
                       return;
                     }
                     addLink();
                   }}
-                  disabled={!canAddLink && !showUpgradeButton}
                 >
                   <Plus className="size-4" />
                   {t('rss_folder.create.add_link')}

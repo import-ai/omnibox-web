@@ -170,6 +170,15 @@ export function SpaceSectionContent({
 
   const handleUploadClick = () => {
     trackButtonClick('sidebar_file_upload', entryTrackProps);
+    if (currentNamespace?.expired) {
+      showPaywall('namespace_expired', {
+        namespaceId,
+        tier: currentNamespace.tier,
+        isOwner: currentNamespace.is_owner,
+        trigger: 'sidebar_upload',
+      });
+      return;
+    }
     triggerGlobalFileUpload(rootId);
   };
 

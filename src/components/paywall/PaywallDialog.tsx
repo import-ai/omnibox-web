@@ -22,14 +22,19 @@ export function PaywallDialog() {
   const { t, i18n } = useTranslation();
   const { request, hidePaywall } = usePaywall();
   const { namespace, resolvedId } = useNamespaceInfo(request?.namespaceId);
-  const { role, loading: roleLoading } = useNamespaceRole(request?.namespaceId);
+  // The namespace record is authoritative when it is already in hand; the
+  // role request only fills the gap for callers that pass no namespace.
+  const { role, loading: roleLoading } = useNamespaceRole(
+    request?.namespaceId,
+    request?.isOwner === undefined && namespace?.is_owner === undefined
+  );
   const viewTrackedRef = useRef<number | null>(null);
 
   const namespaceId = request?.namespaceId;
-  const tier = request?.tier ?? namespace?.tier ?? NamespaceTier.BASIC;
+  const tier = namespace?.tier ?? request?.tier ?? NamespaceTier.BASIC;
   const isOwner =
-    request?.isOwner ??
     namespace?.is_owner ??
+    request?.isOwner ??
     (namespaceId ? role === 'owner' : true);
   const roleResolved =
     request?.isOwner !== undefined ||
@@ -55,18 +60,23 @@ export function PaywallDialog() {
 
   const handleDismiss = (reason: PaywallDismissReason) => hidePaywall(reason);
   const copyKey = paywallCopyKey(request.scene, tier);
+  // Premium fair-use caps cannot be raised by another purchase, so the card
+  // only acknowledges instead of sending the owner to pricing.
+  const noticeOnly =
+    tier === NamespaceTier.PREMIUM && definition.premiumUpgrade === false;
   const title = isOwner ? t(`${copyKey}.title`) : t('paywall.non_owner_title');
   const description = isOwner
     ? t(`${copyKey}.description`)
     : `${t(`${copyKey}.title`)}\n${t(`${copyKey}.description`)}`;
-  const cta = isOwner ? t(`${copyKey}.cta`) : t('paywall.acknowledge');
+  const cta =
+    isOwner && !noticeOnly ? t(`${copyKey}.cta`) : t('paywall.acknowledge');
 
   const handleCta = () => {
-    if (!isOwner) {
+    if (!isOwner || noticeOnly) {
       void track('paywall_cta_click', {
         scene: request.scene,
         action: 'acknowledge',
-        role: 'member',
+        role: isOwner ? 'owner' : 'member',
         namespace_tier: tier,
         trigger: request.trigger,
         namespace_id: request.namespaceId,

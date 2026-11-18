@@ -23,9 +23,12 @@ export function AgentCredits({
   const { t } = useTranslation();
   const { showPaywall } = usePaywall();
   const { namespace } = useNamespaceInfo(namespaceId);
-  const { role } = useNamespaceRole(namespaceId);
+  const { role, loading: roleLoading } = useNamespaceRole(namespaceId);
   const tier = namespace?.tier ?? NamespaceTier.BASIC;
   const isOwner = namespace?.is_owner ?? role === 'owner';
+  // The role request resolves after the first render; until then the button
+  // must not treat an owner as a member and offer the contact-owner copy.
+  const ownerResolved = namespace?.is_owner !== undefined || !roleLoading;
   const labelKey =
     tier === NamespaceTier.PREMIUM
       ? 'chat.agent_credits.buy_button'
@@ -59,13 +62,16 @@ export function AgentCredits({
         namespaceId={namespaceId}
         hasPermission={isOwner}
         disabledReason={t('chat.agent_credits.not_owner')}
-        onDeniedPress={() =>
-          showPaywall('credits_limit', {
-            namespaceId,
-            tier,
-            isOwner: false,
-            trigger: 'chat_agent_credits',
-          })
+        onDeniedPress={
+          ownerResolved
+            ? () =>
+                showPaywall('credits_limit', {
+                  namespaceId,
+                  tier,
+                  isOwner,
+                  trigger: 'chat_agent_credits',
+                })
+            : undefined
         }
         className="h-5 shrink-0 bg-blue-500 text-sm text-white hover:bg-blue-600"
         labelKey={labelKey}

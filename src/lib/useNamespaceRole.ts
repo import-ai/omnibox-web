@@ -11,13 +11,16 @@ export interface MeNamespaceResponseDto {
   role: Role;
 }
 
-export function useNamespaceRole(namespaceId?: string) {
+export function useNamespaceRole(namespaceId?: string, enabled = true) {
   const [role, setRole] = useState<Role>('member');
   const [settledFor, setSettledFor] = useState<string | null>(null);
   useEffect(() => {
     let active = true;
     setSettledFor(null);
-    if (namespaceId) {
+    if (namespaceId && !enabled) {
+      // The caller already knows the owner flag from the namespace record.
+      setSettledFor(namespaceId);
+    } else if (namespaceId) {
       http
         .get(`namespaces/${namespaceId}/me`)
         .then((response: MeNamespaceResponseDto) => {
@@ -33,7 +36,7 @@ export function useNamespaceRole(namespaceId?: string) {
     return () => {
       active = false;
     };
-  }, [namespaceId]);
+  }, [enabled, namespaceId]);
   return {
     role,
     loading: !!namespaceId && settledFor !== namespaceId,

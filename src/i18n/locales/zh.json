@@ -40,29 +40,64 @@
       "cta": "购买新空间"
     },
     "search_filter_limit": {
-      "title": "已达 3 条筛选上限",
-      "description": "升级高级版解锁更多筛选条件",
-      "cta": "了解高级版"
+      "basic": {
+        "title": "已达 3 条筛选上限",
+        "description": "升级高级版解锁更多筛选条件",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达 10 条筛选上限",
+        "description": "删除部分筛选条件后即可继续添加",
+        "cta": "我知道了"
+      }
     },
     "smart_filter_limit": {
-      "title": "已达 3 条筛选上限",
-      "description": "升级高级版解锁更多筛选条件",
-      "cta": "了解高级版"
+      "basic": {
+        "title": "已达 3 条筛选上限",
+        "description": "升级高级版解锁更多筛选条件",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达 10 条筛选上限",
+        "description": "删除部分筛选条件后即可继续添加",
+        "cta": "我知道了"
+      }
     },
     "rss_link_limit": {
-      "title": "已达订阅链接上限",
-      "description": "升级高级版解锁更多",
-      "cta": "了解高级版"
+      "basic": {
+        "title": "已达订阅链接上限",
+        "description": "升级高级版解锁更多",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达 10 条订阅链接上限",
+        "description": "删除部分链接后即可继续添加",
+        "cta": "我知道了"
+      }
     },
     "smart_folder_limit": {
-      "title": "已达智能文件夹数量上限",
-      "description": "升级高级版解锁更多",
-      "cta": "了解高级版"
+      "basic": {
+        "title": "已达智能文件夹数量上限",
+        "description": "升级高级版解锁更多",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达智能文件夹数量上限",
+        "description": "删除部分智能文件夹后即可继续创建",
+        "cta": "我知道了"
+      }
     },
     "rss_folder_limit": {
-      "title": "已达订阅文件夹数量上限",
-      "description": "升级高级版解锁更多",
-      "cta": "了解高级版"
+      "basic": {
+        "title": "已达订阅文件夹数量上限",
+        "description": "升级高级版解锁更多",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达订阅文件夹数量上限",
+        "description": "删除部分订阅文件夹后即可继续创建",
+        "cta": "我知道了"
+      }
     },
     "namespace_expired": {
       "title": "空间已到期",

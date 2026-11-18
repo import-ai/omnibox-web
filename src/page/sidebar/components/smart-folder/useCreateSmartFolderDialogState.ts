@@ -206,7 +206,7 @@ export function useCreateSmartFolderDialogState({
       addCondition(afterIndex);
       return;
     }
-    if (!showUpgradeButton) return;
+    // Basic can upgrade and Premium is at its own cap: both need the card.
     showPaywall('smart_filter_limit', {
       namespaceId,
       tier: currentNamespace?.tier,

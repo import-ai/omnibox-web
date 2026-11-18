@@ -14,6 +14,22 @@ describe('paywall scenes', () => {
     entries.forEach(entry => expect(entry).toMatch(ENTRY_PATTERN));
   });
 
+  it('does not send premium fair-use caps to pricing', () => {
+    (
+      [
+        'search_filter_limit',
+        'smart_filter_limit',
+        'rss_link_limit',
+        'smart_folder_limit',
+        'rss_folder_limit',
+      ] as PaywallScene[]
+    ).forEach(scene => {
+      expect(PAYWALL_SCENES[scene].premiumUpgrade).toBe(false);
+    });
+    expect(PAYWALL_SCENES.storage_limit.premiumUpgrade).not.toBe(false);
+    expect(PAYWALL_SCENES.credits_limit.premiumUpgrade).not.toBe(false);
+  });
+
   it.each(Object.keys(PAYWALL_SCENES) as PaywallScene[])(
     'has complete Chinese and English copy for %s',
     scene => {

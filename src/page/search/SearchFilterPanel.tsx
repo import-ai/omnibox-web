@@ -322,6 +322,7 @@ export function SearchFilterPanel({
 }: SearchFilterPanelProps) {
   const { t } = useTranslation();
   const { showPaywall } = usePaywall();
+  // Only Basic can still upgrade; Premium is already at its own cap.
   const showUpgradeButton =
     maxConditionCount <= getConditionLimitValue('basic');
   const addButtonTooltip = t(
@@ -333,7 +334,6 @@ export function SearchFilterPanel({
       onAddCondition();
       return;
     }
-    if (!showUpgradeButton) return;
     showPaywall('search_filter_limit', {
       namespaceId,
       tier: currentNamespace?.tier,
@@ -376,7 +376,7 @@ export function SearchFilterPanel({
                 showPaywall('search_filter_limit', {
                   namespaceId,
                   tier: currentNamespace?.tier,
-                  isOwner: false,
+                  isOwner: currentNamespace?.is_owner,
                   trigger: 'search_filter_upgrade',
                 })
               }
@@ -448,7 +448,6 @@ export function SearchFilterPanel({
                 iconButtonHoverClassName,
                 'h-5 w-fit gap-1 px-0 text-sm font-normal'
               )}
-              disabled={!canAddCondition && !showUpgradeButton}
               onClick={handleAddCondition}
             >
               <Plus className="size-4" />

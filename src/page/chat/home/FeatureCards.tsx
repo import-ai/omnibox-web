@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { ExtensionIcon } from '@/assets/icons/ExtensionIcon';
 import { BehaviorExposure } from '@/components/BehaviorExposure';
 import { Button } from '@/components/Button';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import {
   Tooltip,
@@ -19,8 +20,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Spinner } from '@/components/ui/Spinner';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
+import { useNamespaceInfo } from '@/hooks/useNamespaceInfo';
 import { IResourceData, Resource, ResourceMeta } from '@/interface';
 import { openFilePicker } from '@/lib/openFilePicker';
+import { isStorageQuotaError } from '@/lib/paywallErrors';
 import { http } from '@/lib/request';
 import { uploadFiles } from '@/lib/uploadFiles';
 import { cn } from '@/lib/utils';
@@ -86,6 +89,8 @@ export default function FeatureCards() {
   const navigate = useNavigate();
   const [progress, setProgress] = useState('');
   const { namespace_id: namespaceId } = useParams();
+  const { showPaywall } = usePaywall();
+  const { namespace } = useNamespaceInfo(namespaceId);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [linkMode, setLinkMode] = useState(false);
@@ -117,6 +122,16 @@ export default function FeatureCards() {
 
     if (!namespaceId) {
       toast.error('Namespace not found');
+      return;
+    }
+
+    if (namespace?.expired) {
+      showPaywall('namespace_expired', {
+        namespaceId,
+        tier: namespace.tier,
+        isOwner: namespace.is_owner,
+        trigger: 'home_upload',
+      });
       return;
     }
 
@@ -155,6 +170,18 @@ export default function FeatureCards() {
         navigateToResource(navigate, `/${namespaceId}/${lastUploadedFile.id}`);
       }
     } catch (error: any) {
+      if (isStorageQuotaError(error)) {
+        showPaywall(
+          namespace?.expired ? 'namespace_expired' : 'storage_limit',
+          {
+            namespaceId,
+            tier: namespace?.tier,
+            isOwner: namespace?.is_owner,
+            trigger: 'home_upload',
+          }
+        );
+        return;
+      }
       const errorMessage = error?.message || 'Upload failed';
       toast.error(errorMessage);
       console.error('Upload error:', error);

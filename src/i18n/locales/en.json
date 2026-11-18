@@ -40,29 +40,64 @@
       "cta": "Buy a namespace"
     },
     "search_filter_limit": {
-      "title": "3-filter limit reached",
-      "description": "Upgrade to Premium for more filters",
-      "cta": "Explore Premium"
+      "basic": {
+        "title": "3-filter limit reached",
+        "description": "Upgrade to Premium for more filters",
+        "cta": "Explore Premium"
+      },
+      "premium": {
+        "title": "10-filter limit reached",
+        "description": "Delete some filters to add more",
+        "cta": "Got it"
+      }
     },
     "smart_filter_limit": {
-      "title": "3-filter limit reached",
-      "description": "Upgrade to Premium for more filters",
-      "cta": "Explore Premium"
+      "basic": {
+        "title": "3-filter limit reached",
+        "description": "Upgrade to Premium for more filters",
+        "cta": "Explore Premium"
+      },
+      "premium": {
+        "title": "10-filter limit reached",
+        "description": "Delete some filters to add more",
+        "cta": "Got it"
+      }
     },
     "rss_link_limit": {
-      "title": "Subscription link limit reached",
-      "description": "Upgrade to Premium to unlock more",
-      "cta": "Explore Premium"
+      "basic": {
+        "title": "Subscription link limit reached",
+        "description": "Upgrade to Premium to unlock more",
+        "cta": "Explore Premium"
+      },
+      "premium": {
+        "title": "10-link limit reached",
+        "description": "Delete some links to add more",
+        "cta": "Got it"
+      }
     },
     "smart_folder_limit": {
-      "title": "Smart folder limit reached",
-      "description": "Upgrade to Premium to unlock more",
-      "cta": "Explore Premium"
+      "basic": {
+        "title": "Smart folder limit reached",
+        "description": "Upgrade to Premium to unlock more",
+        "cta": "Explore Premium"
+      },
+      "premium": {
+        "title": "Smart folder limit reached",
+        "description": "Delete some smart folders to create more",
+        "cta": "Got it"
+      }
     },
     "rss_folder_limit": {
-      "title": "Subscription folder limit reached",
-      "description": "Upgrade to Premium to unlock more",
-      "cta": "Explore Premium"
+      "basic": {
+        "title": "Subscription folder limit reached",
+        "description": "Upgrade to Premium to unlock more",
+        "cta": "Explore Premium"
+      },
+      "premium": {
+        "title": "Subscription folder limit reached",
+        "description": "Delete some subscription folders to create more",
+        "cta": "Got it"
+      }
     },
     "namespace_expired": {
       "title": "Namespace expired",
