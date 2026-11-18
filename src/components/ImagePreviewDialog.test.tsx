@@ -15,16 +15,23 @@ jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
 
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
+const longImageSize = { width: 1428, height: 14180 };
+
 function Fixture({
+  allowLongImage,
+  imageSize,
   onCloseAutoFocus,
   removeInvokerOnOpen = false,
 }: {
+  allowLongImage?: boolean;
+  imageSize?: { width: number; height: number };
   onCloseAutoFocus?: (event: Event) => void;
   removeInvokerOnOpen?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [showInvoker, setShowInvoker] = useState(true);
   const invokerRef = useRef<HTMLButtonElement | null>(null);
+  const imageLayout = { allowLongImage, imageSize };
   return (
     <>
       {showInvoker ? (
@@ -41,6 +48,7 @@ function Fixture({
         </button>
       ) : null}
       <ImagePreviewDialog
+        {...imageLayout}
         alt="Diagram"
         src="/missing-image.png"
         referrerPolicy="no-referrer"
@@ -50,6 +58,12 @@ function Fixture({
         onOpenChange={setOpen}
       />
     </>
+  );
+}
+
+function findButton(scope: ParentNode, label: string) {
+  return Array.from(scope.querySelectorAll('button')).find(
+    button => button.textContent === label
   );
 }
 
@@ -108,6 +122,94 @@ describe('ImagePreviewDialog', () => {
     expect(document.querySelector('[data-image-preview]')).toBeNull();
     expect(document.activeElement).toBe(invoker);
   });
+
+  it('lets opted-in long images zoom without closing and resets the mode when reopened', async () => {
+    await act(async () =>
+      root.render(<Fixture allowLongImage imageSize={longImageSize} />)
+    );
+    const invoker = await openPreview();
+    const dialog = document.querySelector('[data-image-preview]')!;
+    const image = dialog.querySelector('img')!;
+    const viewport = dialog.querySelector<HTMLElement>('[role="region"]')!;
+    viewport.scrollTop = 2400;
+    jest.spyOn(viewport, 'clientWidth', 'get').mockReturnValue(950);
+    jest
+      .spyOn(viewport, 'getBoundingClientRect')
+      .mockReturnValue({ left: 32, top: 56 } as DOMRect);
+    jest.spyOn(image, 'getBoundingClientRect').mockImplementation(() => {
+      const zoomed = !!findButton(dialog, 'chat.image.fit_width');
+      return {
+        left: 32 - viewport.scrollLeft,
+        top: 56 - viewport.scrollTop,
+        width: zoomed ? 1428 : 950,
+        height: zoomed ? 15000 : 10000,
+      } as DOMRect;
+    });
+    const toggle = findButton(dialog, 'chat.image.zoom_in');
+    expect(toggle).toBeDefined();
+    await act(async () => image.click());
+    expect(document.querySelector('[data-image-preview]')).toBe(dialog);
+    await act(async () => toggle!.click());
+    expect(findButton(dialog, 'chat.image.fit_width')).toBe(toggle);
+    expect(dialog.querySelector('img')).toBe(image);
+    expect([viewport.scrollTop, viewport.scrollLeft]).toEqual([3600, 239]);
+
+    await act(async () =>
+      document.activeElement?.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
+      )
+    );
+    await act(async () => jest.runOnlyPendingTimers());
+    expect(document.querySelector('[data-image-preview]')).toBeNull();
+    expect(document.activeElement).toBe(invoker);
+    await openPreview();
+    expect(findButton(document, 'chat.image.zoom_in')).toBeDefined();
+    const reopened = document.querySelector<HTMLElement>(
+      '[data-image-preview] [role="region"]'
+    )!;
+    expect([reopened.scrollTop, reopened.scrollLeft]).toEqual([0, 0]);
+  });
+
+  it('keeps a scrollbar-free long-image surface and dismisses only from its gutter', async () => {
+    await act(async () =>
+      root.render(<Fixture allowLongImage imageSize={longImageSize} />)
+    );
+    const invoker = await openPreview();
+    const dialog = document.querySelector('[data-image-preview]')!;
+    const viewport = dialog.querySelector<HTMLElement>('[role="region"]')!;
+    const image = dialog.querySelector('img')!;
+    expect(viewport.classList.contains('no-scrollbar')).toBe(true);
+    expect(viewport.classList.contains('overflow-auto')).toBe(true);
+    expect(viewport.classList.contains('overscroll-contain')).toBe(true);
+    expect(image.classList.contains('rounded-md')).toBe(false);
+    await act(async () => image.click());
+    expect(document.querySelector('[data-image-preview]')).toBe(dialog);
+    await act(async () => viewport.click());
+    await act(async () => jest.runOnlyPendingTimers());
+    expect(document.querySelector('[data-image-preview]')).toBeNull();
+    expect(document.activeElement).toBe(invoker);
+  });
+
+  it.each([
+    ['a non-opted-in long image', false, longImageSize],
+    ['an ordinary portrait', true, { width: 600, height: 1200 }],
+    ['a tall image that already fits', true, { width: 30, height: 90 }],
+  ])(
+    'keeps the existing preview for %s',
+    async (_name, allowLongImage, imageSize) => {
+      await act(async () =>
+        root.render(
+          <Fixture allowLongImage={allowLongImage} imageSize={imageSize} />
+        )
+      );
+      await openPreview();
+      const dialog = document.querySelector('[data-image-preview]')!;
+      expect(findButton(dialog, 'chat.image.zoom_in')).toBeUndefined();
+      await act(async () => dialog.querySelector('img')!.click());
+      await act(async () => jest.runOnlyPendingTimers());
+      expect(document.querySelector('[data-image-preview]')).toBeNull();
+    }
+  );
 
   it('lets a host own close focus when its callback prevents the default', async () => {
     const host = document.createElement('button');

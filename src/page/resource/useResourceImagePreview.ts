@@ -18,6 +18,7 @@ type Preview = {
   registration: Registration;
   src: string;
   alt: string;
+  imageSize: { width: number; height: number };
   referrerPolicy: ImgHTMLAttributes<HTMLImageElement>['referrerPolicy'];
   previousFocus: Element | null;
 };
@@ -77,6 +78,10 @@ export function useResourceImagePreview(
               registration,
               src: image.currentSrc || image.src,
               alt: image.alt,
+              imageSize: {
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+              },
               referrerPolicy: (image.referrerPolicy ||
                 image.getAttribute('referrerpolicy') ||
                 undefined) as Preview['referrerPolicy'],
@@ -137,6 +142,7 @@ export function useResourceImagePreview(
         preview.registration === registrationRef.current,
       src: preview?.src,
       alt: preview?.alt,
+      imageSize: preview?.imageSize,
       referrerPolicy: preview?.referrerPolicy,
       onOpenChange,
       onCloseAutoFocus,

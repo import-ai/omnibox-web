@@ -71,7 +71,8 @@ test('owns one preview registration, restores readonly focus, and clears it on r
     const img = host.querySelector('img')!;
     Object.defineProperties(img, {
       complete: { value: true, configurable: true },
-      naturalWidth: { value: 100, configurable: true },
+      naturalWidth: { value: 1428, configurable: true },
+      naturalHeight: { value: 14180, configurable: true },
     });
     const event = new MouseEvent('mouseup', { bubbles: true });
     img.dispatchEvent(event);
@@ -93,6 +94,9 @@ test('owns one preview registration, restores readonly focus, and clears it on r
     expect(preview.imagePreviewProps.open).toBe(true);
     expect(preview.imagePreviewProps.src).toBe('http://localhost/a.png');
     expect(preview.imagePreviewProps.referrerPolicy).toBe('same-origin');
+    expect(preview.imagePreviewProps).toMatchObject({
+      imageSize: { width: 1428, height: 14180 },
+    });
     await act(async () => preview.imagePreviewProps.onOpenChange(false));
     expect(preview.imagePreviewProps.src).toBeUndefined();
     const event = new Event('close', { cancelable: true });

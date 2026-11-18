@@ -200,7 +200,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
       style={style}
       className={editorClassName}
     >
-      <ImagePreviewDialog {...imagePreviewProps} />
+      <ImagePreviewDialog {...imagePreviewProps} allowLongImage />
       {failedImageCount > 0 ? (
         <div
           role="alert"

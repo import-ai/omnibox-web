@@ -882,6 +882,8 @@
       "add": "添加图片",
       "remove": "移除图片",
       "preview": "预览图片",
+      "zoom_in": "放大",
+      "fit_width": "适应宽度",
       "share_unsupported": "分享聊天不支持上传图片",
       "agent_1_1_unsupported": "Agent 1.1 不支持图片输入"
     },

@@ -881,6 +881,8 @@
       "add": "Add image",
       "remove": "Remove image",
       "preview": "Preview image",
+      "zoom_in": "Zoom in",
+      "fit_width": "Fit width",
       "share_unsupported": "Image uploads are not supported in shared chats",
       "agent_1_1_unsupported": "Agent 1.1 does not support image input"
     },
