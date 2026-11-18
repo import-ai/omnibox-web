@@ -46,7 +46,7 @@
         "cta": "Explore Premium"
       },
       "premium": {
-        "title": "10-filter limit reached",
+        "title": "Filter limit reached",
         "description": "Delete some filters to add more",
         "cta": "Got it"
       }
@@ -58,7 +58,7 @@
         "cta": "Explore Premium"
       },
       "premium": {
-        "title": "10-filter limit reached",
+        "title": "Filter limit reached",
         "description": "Delete some filters to add more",
         "cta": "Got it"
       }
@@ -70,7 +70,7 @@
         "cta": "Explore Premium"
       },
       "premium": {
-        "title": "10-link limit reached",
+        "title": "Subscription link limit reached",
         "description": "Delete some links to add more",
         "cta": "Got it"
       }
