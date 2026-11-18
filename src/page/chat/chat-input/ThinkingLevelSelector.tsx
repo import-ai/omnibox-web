@@ -34,6 +34,7 @@ interface Props {
   onGroupChange: (group: ThinkingGroup) => void;
   value: ThinkingSelection;
   onChange: (level: string) => void;
+  onLevelCommit?: (level: string) => void;
   disabled?: boolean;
   proLocked?: boolean;
   proUnsupported?: boolean;
@@ -59,6 +60,7 @@ export default function ThinkingLevelSelector({
   onGroupChange,
   value,
   onChange,
+  onLevelCommit,
   disabled,
   proLocked = false,
   proUnsupported = false,
@@ -92,6 +94,10 @@ export default function ThinkingLevelSelector({
   });
   const edition = t(`chat.model.${value.edition}`);
   const title = group === 'default' ? `${edition} ${label}` : label;
+  const commitSliderValue = (input: HTMLInputElement) => {
+    const next = visibleLevels[Number(input.value)];
+    if (next) onLevelCommit?.(thinkingStep(next));
+  };
   return (
     <Popover
       open={panelOpen}
@@ -298,6 +304,27 @@ export default function ThinkingLevelSelector({
                   });
                   onChange(next);
                 }}
+                onPointerUp={event => commitSliderValue(event.currentTarget)}
+                onPointerCancel={event =>
+                  commitSliderValue(event.currentTarget)
+                }
+                onKeyUp={event => {
+                  if (
+                    [
+                      'ArrowLeft',
+                      'ArrowRight',
+                      'ArrowUp',
+                      'ArrowDown',
+                      'Home',
+                      'End',
+                      'PageUp',
+                      'PageDown',
+                    ].includes(event.key)
+                  ) {
+                    commitSliderValue(event.currentTarget);
+                  }
+                }}
+                onBlur={event => commitSliderValue(event.currentTarget)}
                 className="relative block h-6 w-full cursor-pointer appearance-none rounded-full bg-transparent focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue-500 disabled:cursor-default"
               />
             </div>

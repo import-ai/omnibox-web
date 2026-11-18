@@ -298,7 +298,7 @@ export function TaskList({ namespaceId }: TaskListProps) {
                 </TableCell>
               </TableRow>
             ) : tasks.length === 0 ? (
-              <TableRow>
+              <TableRow className="hover:bg-transparent">
                 <TableCell
                   colSpan={4}
                   className="h-40 text-center text-muted-foreground"

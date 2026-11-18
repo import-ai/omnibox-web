@@ -42,6 +42,7 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
   const [config, setConfig] = useState<ThinkingConfig>();
   const [group, setGroup] = useState<ThinkingGroup>('default');
   const [step, setStep] = useState<string>();
+  const [committedStep, setCommittedStep] = useState<string>();
   const changed = useRef(false);
   const storageKey = `thinking-level:${scope}`;
   const latest = [...messages]
@@ -65,6 +66,7 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
     let active = true;
     setConfig(undefined);
     setStep(undefined);
+    setCommittedStep(undefined);
     changed.current = false;
     http
       .get<ThinkingConfig>(configUrl, { mute: true })
@@ -125,15 +127,21 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
       (latest?.edition && latest.level
         ? thinkingStep({ edition: latest.edition, level: latest.level })
         : undefined);
+    const initialStep = options.levels.some(
+      item => thinkingStep(item) === candidate
+    )
+      ? candidate
+      : thinkingStep(options.default);
     setGroup(next);
-    setStep(
-      options.levels.some(item => thinkingStep(item) === candidate)
-        ? candidate
-        : thinkingStep(options.default)
-    );
+    setStep(initialStep);
+    setCommittedStep(initialStep);
   }, [config, latest?.edition, latest?.level, storageKey]);
 
-  const select = (nextGroup: ThinkingGroup, nextStep: string) => {
+  const select = (
+    nextGroup: ThinkingGroup,
+    nextStep: string,
+    commit: boolean
+  ) => {
     if (
       !config?.[nextGroup]?.levels.some(item => thinkingStep(item) === nextStep)
     )
@@ -141,6 +149,7 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
     changed.current = true;
     setGroup(nextGroup);
     setStep(nextStep);
+    if (commit) setCommittedStep(nextStep);
     try {
       localStorage.setItem(
         storageKey,
@@ -150,20 +159,28 @@ export function useThinkingLevel(scope: string, messages: MessageDetail[]) {
       /* Keep the in-memory selection. */
     }
   };
-  const changeLevel = (next: string) => select(group, next);
+  const changeLevel = (next: string) => select(group, next, false);
+  const commitLevel = (next: string) => select(group, next, true);
   const changeGroup = (next: ThinkingGroup, nextStep?: string) => {
     const options = config?.[next];
-    if (options) select(next, nextStep ?? thinkingStep(options.default));
+    if (options) {
+      select(next, nextStep ?? thinkingStep(options.default), true);
+    }
   };
   const selection = config?.[group]?.levels.find(
     item => thinkingStep(item) === step
+  );
+  const committedSelection = config?.[group]?.levels.find(
+    item => thinkingStep(item) === committedStep
   );
   const proLocked = config?.edition === 'pro' && config.pro_available === false;
   return {
     config,
     group,
     selection,
+    committedSelection,
     changeLevel,
+    commitLevel,
     changeGroup,
     proLocked,
   };

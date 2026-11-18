@@ -8,6 +8,7 @@ import {
   FolderSearch2,
   Globe,
   MessageCircleX,
+  NotebookPen,
   Presentation,
   SearchX,
   Split,
@@ -46,6 +47,10 @@ export const taskTypeConfig: Record<
   upsert_message_index: {
     icon: FolderSearch2,
     labelKey: 'tasks.functions.upsert_message_index',
+  },
+  update_memory: {
+    icon: NotebookPen,
+    labelKey: 'tasks.functions.update_memory',
   },
   delete_conversation: {
     icon: MessageCircleX,
