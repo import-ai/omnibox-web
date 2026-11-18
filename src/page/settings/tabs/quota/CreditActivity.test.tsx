@@ -1,7 +1,10 @@
 /** @jest-environment jsdom */
+import i18next from 'i18next';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 
+import en from '@/i18n/locales/en.json';
+import zh from '@/i18n/locales/zh.json';
 import { http } from '@/lib/request';
 
 import { CreditActivity } from './CreditActivity';
@@ -93,3 +96,56 @@ it('does not refetch on focus and keeps the empty state unfilled', async () => {
   expect(get).toHaveBeenCalledTimes(2);
   await act(async () => root.unmount());
 });
+
+it.each([
+  ['en', 'Subscription Kibble Expired', 'Subscription Kibble'],
+  ['zh', '订阅猫粮过期', '订阅猫粮'],
+] as const)(
+  'renders the expiry and grant in API order in %s',
+  async (language, expiry, grant) => {
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    const locales = { en, zh };
+    const i18n = i18next.createInstance();
+    await i18n.init({
+      lng: language,
+      resources: { [language]: { translation: locales[language] } },
+    });
+    const translation = jest
+      .spyOn(jest.requireMock('react-i18next'), 'useTranslation')
+      .mockReturnValue({ t: i18n.t.bind(i18n) });
+    const occurred_at = '2026-11-11T00:00:00Z';
+    (http.get as jest.Mock).mockReset().mockResolvedValue({
+      items: [
+        {
+          id: 'expiry',
+          event_type: 'subscription_expired',
+          occurred_at,
+          amount: -2_300_000_000,
+        },
+        {
+          id: 'grant',
+          event_type: 'subscription',
+          occurred_at,
+          amount: 100_000_000,
+        },
+      ],
+      total: 2,
+    });
+    try {
+      await act(async () => root.render(<CreditActivity namespaceId="test" />));
+      expect(
+        [...container.querySelectorAll('tbody tr')].map(row => [
+          row.querySelector('p')?.textContent,
+          row.querySelector('td:last-child')?.textContent,
+        ])
+      ).toEqual([
+        [expiry, '−2,300.00'],
+        [grant, '+100.00'],
+      ]);
+    } finally {
+      await act(async () => root.unmount());
+      translation.mockRestore();
+    }
+  }
+);
