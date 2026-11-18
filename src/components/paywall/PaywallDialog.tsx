@@ -55,7 +55,7 @@ export function PaywallDialog() {
       namespace_tier: tier,
       trigger: request.trigger,
       namespace_id: request.namespaceId,
-      quota_exhausted: true,
+      quota_exhausted: request.quotaExhausted ?? true,
     }).catch(() => undefined);
   }, [isOwner, open, request, tier]);
 
@@ -83,7 +83,7 @@ export function PaywallDialog() {
         namespace_tier: tier,
         trigger: request.trigger,
         namespace_id: request.namespaceId,
-        quota_exhausted: true,
+        quota_exhausted: request.quotaExhausted ?? true,
       }).catch(() => undefined);
       handleDismiss('acknowledge');
       return;
@@ -96,7 +96,7 @@ export function PaywallDialog() {
       namespace_tier: tier,
       trigger: request.trigger,
       namespace_id: request.namespaceId,
-      quota_exhausted: true,
+      quota_exhausted: request.quotaExhausted ?? true,
     }).catch(() => undefined);
     handleDismiss('navigate');
     window.open(

@@ -22,6 +22,8 @@ export interface ShowPaywallOptions {
   isOwner?: boolean;
   /** Where the trigger happened, for analytics. */
   trigger?: string;
+  /** Whether the trigger is a spent quota. Defaults to the scene definition. */
+  quotaExhausted?: boolean;
 }
 
 export interface PaywallRequest extends ShowPaywallOptions {
@@ -35,4 +37,6 @@ export interface PaywallSceneDefinition {
   tiered: boolean;
   /** Premium fair-use caps have nothing to buy; the CTA only acknowledges. */
   premiumUpgrade?: boolean;
+  /** Default for `quota_exhausted`; expiry-only gates opt out. */
+  quotaExhausted?: boolean;
 }

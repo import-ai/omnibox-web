@@ -7,6 +7,8 @@ export const PAYWALL_SCENES: Record<PaywallScene, PaywallSceneDefinition> = {
     priority: 100,
     entry: 'paywall_namespace_expired',
     tiered: false,
+    // Expiry is not a spent quota: the space already lapsed and needs renewal.
+    quotaExhausted: false,
   },
   storage_limit: {
     priority: 80,

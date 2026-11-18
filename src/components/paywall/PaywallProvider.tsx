@@ -28,7 +28,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
         reason,
         trigger: current.trigger,
         namespace_id: current.namespaceId,
-        quota_exhausted: true,
+        quota_exhausted: current.quotaExhausted ?? true,
       }).catch(() => undefined);
       setRequest(null);
     },
@@ -37,6 +37,8 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
 
   const showPaywall = useCallback(
     (scene: PaywallScene, options: ShowPaywallOptions = {}) => {
+      const quotaExhausted =
+        options.quotaExhausted ?? PAYWALL_SCENES[scene].quotaExhausted ?? true;
       const current = requestRef.current;
       if (current) {
         const currentPriority = PAYWALL_SCENES[current.scene].priority;
@@ -47,7 +49,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
             active_scene: current.scene,
             trigger: options.trigger,
             namespace_id: options.namespaceId,
-            quota_exhausted: true,
+            quota_exhausted: quotaExhausted,
           }).catch(() => undefined);
           return;
         }
@@ -57,6 +59,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
         ...options,
         id: ++nextIdRef.current,
         scene,
+        quotaExhausted,
       };
       requestRef.current = next;
       setRequest(next);

@@ -495,6 +495,7 @@ export default function ChatArea(props: IProps) {
                 if (proNeedsPaywall && next === 'pro') {
                   showPaywall('credits_limit', {
                     namespaceId,
+                    quotaExhausted: proUnsupported,
                     trigger: 'chat_thinking_pro',
                   });
                   return;
@@ -512,6 +513,7 @@ export default function ChatArea(props: IProps) {
                 if (proNeedsPaywall && next.startsWith('pro.')) {
                   showPaywall('credits_limit', {
                     namespaceId,
+                    quotaExhausted: proUnsupported,
                     trigger: 'chat_thinking_pro',
                   });
                   return;
@@ -526,6 +528,7 @@ export default function ChatArea(props: IProps) {
               onProLocked={() =>
                 showPaywall('credits_limit', {
                   namespaceId,
+                  quotaExhausted: proUnsupported,
                   trigger: 'chat_thinking_pro',
                 })
               }
