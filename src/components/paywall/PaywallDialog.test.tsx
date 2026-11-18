@@ -128,6 +128,32 @@ describe('PaywallDialog', () => {
     );
   });
 
+  it('uses the new request role and tier instead of the previous namespace', async () => {
+    mockNamespace.value = {
+      id: 'namespace-a',
+      tier: 'premium',
+      is_owner: true,
+    };
+    await act(async () => root.render(<PaywallDialog />));
+
+    mockRequest.current = {
+      ...mockRequest.current,
+      id: 2,
+      namespaceId: 'namespace-b',
+      tier: 'basic',
+      isOwner: false,
+    };
+    await act(async () => root.render(<PaywallDialog />));
+
+    expect(container.textContent).toContain('paywall.non_owner_title');
+    expect(container.textContent).toContain(
+      'paywall.credits_limit.basic.title'
+    );
+    expect(container.textContent).not.toContain(
+      'paywall.credits_limit.premium.cta'
+    );
+  });
+
   it('only acknowledges the prompt for non-owners', async () => {
     mockNamespace.value = {
       id: 'namespace-a',

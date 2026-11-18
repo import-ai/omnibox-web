@@ -6,12 +6,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/omnibox/Select';
-import { usePaywall } from '@/components/paywall/paywallContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/RadioGroup';
-import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import { ResourceConditionEditor } from '@/page/resource/conditions/ResourceConditionEditor';
@@ -34,12 +32,10 @@ import { SmartFolderUnsavedDialog } from './SmartFolderUnsavedDialog';
 import { useCreateSmartFolderDialogState } from './useCreateSmartFolderDialogState';
 
 export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
-  const { open, hasTeamspace = true, confirmText, currentNamespace } = props;
-  const { showPaywall } = usePaywall();
+  const { open, hasTeamspace = true, confirmText } = props;
   const state = useCreateSmartFolderDialogState(props);
   const {
     t,
-    namespaceId,
     inputRef,
     conditionListRef,
     name,
@@ -58,7 +54,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
     maxConditionCount,
     remainingConditionCount,
     disableAddMessage,
-    showUpgradeButton,
+    isBasic,
     ownerOptions,
     rootScopeOptions,
     canAddCondition,
@@ -214,6 +210,7 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
               conditionErrors={conditionErrors}
               conditionListRef={conditionListRef}
               canAddCondition={canAddCondition}
+              allowAddAtLimit={isBasic}
               addButtonTooltip={disableAddMessage}
               headerClassName={cn(
                 resourceConditionNameRowClass,
@@ -257,45 +254,14 @@ export function CreateSmartFolderDialog(props: CreateSmartFolderDialogProps) {
                       </SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="ml-auto flex min-w-max items-center justify-end gap-2">
-                    <Tooltip delayDuration={0}>
-                      <TooltipTrigger asChild>
-                        <span
-                          tabIndex={showUpgradeButton ? 0 : undefined}
-                          className="cursor-default whitespace-nowrap text-xs text-muted-foreground sm:text-sm"
-                        >
-                          {t('smart_folder.create.remaining_conditions', {
-                            remaining: remainingConditionCount,
-                            total: maxConditionCount,
-                          })}
-                        </span>
-                      </TooltipTrigger>
-                      {showUpgradeButton && (
-                        <TooltipContent side="top">
-                          {t(
-                            'smart_folder.create.condition_rule_limit_tooltip'
-                          )}
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
-                    {showUpgradeButton && (
-                      <UpgradeActionButton
-                        namespaceId={namespaceId}
-                        hasPermission={currentNamespace?.is_owner !== false}
-                        disabledReason={t('chat.trial.not_owner')}
-                        onDeniedPress={() =>
-                          showPaywall('smart_filter_limit', {
-                            namespaceId,
-                            tier: currentNamespace?.tier,
-                            isOwner: currentNamespace?.is_owner,
-                            trigger: 'smart_folder_filter_upgrade',
-                          })
-                        }
-                        trackName="sidebar_plan_upgrade"
-                        entry="smart_folder_dialog"
-                      />
-                    )}
-                  </div>
+                  {!isBasic && (
+                    <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground sm:text-sm">
+                      {t('smart_folder.create.remaining_conditions', {
+                        remaining: remainingConditionCount,
+                        total: maxConditionCount,
+                      })}
+                    </span>
+                  )}
                 </div>
               }
             />

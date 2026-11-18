@@ -17,6 +17,7 @@ import { ResourceConditionRow } from './ResourceConditionRow';
 
 interface ResourceConditionEditorProps {
   addButtonTooltip?: string;
+  allowAddAtLimit?: boolean;
   canAddCondition: boolean;
   conditionErrors: Record<number, string>;
   conditionListRef?: RefObject<HTMLDivElement | null>;
@@ -37,6 +38,7 @@ interface ResourceConditionEditorProps {
 
 export function ResourceConditionEditor({
   addButtonTooltip,
+  allowAddAtLimit = false,
   canAddCondition,
   conditionErrors,
   conditionListRef,
@@ -107,6 +109,7 @@ export function ResourceConditionEditor({
                 iconButtonHoverClassName,
                 'h-8 gap-1 px-0 text-sm font-normal'
               )}
+              disabled={!canAddCondition && !allowAddAtLimit}
               onClick={() => onAddCondition(conditions.length - 1)}
             >
               <Plus className="size-4" />
@@ -114,7 +117,7 @@ export function ResourceConditionEditor({
             </Button>
           </span>
         </TooltipTrigger>
-        {!canAddCondition && addButtonTooltip && (
+        {!canAddCondition && !allowAddAtLimit && addButtonTooltip && (
           <TooltipContent>{addButtonTooltip}</TooltipContent>
         )}
       </Tooltip>

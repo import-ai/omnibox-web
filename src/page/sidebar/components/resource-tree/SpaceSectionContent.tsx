@@ -50,6 +50,7 @@ import { cn } from '@/lib/utils';
 import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import type { SmartFolderOwnerScope } from '@/page/sidebar/components/smart-folder';
+import { useExpiredNamespaceGate } from '@/page/sidebar/hooks/useExpiredNamespaceGate';
 import { useSpaceDrop } from '@/page/sidebar/hooks/useSpaceDrop';
 import type { RssFolderQuotaExhausted } from '@/page/sidebar/rssFolderQuota';
 import type { TreeNode } from '@/page/sidebar/store';
@@ -114,6 +115,7 @@ export function SpaceSectionContent({
 }: SpaceSectionContentProps) {
   const { t } = useTranslation();
   const { showPaywall } = usePaywall();
+  const blockExpired = useExpiredNamespaceGate(namespaceId, currentNamespace);
   const navigate = useNavigate();
   const isTouch = useIsTouch();
   const menuTriggerPress = useMenuTriggerPress();
@@ -141,11 +143,13 @@ export function SpaceSectionContent({
 
   const entryTrackProps = { space_type: spaceType, entry: 'space_menu' };
   const handleCreateFolder = () => {
+    if (blockExpired('sidebar_folder_create')) return;
     trackButtonClick('sidebar_folder_create', entryTrackProps);
     useSidebarStore.getState().openCreateFolderDialog(rootId);
   };
 
   const handleCreateLink = () => {
+    if (blockExpired('sidebar_link_open')) return;
     trackButtonClick('sidebar_link_open', entryTrackProps);
     useSidebarStore.getState().openCreateLinkDialog(rootId);
   };
@@ -170,19 +174,12 @@ export function SpaceSectionContent({
 
   const handleUploadClick = () => {
     trackButtonClick('sidebar_file_upload', entryTrackProps);
-    if (currentNamespace?.expired) {
-      showPaywall('namespace_expired', {
-        namespaceId,
-        tier: currentNamespace.tier,
-        isOwner: currentNamespace.is_owner,
-        trigger: 'sidebar_upload',
-      });
-      return;
-    }
+    if (blockExpired('sidebar_upload')) return;
     triggerGlobalFileUpload(rootId);
   };
 
   const handleCreateFile = () => {
+    if (blockExpired('sidebar_file_create')) return;
     trackButtonClick('sidebar_file_create', entryTrackProps);
     useSidebarStore
       .getState()
@@ -199,6 +196,7 @@ export function SpaceSectionContent({
   };
 
   const handleCreateSmartFolder = () => {
+    if (blockExpired('sidebar_smart_folder_create')) return;
     if (smartFolderDisabled) {
       showPaywall('smart_folder_limit', {
         namespaceId,
@@ -213,6 +211,7 @@ export function SpaceSectionContent({
   };
 
   const handleCreateRssFolder = () => {
+    if (blockExpired('sidebar_rss_folder_create')) return;
     if (rssFolderDisabled) {
       showPaywall('rss_folder_limit', {
         namespaceId,

@@ -84,7 +84,7 @@ export function useCreateSmartFolderDialogState({
     0
   );
   const disableAddMessage = t(getConditionLimitMessage(resolvedTier));
-  const showUpgradeButton = resolvedTier === 'basic';
+  const isBasic = resolvedTier === 'basic';
 
   useEffect(() => {
     if (!open) {
@@ -206,7 +206,7 @@ export function useCreateSmartFolderDialogState({
       addCondition(afterIndex);
       return;
     }
-    // Basic can upgrade and Premium is at its own cap: both need the card.
+    if (!isBasic) return;
     showPaywall('smart_filter_limit', {
       namespaceId,
       tier: currentNamespace?.tier,
@@ -365,7 +365,7 @@ export function useCreateSmartFolderDialogState({
     maxConditionCount,
     remainingConditionCount,
     disableAddMessage,
-    showUpgradeButton,
+    isBasic,
     ownerOptions,
     rootScopeOptions,
     canAddCondition,

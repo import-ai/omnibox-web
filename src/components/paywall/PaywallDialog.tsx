@@ -21,7 +21,11 @@ import type { PaywallDismissReason } from './paywallTypes';
 export function PaywallDialog() {
   const { t, i18n } = useTranslation();
   const { request, hidePaywall } = usePaywall();
-  const { namespace, resolvedId } = useNamespaceInfo(request?.namespaceId);
+  const namespaceId = request?.namespaceId;
+  const { namespace: namespaceInfo, resolvedId } =
+    useNamespaceInfo(namespaceId);
+  const namespace =
+    namespaceInfo?.id === namespaceId ? namespaceInfo : undefined;
   // The namespace record is authoritative when it is already in hand; the
   // role request only fills the gap for callers that pass no namespace.
   const { role, loading: roleLoading } = useNamespaceRole(
@@ -30,7 +34,6 @@ export function PaywallDialog() {
   );
   const viewTrackedRef = useRef<number | null>(null);
 
-  const namespaceId = request?.namespaceId;
   const tier = namespace?.tier ?? request?.tier ?? NamespaceTier.BASIC;
   const isOwner =
     namespace?.is_owner ??

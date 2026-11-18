@@ -7,7 +7,6 @@ import { usePaywall } from '@/components/paywall/paywallContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/Label';
-import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import { cn } from '@/lib/utils';
 import {
   resourceConditionFieldLabelClass,
@@ -36,7 +35,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
     setConfirmCloseOpen,
     maxLinkCount,
     remainingLinkCount,
-    showUpgradeButton,
+    isBasic,
     canAddLink,
     disableAddMessage,
     canSubmit,
@@ -98,43 +97,14 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2">
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <span
-                  tabIndex={showUpgradeButton ? 0 : undefined}
-                  className="cursor-default whitespace-nowrap text-xs text-muted-foreground sm:text-sm"
-                >
-                  {t('rss_folder.create.remaining_links', {
-                    remaining: remainingLinkCount,
-                    total: maxLinkCount,
-                  })}
-                </span>
-              </TooltipTrigger>
-              {showUpgradeButton && (
-                <TooltipContent side="top">
-                  {t('rss_folder.create.link_limit_tooltip')}
-                </TooltipContent>
-              )}
-            </Tooltip>
-            {showUpgradeButton && (
-              <UpgradeActionButton
-                namespaceId={namespaceId}
-                hasPermission={currentNamespace?.is_owner !== false}
-                disabledReason={t('chat.trial.not_owner')}
-                onDeniedPress={() =>
-                  showPaywall('rss_link_limit', {
-                    namespaceId,
-                    tier: currentNamespace?.tier,
-                    isOwner: currentNamespace?.is_owner,
-                    trigger: 'rss_folder_upgrade',
-                  })
-                }
-                trackName="sidebar_plan_upgrade"
-                entry="rss_folder_dialog"
-              />
-            )}
-          </div>
+          {!isBasic && (
+            <div className="text-right text-xs text-muted-foreground sm:text-sm">
+              {t('rss_folder.create.remaining_links', {
+                remaining: remainingLinkCount,
+                total: maxLinkCount,
+              })}
+            </div>
+          )}
 
           <div
             ref={linkListRef}
@@ -220,8 +190,10 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                     iconButtonHoverClassName,
                     'h-8 gap-1 px-0 text-sm font-normal'
                   )}
+                  disabled={!isBasic && !canAddLink}
                   onClick={() => {
                     if (!canAddLink) {
+                      if (!isBasic) return;
                       showPaywall('rss_link_limit', {
                         namespaceId,
                         tier: currentNamespace?.tier,
@@ -238,7 +210,7 @@ export function CreateRssFolderDialog(props: CreateRssFolderDialogProps) {
                 </Button>
               </span>
             </TooltipTrigger>
-            {!canAddLink && (
+            {!isBasic && !canAddLink && (
               <TooltipContent>{disableAddMessage}</TooltipContent>
             )}
           </Tooltip>
