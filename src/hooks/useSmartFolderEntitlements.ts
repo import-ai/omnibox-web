@@ -1,8 +1,7 @@
-import axios from 'axios';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
-import { SmartFolderEntitlements } from '@/page/sidebar/components/smart-folder';
+import type { SmartFolderEntitlements } from '@/page/sidebar/components/smart-folder';
 import { useSidebarStore } from '@/page/sidebar/store';
 
 interface IProps {
@@ -40,104 +39,70 @@ function normalizeSmartFolderEntitlements(
   };
 }
 
+function fetchEntitlements(namespaceId: string, cacheKey: string) {
+  const pending = pendingRequests.get(cacheKey);
+  if (pending) return pending;
+
+  // The request is shared by all consumers of this key. Unsubscribing one
+  // consumer must not cancel the request for the others.
+  const request = http
+    .get<SmartFolderEntitlementsResponse>(
+      `/namespaces/${namespaceId}/smart-folders/entitlements`
+    )
+    .then(response => {
+      if (!response) return undefined;
+      const data = normalizeSmartFolderEntitlements(response);
+      cachedEntitlements.set(cacheKey, data);
+      return data;
+    })
+    .catch(() => undefined)
+    .finally(() => pendingRequests.delete(cacheKey));
+
+  pendingRequests.set(cacheKey, request);
+  return request;
+}
+
 export default function useSmartFolderEntitlements(props?: IProps) {
   const { namespaceId, disabled = false } = props || {};
-  const mountedRef = useRef(false);
   const refetchVersionRef = useRef(0);
-  const [loading, onLoading] = useState(false);
-  const [data, onData] = useState<SmartFolderEntitlements>();
+  const [snapshot, setSnapshot] = useState<{
+    key: string;
+    data?: SmartFolderEntitlements;
+    loading: boolean;
+  }>();
   const entitlementsVersion = useSidebarStore(
     state => state.smartFolderEntitlementsVersion
   );
-  const currentUserId = localStorage.getItem('uid') || '';
+  const currentUserId = localStorage.getItem('uid');
   const cacheKey =
-    namespaceId && currentUserId ? `${currentUserId}:${namespaceId}` : '';
+    !disabled && namespaceId && currentUserId
+      ? `${currentUserId}:${namespaceId}`
+      : '';
 
   useEffect(() => {
-    mountedRef.current = true;
-
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  const refetch = useCallback(
-    (force: boolean = false) => {
-      if (disabled || !namespaceId) {
-        return;
-      }
-      if (!currentUserId || !cacheKey) {
-        return;
-      }
-
-      const cached = cachedEntitlements.get(cacheKey);
-      if (!force && cached) {
-        if (mountedRef.current) {
-          onData(cached);
-        }
-        return;
-      }
-
-      const pending = pendingRequests.get(cacheKey);
-      if (pending) {
-        pending.then(result => {
-          if (result && mountedRef.current) {
-            onData(result);
-          }
-        });
-        return;
-      }
-
-      onLoading(true);
-      const source = axios.CancelToken.source();
-      const request = http
-        .get<SmartFolderEntitlementsResponse>(
-          `/namespaces/${namespaceId}/smart-folders/entitlements`,
-          {
-            cancelToken: source.token,
-          }
-        )
-        .then(response => {
-          if (!response) {
-            return undefined;
-          }
-
-          const normalized = normalizeSmartFolderEntitlements(response);
-          cachedEntitlements.set(cacheKey, normalized);
-          if (mountedRef.current) {
-            onData(normalized);
-          }
-          return normalized;
-        })
-        .finally(() => {
-          pendingRequests.delete(cacheKey);
-          if (mountedRef.current) {
-            onLoading(false);
-          }
-        });
-
-      pendingRequests.set(cacheKey, request);
-
-      return () => {
-        source.cancel();
-      };
-    },
-    [cacheKey, currentUserId, disabled, namespaceId]
-  );
-
-  useEffect(() => {
-    if (disabled || !namespaceId) {
-      return;
-    }
+    if (!cacheKey || !namespaceId) return;
 
     const force = refetchVersionRef.current !== entitlementsVersion;
     refetchVersionRef.current = entitlementsVersion;
-    const cancelRequest = refetch(force);
+    const cached = cachedEntitlements.get(cacheKey);
+    const shouldFetch = force || !cached;
+    setSnapshot({ key: cacheKey, data: cached, loading: shouldFetch });
+    if (!shouldFetch) return;
+
+    let active = true;
+    void fetchEntitlements(namespaceId, cacheKey).then(data => {
+      if (active) {
+        setSnapshot({ key: cacheKey, data: data ?? cached, loading: false });
+      }
+    });
 
     return () => {
-      cancelRequest?.();
+      active = false;
     };
-  }, [disabled, entitlementsVersion, namespaceId, refetch]);
+  }, [cacheKey, entitlementsVersion, namespaceId]);
 
-  return { data, loading, refetch };
+  if (cacheKey && snapshot?.key === cacheKey) {
+    return { data: snapshot.data, loading: snapshot.loading };
+  }
+  return { data: undefined, loading: Boolean(cacheKey) };
 }
