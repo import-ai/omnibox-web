@@ -23,8 +23,9 @@ function fetchProNamespaces(): Promise<Namespace[]> {
   proNamespacesPending = http
     .get<Namespace[]>('pro-namespaces', { mute: true })
     .then((data: Namespace[]) => {
-      proNamespacesCache = { data, at: Date.now() };
-      return data;
+      const namespaces = Array.isArray(data) ? data : [];
+      proNamespacesCache = { data: namespaces, at: Date.now() };
+      return namespaces;
     })
     .finally(() => {
       proNamespacesPending = undefined;
