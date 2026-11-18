@@ -97,7 +97,9 @@ export default function Editor(props: IEditorProps) {
   } = props;
   const { i18n, t } = useTranslation();
   const { registerImagePreview, imagePreviewProps } = useResourceImagePreview(
-    `edit:${namespaceId}:${resource.id}`
+    `edit:${namespaceId}:${resource.id}`,
+    undefined,
+    { comments }
   );
   const bodyEditorRef = useRef<BodyEditorFocus | null>(null);
   const titleRef = useRef<AutosizeTextAreaRef | null>(null);

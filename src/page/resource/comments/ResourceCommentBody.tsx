@@ -2,6 +2,7 @@ import { useId, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import { originalImageDownload } from '@/components/imageViewerActions';
 import type { ResourceCommentAttachment } from '@/interface';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 import {
@@ -23,9 +24,11 @@ export function ResourceCommentBody({
   attachments,
   mentionUsers,
   membersById,
+  allowDownloads = false,
 }: {
   content: string;
   attachments?: ResourceCommentAttachment[];
+  allowDownloads?: boolean;
   mentionUsers?: CommentMentionUser[];
   membersById?: Record<string, MentionCardMember>;
 }) {
@@ -157,7 +160,19 @@ export function ResourceCommentBody({
         </button>
       ))}
       <ImagePreviewDialog
-        alt={preview?.name}
+        items={images.map(image => ({
+          id: image.id,
+          src: image.url,
+          alt: image.name,
+          download:
+            allowDownloads &&
+            /^\/api\/v1\/namespaces\/[\w-]+\/resources\/[\w-]+\/comment-attachments\/[\w.-]+$/.test(
+              image.url
+            )
+              ? originalImageDownload(image.url, image.name)
+              : undefined,
+        }))}
+        initialItemId={preview?.id}
         open={!!preview}
         src={preview?.url}
         invokerRef={invokerRef}

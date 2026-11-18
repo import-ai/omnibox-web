@@ -567,6 +567,8 @@ export function useResourceComments({
     mentionDisplayNames: mentionNames,
     activeThread,
     activeThreadId,
+    imageAnchorThreads: anchorThreads,
+    scopedShare: isShared,
     canComment,
     canEditComment,
     canDeleteComment,

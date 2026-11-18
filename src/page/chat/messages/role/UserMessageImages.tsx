@@ -1,7 +1,9 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import { originalImageDownload } from '@/components/imageViewerActions';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 
 import type { UserMessageImagePart } from './userMessageTokens';
@@ -12,6 +14,7 @@ export function UserMessageImages({
   images: UserMessageImagePart[];
 }) {
   const { t } = useTranslation();
+  const { share_id: shareId } = useParams();
   const [preview, setPreview] = useState<UserMessageImagePart | null>(null);
   const invokerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -48,7 +51,19 @@ export function UserMessageImages({
         ))}
       </div>
       <ImagePreviewDialog
-        alt={preview?.name}
+        items={images.map(image => ({
+          id: image.attachment_id,
+          src: image.preview_url,
+          alt: image.name,
+          download:
+            !shareId &&
+            /^\/api\/v1\/namespaces\/[\w-]+\/conversations\/[\w-]+\/attachments\/[\w.-]+$/.test(
+              image.preview_url
+            )
+              ? originalImageDownload(image.preview_url, image.name)
+              : undefined,
+        }))}
+        initialItemId={preview?.attachment_id}
         open={preview !== null}
         src={preview?.preview_url}
         invokerRef={invokerRef}

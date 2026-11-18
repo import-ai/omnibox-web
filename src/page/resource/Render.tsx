@@ -123,7 +123,11 @@ function OmniboxRender(props: OmniboxRenderProps) {
   );
   const { registerImagePreview, imagePreviewProps } = useResourceImagePreview(
     `read:${namespaceId ?? ''}:${getReadonlyResourceEditorKey(resource)}`,
-    containerRef
+    containerRef,
+    {
+      scopedShare: !!shareId,
+      comments: props.commentsDisabled ? undefined : comments,
+    }
   );
   const handleEditorReady = useCallback(
     (editor: Parameters<typeof registerImagePreview>[0]) => {
@@ -200,7 +204,7 @@ function OmniboxRender(props: OmniboxRenderProps) {
       style={style}
       className={editorClassName}
     >
-      <ImagePreviewDialog {...imagePreviewProps} allowLongImage />
+      <ImagePreviewDialog {...imagePreviewProps} />
       {failedImageCount > 0 ? (
         <div
           role="alert"

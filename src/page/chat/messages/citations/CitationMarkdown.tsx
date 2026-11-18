@@ -33,6 +33,7 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
+import { markdownImageGallery } from '@/page/chat/messages/markdownImageGallery';
 import { MessageChannelTime } from '@/page/chat/messages/role/MessageChannelTime';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
@@ -166,7 +167,7 @@ export function CitationMarkdown(props: IProps) {
       <CitationContext.Provider value={citations}>
         <Markdown
           remarkPlugins={[remarkGfm, remarkMath]}
-          rehypePlugins={[rehypeKatex]}
+          rehypePlugins={[rehypeKatex, markdownImageGallery]}
           components={components}
           urlTransform={citationUrlTransform}
         >

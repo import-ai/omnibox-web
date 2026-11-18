@@ -13,17 +13,30 @@ jest.mock('react-i18next', () => ({
 }));
 jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
 
-Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
+Object.assign(globalThis, {
+  IS_REACT_ACT_ENVIRONMENT: true,
+  ResizeObserver: class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  },
+});
 
 const longImageSize = { width: 1428, height: 14180 };
 
 function Fixture({
-  allowLongImage,
   imageSize,
+  gallery,
   onCloseAutoFocus,
   removeInvokerOnOpen = false,
 }: {
-  allowLongImage?: boolean;
+  gallery?: {
+    id: string;
+    src: string;
+    alt?: string;
+    size?: { width: number; height: number };
+    download?: { name: string; href: string };
+  }[];
   imageSize?: { width: number; height: number };
   onCloseAutoFocus?: (event: Event) => void;
   removeInvokerOnOpen?: boolean;
@@ -31,7 +44,6 @@ function Fixture({
   const [open, setOpen] = useState(false);
   const [showInvoker, setShowInvoker] = useState(true);
   const invokerRef = useRef<HTMLButtonElement | null>(null);
-  const imageLayout = { allowLongImage, imageSize };
   return (
     <>
       {showInvoker ? (
@@ -48,7 +60,8 @@ function Fixture({
         </button>
       ) : null}
       <ImagePreviewDialog
-        {...imageLayout}
+        imageSize={imageSize}
+        {...(gallery ? { items: gallery, initialItemId: gallery[0]?.id } : {})}
         alt="Diagram"
         src="/missing-image.png"
         referrerPolicy="no-referrer"
@@ -58,12 +71,6 @@ function Fixture({
         onOpenChange={setOpen}
       />
     </>
-  );
-}
-
-function findButton(scope: ParentNode, label: string) {
-  return Array.from(scope.querySelectorAll('button')).find(
-    button => button.textContent === label
   );
 }
 
@@ -92,6 +99,67 @@ describe('ImagePreviewDialog', () => {
     return invoker;
   };
 
+  it('shows product tooltips on focus and on hover, including disabled navigation', async () => {
+    await act(async () =>
+      root.render(
+        <Fixture
+          gallery={[
+            { id: 'one', src: '/one.png', size: longImageSize },
+            { id: 'two', src: '/two.png', size: longImageSize },
+          ]}
+        />
+      )
+    );
+    await openPreview();
+    const zoom = document.querySelector<HTMLButtonElement>(
+      'button[aria-label="image_viewer.zoom_in"]'
+    )!;
+    await act(async () => zoom.focus());
+    expect(document.querySelector('[role="tooltip"]')?.textContent).toBe(
+      'image_viewer.zoom_in'
+    );
+    await act(async () => zoom.blur());
+    const previous = document.querySelector<HTMLButtonElement>(
+      'button[aria-label="image_viewer.previous"]'
+    )!;
+    expect(previous.disabled).toBe(true);
+    const hoverTarget = previous.closest('[data-slot="tooltip-trigger"]');
+    expect(hoverTarget).not.toBeNull();
+    const hover = new MouseEvent('pointermove', { bubbles: true });
+    Object.defineProperty(hover, 'pointerType', { value: 'mouse' });
+    await act(async () => hoverTarget!.dispatchEvent(hover));
+    await act(async () => jest.runOnlyPendingTimers());
+    expect(document.querySelector('[role="tooltip"]')?.textContent).toBe(
+      'image_viewer.first_image'
+    );
+    await act(async () => previous.click());
+    expect(
+      document.querySelector('[data-image-preview] img')?.getAttribute('src')
+    ).toBe('/one.png');
+    await act(async () =>
+      hoverTarget!.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Escape',
+          bubbles: true,
+          cancelable: true,
+        })
+      )
+    );
+    expect(document.querySelector('[data-image-preview]')).toBeNull();
+  });
+
+  it('displays the current zoom without opening a tooltip on hover', async () => {
+    await act(async () => root.render(<Fixture imageSize={longImageSize} />));
+    await openPreview();
+    const ratio = document.querySelector('[data-image-preview] output')!;
+    expect(ratio.textContent).toMatch(/%$/);
+    const hover = new MouseEvent('pointermove', { bubbles: true });
+    Object.defineProperty(hover, 'pointerType', { value: 'mouse' });
+    await act(async () => ratio.dispatchEvent(hover));
+    await act(async () => jest.advanceTimersByTime(300));
+    expect(document.querySelector('[role="tooltip"]')).toBeNull();
+  });
+
   it('keeps the failed image dismissible through the backdrop', async () => {
     await act(async () => root.render(<Fixture />));
     const invoker = await openPreview();
@@ -111,105 +179,197 @@ describe('ImagePreviewDialog', () => {
     expect(document.activeElement).toBe(invoker);
   });
 
-  it('dismisses the enlarged image on click and restores the invoker', async () => {
-    await act(async () => root.render(<Fixture />));
-    const invoker = await openPreview();
-    const image = document.querySelector<HTMLImageElement>(
-      '[data-image-preview] img'
-    )!;
-    await act(async () => image.click());
-    await act(async () => jest.runOnlyPendingTimers());
-    expect(document.querySelector('[data-image-preview]')).toBeNull();
-    expect(document.activeElement).toBe(invoker);
-  });
-
-  it('lets opted-in long images zoom without closing and resets the mode when reopened', async () => {
+  it('preserves the ordinary preview chrome and clicking the zoom-out cursor closes it', async () => {
     await act(async () =>
-      root.render(<Fixture allowLongImage imageSize={longImageSize} />)
+      root.render(<Fixture imageSize={{ width: 600, height: 1000 }} />)
     );
     const invoker = await openPreview();
     const dialog = document.querySelector('[data-image-preview]')!;
+    const image = dialog.querySelector<HTMLImageElement>('img')!;
+    const close = dialog.querySelector<HTMLButtonElement>(
+      'button[aria-label="close"]'
+    )!;
+    expect(dialog.classList.contains('bg-transparent')).toBe(true);
+    expect(close.classList.contains('rounded-full')).toBe(true);
+    expect(close.classList.contains('bg-black/55')).toBe(true);
+    expect(parseFloat(close.style.right)).toBeGreaterThan(12);
+    expect(parseFloat(close.style.top)).toBeGreaterThan(12);
+    expect(image.classList.contains('cursor-zoom-out')).toBe(true);
+    expect(image.parentElement?.classList.contains('rounded-md')).toBe(true);
+    await act(async () => image.click());
+    await act(async () => jest.runOnlyPendingTimers());
+    expect(dialog.isConnected).toBe(false);
+    expect(document.activeElement).toBe(invoker);
+  });
+
+  it('shows zoom, original size and rotation without dismissing the image', async () => {
+    await act(async () =>
+      root.render(<Fixture imageSize={{ width: 2400, height: 1200 }} />)
+    );
+    await openPreview();
+    const dialog = document.querySelector('[data-image-preview]')!;
+    const button = (key: string) =>
+      dialog.querySelector<HTMLButtonElement>(
+        `button[aria-label="image_viewer.${key}"]`
+      )!;
+    const image = dialog.querySelector('img')!;
+    await act(async () => button('actual_size').click());
+    expect(image.style.width).toBe('2400px');
+    await act(async () => button('zoom_in').click());
+    expect(image.style.width).toBe('3000px');
+    await act(async () => button('zoom_out').click());
+    expect(image.style.width).toBe('2400px');
+    await act(async () => button('rotate').click());
+    expect(image.style.transform).toContain('90deg');
+    expect(image.parentElement!.style.width).toBe('1200px');
+    expect(image.parentElement!.style.height).toBe('2400px');
+    await act(async () => button('fit').click());
+    expect(Number.parseFloat(image.style.width)).toBeLessThan(2400);
+  });
+
+  it('pans a zoomed ordinary image without dismissing on the drag release', async () => {
+    await act(async () =>
+      root.render(<Fixture imageSize={{ width: 2400, height: 1200 }} />)
+    );
+    await openPreview();
+    const dialog = document.querySelector('[data-image-preview]')!;
     const image = dialog.querySelector('img')!;
     const viewport = dialog.querySelector<HTMLElement>('[role="region"]')!;
-    viewport.scrollTop = 2400;
-    jest.spyOn(viewport, 'clientWidth', 'get').mockReturnValue(950);
-    jest
-      .spyOn(viewport, 'getBoundingClientRect')
-      .mockReturnValue({ left: 32, top: 56 } as DOMRect);
-    jest.spyOn(image, 'getBoundingClientRect').mockImplementation(() => {
-      const zoomed = !!findButton(dialog, 'chat.image.fit_width');
-      return {
-        left: 32 - viewport.scrollLeft,
-        top: 56 - viewport.scrollTop,
-        width: zoomed ? 1428 : 950,
-        height: zoomed ? 15000 : 10000,
-      } as DOMRect;
+    await act(async () =>
+      dialog
+        .querySelector<HTMLButtonElement>(
+          '[aria-label="image_viewer.actual_size"]'
+        )!
+        .click()
+    );
+    viewport.scrollLeft = 50;
+    const setPointerCapture = jest.fn();
+    Object.assign(image.parentElement!, { setPointerCapture });
+    const send = (type: string, clientX: number, buttons: number) => {
+      const event = new MouseEvent(type, {
+        bubbles: true,
+        clientX,
+        clientY: 20,
+        buttons,
+        button: 0,
+      });
+      Object.defineProperties(event, {
+        pointerType: { value: 'mouse' },
+        pointerId: { value: 1 },
+      });
+      image.dispatchEvent(event);
+    };
+    await act(async () => {
+      send('pointerdown', 50, 1);
+      send('pointermove', 48, 1);
     });
-    const toggle = findButton(dialog, 'chat.image.zoom_in');
-    expect(toggle).toBeDefined();
-    await act(async () => image.click());
-    expect(document.querySelector('[data-image-preview]')).toBe(dialog);
-    await act(async () => toggle!.click());
-    expect(findButton(dialog, 'chat.image.fit_width')).toBe(toggle);
-    expect(dialog.querySelector('img')).toBe(image);
-    expect([viewport.scrollTop, viewport.scrollLeft]).toEqual([3600, 239]);
+    expect(setPointerCapture).not.toHaveBeenCalled();
+    await act(async () => {
+      send('pointermove', 30, 1);
+      send('pointerup', 30, 0);
+      image.click();
+    });
+    expect(setPointerCapture).toHaveBeenCalledWith(1);
+    expect(viewport.scrollLeft).toBe(70);
+    expect(dialog.isConnected).toBe(true);
+    await act(async () => {
+      send('pointerdown', 30, 1);
+      send('pointerup', 30, 0);
+      image.click();
+    });
+    expect(dialog.isConnected).toBe(false);
+  });
 
+  it('navigates duplicate-URL occurrences by ID and exposes only authorized actions', async () => {
+    await act(async () =>
+      root.render(
+        <Fixture
+          gallery={[
+            {
+              id: 'first',
+              src: '/same.jpg',
+              alt: 'First',
+              size: longImageSize,
+              download: { href: '/same.jpg', name: 'original.jpg' },
+            },
+            {
+              id: 'second',
+              src: '/same.jpg',
+              alt: 'Second',
+              size: longImageSize,
+            },
+          ]}
+        />
+      )
+    );
+    await openPreview();
+    const dialog = document.querySelector('[data-image-preview]')!;
+    expect(dialog.querySelector('img')?.alt).toBe('First');
+    expect(dialog.querySelector('a[download]')?.getAttribute('download')).toBe(
+      'original.jpg'
+    );
+    await act(async () =>
+      dialog
+        .querySelector<HTMLButtonElement>('[aria-label="image_viewer.rotate"]')!
+        .click()
+    );
+    await act(async () =>
+      dialog
+        .querySelector<HTMLButtonElement>('[aria-label="image_viewer.next"]')!
+        .click()
+    );
+    expect(dialog.querySelector('img')?.alt).toBe('Second');
+    expect(dialog.querySelector('img')?.style.transform).toContain('0deg');
+    expect(dialog.querySelector('a[download]')).toBeNull();
+    expect(
+      dialog.querySelector<HTMLButtonElement>(
+        '[aria-label="image_viewer.next"]'
+      )?.disabled
+    ).toBe(true);
+  });
+
+  it('starts a long image at the top and reopens at its initial fit', async () => {
+    await act(async () => root.render(<Fixture imageSize={longImageSize} />));
+    const invoker = await openPreview();
+    const dialog = document.querySelector('[data-image-preview]')!;
+    const viewport = dialog.querySelector<HTMLElement>('[role="region"]')!;
+    expect(viewport.classList.contains('no-scrollbar')).toBe(true);
+    expect(viewport.classList.contains('overscroll-contain')).toBe(true);
+    expect(viewport.hasAttribute('data-image-viewer-long')).toBe(true);
+    await act(async () => dialog.querySelector('img')!.click());
+    expect(dialog.isConnected).toBe(true);
+    expect(dialog.querySelector('img')!.classList.contains('rounded-md')).toBe(
+      false
+    );
+    expect(viewport.scrollTop).toBe(0);
+    viewport.scrollTop = 3400;
+    await act(async () =>
+      dialog
+        .querySelector<HTMLButtonElement>(
+          '[aria-label="image_viewer.actual_size"]'
+        )!
+        .click()
+    );
+    expect(dialog.querySelector('img')!.style.width).toBe('1428px');
     await act(async () =>
       document.activeElement?.dispatchEvent(
         new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
       )
     );
     await act(async () => jest.runOnlyPendingTimers());
-    expect(document.querySelector('[data-image-preview]')).toBeNull();
+    expect(dialog.isConnected).toBe(false);
     expect(document.activeElement).toBe(invoker);
     await openPreview();
-    expect(findButton(document, 'chat.image.zoom_in')).toBeDefined();
-    const reopened = document.querySelector<HTMLElement>(
-      '[data-image-preview] [role="region"]'
-    )!;
-    expect([reopened.scrollTop, reopened.scrollLeft]).toEqual([0, 0]);
+    expect(
+      document.querySelector<HTMLElement>(
+        '[data-image-preview] [role="region"]'
+      )!.scrollTop
+    ).toBe(0);
+    expect(
+      document.querySelector<HTMLImageElement>('[data-image-preview] img')!
+        .style.width
+    ).not.toBe('1428px');
   });
-
-  it('keeps a scrollbar-free long-image surface and dismisses only from its gutter', async () => {
-    await act(async () =>
-      root.render(<Fixture allowLongImage imageSize={longImageSize} />)
-    );
-    const invoker = await openPreview();
-    const dialog = document.querySelector('[data-image-preview]')!;
-    const viewport = dialog.querySelector<HTMLElement>('[role="region"]')!;
-    const image = dialog.querySelector('img')!;
-    expect(viewport.classList.contains('no-scrollbar')).toBe(true);
-    expect(viewport.classList.contains('overflow-auto')).toBe(true);
-    expect(viewport.classList.contains('overscroll-contain')).toBe(true);
-    expect(image.classList.contains('rounded-md')).toBe(false);
-    await act(async () => image.click());
-    expect(document.querySelector('[data-image-preview]')).toBe(dialog);
-    await act(async () => viewport.click());
-    await act(async () => jest.runOnlyPendingTimers());
-    expect(document.querySelector('[data-image-preview]')).toBeNull();
-    expect(document.activeElement).toBe(invoker);
-  });
-
-  it.each([
-    ['a non-opted-in long image', false, longImageSize],
-    ['an ordinary portrait', true, { width: 600, height: 1200 }],
-    ['a tall image that already fits', true, { width: 30, height: 90 }],
-  ])(
-    'keeps the existing preview for %s',
-    async (_name, allowLongImage, imageSize) => {
-      await act(async () =>
-        root.render(
-          <Fixture allowLongImage={allowLongImage} imageSize={imageSize} />
-        )
-      );
-      await openPreview();
-      const dialog = document.querySelector('[data-image-preview]')!;
-      expect(findButton(dialog, 'chat.image.zoom_in')).toBeUndefined();
-      await act(async () => dialog.querySelector('img')!.click());
-      await act(async () => jest.runOnlyPendingTimers());
-      expect(document.querySelector('[data-image-preview]')).toBeNull();
-    }
-  );
 
   it('lets a host own close focus when its callback prevents the default', async () => {
     const host = document.createElement('button');
