@@ -105,6 +105,37 @@ it('selects an explicit step when changing groups', async () => {
   }
 });
 
+it('keeps the committed selection separate while the slider is moving', async () => {
+  const basic = [{ edition: 'basic' as const, level: 'low' }];
+  const pro = [{ edition: 'pro' as const, level: 'high' }];
+  (http.get as jest.Mock).mockResolvedValue({
+    default: { default: basic[0], levels: [...basic, ...pro] },
+  });
+  localStorage.clear();
+  let result!: ReturnType<typeof useThinkingLevel>;
+  function Harness() {
+    result = useThinkingLevel('/full', []);
+    return null;
+  }
+  const container = document.createElement('div');
+  const root = createRoot(container);
+  try {
+    await act(async () => root.render(React.createElement(Harness)));
+    expect(result.selection).toEqual(basic[0]);
+    expect(result.committedSelection).toEqual(basic[0]);
+
+    await act(async () => result.changeLevel('pro.high'));
+    expect(result.selection).toEqual(pro[0]);
+    expect(result.committedSelection).toEqual(basic[0]);
+
+    await act(async () => result.commitLevel('pro.high'));
+    expect(result.committedSelection).toEqual(pro[0]);
+  } finally {
+    await act(async () => root.unmount());
+    localStorage.clear();
+  }
+});
+
 it('prefers the group default when it is still available', () => {
   const options = {
     default: { edition: 'pro' as const, level: 'low' },

@@ -30,10 +30,12 @@ jest.mock('@/page/resource/Page', () => ({
     readOnly,
     wide,
     showToc,
+    shareId,
   }: {
     resource: { id: string; resource_type: string };
     apiPrefix?: string;
     navigationPrefix?: string;
+    shareId?: string;
     readOnly?: boolean;
     wide: boolean;
     showToc: boolean;
@@ -49,6 +51,7 @@ jest.mock('@/page/resource/Page', () => ({
       data-resource-id={resource.id}
       data-api-prefix={apiPrefix}
       data-navigation-prefix={navigationPrefix}
+      data-share-id={shareId}
       data-readonly={String(!!readOnly)}
       data-wide={String(wide)}
       data-show-toc={String(showToc)}
@@ -104,6 +107,7 @@ describe('SharedResourcePage', () => {
       '/shares/share-1/resources'
     );
     expect(folder?.getAttribute('data-navigation-prefix')).toBe('/s/share-1');
+    expect(folder?.getAttribute('data-share-id')).toBe('share-1');
     expect(folder?.getAttribute('data-readonly')).toBe('true');
   });
 
@@ -134,6 +138,7 @@ describe('SharedResourcePage', () => {
     expect(render?.getAttribute('data-resource-id')).toBe('item-1');
     expect(render?.getAttribute('data-wide')).toBe('true');
     expect(render?.getAttribute('data-show-toc')).toBe('false');
+    expect(render?.getAttribute('data-share-id')).toBe('share-1');
     expect(container.querySelector('[data-testid="folder"]')).toBeNull();
   });
 });

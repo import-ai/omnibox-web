@@ -423,7 +423,8 @@ export type TaskType =
   | 'generate_title'
   | 'generate_video_note'
   | 'generate_audio_note'
-  | 'upsert_message_index';
+  | 'upsert_message_index'
+  | 'update_memory';
 
 export interface Task {
   failure_code?: string;
