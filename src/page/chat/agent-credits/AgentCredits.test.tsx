@@ -30,6 +30,28 @@ jest.mock('@/lib/useNamespaceRole.ts', () => ({
   useNamespaceRole: () => ({ role: 'owner' }),
 }));
 
+const mockNamespaceInfo: {
+  namespace:
+    { id: string; tier: 'basic' | 'premium'; is_owner: boolean } | undefined;
+} = {
+  namespace: { id: 'namespace-a', tier: 'basic', is_owner: true },
+};
+
+jest.mock('@/hooks/useNamespaceInfo', () => ({
+  useNamespaceInfo: () => ({
+    namespace: mockNamespaceInfo.namespace,
+    loading: false,
+  }),
+}));
+
+jest.mock('@/components/paywall', () => ({
+  usePaywall: () => ({
+    request: null,
+    showPaywall: jest.fn(),
+    hidePaywall: jest.fn(),
+  }),
+}));
+
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -86,9 +108,41 @@ describe('AgentCredits', () => {
     );
 
     expect(container.textContent).toContain('chat.agent_credits.compact_text');
-    expect(container.textContent).toContain('chat.agent_credits.text');
-    expect(container.textContent).toContain('chat.agent_credits.tooltip.base');
-    expect(container.textContent).toContain('chat.agent_credits.expand_button');
+    expect(container.textContent).toContain(
+      'chat.agent_credits.compact_tooltip'
+    );
+    expect(container.textContent).toContain(
+      'chat.agent_credits.upgrade_button'
+    );
+  });
+
+  it('labels the action as a purchase for Premium spaces', async () => {
+    mockNamespaceInfo.namespace = {
+      id: 'namespace-a',
+      tier: 'premium',
+      is_owner: true,
+    };
+    try {
+      await act(async () =>
+        root.render(
+          <AgentCredits
+            namespaceId="namespace-a"
+            agentCredits={{
+              agent_credits_total: 100000,
+              agent_credits_remain: 0,
+            }}
+          />
+        )
+      );
+
+      expect(container.textContent).toContain('chat.agent_credits.buy_button');
+    } finally {
+      mockNamespaceInfo.namespace = {
+        id: 'namespace-a',
+        tier: 'basic',
+        is_owner: true,
+      };
+    }
   });
 
   it('reveals the exhausted-credits line from the compact prompt', async () => {
@@ -122,6 +176,6 @@ describe('AgentCredits', () => {
       )
     );
 
-    expect(container.textContent).toContain('chat.agent_credits.text');
+    expect(container.textContent).toContain('chat.agent_credits.compact_text');
   });
 });

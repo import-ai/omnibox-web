@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
 import { normalizeResourceMeta } from '@/lib/resourceMeta';
@@ -105,6 +106,7 @@ export default function ChatArea(props: IProps) {
     composerSurface = messages.length > 0 ? 'conversation' : 'home',
   } = props;
   const { t } = useTranslation();
+  const { showPaywall } = usePaywall();
   const {
     config: thinkingConfig,
     selection,
@@ -115,13 +117,17 @@ export default function ChatArea(props: IProps) {
     changeGroup,
     proLocked,
   } = useThinkingLevel(navigatePrefix, messages);
+  // `proLocked` comes from the models config (`pro_available === false`),
+  // `proUnsupported` from an exhausted Kibble balance. Both need the same
+  // paywall, and both must leave the Pro entry clickable.
+  const proNeedsPaywall = proLocked || proUnsupported;
 
   useEffect(() => {
     props.onThinkingSelectionChange?.(selection);
   }, [props.onThinkingSelectionChange, selection?.edition, selection?.level]);
 
   useEffect(() => {
-    if (!(proUnsupported || proLocked) || selection?.edition !== 'pro') return;
+    if (!proNeedsPaywall || selection?.edition !== 'pro') return;
     if (thinkingGroup === 'default') {
       const step = availableThinkingStep(thinkingConfig?.default, {
         pro: true,
@@ -132,8 +138,7 @@ export default function ChatArea(props: IProps) {
     if (thinkingGroup === 'pro') changeGroup('basic');
   }, [
     changeGroup,
-    proUnsupported,
-    proLocked,
+    proNeedsPaywall,
     selection?.edition,
     thinkingGroup,
     thinkingConfig,
@@ -487,9 +492,16 @@ export default function ChatArea(props: IProps) {
               group={thinkingGroup}
               onGroupChange={next => {
                 if (basicUnsupported && next === 'basic') return;
-                if ((proLocked || proUnsupported) && next === 'pro') return;
+                if (proNeedsPaywall && next === 'pro') {
+                  showPaywall('credits_limit', {
+                    namespaceId,
+                    quotaExhausted: proUnsupported,
+                    trigger: 'chat_thinking_pro',
+                  });
+                  return;
+                }
                 const step = availableThinkingStep(thinkingConfig?.[next], {
-                  pro: next === 'default' && (proLocked || proUnsupported),
+                  pro: next === 'default' && proNeedsPaywall,
                   basic: next === 'default' && basicUnsupported,
                 });
                 if (step) changeGroup(next, step);
@@ -498,12 +510,28 @@ export default function ChatArea(props: IProps) {
               value={selection}
               onChange={next => {
                 if (basicUnsupported && next.startsWith('basic.')) return;
+                if (proNeedsPaywall && next.startsWith('pro.')) {
+                  showPaywall('credits_limit', {
+                    namespaceId,
+                    quotaExhausted: proUnsupported,
+                    trigger: 'chat_thinking_pro',
+                  });
+                  return;
+                }
                 changeLevel(next);
               }}
               onLevelCommit={next => {
                 if (basicUnsupported && next.startsWith('basic.')) return;
+                if (proNeedsPaywall && next.startsWith('pro.')) return;
                 commitLevel(next);
               }}
+              onProLocked={() =>
+                showPaywall('credits_limit', {
+                  namespaceId,
+                  quotaExhausted: proUnsupported,
+                  trigger: 'chat_thinking_pro',
+                })
+              }
               proLocked={proLocked}
               proUnsupported={proUnsupported}
               basicUnsupported={basicUnsupported}

@@ -5,11 +5,13 @@ import { toast } from 'sonner';
 
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { ALLOW_FILE_EXTENSIONS } from '@/const';
 import useApp from '@/hooks/useApp';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { type Namespace, ResourceMeta, SpaceType } from '@/interface';
 import { deleteResource } from '@/lib/deleteResource';
+import { isStorageQuotaError } from '@/lib/paywallErrors';
 import { http } from '@/lib/request';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import type {
@@ -152,6 +154,7 @@ export function BodyForSidebar(props: IProps) {
     onSearchResources,
   } = props;
   const app = useApp();
+  const { showPaywall } = usePaywall();
   useSidebarInit({ namespaceId, previewResourceId, resourceId });
   useSidebarEvents(namespaceId);
   const { t } = useTranslation();
@@ -623,6 +626,17 @@ export function BodyForSidebar(props: IProps) {
     const files = e.target.files;
     if (!files || !currentUploadTargetId) return;
 
+    if (currentNamespace?.expired) {
+      showPaywall('namespace_expired', {
+        namespaceId,
+        tier: currentNamespace.tier,
+        isOwner: currentNamespace.is_owner,
+        trigger: 'sidebar_upload',
+      });
+      e.target.value = '';
+      return;
+    }
+
     try {
       const id = await useSidebarStore
         .getState()
@@ -633,6 +647,18 @@ export function BodyForSidebar(props: IProps) {
       await locateSidebarResource(id);
       toast.success(t('upload.success', { count: files.length }));
     } catch (err) {
+      if (isStorageQuotaError(err)) {
+        showPaywall(
+          currentNamespace?.expired ? 'namespace_expired' : 'storage_limit',
+          {
+            namespaceId,
+            tier: currentNamespace?.tier,
+            isOwner: currentNamespace?.is_owner,
+            trigger: 'sidebar_upload',
+          }
+        );
+        return;
+      }
       const message =
         err instanceof Error
           ? err.message
