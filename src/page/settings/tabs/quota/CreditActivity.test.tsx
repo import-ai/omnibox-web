@@ -59,6 +59,7 @@ it('keeps outer scroll and pagination while fetching the next page, resetting on
     offset: 20,
     limit: 20,
     scope: 'own',
+    include_subscription_expired: true,
   });
   expect(viewport.scrollTop).toBe(0);
   expect(container.scrollTop).toBe(230);
