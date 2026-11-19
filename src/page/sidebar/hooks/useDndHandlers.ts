@@ -4,7 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { usePaywall } from '@/components/paywall/paywallContext';
 import useApp from '@/hooks/useApp';
+import { fetchNamespaceInfo } from '@/hooks/useNamespaceInfo';
+import { isStorageQuotaError } from '@/lib/paywallErrors';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
 
@@ -110,6 +113,7 @@ export function useDndHandlers({
   const navigate = useNavigate();
   const location = useLocation();
   const app = useApp();
+  const { showPaywall } = usePaywall();
 
   const [fileDragTarget, setFileDragTarget] = useState<string | null>(null);
   const isFileDragOver = fileDragTarget === targetId;
@@ -147,7 +151,22 @@ export function useDndHandlers({
         });
         return id;
       })
-      .catch(err => {
+      .catch(async err => {
+        if (isStorageQuotaError(err)) {
+          const namespace = await fetchNamespaceInfo(namespaceId).catch(
+            () => undefined
+          );
+          showPaywall(
+            namespace?.expired ? 'namespace_expired' : 'storage_limit',
+            {
+              namespaceId,
+              tier: namespace?.tier,
+              isOwner: namespace?.is_owner,
+              trigger: 'sidebar_drop',
+            }
+          );
+          return;
+        }
         const message =
           err instanceof Error ? err.message : err || t('upload.failed');
         toast.error(message, { position: 'bottom-right' });

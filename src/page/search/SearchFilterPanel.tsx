@@ -12,9 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/omnibox/Select';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import { Input } from '@/components/ui/input';
-import { UpgradeActionButton } from '@/components/upgrade-action-button';
 import type { Namespace } from '@/interface';
 import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
@@ -320,11 +320,25 @@ export function SearchFilterPanel({
   remainingConditionCount,
 }: SearchFilterPanelProps) {
   const { t } = useTranslation();
-  const showUpgradeButton =
-    maxConditionCount <= getConditionLimitValue('basic');
+  const { showPaywall } = usePaywall();
+  const isBasic = maxConditionCount <= getConditionLimitValue('basic');
   const addButtonTooltip = t(
     getSearchConditionLimitMessageKey(maxConditionCount)
   );
+
+  const handleAddCondition = () => {
+    if (canAddCondition) {
+      onAddCondition();
+      return;
+    }
+    if (!isBasic) return;
+    showPaywall('search_filter_limit', {
+      namespaceId,
+      tier: currentNamespace?.tier,
+      isOwner: currentNamespace?.is_owner,
+      trigger: 'search_filter',
+    });
+  };
 
   return (
     <aside className={searchFilterPanelClassName}>
@@ -332,35 +346,14 @@ export function SearchFilterPanel({
         <h2 className="text-lg font-semibold leading-[1.4] text-foreground">
           {t('search.filters.title')}
         </h2>
-        <div className="ml-auto flex items-center gap-2">
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              <span
-                tabIndex={showUpgradeButton ? 0 : undefined}
-                className="cursor-default whitespace-nowrap text-xs text-muted-foreground"
-              >
-                {t('search.filters.remaining_conditions', {
-                  remaining: remainingConditionCount,
-                  total: maxConditionCount,
-                })}
-              </span>
-            </TooltipTrigger>
-            {showUpgradeButton && (
-              <TooltipContent side="top">
-                {t('smart_folder.create.condition_rule_limit_tooltip')}
-              </TooltipContent>
-            )}
-          </Tooltip>
-          {showUpgradeButton && (
-            <UpgradeActionButton
-              namespaceId={namespaceId}
-              hasPermission={currentNamespace?.is_owner !== false}
-              disabledReason={t('chat.trial.not_owner')}
-              trackName="search_plan_upgrade"
-              entry="search_filter"
-            />
-          )}
-        </div>
+        {!isBasic && (
+          <span className="ml-auto whitespace-nowrap text-xs text-muted-foreground">
+            {t('search.filters.remaining_conditions', {
+              remaining: remainingConditionCount,
+              total: maxConditionCount,
+            })}
+          </span>
+        )}
       </div>
       <div className="mt-4 space-y-2">
         <p className="text-sm font-medium leading-[1.4] text-foreground">
@@ -424,15 +417,15 @@ export function SearchFilterPanel({
                 iconButtonHoverClassName,
                 'h-5 w-fit gap-1 px-0 text-sm font-normal'
               )}
-              disabled={!canAddCondition}
-              onClick={onAddCondition}
+              disabled={!isBasic && !canAddCondition}
+              onClick={handleAddCondition}
             >
               <Plus className="size-4" />
               {t('resource_conditions.add_condition')}
             </Button>
           </span>
         </TooltipTrigger>
-        {!canAddCondition && (
+        {!isBasic && !canAddCondition && (
           <TooltipContent>{addButtonTooltip}</TooltipContent>
         )}
       </Tooltip>

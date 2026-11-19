@@ -26,6 +26,7 @@ import { Button } from '@/components/Button';
 import { FolderNameDialog } from '@/components/FolderNameDialog';
 import { Input } from '@/components/input';
 import { sidebarToolbarIconButtonClassName } from '@/components/omnibox/IconButton';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import PermissionWrapper from '@/components/permission-action/PermissionWrapper';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 import {
@@ -49,6 +50,7 @@ import { IUseResource } from '@/hooks/userResource';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { downloadFile } from '@/lib/downloadFile';
 import { openFilePicker } from '@/lib/openFilePicker';
+import { isStorageQuotaError } from '@/lib/paywallErrors';
 import { http } from '@/lib/request';
 import { onOverlayClose, trackButtonClick } from '@/lib/trackButtonClick';
 import { uploadFiles } from '@/lib/uploadFiles';
@@ -151,6 +153,7 @@ export default function Actions(props: IActionProps) {
       !config.commercial,
   });
   const currentNamespace = proNamespaces.find(item => item.id === namespaceId);
+  const { showPaywall } = usePaywall();
   const [open, setOpen] = useState(false);
   const [loading, onLoading] = useState('');
   const [moveTo, setMoveTo] = useState(false);
@@ -602,6 +605,16 @@ export default function Actions(props: IActionProps) {
     if (!resource || !e.target.files) {
       return;
     }
+    if (currentNamespace?.expired) {
+      showPaywall('namespace_expired', {
+        namespaceId,
+        tier: currentNamespace.tier,
+        isOwner: currentNamespace.is_owner,
+        trigger: 'resource_upload',
+      });
+      e.target.value = '';
+      return;
+    }
     onLoading('upload_to_folder');
     uploadFiles(e.target.files, {
       namespaceId: namespaceId,
@@ -617,6 +630,18 @@ export default function Actions(props: IActionProps) {
         );
       })
       .catch(err => {
+        if (isStorageQuotaError(err)) {
+          showPaywall(
+            currentNamespace?.expired ? 'namespace_expired' : 'storage_limit',
+            {
+              namespaceId,
+              tier: currentNamespace?.tier,
+              isOwner: currentNamespace?.is_owner,
+              trigger: 'resource_upload',
+            }
+          );
+          return;
+        }
         toast.error(err && err.message ? err.message : err, {
           position: 'bottom-right',
         });

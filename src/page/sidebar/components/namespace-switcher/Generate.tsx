@@ -1,8 +1,7 @@
-import { Info, Plus, SquareArrowOutUpRight } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { VisuallyHidden } from 'radix-ui';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 
 import { Button } from '@/components/Button';
 import {
@@ -12,8 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { usePaywall } from '@/components/paywall/paywallContext';
 import useConfig from '@/hooks/useConfig';
-import { getUpgradeLink } from '@/lib/upgradeLink';
+import { NamespaceTier } from '@/interface';
 import GenerateForm from '@/page/settings/tabs/account/GenerateForm';
 
 interface GenerateProps {
@@ -21,9 +21,10 @@ interface GenerateProps {
 }
 
 export default function Generate({ onCloseDropdown }: GenerateProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { config } = useConfig();
+  const { showPaywall } = usePaywall();
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -31,46 +32,11 @@ export default function Generate({ onCloseDropdown }: GenerateProps) {
 
     if (config.commercial) {
       onCloseDropdown();
-
-      const toastId = toast(
-        <div className="flex gap-1.5">
-          <Info className="size-5 text-yellow-400" />
-          <span>{t('namespace.quota_exceeded')}</span>
-        </div>,
-        {
-          description: t('namespace.quota_exceeded_desc'),
-          position: 'top-center',
-          duration: 10000,
-          className: 'justify-between',
-          style: {
-            left: '50%',
-            width: 'min(90vw, 488px)',
-            marginLeft: 'calc(min(90vw, 488px) * -0.5)',
-          },
-          action: (
-            <a
-              href={getUpgradeLink(i18n, undefined, 'namespace_create', {
-                tab: 'purchase_space',
-              })}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="toast-button"
-              onClick={() => {
-                toast.dismiss(toastId);
-              }}
-            >
-              <Button
-                trackName="sidebar_quota_upgrade"
-                variant="default"
-                className="h-[30px] w-auto shrink-0 px-3 text-xs font-medium"
-              >
-                {t('namespace.quota_expand_button')}
-                <SquareArrowOutUpRight />
-              </Button>
-            </a>
-          ),
-        }
-      );
+      showPaywall('namespace_create', {
+        tier: NamespaceTier.BASIC,
+        isOwner: true,
+        trigger: 'sidebar_namespace_create',
+      });
     } else {
       setOpen(true);
     }

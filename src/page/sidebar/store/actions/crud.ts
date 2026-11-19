@@ -1,4 +1,5 @@
 import type { Resource, ResourceType, SpaceType } from '@/interface';
+import type { RequestConfig } from '@/lib/request';
 import {
   createResource,
   moveResource,
@@ -23,7 +24,12 @@ import {
 
 export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
   return {
-    create: async (parentId: string, type: ResourceType, name?: string) => {
+    create: async (
+      parentId: string,
+      type: ResourceType,
+      name?: string,
+      config?: RequestConfig
+    ) => {
       const parent = get().nodes[parentId];
       if (!parent) throw new Error('Parent not found');
 
@@ -37,7 +43,7 @@ export function buildCRUDActions(set: SidebarSet, get: SidebarGet) {
       };
       if (name?.trim()) payload.name = name.trim();
 
-      const response = await createResource(get().namespaceId, payload);
+      const response = await createResource(get().namespaceId, payload, config);
       const manualSort =
         getNodeResourceSort(get(), parentId).sort_by === 'manual';
 

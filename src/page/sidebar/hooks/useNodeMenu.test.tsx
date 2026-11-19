@@ -29,12 +29,9 @@ jest.mock('@/page/sidebar/components/smart-folder', () => ({
   isSmartFolderChildResource: jest.fn(),
 }));
 
-jest.mock('@/page/sidebar/rssFolderQuota', () => ({
-  getRssFolderQuotaTooltipKey: () => undefined,
-}));
-
+let mockRssQuotaExhausted = false;
 jest.mock('./useRssFolderQuotaExhausted', () => ({
-  useRssFolderQuotaExhausted: () => ({}),
+  useRssFolderQuotaExhausted: () => ({ private: mockRssQuotaExhausted }),
 }));
 
 let storeNodes: Record<string, TreeNode> = {};
@@ -74,6 +71,7 @@ const handleAddAllToChat = jest.fn();
 const handleAddToChat = jest.fn();
 const handleCreateFolderWithDialog = jest.fn();
 const handleCreateLinkWithDialog = jest.fn();
+const handleCreateRssFolder = jest.fn();
 
 const actions = {
   get node() {
@@ -83,6 +81,7 @@ const actions = {
   handleAddToChat,
   handleCreateFolderWithDialog,
   handleCreateLinkWithDialog,
+  handleCreateRssFolder,
 } as unknown as UseNodeActionsReturn;
 
 const folder: TreeNode = {
@@ -113,6 +112,7 @@ describe('useNodeMenu', () => {
     storeNodes = { [rssFolder.id]: rssFolder };
     selectedIds = [];
     selectionMode = false;
+    mockRssQuotaExhausted = false;
     jest.mocked(isSmartFolderChildResource).mockReturnValue(false);
     container = document.createElement('div');
     root = createRoot(container);
@@ -131,6 +131,21 @@ describe('useNodeMenu', () => {
     const createFolder = items.find(item => item.key === 'create_folder');
     (createFolder as { onClick?: () => void }).onClick?.();
     expect(handleCreateFolderWithDialog).toHaveBeenCalled();
+  });
+
+  it('keeps nested RSS creation clickable when the quota is exhausted', async () => {
+    node = { ...folder };
+    storeNodes = { [folder.id]: folder };
+    mockRssQuotaExhausted = true;
+    await act(async () => root.render(<Probe />));
+
+    const item = items.find(item => item.key === 'create_rss_folder');
+    expect(item).toBeDefined();
+    if (!item || item.separator) throw new Error('Missing RSS creation action');
+    expect(item.disabled).not.toBe(true);
+    expect(item.disabledTip).toBeUndefined();
+    item.onClick?.();
+    expect(handleCreateRssFolder).toHaveBeenCalledWith(true);
   });
 
   it.each(['private', 'teamspace'] as const)(

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 
+import { usePaywall } from '@/components/paywall/paywallContext';
 import useSmartFolderEntitlements from '@/hooks/useSmartFolderEntitlements';
 import { NamespaceTier } from '@/interface';
 import {
@@ -44,6 +45,7 @@ export function useCreateSmartFolderDialogState({
   currentNamespace,
 }: CreateSmartFolderDialogProps) {
   const { t } = useTranslation();
+  const { showPaywall } = usePaywall();
   const params = useParams();
   const namespaceId = params.namespace_id;
   const { data: entitlements } = useSmartFolderEntitlements({ namespaceId });
@@ -82,7 +84,7 @@ export function useCreateSmartFolderDialogState({
     0
   );
   const disableAddMessage = t(getConditionLimitMessage(resolvedTier));
-  const showUpgradeButton = resolvedTier === 'basic';
+  const isBasic = resolvedTier === 'basic';
 
   useEffect(() => {
     if (!open) {
@@ -199,6 +201,19 @@ export function useCreateSmartFolderDialogState({
           { value: 'all', labelKey: 'smart_folder.scope.all' },
         ];
   const canAddCondition = conditions.length < maxConditionCount;
+  const handleAddCondition = (afterIndex?: number) => {
+    if (canAddCondition) {
+      addCondition(afterIndex);
+      return;
+    }
+    if (!isBasic) return;
+    showPaywall('smart_filter_limit', {
+      namespaceId,
+      tier: currentNamespace?.tier,
+      isOwner: currentNamespace?.is_owner,
+      trigger: 'smart_folder_filter',
+    });
+  };
   const effectiveConditions = conditions.filter(condition => condition.field);
   const ownerScopeAvailable =
     ownerOptions.find(option => option.value === ownerScope)?.disabled !== true;
@@ -350,12 +365,12 @@ export function useCreateSmartFolderDialogState({
     maxConditionCount,
     remainingConditionCount,
     disableAddMessage,
-    showUpgradeButton,
+    isBasic,
     ownerOptions,
     rootScopeOptions,
     canAddCondition,
     canSubmit,
-    addCondition,
+    addCondition: handleAddCondition,
     removeCondition,
     handleFieldChange,
     handleOperatorChange,

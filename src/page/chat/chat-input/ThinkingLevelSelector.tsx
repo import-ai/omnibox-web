@@ -32,6 +32,7 @@ interface Props {
   config: ThinkingConfig;
   group: ThinkingGroup;
   onGroupChange: (group: ThinkingGroup) => void;
+  onProLocked?: () => void;
   value: ThinkingSelection;
   onChange: (level: string) => void;
   onLevelCommit?: (level: string) => void;
@@ -58,6 +59,7 @@ export default function ThinkingLevelSelector({
   surface,
   group,
   onGroupChange,
+  onProLocked,
   value,
   onChange,
   onLevelCommit,
@@ -71,16 +73,19 @@ export default function ThinkingLevelSelector({
   const [panelOpen, setPanelOpen] = useState(false);
   const options = config[group];
   if (!options) return null;
+  // Both signals mean the Pro tier needs a paywall: the namespace is not
+  // entitled to it, or its Kibble balance is exhausted. The row must stay
+  // clickable so the user can see why instead of a silent no-op.
+  const proNeedsPaywall = proLocked || proUnsupported;
   const visibleLevels = options.levels.filter(item => {
     if (group !== 'default') return true;
-    if ((proLocked || proUnsupported) && item.edition === 'pro') return false;
     if (basicUnsupported && item.edition === 'basic') return false;
     return true;
   });
   const defaultSliderHint =
     group !== 'default'
       ? undefined
-      : proLocked || proUnsupported
+      : proNeedsPaywall
         ? t('chat.agent_credits.compact_tooltip')
         : basicUnsupported
           ? t('chat.image.agent_1_1_unsupported')
@@ -96,7 +101,11 @@ export default function ThinkingLevelSelector({
   const title = group === 'default' ? `${edition} ${label}` : label;
   const commitSliderValue = (input: HTMLInputElement) => {
     const next = visibleLevels[Number(input.value)];
-    if (next) onLevelCommit?.(thinkingStep(next));
+    if (!next) return;
+    const step = thinkingStep(next);
+    // A gated Pro step was never applied; keep the persisted value untouched.
+    if (proNeedsPaywall && step.startsWith('pro.')) return;
+    onLevelCommit?.(step);
   };
   return (
     <Popover
@@ -148,11 +157,9 @@ export default function ThinkingLevelSelector({
               .filter(item => config[item])
               .map(item => {
                 const disabledReason =
-                  (proLocked || proUnsupported) && item === 'pro'
-                    ? t('chat.agent_credits.compact_tooltip')
-                    : basicUnsupported && item === 'basic'
-                      ? t('chat.image.agent_1_1_unsupported')
-                      : undefined;
+                  basicUnsupported && item === 'basic'
+                    ? t('chat.image.agent_1_1_unsupported')
+                    : undefined;
                 const button = (
                   <button
                     type="button"
@@ -161,6 +168,11 @@ export default function ThinkingLevelSelector({
                     className="flex w-full items-center justify-between rounded-xl px-2 py-2 text-left text-sm hover:bg-accent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={event => {
                       trackButtonClick('chat_model_select', { surface });
+                      if (proNeedsPaywall && item === 'pro') {
+                        onProLocked?.();
+                        setModelsOpen(false);
+                        return;
+                      }
                       const handleClick = () => {
                         onGroupChange(item);
                         setModelsOpen(false);
@@ -302,6 +314,10 @@ export default function ThinkingLevelSelector({
                     surface,
                     level: next,
                   });
+                  if (proNeedsPaywall && next.startsWith('pro.')) {
+                    onProLocked?.();
+                    return;
+                  }
                   onChange(next);
                 }}
                 onPointerUp={event => commitSliderValue(event.currentTarget)}

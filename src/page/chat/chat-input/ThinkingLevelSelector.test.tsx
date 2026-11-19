@@ -79,16 +79,19 @@ async function renderSelector(
 }
 
 describe('ThinkingLevelSelector', () => {
-  it('shows a tooltip for disabled Agent 2.1 when credits are exhausted', async () => {
-    const { container, root } = await renderSelector({ proUnsupported: true });
+  it('opens the paywall for Agent 2.1 when credits are exhausted', async () => {
+    const onProLocked = jest.fn();
+    const { container, root } = await renderSelector({
+      proUnsupported: true,
+      onProLocked,
+    });
     try {
       const pro = [...container.querySelectorAll('button')].find(button =>
         button.textContent?.includes('chat.model.pro')
       );
-      expect(pro?.disabled).toBe(true);
-      expect(
-        container.querySelector('[data-testid="model-tooltip"]')?.textContent
-      ).toBe('chat.agent_credits.compact_tooltip');
+      expect(pro?.disabled).toBe(false);
+      await act(async () => pro?.click());
+      expect(onProLocked).toHaveBeenCalledTimes(1);
     } finally {
       await act(async () => root.unmount());
     }
@@ -104,6 +107,25 @@ describe('ThinkingLevelSelector', () => {
       expect(
         container.querySelector('[data-testid="model-tooltip"]')
       ).toBeNull();
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
+
+  it('keeps Agent 2.1 clickable when only the credits are exhausted', async () => {
+    const onProLocked = jest.fn();
+    const { container, root } = await renderSelector({
+      group: 'default',
+      proLocked: true,
+      onProLocked,
+    });
+    try {
+      const pro = [...container.querySelectorAll('button')].find(button =>
+        button.textContent?.includes('chat.model.pro')
+      );
+      expect(pro?.disabled).toBe(false);
+      await act(async () => pro?.click());
+      expect(onProLocked).toHaveBeenCalledTimes(1);
     } finally {
       await act(async () => root.unmount());
     }
