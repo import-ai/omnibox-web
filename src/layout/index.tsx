@@ -54,6 +54,7 @@ function clearUserWorkspaceState() {
 
 export default function Layout() {
   const loc = useLocation();
+  const isOAuthAuthorization = loc.pathname === '/oauth/authorize';
   useBehaviorSurface({ scope: 'global', target: 'app', exposure: false });
   const params = useParams();
   const navigate = useNavigate();
@@ -75,6 +76,9 @@ export default function Layout() {
   useAuthPageExposure(loc.pathname, sessionChecked && !uid);
 
   useEffect(() => {
+    // Embedded OAuth may only have a cookie scoped to the authorize endpoint.
+    // Do not widen it or hydrate unrelated account data on this public route.
+    if (isOAuthAuthorization) return;
     let active = true;
     const controller = new AbortController();
     sessionAbortRef.current = controller;
@@ -111,7 +115,7 @@ export default function Layout() {
       active = false;
       controller.abort();
     };
-  }, []);
+  }, [isOAuthAuthorization]);
 
   useEffect(() => {
     // Signing out in this tab only fires the credential event: the browser
@@ -157,7 +161,9 @@ export default function Layout() {
             resolveColorTheme(themeInStorage?.colorTheme),
             resolveFont(themeInStorage?.font)
           );
-          void persistDocsAppearance(uid).catch(() => undefined);
+          if (!isOAuthAuthorization) {
+            void persistDocsAppearance(uid).catch(() => undefined);
+          }
         } catch {
           // Ignore malformed preferences from other tabs.
         }
@@ -167,7 +173,9 @@ export default function Layout() {
     };
     window.addEventListener('storage', handleStorageChange);
     const retryDocsAppearance = () => {
-      void persistDocsAppearance(uid).catch(() => undefined);
+      if (!isOAuthAuthorization) {
+        void persistDocsAppearance(uid).catch(() => undefined);
+      }
     };
     window.addEventListener('focus', retryDocsAppearance);
     window.addEventListener(CREDENTIAL_CHANGED_EVENT, handleCredentialChange);
@@ -179,7 +187,7 @@ export default function Layout() {
         handleCredentialChange
       );
     };
-  }, [i18n, navigate, onToggleTheme, uid]);
+  }, [i18n, isOAuthAuthorization, navigate, onToggleTheme, uid]);
 
   useEffect(() => {
     const storedUid = localStorage.getItem('uid');
@@ -190,7 +198,7 @@ export default function Layout() {
   }, [loc]);
 
   useEffect(() => {
-    if (!uid) {
+    if (!uid || isOAuthAuthorization) {
       return;
     }
     track('related_relationships', {
@@ -209,7 +217,7 @@ export default function Layout() {
       localStorage.removeItem('extension_login');
       document.body.classList.add('please_close_me');
     }
-  }, [uid]);
+  }, [uid, isOAuthAuthorization]);
 
   useEffect(() => {
     // Be compatible with extension login - only on login page
@@ -293,7 +301,8 @@ export default function Layout() {
   useEffect(() => {
     const searchParams = new URLSearchParams(loc.search);
     const langParam = searchParams.get('lang');
-    const syncUserOptions = shouldSyncUserOptions(uid, shareId);
+    const syncUserOptions =
+      !isOAuthAuthorization && shouldSyncUserOptions(uid, shareId);
 
     if (langParam) {
       const lang = langParam.includes('en') ? 'en-US' : 'zh-CN';
@@ -354,7 +363,7 @@ export default function Layout() {
       });
 
     return () => source.cancel();
-  }, [loc.search, uid, shareId, i18n]);
+  }, [loc.search, isOAuthAuthorization, uid, shareId, i18n]);
 
   return (
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>

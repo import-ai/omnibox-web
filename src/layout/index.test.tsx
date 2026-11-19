@@ -1,14 +1,17 @@
 /** @jest-environment jsdom */
 
-import { act } from 'react';
+import { act, type ReactNode } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import { clearConversationCache } from '@/page/chat/conversation/conversationCache';
+import { retryPendingInviteRegistration } from '@/page/inviteReferral/registration';
+import OAuthAuthorizePage from '@/page/oauth/OAuthAuthorizePage';
 import { removeGlobalCredential } from '@/page/user/util';
 
 import Layout from './index';
 
+let mockOutlet: ReactNode = null;
 const mockNavigate = jest.fn();
 const mockHttpGet = jest.fn();
 const mockHttpPost = jest.fn().mockResolvedValue(undefined);
@@ -39,14 +42,21 @@ jest.mock('react-dnd-touch-backend', () => ({ TouchBackend: {} }));
 
 const mockI18n = { changeLanguage: jest.fn(), language: 'zh-CN' };
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ i18n: mockI18n }),
+  useTranslation: () => ({ i18n: mockI18n, t: (key: string) => key }),
 }));
 
 jest.mock('react-router-dom', () => ({
-  Outlet: () => null,
+  Outlet: () => mockOutlet,
+  useSearchParams: () => [new URLSearchParams(mockLocation.search)],
+  Navigate: () => null,
   useLocation: () => mockLocation,
   useNavigate: () => mockNavigate,
   useParams: () => mockParams,
+}));
+
+jest.mock('@/page/user/WrapperPage', () => ({
+  __esModule: true,
+  default: ({ children }: { children: ReactNode }) => children,
 }));
 
 jest.mock('@/components/ui/Toaster', () => ({ Toaster: () => null }));
@@ -88,6 +98,11 @@ jest.mock('@/page/sidebar/store', () => ({
     getState: () => ({ clear: mockClearSidebar }),
   },
 }));
+jest.mock('@/page/inviteReferral/registration', () => ({
+  ...jest.requireActual('@/page/inviteReferral/registration'),
+  retryPendingInviteRegistration: jest.fn().mockResolvedValue(null),
+}));
+
 jest.mock('@/page/user/session', () => ({
   establishServerSession: (signal?: AbortSignal) =>
     mockEstablishServerSession(signal),
@@ -112,10 +127,13 @@ describe('Layout authentication storage changes', () => {
         document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
       });
     localStorage.setItem('uid', 'user-a');
+    mockOutlet = null;
     mockLocation = defaultLocation;
     mockParams = { namespace_id: 'namespace-a' };
     mockNavigate.mockClear();
     mockHttpGet.mockReset();
+    mockHttpPost.mockClear();
+    jest.mocked(retryPendingInviteRegistration).mockClear();
     mockHttpGet.mockResolvedValue([]);
     mockToggleTheme.mockClear();
     jest.mocked(clearConversationCache).mockClear();
@@ -133,6 +151,99 @@ describe('Layout authentication storage changes', () => {
   afterEach(async () => {
     await act(async () => root.unmount());
     container.remove();
+  });
+
+  it.each(['flarum-test', 'omnibox-desktop'])(
+    'keeps %s OAuth free of unrelated authenticated initialization',
+    async clientId => {
+      mockLocation = {
+        pathname: '/oauth/authorize',
+        search: `?client_id=${clientId}&lang=en`,
+      };
+      mockParams = {};
+      localStorage.setItem(
+        'omnibox-docs-appearance',
+        JSON.stringify({ user_id: 'user-a', mode: 'dark' })
+      );
+      mockI18n.changeLanguage.mockResolvedValue(undefined);
+      await act(async () => root.render(<Layout />));
+      await act(async () => {
+        window.dispatchEvent(new Event('focus'));
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: 'theme',
+            newValue: JSON.stringify({ skin: 'dark' }),
+          })
+        );
+      });
+      expect(mockEstablishServerSession).not.toHaveBeenCalled();
+      expect(retryPendingInviteRegistration).not.toHaveBeenCalled();
+      expect(mockHttpGet.mock.calls.map(([url]) => url)).toEqual(['/config']);
+      expect(mockHttpPost).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(localStorage.getItem('uid')).toBe('user-a');
+    }
+  );
+
+  it('lets the embedded OAuth page authorize while its scoped session has no root credential', async () => {
+    mockLocation = {
+      pathname: '/oauth/authorize',
+      search: '?client_id=flarum-test&state=forum-state',
+    };
+    mockParams = {};
+    mockOutlet = <OAuthAuthorizePage />;
+    mockHttpGet.mockImplementation((url: string) => {
+      if (url === '/config') return Promise.resolve({ commercial: true });
+      if (url === '/oauth/authorize') return new Promise(() => undefined);
+      return Promise.reject(
+        new Error(`Unexpected unauthenticated call: ${url}`)
+      );
+    });
+    await act(async () => root.render(<Layout />));
+    await act(async () => window.dispatchEvent(new Event('focus')));
+    expect(mockHttpGet.mock.calls.map(([url]) => url).sort()).toEqual([
+      '/config',
+      '/oauth/authorize',
+    ]);
+    expect(mockHttpGet).toHaveBeenCalledWith('/oauth/authorize', {
+      params: { client_id: 'flarum-test', state: 'forum-state' },
+    });
+    expect(mockEstablishServerSession).not.toHaveBeenCalled();
+    expect(mockHttpPost).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(localStorage.getItem('uid')).toBe('user-a');
+  });
+
+  it('resumes account initialization after leaving OAuth', async () => {
+    mockLocation = { pathname: '/oauth/authorize', search: '' };
+    mockParams = {};
+    await act(async () => root.render(<Layout />));
+    expect(mockEstablishServerSession).not.toHaveBeenCalled();
+    mockLocation = defaultLocation;
+    mockParams = { namespace_id: 'namespace-a' };
+    await act(async () => root.render(<Layout />));
+    expect(mockEstablishServerSession).toHaveBeenCalledTimes(1);
+    expect(mockHttpGet).toHaveBeenCalledWith(
+      '/user/option/list',
+      expect.any(Object)
+    );
+    expect(retryPendingInviteRegistration).toHaveBeenCalledWith('user-a');
+  });
+
+  it('cancels session hydration when entering OAuth on the same layout', async () => {
+    let sessionSignal: AbortSignal | undefined;
+    mockEstablishServerSession.mockImplementation((signal?: AbortSignal) => {
+      sessionSignal = signal;
+      return new Promise<string>(() => undefined);
+    });
+    await act(async () => root.render(<Layout />));
+    mockHttpGet.mockClear();
+    mockLocation = { pathname: '/oauth/authorize', search: '' };
+    mockParams = {};
+    await act(async () => root.render(<Layout />));
+    expect(sessionSignal?.aborted).toBe(true);
+    expect(mockEstablishServerSession).toHaveBeenCalledTimes(1);
+    expect(mockHttpGet).not.toHaveBeenCalled();
   });
 
   it('restores the account color theme together with appearance', async () => {
