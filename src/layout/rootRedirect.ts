@@ -26,9 +26,6 @@ export function resolveRootDestination(
   if (!namespace) {
     return '/welcome';
   }
-  if (inviteLanding === 'activation') {
-    return `/${namespace.id}/invite-referral?entry=activation`;
-  }
   if (inviteLanding) {
     return `/${namespace.id}/invite-referral`;
   }
