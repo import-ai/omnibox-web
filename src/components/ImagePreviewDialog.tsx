@@ -20,7 +20,6 @@ import {
 import { TooltipProvider } from '@/components/tooltip';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 
-import type { ImageViewerDownload } from './imageViewerActions';
 import {
   getImageViewerLayout,
   type ImageViewerSize,
@@ -33,21 +32,12 @@ import {
   ImageViewerToolbar,
 } from './ImageViewerToolbar';
 
-export interface ImageViewerCommentAction {
-  count: number;
-  canAdd?: boolean;
-  needsSave?: boolean;
-  onOpen: (threadId?: string) => boolean | void;
-  threads?: { id: string; label: string }[];
-}
-
 export interface ImageViewerItem {
   id: string;
   src: string;
   alt?: string;
   size?: ImageViewerSize;
   referrerPolicy?: ImgHTMLAttributes<HTMLImageElement>['referrerPolicy'];
-  download?: ImageViewerDownload;
   allowExternalOriginal?: boolean;
 }
 
@@ -62,9 +52,7 @@ interface ImagePreviewDialogProps {
   onOpenChange: (open: boolean) => void;
   items?: ImageViewerItem[];
   initialItemId?: string;
-  download?: ImageViewerDownload;
   allowExternalOriginal?: boolean;
-  getCommentAction?: (itemId: string) => ImageViewerCommentAction | undefined;
 }
 
 export function ImagePreviewDialog({
@@ -78,9 +66,7 @@ export function ImagePreviewDialog({
   onCloseAutoFocus,
   items,
   initialItemId,
-  download,
   allowExternalOriginal,
-  getCommentAction,
 }: ImagePreviewDialogProps) {
   const { t } = useTranslation();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -98,7 +84,6 @@ export function ImagePreviewDialog({
             alt,
             size: imageSize,
             referrerPolicy,
-            download,
             allowExternalOriginal,
           },
         ]
@@ -218,7 +203,6 @@ export function ImagePreviewDialog({
               key={JSON.stringify([visibleItem.id, visibleItem.src])}
               item={visibleItem}
               title={title}
-              comment={open ? getCommentAction?.(visibleItem.id) : undefined}
               close={close}
               onOpenChange={onOpenChange}
               navigation={
@@ -237,14 +221,12 @@ export function ImagePreviewDialog({
 function ImageViewerSlide({
   item,
   title,
-  comment,
   close,
   onOpenChange,
   navigation,
 }: {
   item: ImageViewerItem;
   title: string;
-  comment?: ImageViewerCommentAction;
   close: () => void;
   onOpenChange: (open: boolean) => void;
   navigation?: ImageViewerNavigation;
@@ -485,7 +467,6 @@ function ImageViewerSlide({
       <ImageViewerToolbar
         item={item}
         layout={layout}
-        comment={comment}
         navigation={navigation}
         setView={setView}
         onRotate={() => layout && setView(layout.scale, (turn + 1) % 4)}

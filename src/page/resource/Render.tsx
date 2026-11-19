@@ -126,7 +126,6 @@ function OmniboxRender(props: OmniboxRenderProps) {
     containerRef,
     {
       scopedShare: !!shareId,
-      comments: props.commentsDisabled ? undefined : comments,
     }
   );
   const handleEditorReady = useCallback(

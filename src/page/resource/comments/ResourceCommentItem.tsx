@@ -411,7 +411,6 @@ export function ResourceCommentItem({
           <ResourceCommentBody
             content={comment.content}
             attachments={comment.attachments}
-            allowDownloads={!controller.scopedShare}
           />
         )}
       </div>

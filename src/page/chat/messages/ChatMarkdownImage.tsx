@@ -4,7 +4,6 @@ import type { ExtraProps } from 'react-markdown';
 import { useParams } from 'react-router-dom';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
-import { originalImageDownload } from '@/components/imageViewerActions';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
@@ -39,13 +38,6 @@ export function ChatMarkdownImage({
 
   const group =
     previewUrl === url && !chatOnly ? getMarkdownImageGallery(node) : undefined;
-  const download = (imageUrl: string) =>
-    !shareId &&
-    /^\/api\/v1\/namespaces\/[\w-]+\/resources\/[\w-]+\/attachments\/[\w.-]+$/.test(
-      new URL(imageUrl, window.location.origin).pathname
-    )
-      ? originalImageDownload(imageUrl)
-      : undefined;
   const gallery = group?.images.flatMap((entry, index) => {
     const source = entry.properties.src;
     const src =
@@ -62,7 +54,6 @@ export function ChatMarkdownImage({
             ? entry.properties.alt
             : undefined,
         referrerPolicy: 'no-referrer' as const,
-        download: download(src),
         allowExternalOriginal: !shareId,
       },
     ];
@@ -97,7 +88,6 @@ export function ChatMarkdownImage({
         alt={alt}
         items={gallery}
         initialItemId={group ? String(group.index) : undefined}
-        download={download(url)}
         allowExternalOriginal={!shareId}
         src={url}
         referrerPolicy="no-referrer"

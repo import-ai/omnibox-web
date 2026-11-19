@@ -1,20 +1,15 @@
 import {
   ChevronLeft,
   ChevronRight,
-  Download,
   ExternalLink,
   Maximize,
-  MessageSquare,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
-import { type ReactElement, type ReactNode, useId, useState } from 'react';
+import { type ReactElement, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type {
-  ImageViewerCommentAction,
-  ImageViewerItem,
-} from './ImagePreviewDialog';
+import type { ImageViewerItem } from './ImagePreviewDialog';
 import { externalImageLink } from './imageViewerActions';
 import {
   type getImageViewerLayout,
@@ -35,7 +30,6 @@ const actionClass =
 export function ImageViewerToolbar({
   item,
   layout,
-  comment,
   navigation,
   setView,
   onRotate,
@@ -43,16 +37,12 @@ export function ImageViewerToolbar({
 }: {
   item: ImageViewerItem;
   layout?: ReturnType<typeof getImageViewerLayout>;
-  comment?: ImageViewerCommentAction;
   navigation?: ImageViewerNavigation;
   setView: (zoom: number | null) => void;
   onRotate: () => void;
   onOpenChange: (open: boolean) => void;
 }) {
   const { t, i18n } = useTranslation();
-  const commentsId = useId();
-  const [downloadStatus, setDownloadStatus] = useState<'busy' | 'error'>();
-  const [commentOpen, setCommentOpen] = useState(false);
 
   const zoomIn = layout
     ? stepImageViewerZoom(layout.scale, layout.fit, 1)
@@ -104,10 +94,9 @@ export function ImageViewerToolbar({
       </button>
     </ImageViewerHint>
   );
-  const original =
-    !item.download && item.allowExternalOriginal
-      ? externalImageLink(item.src)
-      : undefined;
+  const original = item.allowExternalOriginal
+    ? externalImageLink(item.src)
+    : undefined;
 
   return (
     <div className="relative shrink-0 py-2">
@@ -178,33 +167,6 @@ export function ImageViewerToolbar({
           onRotate,
           layout ? undefined : 'rotate_unavailable'
         )}
-        {item.download &&
-          ('href' in item.download
-            ? hint(
-                'download',
-                <a
-                  href={item.download.href}
-                  download={item.download.name}
-                  className={actionClass}
-                  aria-label={t('image_viewer.download')}
-                >
-                  <Download />
-                </a>
-              )
-            : action(
-                'download',
-                <Download />,
-                () => {
-                  const request = item.download;
-                  if (!request || !('run' in request)) return;
-                  setDownloadStatus('busy');
-                  void request.run().then(
-                    () => setDownloadStatus(undefined),
-                    () => setDownloadStatus('error')
-                  );
-                },
-                downloadStatus === 'busy' ? 'download_in_progress' : undefined
-              ))}
         {original &&
           hint(
             'open_original',
@@ -218,60 +180,7 @@ export function ImageViewerToolbar({
               <ExternalLink />
             </a>
           )}
-        {comment &&
-          hint(
-            'comments',
-            <button
-              type="button"
-              className={actionClass}
-              aria-label={t('image_viewer.comments')}
-              aria-expanded={commentOpen}
-              aria-controls={commentsId}
-              onClick={() => setCommentOpen(!commentOpen)}
-            >
-              <MessageSquare />
-              {comment.count}
-            </button>
-          )}
       </div>
-      {downloadStatus === 'error' && (
-        <p role="status" className="text-center text-sm">
-          {t('image_viewer.download_failed')}
-        </p>
-      )}
-      {comment && commentOpen && (
-        <div
-          id={commentsId}
-          className="absolute right-2 bottom-full max-h-[45vh] w-72 max-w-[calc(100%-1rem)] overflow-auto rounded-md bg-neutral-900 p-2 text-sm"
-        >
-          {comment.threads?.map(thread => (
-            <button
-              key={thread.id}
-              type="button"
-              className={`${actionClass} block w-full truncate text-left`}
-              onClick={() => {
-                if (comment.onOpen(thread.id) !== false) onOpenChange(false);
-              }}
-            >
-              {thread.label}
-            </button>
-          ))}
-          {comment.canAdd && (
-            <button
-              type="button"
-              className={actionClass}
-              onClick={() => {
-                if (comment.onOpen() !== false) onOpenChange(false);
-              }}
-            >
-              {t('resource_comments.add_comment')}
-            </button>
-          )}
-          {comment.needsSave && (
-            <p className="px-2 py-1">{t('image_viewer.save_to_comment')}</p>
-          )}
-        </div>
-      )}
     </div>
   );
 }

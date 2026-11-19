@@ -3,7 +3,6 @@ import { Editor, Node } from '@tiptap/core';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import type { ResourceCommentsController } from './comments/useResourceComments';
 import { resourceImagePreviewKey } from './imagePreviewPlugin';
 import { useResourceImagePreview } from './useResourceImagePreview';
 
@@ -138,7 +137,7 @@ test('owns one preview registration, restores readonly focus, and clears it on r
   }
 });
 
-test('keeps whole-image threads local to the clicked occurrence and hands off after dismiss', async () => {
+test('opens the clicked duplicate occurrence without download or comment actions', async () => {
   jest.useFakeTimers();
   const container = document.body.appendChild(document.createElement('div'));
   const host = document.body.appendChild(document.createElement('div'));
@@ -157,51 +156,9 @@ test('keeps whole-image threads local to the clicked occurrence and hands off af
       naturalHeight: { value: 100 },
     });
   }
-  first.setAttribute('data-resource-comment-threads', 'first');
-  second.setAttribute('data-resource-comment-threads', 'second resolved');
-  const focusThread = jest.fn();
-  const onCreateRequest = jest.fn();
-  const comments = {
-    canComment: true,
-    contentDirty: false,
-    focusThread,
-    commentsConfig: { onCreateRequest },
-    imageAnchorThreads: [
-      {
-        id: 'first',
-        type: 'inline',
-        anchor: {},
-        resolved: false,
-        comments: [{ content: 'First occurrence' }],
-      },
-      {
-        id: 'second',
-        type: 'inline',
-        anchor: {},
-        resolved: false,
-        comments: [{ content: 'Second occurrence' }],
-      },
-      {
-        id: 'resolved',
-        type: 'inline',
-        anchor: {},
-        resolved: true,
-        comments: [],
-      },
-    ],
-  } as unknown as ResourceCommentsController;
   let preview!: ReturnType<typeof useResourceImagePreview>;
-  function Harness({
-    scopedShare = false,
-    dirty = false,
-  }: {
-    scopedShare?: boolean;
-    dirty?: boolean;
-  }) {
-    preview = useResourceImagePreview('document', undefined, {
-      comments: { ...comments, contentDirty: dirty },
-      scopedShare,
-    });
+  function Harness() {
+    preview = useResourceImagePreview('document');
     return null;
   }
   try {
@@ -221,38 +178,8 @@ test('keeps whole-image threads local to the clicked occurrence and hands off af
       '0',
       '1',
     ]);
-    expect(preview.imagePreviewProps.getCommentAction('0')).toMatchObject({
-      count: 1,
-      threads: [{ id: 'first' }],
-    });
-    const action = preview.imagePreviewProps.getCommentAction('1')!;
-    expect(action).toMatchObject({
-      count: 1,
-      canAdd: true,
-      threads: [{ id: 'second' }],
-    });
-    expect(action.onOpen('first')).toBe(false);
-    await act(async () => root.render(<Harness scopedShare />));
-    expect(preview.imagePreviewProps.getCommentAction('1')?.canAdd).toBe(false);
-    expect(preview.imagePreviewProps.getCommentAction('1')?.onOpen()).toBe(
-      false
-    );
-    await act(async () => root.render(<Harness dirty />));
-    expect(preview.imagePreviewProps.getCommentAction('1')).toMatchObject({
-      canAdd: false,
-      needsSave: true,
-    });
-    await act(async () => root.render(<Harness />));
-    preview.imagePreviewProps.getCommentAction('1')!.onOpen();
-    expect(onCreateRequest).not.toHaveBeenCalled();
-    await act(async () => preview.imagePreviewProps.onOpenChange(false));
-    preview.imagePreviewProps.onCloseAutoFocus(
-      new Event('close', { cancelable: true })
-    );
-    expect(onCreateRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ editor, from: 1, to: 2 })
-    );
-    expect(focusThread).not.toHaveBeenCalled();
+    expect(preview.imagePreviewProps).not.toHaveProperty('getCommentAction');
+    expect(preview.imagePreviewProps.items?.[0]).not.toHaveProperty('download');
   } finally {
     await act(async () => {
       root.unmount();

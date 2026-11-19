@@ -8,27 +8,15 @@ import {
   useState,
 } from 'react';
 
-import type {
-  ImageViewerCommentAction,
-  ImageViewerItem,
-} from '@/components/ImagePreviewDialog';
-import {
-  externalImageLink,
-  originalImageDownload,
-} from '@/components/imageViewerActions';
+import type { ImageViewerItem } from '@/components/ImagePreviewDialog';
+import { externalImageLink } from '@/components/imageViewerActions';
 
-import { IMAGE_COMMENT_STORED_QUOTE } from './comments/commentQuote';
-import { isInlineCommentThread } from './comments/documentCommentThreads';
-import { commentThreadIds } from './comments/imageCommentMarks';
-import type { ResourceCommentsController } from './comments/useResourceComments';
 import {
   createResourceImagePreviewPlugin,
   resourceImagePreviewKey,
 } from './imagePreviewPlugin';
 
 type ResourceImage = ImageViewerItem & {
-  from: number;
-  to: number;
   element: HTMLImageElement;
 };
 type Registration = { editor: Editor; identity: string; dispose: () => void };
@@ -41,17 +29,15 @@ type Preview = {
   previousFocus: Element | null;
   images: ResourceImage[];
   itemId?: string;
-  document: Editor['state']['doc'];
 };
 
 export function useResourceImagePreview(
   identity: string,
   host?: RefObject<HTMLDivElement | null>,
-  options?: { scopedShare?: boolean; comments?: ResourceCommentsController }
+  options?: { scopedShare?: boolean }
 ) {
   const registrationRef = useRef<Registration | null>(null);
   const restoreRef = useRef<Preview | null>(null);
-  const handOff = useRef<(() => void) | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [open, setOpen] = useState(false);
 
@@ -116,8 +102,6 @@ export function useResourceImagePreview(
                 return;
               images.push({
                 id: String(position),
-                from: position,
-                to: position + node.nodeSize,
                 element,
                 src,
                 alt: element.alt,
@@ -135,7 +119,6 @@ export function useResourceImagePreview(
               registration,
               images,
               itemId: images.find(item => item.element === image)?.id,
-              document: view.state.doc,
               src: image.currentSrc || image.src,
               alt: image.alt,
               imageSize: {
@@ -161,8 +144,6 @@ export function useResourceImagePreview(
     (event: Event) => {
       event.preventDefault();
       const selected = restoreRef.current;
-      const action = handOff.current;
-      handOff.current = null;
       restoreRef.current = null;
       if (
         !selected ||
@@ -184,7 +165,6 @@ export function useResourceImagePreview(
             : host?.current;
         target?.focus({ preventScroll: true });
       }
-      if (editor.state.doc === selected.document) action?.();
     },
     [host, identity]
   );
@@ -193,76 +173,6 @@ export function useResourceImagePreview(
     setOpen(nextOpen);
     if (!nextOpen) setPreview(null);
   }, []);
-
-  const getCommentAction = (
-    id: string
-  ): ImageViewerCommentAction | undefined => {
-    const comments = options?.comments;
-    const item = preview?.images.find(image => image.id === id);
-    const editor = preview?.registration.editor;
-    if (
-      !comments ||
-      !preview ||
-      !item ||
-      !editor ||
-      editor.isDestroyed ||
-      editor.state.doc !== preview.document
-    )
-      return undefined;
-    const node = editor.view.nodeDOM(item.from);
-    if (!(node instanceof HTMLElement) || !node.contains(item.element))
-      return undefined;
-    const ids = new Set(commentThreadIds(node.closest('.node-image') ?? node));
-    const threads = (
-      (comments.imageAnchorThreads ?? comments.threads) ||
-      []
-    ).filter(
-      thread =>
-        isInlineCommentThread(thread) && !thread.resolved && ids.has(thread.id)
-    );
-    const needsSave =
-      !options?.scopedShare && comments.canComment && comments.contentDirty;
-    const canAdd =
-      !options?.scopedShare &&
-      comments.canComment &&
-      !comments.contentDirty &&
-      !!comments.commentsConfig.onCreateRequest;
-    if (threads.length === 0 && !canAdd && !needsSave) return undefined;
-    return {
-      count: threads.length,
-      canAdd,
-      needsSave,
-      threads: threads.map(thread => ({
-        id: thread.id,
-        label:
-          thread.comments[0]?.content ||
-          thread.creator.display_name ||
-          thread.creator.username ||
-          '…',
-      })),
-      onOpen(threadId) {
-        if (
-          registrationRef.current !== preview.registration ||
-          editor.isDestroyed ||
-          editor.state.doc !== preview.document
-        )
-          return false;
-        if (threadId && threads.some(thread => thread.id === threadId)) {
-          handOff.current = () => {
-            comments.focusThread(threadId);
-          };
-        } else if (!threadId && canAdd) {
-          handOff.current = () =>
-            comments.commentsConfig.onCreateRequest?.({
-              editor,
-              from: item.from,
-              to: item.to,
-              quotedText: IMAGE_COMMENT_STORED_QUOTE,
-            });
-        } else return false;
-      },
-    };
-  };
 
   return {
     registerImagePreview,
@@ -277,15 +187,10 @@ export function useResourceImagePreview(
         alt,
         size,
         referrerPolicy,
-        download:
-          !options?.scopedShare && isDocumentAttachment(src)
-            ? originalImageDownload(src)
-            : undefined,
         allowExternalOriginal:
           !options?.scopedShare && !!externalImageLink(src),
       })),
       initialItemId: preview?.itemId,
-      getCommentAction,
       src: preview?.src,
       alt: preview?.alt,
       imageSize: preview?.imageSize,
@@ -302,16 +207,4 @@ function imageReferrerPolicy(
   return (image.referrerPolicy ||
     image.getAttribute('referrerpolicy') ||
     undefined) as Preview['referrerPolicy'];
-}
-
-function isDocumentAttachment(src: string) {
-  let path: string;
-  try {
-    path = new URL(src, window.location.origin).pathname;
-  } catch {
-    return false;
-  }
-  return /^\/(?:api\/v1\/namespaces\/[\w-]+\/resources\/[\w-]+|[\w-]+\/[\w-]+)\/attachments\/[\w.-]+$/.test(
-    path
-  );
 }

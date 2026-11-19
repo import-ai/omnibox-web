@@ -276,7 +276,7 @@ describe('ImagePreviewDialog', () => {
     expect(dialog.isConnected).toBe(false);
   });
 
-  it('navigates duplicate-URL occurrences by ID and exposes only authorized actions', async () => {
+  it('navigates duplicate-URL occurrences without download or comment controls', async () => {
     await act(async () =>
       root.render(
         <Fixture
@@ -286,7 +286,6 @@ describe('ImagePreviewDialog', () => {
               src: '/same.jpg',
               alt: 'First',
               size: longImageSize,
-              download: { href: '/same.jpg', name: 'original.jpg' },
             },
             {
               id: 'second',
@@ -301,9 +300,13 @@ describe('ImagePreviewDialog', () => {
     await openPreview();
     const dialog = document.querySelector('[data-image-preview]')!;
     expect(dialog.querySelector('img')?.alt).toBe('First');
-    expect(dialog.querySelector('a[download]')?.getAttribute('download')).toBe(
-      'original.jpg'
-    );
+    expect(dialog.querySelector('a[download]')).toBeNull();
+    expect(
+      dialog.querySelector('[aria-label="image_viewer.download"]')
+    ).toBeNull();
+    expect(
+      dialog.querySelector('[aria-label="image_viewer.comments"]')
+    ).toBeNull();
     await act(async () =>
       dialog
         .querySelector<HTMLButtonElement>('[aria-label="image_viewer.rotate"]')!
@@ -317,6 +320,9 @@ describe('ImagePreviewDialog', () => {
     expect(dialog.querySelector('img')?.alt).toBe('Second');
     expect(dialog.querySelector('img')?.style.transform).toContain('0deg');
     expect(dialog.querySelector('a[download]')).toBeNull();
+    expect(
+      dialog.querySelector('[aria-label="image_viewer.download"]')
+    ).toBeNull();
     expect(
       dialog
         .querySelector<HTMLButtonElement>('[aria-label="image_viewer.next"]')
@@ -438,47 +444,6 @@ describe('ImagePreviewDialog', () => {
       await act(async () => button(direction).click());
       expect(dialog.querySelector('img')?.getAttribute('src')).toBe(source);
     }
-  });
-
-  it('retains download focus while busy and blocks duplicate requests', async () => {
-    let finish!: () => void;
-    const run = jest.fn(
-      () =>
-        new Promise<void>(resolve => {
-          finish = resolve;
-        })
-    );
-    await act(async () =>
-      root.render(
-        <Fixture
-          gallery={[
-            {
-              id: 'one',
-              src: '/one.png',
-              size: longImageSize,
-              download: { name: 'one.png', run },
-            },
-          ]}
-        />
-      )
-    );
-    await openPreview();
-    const dialog = document.querySelector('[data-image-preview]')!;
-    const button = dialog.querySelector<HTMLButtonElement>(
-      '[aria-label="image_viewer.download"]'
-    )!;
-    await act(async () => button.focus());
-    await act(async () => button.click());
-    expect(dialog.querySelector('[aria-label="image_viewer.download"]')).toBe(
-      button
-    );
-    expect(document.activeElement).toBe(button);
-    expect(button.getAttribute('aria-disabled')).toBe('true');
-    await act(async () => button.click());
-    expect(run).toHaveBeenCalledTimes(1);
-    await act(async () => finish());
-    expect(button.getAttribute('aria-disabled')).toBe('false');
-    expect(document.activeElement).toBe(button);
   });
 
   it('starts a long image at the top and reopens at its initial fit', async () => {

@@ -121,7 +121,6 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
             id: image.id,
             src: image.url,
             alt: image.name,
-            download: { href: image.url, name: image.name },
           }))}
           initialItemId={preview?.id}
           open={preview !== null}
