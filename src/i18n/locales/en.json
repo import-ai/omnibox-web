@@ -1596,7 +1596,7 @@
     "activity_types": {
       "reward": "Reward Kibble",
       "subscription": "Subscription Kibble",
-      "topup": "Top-up",
+      "topup": "Add-on",
       "pdf": "PDF parsing",
       "image": "Image parsing",
       "audio": "Audio parsing",
@@ -2006,11 +2006,11 @@
       },
       {
         "title": "Kibble validity",
-        "body": "Basic receives 100 Kibble per month; Pro receives 4,300. Monthly, quarterly and annual plans grant Kibble for 1, 3 and 12 months respectively. Each monthly grant expires at the end of its period. Top-ups arrive once payment is confirmed and never expire."
+        "body": "Basic receives 100 Kibble per month; Pro receives 4,300. Monthly, quarterly and annual plans grant Kibble for 1, 3 and 12 months respectively. Each monthly grant expires at the end of its period. Add-ons arrive once payment is confirmed and never expire."
       },
       {
         "title": "Deduction order",
-        "body": "Deduction priority: monthly subscription Kibble is used before top-up Kibble.\nParsing that finishes in a later period is settled against the grant reserved when the task began."
+        "body": "Deduction priority: monthly subscription Kibble is used before add-on Kibble.\nParsing that finishes in a later period is settled against the grant reserved when the task began."
       },
       {
         "title": "Display and refunds",
