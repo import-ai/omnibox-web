@@ -5,30 +5,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
 export function ImageViewerHint({
   label,
   children,
-  disabled,
   onEscape,
 }: {
   label: string;
   children: ReactElement;
-  disabled?: boolean;
   onEscape: () => void;
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        {disabled ? (
-          <span
-            tabIndex={0}
-            role="group"
-            aria-label={label}
-            className="inline-flex cursor-not-allowed rounded-md focus-visible:outline-2 focus-visible:outline-white [&>button]:pointer-events-none"
-          >
-            {children}
-          </span>
-        ) : (
-          children
-        )}
-      </TooltipTrigger>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipContent
         side="top"
         sideOffset={8}

@@ -2,7 +2,7 @@
 import { act, useRef, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
-import { ImagePreviewDialog } from './ImagePreviewDialog';
+import { ImagePreviewDialog, type ImageViewerItem } from './ImagePreviewDialog';
 
 jest.mock('react', () => {
   const react = jest.requireActual<typeof import('react')>('react');
@@ -30,13 +30,7 @@ function Fixture({
   onCloseAutoFocus,
   removeInvokerOnOpen = false,
 }: {
-  gallery?: {
-    id: string;
-    src: string;
-    alt?: string;
-    size?: { width: number; height: number };
-    download?: { name: string; href: string };
-  }[];
+  gallery?: ImageViewerItem[];
   imageSize?: { width: number; height: number };
   onCloseAutoFocus?: (event: Event) => void;
   removeInvokerOnOpen?: boolean;
@@ -122,7 +116,7 @@ describe('ImagePreviewDialog', () => {
     const previous = document.querySelector<HTMLButtonElement>(
       'button[aria-label="image_viewer.previous"]'
     )!;
-    expect(previous.disabled).toBe(true);
+    expect(previous.getAttribute('aria-disabled')).toBe('true');
     const hoverTarget = previous.closest('[data-slot="tooltip-trigger"]');
     expect(hoverTarget).not.toBeNull();
     const hover = new MouseEvent('pointermove', { bubbles: true });
@@ -192,8 +186,10 @@ describe('ImagePreviewDialog', () => {
     expect(dialog.classList.contains('bg-transparent')).toBe(true);
     expect(close.classList.contains('rounded-full')).toBe(true);
     expect(close.classList.contains('bg-black/55')).toBe(true);
-    expect(parseFloat(close.style.right)).toBeGreaterThan(12);
-    expect(parseFloat(close.style.top)).toBeGreaterThan(12);
+    expect(close.style.right).toBe('');
+    expect(close.style.top).toBe('');
+    expect(close.classList.contains('right-3')).toBe(true);
+    expect(close.classList.contains('top-3')).toBe(true);
     expect(image.classList.contains('cursor-zoom-out')).toBe(true);
     expect(image.parentElement?.classList.contains('rounded-md')).toBe(true);
     await act(async () => image.click());
@@ -322,10 +318,167 @@ describe('ImagePreviewDialog', () => {
     expect(dialog.querySelector('img')?.style.transform).toContain('0deg');
     expect(dialog.querySelector('a[download]')).toBeNull();
     expect(
+      dialog
+        .querySelector<HTMLButtonElement>('[aria-label="image_viewer.next"]')
+        ?.getAttribute('aria-disabled')
+    ).toBe('true');
+  });
+
+  it('keeps one close button anchored to the dialog across view and image changes', async () => {
+    await act(async () =>
+      root.render(
+        <Fixture
+          gallery={[
+            { id: 'one', src: '/one.png', size: { width: 600, height: 400 } },
+            { id: 'two', src: '/two.png', size: longImageSize },
+          ]}
+        />
+      )
+    );
+    await openPreview();
+    const dialog = document.querySelector('[data-image-preview]')!;
+    const close = dialog.querySelector<HTMLButtonElement>(
+      '[aria-label="close"]'
+    )!;
+    const button = (name: string) =>
       dialog.querySelector<HTMLButtonElement>(
-        '[aria-label="image_viewer.next"]'
-      )?.disabled
-    ).toBe(true);
+        `[aria-label="image_viewer.${name}"]`
+      )!;
+    const expectFixedClose = () => {
+      expect(dialog.querySelector('[aria-label="close"]')).toBe(close);
+      expect(close.parentElement).toBe(dialog);
+      expect(close.style.top).toBe('');
+      expect(close.style.right).toBe('');
+      expect(close.classList.contains('top-3')).toBe(true);
+      expect(close.classList.contains('right-3')).toBe(true);
+    };
+    expectFixedClose();
+    for (const action of ['zoom_in', 'rotate', 'actual_size', 'fit', 'next']) {
+      await act(async () => button(action).click());
+      expectFixedClose();
+    }
+    const viewport = dialog.querySelector<HTMLElement>('[role="region"]')!;
+    await act(async () => {
+      viewport.scrollTop = 3000;
+      viewport.dispatchEvent(new Event('scroll'));
+      window.dispatchEvent(new Event('resize'));
+    });
+    expectFixedClose();
+    await act(async () =>
+      dialog.querySelector('img')!.dispatchEvent(new Event('error'))
+    );
+    expectFixedClose();
+  });
+
+  it.each([
+    ['zoom_in', 'max_zoom', '400%'],
+    ['zoom_out', 'min_zoom', '10%'],
+  ])(
+    'retains focus at the %s boundary and blocks further activation',
+    async (action, reason, ratio) => {
+      await act(async () => root.render(<Fixture imageSize={longImageSize} />));
+      await openPreview();
+      const dialog = document.querySelector('[data-image-preview]')!;
+      const button = dialog.querySelector<HTMLButtonElement>(
+        `[aria-label="image_viewer.${action}"]`
+      )!;
+      await act(async () => button.focus());
+      for (
+        let step = 0;
+        step < 20 && button.getAttribute('aria-disabled') !== 'true';
+        step++
+      ) {
+        await act(async () => button.click());
+        expect(
+          dialog.querySelector(`[aria-label="image_viewer.${action}"]`)
+        ).toBe(button);
+        expect(document.activeElement).toBe(button);
+      }
+      expect(button.getAttribute('aria-disabled')).toBe('true');
+      expect(dialog.querySelector('output')?.textContent).toBe(ratio);
+      const image = dialog.querySelector('img')!;
+      const width = image.style.width;
+      await act(async () => button.click());
+      expect(image.style.width).toBe(width);
+      expect(document.activeElement).toBe(button);
+      await act(async () => button.blur());
+      await act(async () => button.focus());
+      await act(async () => jest.runOnlyPendingTimers());
+      expect(document.querySelector('[role="tooltip"]')?.textContent).toBe(
+        `image_viewer.${reason}`
+      );
+    }
+  );
+
+  it('keeps directional focus at both gallery boundaries', async () => {
+    await act(async () =>
+      root.render(
+        <Fixture
+          gallery={[
+            { id: 'one', src: '/one.png', size: longImageSize },
+            { id: 'two', src: '/two.png', size: longImageSize },
+          ]}
+        />
+      )
+    );
+    await openPreview();
+    const dialog = document.querySelector('[data-image-preview]')!;
+    const button = (name: string) =>
+      dialog.querySelector<HTMLButtonElement>(
+        `[aria-label="image_viewer.${name}"]`
+      )!;
+    for (const [direction, source] of [
+      ['next', '/two.png'],
+      ['previous', '/one.png'],
+    ]) {
+      await act(async () => button(direction).focus());
+      await act(async () => button(direction).click());
+      expect(button(direction).getAttribute('aria-disabled')).toBe('true');
+      expect(document.activeElement).toBe(button(direction));
+      await act(async () => button(direction).click());
+      expect(dialog.querySelector('img')?.getAttribute('src')).toBe(source);
+    }
+  });
+
+  it('retains download focus while busy and blocks duplicate requests', async () => {
+    let finish!: () => void;
+    const run = jest.fn(
+      () =>
+        new Promise<void>(resolve => {
+          finish = resolve;
+        })
+    );
+    await act(async () =>
+      root.render(
+        <Fixture
+          gallery={[
+            {
+              id: 'one',
+              src: '/one.png',
+              size: longImageSize,
+              download: { name: 'one.png', run },
+            },
+          ]}
+        />
+      )
+    );
+    await openPreview();
+    const dialog = document.querySelector('[data-image-preview]')!;
+    const button = dialog.querySelector<HTMLButtonElement>(
+      '[aria-label="image_viewer.download"]'
+    )!;
+    await act(async () => button.focus());
+    await act(async () => button.click());
+    expect(dialog.querySelector('[aria-label="image_viewer.download"]')).toBe(
+      button
+    );
+    expect(document.activeElement).toBe(button);
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    await act(async () => button.click());
+    expect(run).toHaveBeenCalledTimes(1);
+    await act(async () => finish());
+    expect(button.getAttribute('aria-disabled')).toBe('false');
+    expect(document.activeElement).toBe(button);
   });
 
   it('starts a long image at the top and reopens at its initial fit', async () => {

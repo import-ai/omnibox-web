@@ -30,7 +30,7 @@ export interface ImageViewerNavigation {
 }
 
 const actionClass =
-  'inline-flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-md px-2 text-white hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white disabled:opacity-40 [&_svg]:size-4';
+  'inline-flex min-h-8 min-w-8 items-center justify-center gap-1 rounded-md px-2 text-white hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white aria-disabled:cursor-not-allowed aria-disabled:opacity-40 aria-disabled:hover:bg-transparent [&_svg]:size-4';
 
 export function ImageViewerToolbar({
   item,
@@ -82,7 +82,6 @@ export function ImageViewerToolbar({
   ) => (
     <ImageViewerHint
       label={t(`image_viewer.${disabledReason ?? name}`)}
-      disabled={!!disabledReason}
       onEscape={dismiss}
     >
       <button
@@ -92,8 +91,14 @@ export function ImageViewerToolbar({
         }
         aria-label={t(`image_viewer.${name}`)}
         className={actionClass}
-        disabled={!!disabledReason}
-        onClick={onClick}
+        aria-disabled={!!disabledReason}
+        onClick={event => {
+          if (disabledReason) {
+            event.preventDefault();
+            return;
+          }
+          onClick();
+        }}
       >
         {content}
       </button>

@@ -3,7 +3,6 @@ import {
   type CSSProperties,
   type ImgHTMLAttributes,
   type PointerEvent,
-  type ReactNode,
   type RefObject,
   useLayoutEffect,
   useRef,
@@ -122,7 +121,7 @@ export function ImagePreviewDialog({
     restoreNavigationFocus.current = null;
     const scope = closeRef.current?.parentElement;
     const button = scope?.querySelector<HTMLButtonElement>(
-      `[data-image-viewer-nav="${direction}"]:not(:disabled)`
+      `[data-image-viewer-nav="${direction}"]`
     );
     (button ?? closeRef.current)?.focus({ preventScroll: true });
   }, [item?.id]);
@@ -143,7 +142,7 @@ export function ImagePreviewDialog({
     onOpenChange(false);
   };
 
-  const renderClose = (position?: CSSProperties) => (
+  const renderClose = () => (
     <ImageViewerHint label={t('close')} onEscape={() => onOpenChange(false)}>
       <DialogClose asChild>
         <button
@@ -151,7 +150,6 @@ export function ImagePreviewDialog({
           type="button"
           aria-label={t('close')}
           className="absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/55 text-white shadow-xs transition-colors hover:bg-black/75 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
-          style={position}
           onFocus={event => {
             if (autoFocusing.current) event.preventDefault();
           }}
@@ -214,12 +212,12 @@ export function ImagePreviewDialog({
           <DialogDescription className="sr-only">
             {t('chat.image.preview')}
           </DialogDescription>
-          {visibleItem ? (
+          {renderClose()}
+          {visibleItem && (
             <ImageViewerSlide
               key={JSON.stringify([visibleItem.id, visibleItem.src])}
               item={visibleItem}
               title={title}
-              renderClose={renderClose}
               comment={open ? getCommentAction?.(visibleItem.id) : undefined}
               close={close}
               onOpenChange={onOpenChange}
@@ -229,8 +227,6 @@ export function ImagePreviewDialog({
                   : undefined
               }
             />
-          ) : (
-            renderClose()
           )}
         </DialogContent>
       </Dialog>
@@ -242,7 +238,6 @@ function ImageViewerSlide({
   item,
   title,
   comment,
-  renderClose,
   close,
   onOpenChange,
   navigation,
@@ -250,7 +245,6 @@ function ImageViewerSlide({
   item: ImageViewerItem;
   title: string;
   comment?: ImageViewerCommentAction;
-  renderClose: (position?: CSSProperties) => ReactNode;
   close: () => void;
   onOpenChange: (open: boolean) => void;
   navigation?: ImageViewerNavigation;
@@ -367,20 +361,8 @@ function ImageViewerSlide({
     };
   }
 
-  const closePosition =
-    !isTall &&
-    layout &&
-    layout.width <= viewport.width &&
-    layout.height <= viewport.height
-      ? {
-          top: layout.y + 12,
-          right: viewport.width - layout.x - layout.width + 12,
-        }
-      : undefined;
-
   return (
     <>
-      {renderClose(closePosition)}
       <div
         ref={scrollRef}
         data-image-viewer-long={isTall && !failed ? '' : undefined}
