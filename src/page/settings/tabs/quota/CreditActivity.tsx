@@ -52,7 +52,12 @@ export function CreditActivity({ namespaceId }: { namespaceId: string }) {
     setLoading(true);
     http
       .get(`/namespaces/${namespaceId}/usages/credits/activity`, {
-        params: { offset: (page - 1) * 20, limit: 20, scope },
+        params: {
+          offset: (page - 1) * 20,
+          limit: 20,
+          scope,
+          include_subscription_expired: true,
+        },
         signal: controller.signal,
       })
       .then(

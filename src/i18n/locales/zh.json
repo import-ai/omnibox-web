@@ -1598,6 +1598,7 @@
     "activity_types": {
       "reward": "奖励猫粮",
       "subscription": "订阅猫粮",
+      "subscription_expired": "订阅猫粮过期",
       "topup": "加油包",
       "pdf": "PDF 解析",
       "image": "图片解析",

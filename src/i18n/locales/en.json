@@ -1596,6 +1596,7 @@
     "activity_types": {
       "reward": "Reward Kibble",
       "subscription": "Subscription Kibble",
+      "subscription_expired": "Subscription Kibble Expired",
       "topup": "Add-on",
       "pdf": "PDF parsing",
       "image": "Image parsing",
