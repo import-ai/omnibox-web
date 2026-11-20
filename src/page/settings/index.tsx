@@ -1,5 +1,5 @@
 import { VisuallyHidden } from 'radix-ui';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -31,6 +31,7 @@ export default function Setting() {
   const { t } = useTranslation();
   const app = useApp();
   const [open, setOpen] = useState(false);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
   useBehaviorSurface({ scope: 'surface', target: 'settings', active: open });
   const [initialTab, setInitialTab] = useState<string | undefined>();
   const [autoAction, setAutoAction] =
@@ -38,6 +39,11 @@ export default function Setting() {
 
   useEffect(() => {
     return app.on('open_settings', (payload: OpenSettingsPayload) => {
+      const activeElement = document.activeElement;
+      restoreFocusRef.current =
+        activeElement instanceof HTMLElement && activeElement !== document.body
+          ? activeElement
+          : null;
       setInitialTab(payload.tab);
       setAutoAction(payload.autoAction);
       setOpen(true);
@@ -64,6 +70,17 @@ export default function Setting() {
       <DialogContent
         outsideCloseTrackName="settings_overlay_close"
         outsideCloseTarget="settings"
+        onCloseAutoFocus={event => {
+          const restoreFocusTarget = restoreFocusRef.current;
+          if (restoreFocusTarget?.isConnected) {
+            event.preventDefault();
+            queueMicrotask(() => {
+              if (restoreFocusTarget.isConnected) {
+                restoreFocusTarget.focus({ preventScroll: true });
+              }
+            });
+          }
+        }}
         className="flex h-[85vh] max-h-[517px] w-[90vw] max-w-[858px] sm:max-w-[858px] flex-col gap-0 overflow-hidden rounded-[12px]! border-0 p-0 sm:h-[80vh] sm:w-[85vw] lg:h-[517px] lg:w-[858px] [&>button]:hidden"
       >
         <VisuallyHidden.Root>

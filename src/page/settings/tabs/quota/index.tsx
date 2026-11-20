@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { BillingRulesDialog } from '@/components/omnibox/BillingRulesDialog';
 import { Spinner } from '@/components/ui/Spinner';
-import useQuota, { type UsageData } from '@/hooks/useQuota';
+import useQuota from '@/hooks/useQuota';
 
 import { CreditActivity } from './CreditActivity';
 import { ExpandButton } from './ExpandButton';
@@ -20,6 +20,7 @@ interface RemainQuotaProps {
 }
 
 export function RemainQuota({ namespaceId }: RemainQuotaProps) {
+  const { t } = useTranslation();
   const { data, loading } = useQuota(namespaceId);
 
   if (loading) {
@@ -33,17 +34,6 @@ export function RemainQuota({ namespaceId }: RemainQuotaProps) {
   if (!data) {
     return null;
   }
-
-  return <QuotaDisplay namespaceId={namespaceId} data={data} />;
-}
-
-interface QuotaDisplayProps {
-  namespaceId: string;
-  data: UsageData;
-}
-
-export function QuotaDisplay({ namespaceId, data }: QuotaDisplayProps) {
-  const { t } = useTranslation();
 
   const showOtherMembersUsage = data.show_members_usage;
 

@@ -5,12 +5,24 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import useApp from '@/hooks/useApp';
 import useQuota, { type UsageData } from '@/hooks/useQuota';
+import Setting from '@/page/settings';
 
 import AgentCreditsIndicator from './AgentCreditsIndicator';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
+}));
+
+jest.mock('i18next', () => ({
+  __esModule: true,
+  default: { language: 'en', t: (key: string) => key },
+}));
+
+jest.mock('@/hooks/useApp', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 jest.mock('@/hooks/useQuota', () => ({
@@ -24,10 +36,30 @@ jest.mock('@/components/tooltip', () => ({
   TooltipContent: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
-jest.mock('@/page/settings/tabs/quota', () => ({
-  QuotaDisplay: () => <div>Usage details</div>,
+jest.mock('@/lib/behaviorTracking', () => ({
+  useBehaviorSurface: jest.fn(),
 }));
 
+jest.mock('@/lib/captcha', () => ({ isInsideAliyunCaptcha: () => false }));
+jest.mock('@/lib/trackButtonClick', () => ({ trackButtonClick: jest.fn() }));
+jest.mock('@/page/settings/SettingWrapper', () => ({
+  __esModule: true,
+  default: ({
+    initialTab,
+    onClose,
+  }: {
+    initialTab?: string;
+    onClose: () => void;
+  }) => (
+    <div data-testid="settings-wrapper" data-initial-tab={initialTab}>
+      <button type="button" onClick={onClose}>
+        Close settings
+      </button>
+    </div>
+  ),
+}));
+
+const mockUseApp = useApp as jest.MockedFunction<typeof useApp>;
 const mockUseQuota = useQuota as jest.MockedFunction<typeof useQuota>;
 
 function usage(): UsageData {
@@ -75,16 +107,29 @@ function usage(): UsageData {
 describe('AgentCreditsIndicator usage dialog', () => {
   let container: HTMLDivElement;
   let root: Root;
+  let app: {
+    on: jest.Mock;
+    fire: jest.Mock;
+  };
 
   beforeEach(() => {
-    container = document.createElement('div');
-    document.body.appendChild(container);
-    root = createRoot(container);
+    const listeners = new Map<string, (payload: { tab?: string }) => void>();
+    app = {
+      on: jest.fn((event, listener) => {
+        listeners.set(event, listener);
+        return () => listeners.delete(event);
+      }),
+      fire: jest.fn((event, payload) => listeners.get(event)?.(payload)),
+    };
+    mockUseApp.mockReturnValue(app as unknown as ReturnType<typeof useApp>);
     mockUseQuota.mockReturnValue({
       data: usage(),
       loading: false,
       refresh: jest.fn(),
     });
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    root = createRoot(container);
   });
 
   afterEach(async () => {
@@ -94,21 +139,38 @@ describe('AgentCreditsIndicator usage dialog', () => {
     jest.clearAllMocks();
   });
 
-  it('opens the usage dialog from the credits ring', async () => {
+  it('opens the existing usage settings dialog and restores focus on close', async () => {
     await act(async () =>
-      root.render(<AgentCreditsIndicator namespaceId="namespace-a" />)
+      root.render(
+        <>
+          <Setting />
+          <AgentCreditsIndicator namespaceId="namespace-a" />
+        </>
+      )
     );
 
-    const trigger = container.querySelector<HTMLButtonElement>('button');
-    expect(trigger).not.toBeNull();
-    expect(trigger?.getAttribute('aria-label')).toBe(
-      '1.20 / 6,800.00 quota.credit_unit'
-    );
+    const trigger = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="1.20 / 6,800.00 quota.credit_unit"]'
+    )!;
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+    await act(async () => trigger.click());
 
-    await act(async () => trigger?.click());
+    expect(app.fire).toHaveBeenCalledWith('open_settings', { tab: 'usage' });
+    expect(document.querySelector('[role="dialog"]')).not.toBeNull();
+    expect(
+      document
+        .querySelector('[data-testid="settings-wrapper"]')
+        ?.getAttribute('data-initial-tab')
+    ).toBe('usage');
 
-    expect(document.body.querySelector('[role="dialog"]')).not.toBeNull();
-    expect(document.body.textContent).toContain('namespace.usage');
-    expect(document.body.textContent).toContain('Usage details');
+    const close = document.querySelector<HTMLButtonElement>(
+      '[data-testid="settings-wrapper"] button'
+    )!;
+    await act(async () => close.click());
+    await act(async () => new Promise(resolve => setTimeout(resolve, 0)));
+
+    expect(document.querySelector('[role="dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(trigger);
   });
 });

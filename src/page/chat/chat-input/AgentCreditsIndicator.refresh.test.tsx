@@ -28,10 +28,6 @@ jest.mock('@/hooks/useQuota', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('@/page/settings/tabs/quota', () => ({
-  QuotaDisplay: () => null,
-}));
-
 jest.mock('@/components/tooltip', () => ({
   Tooltip: ({
     children,
