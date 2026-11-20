@@ -55,19 +55,23 @@ function isFinalAnswer(message: MessageDetail) {
   );
 }
 
-function isUserQuery(message: MessageDetail) {
+/** A user message without decisions opens a turn, even when it only holds images. */
+function startsTurn(message: MessageDetail) {
   return (
     message.message.role === OpenAIMessageRole.USER &&
-    (message.attrs?.tool_call?.decisions ?? []).length === 0 &&
-    Boolean(message.message.content?.trim())
+    (message.attrs?.tool_call?.decisions ?? []).length === 0
   );
+}
+
+function isUserQuery(message: MessageDetail) {
+  return startsTurn(message) && Boolean(message.message.content?.trim());
 }
 
 /**
  * Agent 2.1 (`pro`) turns keep reasoning and tool traffic out of the reply area.
  * Agent 1.1 (`basic`) turns and records without `edition` keep the legacy layout.
  */
-export function isProTurn(message: MessageDetail) {
+function isProTurn(message: MessageDetail) {
   return message.attrs?.edition === 'pro';
 }
 
@@ -92,14 +96,6 @@ function isPinnedMessage(message: MessageDetail) {
     Boolean(message.attrs?.compact) ||
     message.status === MessageStatus.FAILED ||
     Boolean(message.attrs?.error_message)
-  );
-}
-
-function isHiddenProcessMessage(message: MessageDetail) {
-  return (
-    message.message.role === OpenAIMessageRole.TOOL ||
-    message.message.role === OpenAIMessageRole.ASSISTANT ||
-    isToolDecisionMessage(message)
   );
 }
 
@@ -205,7 +201,7 @@ function pushHiddenProcessItems(
       result.push({ type: 'message', message });
       continue;
     }
-    if (isHiddenProcessMessage(message)) {
+    if (isProcessMessage(message)) {
       processMessages.push(message);
       continue;
     }
@@ -230,14 +226,6 @@ export function buildMessageDisplayItems(
   pushTurn(messages.slice(start), result);
 
   return result;
-}
-
-/** A user message without decisions opens a turn, even when it only holds images. */
-function startsTurn(message: MessageDetail) {
-  return (
-    message.message.role === OpenAIMessageRole.USER &&
-    (message.attrs?.tool_call?.decisions ?? []).length === 0
-  );
 }
 
 function getTurnQuery(turn: MessageDetail[]) {
