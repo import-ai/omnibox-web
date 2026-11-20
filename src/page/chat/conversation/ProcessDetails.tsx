@@ -35,7 +35,7 @@ export function ProcessDetails({
       }}
     >
       <summary className="flex w-fit cursor-pointer list-none items-center gap-1 py-3 text-sm text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
-        {running && <Spinner className="size-3.5" />}
+        {running && <Spinner aria-hidden="true" className="size-3.5" />}
         <span>{title}</span>
         <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
       </summary>

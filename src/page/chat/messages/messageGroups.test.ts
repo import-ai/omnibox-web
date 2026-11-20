@@ -586,6 +586,35 @@ describe('agent 2.1 turns hide the process while streaming', () => {
     expect(JSON.stringify(source)).toBe(before);
   });
 
+  it('keeps a later tool round reporting progress after an answer exists', () => {
+    expect(
+      describeItems([
+        proUser(),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message'),
+        answer('draft-answer', 'Let me check that.'),
+        toolCallAssistant('next-tool-call', {
+          status: MessageStatus.STREAMING,
+        }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['assistant-tool-call', 'tool-message'],
+        finalMessageId: 'draft-answer',
+        running: false,
+      },
+      { type: 'message', id: 'draft-answer', suppressProcessUi: true },
+      {
+        type: 'process',
+        ids: ['next-tool-call'],
+        finalMessageId: 'draft-answer',
+        running: true,
+      },
+    ]);
+  });
+
   it('treats an image-only prompt as a pro turn', () => {
     expect(
       describeItems([

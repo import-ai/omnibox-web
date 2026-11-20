@@ -166,7 +166,7 @@ function pushHiddenProcessItems(
   result: MessageDisplayItem[]
 ) {
   const answer = [...turn].reverse().find(isAnswerCandidate);
-  const running = !answer && turn.some(isRunningMessage);
+  const turnRunning = !answer && turn.some(isRunningMessage);
   const answerHasReasoning = Boolean(
     answer && (answer.has_reasoning || answer.message.reasoning_content?.trim())
   );
@@ -178,7 +178,7 @@ function pushHiddenProcessItems(
       type: 'collapsed_process',
       messages: processMessages,
       finalMessage: answer ?? processMessages[processMessages.length - 1],
-      running,
+      running: turnRunning || processMessages.some(isRunningMessage),
     });
     processMessages = [];
   }
