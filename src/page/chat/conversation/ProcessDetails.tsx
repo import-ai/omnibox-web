@@ -1,17 +1,22 @@
 import { ChevronRight } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 
+import { Spinner } from '@/components/ui/Spinner';
+
 import { DetailLoadState, useMessageDetails } from './MessageDetailsContext';
 
 export function ProcessDetails({
   id,
   ids,
   title,
+  running = false,
   children,
 }: {
   id?: string;
   ids: string[];
   title: string;
+  /** The turn still runs; the summary shows progress instead of a result. */
+  running?: boolean;
   children: () => ReactNode;
 }) {
   const [open, setOpen] = useState(false);
@@ -30,6 +35,7 @@ export function ProcessDetails({
       }}
     >
       <summary className="flex w-fit cursor-pointer list-none items-center gap-1 py-3 text-sm text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+        {running && <Spinner className="size-3.5" />}
         <span>{title}</span>
         <ChevronRight className="size-4 transition-transform group-open:rotate-90" />
       </summary>

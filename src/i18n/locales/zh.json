@@ -1034,6 +1034,7 @@
           "minutes": "{{count}} 分",
           "seconds": "{{count}} 秒"
         },
+        "running": "处理中…",
         "stopped": "已停止"
       },
       "user_context": {

@@ -57,6 +57,8 @@ interface IProps {
   regenerateDisabled?: boolean;
   regenerating?: boolean;
   hideActions?: boolean;
+  /** Render only the answer body, without reasoning or tool call UI. */
+  suppressProcessUi?: boolean;
   onShare?: (messageId: string) => void;
 }
 
@@ -106,6 +108,7 @@ export function AssistantMessage(props: IProps) {
     regenerateDisabled = false,
     regenerating = false,
     hideActions = false,
+    suppressProcessUi = false,
     onShare,
   } = props;
   const { t } = useTranslation();
@@ -133,7 +136,10 @@ export function AssistantMessage(props: IProps) {
     useMessageSiblings(message.id, messageOperator);
 
   const domList: React.ReactNode[] = [];
-  if (openAIMessage.reasoning_content?.trim() || message.has_reasoning) {
+  if (
+    !suppressProcessUi &&
+    (openAIMessage.reasoning_content?.trim() || message.has_reasoning)
+  ) {
     domList.push(
       <Accordion
         type="single"
@@ -270,7 +276,7 @@ export function AssistantMessage(props: IProps) {
     }
   }, [app, toolCalls]);
 
-  if (toolCalls.length > 0) {
+  if (toolCalls.length > 0 && !suppressProcessUi) {
     domList.push(
       <Accordion
         type="single"

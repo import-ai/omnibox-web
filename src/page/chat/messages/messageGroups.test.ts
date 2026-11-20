@@ -319,3 +319,289 @@ describe('stopped message projections', () => {
     }
   );
 });
+
+function proUser(id = 'user') {
+  return buildMessage({
+    id,
+    message: { role: OpenAIMessageRole.USER, content: 'Question?' },
+    attrs: { edition: 'pro' },
+  });
+}
+
+function basicUser(id = 'user') {
+  return buildMessage({
+    id,
+    message: { role: OpenAIMessageRole.USER, content: 'Question?' },
+    attrs: { edition: 'basic' },
+  });
+}
+
+function toolCallAssistant(id: string, overrides: Partial<MessageDetail> = {}) {
+  return buildMessage({
+    id,
+    ...overrides,
+    message: {
+      role: OpenAIMessageRole.ASSISTANT,
+      reasoning_content: 'thinking',
+      tool_calls: [
+        {
+          id: 'tool-call',
+          type: 'function',
+          function: { name: 'web_search', arguments: '{}' },
+        },
+      ],
+    },
+  });
+}
+
+function toolResult(id: string, overrides: Partial<MessageDetail> = {}) {
+  return buildMessage({
+    id,
+    ...overrides,
+    message: { role: OpenAIMessageRole.TOOL, tool_call_id: 'tool-call' },
+  });
+}
+
+function answer(
+  id: string,
+  content: string,
+  overrides: Partial<MessageDetail> = {}
+) {
+  return buildMessage({
+    id,
+    ...overrides,
+    message: { role: OpenAIMessageRole.ASSISTANT, content },
+  });
+}
+
+function describeItems(messages: MessageDetail[]) {
+  return buildMessageDisplayItems(messages).map(item =>
+    item.type === 'message'
+      ? {
+          type: 'message' as const,
+          id: item.message.id,
+          suppressProcessUi: Boolean(item.suppressProcessUi),
+        }
+      : {
+          type: 'process' as const,
+          ids: item.messages.map(message => message.id),
+          finalMessageId: item.finalMessage.id,
+          running: item.running,
+        }
+  );
+}
+
+describe('agent 2.1 turns hide the process while streaming', () => {
+  it('collapses a running tool round before any answer arrives', () => {
+    expect(
+      describeItems([
+        proUser(),
+        toolCallAssistant('assistant-tool-call', {
+          status: MessageStatus.STREAMING,
+        }),
+        toolResult('tool-message'),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['assistant-tool-call', 'tool-message'],
+        finalMessageId: 'tool-message',
+        running: true,
+      },
+    ]);
+  });
+
+  it('shows the answer growing while the finished process stays collapsed', () => {
+    expect(
+      describeItems([
+        proUser(),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message'),
+        answer('final-answer', 'Partial', { status: MessageStatus.STREAMING }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['assistant-tool-call', 'tool-message'],
+        finalMessageId: 'final-answer',
+        running: false,
+      },
+      { type: 'message', id: 'final-answer', suppressProcessUi: true },
+    ]);
+  });
+
+  it('collapses a single process message', () => {
+    expect(describeItems([proUser(), toolResult('tool-message')])).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['tool-message'],
+        finalMessageId: 'tool-message',
+        running: false,
+      },
+    ]);
+  });
+
+  it('moves superseded answer text into the process', () => {
+    expect(
+      describeItems([
+        proUser(),
+        answer('draft-answer', 'Let me check that.'),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message'),
+        answer('final-answer', 'Done'),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['draft-answer', 'assistant-tool-call', 'tool-message'],
+        finalMessageId: 'final-answer',
+        running: false,
+      },
+      { type: 'message', id: 'final-answer', suppressProcessUi: true },
+    ]);
+  });
+
+  it('keeps the stopped partial answer visible', () => {
+    expect(
+      describeItems([
+        proUser(),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message'),
+        answer('final-answer', 'Partial', { status: MessageStatus.STOPPED }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['assistant-tool-call', 'tool-message'],
+        finalMessageId: 'final-answer',
+        running: false,
+      },
+      { type: 'message', id: 'final-answer', suppressProcessUi: true },
+    ]);
+  });
+
+  it('keeps failures and compaction dividers outside the collapsed process', () => {
+    expect(
+      describeItems([
+        proUser(),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message'),
+        buildMessage({
+          id: 'compacted',
+          message: { role: OpenAIMessageRole.ASSISTANT },
+          attrs: { compact: { status: 'compacted' } },
+        }),
+        answer('failed-answer', 'Half', {
+          status: MessageStatus.FAILED,
+          attrs: { error_message: 'boom' },
+        }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['assistant-tool-call', 'tool-message'],
+        finalMessageId: 'failed-answer',
+        running: false,
+      },
+      { type: 'message', id: 'compacted', suppressProcessUi: false },
+      { type: 'message', id: 'failed-answer', suppressProcessUi: true },
+    ]);
+  });
+
+  it('keeps a failed process message visible when it holds no answer text', () => {
+    expect(
+      describeItems([
+        proUser(),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message', {
+          status: MessageStatus.FAILED,
+          attrs: { error_message: 'tool failed' },
+        }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['assistant-tool-call'],
+        finalMessageId: 'assistant-tool-call',
+        running: false,
+      },
+      { type: 'message', id: 'tool-message', suppressProcessUi: false },
+    ]);
+  });
+
+  it('keeps agent 1.1 and edition-less history on the legacy layout', () => {
+    const legacyTurn = (user: MessageDetail) => [
+      user,
+      toolResult('tool-message'),
+      answer('final-answer', 'In progress', {
+        status: MessageStatus.STREAMING,
+      }),
+    ];
+    expect(describeItems(legacyTurn(basicUser()))).toEqual(
+      describeItems(
+        legacyTurn(
+          buildMessage({
+            id: 'user',
+            message: { role: OpenAIMessageRole.USER, content: 'Question?' },
+          })
+        )
+      )
+    );
+    expect(describeItems(legacyTurn(basicUser()))).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      { type: 'message', id: 'tool-message', suppressProcessUi: false },
+      { type: 'message', id: 'final-answer', suppressProcessUi: false },
+    ]);
+  });
+
+  it('keeps the answer reasoning inside the collapsed process', () => {
+    const source = buildMessage({
+      id: 'final-answer',
+      message: {
+        role: OpenAIMessageRole.ASSISTANT,
+        content: 'Done',
+        reasoning_content: 'thinking',
+      },
+    });
+    const before = JSON.stringify(source);
+    const items = buildMessageDisplayItems([proUser(), source]);
+    expect(items).toHaveLength(3);
+    const process = items[1];
+    if (process.type !== 'collapsed_process') throw new Error('no process');
+    expect(process.messages).toHaveLength(1);
+    expect(process.messages[0].message.content).toBeUndefined();
+    expect(process.messages[0].message.reasoning_content).toBe('thinking');
+    expect(items[2]).toMatchObject({
+      type: 'message',
+      suppressProcessUi: true,
+      message: { message: { content: 'Done' } },
+    });
+    expect(JSON.stringify(source)).toBe(before);
+  });
+
+  it('pairs the index with the answer of a pro turn', () => {
+    expect(
+      buildMessageIndexItems([
+        proUser(),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message'),
+        answer('final-answer', 'Answer.'),
+      ])
+    ).toEqual([
+      {
+        answerMessageId: 'final-answer',
+        id: 'user',
+        targetMessageId: 'user',
+        query: 'Question?',
+        answer: 'Answer.',
+      },
+    ]);
+  });
+});

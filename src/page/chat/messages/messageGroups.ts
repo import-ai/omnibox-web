@@ -8,11 +8,15 @@ type MessageDisplayItem =
   | {
       type: 'message';
       message: MessageDetail;
+      /** Pro turns render only the answer, without its reasoning or tool UI. */
+      suppressProcessUi?: boolean;
     }
   | {
       type: 'collapsed_process';
       messages: MessageDetail[];
       finalMessage: MessageDetail;
+      /** The turn still produces output, so the summary reports progress. */
+      running: boolean;
     };
 
 function isResponseMessage(message: MessageDetail) {
@@ -59,10 +63,50 @@ function isUserQuery(message: MessageDetail) {
   );
 }
 
-export function buildMessageDisplayItems(
-  messages: MessageDetail[]
-): MessageDisplayItem[] {
-  const result: MessageDisplayItem[] = [];
+/**
+ * Agent 2.1 (`pro`) turns keep reasoning and tool traffic out of the reply area.
+ * Agent 1.1 (`basic`) turns and records without `edition` keep the legacy layout.
+ */
+export function isProTurn(message: MessageDetail) {
+  return message.attrs?.edition === 'pro';
+}
+
+function isRunningMessage(message: MessageDetail) {
+  return (
+    message.status === MessageStatus.PENDING ||
+    message.status === MessageStatus.STREAMING
+  );
+}
+
+function isAnswerCandidate(message: MessageDetail) {
+  return (
+    message.message.role === OpenAIMessageRole.ASSISTANT &&
+    !hasToolCalls(message) &&
+    Boolean(message.message.content?.trim())
+  );
+}
+
+/** Rows that stay visible even inside a pro turn. */
+function isPinnedMessage(message: MessageDetail) {
+  return (
+    Boolean(message.attrs?.compact) ||
+    message.status === MessageStatus.FAILED ||
+    Boolean(message.attrs?.error_message)
+  );
+}
+
+function isHiddenProcessMessage(message: MessageDetail) {
+  return (
+    message.message.role === OpenAIMessageRole.TOOL ||
+    message.message.role === OpenAIMessageRole.ASSISTANT ||
+    isToolDecisionMessage(message)
+  );
+}
+
+function pushLegacyItems(
+  messages: MessageDetail[],
+  result: MessageDisplayItem[]
+) {
   let index = 0;
 
   while (index < messages.length) {
@@ -107,6 +151,7 @@ export function buildMessageDisplayItems(
         type: 'collapsed_process',
         messages: processMessages,
         finalMessage,
+        running: false,
       });
       if (!stopped || answerMessage.message.content?.trim()) {
         result.push({ type: 'message', message: answerMessage });
@@ -118,8 +163,82 @@ export function buildMessageDisplayItems(
       result.push({ type: 'message', message: responseMessage });
     }
   }
+}
+
+function pushHiddenProcessItems(
+  turn: MessageDetail[],
+  result: MessageDisplayItem[]
+) {
+  const answer = [...turn].reverse().find(isAnswerCandidate);
+  const running = !answer && turn.some(isRunningMessage);
+  const answerHasReasoning = Boolean(
+    answer && (answer.has_reasoning || answer.message.reasoning_content?.trim())
+  );
+  let processMessages: MessageDetail[] = [];
+
+  function flush() {
+    if (processMessages.length === 0) return;
+    result.push({
+      type: 'collapsed_process',
+      messages: processMessages,
+      finalMessage: answer ?? processMessages[processMessages.length - 1],
+      running,
+    });
+    processMessages = [];
+  }
+
+  for (const message of turn) {
+    if (message === answer) {
+      if (answerHasReasoning) {
+        // Project the stored message into process and answer views without changing its identity.
+        processMessages.push({
+          ...answer,
+          message: { ...answer.message, content: undefined },
+        });
+      }
+      flush();
+      result.push({ type: 'message', message, suppressProcessUi: true });
+      continue;
+    }
+    if (isPinnedMessage(message)) {
+      flush();
+      result.push({ type: 'message', message });
+      continue;
+    }
+    if (isHiddenProcessMessage(message)) {
+      processMessages.push(message);
+      continue;
+    }
+    flush();
+    result.push({ type: 'message', message });
+  }
+  flush();
+}
+
+export function buildMessageDisplayItems(
+  messages: MessageDetail[]
+): MessageDisplayItem[] {
+  const result: MessageDisplayItem[] = [];
+  let start = 0;
+
+  for (let index = 0; index < messages.length; index += 1) {
+    if (index > start && isUserQuery(messages[index])) {
+      pushTurn(messages.slice(start, index), result);
+      start = index;
+    }
+  }
+  pushTurn(messages.slice(start), result);
 
   return result;
+}
+
+function pushTurn(turn: MessageDetail[], result: MessageDisplayItem[]) {
+  const query = turn.find(isUserQuery);
+  if (query && isProTurn(query)) {
+    pushHiddenProcessItems(turn, result);
+    return;
+  }
+  pushLegacyItems(turn, result);
 }
 
 export function buildMessageIndexItems(messages: MessageDetail[]) {
