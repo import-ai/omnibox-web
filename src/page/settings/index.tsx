@@ -16,6 +16,7 @@ import SettingWrapper from './SettingWrapper';
 
 interface OpenSettingsPayload {
   tab?: string;
+  focusReturnTarget?: HTMLElement;
   autoAction?:
     | {
         type: 'bind';
@@ -39,10 +40,10 @@ export default function Setting() {
 
   useEffect(() => {
     return app.on('open_settings', (payload: OpenSettingsPayload) => {
-      const activeElement = document.activeElement;
+      const focusTarget = payload.focusReturnTarget ?? document.activeElement;
       restoreFocusRef.current =
-        activeElement instanceof HTMLElement && activeElement !== document.body
-          ? activeElement
+        focusTarget instanceof HTMLElement && focusTarget !== document.body
+          ? focusTarget
           : null;
       setInitialTab(payload.tab);
       setAutoAction(payload.autoAction);

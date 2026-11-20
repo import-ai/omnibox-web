@@ -61,7 +61,12 @@ export default function AgentCreditsIndicator({
           type="button"
           className="flex size-8 cursor-pointer items-center justify-center text-muted-foreground"
           aria-label={usageLabel}
-          onClick={() => app.fire('open_settings', { tab: 'usage' })}
+          onClick={event =>
+            app.fire('open_settings', {
+              tab: 'usage',
+              focusReturnTarget: event.currentTarget,
+            })
+          }
         >
           <svg
             aria-hidden="true"

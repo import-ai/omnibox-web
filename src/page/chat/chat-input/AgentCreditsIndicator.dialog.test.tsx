@@ -139,38 +139,49 @@ describe('AgentCreditsIndicator usage dialog', () => {
     jest.clearAllMocks();
   });
 
-  it('opens the existing usage settings dialog and restores focus on close', async () => {
-    await act(async () =>
-      root.render(
-        <>
-          <Setting />
-          <AgentCreditsIndicator namespaceId="namespace-a" />
-        </>
-      )
-    );
+  it.each([
+    { activation: 'keyboard', initiallyFocused: true },
+    { activation: 'pointer without auto-focus', initiallyFocused: false },
+  ])(
+    'restores focus after $activation activation',
+    async ({ initiallyFocused }) => {
+      await act(async () =>
+        root.render(
+          <>
+            <Setting />
+            <AgentCreditsIndicator namespaceId="namespace-a" />
+          </>
+        )
+      );
 
-    const trigger = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="1.20 / 6,800.00 quota.credit_unit"]'
-    )!;
-    trigger.focus();
-    expect(document.activeElement).toBe(trigger);
-    await act(async () => trigger.click());
+      const trigger = container.querySelector<HTMLButtonElement>(
+        'button[aria-label="1.20 / 6,800.00 quota.credit_unit"]'
+      )!;
+      if (initiallyFocused) trigger.focus();
+      expect(document.activeElement).toBe(
+        initiallyFocused ? trigger : document.body
+      );
+      await act(async () => trigger.click());
 
-    expect(app.fire).toHaveBeenCalledWith('open_settings', { tab: 'usage' });
-    expect(document.querySelector('[role="dialog"]')).not.toBeNull();
-    expect(
-      document
-        .querySelector('[data-testid="settings-wrapper"]')
-        ?.getAttribute('data-initial-tab')
-    ).toBe('usage');
+      expect(app.fire).toHaveBeenCalledWith('open_settings', {
+        tab: 'usage',
+        focusReturnTarget: trigger,
+      });
+      expect(document.querySelector('[role="dialog"]')).not.toBeNull();
+      expect(
+        document
+          .querySelector('[data-testid="settings-wrapper"]')
+          ?.getAttribute('data-initial-tab')
+      ).toBe('usage');
 
-    const close = document.querySelector<HTMLButtonElement>(
-      '[data-testid="settings-wrapper"] button'
-    )!;
-    await act(async () => close.click());
-    await act(async () => new Promise(resolve => setTimeout(resolve, 0)));
+      const close = document.querySelector<HTMLButtonElement>(
+        '[data-testid="settings-wrapper"] button'
+      )!;
+      await act(async () => close.click());
+      await act(async () => new Promise(resolve => setTimeout(resolve, 0)));
 
-    expect(document.querySelector('[role="dialog"]')).toBeNull();
-    expect(document.activeElement).toBe(trigger);
-  });
+      expect(document.querySelector('[role="dialog"]')).toBeNull();
+      expect(document.activeElement).toBe(trigger);
+    }
+  );
 });
