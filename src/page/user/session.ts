@@ -1,7 +1,25 @@
+import { API_BASE_URL } from '@/const';
 import { http } from '@/lib/request';
 
 interface SessionResponse {
   uid: string;
+}
+
+export async function readSessionUser(
+  signal: AbortSignal
+): Promise<string | null> {
+  // Verify the browser's HttpOnly cookie without injecting a stored bearer
+  // token or triggering the standard HTTP client's login redirect.
+  const response = await fetch(`${API_BASE_URL}/user/me`, {
+    cache: 'no-store',
+    credentials: 'same-origin',
+    signal,
+  });
+  if (response.status === 401) return null;
+  if (!response.ok) throw new Error('Could not verify the current user');
+  const { id } = (await response.json()) as { id?: unknown };
+  if (typeof id !== 'string' && typeof id !== 'number') return null;
+  return String(id);
 }
 
 /**
