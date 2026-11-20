@@ -283,6 +283,7 @@ describe('Layout authentication storage changes', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
       expect(localStorage.getItem('uid')).toBe('user-b');
+      expect(container.querySelector('[data-testid="route-outlet"]')).toBeNull();
       expect(localStorage.getItem('token')).toBeNull();
       expect(clearConversationCache).toHaveBeenCalledTimes(1);
 
@@ -342,6 +343,34 @@ describe('Layout authentication storage changes', () => {
       expect(signal.aborted).toBe(true);
       expect(localStorage.getItem('uid')).toBe('user-a');
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the invite form after three seconds and ignores a late session', async () => {
+      jest.useFakeTimers();
+      try {
+        let resolveSession: (uid: string) => void = () => undefined;
+        mockReadSessionUser.mockImplementation(
+          () =>
+            new Promise(resolve => {
+              resolveSession = resolve;
+            })
+        );
+        await act(async () => root.render(<Layout />));
+        const signal = mockReadSessionUser.mock.calls[0][0] as AbortSignal;
+        const outlet = () =>
+          container.querySelector('[data-testid="route-outlet"]');
+        await act(async () => jest.advanceTimersByTime(2_999));
+        expect(outlet()).toBeNull();
+        await act(async () => jest.advanceTimersByTime(1));
+        expect(signal.aborted).toBe(true);
+        expect(outlet()).not.toBeNull();
+
+        await act(async () => resolveSession('user-b'));
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(localStorage.getItem('uid')).toBe('user-a');
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('leaves a link invite callback to complete its own authentication', async () => {

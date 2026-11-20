@@ -97,7 +97,8 @@ export default function Layout() {
 
   useAuthPageExposure(
     loc.pathname,
-    isInviteAuth ? inviteSessionChecked : sessionChecked && !uid
+    isInviteAuth ? inviteSessionChecked : sessionChecked && !uid,
+    isInviteAuth
   );
 
   useEffect(() => {
@@ -121,6 +122,16 @@ export default function Layout() {
       localStorage.getItem('uid') === uidAtStart &&
       localStorage.getItem('token') === tokenAtStart;
 
+    let redirectingInvite = false;
+    const inviteTimeout = isInviteAuth
+      ? window.setTimeout(() => {
+          if (!isStillCurrent()) return;
+          controller.abort();
+          setInviteSessionChecked(true);
+          setSessionChecked(true);
+        }, 3_000)
+      : undefined;
+
     // Ordinary routes refresh older cookies. The invite entry must first
     // verify the account without reissuing a cookie from local credentials.
     const sessionRequest = isInviteAuth
@@ -143,13 +154,20 @@ export default function Layout() {
         localStorage.setItem('uid', sessionUid);
         setUid(sessionUid);
         setSessionChecked(true);
-        if (isInviteAuth) navigate(target, { replace: true });
+        if (isInviteAuth) {
+          redirectingInvite = true;
+          navigate(target, { replace: true });
+        }
       })
       .catch(() => undefined)
       .finally(() => {
+        window.clearTimeout(inviteTimeout);
         if (active && !controller.signal.aborted) {
-          if (isInviteAuth) setInviteSessionChecked(true);
-          else sessionBootstrappedRef.current = true;
+          if (isInviteAuth) {
+            if (!redirectingInvite) setInviteSessionChecked(true);
+          } else {
+            sessionBootstrappedRef.current = true;
+          }
           setSessionChecked(true);
         }
         if (sessionAbortRef.current === controller) {
@@ -159,6 +177,7 @@ export default function Layout() {
 
     return () => {
       active = false;
+      window.clearTimeout(inviteTimeout);
       controller.abort();
     };
   }, [inviteLoginRedirect, isInviteAuth, isInviteCallback, navigate]);
@@ -178,7 +197,7 @@ export default function Layout() {
       }
       setUid(currentUid);
       setSessionChecked(true);
-      if (isInviteAuth) setInviteSessionChecked(true);
+      if (isInviteAuth) setInviteSessionChecked(!currentUid);
       const redirectPath = getAuthChangeRedirectPath(
         window.location.pathname,
         storedUid,
