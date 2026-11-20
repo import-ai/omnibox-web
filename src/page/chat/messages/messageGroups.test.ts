@@ -586,6 +586,57 @@ describe('agent 2.1 turns hide the process while streaming', () => {
     expect(JSON.stringify(source)).toBe(before);
   });
 
+  it('treats an image-only prompt as a pro turn', () => {
+    expect(
+      describeItems([
+        buildMessage({
+          id: 'user',
+          message: { role: OpenAIMessageRole.USER },
+          attrs: { edition: 'pro' },
+        }),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message'),
+        answer('final-answer', 'Done'),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['assistant-tool-call', 'tool-message'],
+        finalMessageId: 'final-answer',
+        running: false,
+      },
+      { type: 'message', id: 'final-answer', suppressProcessUi: true },
+    ]);
+  });
+
+  it('keeps the previous turn intact when an image-only prompt follows', () => {
+    expect(
+      describeItems([
+        proUser('user-1'),
+        answer('answer-1', 'First'),
+        buildMessage({
+          id: 'user-2',
+          message: { role: OpenAIMessageRole.USER },
+          attrs: { edition: 'pro' },
+        }),
+        toolResult('tool-2'),
+        answer('answer-2', 'Second'),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user-1', suppressProcessUi: false },
+      { type: 'message', id: 'answer-1', suppressProcessUi: true },
+      { type: 'message', id: 'user-2', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['tool-2'],
+        finalMessageId: 'answer-2',
+        running: false,
+      },
+      { type: 'message', id: 'answer-2', suppressProcessUi: true },
+    ]);
+  });
+
   it('pairs the index with the answer of a pro turn', () => {
     expect(
       buildMessageIndexItems([

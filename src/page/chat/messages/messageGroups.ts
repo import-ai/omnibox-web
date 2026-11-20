@@ -222,7 +222,7 @@ export function buildMessageDisplayItems(
   let start = 0;
 
   for (let index = 0; index < messages.length; index += 1) {
-    if (index > start && isUserQuery(messages[index])) {
+    if (index > start && startsTurn(messages[index])) {
       pushTurn(messages.slice(start, index), result);
       start = index;
     }
@@ -232,8 +232,21 @@ export function buildMessageDisplayItems(
   return result;
 }
 
+/** A user message without decisions opens a turn, even when it only holds images. */
+function startsTurn(message: MessageDetail) {
+  return (
+    message.message.role === OpenAIMessageRole.USER &&
+    (message.attrs?.tool_call?.decisions ?? []).length === 0
+  );
+}
+
+function getTurnQuery(turn: MessageDetail[]) {
+  const [first] = turn;
+  return first && startsTurn(first) ? first : undefined;
+}
+
 function pushTurn(turn: MessageDetail[], result: MessageDisplayItem[]) {
-  const query = turn.find(isUserQuery);
+  const query = getTurnQuery(turn);
   if (query && isProTurn(query)) {
     pushHiddenProcessItems(turn, result);
     return;
