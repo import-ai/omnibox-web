@@ -320,7 +320,12 @@ export default function ChatArea(props: IProps) {
           composerTextRef.current = '';
           setIsPreparingImages(false);
         };
-        if (pendingImages.length || steerMessage) setIsPreparingImages(true);
+        if (
+          pendingImages.length ||
+          steerMessage ||
+          composerSurface === 'conversation'
+        )
+          setIsPreparingImages(true);
         else clearPreparedDraft();
         try {
           await (steerMessage ?? sendMessage)({
@@ -391,6 +396,7 @@ export default function ChatArea(props: IProps) {
     selection,
     disabled,
     clearComposerAfterSend,
+    composerSurface,
     inputRef,
     mode,
     query,

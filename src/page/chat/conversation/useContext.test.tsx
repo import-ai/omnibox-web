@@ -507,6 +507,25 @@ describe('useContext conversation cache failures', () => {
     }
   );
 
+  it('keeps the submission id for a text retry after a transport failure', async () => {
+    const loaded = cachedConversation();
+    loaded.mapping['message-a'].message.role = 'assistant' as never;
+    setCachedConversation(cacheScope, loaded);
+    mockGet.mockResolvedValue(loaded);
+    mockPost.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce({
+      disposition: 'queued',
+      client_request_id: 'receipt',
+    });
+    const context = await renderContext();
+    const params = { ...typed, mode: ChatMode.ASK };
+    await act(async () => {
+      await expect(context().sendMessage(params)).rejects.toThrow('offline');
+      await context().sendMessage(params);
+    });
+    expect(mockPost).toHaveBeenCalledTimes(2);
+    expect(mockPost.mock.calls[0][1]).toEqual(mockPost.mock.calls[1][1]);
+  });
+
   it('continues from an approval another client raised after the page loaded', async () => {
     const loaded = cachedConversation();
     loaded.mapping['message-a'].message.role = 'assistant' as never;

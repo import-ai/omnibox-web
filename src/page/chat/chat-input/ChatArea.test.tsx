@@ -648,7 +648,7 @@ describe('ChatArea', () => {
     ['a pending decision on the page', pendingMessages],
     ['a pending decision found while sending', []],
   ])(
-    'puts the exact draft back into the empty composer when %s cannot be rejected',
+    'keeps the exact draft when %s cannot be rejected',
     async (_case, messages) => {
       const sendMessage = jest
         .fn()
@@ -667,16 +667,47 @@ describe('ChatArea', () => {
           selectedResources: [welcome],
         })
       );
-      expect(mockInputClear).toHaveBeenCalledTimes(1);
-      // The editor document itself, mentions included, not a markdown refill.
-      expect(mockRestore).toHaveBeenCalledWith({
-        displayText: '一句话总结这个文档',
-        mentions: [mockMention],
-        toolRanges: [],
-      });
+      if (messages.length) {
+        expect(mockInputClear).not.toHaveBeenCalled();
+        expect(mockRestore).not.toHaveBeenCalled();
+      } else {
+        expect(mockInputClear).toHaveBeenCalledTimes(1);
+        expect(mockRestore).toHaveBeenCalledWith({
+          displayText: '一句话总结这个文档',
+          mentions: [mockMention],
+          toolRanges: [],
+        });
+      }
       expect(composerValue()).toBe('一句话总结这个文档');
     }
   );
+
+  it('keeps a conversation draft until the server accepts it', async () => {
+    const sendMessage = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce(undefined);
+    await act(async () =>
+      root.render(
+        <ChatArea
+          composerSurface="conversation"
+          initialQuery="保留这条草稿"
+          navigatePrefix="/namespace-a"
+          loading={false}
+          messages={[]}
+          selectedResources={[]}
+          setSelectedResources={jest.fn()}
+          sendMessage={sendMessage}
+        />
+      )
+    );
+    await clickSend();
+    expect(composerValue()).toBe('保留这条草稿');
+    expect(mockInputClear).not.toHaveBeenCalled();
+    await clickSend();
+    expect(sendMessage).toHaveBeenCalledTimes(2);
+    expect(composerValue()).toBe('');
+  });
 
   it('leaves text typed during a held send alone', async () => {
     let refuse!: () => void;

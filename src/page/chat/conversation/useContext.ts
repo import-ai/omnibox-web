@@ -690,7 +690,10 @@ export default function useContext() {
     const key = JSON.stringify([
       userId,
       submissionUrl,
-      { ...content, parent_message_id: undefined },
+      content.query,
+      content.tools,
+      content.current_resource_id,
+      content.recommended_question_id,
       params.images?.map(image =>
         'id' in image ? image.id : image.attachment_id
       ),
