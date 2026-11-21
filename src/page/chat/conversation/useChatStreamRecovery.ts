@@ -61,6 +61,7 @@ interface ChatStreamRecoveryOptions {
 }
 
 interface RecoverOptions {
+  branchNodeId?: string;
   initialConversation?: ConversationDetail;
   // Local user message whose delivery is in doubt.
   pendingRequestId?: string;
@@ -278,7 +279,9 @@ export default function useChatStreamRecovery(
             // replay events this page already shows.
             const revisions = snapshotRevisions(before);
             const snapshot = await optionsRef.current.loadSnapshot(
-              snapshotQuery(before)
+              params.branchNodeId
+                ? { branch_node_id: params.branchNodeId }
+                : snapshotQuery(before)
             );
             if (stale()) return;
 
@@ -286,7 +289,9 @@ export default function useChatStreamRecovery(
               ? before.mapping[requestId]
               : undefined;
             const resumeCursor =
-              cursorOverride ?? cursorRef.current ?? resumeStreamCursor(before);
+              cursorOverride ??
+              cursorRef.current ??
+              resumeStreamCursor(params.branchNodeId ? snapshot : before);
 
             const acceptedBefore =
               localRequest && findAcceptedRequest(snapshot, localRequest);

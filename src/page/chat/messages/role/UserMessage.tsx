@@ -114,7 +114,10 @@ export function UserMessage(props: IProps) {
     : null;
   const displayParts =
     message.attrs?.composer?.display_parts ??
-    getCachedMessageDisplayParts(message.id);
+    getCachedMessageDisplayParts(message.id) ??
+    (message.attrs?.client_request_id
+      ? getCachedMessageDisplayParts(message.attrs.client_request_id)
+      : undefined);
   const images = getUserMessageImages(displayParts);
   const contentDisplayParts = withoutUserMessageImages(displayParts);
   const resources = getUserMessageResources(message.attrs?.tools);

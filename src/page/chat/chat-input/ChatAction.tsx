@@ -128,10 +128,11 @@ export default function ChatAction(props: IActionProps) {
           </Button>
         </span>
       ) : loading ? (
-        <TooltipProvider>
+        <TooltipProvider key="stop">
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button
+                aria-label={t('chat.messages.actions.stop')}
                 trackName="chat_response_cancel"
                 trackProps={{ surface }}
                 size="icon"
@@ -182,6 +183,7 @@ export default function ChatAction(props: IActionProps) {
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <Button
+                aria-label={t('chat.send')}
                 trackName="chat_message_send"
                 trackProps={{ surface }}
                 size="icon"
