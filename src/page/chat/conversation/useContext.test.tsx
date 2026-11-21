@@ -5,12 +5,14 @@ import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
 import { setPendingChatPayload } from '@/lib/chatBridge';
+import { getChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import {
   beginChatSubmissionPreparation,
   isChatSubmissionPreparing,
   useChatSubmissionStore,
 } from '@/page/chat/chat-input/chatSubmissionStore';
 import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
+import { createComposerState } from '@/page/chat/chat-input/composerState';
 import { ChatMode } from '@/page/chat/chat-input/types';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 
@@ -1181,6 +1183,34 @@ describe('useContext conversation cache failures', () => {
       'uploaded'
     );
     upload.mockRestore();
+  });
+
+  it('restores the first message draft and retries with the same request ID', async () => {
+    const query = 'First message';
+    const composerState = createComposerState(' First message ');
+    const payload = {
+      query,
+      mode: ChatMode.ASK,
+      selectedResources: [],
+      tools: [],
+    };
+    setPendingChatPayload('conversation-a', { ...payload, composerState });
+    mockPost
+      .mockRejectedValueOnce({ response: { status: 404 } })
+      .mockResolvedValueOnce({ id: 'first-message', disposition: 'queued' });
+
+    const context = await renderContext();
+
+    expect(context().initialSendPending).toBe(false);
+    const draft = getChatInputDraft('conversation-a');
+    expect(draft?.composerState).toEqual(composerState);
+    expect(draft?.query.trim()).toBe(query);
+    const [url, original] = mockPost.mock.calls[0];
+    expect(url).toMatch(/\/conversations\/conversation-a\/messages$/);
+    await act(async () => {
+      await context().sendMessage({ ...payload, query: draft!.query.trim() });
+    });
+    expect(mockPost).toHaveBeenNthCalledWith(2, url, original);
   });
 
   it('reloads the reply after leaving a new conversation before it finishes', async () => {

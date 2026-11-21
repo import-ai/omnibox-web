@@ -5,11 +5,19 @@ import type App from '@/hooks/app.class';
 import { takePendingChatPayload } from '@/lib/chatBridge';
 import { reportChatError } from '@/lib/chatErrorTracking';
 import { http } from '@/lib/request';
+import {
+  createChatInputDraft,
+  getChatInputDraft,
+  saveChatInputDraft,
+  saveChatInputImageDraft,
+} from '@/page/chat/chat-input/chatInputDraft';
+import { createComposerState } from '@/page/chat/chat-input/composerState';
 import type {
   ApprovalMode,
   ChatCreatePayload,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
+import { ChatMode } from '@/page/chat/chat-input/types';
 import { resumeStream } from '@/page/chat/conversation/utils';
 import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import { isTerminalMessageStatus } from '@/page/chat/core/types/chatResponse';
@@ -62,6 +70,7 @@ interface ConversationBootstrapOptions {
   setAccessDenied: Dispatch<SetStateAction<boolean>>;
   setConversation: Dispatch<SetStateAction<ConversationDetail>>;
   setInitialApprovalMode: Dispatch<SetStateAction<ApprovalMode | undefined>>;
+  setInitialSendPending: (pending: boolean) => void;
   setSuppressInitialToolRestore: Dispatch<SetStateAction<boolean>>;
   userId: string;
 }
@@ -273,8 +282,12 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
   const storedPayload: ChatCreatePayload | undefined = state
     ? JSON.parse(state)
     : undefined;
+  const matchingPayload =
+    storedPayload?.conversation?.id === options.conversationId
+      ? storedPayload
+      : undefined;
   const payload =
-    takePendingChatPayload(options.conversationId) ?? storedPayload;
+    takePendingChatPayload(options.conversationId) ?? matchingPayload;
   if (bootstrappedConversationIds.has(options.conversationId)) {
     if (!openedConversationIds.has(options.conversationId)) {
       return () => {
@@ -305,8 +318,31 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
     queueMicrotask(() => {
       openedConversationIds.add(options.conversationId);
     });
-    sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
-    void options.sendMessage(payload).catch(() => undefined);
+    if (matchingPayload) sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
+    if (payload.mode === ChatMode.ASK) options.setInitialSendPending(true);
+    void options
+      .sendMessage(payload)
+      .catch(() => {
+        const scope = options.conversationId;
+        if (
+          getCurrentUserId() !== options.cacheScope.userId ||
+          getChatInputDraft(scope)
+        )
+          return;
+        const draft = payload.composerState
+          ? createChatInputDraft(payload.composerState)
+          : {
+              ...createChatInputDraft(createComposerState(payload.query)),
+              selectedResources: payload.selectedResources,
+              tools: payload.tools,
+            };
+        saveChatInputDraft(scope, draft);
+        saveChatInputImageDraft(
+          scope,
+          payload.images?.filter(image => 'file' in image) ?? []
+        );
+      })
+      .finally(() => options.setInitialSendPending(false));
     return () => {
       runtime.destroyed = true;
       runtime.resumeFN?.destroy();

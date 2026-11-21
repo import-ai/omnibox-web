@@ -335,6 +335,7 @@ export default function ChatArea(props: IProps) {
             mode,
             approvalMode,
             displayParts: localDisplayParts,
+            ...(composerSurface === 'home' && { composerState: draft.state }),
             images: pendingImages,
             ...selection,
             onImagesUploaded: () => {

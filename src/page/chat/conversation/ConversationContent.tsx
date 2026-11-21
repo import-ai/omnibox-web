@@ -179,27 +179,29 @@ export function ConversationFooter({
               {t('chat.delivery.send_failed')} · {item.query}
             </div>
           ))}
-        <ChatArea
-          key={context.conversation.id}
-          composerSurface="conversation"
-          selectedResources={context.selectedResources}
-          setSelectedResources={context.setSelectedResources}
-          messages={context.messages}
-          namespaceId={context.namespaceId}
-          navigatePrefix={`/${context.namespaceId}`}
-          initialApprovalMode={context.initialApprovalMode}
-          approvalModeResetKey={context.conversation.id}
-          suppressInitialToolRestore={context.suppressInitialToolRestore}
-          sendMessage={context.sendMessage}
-          steerMessage={context.steerMessage}
-          textWhilePending
-          loading={context.loading}
-          imageUploadDisabled={imageUploadDisabled}
-          proUnsupported={imageUploadDisabled}
-          waitingForAssistantDelta={context.waitingForAssistantDelta}
-          streamState={context.streamState}
-          onStop={context.onStop}
-        />
+        {!context.initialSendPending && (
+          <ChatArea
+            key={context.conversation.id}
+            composerSurface="conversation"
+            selectedResources={context.selectedResources}
+            setSelectedResources={context.setSelectedResources}
+            messages={context.messages}
+            namespaceId={context.namespaceId}
+            navigatePrefix={`/${context.namespaceId}`}
+            initialApprovalMode={context.initialApprovalMode}
+            approvalModeResetKey={context.conversation.id}
+            suppressInitialToolRestore={context.suppressInitialToolRestore}
+            sendMessage={context.sendMessage}
+            steerMessage={context.steerMessage}
+            textWhilePending
+            loading={context.loading}
+            imageUploadDisabled={imageUploadDisabled}
+            proUnsupported={imageUploadDisabled}
+            waitingForAssistantDelta={context.waitingForAssistantDelta}
+            streamState={context.streamState}
+            onStop={context.onStop}
+          />
+        )}
         <div
           data-chat-disclaimer
           className="truncate pt-2 text-center text-xs text-muted-foreground"

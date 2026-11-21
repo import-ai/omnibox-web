@@ -179,6 +179,8 @@ export default function useContext() {
   >(null);
   const [initialApprovalMode, setInitialApprovalMode] =
     useState<ApprovalMode>();
+  const [initialSendConversationId, setInitialSendConversationId] =
+    useState<string>();
   const [suppressInitialToolRestore, setSuppressInitialToolRestore] = useState(
     () =>
       typeof window !== 'undefined' &&
@@ -601,6 +603,14 @@ export default function useContext() {
     messageOperator,
     namespaceId,
     sendMessage,
+    setInitialSendPending: pending =>
+      setInitialSendConversationId(current =>
+        pending
+          ? conversationId
+          : current === conversationId
+            ? undefined
+            : current
+      ),
     detachActiveStream,
     detachStreamRef,
     onResumeError: (error, cursor, initialConversation) => {
@@ -945,6 +955,7 @@ export default function useContext() {
     selectedResources,
     setSelectedResources,
     initialApprovalMode,
+    initialSendPending: initialSendConversationId === conversationId,
     suppressInitialToolRestore,
     namespaceId,
     conversation,
