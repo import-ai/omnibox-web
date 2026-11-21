@@ -725,6 +725,53 @@ describe('ChatArea', () => {
     expect(mockMounts).toBe(1);
   });
 
+  it('keeps a rich steer draft on rejection and clears it after delivery', async () => {
+    const steerMessage = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('Run finished'))
+      .mockResolvedValueOnce(undefined);
+    const sendMessage = jest.fn();
+    await act(async () =>
+      root.render(
+        <ChatArea
+          loading
+          initialQuery="follow up"
+          messages={[]}
+          navigatePrefix="/ns"
+          selectedResources={[]}
+          setSelectedResources={jest.fn()}
+          sendMessage={sendMessage}
+          steerMessage={steerMessage}
+        />
+      )
+    );
+    await act(async () =>
+      (
+        container.querySelector('[data-testid="add-image"]') as HTMLElement
+      ).click()
+    );
+    const send = () =>
+      (container.querySelector('[data-testid="send"]') as HTMLElement).click();
+    await act(async () => send());
+    expect(
+      (container.querySelector('textarea') as HTMLTextAreaElement).value
+    ).toBe('follow up');
+    expect(
+      container.querySelector('[data-testid="image-count"]')?.textContent
+    ).toBe('1');
+    await act(async () => send());
+    expect(steerMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        query: 'follow up',
+        images: [expect.objectContaining({ name: 'image.png' })],
+      })
+    );
+    expect(sendMessage).not.toHaveBeenCalled();
+    expect(
+      (container.querySelector('textarea') as HTMLTextAreaElement).value
+    ).toBe('');
+  });
+
   it.each(['Enter', 'click', 'mixed'])(
     'keeps images until prepared and blocks same-batch %s sends',
     async method => {

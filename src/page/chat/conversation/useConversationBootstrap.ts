@@ -306,7 +306,7 @@ function startConversationBootstrap(options: ConversationBootstrapOptions) {
       openedConversationIds.add(options.conversationId);
     });
     sessionStorage.removeItem(CHAT_CREATE_PAYLOAD_KEY);
-    void options.sendMessage(payload);
+    void options.sendMessage(payload).catch(() => undefined);
     return () => {
       runtime.destroyed = true;
       runtime.resumeFN?.destroy();
