@@ -197,12 +197,12 @@ export default function Layout() {
       }
       setUid(currentUid);
       setSessionChecked(true);
-      if (isInviteAuth) setInviteSessionChecked(!currentUid);
       const redirectPath = getAuthChangeRedirectPath(
         window.location.pathname,
         storedUid,
         currentUid
       );
+      if (isInviteAuth) setInviteSessionChecked(!redirectPath);
       if (redirectPath) {
         navigate(redirectPath, { replace: true });
       }

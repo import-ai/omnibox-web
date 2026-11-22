@@ -283,7 +283,9 @@ describe('Layout authentication storage changes', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
       expect(localStorage.getItem('uid')).toBe('user-b');
-      expect(container.querySelector('[data-testid="route-outlet"]')).toBeNull();
+      expect(
+        container.querySelector('[data-testid="route-outlet"]')
+      ).toBeNull();
       expect(localStorage.getItem('token')).toBeNull();
       expect(clearConversationCache).toHaveBeenCalledTimes(1);
 
@@ -343,6 +345,38 @@ describe('Layout authentication storage changes', () => {
       expect(signal.aborted).toBe(true);
       expect(localStorage.getItem('uid')).toBe('user-a');
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the invite form when another tab changes credentials during verification', async () => {
+      let resolveSession: (uid: string) => void = () => undefined;
+      mockReadSessionUser.mockImplementation(
+        () =>
+          new Promise(resolve => {
+            resolveSession = resolve;
+          })
+      );
+      await act(async () => root.render(<Layout />));
+      const signal = mockReadSessionUser.mock.calls[0][0] as AbortSignal;
+      const outlet = () =>
+        container.querySelector('[data-testid="route-outlet"]');
+      expect(outlet()).toBeNull();
+
+      await act(async () => {
+        localStorage.setItem('uid', 'user-b');
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: 'uid',
+            oldValue: 'user-a',
+            newValue: 'user-b',
+          })
+        );
+      });
+      expect(signal.aborted).toBe(true);
+      expect(outlet()).not.toBeNull();
+
+      await act(async () => resolveSession('user-a'));
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(localStorage.getItem('uid')).toBe('user-b');
     });
 
     it('opens the invite form after three seconds and ignores a late session', async () => {
