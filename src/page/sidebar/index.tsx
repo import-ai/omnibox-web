@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -8,6 +8,7 @@ import {
   useSidebar,
 } from '@/components/ui/Sidebar';
 import useConfig from '@/hooks/useConfig';
+import { HostContentContext } from '@/hooks/hostContentContext';
 import { useIsMobile } from '@/hooks/useMobile';
 import useNamespaces from '@/hooks/useNamespaces';
 import useProNamespaces from '@/hooks/useProNamespaces';
@@ -29,6 +30,7 @@ import { Switcher } from './components/namespace-switcher';
 import { SidebarBrowseTabs } from './components/SidebarBrowseTabs';
 
 export default function MainSidebar() {
+  const hostContent = useContext(HostContentContext);
   const params = useParams();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -116,6 +118,7 @@ export default function MainSidebar() {
             onSearchResources={() => setResourceSearchOpen(true)}
           />
         </SidebarBrowseTabs>
+        {hostContent?.sidebarFooter}
         <FooterSidebar
           commercial={configLoading ? undefined : config.commercial}
           currentNamespace={currentProNamespace}

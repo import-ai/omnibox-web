@@ -1,9 +1,12 @@
+import { useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Separator } from '@/components/ui/Separator';
+import { HostContentContext } from '@/hooks/hostContentContext';
 
 export default function About() {
   const { t } = useTranslation();
+  const hostContent = useContext(HostContentContext);
   const currentYear = new Date().getFullYear();
 
   return (
@@ -16,6 +19,7 @@ export default function About() {
           {t('setting.about_description')}
         </p>
       </div>
+      {hostContent?.about}
       <Separator className="my-6" />
       <div className="space-y-4">
         <div className="text-sm text-muted-foreground">

@@ -5,6 +5,10 @@ import Loading from '@/components/loading';
 import CoreApp from '@/hooks/app.class';
 import AppContext from '@/hooks/appContext';
 import { AuthConfigProvider } from '@/hooks/AuthConfigContext';
+import {
+  HostContentContext,
+  type HostContent,
+} from '@/hooks/hostContentContext';
 import { PublicSiteOriginContext } from '@/hooks/publicSiteContext';
 import Layout from '@/layout';
 import Error from '@/layout/ErrorPage';
@@ -210,12 +214,14 @@ const router = createBrowserRouter([
 ]);
 
 export interface AppProps {
+  hostContent?: HostContent;
   publicSiteOrigin?: string | null;
   getCurrentDeviceId?: () => Promise<string | null>;
   settingsExtensions?: readonly SettingsExtension[];
 }
 
 export default function Main({
+  hostContent,
   publicSiteOrigin,
   settingsExtensions = [],
   getCurrentDeviceId,
@@ -226,7 +232,9 @@ export default function Main({
         <SettingsExtensionsContext.Provider value={settingsExtensions}>
           <CurrentDeviceContext.Provider value={getCurrentDeviceId}>
             <PublicSiteOriginContext.Provider value={publicSiteOrigin}>
-              <RouterProvider router={router} />
+              <HostContentContext.Provider value={hostContent}>
+                <RouterProvider router={router} />
+              </HostContentContext.Provider>
             </PublicSiteOriginContext.Provider>
           </CurrentDeviceContext.Provider>
         </SettingsExtensionsContext.Provider>
