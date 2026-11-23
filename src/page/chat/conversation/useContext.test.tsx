@@ -11,7 +11,7 @@ import {
   useChatSubmissionStore,
 } from '@/page/chat/chat-input/chatSubmissionStore';
 import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
-import { ChatMode } from '@/page/chat/chat-input/types';
+import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 
 import {
@@ -24,6 +24,7 @@ import useContext from './useContext';
 import { resetConversationBootstrapState } from './useConversationBootstrap';
 import {
   ask,
+  beginPendingQuery,
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
   stopStream,
@@ -80,8 +81,15 @@ jest.mock('@/page/chat/useSelectedResources.ts', () => ({
   }),
 }));
 
+const mockOperatorAdd = jest.fn((message: { id: string }) => message.id);
+const mockOperatorError = jest.fn();
 jest.mock('@/page/chat/core/messageOperator.ts', () => ({
-  createMessageOperator: () => ({ error: jest.fn() }),
+  createMessageOperator: () => ({
+    add: (...args: Parameters<typeof mockOperatorAdd>) =>
+      mockOperatorAdd(...args),
+    error: (...args: Parameters<typeof mockOperatorError>) =>
+      mockOperatorError(...args),
+  }),
 }));
 
 jest.mock('@/page/chat/conversation/utils.ts', () => ({
@@ -1765,5 +1773,171 @@ describe('useContext conversation cache failures', () => {
     }
     expect(upload).toHaveBeenCalledTimes(3);
     upload.mockRestore();
+  });
+
+  function decisionLeaf(
+    decisions: { type: 'approve' | 'reject' }[] = [{ type: 'approve' }]
+  ) {
+    const conversation = pendingConversation();
+    conversation.mapping.interrupt.children = ['decision-d'];
+    conversation.mapping['decision-d'] = {
+      id: 'decision-d',
+      parent_id: 'interrupt',
+      children: [],
+      status: 'success',
+      message: { role: 'user', content: '' },
+      attrs: {
+        edition: 'pro',
+        level: 'max',
+        lang: 'English',
+        tool_call: { status: 'success', decisions },
+      },
+    } as unknown as ConversationDetail['mapping'][string];
+    conversation.current_node = 'decision-d';
+    return conversation;
+  }
+
+  it('retries a decision under itself with the original settings and no pending message', async () => {
+    const conversation = decisionLeaf();
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    jest.mocked(extractOriginalMessageSettings).mockReturnValue({
+      originalTools: [ToolType.REASONING],
+      originalContext: [],
+      originalLang: 'English',
+      originalEnableThinking: true,
+    });
+    jest.mocked(ask).mockReturnValueOnce(askRun({ lastMessageId: 'tool-d' }));
+    const context = await renderContext();
+    jest.mocked(beginPendingQuery).mockClear();
+
+    await act(async () => {
+      await context().retryDecision('decision-d');
+    });
+
+    const call = jest.mocked(ask).mock.calls.at(-1)!;
+    expect(call[1]).toBe('');
+    expect(call[2]).toEqual([ToolType.REASONING]);
+    expect(call[5]).toBe('decision-d');
+    expect(call[8]).toBe('English');
+    expect(call[13]).toEqual({ decisions: [{ type: 'approve' }] });
+    expect(call[18]).toBeUndefined();
+    expect(call.slice(19, 21)).toEqual(['pro', 'max']);
+    expect(call[21]).toEqual(
+      expect.objectContaining({ reportAlreadyDecided: true })
+    );
+    expect(beginPendingQuery).not.toHaveBeenCalled();
+    expect(
+      Object.values(context().conversation.mapping).some(
+        message =>
+          message.attrs?.pending_query ||
+          (message.message.role === 'user' &&
+            Boolean(message.attrs?.tool_call?.decisions?.length) &&
+            message.id !== 'decision-d')
+      )
+    ).toBe(false);
+    expect(context().busyDecision).toBeNull();
+    expect(context().loading).toBe(false);
+  });
+
+  it('re-sends the remembered reject after a failed reject under the decision', async () => {
+    const conversation = decisionLeaf();
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    const context = await renderContext();
+    jest
+      .mocked(ask)
+      .mockReturnValueOnce(
+        askRun({
+          failed: true,
+          requestId: 'local-reject',
+          errorMessage: 'busy',
+        })
+      )
+      .mockReturnValueOnce(askRun({ lastMessageId: 'tool-d' }));
+
+    await act(async () => {
+      await context()
+        .sendMessage(typed)
+        .catch(() => undefined);
+    });
+    expect(jest.mocked(ask)).toHaveBeenCalledTimes(1);
+    expect(mockToastError).toHaveBeenCalledWith('chat.decision.reject_failed');
+
+    await act(async () => {
+      await context().retryDecision('decision-d');
+    });
+
+    const retry = jest.mocked(ask).mock.calls.at(-1)!;
+    expect(retry[5]).toBe('decision-d');
+    expect(retry[18]).toBeUndefined();
+    expect(retry[13]?.decisions).toEqual([
+      expect.objectContaining({ type: 'reject', end_turn: true }),
+    ]);
+    expect(beginPendingQuery).not.toHaveBeenCalled();
+  });
+
+  it('applies an id-less retry error under the decision, never to the decision', async () => {
+    const conversation = decisionLeaf();
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    jest.mocked(extractOriginalMessageSettings).mockReturnValue({
+      originalTools: [],
+      originalContext: [],
+      originalLang: 'English',
+      originalEnableThinking: false,
+    });
+    jest.mocked(ask).mockReturnValue(askRun({ failed: true }));
+    const context = await renderContext();
+    mockOperatorAdd.mockClear();
+    mockOperatorError.mockClear();
+
+    await act(async () => {
+      await context().retryDecision('decision-d');
+    });
+
+    const operator = jest.mocked(ask).mock.calls.at(-1)![6] as {
+      error: (response: unknown, id?: string) => void;
+    };
+    await act(async () => {
+      operator.error({ response_type: 'error', message: 'gateway timeout' });
+    });
+
+    expect(mockOperatorAdd).toHaveBeenCalledWith(
+      expect.objectContaining({ parentId: 'decision-d' })
+    );
+    const [response, targetId] = mockOperatorError.mock.calls.at(-1)!;
+    expect(response).toEqual(
+      expect.objectContaining({ message: 'gateway timeout' })
+    );
+    expect(targetId).toBe(mockOperatorAdd.mock.results.at(-1)?.value);
+    expect(targetId).not.toBe('decision-d');
+  });
+
+  it('shows the already-decided copy under the decision for a stale retry', async () => {
+    const conversation = decisionLeaf();
+    setCachedConversation(cacheScope, conversation);
+    mockGet.mockResolvedValue(conversation);
+    jest
+      .mocked(ask)
+      .mockReturnValueOnce(askRun({ failed: true, alreadyDecided: true }));
+    const context = await renderContext();
+    mockOperatorAdd.mockClear();
+    mockOperatorError.mockClear();
+
+    await act(async () => {
+      await context().retryDecision('decision-d');
+    });
+
+    const [response, targetId] = mockOperatorError.mock.calls.at(-1)!;
+    expect(response).toEqual(
+      expect.objectContaining({ code: 'interrupt_already_decided' })
+    );
+    expect(targetId).not.toBe('decision-d');
+    expect(
+      mockGet.mock.calls.some(
+        ([, config]) => config?.params?.branch_node_id === 'decision-d'
+      )
+    ).toBe(true);
   });
 });

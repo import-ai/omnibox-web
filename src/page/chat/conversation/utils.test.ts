@@ -482,6 +482,126 @@ describe('ask follow-latest and refusals', () => {
   });
 });
 
+describe('ask preflight refusals for a direct decision send', () => {
+  function operator(): MessageOperator {
+    return {
+      update: jest.fn(),
+      add: jest.fn(),
+      done: jest.fn(),
+      stop: jest.fn(),
+      error: jest.fn(),
+      activate: jest.fn(),
+      getSiblings: jest.fn(() => []),
+      getParent: jest.fn(() => ''),
+      isUserMessage: () => true,
+    };
+  }
+
+  function start(options: Parameters<typeof ask>[21]) {
+    (createStreamTransport as jest.Mock).mockReset();
+    (createStreamTransport as jest.Mock).mockReturnValue({
+      start: jest.fn(),
+      cancel: jest.fn(),
+      destroy: jest.fn(),
+    });
+    const messageOperator = operator();
+    const run = ask(
+      'c1',
+      '',
+      [],
+      [],
+      AgentRequestChannel.WEB,
+      'decision-d',
+      messageOperator,
+      '/ask',
+      '简体中文',
+      'n1',
+      undefined,
+      undefined,
+      undefined,
+      { decisions: [{ type: 'approve' }] },
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      options
+    );
+    const [, requestBody, onData] = (createStreamTransport as jest.Mock).mock
+      .calls[0];
+    return { run, requestBody, onData, messageOperator };
+  }
+
+  it('reports an interrupt decided elsewhere despite the seeded parent', async () => {
+    const { run, onData, messageOperator } = start({
+      reportAlreadyDecided: true,
+    });
+
+    await onData(
+      JSON.stringify({
+        response_type: 'error',
+        code: 'interrupt_already_decided',
+        message: 'already decided',
+      })
+    );
+
+    expect(run.outcome).toEqual(
+      expect.objectContaining({ failed: true, alreadyDecided: true })
+    );
+    expect(messageOperator.error).not.toHaveBeenCalled();
+  });
+
+  it('reports a pending or unapplied decision despite the seeded parent', async () => {
+    const { run, onData, messageOperator } = start({
+      deferPendingInterrupt: true,
+    });
+
+    await onData(
+      JSON.stringify({
+        response_type: 'error',
+        code: 'decision_not_applied',
+        message: 'not applied',
+        message_id: 'decision-d',
+        interrupt_count: 1,
+      })
+    );
+
+    expect(run.outcome.pendingInterrupt).toEqual({
+      messageId: 'decision-d',
+      count: 1,
+    });
+    expect(messageOperator.error).not.toHaveBeenCalled();
+  });
+
+  it('does not intercept refusals after the server accepted the request', async () => {
+    const { run, onData, messageOperator } = start({
+      reportAlreadyDecided: true,
+    });
+
+    await onData(
+      JSON.stringify({
+        response_type: 'bos',
+        role: OpenAIMessageRole.USER,
+        id: 'question-2',
+        parentId: 'decision-d',
+      })
+    );
+    await onData(
+      JSON.stringify({
+        response_type: 'error',
+        code: 'interrupt_already_decided',
+        message: 'already decided',
+        id: 'question-2',
+      })
+    );
+
+    expect(run.outcome.alreadyDecided).toBeUndefined();
+    expect(messageOperator.error).toHaveBeenCalled();
+  });
+});
+
 describe('stopStream acknowledgement', () => {
   it('does not mark local messages stopped before the server accepts cancellation', async () => {
     const { stopStream } = await import('./utils');

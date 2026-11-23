@@ -970,6 +970,12 @@
       "send_failed": "Failed to send",
       "retry_send": "Send again",
       "decision_submitted": "Permission choices submitted",
+      "decision_executing": "Approved, executing…",
+      "decision_rejecting": "Rejected, finishing…",
+      "decision_completed": "Action completed",
+      "decision_failed": "Execution failed",
+      "decision_unknown": "Execution result unknown",
+      "decision_retry": "Retry",
       "thinking": "Thinking"
     },
     "tips": "Enter a message",

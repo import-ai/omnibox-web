@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
@@ -18,6 +19,7 @@ import {
   AgentRequestChannel,
   ApprovalMode,
   ChatMode,
+  Decision,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
@@ -167,6 +169,13 @@ export default function useContext() {
     [namespaceId, userId]
   );
   const [loading, setLoading] = useState<boolean>(false);
+  const [busyDecision, setBusyDecision] = useState<{
+    id: string;
+    kind: 'retry' | 'reject';
+  } | null>(null);
+  // The decision a retry must re-send: after a failed reject, D's stored
+  // decisions still name the earlier approval, so remember what was attempted.
+  const decisionAttempts = useRef(new Map<string, Decision[]>());
   const [accessDenied, setAccessDenied] = useState(false);
   const [waitingForAssistantDelta, setWaitingForAssistantDelta] =
     useState(false);
@@ -256,6 +265,156 @@ export default function useContext() {
 
   recoveryResetRef.current = recovery.reset;
 
+  // A decision's resume failure shows as a failed assistant reply under it.
+  // The server writes one through errorSession; a client-side refusal adds a
+  // local one. Reuse whichever exists so the refusal message lands once.
+  const ensureDecisionFailedChild = (decisionId: string): string => {
+    const mapping = conversationRef.current.mapping;
+    const decision = mapping[decisionId];
+    const existing = (decision?.children ?? [])
+      .map(id => mapping[id])
+      .find(
+        message =>
+          message?.message.role === OpenAIMessageRole.ASSISTANT &&
+          (message.status === MessageStatus.FAILED ||
+            Boolean(message.attrs?.error_message || message.attrs?.error_code))
+      );
+    if (existing) return existing.id;
+    const id = uuidv4();
+    messageOperator.add({
+      response_type: 'bos',
+      id,
+      role: OpenAIMessageRole.ASSISTANT,
+      parentId: decisionId,
+      created_at: new Date().toISOString(),
+    });
+    return id;
+  };
+
+  // A stale page can retry a decision another client already applied. The
+  // refusal must show on the decision's failed reply, never on the decision
+  // message itself (which would offer a generic resend).
+  const applyAlreadyDecidedToDecision = async (decisionId: string) => {
+    messageOperator.error(
+      {
+        response_type: 'error',
+        message: i18n.t('chat.errors.already_decided'),
+        code: 'interrupt_already_decided',
+      },
+      ensureDecisionFailedChild(decisionId)
+    );
+    await history.syncBelow(decisionId).catch(() => undefined);
+  };
+
+  // Sends decisions under an existing decision message without adding a local
+  // pending message: the server reuses the decision and sends no BOS for it,
+  // so a local child would never be acknowledged.
+  const sendDecisionUnderMessage = async ({
+    messageId,
+    decisions,
+    kind,
+  }: {
+    messageId: string;
+    decisions: Decision[];
+    kind: 'retry' | 'reject';
+  }): Promise<SendTurnOutcome | undefined> => {
+    const target = conversationRef.current.mapping[messageId];
+    if (
+      decisions.length === 0 ||
+      loading ||
+      busyDecision ||
+      !target ||
+      target.message.role !== OpenAIMessageRole.USER ||
+      !target.attrs?.tool_call?.decisions?.length
+    )
+      return undefined;
+    const finishPreparation = beginChatSubmissionPreparation(
+      namespaceId,
+      `turn:${conversationId}`
+    );
+    if (!finishPreparation) return undefined;
+    let askFN: ReturnType<typeof ask> | undefined;
+    try {
+      const {
+        originalTools,
+        originalContext,
+        originalLang,
+        originalEnableThinking,
+      } = extractOriginalMessageSettings(target);
+      decisionAttempts.current.set(messageId, decisions);
+      setBusyDecision({ id: messageId, kind });
+      setLoading(true);
+      const scopedOperator: MessageOperator = {
+        ...messageOperator,
+        // An id-less error would otherwise mark the decision itself failed.
+        error: (errorResponse, id) =>
+          messageOperator.error(
+            errorResponse,
+            id ?? ensureDecisionFailedChild(messageId)
+          ),
+      };
+      askFN = ask(
+        conversationId,
+        '',
+        originalTools,
+        originalContext,
+        channel,
+        messageId,
+        scopedOperator,
+        `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : ChatMode.ASK}`,
+        originalLang,
+        namespaceId,
+        undefined,
+        undefined,
+        originalEnableThinking,
+        { decisions },
+        undefined,
+        undefined,
+        target.attrs?.current_resource_id || currentResourceId,
+        undefined,
+        undefined,
+        target.attrs?.edition,
+        target.attrs?.level,
+        { reportAlreadyDecided: true }
+      );
+      recovery.reset();
+      recovery.track(askFN);
+      askAbortRef.current = askFN.cancel;
+      detachStreamRef.current = askFN.destroy;
+      await askFN.start();
+      if (askFN.outcome.transientError) {
+        void recovery.recover({ cursor: askFN.getLastEventId?.() });
+      }
+      return askFN.outcome;
+    } finally {
+      if (askFN) recovery.untrack(askFN);
+      if (!askFN || askAbortRef.current === askFN.cancel)
+        askAbortRef.current = null;
+      if (!askFN || detachStreamRef.current === askFN.destroy)
+        detachStreamRef.current = null;
+      setBusyDecision(null);
+      setLoading(false);
+      if (!recovery.isRecovering())
+        void history.refreshHistory().catch(() => undefined);
+      finishPreparation();
+    }
+  };
+
+  const retryDecision = async (decisionId: string) => {
+    const target = conversationRef.current.mapping[decisionId];
+    const decisions =
+      decisionAttempts.current.get(decisionId) ??
+      target?.attrs?.tool_call?.decisions;
+    if (!decisions?.length) return;
+    const outcome = await sendDecisionUnderMessage({
+      messageId: decisionId,
+      decisions,
+      kind: 'retry',
+    });
+    if (outcome?.alreadyDecided)
+      await applyAlreadyDecidedToDecision(decisionId);
+  };
+
   const sendTurn = async (
     params: SendMessageParams,
     parentMessageId: string | undefined,
@@ -277,6 +436,19 @@ export default function useContext() {
       level,
     } = params;
     const v = query.trim();
+    if (
+      decisions?.length &&
+      parentMessageId &&
+      conversationRef.current.mapping[parentMessageId]?.message.role ===
+        OpenAIMessageRole.USER &&
+      (conversationRef.current.mapping[parentMessageId].attrs?.tool_call
+        ?.decisions?.length ?? 0) > 0
+    )
+      return await sendDecisionUnderMessage({
+        messageId: parentMessageId,
+        decisions,
+        kind: 'reject',
+      });
     if (v || (decisions && decisions.length > 0)) {
       // Composer guards cover creation; each actual turn owns its upload phase,
       // including failed-message retries that never re-enter the composer.
@@ -838,5 +1010,7 @@ export default function useContext() {
     onRegenerate,
     onEdit,
     onStop,
+    busyDecision,
+    retryDecision,
   };
 }
