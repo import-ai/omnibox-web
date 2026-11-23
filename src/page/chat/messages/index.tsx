@@ -274,15 +274,10 @@ export function Messages(props: IProps) {
     message => message.message.role !== OpenAIMessageRole.SYSTEM
   );
   const displayItems = buildMessageDisplayItems(filteredMessages);
-  // Actions belong to the visible answer, never to a hidden process message.
-  const topLevelMessageIds = new Set(
-    displayItems
-      .filter(item => item.type === 'message')
-      .map(item => item.message.id)
-  );
+  // The last assistant row owns the actions, including a stopped turn whose
+  // outcome row lives inside the process disclosure.
   const lastAssistantId = filteredMessages.reduce((lastId, message) => {
-    return message.message.role === OpenAIMessageRole.ASSISTANT &&
-      topLevelMessageIds.has(message.id)
+    return message.message.role === OpenAIMessageRole.ASSISTANT
       ? message.id
       : lastId;
   }, '');
