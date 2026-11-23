@@ -144,6 +144,8 @@ export function CitationMarkdown(props: IProps) {
           chatOnly ? withoutMarkdownImages(replacedContent) : replacedContent
         )
       ));
+  // The retry-only row must not introduce a new answer pager.
+  const showAnswerPager = Boolean(content) && hasSiblings;
   const showActions =
     !hideActions &&
     (stoppedAnswer ||
@@ -212,7 +214,7 @@ export function CitationMarkdown(props: IProps) {
               : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
           }`}
         >
-          {hasSiblings && (
+          {showAnswerPager && (
             <>
               <Button
                 trackName="chat_citation_navigate"
