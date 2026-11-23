@@ -82,6 +82,19 @@ function isRunningMessage(message: MessageDetail) {
   );
 }
 
+/** Wizard marks the tools-disabled answer call before its first delta. */
+function isAnswerPhase(message: MessageDetail) {
+  return (
+    message.message.role === OpenAIMessageRole.ASSISTANT &&
+    message.attrs?.context?.answer_phase === 'answer'
+  );
+}
+
+/** Phased turns never fall back to interim text while they are still running. */
+function isPhasedMessage(message: MessageDetail) {
+  return message.attrs?.context?.answer_phase !== undefined;
+}
+
 function isAnswerCandidate(message: MessageDetail) {
   return (
     message.message.role === OpenAIMessageRole.ASSISTANT &&
@@ -165,8 +178,14 @@ function pushHiddenProcessItems(
   turn: MessageDetail[],
   result: MessageDisplayItem[]
 ) {
-  const answer = [...turn].reverse().find(isAnswerCandidate);
-  const turnRunning = !answer && turn.some(isRunningMessage);
+  const turnIsRunning = turn.some(isRunningMessage);
+  const markedAnswer = [...turn].reverse().find(isAnswerPhase);
+  const answer =
+    markedAnswer ??
+    (turn.some(isPhasedMessage) && turnIsRunning
+      ? undefined
+      : [...turn].reverse().find(isAnswerCandidate));
+  const turnRunning = !answer && turnIsRunning;
   const answerHasReasoning = Boolean(
     answer && (answer.has_reasoning || answer.message.reasoning_content?.trim())
   );

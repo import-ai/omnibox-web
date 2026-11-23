@@ -615,6 +615,101 @@ describe('agent 2.1 turns hide the process while streaming', () => {
     ]);
   });
 
+  it('uses the marked answer phase before any answer text arrives', () => {
+    expect(
+      describeItems([
+        proUser(),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message'),
+        buildMessage({
+          id: 'answer',
+          status: MessageStatus.STREAMING,
+          message: { role: OpenAIMessageRole.ASSISTANT },
+          attrs: { context: { answer_phase: 'answer' } },
+        }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['assistant-tool-call', 'tool-message'],
+        finalMessageId: 'answer',
+        running: false,
+      },
+      { type: 'message', id: 'answer', suppressProcessUi: true },
+    ]);
+  });
+
+  it('keeps unmarked interim text in the process when an answer is marked', () => {
+    expect(
+      describeItems([
+        proUser(),
+        answer('interim', 'Let me check that.'),
+        toolCallAssistant('assistant-tool-call'),
+        toolResult('tool-message'),
+        buildMessage({
+          id: 'answer',
+          status: MessageStatus.STREAMING,
+          message: { role: OpenAIMessageRole.ASSISTANT, content: 'Done' },
+          attrs: { context: { answer_phase: 'answer' } },
+        }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['interim', 'assistant-tool-call', 'tool-message'],
+        finalMessageId: 'answer',
+        running: false,
+      },
+      { type: 'message', id: 'answer', suppressProcessUi: true },
+    ]);
+  });
+
+  it('keeps unmarked interim text out of the reply area while a phased turn runs', () => {
+    expect(
+      describeItems([
+        proUser(),
+        buildMessage({
+          id: 'interim',
+          status: MessageStatus.STREAMING,
+          message: {
+            role: OpenAIMessageRole.ASSISTANT,
+            content: 'Let me check that.',
+          },
+          attrs: { context: { answer_phase: 'process' } },
+        }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['interim'],
+        finalMessageId: 'interim',
+        running: true,
+      },
+    ]);
+  });
+
+  it('falls back to the last content message when a phased turn ends unmarked', () => {
+    expect(
+      describeItems([
+        proUser(),
+        buildMessage({
+          id: 'interim',
+          message: {
+            role: OpenAIMessageRole.ASSISTANT,
+            content: 'Let me check that.',
+          },
+          attrs: { context: { answer_phase: 'process' } },
+        }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      { type: 'message', id: 'interim', suppressProcessUi: true },
+    ]);
+  });
+
   it('treats an image-only prompt as a pro turn', () => {
     expect(
       describeItems([
