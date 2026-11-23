@@ -2,7 +2,7 @@ import '@/styles/github-markdown.css';
 import 'katex/dist/katex.min.css';
 
 import { format } from 'date-fns';
-import { RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { fromMarkdown } from 'mdast-util-from-markdown';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -78,6 +78,11 @@ interface IProps {
   onRegenerate: (messageId: string) => void;
   regenerateDisabled?: boolean;
   regenerating?: boolean;
+  hasSiblings?: boolean;
+  currentIndex?: number;
+  siblingsLength?: number;
+  onPrevious?: () => void;
+  onNext?: () => void;
   createdAt?: string;
   channel?: string;
   isLastMessage: boolean;
@@ -96,6 +101,11 @@ export function CitationMarkdown(props: IProps) {
     onRegenerate,
     regenerateDisabled = false,
     regenerating = false,
+    hasSiblings,
+    currentIndex,
+    siblingsLength,
+    onPrevious,
+    onNext,
     createdAt,
     channel,
     isLastMessage,
@@ -202,6 +212,33 @@ export function CitationMarkdown(props: IProps) {
               : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
           }`}
         >
+          {hasSiblings && (
+            <>
+              <Button
+                trackName="chat_citation_navigate"
+                size="icon"
+                variant="ghost"
+                className="p-0 w-4 h-7"
+                onClick={onPrevious}
+                disabled={currentIndex === 0}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
+                {(currentIndex ?? 0) + 1}/{siblingsLength}
+              </span>
+              <Button
+                trackName="chat_citation_navigate"
+                size="icon"
+                variant="ghost"
+                className="p-0 w-4 h-7"
+                onClick={onNext}
+                disabled={currentIndex === (siblingsLength ?? 1) - 1}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </>
+          )}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
