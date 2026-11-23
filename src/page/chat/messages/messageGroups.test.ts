@@ -312,10 +312,43 @@ describe('stopped message projections', () => {
       expect(items[0].messages).toHaveLength(1);
       expect(items[0].messages[0].message.content).toBeUndefined();
       expect(items[0].messages[0].message.reasoning_content).toBe(reasoning);
-      expect(items.filter(x => x.type === 'message')).toHaveLength(
-        content ? 1 : 0
-      );
+      expect(items[1]).toMatchObject({
+        type: 'message',
+        stoppedAnswer: true,
+        message: { id: source.id, message: { content } },
+      });
       expect(JSON.stringify(source)).toBe(before);
     }
   );
+  test('projects a retry row when the stopped turn ends in a tool result', () => {
+    const assistant = buildMessage({
+      id: 'tool-caller',
+      status: MessageStatus.SUCCESS,
+      tool_call_summaries: [{ id: 'tool-call', name: 'search' }],
+      message: { role: OpenAIMessageRole.ASSISTANT, content: 'process text' },
+    });
+    const tool = buildMessage({
+      id: 'tool-result',
+      status: MessageStatus.STOPPED,
+      message: { role: OpenAIMessageRole.TOOL },
+    });
+    expect(buildMessageDisplayItems([assistant, tool])).toEqual([
+      {
+        type: 'collapsed_process',
+        messages: [assistant, tool],
+        finalMessage: assistant,
+        stopped: true,
+      },
+      {
+        type: 'message',
+        stoppedAnswer: true,
+        message: {
+          ...assistant,
+          has_reasoning: false,
+          tool_call_summaries: undefined,
+          message: { role: OpenAIMessageRole.ASSISTANT },
+        },
+      },
+    ]);
+  });
 });
