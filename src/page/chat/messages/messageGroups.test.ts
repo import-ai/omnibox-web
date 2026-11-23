@@ -320,35 +320,44 @@ describe('stopped message projections', () => {
       expect(JSON.stringify(source)).toBe(before);
     }
   );
-  test('projects a retry row when the stopped turn ends in a tool result', () => {
-    const assistant = buildMessage({
-      id: 'tool-caller',
-      status: MessageStatus.SUCCESS,
-      tool_call_summaries: [{ id: 'tool-call', name: 'search' }],
-      message: { role: OpenAIMessageRole.ASSISTANT, content: 'process text' },
-    });
-    const tool = buildMessage({
-      id: 'tool-result',
-      status: MessageStatus.STOPPED,
-      message: { role: OpenAIMessageRole.TOOL },
-    });
-    expect(buildMessageDisplayItems([assistant, tool])).toEqual([
-      {
-        type: 'collapsed_process',
-        messages: [assistant, tool],
-        finalMessage: assistant,
-        stopped: true,
-      },
-      {
-        type: 'message',
-        stoppedAnswer: true,
-        message: {
-          ...assistant,
-          has_reasoning: false,
-          tool_call_summaries: undefined,
-          message: { role: OpenAIMessageRole.ASSISTANT },
+  test.each(['', 'partial answer'])(
+    'keeps the stopped answer row for body %j',
+    content => {
+      const assistant = buildMessage({
+        id: 'tool-caller',
+        status: MessageStatus.SUCCESS,
+        tool_call_summaries: [{ id: 'tool-call', name: 'search' }],
+        message: { role: OpenAIMessageRole.ASSISTANT, content },
+      });
+      const tool = buildMessage({
+        id: 'tool-result',
+        status: MessageStatus.STOPPED,
+        message: { role: OpenAIMessageRole.TOOL },
+      });
+      expect(buildMessageDisplayItems([assistant, tool])).toEqual([
+        {
+          type: 'collapsed_process',
+          messages: [
+            {
+              ...assistant,
+              message: { ...assistant.message, content: undefined },
+            },
+            tool,
+          ],
+          finalMessage: assistant,
+          stopped: true,
         },
-      },
-    ]);
-  });
+        {
+          type: 'message',
+          stoppedAnswer: true,
+          message: {
+            ...assistant,
+            has_reasoning: false,
+            tool_call_summaries: undefined,
+            message: { role: OpenAIMessageRole.ASSISTANT, content },
+          },
+        },
+      ]);
+    }
+  );
 });

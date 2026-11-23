@@ -91,7 +91,14 @@ export function buildMessageDisplayItems(
       if (lastAssistant) {
         result.push({
           type: 'collapsed_process',
-          messages: responseMessages,
+          messages: responseMessages.map(message =>
+            message === lastAssistant
+              ? {
+                  ...message,
+                  message: { ...message.message, content: undefined },
+                }
+              : message
+          ),
           finalMessage: lastAssistant,
           stopped: true,
         });
@@ -102,7 +109,10 @@ export function buildMessageDisplayItems(
             ...lastAssistant,
             has_reasoning: false,
             tool_call_summaries: undefined,
-            message: { role: OpenAIMessageRole.ASSISTANT },
+            message: {
+              role: OpenAIMessageRole.ASSISTANT,
+              content: lastAssistant.message.content,
+            },
           },
         });
         continue;

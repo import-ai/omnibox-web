@@ -3,7 +3,6 @@ import 'katex/dist/katex.min.css';
 
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
-import { fromMarkdown } from 'mdast-util-from-markdown';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import Markdown, { ExtraProps } from 'react-markdown';
@@ -15,6 +14,8 @@ import {
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import remarkParse from 'remark-parse';
+import { unified } from 'unified';
 
 import { ShareIcon } from '@/assets/icons/ShareIcon';
 import { Button } from '@/components/Button';
@@ -55,6 +56,11 @@ function MarkdownTable({
     </div>
   );
 }
+
+const answerRemarkPlugins = [remarkGfm, remarkMath];
+const answerMarkdownParser = unified()
+  .use(remarkParse)
+  .use(answerRemarkPlugins);
 
 type BodyNode = {
   type: string;
@@ -140,7 +146,7 @@ export function CitationMarkdown(props: IProps) {
     !stoppedAnswer ||
     (!hideActions &&
       hasVisibleAnswerBody(
-        fromMarkdown(
+        answerMarkdownParser.parse(
           chatOnly ? withoutMarkdownImages(replacedContent) : replacedContent
         )
       ));
@@ -195,7 +201,7 @@ export function CitationMarkdown(props: IProps) {
       {replacedContent && (
         <CitationContext.Provider value={citations}>
           <Markdown
-            remarkPlugins={[remarkGfm, remarkMath]}
+            remarkPlugins={answerRemarkPlugins}
             rehypePlugins={[rehypeKatex]}
             components={components}
             urlTransform={citationUrlTransform}
