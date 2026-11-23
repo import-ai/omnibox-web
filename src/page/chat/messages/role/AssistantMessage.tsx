@@ -11,7 +11,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import type { ProcessedArg } from '@/lib/toolArgs';
-import { joinArgs, processArgs } from '@/lib/toolArgs';
+import { processArgs } from '@/lib/toolArgs';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 import { ToolCallArgs } from '@/page/chat/components/ToolCallArgs';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
@@ -33,6 +33,7 @@ import {
   findDecisionForAssistant,
   interruptedToolCallDisplayStatus,
   interruptedToolCallIds,
+  toolCallArgumentsMatch,
 } from '@/page/chat/messages/decisionTurn';
 import { ToolCallExecution } from '@/page/localRuntime/ConversationExecutions';
 
@@ -73,9 +74,9 @@ interface IToolCall {
   functionName: string;
   name: string;
   args: ProcessedArg[];
+  rawArguments?: string;
   resourceId?: string;
   status: ToolCallStatus;
-  joinedArgs: string;
   operations?: ToolCallFrontendOperation[];
 }
 
@@ -219,9 +220,9 @@ export function AssistantMessage(props: IProps) {
         functionName: toolCall.function.name,
         name: functionName,
         args,
+        rawArguments: toolCall.function.arguments,
         resourceId: resourceIdFromProcessedArgs(args),
         status: functionStatus,
-        joinedArgs: joinArgs(args),
       });
     }
   }
@@ -235,7 +236,6 @@ export function AssistantMessage(props: IProps) {
           t('chat.messages.tool_calls.function_name.unknown')
         ),
         args: [],
-        joinedArgs: '',
         status: resolveToolCallStatus(
           findToolMessageForToolCall(messages, summary.id),
           isToolTurnStopped(messages, message.id)
@@ -267,23 +267,30 @@ export function AssistantMessage(props: IProps) {
       }
     } else {
       for (const interrupt of message.attrs.tool_call.interrupts) {
-        const args: ProcessedArg[] = processArgs(interrupt.args, t);
         const functionName = t(
           `chat.messages.tool_calls.function_name.${interrupt.name}`
         );
 
         for (const toolCall of toolCalls) {
           if (
-            toolCall.name === functionName &&
-            toolCall.joinedArgs === joinArgs(args) &&
-            toolCall.status === ToolCallStatus.PENDING
-          ) {
-            toolCall.status = interruptedToolCallDisplayStatus(
-              decision,
-              messages,
-              busy
-            );
+            toolCall.name !== functionName ||
+            !toolCallArgumentsMatch(toolCall.rawArguments, interrupt.args)
+          )
+            continue;
+          const result = findToolMessageForToolCall(
+            messages,
+            toolCall.toolCallId
+          );
+          if (result?.attrs?.error_message || result?.attrs?.error_code) {
+            toolCall.status = ToolCallStatus.UNKNOWN;
+            continue;
           }
+          if (isTerminalToolCallStatus(toolCall.status)) continue;
+          toolCall.status = interruptedToolCallDisplayStatus(
+            decision,
+            messages,
+            busy
+          );
         }
       }
     }

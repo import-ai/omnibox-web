@@ -52,6 +52,40 @@ function parseArguments(raw: string | undefined): unknown {
   }
 }
 
+// Interrupt arguments and tool-call arguments are serialized independently and
+// a JSONB round trip reorders object keys, so order-sensitive comparisons (raw
+// JSON.stringify or the display join) miss matches after a reload.
+function sameJsonValue(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length)
+      return false;
+    return a.every((item, index) => sameJsonValue(item, b[index]));
+  }
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    const aRecord = a as Record<string, unknown>;
+    const bRecord = b as Record<string, unknown>;
+    const aKeys = Object.keys(aRecord);
+    const bKeys = Object.keys(bRecord);
+    if (aKeys.length !== bKeys.length) return false;
+    return aKeys.every(
+      key =>
+        Object.prototype.hasOwnProperty.call(bRecord, key) &&
+        sameJsonValue(aRecord[key], bRecord[key])
+    );
+  }
+  return false;
+}
+
+/** Matches a tool call's serialized arguments to an interrupt's arguments. */
+export function toolCallArgumentsMatch(
+  rawArguments: string | undefined,
+  interruptArgs: unknown
+): boolean {
+  const args = parseArguments(rawArguments);
+  return args !== undefined && sameJsonValue(args, interruptArgs);
+}
+
 // Resolves the tool calls an assistant left waiting for approval, by matching
 // each interrupt to its call by name and parsed arguments. Undefined when the
 // assistant is absent or a call cannot be matched, so callers fall back to the
@@ -68,10 +102,9 @@ export function interruptedToolCallIds(
     const call = toolCalls.find(toolCall => {
       if (used.has(toolCall.id) || toolCall.function.name !== interrupt.name)
         return false;
-      const args = parseArguments(toolCall.function.arguments);
-      return (
-        args !== undefined &&
-        JSON.stringify(args) === JSON.stringify(interrupt.args)
+      return toolCallArgumentsMatch(
+        toolCall.function.arguments,
+        interrupt.args
       );
     });
     if (!call) return undefined;

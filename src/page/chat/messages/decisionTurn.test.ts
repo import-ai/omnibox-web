@@ -6,6 +6,7 @@ import {
   interruptedToolCallDisplayStatus,
   interruptedToolCallIds,
   resolveDecisionTurn,
+  toolCallArgumentsMatch,
 } from './decisionTurn';
 import { isTerminalToolCallStatus } from './role/assistantMessageUtils';
 
@@ -122,6 +123,41 @@ describe('interruptedToolCallIds', () => {
       'call-1',
       'call-2',
     ]);
+  });
+
+  it('matches reloaded records whose JSON keys were reordered', () => {
+    // The interrupt args and the call arguments are serialized independently;
+    // a JSONB round trip reorders keys, so equality must ignore key order.
+    const reordered = interruptAssistant(
+      [
+        {
+          id: 'call-1',
+          name: 'edit_resource',
+          args: '{"resource_id":"r1","old_string":"a","new_string":"b"}',
+        },
+      ],
+      {
+        attrs: {
+          tool_call: {
+            status: 'pending',
+            interrupts: [
+              {
+                name: 'edit_resource',
+                args: { new_string: 'b', old_string: 'a', resource_id: 'r1' },
+                decisions: ['approve', 'reject'],
+              },
+            ],
+          },
+        },
+      }
+    );
+    expect(interruptedToolCallIds(reordered)).toEqual(['call-1']);
+  });
+
+  it('compares parsed arguments without key order but keeps array order', () => {
+    expect(toolCallArgumentsMatch('{"a":1,"b":2}', { b: 2, a: 1 })).toBe(true);
+    expect(toolCallArgumentsMatch('{"a":[1,2]}', { a: [2, 1] })).toBe(false);
+    expect(toolCallArgumentsMatch('not json', { a: 1 })).toBe(false);
   });
 
   it('is undefined when a call cannot be matched', () => {
