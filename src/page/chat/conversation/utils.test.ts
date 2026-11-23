@@ -120,6 +120,8 @@ describe('chat request body tools', () => {
       expect(pending.attrs.client_request_id).toBe(pending.id);
       expect(assistant.id).toMatch(uuidV4);
       expect(assistant.id).not.toBe(pending.id);
+      // Client-only: the local reply must never be used as a server branch.
+      expect(assistant.attrs?.client_request_id).toBe(assistant.id);
       expect(operator.error).toHaveBeenCalledWith(
         { response_type: 'error', message: 'Connection lost' },
         assistant.id

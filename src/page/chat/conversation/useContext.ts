@@ -287,6 +287,8 @@ export default function useContext() {
       role: OpenAIMessageRole.ASSISTANT,
       parentId: decisionId,
       created_at: new Date().toISOString(),
+      // A client-only child must never be requested as a server branch.
+      attrs: { client_request_id: id },
     });
     return id;
   };
@@ -303,6 +305,7 @@ export default function useContext() {
       },
       ensureDecisionFailedChild(decisionId)
     );
+    toast.info(i18n.t('chat.decision.already_decided'));
     await history.syncBelow(decisionId).catch(() => undefined);
   };
 
@@ -415,6 +418,45 @@ export default function useContext() {
       await applyAlreadyDecidedToDecision(decisionId);
   };
 
+  // Removes the local message of a request the server refused before
+  // accepting it, so the retry does not leave a stray branch behind.
+  const discardLocalMessage = (id: string | undefined) => {
+    if (!id) return;
+    uploadRetries.current.delete(id);
+    setConversation(prev => {
+      const message = prev.mapping[id];
+      if (!message) return prev;
+      const mapping = { ...prev.mapping };
+      delete mapping[id];
+      const parent = message.parent_id ? mapping[message.parent_id] : undefined;
+      if (parent) {
+        mapping[parent.id] = {
+          ...parent,
+          children: parent.children.filter(child => child !== id),
+        };
+      }
+      return {
+        ...prev,
+        mapping,
+        current_node:
+          prev.current_node === id
+            ? message.parent_id || undefined
+            : prev.current_node,
+      };
+    });
+  };
+
+  // The interrupt was decided in another client after this page showed it:
+  // drop the local decision, say so, and show what the server has now.
+  const syncAfterDecidedElsewhere = async (
+    outcome: SendTurnOutcome,
+    nodeId: string
+  ) => {
+    discardLocalMessage(outcome.requestId);
+    toast.info(i18n.t('chat.decision.already_decided'));
+    return await history.syncBelow(nodeId).catch(() => undefined);
+  };
+
   const sendTurn = async (
     params: SendMessageParams,
     parentMessageId: string | undefined,
@@ -500,7 +542,11 @@ export default function useContext() {
           retryId
         );
         uploadRetries.current.set(pendingId, async () => {
-          await sendTurn(params, parentMessageId, { retryId: pendingId });
+          const outcome = await sendTurn(params, parentMessageId, {
+            retryId: pendingId,
+          });
+          if (outcome?.alreadyDecided && parentMessageId)
+            await syncAfterDecidedElsewhere(outcome, parentMessageId);
         });
         let askFN: ReturnType<typeof ask> | undefined;
         let uploadedImages: Awaited<
@@ -634,45 +680,6 @@ export default function useContext() {
       }
     }
     return undefined;
-  };
-
-  // Removes the local message of a request the server refused before
-  // accepting it, so the retry does not leave a stray branch behind.
-  const discardLocalMessage = (id: string | undefined) => {
-    if (!id) return;
-    uploadRetries.current.delete(id);
-    setConversation(prev => {
-      const message = prev.mapping[id];
-      if (!message) return prev;
-      const mapping = { ...prev.mapping };
-      delete mapping[id];
-      const parent = message.parent_id ? mapping[message.parent_id] : undefined;
-      if (parent) {
-        mapping[parent.id] = {
-          ...parent,
-          children: parent.children.filter(child => child !== id),
-        };
-      }
-      return {
-        ...prev,
-        mapping,
-        current_node:
-          prev.current_node === id
-            ? message.parent_id || undefined
-            : prev.current_node,
-      };
-    });
-  };
-
-  // The interrupt was decided in another client after this page showed it:
-  // drop the local decision, say so, and show what the server has now.
-  const syncAfterDecidedElsewhere = async (
-    outcome: SendTurnOutcome,
-    nodeId: string
-  ) => {
-    discardLocalMessage(outcome.requestId);
-    toast.info(i18n.t('chat.decision.already_decided'));
-    return await history.syncBelow(nodeId).catch(() => undefined);
   };
 
   const sendMessage = async (

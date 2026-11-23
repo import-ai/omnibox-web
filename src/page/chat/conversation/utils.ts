@@ -464,6 +464,8 @@ export function ask(
                 role: OpenAIMessageRole.ASSISTANT,
                 parentId: acceptedId,
                 created_at: new Date().toISOString(),
+                // Client-only: history requests must not use it as a branch.
+                attrs: { client_request_id: id },
               });
           }
           reportChatError(error, {

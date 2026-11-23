@@ -19,6 +19,7 @@ import {
   getCachedConversation,
   setCachedConversation,
 } from './conversationCache';
+import { PendingDecisionNotRejected } from './pendingDecisionSend';
 import * as imageUploads from './uploadConversationImages';
 import useContext from './useContext';
 import { resetConversationBootstrapState } from './useConversationBootstrap';
@@ -1844,7 +1845,14 @@ describe('useContext conversation cache failures', () => {
     const conversation = decisionLeaf();
     setCachedConversation(cacheScope, conversation);
     mockGet.mockResolvedValue(conversation);
+    jest.mocked(extractOriginalMessageSettings).mockReturnValue({
+      originalTools: [],
+      originalContext: [],
+      originalLang: 'English',
+      originalEnableThinking: false,
+    });
     const context = await renderContext();
+    mockToastError.mockClear();
     jest
       .mocked(ask)
       .mockReturnValueOnce(
@@ -1856,11 +1864,15 @@ describe('useContext conversation cache failures', () => {
       )
       .mockReturnValueOnce(askRun({ lastMessageId: 'tool-d' }));
 
+    let error: unknown;
     await act(async () => {
       await context()
         .sendMessage(typed)
-        .catch(() => undefined);
+        .catch(caught => {
+          error = caught;
+        });
     });
+    expect(error).toBeInstanceOf(PendingDecisionNotRejected);
     expect(jest.mocked(ask)).toHaveBeenCalledTimes(1);
     expect(mockToastError).toHaveBeenCalledWith('chat.decision.reject_failed');
 
@@ -1904,7 +1916,10 @@ describe('useContext conversation cache failures', () => {
     });
 
     expect(mockOperatorAdd).toHaveBeenCalledWith(
-      expect.objectContaining({ parentId: 'decision-d' })
+      expect.objectContaining({
+        parentId: 'decision-d',
+        attrs: { client_request_id: expect.any(String) },
+      })
     );
     const [response, targetId] = mockOperatorError.mock.calls.at(-1)!;
     expect(response).toEqual(
@@ -1934,6 +1949,7 @@ describe('useContext conversation cache failures', () => {
       expect.objectContaining({ code: 'interrupt_already_decided' })
     );
     expect(targetId).not.toBe('decision-d');
+    expect(mockToastInfo).toHaveBeenCalledWith('chat.decision.already_decided');
     expect(
       mockGet.mock.calls.some(
         ([, config]) => config?.params?.branch_node_id === 'decision-d'
