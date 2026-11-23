@@ -1812,7 +1812,7 @@
       "skip": "Skip",
       "submit": "Bind and claim",
       "description": "Bind your phone to verify your identity and receive invite rewards.",
-      "bubble": "Link your phone to receive 600 Kibble."
+      "bubble": "Link your phone to verify and get invite rewards."
     },
     "code": {
       "entry": "Have an invite code? Enter >",
