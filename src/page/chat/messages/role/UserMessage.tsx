@@ -43,6 +43,7 @@ import {
 
 interface IProps {
   hideActions?: boolean;
+  answerMessageId?: string;
   message: MessageDetail;
   messageOperator?: MessageOperator;
   onEdit: (messageId: string, newContent: string) => void;
@@ -52,6 +53,7 @@ interface IProps {
 export function UserMessage(props: IProps) {
   const {
     hideActions = false,
+    answerMessageId,
     message,
     messageOperator,
     onEdit,
@@ -75,8 +77,13 @@ export function UserMessage(props: IProps) {
     openAIMessage.content || ''
   );
 
+  const questionPager = useMessageSiblings(message.id, messageOperator);
+  const answerPager = useMessageSiblings(
+    answerMessageId ?? '',
+    answerMessageId ? messageOperator : undefined
+  );
   const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
-    useMessageSiblings(message.id, messageOperator);
+    questionPager.hasSiblings ? questionPager : answerPager;
 
   const handleEditClick = () => {
     setEditedContent(

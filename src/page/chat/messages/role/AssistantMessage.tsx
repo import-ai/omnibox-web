@@ -14,7 +14,6 @@ import type { ProcessedArg } from '@/lib/toolArgs';
 import { joinArgs, processArgs } from '@/lib/toolArgs';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 import { ToolCallArgs } from '@/page/chat/components/ToolCallArgs';
-import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
 import {
   type Citation,
   isTerminalMessageStatus,
@@ -26,7 +25,6 @@ import {
   type ToolCallFrontendOperation,
 } from '@/page/chat/core/types/conversation';
 import { ToolCallStatus } from '@/page/chat/core/types/toolCall';
-import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings';
 import { CitationMarkdown } from '@/page/chat/messages/citations/CitationMarkdown';
 import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citationUtils';
 import { ToolCallExecution } from '@/page/localRuntime/ConversationExecutions';
@@ -51,7 +49,6 @@ interface IProps {
   message: MessageDetail;
   messages: MessageDetail[];
   citations: Citation[];
-  messageOperator: MessageOperator;
   onRegenerate: (messageId: string) => void;
   isLastMessage: boolean;
   regenerateDisabled?: boolean;
@@ -101,7 +98,6 @@ export function AssistantMessage(props: IProps) {
     citations,
     messages,
     conversation,
-    messageOperator,
     onRegenerate,
     isLastMessage,
     regenerateDisabled = false,
@@ -130,9 +126,6 @@ export function AssistantMessage(props: IProps) {
     isTerminalMessageStatus(message.status);
   const openAIMessage = message.message;
   const channel = message.attrs?.user_context?.channel;
-
-  const { siblings, currentIndex, hasSiblings, handlePrevious, handleNext } =
-    useMessageSiblings(message.id, messageOperator);
 
   const domList: React.ReactNode[] = [];
   if (openAIMessage.reasoning_content?.trim() || message.has_reasoning) {
@@ -174,13 +167,8 @@ export function AssistantMessage(props: IProps) {
         onRegenerate={onRegenerate}
         regenerateDisabled={regenerateDisabled}
         regenerating={regenerating}
-        hasSiblings={hasSiblings}
-        currentIndex={currentIndex}
-        siblingsLength={siblings.length}
         createdAt={message.created_at}
         channel={channel}
-        onPrevious={handlePrevious}
-        onNext={handleNext}
         isLastMessage={isLastMessage}
         hideActions={hideActions}
         onShare={onShare}

@@ -6,6 +6,7 @@ import { createRoot, type Root } from 'react-dom/client';
 
 import { TooltipProvider } from '@/components/tooltip';
 import { ToolType } from '@/page/chat/chat-input/types';
+import type { MessageOperator } from '@/page/chat/core/messageOperator';
 import {
   MessageStatus,
   OpenAIMessageRole,
@@ -93,6 +94,43 @@ describe('UserMessage resource history', () => {
       )
     );
   }
+
+  it.each([
+    [['message-1'], 'answer-1'],
+    [['edited-question', 'message-1'], 'edited-question'],
+  ])(
+    'uses the existing hover toolbar to navigate branches',
+    async (questions, previousId) => {
+      const activate = jest.fn();
+      const messageOperator = {
+        activate,
+        getSiblings: (id: string) =>
+          id === 'message-1' ? questions : ['answer-1', 'answer-2'],
+      } as MessageOperator;
+      await act(async () =>
+        root.render(
+          <TooltipProvider>
+            <UserMessage
+              answerMessageId="answer-2"
+              message={historyMessage('杭州明日天气')}
+              messageOperator={messageOperator}
+              onEdit={() => {}}
+            />
+          </TooltipProvider>
+        )
+      );
+      const page = Array.from(container.querySelectorAll('span')).find(
+        element => element.textContent === '2/2'
+      );
+      expect(
+        page?.parentElement?.classList.contains('group-hover:opacity-100')
+      ).toBe(true);
+      await act(async () =>
+        (page?.previousElementSibling as HTMLButtonElement).click()
+      );
+      expect(activate).toHaveBeenCalledWith(previousId);
+    }
+  );
 
   it('renders cache-free unnamed references and opens the selected resource', async () => {
     await renderMessage();

@@ -74,7 +74,8 @@ function renderMessage(
   regeneratingParentId: string | null,
   hideActions: boolean,
   onShareMessage?: (messageId: string) => void,
-  stoppedAnswer = false
+  stoppedAnswer = false,
+  answerMessageId?: string
 ) {
   const openAIMessage = message.message;
   if (
@@ -90,6 +91,7 @@ function renderMessage(
   ) {
     return (
       <UserMessage
+        answerMessageId={answerMessageId}
         message={message}
         messageOperator={messageOperator}
         onEdit={onEdit}
@@ -106,7 +108,6 @@ function renderMessage(
         messages={messages}
         citations={citations}
         conversation={conversation}
-        messageOperator={messageOperator}
         onRegenerate={onRegenerate}
         isLastMessage={isLastMessage}
         regenerateDisabled={Boolean(regeneratingParentId)}
@@ -274,6 +275,17 @@ export function Messages(props: IProps) {
     message => message.message.role !== OpenAIMessageRole.SYSTEM
   );
   const displayItems = buildMessageDisplayItems(filteredMessages);
+  const answerIdsByQuestion = new Map<string, string>();
+  for (const item of displayItems) {
+    if (
+      item.type === 'message' &&
+      item.message.message.role === OpenAIMessageRole.ASSISTANT &&
+      (item.stoppedAnswer || item.message.status === MessageStatus.SUCCESS)
+    ) {
+      const questionId = messageOperator.getParent(item.message.id);
+      if (questionId) answerIdsByQuestion.set(questionId, item.message.id);
+    }
+  }
   const lastAssistantId = filteredMessages.reduce((lastId, message) => {
     return message.message.role === OpenAIMessageRole.ASSISTANT
       ? message.id
@@ -321,7 +333,8 @@ export function Messages(props: IProps) {
               regeneratingParentId,
               hideProcessActions || Boolean(shareSelection?.isSelecting),
               onShareMessage,
-              stoppedAnswer
+              stoppedAnswer,
+              answerIdsByQuestion.get(message.id)
             );
             const groupId = shareSelection?.messageGroupIds.get(message.id);
 
