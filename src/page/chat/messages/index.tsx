@@ -73,6 +73,7 @@ function renderMessage(
   isLastMessage: boolean,
   regeneratingParentId: string | null,
   hideActions: boolean,
+  suppressProcessUi: boolean,
   onShareMessage?: (messageId: string) => void
 ) {
   const openAIMessage = message.message;
@@ -111,6 +112,7 @@ function renderMessage(
         regenerateDisabled={Boolean(regeneratingParentId)}
         regenerating={regeneratingParentId === parentId}
         hideActions={hideActions}
+        suppressProcessUi={suppressProcessUi}
         onShare={onShareMessage}
       />
     );
@@ -272,6 +274,8 @@ export function Messages(props: IProps) {
     message => message.message.role !== OpenAIMessageRole.SYSTEM
   );
   const displayItems = buildMessageDisplayItems(filteredMessages);
+  // The last assistant row owns the actions, including a stopped turn whose
+  // outcome row lives inside the process disclosure.
   const lastAssistantId = filteredMessages.reduce((lastId, message) => {
     return message.message.role === OpenAIMessageRole.ASSISTANT
       ? message.id
@@ -281,7 +285,8 @@ export function Messages(props: IProps) {
   function renderMessageBlock(
     message: MessageDetail,
     isLastInList: boolean,
-    isFinalReasoning = false
+    isFinalReasoning = false,
+    suppressProcessUi = false
   ) {
     if (!hasVisibleMessageContent(message, chatOnly)) {
       return null;
@@ -314,6 +319,7 @@ export function Messages(props: IProps) {
               isLastAssistantMessage,
               regeneratingParentId,
               Boolean(shareSelection?.isSelecting),
+              suppressProcessUi,
               onShareMessage
             );
             const groupId = shareSelection?.messageGroupIds.get(message.id);
@@ -389,9 +395,15 @@ export function Messages(props: IProps) {
               key={`process_${item.messages[0].id}`}
               ids={item.messages.map(message => message.id)}
               title={
-                formatAnswerDuration(item.finalMessage, t, item.messages) ??
-                t('chat.messages.process.details')
+                item.running
+                  ? t('chat.messages.process.running')
+                  : (formatAnswerDuration(
+                      item.finalMessage,
+                      t,
+                      item.messages
+                    ) ?? t('chat.messages.process.details'))
               }
+              running={item.running}
             >
               {() =>
                 visibleProcessMessages.map((message, processIndex) =>
@@ -408,7 +420,9 @@ export function Messages(props: IProps) {
 
         return renderMessageBlock(
           item.message,
-          index === displayItems.length - 1
+          index === displayItems.length - 1,
+          false,
+          item.suppressProcessUi
         );
       })}
     </div>

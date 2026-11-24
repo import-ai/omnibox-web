@@ -80,6 +80,7 @@ export interface MessageAttrs {
       url?: string;
     };
   };
+  answer_phase?: 'process' | 'answer';
   // frontend only
   composer?: {
     display_parts?: ChatMessageDisplayPart[];

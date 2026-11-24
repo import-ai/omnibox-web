@@ -1033,6 +1033,7 @@
           "minutes": "{{count}}m",
           "seconds": "{{count}}s"
         },
+        "running": "Processing…",
         "stopped": "Stopped"
       },
       "user_context": {

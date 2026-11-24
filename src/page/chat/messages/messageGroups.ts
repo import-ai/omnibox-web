@@ -8,11 +8,15 @@ type MessageDisplayItem =
   | {
       type: 'message';
       message: MessageDetail;
+      /** Pro turns render only the answer, without its reasoning or tool UI. */
+      suppressProcessUi?: boolean;
     }
   | {
       type: 'collapsed_process';
       messages: MessageDetail[];
       finalMessage: MessageDetail;
+      /** The turn still produces output, so the summary reports progress. */
+      running: boolean;
     };
 
 function isResponseMessage(message: MessageDetail) {
@@ -51,18 +55,67 @@ function isFinalAnswer(message: MessageDetail) {
   );
 }
 
-function isUserQuery(message: MessageDetail) {
+/** A user message without decisions opens a turn, even when it only holds images. */
+function startsTurn(message: MessageDetail) {
   return (
     message.message.role === OpenAIMessageRole.USER &&
-    (message.attrs?.tool_call?.decisions ?? []).length === 0 &&
+    (message.attrs?.tool_call?.decisions ?? []).length === 0
+  );
+}
+
+function isUserQuery(message: MessageDetail) {
+  return startsTurn(message) && Boolean(message.message.content?.trim());
+}
+
+/**
+ * Agent 2.1 (`pro`) turns keep reasoning and tool traffic out of the reply area.
+ * Agent 1.1 (`basic`) turns and records without `edition` keep the legacy layout.
+ */
+function isProTurn(message: MessageDetail) {
+  return message.attrs?.edition === 'pro';
+}
+
+function isRunningMessage(message: MessageDetail) {
+  return (
+    message.status === MessageStatus.PENDING ||
+    message.status === MessageStatus.STREAMING
+  );
+}
+
+/** Wizard marks the tools-disabled answer call before its first delta. */
+function isAnswerPhase(message: MessageDetail) {
+  return (
+    message.message.role === OpenAIMessageRole.ASSISTANT &&
+    message.attrs?.answer_phase === 'answer'
+  );
+}
+
+/** Phased turns never fall back to known interim text. */
+function isPhasedMessage(message: MessageDetail) {
+  return message.attrs?.answer_phase !== undefined;
+}
+
+function isAnswerCandidate(message: MessageDetail) {
+  return (
+    message.message.role === OpenAIMessageRole.ASSISTANT &&
+    !hasToolCalls(message) &&
     Boolean(message.message.content?.trim())
   );
 }
 
-export function buildMessageDisplayItems(
-  messages: MessageDetail[]
-): MessageDisplayItem[] {
-  const result: MessageDisplayItem[] = [];
+/** Rows that stay visible even inside a pro turn. */
+function isPinnedMessage(message: MessageDetail) {
+  return (
+    Boolean(message.attrs?.compact) ||
+    message.status === MessageStatus.FAILED ||
+    Boolean(message.attrs?.error_message)
+  );
+}
+
+function pushLegacyItems(
+  messages: MessageDetail[],
+  result: MessageDisplayItem[]
+) {
   let index = 0;
 
   while (index < messages.length) {
@@ -107,6 +160,7 @@ export function buildMessageDisplayItems(
         type: 'collapsed_process',
         messages: processMessages,
         finalMessage,
+        running: false,
       });
       if (!stopped || answerMessage.message.content?.trim()) {
         result.push({ type: 'message', message: answerMessage });
@@ -118,8 +172,95 @@ export function buildMessageDisplayItems(
       result.push({ type: 'message', message: responseMessage });
     }
   }
+}
+
+function pushHiddenProcessItems(
+  turn: MessageDetail[],
+  result: MessageDisplayItem[]
+) {
+  const turnIsRunning = turn.some(isRunningMessage);
+  const markedAnswer = [...turn].reverse().find(isAnswerPhase);
+  const answer =
+    markedAnswer ??
+    (turn.some(isPhasedMessage)
+      ? undefined
+      : [...turn].reverse().find(isAnswerCandidate));
+  const turnRunning = !answer && turnIsRunning;
+  const answerHasReasoning = Boolean(
+    answer && (answer.has_reasoning || answer.message.reasoning_content?.trim())
+  );
+  let processMessages: MessageDetail[] = [];
+
+  function flush() {
+    if (processMessages.length === 0) return;
+    result.push({
+      type: 'collapsed_process',
+      messages: processMessages,
+      finalMessage: answer ?? processMessages[processMessages.length - 1],
+      running: turnRunning || processMessages.some(isRunningMessage),
+    });
+    processMessages = [];
+  }
+
+  for (const message of turn) {
+    if (message === answer) {
+      if (answerHasReasoning) {
+        // Project the stored message into process and answer views without changing its identity.
+        processMessages.push({
+          ...answer,
+          message: { ...answer.message, content: undefined },
+        });
+      }
+      flush();
+      result.push({ type: 'message', message, suppressProcessUi: true });
+      continue;
+    }
+    if (isPinnedMessage(message)) {
+      flush();
+      result.push({ type: 'message', message });
+      continue;
+    }
+    if (isProcessMessage(message)) {
+      processMessages.push(message);
+      continue;
+    }
+    flush();
+    result.push({ type: 'message', message });
+  }
+  flush();
+}
+
+export function buildMessageDisplayItems(
+  messages: MessageDetail[]
+): MessageDisplayItem[] {
+  const result: MessageDisplayItem[] = [];
+  let start = 0;
+
+  for (let index = 0; index < messages.length; index += 1) {
+    if (index > start && startsTurn(messages[index])) {
+      pushTurn(messages.slice(start, index), result);
+      start = index;
+    }
+  }
+  pushTurn(messages.slice(start), result);
 
   return result;
+}
+
+function getTurnQuery(turn: MessageDetail[]) {
+  const [first] = turn;
+  return first && startsTurn(first) ? first : undefined;
+}
+
+function pushTurn(turn: MessageDetail[], result: MessageDisplayItem[]) {
+  const query = getTurnQuery(turn);
+  // The server marker is authoritative: a phased turn hides its process even
+  // when the client never stored `edition` on the user message.
+  if (turn.some(isPhasedMessage) || (query && isProTurn(query))) {
+    pushHiddenProcessItems(turn, result);
+    return;
+  }
+  pushLegacyItems(turn, result);
 }
 
 export function buildMessageIndexItems(messages: MessageDetail[]) {

@@ -30,8 +30,17 @@ jest.mock('@/page/share/ShareChatOnlyContext', () => ({
   useShareChatOnly: () => mockChatOnly,
 }));
 jest.mock('@/page/chat/messages/role/AssistantMessage', () => ({
-  AssistantMessage: ({ citations }: { citations: Citation[] }) => (
-    <output>{JSON.stringify(citations)}</output>
+  AssistantMessage: ({
+    citations,
+    suppressProcessUi,
+  }: {
+    citations: Citation[];
+    suppressProcessUi?: boolean;
+  }) => (
+    <>
+      <output>{JSON.stringify(citations)}</output>
+      {suppressProcessUi ? <i data-suppress="true" /> : null}
+    </>
   ),
 }));
 jest.mock('@/page/chat/messages/role/ToolMessage', () => ({
@@ -458,4 +467,74 @@ test('shows stopped for a persisted turn outcome without timing metadata', () =>
     }
   );
   expect(renderAnswer([source])).toContain('Stopped');
+});
+
+describe('agent 2.1 streaming', () => {
+  const toolCall = (status: MessageStatus) =>
+    node('tool-call', {
+      status,
+      message: {
+        role: OpenAIMessageRole.ASSISTANT,
+        reasoning_content: 'thinking',
+        tool_calls: [
+          {
+            id: 'call',
+            type: 'function',
+            function: { name: 'web_search', arguments: '{}' },
+          },
+        ],
+      },
+    });
+  const toolResult = node('tool-result', {
+    message: { role: OpenAIMessageRole.TOOL, tool_call_id: 'call' },
+  });
+  const proQuery = (edition: 'pro' | 'basic') =>
+    node('user', {
+      message: { role: OpenAIMessageRole.USER, content: 'Question?' },
+      attrs: { edition },
+    });
+
+  test('reports progress and hides the tool round before the answer starts', () => {
+    const html = renderAnswer([
+      proQuery('pro'),
+      toolCall(MessageStatus.STREAMING),
+      toolResult,
+    ]);
+    expect(html).toContain('Processing…');
+    expect(html.match(/<summary/g)).toHaveLength(1);
+    expect(html).not.toContain('data-suppress="true"');
+    expect(html).not.toContain('<output>');
+  });
+
+  test('renders only the answer while it streams', () => {
+    const html = renderAnswer([
+      proQuery('pro'),
+      toolCall(MessageStatus.SUCCESS),
+      toolResult,
+      node('answer', {
+        status: MessageStatus.STREAMING,
+        message: { role: OpenAIMessageRole.ASSISTANT, content: 'Partial' },
+      }),
+    ]);
+    expect(html).toContain('Process details');
+    expect(html.match(/<summary/g)).toHaveLength(1);
+    expect(html.match(/<output>/g)).toHaveLength(1);
+    expect(html).toContain('data-suppress="true"');
+  });
+
+  test('keeps agent 1.1 turns expanded while streaming', () => {
+    const html = renderAnswer([
+      proQuery('basic'),
+      toolCall(MessageStatus.STREAMING),
+      toolResult,
+      node('answer', {
+        status: MessageStatus.STREAMING,
+        message: { role: OpenAIMessageRole.ASSISTANT, content: 'Partial' },
+      }),
+    ]);
+    expect(html).not.toContain('<summary');
+    expect(html).not.toContain('data-suppress="true"');
+    // Agent 1.1 keeps the tool round and the answer in the reply area.
+    expect(html.match(/<output>/g)).toHaveLength(2);
+  });
 });
