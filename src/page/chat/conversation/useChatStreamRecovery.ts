@@ -163,6 +163,9 @@ export default function useChatStreamRecovery(
             role: OpenAIMessageRole.ASSISTANT,
             parentId: plan.assistantParentId,
             created_at: new Date().toISOString(),
+            // Client-only: snapshot/refresh must look below its parent, never
+            // use it as a server branch.
+            attrs: { client_request_id: messageId },
           });
         }
         messageOperator.error(

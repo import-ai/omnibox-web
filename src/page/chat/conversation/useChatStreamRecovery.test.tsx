@@ -16,6 +16,11 @@ import type {
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
 
+import {
+  activeLeaf,
+  isLocalRequestMessage,
+  snapshotQuery,
+} from './chatStreamRecovery';
 import useChatStreamRecovery from './useChatStreamRecovery';
 
 (
@@ -213,6 +218,45 @@ describe('useChatStreamRecovery', () => {
       'assistant-1'
     );
     expect(probe.get().streamState).toBe('interrupted');
+  });
+
+  it('marks its recovery reply as client-only so snapshots look below the question', async () => {
+    const question = message(
+      'user-1',
+      OpenAIMessageRole.USER,
+      MessageStatus.SUCCESS
+    );
+    const initial: ConversationDetail = {
+      id: 'conversation',
+      mapping: { 'user-1': question },
+      current_node: 'user-1',
+    };
+    const loadSnapshot = jest.fn().mockResolvedValue(initial);
+    const createResumeStream = jest.fn(() => ({
+      start: jest.fn().mockResolvedValue(undefined),
+      cancel: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn(),
+      getLastEventId: () => undefined,
+    }));
+    const probe = await renderRecovery(initial, {
+      loadSnapshot,
+      createResumeStream,
+    });
+
+    await showPage();
+
+    // The resume ended without a terminal event, so recovery adds the missing
+    // reply under the question.
+    const state = probe.state();
+    const leaf = activeLeaf(state);
+    expect(leaf?.message.role).toBe(OpenAIMessageRole.ASSISTANT);
+    expect(leaf?.parent_id).toBe('user-1');
+    expect(leaf?.status).toBe(MessageStatus.FAILED);
+    // Client-only: never ask the server for a branch rooted at this UUID.
+    expect(isLocalRequestMessage(leaf)).toBe(true);
+    expect(leaf?.attrs?.client_request_id).toBe(leaf?.id);
+    expect(snapshotQuery(state)).toEqual({ branch_node_id: 'user-1' });
+    expect(loadSnapshot).toHaveBeenCalled();
   });
 
   it('continues live-only when an existing reply has no local cursor', async () => {
