@@ -244,16 +244,20 @@ export function InvitePhoneBindingDialog({
                 </button>
                 {step === 'phone' ? (
                   <>
-                    <div className="mx-5 mb-3 flex items-end gap-2 pt-16 sm:mx-auto sm:w-[335px] sm:items-start sm:gap-4 sm:pl-[9px] sm:pt-[53px]">
-                      <div className="flex h-24 w-[84px] shrink-0 items-end justify-center sm:mt-[21px] sm:h-[99px] sm:w-[95px] sm:items-center">
-                        <img
-                          src={isDark ? bindPhoneCatDark : bindPhoneCatLight}
-                          alt=""
-                          width={isDark ? 95 : 89}
-                          height={isDark ? 99 : 93}
-                          className="pointer-events-none max-h-full w-auto max-w-full object-contain"
-                        />
-                      </div>
+                    {/* The header ends at the input edge and clips the cat there. */}
+                    <div className="relative mx-5 flex items-end gap-2 overflow-hidden pt-16 sm:mx-auto sm:min-h-[146px] sm:w-[335px] sm:items-start sm:pl-[120px] sm:pt-[53px]">
+                      <img
+                        src={isDark ? bindPhoneCatDark : bindPhoneCatLight}
+                        alt=""
+                        width={isDark ? 95 : 89}
+                        height={isDark ? 99 : 93}
+                        className={cn(
+                          'pointer-events-none h-24 w-[84px] shrink-0 translate-y-6 object-contain object-bottom sm:absolute sm:translate-y-0',
+                          isDark
+                            ? 'sm:-bottom-[27px] sm:left-[9px] sm:h-[99px] sm:w-[95px]'
+                            : 'sm:-bottom-[24px] sm:left-[12px] sm:h-[93px] sm:w-[89px]'
+                        )}
+                      />
                       <div className="relative mb-4 min-w-0 flex-1 sm:mb-0 sm:max-w-[207px]">
                         <img
                           src={
