@@ -625,7 +625,7 @@ describe('agent 2.1 turns hide the process while streaming', () => {
           id: 'answer',
           status: MessageStatus.STREAMING,
           message: { role: OpenAIMessageRole.ASSISTANT },
-          attrs: { context: { answer_phase: 'answer' } },
+          attrs: { answer_phase: 'answer' },
         }),
       ])
     ).toEqual([
@@ -651,7 +651,7 @@ describe('agent 2.1 turns hide the process while streaming', () => {
           id: 'answer',
           status: MessageStatus.STREAMING,
           message: { role: OpenAIMessageRole.ASSISTANT, content: 'Done' },
-          attrs: { context: { answer_phase: 'answer' } },
+          attrs: { answer_phase: 'answer' },
         }),
       ])
     ).toEqual([
@@ -677,7 +677,7 @@ describe('agent 2.1 turns hide the process while streaming', () => {
             role: OpenAIMessageRole.ASSISTANT,
             content: 'Let me check that.',
           },
-          attrs: { context: { answer_phase: 'process' } },
+          attrs: { answer_phase: 'process' },
         }),
       ])
     ).toEqual([
@@ -691,23 +691,40 @@ describe('agent 2.1 turns hide the process while streaming', () => {
     ]);
   });
 
-  it('falls back to the last content message when a phased turn ends unmarked', () => {
-    expect(
-      describeItems([
-        proUser(),
-        buildMessage({
-          id: 'interim',
-          message: {
-            role: OpenAIMessageRole.ASSISTANT,
-            content: 'Let me check that.',
-          },
-          attrs: { context: { answer_phase: 'process' } },
-        }),
-      ])
-    ).toEqual([
-      { type: 'message', id: 'user', suppressProcessUi: false },
-      { type: 'message', id: 'interim', suppressProcessUi: true },
-    ]);
+  it('keeps process text hidden across EOS and streams only the marked answer', () => {
+    const query = proUser();
+    const interim = answer('interim', 'Let me check that.', {
+      status: MessageStatus.STREAMING,
+      attrs: { answer_phase: 'process' },
+    });
+    const ended = { ...interim, status: MessageStatus.SUCCESS };
+    const starting = answer('final', '', {
+      status: MessageStatus.PENDING,
+      attrs: { answer_phase: 'answer' },
+    });
+    const streaming = answer('final', 'Done', {
+      status: MessageStatus.STREAMING,
+      attrs: { answer_phase: 'answer' },
+    });
+
+    for (const [messages, visibleIds] of [
+      [[query, interim], ['user']],
+      [[query, ended], ['user']],
+      [
+        [query, ended, starting],
+        ['user', 'final'],
+      ],
+      [
+        [query, ended, streaming],
+        ['user', 'final'],
+      ],
+    ] as const) {
+      expect(
+        describeItems([...messages])
+          .filter(item => item.type === 'message')
+          .map(item => item.id)
+      ).toEqual(visibleIds);
+    }
   });
 
   it('treats an image-only prompt as a pro turn', () => {

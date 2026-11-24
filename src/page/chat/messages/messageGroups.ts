@@ -86,13 +86,13 @@ function isRunningMessage(message: MessageDetail) {
 function isAnswerPhase(message: MessageDetail) {
   return (
     message.message.role === OpenAIMessageRole.ASSISTANT &&
-    message.attrs?.context?.answer_phase === 'answer'
+    message.attrs?.answer_phase === 'answer'
   );
 }
 
-/** Phased turns never fall back to interim text while they are still running. */
+/** Phased turns never fall back to known interim text. */
 function isPhasedMessage(message: MessageDetail) {
-  return message.attrs?.context?.answer_phase !== undefined;
+  return message.attrs?.answer_phase !== undefined;
 }
 
 function isAnswerCandidate(message: MessageDetail) {
@@ -182,7 +182,7 @@ function pushHiddenProcessItems(
   const markedAnswer = [...turn].reverse().find(isAnswerPhase);
   const answer =
     markedAnswer ??
-    (turn.some(isPhasedMessage) && turnIsRunning
+    (turn.some(isPhasedMessage)
       ? undefined
       : [...turn].reverse().find(isAnswerCandidate));
   const turnRunning = !answer && turnIsRunning;

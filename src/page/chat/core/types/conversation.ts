@@ -80,14 +80,7 @@ export interface MessageAttrs {
       url?: string;
     };
   };
-  /**
-   * Wizard stream metadata. `answer_phase` marks every assistant message of an
-   * agent turn: `process` for tool-phase text, `answer` for the final call.
-   */
-  context?: {
-    answer_phase?: 'process' | 'answer';
-    [key: string]: unknown;
-  };
+  answer_phase?: 'process' | 'answer';
   // frontend only
   composer?: {
     display_parts?: ChatMessageDisplayPart[];
