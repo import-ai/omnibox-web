@@ -21,6 +21,7 @@ import {
   hasUnfinishedTurn,
   interruptionPlan,
   isLocalRequestMessage,
+  isLocalUserRequestMessage,
   isReplyComplete,
   mergeRecoverySnapshot,
   resumeStreamCursor,
@@ -156,15 +157,26 @@ export default function useChatStreamRecovery(
       if (plan) {
         let messageId = plan.messageId;
         if (plan.assistantParentId) {
-          messageId = uuidv4();
+          // Reuse the local reply an earlier interruption pass added under the
+          // same parent instead of stacking a second one.
+          const existing = Object.values(conversationRef.current.mapping).find(
+            message =>
+              message.parent_id === plan.assistantParentId &&
+              message.message.role === OpenAIMessageRole.ASSISTANT &&
+              isLocalRequestMessage(message)
+          );
+          messageId = existing?.id ?? uuidv4();
+          // Re-adding keeps the view on the reply (the merge above may have
+          // moved it to the server's question) and resets its status so the
+          // error below is applied once more.
           messageOperator.add({
             response_type: 'bos',
             id: messageId,
             role: OpenAIMessageRole.ASSISTANT,
             parentId: plan.assistantParentId,
-            created_at: new Date().toISOString(),
-            // Client-only: snapshot/refresh must look below its parent, never
-            // use it as a server branch.
+            created_at: existing?.created_at ?? new Date().toISOString(),
+            // Client-only: snapshot/refresh must look below its parent,
+            // never use it as a server branch.
             attrs: { client_request_id: messageId },
           });
         }
@@ -274,7 +286,9 @@ export default function useChatStreamRecovery(
             const leafBefore = activeLeaf(before);
             const requestId =
               params.pendingRequestId ??
-              (isLocalRequestMessage(leafBefore) ? leafBefore?.id : undefined);
+              (isLocalUserRequestMessage(leafBefore)
+                ? leafBefore?.id
+                : undefined);
 
             // Read the server only to decide whether the turn is still
             // running. Merging its text here would make the resume below
@@ -360,7 +374,7 @@ export default function useChatStreamRecovery(
               attempt += 1;
               if (attempt >= MAX_RECOVERY_ATTEMPTS) {
                 if (
-                  isLocalRequestMessage(
+                  isLocalUserRequestMessage(
                     activeLeaf(optionsRef.current.conversationRef.current)
                   )
                 )
