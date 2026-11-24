@@ -22,6 +22,12 @@
         "cta": "购买加油包"
       }
     },
+    "credits_low": {
+      "title": "猫粮快用完啦",
+      "description": "获取更多投喂小黑",
+      "cta": "了解高级版",
+      "non_owner_description": "猫粮快用完啦"
+    },
     "credits_limit": {
       "basic": {
         "title": "猫粮吃光啦！",
@@ -1209,6 +1215,13 @@
       "expand_button": "购买",
       "upgrade_button": "升级",
       "buy_button": "购买"
+    },
+    "credits_low": {
+      "title": "猫粮快用完啦",
+      "owner_description": "获取更多投喂小黑",
+      "non_owner_description": "请联系空间所有者购买",
+      "buy_button": "购买",
+      "acknowledge_button": "我知道了"
     },
     "trial": {
       "not_owner": "请联系空间所有者进行升级"

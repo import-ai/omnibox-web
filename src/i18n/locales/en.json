@@ -22,6 +22,12 @@
         "cta": "Buy a Kibble Pack"
       }
     },
+    "credits_low": {
+      "title": "Kibble is running low",
+      "description": "Get more Kibble to keep feeding the black cat",
+      "cta": "Explore Premium",
+      "non_owner_description": "Kibble is running low"
+    },
     "credits_limit": {
       "basic": {
         "title": "Kibble's all gone!",
@@ -1208,6 +1214,13 @@
       "expand_button": "Purchase",
       "upgrade_button": "Upgrade",
       "buy_button": "Buy"
+    },
+    "credits_low": {
+      "title": "Kibble is running low",
+      "owner_description": "Get more Kibble to keep feeding the black cat",
+      "non_owner_description": "Please contact the namespace owner to purchase",
+      "buy_button": "Buy",
+      "acknowledge_button": "Got it"
     },
     "trial": {
       "not_owner": "Please contact namespace owner to upgrade"
