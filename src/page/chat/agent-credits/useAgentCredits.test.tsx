@@ -126,14 +126,13 @@ describe('useAgentCredits', () => {
   });
 
   it.each([MessageStatus.SUCCESS, MessageStatus.STOPPED, MessageStatus.FAILED])(
-    'refreshes a %s reply and rechecks when the first read predates billing',
+    'reconciles a %s reply billed after the early rechecks',
     async status => {
       jest.useFakeTimers();
+      const visibility = jest.spyOn(document, 'visibilityState', 'get');
       try {
-        mockGet
-          .mockResolvedValueOnce(credits(51_000_000))
-          .mockResolvedValueOnce(credits(51_000_000))
-          .mockResolvedValueOnce(credits(45_000_000));
+        let balance = 51_000_000;
+        mockGet.mockImplementation(async () => credits(balance));
         const assistant = message('a1', OpenAIMessageRole.ASSISTANT, 'hello');
 
         await act(async () =>
@@ -161,12 +160,25 @@ describe('useAgentCredits', () => {
         expect(container.textContent).toBe('51000000');
 
         await act(async () => jest.advanceTimersByTimeAsync(1000));
+        await act(async () => jest.advanceTimersByTimeAsync(2000));
+        expect(mockGet).toHaveBeenCalledTimes(4);
+        expect(container.textContent).toBe('51000000');
+
+        await act(async () => jest.advanceTimersByTimeAsync(1000));
+        balance = 45_000_000;
+        await act(async () => jest.advanceTimersByTimeAsync(11_000));
         expect(container.textContent).toBe('45000000');
 
+        visibility.mockReturnValue('hidden');
+        await act(async () => jest.advanceTimersByTimeAsync(15_000));
+        expect(mockGet).toHaveBeenCalledTimes(5);
+
+        visibility.mockRestore();
         await act(async () => root.unmount());
-        await act(async () => jest.advanceTimersByTimeAsync(3000));
-        expect(mockGet).toHaveBeenCalledTimes(3);
+        await act(async () => jest.advanceTimersByTimeAsync(15_000));
+        expect(mockGet).toHaveBeenCalledTimes(5);
       } finally {
+        visibility.mockRestore();
         jest.useRealTimers();
       }
     }

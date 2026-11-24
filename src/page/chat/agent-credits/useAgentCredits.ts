@@ -9,6 +9,7 @@ import { MessageDetail } from '@/page/chat/core/types/conversation';
 
 // Billing is asynchronous even after the reply reaches a terminal status.
 const SETTLEMENT_RECHECK_DELAYS_MS = [1000, 3000];
+const FOREGROUND_RECONCILE_INTERVAL_MS = 15_000;
 
 export interface AgentCreditsResponseDto {
   agent_credits_total: number;
@@ -66,12 +67,30 @@ export function useAgentCredits(
     const shouldRecheck =
       previous.namespaceId === namespaceId && count > previous.count;
     lastRefreshRef.current = { namespaceId, count };
-    const refresh = () => void fetchAgentCredits().catch(() => undefined);
-    refresh();
+    let refreshing = false;
+    const refresh = async () => {
+      if (refreshing || document.visibilityState === 'hidden') return;
+      refreshing = true;
+      try {
+        await fetchAgentCredits();
+      } catch {
+        // Keep the last successful balance and try again on the next refresh.
+      } finally {
+        refreshing = false;
+      }
+    };
+    void refresh();
     const timers = shouldRecheck
       ? SETTLEMENT_RECHECK_DELAYS_MS.map(delay => setTimeout(refresh, delay))
       : [];
-    return () => timers.forEach(clearTimeout);
+    const reconciliation =
+      count > 0
+        ? setInterval(refresh, FOREGROUND_RECONCILE_INTERVAL_MS)
+        : undefined;
+    return () => {
+      timers.forEach(clearTimeout);
+      clearInterval(reconciliation);
+    };
   }, [settledAssistantIds.length, enabled, fetchAgentCredits, namespaceId]);
 
   useEffect(() => {
