@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { http } from '@/lib/request';
+import { http, type RequestConfig } from '@/lib/request';
 import {
   isTerminalMessageStatus,
   OpenAIMessageRole,
@@ -10,6 +10,9 @@ import { MessageDetail } from '@/page/chat/core/types/conversation';
 // Billing is asynchronous even after the reply reaches a terminal status.
 const SETTLEMENT_RECHECK_DELAYS_MS = [1000, 3000];
 const FOREGROUND_RECONCILE_INTERVAL_MS = 15_000;
+const automaticRecheckConfig: RequestConfig = {
+  muteWhen: error => !error.response || error.response.status >= 500,
+};
 
 export interface AgentCreditsResponseDto {
   agent_credits_total: number;
@@ -29,18 +32,24 @@ export function useAgentCredits(
   const lastRefreshRef = useRef({ namespaceId, count: 0 });
   const fetchGenerationRef = useRef(0);
 
-  const fetchAgentCredits = useCallback(() => {
-    const fetchGeneration = ++fetchGenerationRef.current;
-    return http
-      .get<AgentCreditsResponseDto>(`/namespaces/${namespaceId}/usages/agent`)
-      .then(data => {
-        if (fetchGeneration !== fetchGenerationRef.current) {
-          return undefined;
-        }
-        setSnapshot({ namespaceId, credits: data });
-        return data;
-      });
-  }, [namespaceId]);
+  const fetchAgentCredits = useCallback(
+    (config?: RequestConfig) => {
+      const fetchGeneration = ++fetchGenerationRef.current;
+      return http
+        .get<AgentCreditsResponseDto>(
+          `/namespaces/${namespaceId}/usages/agent`,
+          config
+        )
+        .then(data => {
+          if (fetchGeneration !== fetchGenerationRef.current) {
+            return undefined;
+          }
+          setSnapshot({ namespaceId, credits: data });
+          return data;
+        });
+    },
+    [namespaceId]
+  );
 
   useEffect(() => {
     fetchGenerationRef.current += 1;
@@ -68,11 +77,11 @@ export function useAgentCredits(
       previous.namespaceId === namespaceId && count > previous.count;
     lastRefreshRef.current = { namespaceId, count };
     let refreshing = false;
-    const refresh = async () => {
+    const refresh = async (config?: RequestConfig) => {
       if (refreshing || document.visibilityState === 'hidden') return;
       refreshing = true;
       try {
-        await fetchAgentCredits();
+        await fetchAgentCredits(config);
       } catch {
         // Keep the last successful balance and try again on the next refresh.
       } finally {
@@ -80,12 +89,13 @@ export function useAgentCredits(
       }
     };
     void refresh();
+    const recheck = () => void refresh(automaticRecheckConfig);
     const timers = shouldRecheck
-      ? SETTLEMENT_RECHECK_DELAYS_MS.map(delay => setTimeout(refresh, delay))
+      ? SETTLEMENT_RECHECK_DELAYS_MS.map(delay => setTimeout(recheck, delay))
       : [];
     const reconciliation =
       count > 0
-        ? setInterval(refresh, FOREGROUND_RECONCILE_INTERVAL_MS)
+        ? setInterval(recheck, FOREGROUND_RECONCILE_INTERVAL_MS)
         : undefined;
     return () => {
       timers.forEach(clearTimeout);

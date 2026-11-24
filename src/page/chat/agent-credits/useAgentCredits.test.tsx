@@ -3,15 +3,24 @@
 import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
+import { toast } from 'sonner';
 
-import { http } from '@/lib/request';
+import { http, type RequestConfig } from '@/lib/request';
 import {
   MessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
+import { removeGlobalCredential } from '@/page/user/util';
 
 import { useAgentCredits } from './useAgentCredits';
+
+jest.mock('lodash-es', () => ({
+  isUndefined: (value: unknown) => value === undefined,
+}));
+jest.mock('sonner', () => ({ toast: { error: jest.fn() } }));
+jest.mock('@/const', () => ({ API_BASE_URL: '/api/v1' }));
+jest.mock('@/page/user/util', () => ({ removeGlobalCredential: jest.fn() }));
 
 jest.mock('@/lib/request', () => ({
   http: {
@@ -79,7 +88,8 @@ describe('useAgentCredits', () => {
 
     expect(mockGet).toHaveBeenCalledTimes(1);
     expect(mockGet).toHaveBeenCalledWith(
-      '/namespaces/namespace-a/usages/agent'
+      '/namespaces/namespace-a/usages/agent',
+      undefined
     );
     expect(container.textContent).toBe('4200');
   });
@@ -183,6 +193,53 @@ describe('useAgentCredits', () => {
       }
     }
   );
+
+  it('silences transient recheck failures without suppressing expired sessions', async () => {
+    jest.useFakeTimers();
+    try {
+      const realHttp =
+        jest.requireActual<typeof import('@/lib/request')>(
+          '@/lib/request'
+        ).http;
+      let failure: number | undefined;
+      mockGet.mockResolvedValue(credits(51_000_000));
+      await act(async () =>
+        root.render(
+          <Harness
+            namespaceId="namespace-a"
+            messages={[message('a1', OpenAIMessageRole.ASSISTANT, 'hello')]}
+          />
+        )
+      );
+
+      mockGet.mockImplementation((url: string, config?: RequestConfig) =>
+        realHttp.get(url, {
+          ...config,
+          adapter: async requestConfig => {
+            throw Object.assign(new Error('Request failed'), {
+              config: requestConfig,
+              status: failure,
+              response: failure ? { status: failure, data: {} } : undefined,
+            });
+          },
+        })
+      );
+
+      await act(async () => jest.advanceTimersByTimeAsync(1000));
+      failure = 503;
+      await act(async () => jest.advanceTimersByTimeAsync(2000));
+      await act(async () => jest.advanceTimersByTimeAsync(12_000));
+      expect(mockGet).toHaveBeenCalledTimes(5);
+      expect(toast.error).not.toHaveBeenCalled();
+      expect(container.textContent).toBe('51000000');
+
+      failure = 401;
+      await act(async () => jest.advanceTimersByTimeAsync(15_000));
+      expect(removeGlobalCredential).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 
   it('ignores a response that resolves after the namespace changed', async () => {
     let resolveStale!: (value: {
