@@ -2,10 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { http } from '@/lib/request';
 import {
-  MessageStatus,
+  isTerminalMessageStatus,
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
+
+// Billing is asynchronous even after the reply reaches a terminal status.
+const SETTLEMENT_RECHECK_DELAYS_MS = [1000, 3000];
 
 export interface AgentCreditsResponseDto {
   agent_credits_total: number;
@@ -17,11 +20,12 @@ export function useAgentCredits(
   messages: MessageDetail[],
   enabled = true
 ) {
-  const [agentCredits, setAgentCredits] = useState<
-    AgentCreditsResponseDto | undefined
+  const [snapshot, setSnapshot] = useState<
+    { namespaceId: string; credits: AgentCreditsResponseDto } | undefined
   >();
 
-  const [assistantMessageIds, setAssistantMessageIds] = useState<string[]>([]);
+  const [settledAssistantIds, setSettledAssistantIds] = useState<string[]>([]);
+  const lastRefreshRef = useRef({ namespaceId, count: 0 });
   const fetchGenerationRef = useRef(0);
 
   const fetchAgentCredits = useCallback(() => {
@@ -32,44 +36,43 @@ export function useAgentCredits(
         if (fetchGeneration !== fetchGenerationRef.current) {
           return undefined;
         }
-        setAgentCredits(data);
+        setSnapshot({ namespaceId, credits: data });
         return data;
       });
   }, [namespaceId]);
 
   useEffect(() => {
     fetchGenerationRef.current += 1;
-    setAgentCredits(undefined);
+    setSnapshot(undefined);
   }, [enabled, namespaceId]);
 
   useEffect(() => {
-    let lastUserMessage: MessageDetail | undefined = undefined;
     for (const message of messages) {
       if (
         message.message.role === OpenAIMessageRole.ASSISTANT &&
-        message.status !== MessageStatus.PENDING &&
-        lastUserMessage !== undefined
+        isTerminalMessageStatus(message.status)
       ) {
-        setAssistantMessageIds(prev => {
-          if (!prev.includes(message.id)) {
-            return [...prev, message.id];
-          }
-          return prev;
-        });
-      } else if (
-        message.message.role === OpenAIMessageRole.USER &&
-        message.status === MessageStatus.SUCCESS &&
-        message.message.content
-      ) {
-        lastUserMessage = message;
+        setSettledAssistantIds(prev =>
+          prev.includes(message.id) ? prev : [...prev, message.id]
+        );
       }
     }
-  }, [messages, setAssistantMessageIds]);
+  }, [messages]);
 
   useEffect(() => {
-    if (!enabled) return;
-    void fetchAgentCredits();
-  }, [assistantMessageIds.length, enabled, fetchAgentCredits]);
+    if (!enabled || !namespaceId) return;
+    const previous = lastRefreshRef.current;
+    const count = settledAssistantIds.length;
+    const shouldRecheck =
+      previous.namespaceId === namespaceId && count > previous.count;
+    lastRefreshRef.current = { namespaceId, count };
+    const refresh = () => void fetchAgentCredits().catch(() => undefined);
+    refresh();
+    const timers = shouldRecheck
+      ? SETTLEMENT_RECHECK_DELAYS_MS.map(delay => setTimeout(refresh, delay))
+      : [];
+    return () => timers.forEach(clearTimeout);
+  }, [settledAssistantIds.length, enabled, fetchAgentCredits, namespaceId]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -84,6 +87,9 @@ export function useAgentCredits(
   }, [enabled, fetchAgentCredits]);
 
   return {
-    agentCredits,
+    agentCredits:
+      enabled && snapshot?.namespaceId === namespaceId
+        ? snapshot.credits
+        : undefined,
   };
 }

@@ -125,6 +125,53 @@ describe('useAgentCredits', () => {
     expect(container.textContent).toBe('0');
   });
 
+  it.each([MessageStatus.SUCCESS, MessageStatus.STOPPED, MessageStatus.FAILED])(
+    'refreshes a %s reply and rechecks when the first read predates billing',
+    async status => {
+      jest.useFakeTimers();
+      try {
+        mockGet
+          .mockResolvedValueOnce(credits(51_000_000))
+          .mockResolvedValueOnce(credits(51_000_000))
+          .mockResolvedValueOnce(credits(45_000_000));
+        const assistant = message('a1', OpenAIMessageRole.ASSISTANT, 'hello');
+
+        await act(async () =>
+          root.render(<Harness namespaceId="namespace-a" messages={[]} />)
+        );
+        await act(async () =>
+          root.render(
+            <Harness
+              namespaceId="namespace-a"
+              messages={[{ ...assistant, status: MessageStatus.STREAMING }]}
+            />
+          )
+        );
+        expect(mockGet).toHaveBeenCalledTimes(1);
+
+        await act(async () =>
+          root.render(
+            <Harness
+              namespaceId="namespace-a"
+              messages={[{ ...assistant, status }]}
+            />
+          )
+        );
+        expect(mockGet).toHaveBeenCalledTimes(2);
+        expect(container.textContent).toBe('51000000');
+
+        await act(async () => jest.advanceTimersByTimeAsync(1000));
+        expect(container.textContent).toBe('45000000');
+
+        await act(async () => root.unmount());
+        await act(async () => jest.advanceTimersByTimeAsync(3000));
+        expect(mockGet).toHaveBeenCalledTimes(3);
+      } finally {
+        jest.useRealTimers();
+      }
+    }
+  );
+
   it('ignores a response that resolves after the namespace changed', async () => {
     let resolveStale!: (value: {
       agent_credits_total: number;
