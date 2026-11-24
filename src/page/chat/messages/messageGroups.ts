@@ -254,7 +254,9 @@ function getTurnQuery(turn: MessageDetail[]) {
 
 function pushTurn(turn: MessageDetail[], result: MessageDisplayItem[]) {
   const query = getTurnQuery(turn);
-  if (query && isProTurn(query)) {
+  // The server marker is authoritative: a phased turn hides its process even
+  // when the client never stored `edition` on the user message.
+  if (turn.some(isPhasedMessage) || (query && isProTurn(query))) {
     pushHiddenProcessItems(turn, result);
     return;
   }

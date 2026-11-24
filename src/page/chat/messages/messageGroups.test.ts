@@ -727,6 +727,45 @@ describe('agent 2.1 turns hide the process while streaming', () => {
     }
   });
 
+  it('hides the process when phase markers arrive without edition', () => {
+    expect(
+      describeItems([
+        buildMessage({
+          id: 'user',
+          message: { role: OpenAIMessageRole.USER, content: 'Question?' },
+        }),
+        buildMessage({
+          id: 'interim',
+          message: {
+            role: OpenAIMessageRole.ASSISTANT,
+            content: 'Let me check that.',
+          },
+          attrs: { answer_phase: 'process' },
+        }),
+        buildMessage({
+          id: 'tool',
+          message: { role: OpenAIMessageRole.TOOL },
+          attrs: { answer_phase: 'process' },
+        }),
+        buildMessage({
+          id: 'answer',
+          status: MessageStatus.STREAMING,
+          message: { role: OpenAIMessageRole.ASSISTANT, content: 'Done' },
+          attrs: { answer_phase: 'answer' },
+        }),
+      ])
+    ).toEqual([
+      { type: 'message', id: 'user', suppressProcessUi: false },
+      {
+        type: 'process',
+        ids: ['interim', 'tool'],
+        finalMessageId: 'answer',
+        running: false,
+      },
+      { type: 'message', id: 'answer', suppressProcessUi: true },
+    ]);
+  });
+
   it('treats an image-only prompt as a pro turn', () => {
     expect(
       describeItems([
