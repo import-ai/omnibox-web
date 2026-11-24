@@ -244,13 +244,17 @@ export function InvitePhoneBindingDialog({
                 </button>
                 {step === 'phone' ? (
                   <>
-                    <div className="flex items-end gap-2 px-5 pt-16 sm:hidden">
-                      <img
-                        src={isDark ? bindPhoneCatDark : bindPhoneCatLight}
-                        alt=""
-                        className="relative z-0 h-24 w-[84px] shrink-0 translate-y-6 object-contain object-bottom"
-                      />
-                      <div className="relative mb-4 min-w-0 flex-1">
+                    <div className="mx-5 mb-3 flex items-end gap-2 pt-16 sm:mx-auto sm:w-[335px] sm:items-start sm:gap-4 sm:pl-[9px] sm:pt-[53px]">
+                      <div className="flex h-24 w-[84px] shrink-0 items-end justify-center sm:mt-[21px] sm:h-[99px] sm:w-[95px] sm:items-center">
+                        <img
+                          src={isDark ? bindPhoneCatDark : bindPhoneCatLight}
+                          alt=""
+                          width={isDark ? 95 : 89}
+                          height={isDark ? 99 : 93}
+                          className="pointer-events-none max-h-full w-auto max-w-full object-contain"
+                        />
+                      </div>
+                      <div className="relative mb-4 min-w-0 flex-1 sm:mb-0 sm:max-w-[207px]">
                         <img
                           src={
                             isDark ? bindPhoneBubbleDark : bindPhoneBubbleLight
@@ -258,39 +262,14 @@ export function InvitePhoneBindingDialog({
                           alt=""
                           className="pointer-events-none absolute inset-0 h-full w-full"
                         />
-                        <p className="relative py-4 pl-6 pr-4 text-sm font-medium leading-[18px] text-muted-foreground dark:text-foreground">
+                        <p className="relative py-4 pl-6 pr-4 text-sm font-medium leading-[18px] text-muted-foreground sm:min-h-[71px] sm:pl-[41px] sm:pr-5 dark:text-foreground">
                           {t('inviteReferral.phoneBinding.bubble')}
                         </p>
                       </div>
                     </div>
-                    <img
-                      src={isDark ? bindPhoneCatDark : bindPhoneCatLight}
-                      alt=""
-                      width={isDark ? 95 : 89}
-                      height={isDark ? 99 : 93}
-                      className={cn(
-                        'pointer-events-none absolute z-0 hidden object-contain sm:block',
-                        isDark
-                          ? 'left-[97px] top-[74px] h-[99px] w-[95px]'
-                          : 'left-[100px] top-[77px] h-[93px] w-[89px]'
-                      )}
-                    />
-                    <div className="pointer-events-none absolute left-[208px] top-[53px] z-20 hidden h-[71px] w-[215px] sm:block">
-                      <img
-                        src={
-                          isDark ? bindPhoneBubbleDark : bindPhoneBubbleLight
-                        }
-                        alt=""
-                        width={207}
-                        height={71}
-                      />
-                      <p className="absolute left-[41px] top-[17px] w-[146px] text-[14px] font-medium leading-[18px] text-muted-foreground dark:text-foreground">
-                        {t('inviteReferral.phoneBinding.bubble')}
-                      </p>
-                    </div>
                     <Form {...form}>
                       <form
-                        className="relative z-10 mx-5 min-w-0 pb-5 sm:ml-[88px] sm:mr-0 sm:w-[335px] sm:pt-[146px]"
+                        className="mx-5 min-w-0 pb-5 sm:mx-auto sm:w-[335px]"
                         onSubmit={form.handleSubmit(
                           values => void handleSendCode(values.phone)
                         )}
