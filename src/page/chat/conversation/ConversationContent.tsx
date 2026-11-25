@@ -162,6 +162,7 @@ export function ConversationFooter({
           <CreditsLowBalanceNotice
             namespaceId={context.namespaceId}
             remainingCredits={agentCredits?.agent_credits_remain}
+            experiment={agentCredits?.low_balance_experiment}
             selectedEdition={thinkingSelection?.edition}
           />
         )}

@@ -7,6 +7,8 @@ import {
 } from '@/page/chat/core/types/chatResponse.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
 
+import type { CreditsLowBalanceExperiment } from '../credits-low-balance/creditsLowBalance';
+
 // Billing is asynchronous even after the reply reaches a terminal status.
 const SETTLEMENT_RECHECK_DELAYS_MS = [1000, 3000];
 const FOREGROUND_RECONCILE_INTERVAL_MS = 15_000;
@@ -17,6 +19,7 @@ const automaticRecheckConfig: RequestConfig = {
 export interface AgentCreditsResponseDto {
   agent_credits_total: number;
   agent_credits_remain: number;
+  low_balance_experiment?: CreditsLowBalanceExperiment;
 }
 
 export function useAgentCredits(

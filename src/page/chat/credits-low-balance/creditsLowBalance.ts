@@ -2,34 +2,40 @@ import { NamespaceTier } from '@/interface';
 
 const CREDIT_SCALE = 1_000_000;
 
-export const BASIC_CREDITS_LOW_THRESHOLD = {
-  a: 10,
-  b: 50,
-} as const;
-export const PREMIUM_CREDITS_LOW_THRESHOLD = 430;
-
-export type CreditsLowBalanceVariant = 'a' | 'b' | 'premium';
+export type CreditsLowBalanceVariant = string;
 export type CreditsLowBalanceSurface = 'banner' | 'modal';
 
-export function getCreditsLowBalanceVariant(
-  tier: NamespaceTier,
-  userId: string
-): CreditsLowBalanceVariant {
-  if (tier === NamespaceTier.PREMIUM) return 'premium';
-  let hash = 2166136261;
-  const value = userId || 'anonymous';
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0) % 2 === 0 ? 'a' : 'b';
+export interface CreditsLowBalanceExperiment {
+  experiment_id: number;
+  group_id: number;
+  basic_threshold?: number;
+  pro_threshold?: number;
 }
 
-export function getCreditsLowBalanceThresholdCredits(
-  variant: CreditsLowBalanceVariant
+export function resolveCreditsLowBalance(
+  tier: NamespaceTier,
+  experiment?: CreditsLowBalanceExperiment
 ) {
-  if (variant === 'premium') return PREMIUM_CREDITS_LOW_THRESHOLD;
-  return BASIC_CREDITS_LOW_THRESHOLD[variant];
+  const premium = tier === NamespaceTier.PREMIUM;
+  const threshold = premium
+    ? experiment?.pro_threshold
+    : experiment?.basic_threshold;
+  if (
+    experiment &&
+    typeof threshold === 'number' &&
+    Number.isFinite(threshold) &&
+    threshold > 0 &&
+    threshold <= Number.MAX_SAFE_INTEGER / CREDIT_SCALE
+  ) {
+    return {
+      variant: `ab:${experiment.experiment_id}:${experiment.group_id}`,
+      thresholdCredits: threshold,
+    };
+  }
+  return {
+    variant: 'default',
+    thresholdCredits: premium ? 430 : 10,
+  };
 }
 
 export function creditsToStoredUnits(credits: number) {

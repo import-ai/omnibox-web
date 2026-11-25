@@ -7,10 +7,9 @@ import {
   creditsLowBalanceAnalyticsProps,
   creditsToStoredUnits,
   getCreditsLowBalanceDismissalKey,
-  getCreditsLowBalanceThresholdCredits,
-  getCreditsLowBalanceVariant,
   isCreditsLowBalance,
   readCreditsLowBalanceDismissed,
+  resolveCreditsLowBalance,
   storedUnitsToCredits,
   writeCreditsLowBalanceDismissed,
 } from './creditsLowBalance';
@@ -20,22 +19,21 @@ describe('credits low balance', () => {
     localStorage.clear();
   });
 
-  it('assigns Basic users to stable 10 or 50 Kibble buckets', () => {
-    expect(getCreditsLowBalanceVariant(NamespaceTier.BASIC, 'user-a')).toBe(
-      'a'
+  it('uses the assigned threshold and falls back per tier', () => {
+    const experiment = { experiment_id: 4, group_id: 8, basic_threshold: 50 };
+    expect(resolveCreditsLowBalance(NamespaceTier.BASIC, experiment)).toEqual({
+      variant: 'ab:4:8',
+      thresholdCredits: 50,
+    });
+    expect(resolveCreditsLowBalance(NamespaceTier.PREMIUM, experiment)).toEqual(
+      {
+        variant: 'default',
+        thresholdCredits: 430,
+      }
     );
-    expect(getCreditsLowBalanceVariant(NamespaceTier.BASIC, 'user-b')).toBe(
-      'b'
+    expect(resolveCreditsLowBalance(NamespaceTier.BASIC).thresholdCredits).toBe(
+      10
     );
-    expect(getCreditsLowBalanceThresholdCredits('a')).toBe(10);
-    expect(getCreditsLowBalanceThresholdCredits('b')).toBe(50);
-  });
-
-  it('uses a fixed 430 Kibble threshold for Premium', () => {
-    expect(getCreditsLowBalanceVariant(NamespaceTier.PREMIUM, 'user-a')).toBe(
-      'premium'
-    );
-    expect(getCreditsLowBalanceThresholdCredits('premium')).toBe(430);
   });
 
   it('only treats a positive balance below the threshold as low', () => {

@@ -15,12 +15,12 @@ import { subscribeCredentials } from '@/page/user/util';
 
 import {
   clearCreditsLowBalanceDismissed,
+  type CreditsLowBalanceExperiment,
   creditsToStoredUnits,
   getCreditsLowBalanceDismissalKey,
-  getCreditsLowBalanceThresholdCredits,
-  getCreditsLowBalanceVariant,
   isCreditsLowBalance,
   readCreditsLowBalanceDismissed,
+  resolveCreditsLowBalance,
   writeCreditsLowBalanceDismissed,
 } from './creditsLowBalance';
 import { CreditsLowBalanceBanner } from './CreditsLowBalanceBanner';
@@ -28,6 +28,7 @@ import { CreditsLowBalanceBanner } from './CreditsLowBalanceBanner';
 interface CreditsLowBalanceNoticeProps {
   namespaceId?: string;
   remainingCredits?: number;
+  experiment?: CreditsLowBalanceExperiment;
   selectedEdition?: 'basic' | 'pro';
 }
 
@@ -50,6 +51,7 @@ function getServerUserId() {
 export function CreditsLowBalanceNotice({
   namespaceId,
   remainingCredits,
+  experiment,
   selectedEdition,
 }: CreditsLowBalanceNoticeProps) {
   const userId = useSyncExternalStore(
@@ -71,8 +73,10 @@ export function CreditsLowBalanceNotice({
     !namespaceId ||
     namespace?.is_owner !== undefined ||
     (resolvedId === namespaceId && !roleLoading);
-  const variant = getCreditsLowBalanceVariant(tier, userId);
-  const thresholdCredits = getCreditsLowBalanceThresholdCredits(variant);
+  const { variant, thresholdCredits } = resolveCreditsLowBalance(
+    tier,
+    experiment
+  );
   const threshold = creditsToStoredUnits(thresholdCredits);
   const storageKey = namespaceId
     ? getCreditsLowBalanceDismissalKey({

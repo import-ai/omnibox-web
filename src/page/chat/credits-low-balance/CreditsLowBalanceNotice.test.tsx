@@ -105,7 +105,7 @@ describe('CreditsLowBalanceNotice', () => {
       expect.objectContaining({
         namespaceId: 'namespace-a',
         trigger: 'chat_credits_low_balance_modal',
-        experimentVariant: 'a',
+        experimentVariant: 'default',
         thresholdCredits: 10,
         remainingCredits: 9_000_000,
       })
@@ -150,7 +150,7 @@ describe('CreditsLowBalanceNotice', () => {
           namespaceId: 'namespace-a',
           tier: NamespaceTier.PREMIUM,
           userId: 'user-a',
-          variant: 'premium',
+          variant: 'default',
         })
       )
     ).toBe('1');
