@@ -401,6 +401,7 @@ export default function ChatArea(props: IProps) {
       sendMessage={params =>
         sendMessage({
           ...params,
+          approvalMode,
           ...(interruptedTurn?.edition && interruptedTurn.level
             ? { edition: interruptedTurn.edition, level: interruptedTurn.level }
             : {}),

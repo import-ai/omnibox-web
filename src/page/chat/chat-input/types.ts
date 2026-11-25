@@ -95,6 +95,7 @@ export enum AgentRequestChannel {
 }
 
 export interface ChatRequestBody {
+  approval_mode?: ApprovalMode;
   client_request_id?: string;
   conversation_id: string;
   query: string;

@@ -269,6 +269,7 @@ export default function useContext() {
       tools,
       selectedResources,
       mode,
+      approvalMode,
       displayParts,
       decisions,
       recommendedQuestionId,
@@ -383,6 +384,7 @@ export default function useContext() {
             edition,
             level,
             {
+              approvalMode,
               deferPendingInterrupt,
               reportAlreadyDecided: true,
               // A new question continues from the newest message once any
