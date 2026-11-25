@@ -4,6 +4,7 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { registerBehaviorRequestStarter } from '@/lib/behaviorRequest';
 import { setPendingChatPayload } from '@/lib/chatBridge';
 import { getChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import {
@@ -177,9 +178,21 @@ function ConversationProbe({
 describe('useContext conversation cache failures', () => {
   let container: HTMLDivElement;
   let root: Root;
+  let actionStarts = 0;
 
   beforeEach(() => {
     localStorage.setItem('uid', 'user-a');
+    actionStarts = 0;
+    registerBehaviorRequestStarter(
+      type => {
+        actionStarts += 1;
+        return {
+          'x-omnibox-action-id': `action-${actionStarts}`,
+          'x-omnibox-action-type': type,
+        };
+      },
+      () => 'scope'
+    );
     useChatSubmissionStore.setState({ pending: {} });
     sessionStorage.clear();
     clearConversationCache();
@@ -526,6 +539,13 @@ describe('useContext conversation cache failures', () => {
     });
     expect(mockPost).toHaveBeenCalledTimes(2);
     expect(mockPost.mock.calls[0][1]).toEqual(mockPost.mock.calls[1][1]);
+    // The retry reuses the original behavior action instead of starting a
+    // second one that nothing would ever complete.
+    expect(mockPost.mock.calls[0][2]).toEqual(mockPost.mock.calls[1][2]);
+    expect(mockPost.mock.calls[0][2]?.headers['x-omnibox-action-id']).toBe(
+      'action-1'
+    );
+    expect(actionStarts).toBe(1);
   });
 
   it('continues from an approval another client raised after the page loaded', async () => {
@@ -1210,7 +1230,9 @@ describe('useContext conversation cache failures', () => {
     await act(async () => {
       await context().sendMessage({ ...payload, query: draft!.query.trim() });
     });
-    expect(mockPost).toHaveBeenNthCalledWith(2, url, original);
+    expect(mockPost).toHaveBeenNthCalledWith(2, url, original, {
+      headers: mockPost.mock.calls[0][2].headers,
+    });
   });
 
   it('reloads the reply after leaving a new conversation before it finishes', async () => {

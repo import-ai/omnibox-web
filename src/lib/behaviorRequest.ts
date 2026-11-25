@@ -174,3 +174,22 @@ export function behaviorRequestHeaders(
     bounded(actions, headers['x-omnibox-action-id'], scope());
   return headers;
 }
+
+export interface BehaviorCorrelation {
+  scope: string;
+  headers: Record<string, string>;
+}
+
+/** Freeze the action headers of a request that may be retried later. */
+export function captureBehaviorCorrelation(url: string): BehaviorCorrelation {
+  return { scope: scope(), headers: behaviorRequestHeaders('POST', url) };
+}
+
+/** Reuse the frozen headers; another account or a missing id is untracked. */
+export function restoreBehaviorHeaders(
+  value?: BehaviorCorrelation
+): Record<string, string> {
+  return value?.scope === scope() && value.headers['x-omnibox-action-id']
+    ? value.headers
+    : { 'x-omnibox-action-id': 'untracked' };
+}

@@ -7,6 +7,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
 import {
+  type BehaviorCorrelation,
+  captureBehaviorCorrelation,
+  restoreBehaviorHeaders,
+} from '@/lib/behaviorRequest';
+import {
   chatErrorDetails,
   isChatCancellation,
   isTransientChatError,
@@ -671,6 +676,7 @@ export default function useContext() {
     scope: string;
     body: ReturnType<typeof prepareBody>;
     images?: Awaited<ReturnType<typeof resolveConversationImages>>;
+    behavior?: BehaviorCorrelation;
   } | null>(null);
   const submitMessage = async (
     params: SendMessageParams,
@@ -714,6 +720,10 @@ export default function useContext() {
         id: uuidv4(),
         scope: submissionUrl,
         body: content,
+        // Freeze the behavior action before the first POST so a retry with the
+        // same client_request_id does not start a second, never-completed
+        // action.
+        behavior: captureBehaviorCorrelation(submissionUrl + '/messages'),
       };
     const retry = submissionRetry.current;
     retry.images ??= await resolveConversationImages(
@@ -721,11 +731,15 @@ export default function useContext() {
       conversationId,
       params.images
     );
-    const saved = await http.post(submissionUrl + '/messages', {
-      ...retry.body,
-      images: retry.images,
-      client_request_id: retry.id,
-    });
+    const saved = await http.post(
+      submissionUrl + '/messages',
+      {
+        ...retry.body,
+        images: retry.images,
+        client_request_id: retry.id,
+      },
+      { headers: restoreBehaviorHeaders(retry.behavior) }
+    );
     const parts = withUploadedImageParts(params.displayParts, retry.images);
     if (parts) cacheMessageDisplayParts(saved.id ?? retry.id, parts);
     submissionRetry.current = null;
