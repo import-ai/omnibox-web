@@ -57,6 +57,7 @@ interface IProps {
   regenerateDisabled?: boolean;
   regenerating?: boolean;
   hideActions?: boolean;
+  stoppedAnswer?: boolean;
   onShare?: (messageId: string) => void;
 }
 
@@ -106,6 +107,7 @@ export function AssistantMessage(props: IProps) {
     regenerateDisabled = false,
     regenerating = false,
     hideActions = false,
+    stoppedAnswer = false,
     onShare,
   } = props;
   const { t } = useTranslation();
@@ -158,12 +160,14 @@ export function AssistantMessage(props: IProps) {
       </Accordion>
     );
   }
-  if (openAIMessage.content?.trim()) {
+  const content = openAIMessage.content?.trim() ?? '';
+  if (content || (stoppedAnswer && !hideActions)) {
     domList.push(
       <CitationMarkdown
         key={'content_' + message.id}
         status={message.status}
-        content={openAIMessage.content?.trim()}
+        content={content}
+        stoppedAnswer={stoppedAnswer}
         citations={citations}
         conversation={conversation}
         messageId={message.id}
@@ -329,6 +333,7 @@ export function AssistantMessage(props: IProps) {
     }
   }
   if (
+    !stoppedAnswer &&
     [MessageStatus.PENDING, MessageStatus.STREAMING].includes(message.status)
   ) {
     // Keep position with action button in citation markdown
