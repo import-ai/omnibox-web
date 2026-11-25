@@ -1,3 +1,5 @@
+import './PaywallDialog.css';
+
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -186,7 +188,8 @@ export function PaywallDialog() {
       }}
     >
       <DialogContent
-        className="w-[337px] max-w-[calc(100vw-32px)] gap-0 rounded-[12px] p-5 [&>[data-slot=dialog-close]]:right-3 [&>[data-slot=dialog-close]]:top-[22px] [&>[data-slot=dialog-close]]:text-muted-foreground [&>[data-slot=dialog-close]]:hover:text-foreground"
+        data-paywall-dialog=""
+        className="w-[337px] max-w-[calc(100vw-32px)] gap-0 rounded-[12px] p-5 ring-0 [&>[data-slot=dialog-close]]:right-3 [&>[data-slot=dialog-close]]:top-[22px] [&>[data-slot=dialog-close]]:text-muted-foreground [&>[data-slot=dialog-close]]:hover:text-foreground"
         aria-describedby={undefined}
         onEscapeKeyDown={() => {
           dismissReasonRef.current = 'escape';

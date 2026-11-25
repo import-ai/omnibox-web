@@ -23,7 +23,7 @@
       }
     },
     "credits_low": {
-      "title": "Kibble is running low",
+      "title": "Kibble is running low!",
       "description": "Get more Kibble to keep feeding the black cat",
       "cta": "Explore Premium",
       "non_owner_description": "Kibble is running low"
