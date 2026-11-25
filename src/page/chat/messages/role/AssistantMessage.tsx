@@ -57,6 +57,7 @@ interface IProps {
   regenerateDisabled?: boolean;
   regenerating?: boolean;
   hideActions?: boolean;
+  expandProcessDetails?: boolean;
   onShare?: (messageId: string) => void;
 }
 
@@ -106,6 +107,7 @@ export function AssistantMessage(props: IProps) {
     regenerateDisabled = false,
     regenerating = false,
     hideActions = false,
+    expandProcessDetails = false,
     onShare,
   } = props;
   const { t } = useTranslation();
@@ -123,7 +125,8 @@ export function AssistantMessage(props: IProps) {
         .map(item => item.id),
     ]);
   };
-  const lazy =
+  const collapseDetailsByDefault =
+    !expandProcessDetails &&
     message.details_loaded !== undefined &&
     isTerminalMessageStatus(message.status);
   const openAIMessage = message.message;
@@ -139,7 +142,9 @@ export function AssistantMessage(props: IProps) {
         type="single"
         collapsible
         key={'reasoning_' + message.id}
-        defaultValue={lazy ? undefined : 'reasoning_' + message.id}
+        defaultValue={
+          collapseDetailsByDefault ? undefined : 'reasoning_' + message.id
+        }
         onValueChange={value => {
           trackButtonClick('chat_reasoning_toggle', { open: Boolean(value) });
           if (value) loadDetails();
@@ -276,7 +281,9 @@ export function AssistantMessage(props: IProps) {
         type="single"
         collapsible
         key={'tool_calls' + message.id}
-        defaultValue={lazy ? undefined : 'tool_calls_' + message.id}
+        defaultValue={
+          collapseDetailsByDefault ? undefined : 'tool_calls_' + message.id
+        }
         onValueChange={value => {
           trackButtonClick('chat_tools_toggle', { open: Boolean(value) });
           if (value) loadDetails();

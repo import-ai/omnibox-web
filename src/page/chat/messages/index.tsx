@@ -73,6 +73,7 @@ function renderMessage(
   isLastMessage: boolean,
   regeneratingParentId: string | null,
   hideActions: boolean,
+  expandProcessDetails: boolean,
   onShareMessage?: (messageId: string) => void
 ) {
   const openAIMessage = message.message;
@@ -111,6 +112,7 @@ function renderMessage(
         regenerateDisabled={Boolean(regeneratingParentId)}
         regenerating={regeneratingParentId === parentId}
         hideActions={hideActions}
+        expandProcessDetails={expandProcessDetails}
         onShare={onShareMessage}
       />
     );
@@ -281,7 +283,7 @@ export function Messages(props: IProps) {
   function renderMessageBlock(
     message: MessageDetail,
     isLastInList: boolean,
-    isFinalReasoning = false
+    { isFinalReasoning = false, expandProcessDetails = false } = {}
   ) {
     if (!hasVisibleMessageContent(message, chatOnly)) {
       return null;
@@ -314,6 +316,7 @@ export function Messages(props: IProps) {
               isLastAssistantMessage,
               regeneratingParentId,
               Boolean(shareSelection?.isSelecting),
+              expandProcessDetails,
               onShareMessage
             );
             const groupId = shareSelection?.messageGroupIds.get(message.id);
@@ -398,7 +401,10 @@ export function Messages(props: IProps) {
                   renderMessageBlock(
                     message,
                     processIndex === visibleProcessMessages.length - 1,
-                    message.id === item.finalMessage.id
+                    {
+                      isFinalReasoning: message.id === item.finalMessage.id,
+                      expandProcessDetails: true,
+                    }
                   )
                 )
               }
