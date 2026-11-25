@@ -3,11 +3,11 @@
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { MessageDetailsContext } from '../conversation/MessageDetailsContext';
 import type { MessageOperator } from '../core/messageOperator';
 import { MessageStatus, OpenAIMessageRole } from '../core/types/chatResponse';
 import type { MessageDetail } from '../core/types/conversation';
-import { Messages } from './index';
+import { Messages } from '../messages';
+import { MessageDetailsContext } from './MessageDetailsContext';
 
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -19,11 +19,11 @@ jest.mock('@/page/chat/components/ToolCallArgs', () => ({
 jest.mock('@/page/localRuntime/ConversationExecutions', () => ({
   ToolCallExecution: () => null,
 }));
-jest.mock('./citations/CitationMarkdown', () => ({
+jest.mock('../messages/citations/CitationMarkdown', () => ({
   CitationMarkdown: () => <p>Final answer</p>,
 }));
-jest.mock('./role/ToolMessage', () => ({ ToolMessage: () => null }));
-jest.mock('./role/UserMessage', () => ({ UserMessage: () => null }));
+jest.mock('../messages/role/ToolMessage', () => ({ ToolMessage: () => null }));
+jest.mock('../messages/role/UserMessage', () => ({ UserMessage: () => null }));
 jest.mock('../share/ConversationShareMessageRow', () => ({
   ConversationShareMessageRow: () => null,
 }));
