@@ -13,8 +13,8 @@
     "storage_limit": {
       "basic": {
         "title": "You've reached the 5 GB storage limit",
-        "description": "Upgrade to Premium to unlock more space",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro to unlock more space",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "You've reached the 50 GB storage limit",
@@ -25,14 +25,14 @@
     "credits_low": {
       "title": "Kibble is running low!",
       "description": "Get more Kibble to keep feeding the black cat",
-      "cta": "Explore Premium",
+      "cta": "Explore Pro",
       "non_owner_description": "Kibble is running low"
     },
     "credits_limit": {
       "basic": {
         "title": "Kibble's all gone!",
-        "description": "Upgrade to Premium for more Kibble",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro for more Kibble",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Kibble's all gone!",
@@ -48,8 +48,8 @@
     "search_filter_limit": {
       "basic": {
         "title": "3-filter limit reached",
-        "description": "Upgrade to Premium for more filters",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro for more filters",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Filter limit reached",
@@ -60,8 +60,8 @@
     "smart_filter_limit": {
       "basic": {
         "title": "3-filter limit reached",
-        "description": "Upgrade to Premium for more filters",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro for more filters",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Filter limit reached",
@@ -72,8 +72,8 @@
     "rss_link_limit": {
       "basic": {
         "title": "Subscription link limit reached",
-        "description": "Upgrade to Premium to unlock more",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro to unlock more",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Subscription link limit reached",
@@ -84,8 +84,8 @@
     "smart_folder_limit": {
       "basic": {
         "title": "Smart folder limit reached",
-        "description": "Upgrade to Premium to unlock more",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro to unlock more",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Smart folder limit reached",
@@ -96,8 +96,8 @@
     "rss_folder_limit": {
       "basic": {
         "title": "Subscription folder limit reached",
-        "description": "Upgrade to Premium to unlock more",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro to unlock more",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Subscription folder limit reached",
@@ -108,7 +108,7 @@
     "namespace_expired": {
       "title": "Namespace expired",
       "description": "Renew or purchase a new namespace",
-      "cta": "Explore Premium"
+      "cta": "Explore Pro"
     }
   },
   "ok": "OK",
@@ -1223,7 +1223,7 @@
       "acknowledge_button": "Got it"
     },
     "trial": {
-      "not_owner": "Please contact namespace owner to upgrade"
+      "not_owner": "Contact owner to purchase"
     },
     "decision": {
       "approve": "Approve",
