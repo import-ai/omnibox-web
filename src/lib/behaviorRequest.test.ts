@@ -30,6 +30,15 @@ it('classifies manual product writes but excludes trace, reads, internal RSS, an
   expect(behaviorRequestKind('POST', '/api/v1/namespaces/ns/wizard/chat')).toBe(
     'ai_conversation'
   );
+  const queuePath =
+    '/api/v1/namespaces/ns/wizard/conversations/conversation/messages';
+  expect(behaviorRequestKind('POST', queuePath)).toBe('ai_conversation');
+  expect(behaviorRequestHeaders('POST', queuePath)).toEqual(
+    expect.objectContaining({
+      'x-omnibox-action-id': expect.stringContaining(scope),
+      'x-omnibox-action-type': 'ai_conversation',
+    })
+  );
   expect(
     behaviorRequestKind('POST', '/internal/api/v1/namespaces/ns/rss-folders')
   ).toBeUndefined();
