@@ -8,7 +8,7 @@
   "close": "Close",
   "paywall": {
     "brand": "OmniBox",
-    "non_owner_title": "Contact the namespace owner to upgrade",
+    "non_owner_title": "Contact owner to purchase",
     "acknowledge": "Got it",
     "storage_limit": {
       "basic": {
@@ -1223,7 +1223,7 @@
       "acknowledge_button": "Got it"
     },
     "trial": {
-      "not_owner": "Contact owner to purchase"
+      "not_owner": "Please contact namespace owner to upgrade"
     },
     "decision": {
       "approve": "Approve",
