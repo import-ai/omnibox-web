@@ -82,7 +82,12 @@ export function rememberBehaviorUpload(
     });
 }
 
-/** Matches only explicit product writes; background synchronization has no registered starter. */
+/**
+ * Matches only explicit product writes; background synchronization has no
+ * registered starter. The route rules are mirrored from
+ * omnibox-backend/src/behavior/behavior-request.ts (and the RN classifier);
+ * keep them in sync.
+ */
 export function behaviorRequestKind(
   method: string,
   url: string,
