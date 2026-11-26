@@ -48,7 +48,12 @@ export function UserMessageImages({
         ))}
       </div>
       <ImagePreviewDialog
-        alt={preview?.name}
+        items={images.map(image => ({
+          id: image.attachment_id,
+          src: image.preview_url,
+          alt: image.name,
+        }))}
+        initialItemId={preview?.attachment_id}
         open={preview !== null}
         src={preview?.preview_url}
         invokerRef={invokerRef}

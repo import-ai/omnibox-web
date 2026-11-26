@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { ExtraProps } from 'react-markdown';
 import { useParams } from 'react-router-dom';
 
 import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
@@ -7,14 +8,16 @@ import { trackButtonClick } from '@/lib/trackButtonClick';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
 import { resolveChatImageUrl } from './chatImageUrl';
+import { getMarkdownImageGallery } from './markdownImageGallery';
 
 export function ChatMarkdownImage({
   src,
   alt,
+  node,
 }: {
   src?: string;
   alt?: string;
-}) {
+} & ExtraProps) {
   const { t } = useTranslation();
   const { share_id: shareId } = useParams();
   const chatOnly = useShareChatOnly();
@@ -33,6 +36,28 @@ export function ChatMarkdownImage({
     );
   }
 
+  const group =
+    previewUrl === url && !chatOnly ? getMarkdownImageGallery(node) : undefined;
+  const gallery = group?.images.flatMap((entry, index) => {
+    const source = entry.properties.src;
+    const src =
+      typeof source === 'string'
+        ? resolveChatImageUrl(source, shareId)
+        : undefined;
+    if (!src) return [];
+    return [
+      {
+        id: String(index),
+        src,
+        alt:
+          typeof entry.properties.alt === 'string'
+            ? entry.properties.alt
+            : undefined,
+        referrerPolicy: 'no-referrer' as const,
+        allowExternalOriginal: !shareId,
+      },
+    ];
+  });
   return (
     <>
       <button
@@ -61,6 +86,9 @@ export function ChatMarkdownImage({
       </button>
       <ImagePreviewDialog
         alt={alt}
+        items={gallery}
+        initialItemId={group ? String(group.index) : undefined}
+        allowExternalOriginal={!shareId}
         src={url}
         referrerPolicy="no-referrer"
         invokerRef={invokerRef}

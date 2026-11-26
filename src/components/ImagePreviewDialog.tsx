@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import {
   type CSSProperties,
   type ImgHTMLAttributes,
+  type PointerEvent,
   type RefObject,
   useLayoutEffect,
   useRef,
@@ -16,9 +17,32 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/components/omnibox/Dialog';
+import { TooltipProvider } from '@/components/tooltip';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 
+import {
+  getImageViewerLayout,
+  type ImageViewerSize,
+  isLongImage,
+  rotateImagePoint,
+} from './imageViewerGeometry';
+import { ImageViewerHint } from './ImageViewerHint';
+import {
+  type ImageViewerNavigation,
+  ImageViewerToolbar,
+} from './ImageViewerToolbar';
+
+export interface ImageViewerItem {
+  id: string;
+  src: string;
+  alt?: string;
+  size?: ImageViewerSize;
+  referrerPolicy?: ImgHTMLAttributes<HTMLImageElement>['referrerPolicy'];
+  allowExternalOriginal?: boolean;
+}
+
 interface ImagePreviewDialogProps {
+  imageSize?: ImageViewerSize;
   alt?: string;
   open: boolean;
   src?: string | null;
@@ -26,93 +50,428 @@ interface ImagePreviewDialogProps {
   invokerRef?: RefObject<HTMLElement | null>;
   onCloseAutoFocus?: (event: Event) => void;
   onOpenChange: (open: boolean) => void;
+  items?: ImageViewerItem[];
+  initialItemId?: string;
+  allowExternalOriginal?: boolean;
 }
 
 export function ImagePreviewDialog({
+  imageSize,
   alt,
-  open,
   src,
   referrerPolicy,
+  open,
   invokerRef,
-  onCloseAutoFocus,
   onOpenChange,
+  onCloseAutoFocus,
+  items,
+  initialItemId,
+  allowExternalOriginal,
 }: ImagePreviewDialogProps) {
   const { t } = useTranslation();
   const closeRef = useRef<HTMLButtonElement>(null);
-  const [retained, setRetained] = useState({ src, alt, referrerPolicy });
+  const autoFocusing = useRef(false);
+  const restoreNavigationFocus = useRef<'previous' | 'next' | null>(null);
+  const retained = useRef<ImageViewerItem>(undefined);
+  const [selected, setSelected] = useState<{ origin?: string; id: string }>();
+  const gallery = items?.length
+    ? items
+    : src
+      ? [
+          {
+            id: src,
+            src,
+            alt,
+            size: imageSize,
+            referrerPolicy,
+            allowExternalOriginal,
+          },
+        ]
+      : [];
+  const start = gallery.findIndex(item => item.id === initialItemId);
+  const current =
+    selected && selected.origin === initialItemId
+      ? gallery.findIndex(item => item.id === selected.id)
+      : -1;
+  const index = current >= 0 ? current : Math.max(0, start);
+  const item = gallery[index];
+  const visibleItem = open ? item : retained.current;
+  const title = visibleItem?.alt || t('chat.image.preview');
   useLayoutEffect(() => {
-    if (open) setRetained({ src, alt, referrerPolicy });
-  }, [open, src, alt, referrerPolicy]);
-  const imageSrc = open ? src : retained.src;
-  const title = (open ? alt : retained.alt) || t('chat.image.preview');
+    if (open) retained.current = item;
+  }, [item, open]);
+  useLayoutEffect(() => {
+    const direction = restoreNavigationFocus.current;
+    if (!direction) return;
+    restoreNavigationFocus.current = null;
+    const scope = closeRef.current?.parentElement;
+    const button = scope?.querySelector<HTMLButtonElement>(
+      `[data-image-viewer-nav="${direction}"]`
+    );
+    (button ?? closeRef.current)?.focus({ preventScroll: true });
+  }, [item?.id]);
+
+  useLayoutEffect(() => {
+    if (!open) setSelected(undefined);
+  }, [open]);
+
+  const move = (delta: number) => {
+    const next = gallery[index + delta];
+    if (next) {
+      restoreNavigationFocus.current = delta < 0 ? 'previous' : 'next';
+      setSelected({ origin: initialItemId, id: next.id });
+    }
+  };
+  const close = () => {
+    trackButtonClick('resource_image_close');
+    onOpenChange(false);
+  };
+
+  const renderClose = () => (
+    <ImageViewerHint label={t('close')} onEscape={() => onOpenChange(false)}>
+      <DialogClose asChild>
+        <button
+          ref={closeRef}
+          type="button"
+          aria-label={t('close')}
+          className="absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/55 text-white shadow-xs transition-colors hover:bg-black/75 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+          onFocus={event => {
+            if (autoFocusing.current) event.preventDefault();
+          }}
+          onClick={() => trackButtonClick('resource_image_close')}
+        >
+          <X className="size-4" />
+        </button>
+      </DialogClose>
+    </ImageViewerHint>
+  );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        outsideCloseTrackName="resource_overlay_close"
-        outsideCloseTarget="image"
-        data-image-preview=""
-        className="fixed left-0 top-0 flex h-full w-full max-w-none sm:max-w-none translate-x-0 translate-y-0 items-center justify-center gap-0 border-0 bg-transparent p-0 shadow-none motion-reduce:animate-none [&>button:last-child]:hidden"
-        style={
-          {
-            '--tw-enter-scale': '1',
-            '--tw-exit-scale': '1',
-            '--tw-enter-translate-x': '0px',
-            '--tw-enter-translate-y': '0px',
-            '--tw-exit-translate-x': '0px',
-            '--tw-exit-translate-y': '0px',
-          } as CSSProperties
-        }
-        onOpenAutoFocus={event => {
-          event.preventDefault();
-          closeRef.current?.focus({ preventScroll: true });
-        }}
-        onCloseAutoFocus={event => {
-          onCloseAutoFocus?.(event);
-          if (event.defaultPrevented) return;
-          event.preventDefault();
-          const invoker = invokerRef?.current;
-          if (invoker?.isConnected) invoker.focus({ preventScroll: true });
-        }}
-        onEscapeKeyDown={event => event.stopPropagation()}
-        onClick={event => {
-          event.stopPropagation();
-          if (event.target === event.currentTarget) {
-            trackButtonClick('resource_image_close');
-            onOpenChange(false);
+    <TooltipProvider delayDuration={250} disableHoverableContent>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          data-image-preview=""
+          showCloseButton={false}
+          outsideCloseTrackName="resource_overlay_close"
+          outsideCloseTarget="image"
+          className="fixed inset-0 flex h-full w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 bg-transparent p-0 has-[[data-image-viewer-long]]:bg-black/75 text-white shadow-none ring-0 sm:max-w-none motion-reduce:animate-none"
+          style={
+            {
+              '--tw-enter-scale': '1',
+              '--tw-exit-scale': '1',
+              '--tw-enter-translate-x': '0px',
+              '--tw-enter-translate-y': '0px',
+            } as CSSProperties
           }
+          onOpenAutoFocus={event => {
+            event.preventDefault();
+            autoFocusing.current = true;
+            closeRef.current?.focus({ preventScroll: true });
+            autoFocusing.current = false;
+          }}
+          onCloseAutoFocus={event => {
+            onCloseAutoFocus?.(event);
+            if (event.defaultPrevented) return;
+            event.preventDefault();
+            if (invokerRef?.current?.isConnected)
+              invokerRef.current.focus({ preventScroll: true });
+          }}
+          onEscapeKeyDown={event => event.stopPropagation()}
+          onKeyDown={event => {
+            if (
+              !['ArrowLeft', 'ArrowRight'].includes(event.key) ||
+              !(event.target instanceof HTMLButtonElement) ||
+              gallery.length < 2
+            )
+              return;
+            event.preventDefault();
+            event.stopPropagation();
+            move(event.key === 'ArrowLeft' ? -1 : 1);
+          }}
+          onClick={event => {
+            event.stopPropagation();
+            if (event.target === event.currentTarget) close();
+          }}
+        >
+          <DialogTitle className="sr-only">{title}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {t('chat.image.preview')}
+          </DialogDescription>
+          {renderClose()}
+          {visibleItem && (
+            <ImageViewerSlide
+              key={JSON.stringify([visibleItem.id, visibleItem.src])}
+              item={visibleItem}
+              title={title}
+              close={close}
+              onOpenChange={onOpenChange}
+              navigation={
+                gallery.length > 1
+                  ? { index, length: gallery.length, move }
+                  : undefined
+              }
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </TooltipProvider>
+  );
+}
+
+function ImageViewerSlide({
+  item,
+  title,
+  close,
+  onOpenChange,
+  navigation,
+}: {
+  item: ImageViewerItem;
+  title: string;
+  close: () => void;
+  onOpenChange: (open: boolean) => void;
+  navigation?: ImageViewerNavigation;
+}) {
+  const { t } = useTranslation();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const drag = useRef<
+    { id: number; x: number; y: number; left: number; top: number } | undefined
+  >(undefined);
+  const dragged = useRef(false);
+  const anchor = useRef<
+    { x: number; y: number; horizontal: number; vertical: number } | undefined
+  >(undefined);
+  const [size, setSize] = useState(item.size);
+  const [viewport, setViewport] = useState({
+    width: 0,
+    height: 0,
+    dialogHeight: 0,
+  });
+  const [turn, setTurn] = useState(0);
+  const [zoom, setZoom] = useState<number | null>(null);
+  const [failed, setFailed] = useState(false);
+  const isTall = !!size && isLongImage(size);
+  const layout =
+    size &&
+    size.width > 0 &&
+    size.height > 0 &&
+    !failed &&
+    viewport.width > 0 &&
+    viewport.height > 0
+      ? getImageViewerLayout(size, viewport, turn, zoom)
+      : undefined;
+
+  useLayoutEffect(() => {
+    const node = scrollRef.current;
+    if (!node) return;
+    const measure = () => {
+      const width = node.clientWidth || window.innerWidth;
+      const dialogHeight =
+        node.parentElement?.clientHeight || window.innerHeight;
+      const height = node.clientHeight || Math.max(1, dialogHeight - 56);
+      setViewport(previous =>
+        previous.width === width &&
+        previous.height === height &&
+        previous.dialogHeight === dialogHeight
+          ? previous
+          : { width, height, dialogHeight }
+      );
+    };
+    measure();
+    const observer =
+      typeof ResizeObserver === 'undefined'
+        ? undefined
+        : new ResizeObserver(measure);
+    observer?.observe(node);
+    window.addEventListener('resize', measure);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const position = anchor.current;
+    const node = scrollRef.current;
+    if (!position || !node || !layout) return;
+    anchor.current = undefined;
+    const point = rotateImagePoint(position, turn);
+    node.scrollLeft = Math.max(
+      0,
+      layout.x + point.x * layout.width - position.horizontal
+    );
+    node.scrollTop = Math.max(
+      0,
+      layout.y + point.y * layout.height - position.vertical
+    );
+  }, [layout, turn]);
+
+  const setView = (nextZoom: number | null, nextTurn = turn) => {
+    const node = scrollRef.current;
+    if (!node || !layout || (nextZoom === zoom && nextTurn === turn)) return;
+    const horizontal = viewport.width / 2;
+    const vertical = layout.long && nextTurn === turn ? 0 : viewport.height / 2;
+    const clamp = (value: number) => Math.max(0, Math.min(1, value));
+    const point = rotateImagePoint(
+      {
+        x: clamp((node.scrollLeft + horizontal - layout.x) / layout.width),
+        y: clamp((node.scrollTop + vertical - layout.y) / layout.height),
+      },
+      -turn
+    );
+    anchor.current = { ...point, horizontal, vertical };
+    setTurn(nextTurn);
+    setZoom(nextZoom);
+  };
+
+  function startDrag(event: PointerEvent<HTMLDivElement>) {
+    const node = scrollRef.current;
+    dragged.current = false;
+    if (
+      !layout ||
+      !node ||
+      event.pointerType !== 'mouse' ||
+      event.button !== 0 ||
+      (layout.width <= viewport.width && layout.height <= viewport.height)
+    )
+      return;
+    drag.current = {
+      id: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      left: node.scrollLeft,
+      top: node.scrollTop,
+    };
+  }
+
+  return (
+    <>
+      <div
+        ref={scrollRef}
+        data-image-viewer-long={isTall && !failed ? '' : undefined}
+        role="region"
+        aria-label={t('chat.image.preview')}
+        tabIndex={0}
+        className="no-scrollbar min-h-0 flex-1 overflow-auto overscroll-contain [overflow-anchor:none] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-white"
+        onClick={event => {
+          if (event.target === event.currentTarget) close();
         }}
       >
-        <DialogTitle className="sr-only">{title}</DialogTitle>
-        <DialogDescription className="sr-only">
-          {t('chat.image.preview')}
-        </DialogDescription>
-        {imageSrc ? (
-          <div className="relative max-h-[90vh] max-w-[min(90vw,960px)]">
+        <div
+          className="relative min-h-full min-w-full"
+          style={
+            layout
+              ? {
+                  width: layout.widthWithGutter,
+                  height: layout.heightWithGutter,
+                }
+              : undefined
+          }
+          onClick={event => {
+            if (event.target === event.currentTarget) close();
+          }}
+        >
+          <div
+            className={`absolute overflow-hidden ${isTall ? '' : 'rounded-md'}`}
+            style={
+              layout
+                ? {
+                    left: layout.x,
+                    top: layout.y,
+                    width: layout.width,
+                    height: layout.height,
+                    cursor:
+                      isTall &&
+                      (layout.width > viewport.width ||
+                        layout.height > viewport.height)
+                        ? 'grab'
+                        : undefined,
+                  }
+                : {
+                    inset: 0,
+                    display: 'grid',
+                    placeItems: 'center',
+                    pointerEvents: 'none',
+                  }
+            }
+            onPointerDown={startDrag}
+            onPointerMove={event => {
+              const node = scrollRef.current;
+              const pan = drag.current;
+              if (!node || !pan || event.pointerId !== pan.id) return;
+              if (!(event.buttons & 1)) {
+                drag.current = undefined;
+                return;
+              }
+              if (!dragged.current) {
+                if (
+                  Math.hypot(pan.x - event.clientX, pan.y - event.clientY) < 4
+                )
+                  return;
+                dragged.current = true;
+                event.currentTarget.setPointerCapture(event.pointerId);
+              }
+              node.scrollLeft = pan.left + pan.x - event.clientX;
+              node.scrollTop = pan.top + pan.y - event.clientY;
+            }}
+            onClick={event => {
+              if (
+                !isTall &&
+                !failed &&
+                !dragged.current &&
+                event.target instanceof HTMLImageElement
+              )
+                close();
+            }}
+            onPointerUp={() => {
+              drag.current = undefined;
+            }}
+            onPointerCancel={() => {
+              drag.current = undefined;
+            }}
+            onLostPointerCapture={() => {
+              drag.current = undefined;
+            }}
+          >
             <img
-              src={imageSrc}
-              referrerPolicy={open ? referrerPolicy : retained.referrerPolicy}
+              src={item.src}
+              referrerPolicy={item.referrerPolicy}
               alt={title}
-              className="max-h-[85vh] w-full cursor-zoom-out rounded-md object-contain"
-              onClick={() => {
-                trackButtonClick('resource_image_close');
-                onOpenChange(false);
+              draggable={false}
+              className={`${
+                layout
+                  ? 'absolute top-1/2 left-1/2 block max-w-none select-none'
+                  : 'pointer-events-auto max-h-[90%] max-w-[90%] object-contain'
+              }${isTall ? '' : ' cursor-zoom-out'}`}
+              style={
+                layout
+                  ? {
+                      width: layout.imageWidth,
+                      height: layout.imageHeight,
+                      transform: `translate(-50%, -50%) rotate(${turn * 90}deg)`,
+                    }
+                  : undefined
+              }
+              onLoad={event => {
+                const { naturalWidth, naturalHeight } = event.currentTarget;
+                if (naturalWidth && naturalHeight)
+                  setSize({ width: naturalWidth, height: naturalHeight });
+                setFailed(false);
               }}
+              onError={() => setFailed(true)}
+              hidden={failed}
             />
-            <DialogClose asChild>
-              <button
-                onClick={() => trackButtonClick('resource_image_close')}
-                ref={closeRef}
-                type="button"
-                aria-label={t('close')}
-                className="absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-full bg-black/55 text-white shadow-xs transition-colors hover:bg-black/75 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
-              >
-                <X className="size-4" />
-              </button>
-            </DialogClose>
+            {failed && <p role="status">{t('chat.image.load_failed')}</p>}
           </div>
-        ) : null}
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+      <ImageViewerToolbar
+        item={item}
+        layout={layout}
+        navigation={navigation}
+        setView={setView}
+        onRotate={() => layout && setView(layout.scale, (turn + 1) % 4)}
+        onOpenChange={onOpenChange}
+      />
+    </>
   );
 }
