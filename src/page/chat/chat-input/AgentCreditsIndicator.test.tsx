@@ -85,7 +85,7 @@ describe('AgentCreditsIndicator', () => {
     );
 
     expect(mockUseQuota).toHaveBeenCalledWith('namespace-a');
-    expect(html).toContain('role="img"');
+    expect(html).toContain('<button');
     expect(html).toContain('aria-label="2.00 / 6,800.00 quota.credit_unit"');
     expect(html).toContain('2.00 / 6,800.00 quota.credit_unit');
   });

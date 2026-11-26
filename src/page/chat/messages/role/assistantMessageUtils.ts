@@ -10,6 +10,7 @@ const terminalToolCallStatuses = new Set<string>([
   ToolCallStatus.FAILED,
   ToolCallStatus.REJECTED,
   ToolCallStatus.STOPPED,
+  ToolCallStatus.UNKNOWN,
 ]);
 
 export function isTerminalToolCallStatus(

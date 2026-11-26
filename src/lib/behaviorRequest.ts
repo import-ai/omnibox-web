@@ -82,7 +82,12 @@ export function rememberBehaviorUpload(
     });
 }
 
-/** Matches only explicit product writes; background synchronization has no registered starter. */
+/**
+ * Matches only explicit product writes; background synchronization has no
+ * registered starter. The route rules are mirrored from
+ * omnibox-backend/src/behavior/behavior-request.ts (and the RN classifier);
+ * keep them in sync.
+ */
 export function behaviorRequestKind(
   method: string,
   url: string,
@@ -116,7 +121,13 @@ export function behaviorRequestKind(
     ['name', 'content'].some(key => key in data)
   )
     return 'resource_edit';
-  if (verb === 'POST' && /\/wizard\/(ask|chat)$/.test(path))
+  if (
+    verb === 'POST' &&
+    (/\/wizard\/(ask|chat)$/.test(path) ||
+      /^\/namespaces\/[^/]+\/wizard\/conversations\/[^/]+\/messages$/.test(
+        path
+      ))
+  )
     return 'ai_conversation';
   if (
     verb === 'POST' &&
@@ -167,4 +178,23 @@ export function behaviorRequestHeaders(
   if (headers['x-omnibox-action-id'])
     bounded(actions, headers['x-omnibox-action-id'], scope());
   return headers;
+}
+
+export interface BehaviorCorrelation {
+  scope: string;
+  headers: Record<string, string>;
+}
+
+/** Freeze the action headers of a request that may be retried later. */
+export function captureBehaviorCorrelation(url: string): BehaviorCorrelation {
+  return { scope: scope(), headers: behaviorRequestHeaders('POST', url) };
+}
+
+/** Reuse the frozen headers; another account or a missing id is untracked. */
+export function restoreBehaviorHeaders(
+  value?: BehaviorCorrelation
+): Record<string, string> {
+  return value?.scope === scope() && value.headers['x-omnibox-action-id']
+    ? value.headers
+    : { 'x-omnibox-action-id': 'untracked' };
 }

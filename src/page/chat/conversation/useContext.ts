@@ -2,9 +2,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 import { FORCE_ASK } from '@/const';
 import useApp from '@/hooks/useApp';
+import {
+  type BehaviorCorrelation,
+  captureBehaviorCorrelation,
+  restoreBehaviorHeaders,
+} from '@/lib/behaviorRequest';
 import {
   chatErrorDetails,
   isChatCancellation,
@@ -18,6 +24,7 @@ import {
   AgentRequestChannel,
   ApprovalMode,
   ChatMode,
+  Decision,
   SendMessageParams,
 } from '@/page/chat/chat-input/types';
 import { useChatRouteParams } from '@/page/chat/ChatRouteParamsContext';
@@ -36,6 +43,7 @@ import {
   extractOriginalMessageSettings,
   findFirstMessageWithMissingParent,
   isTerminalMessageStatus,
+  prepareBody,
   resumeStream,
   stopStream,
 } from '@/page/chat/conversation/utils.ts';
@@ -54,6 +62,7 @@ import {
   OpenAIMessageRole,
 } from '@/page/chat/core/types/chatResponse.ts';
 import { MessageDetail } from '@/page/chat/core/types/conversation';
+import { cacheMessageDisplayParts } from '@/page/chat/messages/messageDisplayPartsCache';
 import { getUserMessageImages } from '@/page/chat/messages/role/userMessageTokens';
 import useGlobalContext from '@/page/chat/useSelectedResources.ts';
 import {
@@ -74,6 +83,7 @@ import useConversationHistory, {
   type LatestMessage,
   latestMessageOf,
 } from './useConversationHistory';
+import useConversationSubmissions from './useConversationSubmissions';
 import useScopedConversationState from './useScopedConversationState';
 
 // A message the server never accepted keeps its client request ID as its ID.
@@ -167,6 +177,13 @@ export default function useContext() {
     [namespaceId, userId]
   );
   const [loading, setLoading] = useState<boolean>(false);
+  const [busyDecision, setBusyDecision] = useState<{
+    id: string;
+    kind: 'retry' | 'reject';
+  } | null>(null);
+  // The decision a retry must re-send: after a failed reject, D's stored
+  // decisions still name the earlier approval, so remember what was attempted.
+  const decisionAttempts = useRef(new Map<string, Decision[]>());
   const [accessDenied, setAccessDenied] = useState(false);
   const [waitingForAssistantDelta, setWaitingForAssistantDelta] =
     useState(false);
@@ -175,6 +192,8 @@ export default function useContext() {
   >(null);
   const [initialApprovalMode, setInitialApprovalMode] =
     useState<ApprovalMode>();
+  const [initialSendConversationId, setInitialSendConversationId] =
+    useState<string>();
   const [suppressInitialToolRestore, setSuppressInitialToolRestore] = useState(
     () =>
       typeof window !== 'undefined' &&
@@ -256,6 +275,198 @@ export default function useContext() {
 
   recoveryResetRef.current = recovery.reset;
 
+  // A decision's resume failure shows as a failed assistant reply under it.
+  // The server writes one through errorSession; a client-side refusal adds a
+  // local one. Reuse whichever exists so the refusal message lands once.
+  const ensureDecisionFailedChild = (decisionId: string): string => {
+    const mapping = conversationRef.current.mapping;
+    const decision = mapping[decisionId];
+    const existing = (decision?.children ?? [])
+      .map(id => mapping[id])
+      .find(
+        message =>
+          message?.message.role === OpenAIMessageRole.ASSISTANT &&
+          (message.status === MessageStatus.FAILED ||
+            Boolean(message.attrs?.error_message || message.attrs?.error_code))
+      );
+    if (existing) return existing.id;
+    const id = uuidv4();
+    messageOperator.add({
+      response_type: 'bos',
+      id,
+      role: OpenAIMessageRole.ASSISTANT,
+      parentId: decisionId,
+      created_at: new Date().toISOString(),
+      // A client-only child must never be requested as a server branch.
+      attrs: { client_request_id: id },
+    });
+    return id;
+  };
+
+  // A stale page can retry a decision another client already applied. The
+  // refusal must show on the decision's failed reply, never on the decision
+  // message itself (which would offer a generic resend).
+  const applyAlreadyDecidedToDecision = async (decisionId: string) => {
+    messageOperator.error(
+      {
+        response_type: 'error',
+        message: i18n.t('chat.errors.already_decided'),
+        code: 'interrupt_already_decided',
+      },
+      ensureDecisionFailedChild(decisionId)
+    );
+    toast.info(i18n.t('chat.decision.already_decided'));
+    await history.syncBelow(decisionId).catch(() => undefined);
+  };
+
+  // Sends decisions under an existing decision message without adding a local
+  // pending message: the server reuses the decision and sends no BOS for it,
+  // so a local child would never be acknowledged.
+  const sendDecisionUnderMessage = async ({
+    messageId,
+    decisions,
+    kind,
+  }: {
+    messageId: string;
+    decisions: Decision[];
+    kind: 'retry' | 'reject';
+  }): Promise<SendTurnOutcome | undefined> => {
+    const target = conversationRef.current.mapping[messageId];
+    if (
+      decisions.length === 0 ||
+      loading ||
+      busyDecision ||
+      !target ||
+      target.message.role !== OpenAIMessageRole.USER ||
+      !target.attrs?.tool_call?.decisions?.length
+    )
+      return undefined;
+    const finishPreparation = beginChatSubmissionPreparation(
+      namespaceId,
+      `turn:${conversationId}`
+    );
+    if (!finishPreparation) return undefined;
+    let askFN: ReturnType<typeof ask> | undefined;
+    try {
+      const {
+        originalTools,
+        originalContext,
+        originalLang,
+        originalEnableThinking,
+      } = extractOriginalMessageSettings(target);
+      decisionAttempts.current.set(messageId, decisions);
+      setBusyDecision({ id: messageId, kind });
+      setLoading(true);
+      const scopedOperator: MessageOperator = {
+        ...messageOperator,
+        // An id-less error would otherwise mark the decision itself failed.
+        error: (errorResponse, id) =>
+          messageOperator.error(
+            errorResponse,
+            id ?? ensureDecisionFailedChild(messageId)
+          ),
+      };
+      askFN = ask(
+        conversationId,
+        '',
+        originalTools,
+        originalContext,
+        channel,
+        messageId,
+        scopedOperator,
+        `/api/v1/namespaces/${namespaceId}/wizard/${FORCE_ASK ? 'ask' : ChatMode.ASK}`,
+        originalLang,
+        namespaceId,
+        undefined,
+        undefined,
+        originalEnableThinking,
+        { decisions },
+        undefined,
+        undefined,
+        target.attrs?.current_resource_id || currentResourceId,
+        undefined,
+        undefined,
+        target.attrs?.edition,
+        target.attrs?.level,
+        { reportAlreadyDecided: true }
+      );
+      recovery.reset();
+      recovery.track(askFN);
+      askAbortRef.current = askFN.cancel;
+      detachStreamRef.current = askFN.destroy;
+      await askFN.start();
+      if (askFN.outcome.transientError) {
+        void recovery.recover({ cursor: askFN.getLastEventId?.() });
+      }
+      return askFN.outcome;
+    } finally {
+      if (askFN) recovery.untrack(askFN);
+      if (!askFN || askAbortRef.current === askFN.cancel)
+        askAbortRef.current = null;
+      if (!askFN || detachStreamRef.current === askFN.destroy)
+        detachStreamRef.current = null;
+      setBusyDecision(null);
+      setLoading(false);
+      if (!recovery.isRecovering())
+        void history.refreshHistory().catch(() => undefined);
+      finishPreparation();
+    }
+  };
+
+  const retryDecision = async (decisionId: string) => {
+    const target = conversationRef.current.mapping[decisionId];
+    const decisions =
+      decisionAttempts.current.get(decisionId) ??
+      target?.attrs?.tool_call?.decisions;
+    if (!decisions?.length) return;
+    const outcome = await sendDecisionUnderMessage({
+      messageId: decisionId,
+      decisions,
+      kind: 'retry',
+    });
+    if (outcome?.alreadyDecided)
+      await applyAlreadyDecidedToDecision(decisionId);
+  };
+
+  // Removes the local message of a request the server refused before
+  // accepting it, so the retry does not leave a stray branch behind.
+  const discardLocalMessage = (id: string | undefined) => {
+    if (!id) return;
+    uploadRetries.current.delete(id);
+    setConversation(prev => {
+      const message = prev.mapping[id];
+      if (!message) return prev;
+      const mapping = { ...prev.mapping };
+      delete mapping[id];
+      const parent = message.parent_id ? mapping[message.parent_id] : undefined;
+      if (parent) {
+        mapping[parent.id] = {
+          ...parent,
+          children: parent.children.filter(child => child !== id),
+        };
+      }
+      return {
+        ...prev,
+        mapping,
+        current_node:
+          prev.current_node === id
+            ? message.parent_id || undefined
+            : prev.current_node,
+      };
+    });
+  };
+
+  // The interrupt was decided in another client after this page showed it:
+  // drop the local decision, say so, and show what the server has now.
+  const syncAfterDecidedElsewhere = async (
+    outcome: SendTurnOutcome,
+    nodeId: string
+  ) => {
+    discardLocalMessage(outcome.requestId);
+    toast.info(i18n.t('chat.decision.already_decided'));
+    return await history.syncBelow(nodeId).catch(() => undefined);
+  };
+
   const sendTurn = async (
     params: SendMessageParams,
     parentMessageId: string | undefined,
@@ -278,6 +489,19 @@ export default function useContext() {
       level,
     } = params;
     const v = query.trim();
+    if (
+      decisions?.length &&
+      parentMessageId &&
+      conversationRef.current.mapping[parentMessageId]?.message.role ===
+        OpenAIMessageRole.USER &&
+      (conversationRef.current.mapping[parentMessageId].attrs?.tool_call
+        ?.decisions?.length ?? 0) > 0
+    )
+      return await sendDecisionUnderMessage({
+        messageId: parentMessageId,
+        decisions,
+        kind: 'reject',
+      });
     if (v || (decisions && decisions.length > 0)) {
       // Composer guards cover creation; each actual turn owns its upload phase,
       // including failed-message retries that never re-enter the composer.
@@ -329,7 +553,11 @@ export default function useContext() {
           retryId
         );
         uploadRetries.current.set(pendingId, async () => {
-          await sendTurn(params, parentMessageId, { retryId: pendingId });
+          const outcome = await sendTurn(params, parentMessageId, {
+            retryId: pendingId,
+          });
+          if (outcome?.alreadyDecided && parentMessageId)
+            await syncAfterDecidedElsewhere(outcome, parentMessageId);
         });
         let askFN: ReturnType<typeof ask> | undefined;
         let uploadedImages: Awaited<
@@ -466,55 +694,25 @@ export default function useContext() {
     return undefined;
   };
 
-  // Removes the local message of a request the server refused before
-  // accepting it, so the retry does not leave a stray branch behind.
-  const discardLocalMessage = (id: string | undefined) => {
-    if (!id) return;
-    uploadRetries.current.delete(id);
-    setConversation(prev => {
-      const message = prev.mapping[id];
-      if (!message) return prev;
-      const mapping = { ...prev.mapping };
-      delete mapping[id];
-      const parent = message.parent_id ? mapping[message.parent_id] : undefined;
-      if (parent) {
-        mapping[parent.id] = {
-          ...parent,
-          children: parent.children.filter(child => child !== id),
-        };
-      }
-      return {
-        ...prev,
-        mapping,
-        current_node:
-          prev.current_node === id
-            ? message.parent_id || undefined
-            : prev.current_node,
-      };
-    });
-  };
-
-  // The interrupt was decided in another client after this page showed it:
-  // drop the local decision, say so, and show what the server has now.
-  const syncAfterDecidedElsewhere = async (
-    outcome: SendTurnOutcome,
-    nodeId: string
-  ) => {
-    discardLocalMessage(outcome.requestId);
-    toast.info(i18n.t('chat.decision.already_decided'));
-    return await history.syncBelow(nodeId).catch(() => undefined);
-  };
-
   const sendMessage = async (
     params: SendMessageParams,
     retryId?: string,
     retryParentId?: string
   ) => {
+    if (!params.query.trim() && !params.decisions?.length) return;
     if (retryId || params.decisions?.length) {
       const parentId = retryId ? retryParentId : messages.at(-1)?.id;
       const outcome = await sendTurn(params, parentId, { retryId });
       if (outcome?.alreadyDecided && parentId)
         await syncAfterDecidedElsewhere(outcome, parentId);
+      return;
+    }
+    if (
+      mergedLoading &&
+      (FORCE_ASK || params.mode === ChatMode.ASK) &&
+      !messages.at(-1)?.attrs?.tool_call?.interrupts?.length
+    ) {
+      await submitMessage(params);
       return;
     }
     // A failed local message is not a place to continue from.
@@ -548,7 +746,13 @@ export default function useContext() {
         send: async (turnParams, parentId, options) => {
           phase.rejecting = Boolean(turnParams.decisions?.length);
           try {
-            return await sendTurn(turnParams, parentId, options);
+            if (
+              phase.rejecting ||
+              (!FORCE_ASK && turnParams.mode === ChatMode.WRITE)
+            )
+              return await sendTurn(turnParams, parentId, options);
+            await submitMessage(turnParams, parentId);
+            return undefined;
           } finally {
             phase.rejecting = false;
           }
@@ -584,6 +788,14 @@ export default function useContext() {
     messageOperator,
     namespaceId,
     sendMessage,
+    setInitialSendPending: pending =>
+      setInitialSendConversationId(current =>
+        pending
+          ? conversationId
+          : current === conversationId
+            ? undefined
+            : current
+      ),
     detachActiveStream,
     detachStreamRef,
     onResumeError: (error, cursor, initialConversation) => {
@@ -617,6 +829,102 @@ export default function useContext() {
       setWaitingForAssistantDelta(false);
     }
   }, [messages, waitingForAssistantDelta]);
+
+  const active = messages.at(-1);
+  const submissionUrl = `/namespaces/${namespaceId}/wizard/conversations/${conversationId}`;
+  const submissions = useConversationSubmissions(
+    submissionUrl + '/submissions',
+    `${userId}:${submissionUrl}`,
+    async receipt => {
+      if (!receipt.id || conversationRef.current.id !== conversationId) return;
+      if (receipt.disposition === 'started') {
+        recovery.reset();
+        await history.activateBranch(receipt.id);
+        void recovery.recover({
+          force: true,
+          pendingRequestId: receipt.client_request_id,
+          branchNodeId: receipt.id,
+        });
+      } else if (!conversationRef.current.mapping[receipt.id]) {
+        await history.mergeBranch(receipt.id);
+      }
+    }
+  );
+  const submissionRetry = useRef<{
+    key: string;
+    id: string;
+    scope: string;
+    body: ReturnType<typeof prepareBody>;
+    images?: Awaited<ReturnType<typeof resolveConversationImages>>;
+    behavior?: BehaviorCorrelation;
+  } | null>(null);
+  const submitMessage = async (
+    params: SendMessageParams,
+    parentOverride?: string
+  ) => {
+    const parent = lastServerMessage(messages);
+    const parentId =
+      parentOverride ??
+      (parent?.message.role === OpenAIMessageRole.USER
+        ? parent.parent_id
+        : parent?.id);
+    const content = prepareBody(
+      conversationId,
+      params.query,
+      params.tools,
+      params.selectedResources,
+      channel,
+      parentId,
+      getWizardLang(i18n),
+      undefined,
+      currentResourceId,
+      params.edition,
+      params.level
+    );
+
+    content.recommended_question_id = params.recommendedQuestionId;
+    const key = JSON.stringify([
+      userId,
+      submissionUrl,
+      content.query,
+      content.tools,
+      content.current_resource_id,
+      content.recommended_question_id,
+      params.images?.map(image =>
+        'id' in image ? image.id : image.attachment_id
+      ),
+    ]);
+    if (submissionRetry.current?.key !== key)
+      submissionRetry.current = {
+        key,
+        id: uuidv4(),
+        scope: submissionUrl,
+        body: content,
+        // Freeze the behavior action before the first POST so a retry with the
+        // same client_request_id does not start a second, never-completed
+        // action.
+        behavior: captureBehaviorCorrelation(submissionUrl + '/messages'),
+      };
+    const retry = submissionRetry.current;
+    retry.images ??= await resolveConversationImages(
+      namespaceId,
+      conversationId,
+      params.images
+    );
+    const saved = await http.post(
+      submissionUrl + '/messages',
+      {
+        ...retry.body,
+        images: retry.images,
+        client_request_id: retry.id,
+      },
+      { headers: restoreBehaviorHeaders(retry.behavior) }
+    );
+    const parts = withUploadedImageParts(params.displayParts, retry.images);
+    if (parts) cacheMessageDisplayParts(saved.id ?? retry.id, parts);
+    submissionRetry.current = null;
+    submissions.remember({ ...saved, query: params.query });
+  };
 
   const onRegenerate = async (messageId: string) => {
     if (regeneratingRef.current) {
@@ -824,6 +1132,15 @@ export default function useContext() {
   return {
     ...history,
     loading: mergedLoading,
+    submissions: submissions.receipts,
+    steerMessage:
+      !accessDenied &&
+      (mergedLoading ||
+        active?.attrs?.tool_call?.interrupts?.length ||
+        submissionRetry.current?.scope === submissionUrl ||
+        submissions.receipts.some(item => item.disposition === 'queued'))
+        ? sendMessage
+        : undefined,
     accessDenied,
     waitingForAssistantDelta,
     regeneratingParentId,
@@ -832,6 +1149,7 @@ export default function useContext() {
     selectedResources,
     setSelectedResources,
     initialApprovalMode,
+    initialSendPending: initialSendConversationId === conversationId,
     suppressInitialToolRestore,
     namespaceId,
     conversation,
@@ -840,5 +1158,7 @@ export default function useContext() {
     onRegenerate,
     onEdit,
     onStop,
+    busyDecision,
+    retryDecision,
   };
 }

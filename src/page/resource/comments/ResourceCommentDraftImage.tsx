@@ -1,10 +1,21 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ImagePreviewDialog } from '@/components/ImagePreviewDialog';
+import {
+  ImagePreviewDialog,
+  type ImageViewerItem,
+} from '@/components/ImagePreviewDialog';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 
-export function ResourceCommentDraftImage({ src }: { src: string }) {
+export function ResourceCommentDraftImage({
+  src,
+  items,
+  itemId,
+}: {
+  src: string;
+  items?: ImageViewerItem[];
+  itemId?: string;
+}) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const invokerRef = useRef<HTMLButtonElement>(null);
@@ -31,6 +42,8 @@ export function ResourceCommentDraftImage({ src }: { src: string }) {
       </button>
       <ImagePreviewDialog
         src={src}
+        items={items}
+        initialItemId={itemId}
         open={open}
         invokerRef={invokerRef}
         onOpenChange={setOpen}

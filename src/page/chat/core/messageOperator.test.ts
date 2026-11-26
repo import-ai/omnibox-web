@@ -586,3 +586,43 @@ it.each(['missing', 'running', 'complete'] as const)(
     expect(conversation.mapping.answer.attrs?.error_message).toBeUndefined();
   }
 );
+
+test('replaying a saved user snapshot keeps its exact content and leaves the previous state intact', () => {
+  let conversation: ConversationDetail = { id: 'c', mapping: {} };
+  const op = createMessageOperator(conversation, update => {
+    const prior = conversation;
+    updateConversation(prior, update);
+    conversation = updateConversation(prior, update);
+  });
+  op.add({
+    response_type: 'bos',
+    role: OpenAIMessageRole.USER,
+    id: 'u',
+    parentId: '',
+    created_at: '',
+  });
+  const snapshot = {
+    response_type: 'delta' as const,
+    message: { role: OpenAIMessageRole.USER, content: '6' },
+  };
+  op.update(snapshot, 'u');
+  op.done('u');
+  op.update(snapshot, 'u');
+  expect(conversation.mapping.u.message.content).toBe('6');
+  op.add({
+    response_type: 'bos',
+    role: OpenAIMessageRole.ASSISTANT,
+    id: 'a',
+    parentId: 'u',
+    created_at: '',
+  });
+  const before = conversation;
+  const fragment = {
+    response_type: 'delta' as const,
+    message: { content: '6' },
+  };
+  op.update(fragment, 'a');
+  expect(before.mapping.a.message.content).toBeUndefined();
+  op.update(fragment, 'a');
+  expect(conversation.mapping.a.message.content).toBe('66');
+});

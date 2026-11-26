@@ -18,6 +18,7 @@ const mockClearCopilot = jest.fn();
 const mockClearSidebar = jest.fn();
 const mockResetResourcePreviews = jest.fn();
 const mockEstablishServerSession = jest.fn();
+const mockReadSessionUser = jest.fn();
 const defaultLocation = { pathname: '/namespace-a/chat', search: '' };
 let mockLocation = defaultLocation;
 let mockParams: { namespace_id?: string; share_id?: string } = {
@@ -43,7 +44,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 jest.mock('react-router-dom', () => ({
-  Outlet: () => null,
+  Outlet: () => <div data-testid="route-outlet" />,
   useLocation: () => mockLocation,
   useNavigate: () => mockNavigate,
   useParams: () => mockParams,
@@ -91,6 +92,7 @@ jest.mock('@/page/sidebar/store', () => ({
 jest.mock('@/page/user/session', () => ({
   establishServerSession: (signal?: AbortSignal) =>
     mockEstablishServerSession(signal),
+  readSessionUser: (signal: AbortSignal) => mockReadSessionUser(signal),
 }));
 
 (
@@ -125,6 +127,7 @@ describe('Layout authentication storage changes', () => {
     mockResetResourcePreviews.mockClear();
     mockEstablishServerSession.mockReset();
     mockEstablishServerSession.mockResolvedValue('user-a');
+    mockReadSessionUser.mockReset();
     container = document.createElement('div');
     document.body.appendChild(container);
     root = createRoot(container);
@@ -233,6 +236,195 @@ describe('Layout authentication storage changes', () => {
     expect(mockResetResourcePreviews).toHaveBeenCalledTimes(1);
   });
 
+  describe('invite signup', () => {
+    beforeEach(() => {
+      mockLocation = {
+        pathname: '/user/sign-up',
+        search: '?invite_code=012345',
+      };
+      mockParams = {};
+      mockReadSessionUser.mockResolvedValue(null);
+    });
+
+    it('keeps a visitor on signup and OTP without changing stale credentials', async () => {
+      localStorage.setItem('token', 'stale-token');
+      await act(async () => root.render(<Layout />));
+
+      expect(mockReadSessionUser).toHaveBeenCalledTimes(1);
+      expect(mockEstablishServerSession).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockHttpGet.mock.calls.map(([url]) => url)).toEqual(['/config']);
+      expect(
+        container.querySelector('[data-testid="route-outlet"]')
+      ).not.toBeNull();
+      expect(localStorage.getItem('uid')).toBe('user-a');
+      expect(localStorage.getItem('token')).toBe('stale-token');
+
+      mockLocation = { ...mockLocation, pathname: '/user/verify-otp' };
+      await act(async () => root.render(<Layout />));
+
+      expect(mockEstablishServerSession).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockHttpGet.mock.calls.map(([url]) => url)).toEqual(['/config']);
+
+      mockLocation = { ...mockLocation, pathname: '/user/login' };
+      await act(async () => root.render(<Layout />));
+
+      expect(mockReadSessionUser).toHaveBeenCalledTimes(1);
+      expect(mockEstablishServerSession).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockHttpGet.mock.calls.map(([url]) => url)).toEqual(['/config']);
+    });
+
+    it('opens the app with the verified account without refreshing the stale bearer', async () => {
+      localStorage.setItem('token', 'stale-token');
+      mockReadSessionUser.mockResolvedValue('user-b');
+      await act(async () => root.render(<Layout />));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+      expect(localStorage.getItem('uid')).toBe('user-b');
+      expect(
+        container.querySelector('[data-testid="route-outlet"]')
+      ).toBeNull();
+      expect(localStorage.getItem('token')).toBeNull();
+      expect(clearConversationCache).toHaveBeenCalledTimes(1);
+
+      mockLocation = { pathname: '/', search: '' };
+      await act(async () => root.render(<Layout />));
+
+      expect(mockEstablishServerSession).not.toHaveBeenCalled();
+    });
+
+    it('preserves the post-login destination and cached credentials that agree with the server', async () => {
+      mockLocation = {
+        pathname: '/user/login',
+        search: '?invite_code=012345&redirect=%2Fs%2Fshared-resource',
+      };
+      mockReadSessionUser.mockResolvedValue('user-a');
+      localStorage.setItem('token', 'stored-token');
+      await act(async () => root.render(<Layout />));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/s/shared-resource', {
+        replace: true,
+      });
+      expect(localStorage.getItem('token')).toBe('stored-token');
+    });
+
+    it('keeps the form available on verification failure without changing credentials', async () => {
+      localStorage.setItem('token', 'stored-token');
+      mockReadSessionUser.mockRejectedValue(new Error('offline'));
+      await act(async () => root.render(<Layout />));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockEstablishServerSession).not.toHaveBeenCalled();
+      expect(
+        container.querySelector('[data-testid="route-outlet"]')
+      ).not.toBeNull();
+      expect(localStorage.getItem('uid')).toBe('user-a');
+      expect(localStorage.getItem('token')).toBe('stored-token');
+    });
+
+    it('ignores verification after the visitor leaves the invite flow', async () => {
+      let resolveSession: (uid: string) => void = () => undefined;
+      mockReadSessionUser.mockImplementation(
+        () =>
+          new Promise(resolve => {
+            resolveSession = resolve;
+          })
+      );
+      await act(async () => root.render(<Layout />));
+      const signal = mockReadSessionUser.mock.calls[0][0] as AbortSignal;
+      expect(
+        container.querySelector('[data-testid="route-outlet"]')
+      ).toBeNull();
+
+      mockLocation = { pathname: '/user/login', search: '' };
+      await act(async () => root.render(<Layout />));
+      await act(async () => resolveSession('user-b'));
+
+      expect(signal.aborted).toBe(true);
+      expect(localStorage.getItem('uid')).toBe('user-a');
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the invite form when another tab changes credentials during verification', async () => {
+      let resolveSession: (uid: string) => void = () => undefined;
+      mockReadSessionUser.mockImplementation(
+        () =>
+          new Promise(resolve => {
+            resolveSession = resolve;
+          })
+      );
+      await act(async () => root.render(<Layout />));
+      const signal = mockReadSessionUser.mock.calls[0][0] as AbortSignal;
+      const outlet = () =>
+        container.querySelector('[data-testid="route-outlet"]');
+      expect(outlet()).toBeNull();
+
+      await act(async () => {
+        localStorage.setItem('uid', 'user-b');
+        window.dispatchEvent(
+          new StorageEvent('storage', {
+            key: 'uid',
+            oldValue: 'user-a',
+            newValue: 'user-b',
+          })
+        );
+      });
+      expect(signal.aborted).toBe(true);
+      expect(outlet()).not.toBeNull();
+
+      await act(async () => resolveSession('user-a'));
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(localStorage.getItem('uid')).toBe('user-b');
+    });
+
+    it('opens the invite form after three seconds and ignores a late session', async () => {
+      jest.useFakeTimers();
+      try {
+        let resolveSession: (uid: string) => void = () => undefined;
+        mockReadSessionUser.mockImplementation(
+          () =>
+            new Promise(resolve => {
+              resolveSession = resolve;
+            })
+        );
+        await act(async () => root.render(<Layout />));
+        const signal = mockReadSessionUser.mock.calls[0][0] as AbortSignal;
+        const outlet = () =>
+          container.querySelector('[data-testid="route-outlet"]');
+        await act(async () => jest.advanceTimersByTime(2_999));
+        expect(outlet()).toBeNull();
+        await act(async () => jest.advanceTimersByTime(1));
+        expect(signal.aborted).toBe(true);
+        expect(outlet()).not.toBeNull();
+
+        await act(async () => resolveSession('user-b'));
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(localStorage.getItem('uid')).toBe('user-a');
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('leaves a link invite callback to complete its own authentication', async () => {
+      mockLocation = {
+        pathname: '/user/auth/confirm/google',
+        search: '?code=oauth-code',
+      };
+      sessionStorage.setItem('omnibox.inviteReferral.code', '012345');
+      sessionStorage.setItem('omnibox.inviteReferral.source', 'link');
+      await act(async () => root.render(<Layout />));
+
+      expect(
+        container.querySelector('[data-testid="route-outlet"]')
+      ).not.toBeNull();
+      expect(mockEstablishServerSession).not.toHaveBeenCalled();
+      expect(mockReadSessionUser).not.toHaveBeenCalled();
+      expect(mockHttpGet.mock.calls.map(([url]) => url)).toEqual(['/config']);
+    });
+  });
+
   describe('root redirect', () => {
     beforeEach(() => {
       mockLocation = { pathname: '/', search: '' };
@@ -259,7 +451,7 @@ describe('Layout authentication storage changes', () => {
     });
 
     it('keeps a pending invite referral entry', async () => {
-      sessionStorage.setItem('omnibox.inviteReferral.landing', 'activation');
+      sessionStorage.setItem('omnibox.inviteReferral.landing', 'invite');
       mockHttpGet.mockImplementation((url: string) => {
         if (url === '/config') return Promise.resolve({ commercial: false });
         if (url === 'namespaces') return Promise.resolve(namespaceResponse());
@@ -269,7 +461,7 @@ describe('Layout authentication storage changes', () => {
       await act(async () => root.render(<Layout />));
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        '/namespace-a/invite-referral?entry=activation',
+        '/namespace-a/invite-referral',
         { replace: true }
       );
     });
