@@ -60,6 +60,9 @@ jobs:
       - name: Test composer credit usage indicator
         run: pnpm exec jest src/page/chat/chat-input/AgentCreditsIndicator src/page/chat/chat-input/ThinkingLevelSelector.test.tsx src/page/chat/chat-input/useThinkingLevel.test.tsx --runInBand
 
+      - name: Run low Kibble prompt regression tests
+        run: pnpm exec jest src/page/chat/agent-credits src/page/chat/credits-low-balance src/components/paywall/PaywallDialog.test.tsx --runInBand
+
       - name: Test task management
         run: pnpm exec jest src/page/settings/tabs/members/tasks/TaskList.test.tsx --runInBand
 

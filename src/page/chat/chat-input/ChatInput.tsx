@@ -117,7 +117,12 @@ const ChatInput = forwardRef<ChatInputHandle, IProps>(
           </div>
         )}
         <ImagePreviewDialog
-          alt={preview?.name}
+          items={props.images.map(image => ({
+            id: image.id,
+            src: image.url,
+            alt: image.name,
+          }))}
+          initialItemId={preview?.id}
           open={preview !== null}
           src={preview?.url}
           invokerRef={invokerRef}

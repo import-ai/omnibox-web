@@ -98,6 +98,7 @@ describe('isTerminalToolCallStatus', () => {
     ToolCallStatus.SUCCESS,
     ToolCallStatus.FAILED,
     ToolCallStatus.REJECTED,
+    ToolCallStatus.UNKNOWN,
   ])('returns true for terminal status %s', status => {
     expect(isTerminalToolCallStatus(status)).toBe(true);
   });

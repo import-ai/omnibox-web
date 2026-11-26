@@ -95,6 +95,9 @@ function FilenameAttributeValue({
       <ImagePreviewDialog
         alt={filename}
         src={previewUrl}
+        download={{
+          run: () => downloadFile(namespaceId, resourceId, filename),
+        }}
         open={!!previewUrl}
         invokerRef={invokerRef}
         onOpenChange={open => {

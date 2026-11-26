@@ -9,7 +9,7 @@ import type {
 
 export interface PaywallContextValue {
   request: PaywallRequest | null;
-  showPaywall: (scene: PaywallScene, options?: ShowPaywallOptions) => void;
+  showPaywall: (scene: PaywallScene, options?: ShowPaywallOptions) => boolean;
   hidePaywall: (reason?: PaywallDismissReason) => void;
 }
 
@@ -17,7 +17,7 @@ export const PaywallContext = createContext<PaywallContextValue | null>(null);
 
 const fallbackPaywall: PaywallContextValue = {
   request: null,
-  showPaywall: () => undefined,
+  showPaywall: () => false,
   hidePaywall: () => undefined,
 };
 
