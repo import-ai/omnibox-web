@@ -3,6 +3,7 @@ import type { NamespaceTier } from '@/interface';
 /** A paywall trigger. Every scene maps to one Figma copy block. */
 export type PaywallScene =
   | 'storage_limit'
+  | 'credits_low'
   | 'credits_limit'
   | 'namespace_create'
   | 'search_filter_limit'
@@ -13,7 +14,7 @@ export type PaywallScene =
   | 'namespace_expired';
 
 export type PaywallDismissReason =
-  'close' | 'dismiss' | 'acknowledge' | 'navigate';
+  'close' | 'dismiss' | 'escape' | 'automatic' | 'acknowledge' | 'navigate';
 
 export interface ShowPaywallOptions {
   namespaceId?: string;
@@ -24,6 +25,12 @@ export interface ShowPaywallOptions {
   trigger?: string;
   /** Whether the trigger is a spent quota. Defaults to the scene definition. */
   quotaExhausted?: boolean;
+  /** Credits-low experiment metadata, used by the prompt analytics. */
+  experimentVariant?: string;
+  thresholdCredits?: number;
+  remainingCredits?: number;
+  /** Runs once for any dismissal so callers can persist prompt fatigue. */
+  onDismiss?: (reason: PaywallDismissReason) => void;
 }
 
 export interface PaywallRequest extends ShowPaywallOptions {

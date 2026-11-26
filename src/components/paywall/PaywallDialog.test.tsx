@@ -32,11 +32,14 @@ const mockHidePaywall = jest.fn();
 const mockRequest: {
   current: {
     id: number;
-    scene: 'credits_limit';
+    scene: 'credits_limit' | 'credits_low';
     tier: 'basic' | 'premium';
     namespaceId: string;
     trigger: string;
     isOwner?: boolean;
+    experimentVariant?: string;
+    thresholdCredits?: number;
+    remainingCredits?: number;
   };
 } = {
   current: {
@@ -175,5 +178,56 @@ describe('PaywallDialog', () => {
 
     expect(mockHidePaywall).toHaveBeenCalledWith('acknowledge');
     expect(window.open).not.toHaveBeenCalled();
+  });
+
+  it('uses the low-balance copy and modal pricing entry', async () => {
+    mockNamespace.value = {
+      id: 'namespace-a',
+      tier: 'basic',
+      is_owner: true,
+    };
+    mockRequest.current = {
+      ...mockRequest.current,
+      scene: 'credits_low',
+      experimentVariant: 'b',
+      thresholdCredits: 50,
+      remainingCredits: 20_000_000,
+    };
+    await act(async () => root.render(<PaywallDialog />));
+
+    expect(container.textContent).toContain('paywall.credits_low.title');
+    expect(container.textContent).toContain('paywall.credits_low.description');
+    const cta = [...container.querySelectorAll('button')].find(button =>
+      button.textContent?.includes('paywall.credits_low.cta')
+    );
+    await act(async () => cta?.click());
+
+    expect(window.open).toHaveBeenCalledWith(
+      '/zh-cn/pricing?namespace=namespace-a&entry=paywall_credits_low_modal',
+      '_blank',
+      'noopener,noreferrer'
+    );
+  });
+
+  it('uses the single low-balance line for non-owners', async () => {
+    mockNamespace.value = {
+      id: 'namespace-a',
+      tier: 'basic',
+      is_owner: false,
+    };
+    mockRequest.current = {
+      ...mockRequest.current,
+      scene: 'credits_low',
+      experimentVariant: 'a',
+      thresholdCredits: 10,
+      remainingCredits: 5_000_000,
+    };
+    await act(async () => root.render(<PaywallDialog />));
+
+    expect(container.textContent).toContain('paywall.non_owner_title');
+    expect(container.textContent).toContain(
+      'paywall.credits_low.non_owner_description'
+    );
+    expect(container.textContent).not.toContain('paywall.credits_low.title');
   });
 });

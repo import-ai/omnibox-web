@@ -14,6 +14,8 @@ import {
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import remarkParse from 'remark-parse';
+import { unified } from 'unified';
 
 import { ShareIcon } from '@/assets/icons/ShareIcon';
 import { Button } from '@/components/Button';
@@ -33,6 +35,7 @@ import {
   replaceCiteTag,
   trimIncompletedCitation,
 } from '@/page/chat/messages/citations/citationUtils';
+import { markdownImageGallery } from '@/page/chat/messages/markdownImageGallery';
 import { MessageChannelTime } from '@/page/chat/messages/role/MessageChannelTime';
 import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 
@@ -55,10 +58,28 @@ function MarkdownTable({
   );
 }
 
+const answerRemarkPlugins = [remarkGfm, remarkMath];
+const answerMarkdownParser = unified()
+  .use(remarkParse)
+  .use(answerRemarkPlugins);
+
+type BodyNode = {
+  type: string;
+  value?: string;
+  children?: BodyNode[];
+};
+
+function hasVisibleAnswerBody(node: BodyNode): boolean {
+  if (node.type === 'image' || node.type === 'imageReference') return true;
+  if (node.value?.replace(/[\s\u200B-\u200D\u2060\uFEFF]/gu, '')) return true;
+  return node.children?.some(hasVisibleAnswerBody) ?? false;
+}
+
 interface IProps {
   content: string;
   citations: Citation[];
   status: MessageStatus;
+  stoppedAnswer?: boolean;
   conversation: ConversationDetail;
   messageId: string;
   onRegenerate: (messageId: string) => void;
@@ -80,6 +101,7 @@ export function CitationMarkdown(props: IProps) {
   const {
     content,
     status,
+    stoppedAnswer = false,
     citations,
     conversation,
     messageId,
@@ -103,7 +125,9 @@ export function CitationMarkdown(props: IProps) {
   const chatOnly = useShareChatOnly();
   const removeGeneratedCite =
     import.meta.env.VITE_REMOVE_GENERATED_CITE?.toLowerCase() !== 'false';
-  const cleanedContent = trimIncompletedCitation(content);
+  const cleanedContent = stoppedAnswer
+    ? content
+    : trimIncompletedCitation(content);
   const replacedContent = replaceCiteTag(
     cleanedContent,
     removeGeneratedCite,
@@ -119,6 +143,18 @@ export function CitationMarkdown(props: IProps) {
     chatOnly ? withoutMarkdownImages(content) : content,
     chatOnly ? [] : citations
   );
+  const showContentActions =
+    !stoppedAnswer ||
+    (!hideActions &&
+      hasVisibleAnswerBody(
+        answerMarkdownParser.parse(
+          chatOnly ? withoutMarkdownImages(replacedContent) : replacedContent
+        )
+      ));
+  const showActions =
+    !hideActions &&
+    (stoppedAnswer ||
+      ![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status));
   const createdAtLabel = createdAt
     ? format(new Date(createdAt), 'yyyy-MM-dd HH:mm:ss')
     : null;
@@ -163,98 +199,104 @@ export function CitationMarkdown(props: IProps) {
       className="group markdown-body reset-list"
       style={{ background: 'transparent' }}
     >
-      <CitationContext.Provider value={citations}>
-        <Markdown
-          remarkPlugins={[remarkGfm, remarkMath]}
-          rehypePlugins={[rehypeKatex]}
-          components={components}
-          urlTransform={citationUrlTransform}
-        >
-          {replacedContent}
-        </Markdown>
-      </CitationContext.Provider>
-      {!hideActions &&
-        ![MessageStatus.PENDING, MessageStatus.STREAMING].includes(status) && (
-          <div
-            className={`flex items-center gap-1 ml-[-6px] mt-[-10px] ${
-              isLastMessage
-                ? ''
-                : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
-            }`}
+      {replacedContent && (
+        <CitationContext.Provider value={citations}>
+          <Markdown
+            remarkPlugins={answerRemarkPlugins}
+            rehypePlugins={[rehypeKatex, markdownImageGallery]}
+            components={components}
+            urlTransform={citationUrlTransform}
           >
-            {hasSiblings && (
-              <>
-                <Button
-                  trackName="chat_citation_navigate"
-                  size="icon"
-                  variant="ghost"
-                  className="p-0 w-4 h-7"
-                  onClick={onPrevious}
-                  disabled={currentIndex === 0}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
-                  {(currentIndex ?? 0) + 1}/{siblingsLength}
-                </span>
-                <Button
-                  trackName="chat_citation_navigate"
-                  size="icon"
-                  variant="ghost"
-                  className="p-0 w-4 h-7"
-                  onClick={onNext}
-                  disabled={currentIndex === (siblingsLength ?? 1) - 1}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </>
-            )}
+            {replacedContent}
+          </Markdown>
+        </CitationContext.Provider>
+      )}
+      {showActions && (
+        <div
+          className={`flex items-center gap-1 ml-[-6px] ${replacedContent ? 'mt-[-10px]' : ''} ${
+            isLastMessage
+              ? ''
+              : 'transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100 opacity-0'
+          }`}
+        >
+          {hasSiblings && (
+            <>
+              <Button
+                trackName="chat_citation_navigate"
+                size="icon"
+                variant="ghost"
+                className="p-0 w-4 h-7"
+                onClick={onPrevious}
+                disabled={currentIndex === 0}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground min-w-[3ch] text-center">
+                {(currentIndex ?? 0) + 1}/{siblingsLength}
+              </span>
+              <Button
+                trackName="chat_citation_navigate"
+                size="icon"
+                variant="ghost"
+                className="p-0 w-4 h-7"
+                onClick={onNext}
+                disabled={currentIndex === (siblingsLength ?? 1) - 1}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </>
+          )}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                trackName="chat_message_retry"
+                aria-label={t('chat.messages.actions.regenerate')}
+                size="icon"
+                variant="ghost"
+                className={`${sidebarToolbarIconButtonClassName} size-7`}
+                disabled={regenerateDisabled}
+                onClick={() => onRegenerate(messageId)}
+              >
+                <RefreshCw
+                  className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t('chat.messages.actions.regenerate')}</p>
+            </TooltipContent>
+          </Tooltip>
+          {showContentActions && (
+            <>
+              <Copy content={copyContent} trackName="chat_message_copy" />
+              <Save conversation={conversation} content={copyContent} />
+            </>
+          )}
+          {showContentActions && onShare && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  trackName="chat_message_retry"
-                  size="icon"
-                  variant="ghost"
+                  trackName="chat_share_open"
+                  aria-label={t('chat.share.action')}
                   className={`${sidebarToolbarIconButtonClassName} size-7`}
-                  disabled={regenerateDisabled}
-                  onClick={() => onRegenerate(messageId)}
+                  onClick={() => onShare(messageId)}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
                 >
-                  <RefreshCw
-                    className={`w-4 h-4 ${regenerating ? 'animate-spin' : ''}`}
-                  />
+                  <ShareIcon className="size-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>{t('chat.messages.actions.regenerate')}</p>
-              </TooltipContent>
+              <TooltipContent>{t('chat.share.action')}</TooltipContent>
             </Tooltip>
-            <Copy content={copyContent} trackName="chat_message_copy" />
-            <Save conversation={conversation} content={copyContent} />
-            {onShare && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    trackName="chat_share_open"
-                    aria-label={t('chat.share.action')}
-                    className={`${sidebarToolbarIconButtonClassName} size-7`}
-                    onClick={() => onShare(messageId)}
-                    size="icon"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <ShareIcon className="size-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{t('chat.share.action')}</TooltipContent>
-              </Tooltip>
-            )}
-            <MessageChannelTime
-              channel={channel}
-              className="opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100"
-              time={createdAtLabel}
-            />
-          </div>
-        )}
+          )}
+          <MessageChannelTime
+            channel={channel}
+            className="opacity-0 transition-opacity duration-300 group-hover:duration-75 group-hover:opacity-100"
+            time={createdAtLabel}
+          />
+        </div>
+      )}
     </div>
   );
 }
