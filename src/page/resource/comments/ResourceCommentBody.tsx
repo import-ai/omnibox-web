@@ -157,7 +157,12 @@ export function ResourceCommentBody({
         </button>
       ))}
       <ImagePreviewDialog
-        alt={preview?.name}
+        items={images.map(image => ({
+          id: image.id,
+          src: image.url,
+          alt: image.name,
+        }))}
+        initialItemId={preview?.id}
         open={!!preview}
         src={preview?.url}
         invokerRef={invokerRef}
