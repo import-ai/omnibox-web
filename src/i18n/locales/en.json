@@ -1,4 +1,21 @@
 {
+  "image_viewer": {
+    "controls": "Image controls",
+    "previous": "Previous image",
+    "next": "Next image",
+    "zoom_out": "Zoom out",
+    "zoom_in": "Zoom in",
+    "actual_size": "Actual size",
+    "fit": "Fit image",
+    "rotate": "Rotate",
+    "open_original": "Open original",
+    "first_image": "Already on the first image",
+    "last_image": "Already on the last image",
+    "min_zoom": "Minimum zoom reached",
+    "max_zoom": "Maximum zoom reached",
+    "zoom_unavailable": "Zoom is unavailable until the image loads",
+    "rotate_unavailable": "Rotation is unavailable until the image loads"
+  },
   "back_to_front": "Back to Front",
   "untitled": "Untitled",
   "edit": "Edit",
@@ -8,13 +25,13 @@
   "close": "Close",
   "paywall": {
     "brand": "OmniBox",
-    "non_owner_title": "Contact the namespace owner to upgrade",
+    "non_owner_title": "Contact owner to purchase",
     "acknowledge": "Got it",
     "storage_limit": {
       "basic": {
         "title": "You've reached the 5 GB storage limit",
-        "description": "Upgrade to Premium to unlock more space",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro to unlock more space",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "You've reached the 50 GB storage limit",
@@ -22,11 +39,17 @@
         "cta": "Buy a Kibble Pack"
       }
     },
+    "credits_low": {
+      "title": "Kibble is running low!",
+      "description": "Get more Kibble to keep feeding the black cat",
+      "cta": "Explore Pro",
+      "non_owner_description": "Kibble is running low"
+    },
     "credits_limit": {
       "basic": {
         "title": "Kibble's all gone!",
-        "description": "Upgrade to Premium for more Kibble",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro for more Kibble",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Kibble's all gone!",
@@ -42,8 +65,8 @@
     "search_filter_limit": {
       "basic": {
         "title": "3-filter limit reached",
-        "description": "Upgrade to Premium for more filters",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro for more filters",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Filter limit reached",
@@ -54,8 +77,8 @@
     "smart_filter_limit": {
       "basic": {
         "title": "3-filter limit reached",
-        "description": "Upgrade to Premium for more filters",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro for more filters",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Filter limit reached",
@@ -66,8 +89,8 @@
     "rss_link_limit": {
       "basic": {
         "title": "Subscription link limit reached",
-        "description": "Upgrade to Premium to unlock more",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro to unlock more",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Subscription link limit reached",
@@ -78,8 +101,8 @@
     "smart_folder_limit": {
       "basic": {
         "title": "Smart folder limit reached",
-        "description": "Upgrade to Premium to unlock more",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro to unlock more",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Smart folder limit reached",
@@ -90,8 +113,8 @@
     "rss_folder_limit": {
       "basic": {
         "title": "Subscription folder limit reached",
-        "description": "Upgrade to Premium to unlock more",
-        "cta": "Explore Premium"
+        "description": "Upgrade to Pro to unlock more",
+        "cta": "Explore Pro"
       },
       "premium": {
         "title": "Subscription folder limit reached",
@@ -102,7 +125,7 @@
     "namespace_expired": {
       "title": "Namespace expired",
       "description": "Renew or purchase a new namespace",
-      "cta": "Explore Premium"
+      "cta": "Explore Pro"
     }
   },
   "ok": "OK",
@@ -970,6 +993,12 @@
       "send_failed": "Failed to send",
       "retry_send": "Send again",
       "decision_submitted": "Permission choices submitted",
+      "decision_executing": "Approved, executing…",
+      "decision_rejecting": "Rejected, finishing…",
+      "decision_completed": "Action completed",
+      "decision_failed": "Execution failed",
+      "decision_unknown": "Execution result unknown",
+      "decision_retry": "Retry",
       "thinking": "Thinking"
     },
     "tips": "Enter a message",
@@ -980,6 +1009,8 @@
       "add": "Add image",
       "remove": "Remove image",
       "preview": "Preview image",
+      "zoom_in": "Zoom in",
+      "fit_width": "Fit width",
       "share_unsupported": "Image uploads are not supported in shared chats",
       "agent_1_1_unsupported": "Agent 1.1 does not support image input"
     },
@@ -1208,6 +1239,13 @@
       "expand_button": "Purchase",
       "upgrade_button": "Upgrade",
       "buy_button": "Buy"
+    },
+    "credits_low": {
+      "title": "Kibble is running low",
+      "owner_description": "Get more Kibble to keep feeding the black cat",
+      "non_owner_description": "Please contact the namespace owner to purchase",
+      "buy_button": "Buy",
+      "acknowledge_button": "Got it"
     },
     "trial": {
       "not_owner": "Please contact namespace owner to upgrade"
