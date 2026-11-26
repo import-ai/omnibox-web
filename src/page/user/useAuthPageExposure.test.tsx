@@ -17,17 +17,32 @@ let container: HTMLDivElement;
 let visible = true;
 let layoutVisible = true;
 
-function Harness({ path = '/user/login', ready = true, show = true }) {
-  useAuthPageExposure(path, ready);
+function Harness({
+  path = '/user/login',
+  ready = true,
+  show = true,
+  ignoreStoredUid = false,
+}) {
+  useAuthPageExposure(path, ready, ignoreStoredUid);
   return show ? (
     <form data-auth-page={path === '/user/sign-up' ? 'register' : 'login'} />
   ) : null;
 }
-async function render(path = '/user/login', ready = true, show = true) {
+async function render(
+  path = '/user/login',
+  ready = true,
+  show = true,
+  ignoreStoredUid = false
+) {
   await act(async () =>
     root.render(
       <StrictMode>
-        <Harness path={path} ready={ready} show={show} />
+        <Harness
+          path={path}
+          ready={ready}
+          show={show}
+          ignoreStoredUid={ignoreStoredUid}
+        />
       </StrictMode>
     )
   );
@@ -127,6 +142,18 @@ test('counts after session restoration determines the visitor is anonymous', asy
   await render('/user/sign-up', false);
   await render('/user/sign-up', true);
   expect(mockedTrack).toHaveBeenCalledTimes(1);
+});
+test('counts an available invite form once despite a stale local uid', async () => {
+  localStorage.setItem('uid', 'stale-user');
+  await render('/user/sign-up', false, false, true);
+  expect(mockedTrack).not.toHaveBeenCalled();
+  await render('/user/sign-up', true, true, true);
+  await render('/user/sign-up', true, true, true);
+  expect(mockedTrack).toHaveBeenCalledTimes(1);
+  expect(mockedTrack).toHaveBeenCalledWith(
+    'registration_page_view',
+    expect.any(Object)
+  );
 });
 test('does not count hidden preloading until first foreground display', async () => {
   visible = false;

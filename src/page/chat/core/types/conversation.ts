@@ -53,8 +53,12 @@ export interface AnswerTiming {
 export interface MessageAttrs {
   answer_timing?: AnswerTiming;
   turn_status?: 'stopped';
+  turn_id?: string;
   turn_run_id?: string;
+  can_steer?: boolean;
   stopped_run_id?: string;
+  stopped_runs?: string[];
+  current_resource_id?: string;
   client_request_id?: string;
   pending_query?: boolean; // frontend only
   citations?: Citation[];

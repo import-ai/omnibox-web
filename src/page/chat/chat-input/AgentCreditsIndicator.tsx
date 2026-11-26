@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/tooltip';
+import useApp from '@/hooks/useApp';
 import useQuota from '@/hooks/useQuota';
 import { formatCreditAmount } from '@/page/settings/tabs/quota/utils';
 
@@ -17,6 +18,7 @@ export default function AgentCreditsIndicator({
   isGenerating = false,
 }: AgentCreditsIndicatorProps) {
   const { t } = useTranslation();
+  const app = useApp();
   const { data, refresh } = useQuota(namespaceId);
   const wasGeneratingRef = useRef(isGenerating);
 
@@ -55,11 +57,16 @@ export default function AgentCreditsIndicator({
   return (
     <Tooltip delayDuration={150} onOpenChange={handleOpenChange}>
       <TooltipTrigger asChild>
-        <span
-          role="img"
-          tabIndex={0}
-          className="flex size-8 cursor-help items-center justify-center text-muted-foreground"
+        <button
+          type="button"
+          className="flex size-8 cursor-pointer items-center justify-center text-muted-foreground"
           aria-label={usageLabel}
+          onClick={event =>
+            app.fire('open_settings', {
+              tab: 'usage',
+              focusReturnTarget: event.currentTarget,
+            })
+          }
         >
           <svg
             aria-hidden="true"
@@ -87,7 +94,7 @@ export default function AgentCreditsIndicator({
               strokeLinecap="round"
             />
           </svg>
-        </span>
+        </button>
       </TooltipTrigger>
       <TooltipContent
         className="max-w-[calc(100vw-2rem)] whitespace-nowrap text-center"

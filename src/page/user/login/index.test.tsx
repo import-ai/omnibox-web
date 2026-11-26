@@ -116,4 +116,16 @@ describe('LoginPage authenticated redirect', () => {
     expect(mockGetAuthSuccessRedirect).not.toHaveBeenCalled();
     expect(navigate).not.toHaveBeenCalled();
   });
+
+  it('lets invite registration fall back to login with a residual local uid', async () => {
+    searchParams = new URLSearchParams('invite_code=012345');
+
+    await act(async () => root.render(<LoginPage />));
+
+    expect(
+      container.querySelector('[data-testid="login-form"]')
+    ).not.toBeNull();
+    expect(mockGetAuthSuccessRedirect).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+  });
 });

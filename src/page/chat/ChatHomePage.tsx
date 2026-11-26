@@ -142,6 +142,7 @@ export default function ChatHomePage() {
     selectedResources,
     mode,
     displayParts,
+    composerState,
     approvalMode,
     recommendedQuestionId,
     images,
@@ -158,7 +159,7 @@ export default function ChatHomePage() {
       const conversation = await http.post<ConversationEntity>(
         `/namespaces/${namespaceId}/conversations`
       );
-      setPendingMessage({
+      const payload = {
         query,
         edition,
         level,
@@ -166,22 +167,13 @@ export default function ChatHomePage() {
         selectedResources,
         mode,
         displayParts,
+        composerState,
         approvalMode,
         recommendedQuestionId,
         images,
-      });
-      setPendingChatPayload(conversation.id, {
-        query,
-        edition,
-        level,
-        tools,
-        selectedResources,
-        mode,
-        displayParts,
-        approvalMode,
-        recommendedQuestionId,
-        images,
-      });
+      };
+      setPendingMessage(payload);
+      setPendingChatPayload(conversation.id, payload);
       sessionStorage.setItem(
         'chat-create-payload',
         JSON.stringify({
@@ -192,6 +184,7 @@ export default function ChatHomePage() {
           tools,
           selectedResources,
           displayParts,
+          composerState,
           approvalMode,
           recommendedQuestionId,
           conversation: { id: conversation.id },

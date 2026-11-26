@@ -397,7 +397,7 @@ describe('stopped answer disclosure', () => {
       expect(html).not.toContain('Process details');
       expect(html).not.toContain('1m 8s');
       expect(html).not.toContain('Response time');
-      expect(html.match(/<output>/g)?.length ?? 0).toBe(content ? 1 : 0);
+      expect(html.match(/<output>/g)).toHaveLength(1);
       expect(html.match(/id="message-answer"/g)).toHaveLength(1);
       expect(renderAnswer([JSON.parse(JSON.stringify(source))])).toBe(html);
     }
@@ -426,7 +426,7 @@ describe('stopped answer disclosure', () => {
       ),
     ]);
     expect(html).toContain('Stopped');
-    expect(html).not.toContain('<output>');
+    expect(html.match(/<output>/g)).toHaveLength(1);
   });
 });
 
@@ -443,7 +443,7 @@ test('uses a persisted stopped timing snapshot before a stale streaming status i
   );
   const html = renderAnswer([source]);
   expect(html).toContain('Stopped');
-  expect(html).not.toContain('<output>');
+  expect(html.match(/<output>/g)).toHaveLength(1);
 });
 
 test('shows stopped for a persisted turn outcome without timing metadata', () => {
@@ -458,4 +458,205 @@ test('shows stopped for a persisted turn outcome without timing metadata', () =>
     }
   );
   expect(renderAnswer([source])).toContain('Stopped');
+});
+
+describe('decision receipt', () => {
+  function interruptAssistant(): MessageDetail {
+    return node('a', {
+      parent_id: 'q',
+      children: ['d'],
+      message: {
+        role: OpenAIMessageRole.ASSISTANT,
+        tool_calls: [
+          {
+            id: 'call-1',
+            type: 'function',
+            function: { name: 'edit_resource', arguments: '{"id":"r1"}' },
+          },
+        ],
+      },
+      attrs: {
+        tool_call: {
+          status: 'pending',
+          interrupts: [
+            {
+              name: 'edit_resource',
+              args: { id: 'r1' },
+              decisions: ['approve', 'reject'],
+            },
+          ],
+        },
+      } as MessageAttrs,
+    });
+  }
+
+  function decisionMessage(
+    overrides: Partial<MessageDetail> = {}
+  ): MessageDetail {
+    return node('d', {
+      parent_id: 'a',
+      message: { role: OpenAIMessageRole.USER, content: '' },
+      attrs: {
+        tool_call: { status: 'success', decisions: [{ type: 'approve' }] },
+      },
+      ...overrides,
+    });
+  }
+
+  function toolResult(overrides: Partial<MessageDetail> = {}): MessageDetail {
+    return node('t', {
+      parent_id: 'd',
+      message: {
+        role: OpenAIMessageRole.TOOL,
+        tool_call_id: 'call-1',
+        content: 'done',
+      },
+      attrs: { tool_call: { status: 'success' } } as MessageAttrs,
+      ...overrides,
+    });
+  }
+
+  function renderReceipt(
+    messages: MessageDetail[],
+    props: {
+      decisionBusy?: { id: string; kind: 'retry' | 'reject' } | null;
+      onRetryDecision?: (messageId: string) => void;
+    } = {}
+  ) {
+    return renderToStaticMarkup(
+      <Messages
+        conversation={{
+          id: 'c',
+          mapping: Object.fromEntries(
+            messages.map(message => [message.id, message])
+          ),
+        }}
+        messages={messages}
+        messageOperator={
+          { getParent: () => undefined } as unknown as MessageOperator
+        }
+        onEdit={() => {}}
+        onRegenerate={() => {}}
+        {...props}
+      />
+    );
+  }
+
+  test('shows the executing state instead of the submitted receipt', () => {
+    const html = renderReceipt([interruptAssistant(), decisionMessage()]);
+    expect(html).toContain('chat.delivery.decision_executing');
+    expect(html).not.toContain('chat.delivery.decision_submitted');
+    expect(html).toContain('role="status"');
+  });
+
+  test('shows the rejecting state for a rejected decision', () => {
+    const html = renderReceipt([
+      interruptAssistant(),
+      decisionMessage({
+        attrs: {
+          tool_call: { status: 'success', decisions: [{ type: 'reject' }] },
+        },
+      }),
+    ]);
+    expect(html).toContain('chat.delivery.decision_rejecting');
+  });
+
+  test('shows the busy retry and reject hints', () => {
+    const retrying = renderReceipt([interruptAssistant(), decisionMessage()], {
+      decisionBusy: { id: 'd', kind: 'retry' },
+    });
+    expect(retrying).toContain('chat.delivery.decision_executing');
+    expect(retrying).not.toContain('chat.delivery.decision_retry');
+    const rejecting = renderReceipt([interruptAssistant(), decisionMessage()], {
+      decisionBusy: { id: 'd', kind: 'reject' },
+    });
+    expect(rejecting).toContain('chat.delivery.decision_rejecting');
+  });
+
+  test('shows completed when the tool result is the last message', () => {
+    const html = renderReceipt([
+      interruptAssistant(),
+      decisionMessage(),
+      toolResult(),
+    ]);
+    expect(html).toContain('chat.delivery.decision_completed');
+    expect(html).not.toContain('chat.delivery.decision_retry');
+  });
+
+  test('shows failed with a retry for a failed empty reply', () => {
+    const failed = node('f', {
+      parent_id: 'd',
+      status: MessageStatus.FAILED,
+      message: { role: OpenAIMessageRole.ASSISTANT, content: '' },
+      attrs: { error_message: 'gateway timeout' },
+    });
+    const html = renderReceipt(
+      [interruptAssistant(), decisionMessage(), failed],
+      {
+        onRetryDecision: () => {},
+      }
+    );
+    expect(html).toContain('chat.delivery.decision_failed');
+    expect(html).toContain('chat.delivery.decision_retry');
+  });
+
+  test('shows a failed tool result without a retry', () => {
+    const failed = toolResult({
+      status: MessageStatus.FAILED,
+      attrs: { tool_call: { status: 'failed' } } as MessageAttrs,
+    });
+    const html = renderReceipt(
+      [interruptAssistant(), decisionMessage(), failed],
+      { onRetryDecision: () => {} }
+    );
+    expect(html).toContain('chat.delivery.decision_failed');
+    expect(html).not.toContain('chat.delivery.decision_retry');
+  });
+
+  test('shows an unknown result without a retry', () => {
+    const unknown = toolResult({
+      status: MessageStatus.FAILED,
+      attrs: {
+        tool_call: { status: 'failed' },
+        error_message: 'upstream timeout',
+        error_code: 'upstream_timeout',
+      } as MessageAttrs,
+    });
+    const html = renderReceipt(
+      [interruptAssistant(), decisionMessage(), unknown],
+      { onRetryDecision: () => {} }
+    );
+    expect(html).toContain('chat.delivery.decision_unknown');
+    expect(html).not.toContain('chat.delivery.decision_failed');
+    expect(html).not.toContain('chat.delivery.decision_retry');
+  });
+
+  test('shows a stopped decision without a retry', () => {
+    const html = renderReceipt([
+      interruptAssistant(),
+      decisionMessage({
+        attrs: {
+          tool_call: { status: 'success', decisions: [{ type: 'approve' }] },
+          stopped_runs: ['run-1'],
+        },
+      }),
+    ]);
+    expect(html).toContain('chat.tool_stopped');
+    expect(html).not.toContain('chat.delivery.decision_retry');
+  });
+
+  test('a share receipt never offers a retry', () => {
+    const failed = node('f', {
+      parent_id: 'd',
+      status: MessageStatus.FAILED,
+      message: { role: OpenAIMessageRole.ASSISTANT, content: '' },
+    });
+    const html = renderReceipt([
+      interruptAssistant(),
+      decisionMessage(),
+      failed,
+    ]);
+    expect(html).toContain('chat.delivery.decision_failed');
+    expect(html).not.toContain('chat.delivery.decision_retry');
+  });
 });
