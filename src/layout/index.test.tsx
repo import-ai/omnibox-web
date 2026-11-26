@@ -451,7 +451,7 @@ describe('Layout authentication storage changes', () => {
     });
 
     it('keeps a pending invite referral entry', async () => {
-      sessionStorage.setItem('omnibox.inviteReferral.landing', 'activation');
+      sessionStorage.setItem('omnibox.inviteReferral.landing', 'invite');
       mockHttpGet.mockImplementation((url: string) => {
         if (url === '/config') return Promise.resolve({ commercial: false });
         if (url === 'namespaces') return Promise.resolve(namespaceResponse());
@@ -461,7 +461,7 @@ describe('Layout authentication storage changes', () => {
       await act(async () => root.render(<Layout />));
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        '/namespace-a/invite-referral?entry=activation',
+        '/namespace-a/invite-referral',
         { replace: true }
       );
     });
