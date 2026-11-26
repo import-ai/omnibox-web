@@ -25,7 +25,8 @@ export interface AgentCreditsResponseDto {
 export function useAgentCredits(
   namespaceId: string,
   messages: MessageDetail[],
-  enabled = true
+  enabled = true,
+  includeLowBalanceExperiment = false
 ) {
   const [snapshot, setSnapshot] = useState<
     { namespaceId: string; credits: AgentCreditsResponseDto } | undefined
@@ -38,9 +39,12 @@ export function useAgentCredits(
   const fetchAgentCredits = useCallback(
     (config?: RequestConfig) => {
       const fetchGeneration = ++fetchGenerationRef.current;
+      const query = includeLowBalanceExperiment
+        ? '?include_low_balance_experiment=true'
+        : '';
       return http
         .get<AgentCreditsResponseDto>(
-          `/namespaces/${namespaceId}/usages/agent`,
+          `/namespaces/${namespaceId}/usages/agent${query}`,
           config
         )
         .then(data => {
@@ -51,7 +55,7 @@ export function useAgentCredits(
           return data;
         });
     },
-    [namespaceId]
+    [namespaceId, includeLowBalanceExperiment]
   );
 
   useEffect(() => {

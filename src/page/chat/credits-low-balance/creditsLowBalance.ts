@@ -60,45 +60,50 @@ export function getCreditsLowBalanceDismissalKey({
   namespaceId,
   tier,
   userId,
-  variant,
 }: {
   namespaceId: string;
   tier: NamespaceTier;
   userId: string;
-  variant: CreditsLowBalanceVariant;
 }) {
   return [
     'omnibox:credits-low-balance:dismissed',
     userId || 'anonymous',
     namespaceId,
     tier,
-    variant,
+    'v2',
   ].join(':');
+}
+
+export function legacyDismissalThresholds(key: string) {
+  const prefix = key.slice(0, -2);
+  return key.endsWith(`:${NamespaceTier.PREMIUM}:v2`)
+    ? [[`${prefix}premium`, 430] as const]
+    : [[`${prefix}b`, 50] as const, [`${prefix}a`, 10] as const];
 }
 
 export function readCreditsLowBalanceDismissed(key: string) {
   try {
-    return localStorage.getItem(key) === '1';
+    const saved = localStorage.getItem(key);
+    if (saved !== null) return Number(saved) || 0;
+    const migrated =
+      legacyDismissalThresholds(key).find(
+        ([legacyKey]) => localStorage.getItem(legacyKey) === '1'
+      )?.[1] ?? 0;
+    writeCreditsLowBalanceDismissed(key, migrated);
+    return migrated;
   } catch {
-    return false;
+    return 0;
   }
 }
 
-export function writeCreditsLowBalanceDismissed(key: string) {
+export function writeCreditsLowBalanceDismissed(
+  key: string,
+  threshold: number
+) {
   try {
-    localStorage.setItem(key, '1');
-    return true;
+    localStorage.setItem(key, String(threshold));
   } catch {
-    return false;
-  }
-}
-
-export function clearCreditsLowBalanceDismissed(key: string) {
-  try {
-    localStorage.removeItem(key);
-    return true;
-  } catch {
-    return false;
+    // Keep the current component state when persistence is unavailable.
   }
 }
 

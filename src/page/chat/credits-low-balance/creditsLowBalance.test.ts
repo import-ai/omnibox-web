@@ -3,7 +3,6 @@
 import { NamespaceTier } from '@/interface';
 
 import {
-  clearCreditsLowBalanceDismissed,
   creditsLowBalanceAnalyticsProps,
   creditsToStoredUnits,
   getCreditsLowBalanceDismissalKey,
@@ -43,19 +42,19 @@ describe('credits low balance', () => {
     expect(isCreditsLowBalance(creditsToStoredUnits(430), 430)).toBe(false);
   });
 
-  it('persists dismissal per user, namespace, tier, and experiment variant', () => {
+  it('carries over old dismissals without resurrecting them after recovery', () => {
     const key = getCreditsLowBalanceDismissalKey({
       namespaceId: 'namespace-a',
       tier: NamespaceTier.BASIC,
       userId: 'user-a',
-      variant: 'a',
     });
-
-    expect(readCreditsLowBalanceDismissed(key)).toBe(false);
-    expect(writeCreditsLowBalanceDismissed(key)).toBe(true);
-    expect(readCreditsLowBalanceDismissed(key)).toBe(true);
-    expect(clearCreditsLowBalanceDismissed(key)).toBe(true);
-    expect(readCreditsLowBalanceDismissed(key)).toBe(false);
+    localStorage.setItem(
+      'omnibox:credits-low-balance:dismissed:user-a:namespace-a:basic:b',
+      '1'
+    );
+    expect(readCreditsLowBalanceDismissed(key)).toBe(50);
+    writeCreditsLowBalanceDismissed(key, 0);
+    expect(readCreditsLowBalanceDismissed(key)).toBe(0);
   });
 
   it('reports displayed Kibble values to analytics', () => {

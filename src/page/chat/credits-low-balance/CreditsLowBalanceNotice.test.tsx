@@ -85,13 +85,22 @@ describe('CreditsLowBalanceNotice', () => {
     await act(async () => root.unmount());
   });
 
-  function render(remainingCredits: number, selectedEdition: 'basic' | 'pro') {
+  function render(
+    remainingCredits: number,
+    selectedEdition: 'basic' | 'pro',
+    experiment?: {
+      experiment_id: number;
+      group_id: number;
+      basic_threshold?: number;
+    }
+  ) {
     return act(async () =>
       root.render(
         <CreditsLowBalanceNotice
           namespaceId="namespace-a"
           remainingCredits={remainingCredits}
           selectedEdition={selectedEdition}
+          experiment={experiment}
         />
       )
     );
@@ -129,6 +138,24 @@ describe('CreditsLowBalanceNotice', () => {
     expect(mockShowPaywall).not.toHaveBeenCalled();
   });
 
+  it('keeps an AB dismissal through fallback and only rearms at its original threshold', async () => {
+    const experiment = { experiment_id: 1, group_id: 2, basic_threshold: 50 };
+    await render(20_000_000, 'pro', experiment);
+    const options = mockShowPaywall.mock.calls[0][1] as {
+      onDismiss: (reason: string) => void;
+    };
+    await act(async () => options.onDismiss('close'));
+    mockShowPaywall.mockClear();
+
+    await render(20_000_000, 'pro');
+    await render(20_000_000, 'pro', experiment);
+    expect(mockShowPaywall).not.toHaveBeenCalled();
+
+    await render(50_000_000, 'pro', experiment);
+    await render(20_000_000, 'pro', experiment);
+    expect(mockShowPaywall).toHaveBeenCalledTimes(1);
+  });
+
   it('renders the Premium banner and keeps it closed after dismissal', async () => {
     mockNamespace.tier = NamespaceTier.PREMIUM;
     await render(200_000_000, 'pro');
@@ -150,10 +177,9 @@ describe('CreditsLowBalanceNotice', () => {
           namespaceId: 'namespace-a',
           tier: NamespaceTier.PREMIUM,
           userId: 'user-a',
-          variant: 'default',
         })
       )
-    ).toBe('1');
+    ).toBe('430');
   });
 
   it('hides the Basic modal when switching to the free model', async () => {

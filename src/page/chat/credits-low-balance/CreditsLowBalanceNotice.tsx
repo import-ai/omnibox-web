@@ -14,7 +14,6 @@ import { useNamespaceRole } from '@/lib/useNamespaceRole';
 import { subscribeCredentials } from '@/page/user/util';
 
 import {
-  clearCreditsLowBalanceDismissed,
   type CreditsLowBalanceExperiment,
   creditsToStoredUnits,
   getCreditsLowBalanceDismissalKey,
@@ -77,47 +76,49 @@ export function CreditsLowBalanceNotice({
     tier,
     experiment
   );
-  const threshold = creditsToStoredUnits(thresholdCredits);
   const storageKey = namespaceId
     ? getCreditsLowBalanceDismissalKey({
         namespaceId,
         tier,
         userId,
-        variant,
       })
     : '';
-  const [dismissedKey, setDismissedKey] = useState<string | null>(() =>
-    storageKey && readCreditsLowBalanceDismissed(storageKey) ? storageKey : null
-  );
+  const [dismissal, setDismissal] = useState<{
+    key: string;
+    threshold: number;
+  }>();
+  const dismissedAt =
+    dismissal?.key === storageKey ? dismissal.threshold : undefined;
 
   useEffect(() => {
     if (!storageKey) return;
-    setDismissedKey(
-      readCreditsLowBalanceDismissed(storageKey) ? storageKey : null
-    );
+    setDismissal({
+      key: storageKey,
+      threshold: readCreditsLowBalanceDismissed(storageKey),
+    });
   }, [storageKey]);
 
   useEffect(() => {
     if (
       !storageKey ||
+      !dismissedAt ||
       remainingCredits === undefined ||
-      remainingCredits < threshold
+      remainingCredits < creditsToStoredUnits(dismissedAt)
     ) {
       return;
     }
-    clearCreditsLowBalanceDismissed(storageKey);
     shownPromptRef.current = null;
-    setDismissedKey(current => (current === storageKey ? null : current));
-  }, [remainingCredits, storageKey, threshold]);
+    setDismissal({ key: storageKey, threshold: 0 });
+    void writeCreditsLowBalanceDismissed(storageKey, 0);
+  }, [dismissedAt, remainingCredits, storageKey]);
 
   const dismissPrompt = useCallback(
     (reason?: PaywallDismissReason) => {
-      if (reason === 'automatic') return;
-      if (!storageKey) return;
-      writeCreditsLowBalanceDismissed(storageKey);
-      setDismissedKey(storageKey);
+      if (reason === 'automatic' || !storageKey) return;
+      setDismissal({ key: storageKey, threshold: thresholdCredits });
+      void writeCreditsLowBalanceDismissed(storageKey, thresholdCredits);
     },
-    [storageKey]
+    [storageKey, thresholdCredits]
   );
 
   const requestRef = useRef(request);
@@ -157,14 +158,14 @@ export function CreditsLowBalanceNotice({
   const isLow =
     remainingCredits !== undefined &&
     isCreditsLowBalance(remainingCredits, thresholdCredits);
-  const dismissed = dismissedKey === storageKey;
+  const dismissed = dismissedAt !== 0;
 
   useEffect(() => {
     if (selectedEdition !== 'pro' || !isLow) {
       shownPromptRef.current = null;
     }
   }, [isLow, selectedEdition]);
-  const promptKey = `${storageKey}:${thresholdCredits}`;
+  const promptKey = storageKey;
 
   useEffect(() => {
     if (

@@ -119,7 +119,8 @@ export function ConversationFooter({
   const { agentCredits } = useAgentCredits(
     context.namespaceId,
     context.messages,
-    creditsEnabled
+    creditsEnabled,
+    true
   );
   const imageUploadDisabled =
     agentCredits !== undefined && agentCredits.agent_credits_remain <= 0;
