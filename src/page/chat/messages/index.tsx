@@ -136,6 +136,7 @@ function renderMessage(
   isLastMessage: boolean,
   regeneratingParentId: string | null,
   hideActions: boolean,
+  expandProcessDetails: boolean,
   onShareMessage?: (messageId: string) => void,
   decisionBusy?: DecisionBusy | null,
   onRetryDecision?: (messageId: string) => void,
@@ -185,6 +186,7 @@ function renderMessage(
         regenerating={regeneratingParentId === parentId}
         stoppedAnswer={stoppedAnswer}
         hideActions={hideActions}
+        expandProcessDetails={expandProcessDetails}
         onShare={onShareMessage}
         busyDecisionId={decisionBusy?.id}
       />
@@ -360,6 +362,7 @@ export function Messages(props: IProps) {
     isLastInList: boolean,
     {
       isFinalReasoning = false,
+      expandProcessDetails = false,
       stoppedAnswer = false,
       hideProcessActions = false,
     } = {}
@@ -395,6 +398,7 @@ export function Messages(props: IProps) {
               isLastAssistantMessage,
               regeneratingParentId,
               hideProcessActions || Boolean(shareSelection?.isSelecting),
+              expandProcessDetails,
               onShareMessage,
               decisionBusy,
               onRetryDecision,
@@ -484,6 +488,7 @@ export function Messages(props: IProps) {
                     processIndex === visibleProcessMessages.length - 1,
                     {
                       isFinalReasoning: message.id === item.finalMessage.id,
+                      expandProcessDetails: true,
                       hideProcessActions: item.stopped,
                     }
                   )
