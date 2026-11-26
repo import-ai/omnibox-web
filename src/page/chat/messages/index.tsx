@@ -138,7 +138,8 @@ function renderMessage(
   hideActions: boolean,
   onShareMessage?: (messageId: string) => void,
   decisionBusy?: DecisionBusy | null,
-  onRetryDecision?: (messageId: string) => void
+  onRetryDecision?: (messageId: string) => void,
+  stoppedAnswer = false
 ) {
   const openAIMessage = message.message;
   if (
@@ -182,6 +183,7 @@ function renderMessage(
         isLastMessage={isLastMessage}
         regenerateDisabled={Boolean(regeneratingParentId)}
         regenerating={regeneratingParentId === parentId}
+        stoppedAnswer={stoppedAnswer}
         hideActions={hideActions}
         onShare={onShareMessage}
         busyDecisionId={decisionBusy?.id}
@@ -356,9 +358,13 @@ export function Messages(props: IProps) {
   function renderMessageBlock(
     message: MessageDetail,
     isLastInList: boolean,
-    isFinalReasoning = false
+    {
+      isFinalReasoning = false,
+      stoppedAnswer = false,
+      hideProcessActions = false,
+    } = {}
   ) {
-    if (!hasVisibleMessageContent(message, chatOnly)) {
+    if (!stoppedAnswer && !hasVisibleMessageContent(message, chatOnly)) {
       return null;
     }
 
@@ -388,10 +394,11 @@ export function Messages(props: IProps) {
               onEdit,
               isLastAssistantMessage,
               regeneratingParentId,
-              Boolean(shareSelection?.isSelecting),
+              hideProcessActions || Boolean(shareSelection?.isSelecting),
               onShareMessage,
               decisionBusy,
-              onRetryDecision
+              onRetryDecision,
+              stoppedAnswer
             );
             const groupId = shareSelection?.messageGroupIds.get(message.id);
 
@@ -458,16 +465,16 @@ export function Messages(props: IProps) {
 
           return (
             <ProcessDetails
-              id={
-                !item.finalMessage.message.content?.trim()
-                  ? `message-${item.finalMessage.id}`
-                  : undefined
-              }
               key={`process_${item.messages[0].id}`}
               ids={item.messages.map(message => message.id)}
               title={
-                formatAnswerDuration(item.finalMessage, t, item.messages) ??
-                t('chat.messages.process.details')
+                item.stopped
+                  ? t('chat.messages.process.stopped')
+                  : (formatAnswerDuration(
+                      item.finalMessage,
+                      t,
+                      item.messages
+                    ) ?? t('chat.messages.process.details'))
               }
             >
               {() =>
@@ -475,7 +482,10 @@ export function Messages(props: IProps) {
                   renderMessageBlock(
                     message,
                     processIndex === visibleProcessMessages.length - 1,
-                    message.id === item.finalMessage.id
+                    {
+                      isFinalReasoning: message.id === item.finalMessage.id,
+                      hideProcessActions: item.stopped,
+                    }
                   )
                 )
               }
@@ -485,7 +495,8 @@ export function Messages(props: IProps) {
 
         return renderMessageBlock(
           item.message,
-          index === displayItems.length - 1
+          index === displayItems.length - 1,
+          { stoppedAnswer: item.stoppedAnswer }
         );
       })}
     </div>
