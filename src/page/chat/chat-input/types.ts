@@ -1,6 +1,8 @@
 import { ResourceMeta } from '@/interface.ts';
 import { ConversationDetail } from '@/page/chat/core/types/conversation.ts';
 
+import type { ComposerState } from './composerState';
+
 export enum ToolType {
   WEB_SEARCH = 'web_search',
   PRIVATE_SEARCH = 'private_search',
@@ -148,6 +150,7 @@ export interface SendMessageParams {
   selectedResources: IResTypeContext[];
   mode: ChatMode;
   displayParts?: ChatMessageDisplayPart[];
+  composerState?: ComposerState;
   decisions?: Decision[];
   approvalMode?: ApprovalMode;
   recommendedQuestionId?: string;

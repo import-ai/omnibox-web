@@ -119,31 +119,14 @@ export function extractOriginalMessageSettings(message: MessageDetail): {
   };
 }
 
-export function prepareBody(
-  conversationId: string,
+export function prepareMessageContent(
   query: string,
   tools: ToolType[],
   context: IResTypeContext[],
-  channel: AgentRequestChannel,
-  parent_message_id: string | undefined,
-  lang: WizardLang | undefined,
-  enable_thinking?: boolean,
-  currentResourceId?: string,
-  edition?: 'basic' | 'pro',
-  level?: string
-): ChatRequestBody {
-  const body: ChatRequestBody = {
-    conversation_id: conversationId,
-    query,
-    lang,
-    channel,
-  };
-  if (edition && level) {
-    body.edition = edition;
-    body.level = level;
-  } else {
-    body.enable_thinking = enable_thinking ?? false;
-  }
+  currentResourceId?: string
+) {
+  const body: Pick<ChatRequestBody, 'query' | 'tools' | 'current_resource_id'> =
+    { query };
   if (currentResourceId) {
     body.current_resource_id = currentResourceId;
   }
@@ -155,7 +138,7 @@ export function prepareBody(
   }
   for (const tool of tools) {
     if (tool === ToolType.REASONING) {
-      if (!edition) body.enable_thinking = true;
+      continue;
     } else if (tool === ToolType.PRIVATE_SEARCH) {
       body.tools = body?.tools || [];
       const tool: PrivateSearch = {
@@ -171,6 +154,36 @@ export function prepareBody(
     }
   }
 
+  return body;
+}
+
+export function prepareBody(
+  conversationId: string,
+  query: string,
+  tools: ToolType[],
+  context: IResTypeContext[],
+  channel: AgentRequestChannel,
+  parent_message_id: string | undefined,
+  lang: WizardLang | undefined,
+  enable_thinking?: boolean,
+  currentResourceId?: string,
+  edition?: 'basic' | 'pro',
+  level?: string
+): ChatRequestBody {
+  const body: ChatRequestBody = {
+    conversation_id: conversationId,
+    ...prepareMessageContent(query, tools, context, currentResourceId),
+    lang,
+    channel,
+  };
+  if (edition && level) {
+    body.edition = edition;
+    body.level = level;
+  } else {
+    body.enable_thinking = enable_thinking ?? false;
+  }
+  if (!edition && tools.includes(ToolType.REASONING))
+    body.enable_thinking = true;
   if (parent_message_id) {
     body.parent_message_id = parent_message_id;
   }
@@ -368,21 +381,25 @@ export function ask(
       }
       if (chatResponse.response_type === 'bos') {
         if (chatResponse.role === OpenAIMessageRole.USER) {
-          acceptedId = chatResponse.id;
+          // The server accepted this request even when the send was seeded
+          // with a direct parent; the refusal guards must stop intercepting.
           serverAccepted = true;
-          outcome.acceptedMessageId = chatResponse.id;
-          if (
-            chatResponse.parentId &&
-            parent_message_id &&
-            chatResponse.parentId !== parent_message_id
-          )
-            options.onReparented?.(chatResponse.parentId);
-          // Also reconciles an older backend that does not echo the optional request ID.
-          chatResponse.attrs = {
-            ...chatResponse.attrs,
-            client_request_id: pendingId,
-          };
-          data = JSON.stringify(chatResponse);
+          if (!acceptedId) {
+            acceptedId = chatResponse.id;
+            outcome.acceptedMessageId = chatResponse.id;
+            if (
+              chatResponse.parentId &&
+              parent_message_id &&
+              chatResponse.parentId !== parent_message_id
+            )
+              options.onReparented?.(chatResponse.parentId);
+            // Also reconciles an older backend that does not echo the optional request ID.
+            chatResponse.attrs = {
+              ...chatResponse.attrs,
+              client_request_id: pendingId,
+            };
+            data = JSON.stringify(chatResponse);
+          }
         } else if (chatResponse.role === OpenAIMessageRole.ASSISTANT)
           assistantId = chatResponse.id;
       }

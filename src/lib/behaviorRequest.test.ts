@@ -3,8 +3,10 @@ import {
   beginEditorInput,
   behaviorRequestHeaders,
   behaviorRequestKind,
+  captureBehaviorCorrelation,
   registerBehaviorRequestStarter,
   rememberBehaviorUpload,
+  restoreBehaviorHeaders,
 } from './behaviorRequest';
 let scope: string;
 let id: number;
@@ -29,6 +31,15 @@ it('classifies manual product writes but excludes trace, reads, internal RSS, an
   ).toBe('resource_add');
   expect(behaviorRequestKind('POST', '/api/v1/namespaces/ns/wizard/chat')).toBe(
     'ai_conversation'
+  );
+  const queuePath =
+    '/api/v1/namespaces/ns/wizard/conversations/conversation/messages';
+  expect(behaviorRequestKind('POST', queuePath)).toBe('ai_conversation');
+  expect(behaviorRequestHeaders('POST', queuePath)).toEqual(
+    expect.objectContaining({
+      'x-omnibox-action-id': expect.stringContaining(scope),
+      'x-omnibox-action-type': 'ai_conversation',
+    })
   );
   expect(
     behaviorRequestKind('POST', '/internal/api/v1/namespaces/ns/rss-folders')
@@ -158,4 +169,29 @@ it('does not reuse an unconsumed activation from yesterday or another account', 
   } finally {
     jest.useRealTimers();
   }
+});
+
+it('reuses one queued-send action across retries and drops it for another account', () => {
+  const value = captureBehaviorCorrelation(
+    '/namespaces/ns/wizard/conversations/conversation/messages'
+  );
+  expect(id).toBe(1);
+  expect(restoreBehaviorHeaders(value)).toBe(value.headers);
+  expect(restoreBehaviorHeaders(value)['x-omnibox-action-id']).toBe(
+    `${scope}-1`
+  );
+  // A second capture is a new action; the retry path must reuse the frozen one.
+  expect(
+    behaviorRequestHeaders(
+      'POST',
+      '/namespaces/ns/wizard/conversations/conversation/messages'
+    )['x-omnibox-action-id']
+  ).toBe(`${scope}-2`);
+  scope = 'another-user';
+  expect(restoreBehaviorHeaders(value)).toEqual({
+    'x-omnibox-action-id': 'untracked',
+  });
+  expect(restoreBehaviorHeaders()).toEqual({
+    'x-omnibox-action-id': 'untracked',
+  });
 });

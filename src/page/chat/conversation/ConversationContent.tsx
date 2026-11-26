@@ -100,6 +100,25 @@ export function ConversationMessageList({
             )}
           </>
         )}
+        {context.submissions
+          ?.filter(
+            item =>
+              item.disposition !== 'failed' &&
+              item.query &&
+              !context.messages.some(
+                message =>
+                  message.id === item.client_request_id ||
+                  message.attrs?.client_request_id === item.client_request_id
+              )
+          )
+          .map(item => (
+            <div
+              key={item.client_request_id}
+              className="ml-auto mt-4 w-fit max-w-full whitespace-pre-wrap break-words rounded-lg bg-secondary px-3 py-2 text-secondary-foreground sm:max-w-[75%] dark:bg-card dark:text-card-foreground"
+            >
+              {item.query}
+            </div>
+          ))}
       </Scrollbar>
     </MessageDetailsContext.Provider>
   );
@@ -161,6 +180,18 @@ export function ConversationFooter({
             agentCredits={agentCredits}
           />
         )}
+        {context.submissions
+          ?.filter(item => item.disposition === 'failed')
+          .map(item => (
+            <div
+              role="status"
+              key={item.client_request_id}
+              className="mb-1 truncate px-3 text-sm text-muted-foreground"
+              title={item.error ?? item.query}
+            >
+              {t('chat.delivery.send_failed')} · {item.query}
+            </div>
+          ))}
         {creditsEnabled && (
           <CreditsLowBalanceNotice
             namespaceId={context.namespaceId}
@@ -169,27 +200,30 @@ export function ConversationFooter({
             selectedEdition={thinkingSelection?.edition}
           />
         )}
-        <ChatArea
-          key={context.conversation.id}
-          composerSurface="conversation"
-          selectedResources={context.selectedResources}
-          setSelectedResources={context.setSelectedResources}
-          messages={context.messages}
-          namespaceId={context.namespaceId}
-          navigatePrefix={`/${context.namespaceId}`}
-          initialApprovalMode={context.initialApprovalMode}
-          approvalModeResetKey={context.conversation.id}
-          suppressInitialToolRestore={context.suppressInitialToolRestore}
-          sendMessage={context.sendMessage}
-          textWhilePending
-          loading={context.loading}
-          imageUploadDisabled={imageUploadDisabled}
-          proUnsupported={imageUploadDisabled}
-          waitingForAssistantDelta={context.waitingForAssistantDelta}
-          streamState={context.streamState}
-          onStop={context.onStop}
-          onThinkingSelectionChange={setThinkingSelection}
-        />
+        {!context.initialSendPending && (
+          <ChatArea
+            key={context.conversation.id}
+            composerSurface="conversation"
+            selectedResources={context.selectedResources}
+            setSelectedResources={context.setSelectedResources}
+            messages={context.messages}
+            namespaceId={context.namespaceId}
+            navigatePrefix={`/${context.namespaceId}`}
+            initialApprovalMode={context.initialApprovalMode}
+            approvalModeResetKey={context.conversation.id}
+            suppressInitialToolRestore={context.suppressInitialToolRestore}
+            sendMessage={context.sendMessage}
+            steerMessage={context.steerMessage}
+            textWhilePending
+            loading={context.loading}
+            imageUploadDisabled={imageUploadDisabled}
+            proUnsupported={imageUploadDisabled}
+            waitingForAssistantDelta={context.waitingForAssistantDelta}
+            streamState={context.streamState}
+            onStop={context.onStop}
+            onThinkingSelectionChange={setThinkingSelection}
+          />
+        )}
         <div
           data-chat-disclaimer
           className="truncate pt-2 text-center text-xs text-muted-foreground"

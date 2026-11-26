@@ -84,8 +84,9 @@ export function createMessageOperator(
       !!id && conversation.mapping[id]?.message.role === OpenAIMessageRole.USER,
     update: (delta: ChatDeltaResponse, id?: string) => {
       setConversation(prev => {
-        const message = getMessage(prev, id);
-        if (!message) return prev;
+        const previous = getMessage(prev, id);
+        if (!previous) return prev;
+        const message = { ...previous, message: { ...previous.message } };
         if (message.status === MessageStatus.STOPPED) {
           if (!delta.attrs?.answer_timing) return prev;
           return {
@@ -105,11 +106,15 @@ export function createMessageOperator(
 
         if (
           message.message.role === OpenAIMessageRole.USER &&
-          message.attrs?.pending_query &&
+          (message.attrs?.pending_query ||
+            delta.message.role === OpenAIMessageRole.USER) &&
           delta.message.content
         ) {
           message.message.content = delta.message.content;
-          if (message.attrs.client_request_id !== message.id) {
+          if (
+            message.attrs?.pending_query &&
+            message.attrs.client_request_id !== message.id
+          ) {
             message.attrs = { ...message.attrs, pending_query: false };
           }
         } else {
@@ -263,7 +268,8 @@ export function createMessageOperator(
           }
           if (
             current.message.role === OpenAIMessageRole.USER &&
-            !current.attrs?.tool_call?.decisions?.length
+            !current.attrs?.tool_call?.decisions?.length &&
+            (!current.attrs?.turn_id || current.attrs.turn_id === current.id)
           )
             break;
           current = prev.mapping[current.parent_id];
@@ -302,7 +308,11 @@ export function createMessageOperator(
             delete mapping[message.id].attrs?.error_code;
             delete mapping[message.id].attrs?.error_status;
           }
-          if (isQuery) break;
+          if (
+            isQuery &&
+            (!message.attrs?.turn_id || message.attrs.turn_id === message.id)
+          )
+            break;
           message = mapping[message.parent_id];
         }
         return { ...prev, mapping };

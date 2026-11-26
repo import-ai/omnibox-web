@@ -4,13 +4,16 @@ import { act } from 'react';
 import type { Root } from 'react-dom/client';
 import { createRoot } from 'react-dom/client';
 
+import { registerBehaviorRequestStarter } from '@/lib/behaviorRequest';
 import { setPendingChatPayload } from '@/lib/chatBridge';
+import { getChatInputDraft } from '@/page/chat/chat-input/chatInputDraft';
 import {
   beginChatSubmissionPreparation,
   isChatSubmissionPreparing,
   useChatSubmissionStore,
 } from '@/page/chat/chat-input/chatSubmissionStore';
 import { WEB_SEARCH_QUERY_TOKEN } from '@/page/chat/chat-input/composerQuery';
+import { createComposerState } from '@/page/chat/chat-input/composerState';
 import { ChatMode, ToolType } from '@/page/chat/chat-input/types';
 import type { ConversationDetail } from '@/page/chat/core/types/conversation';
 
@@ -32,6 +35,7 @@ import {
 } from './utils';
 
 const mockGet = jest.fn();
+const mockPost = jest.fn();
 const mockFire = jest.fn();
 const mockResumeStart = jest.fn();
 const mockResumeDestroy = jest.fn();
@@ -62,7 +66,13 @@ jest.mock('sonner', () => ({
 }));
 
 jest.mock('@/lib/request', () => ({
-  http: { get: (...args: unknown[]) => mockGet(...args) },
+  http: {
+    post: (...args: unknown[]) => mockPost(...args),
+    get: (url: string, ...args: unknown[]) =>
+      url.endsWith('/submissions')
+        ? Promise.resolve([])
+        : mockGet(url, ...args),
+  },
 }));
 
 jest.mock('@/lib/wizardLang', () => ({ getWizardLang: () => 'zh' }));
@@ -95,6 +105,10 @@ jest.mock('@/page/chat/core/messageOperator.ts', () => ({
 
 jest.mock('@/page/chat/conversation/utils.ts', () => ({
   ask: jest.fn(),
+  prepareBody: (conversation_id: string, query: string) => ({
+    conversation_id,
+    query,
+  }),
   beginPendingQuery: jest.fn(() => 'pending-query'),
   extractOriginalMessageSettings: jest.fn(),
   findFirstMessageWithMissingParent: jest.fn(() => undefined),
@@ -173,9 +187,21 @@ function ConversationProbe({
 describe('useContext conversation cache failures', () => {
   let container: HTMLDivElement;
   let root: Root;
+  let actionStarts = 0;
 
   beforeEach(() => {
     localStorage.setItem('uid', 'user-a');
+    actionStarts = 0;
+    registerBehaviorRequestStarter(
+      type => {
+        actionStarts += 1;
+        return {
+          'x-omnibox-action-id': `action-${actionStarts}`,
+          'x-omnibox-action-type': type,
+        };
+      },
+      () => 'scope'
+    );
     useChatSubmissionStore.setState({ pending: {} });
     sessionStorage.clear();
     clearConversationCache();
@@ -184,6 +210,7 @@ describe('useContext conversation cache failures', () => {
       .mocked(findFirstMessageWithMissingParent)
       .mockImplementation(() => undefined);
     mockGet.mockReset();
+    mockPost.mockReset();
     mockFire.mockReset();
     mockResumeDestroy.mockClear();
     mockResumeStart.mockReset();
@@ -389,7 +416,7 @@ describe('useContext conversation cache failures', () => {
         query: '用一句话介绍北京',
         tools: [],
         selectedResources: [],
-        mode: ChatMode.ASK,
+        mode: ChatMode.WRITE,
       });
     });
 
@@ -466,8 +493,69 @@ describe('useContext conversation cache failures', () => {
     query: '用一句话介绍北京',
     tools: [],
     selectedResources: [],
-    mode: ChatMode.ASK,
+    mode: ChatMode.WRITE,
   };
+
+  it.each(['streaming', 'success'] as const)(
+    'submits an Ask message without a run ID when the previous reply is %s',
+    async status => {
+      const loaded = cachedConversation();
+      const previous = loaded.mapping['message-a'];
+      previous.status = status as typeof previous.status;
+      previous.message.role = 'assistant' as typeof previous.message.role;
+      previous.attrs = { turn_run_id: 'old-run', can_steer: true };
+      setCachedConversation(cacheScope, loaded);
+      mockGet.mockResolvedValue(loaded);
+      mockPost.mockResolvedValue({
+        disposition: 'queued',
+        client_request_id: 'receipt',
+      });
+      const context = await renderContext();
+      jest.mocked(ask).mockClear();
+
+      await act(async () => {
+        await context().sendMessage({ ...typed, mode: ChatMode.ASK });
+      });
+
+      expect(mockPost).toHaveBeenCalledTimes(1);
+      const [url, body] = mockPost.mock.calls[0];
+      expect(url).toBe(
+        '/namespaces/namespace-a/wizard/conversations/conversation-a/messages'
+      );
+      expect(body).toMatchObject({
+        query: typed.query,
+        client_request_id: expect.any(String),
+      });
+      expect(body).not.toHaveProperty('expected_run_id');
+      expect(ask).not.toHaveBeenCalled();
+    }
+  );
+
+  it('keeps the submission id for a text retry after a transport failure', async () => {
+    const loaded = cachedConversation();
+    loaded.mapping['message-a'].message.role = 'assistant' as never;
+    setCachedConversation(cacheScope, loaded);
+    mockGet.mockResolvedValue(loaded);
+    mockPost.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce({
+      disposition: 'queued',
+      client_request_id: 'receipt',
+    });
+    const context = await renderContext();
+    const params = { ...typed, mode: ChatMode.ASK };
+    await act(async () => {
+      await expect(context().sendMessage(params)).rejects.toThrow('offline');
+      await context().sendMessage(params);
+    });
+    expect(mockPost).toHaveBeenCalledTimes(2);
+    expect(mockPost.mock.calls[0][1]).toEqual(mockPost.mock.calls[1][1]);
+    // The retry reuses the original behavior action instead of starting a
+    // second one that nothing would ever complete.
+    expect(mockPost.mock.calls[0][2]).toEqual(mockPost.mock.calls[1][2]);
+    expect(mockPost.mock.calls[0][2]?.headers['x-omnibox-action-id']).toBe(
+      'action-1'
+    );
+    expect(actionStarts).toBe(1);
+  });
 
   it('continues from an approval another client raised after the page loaded', async () => {
     const loaded = cachedConversation();
@@ -1104,7 +1192,7 @@ describe('useContext conversation cache failures', () => {
         query: 'image query',
         tools: [],
         selectedResources: [],
-        mode: ChatMode.ASK,
+        mode: ChatMode.WRITE,
         images,
       });
     });
@@ -1126,12 +1214,42 @@ describe('useContext conversation cache failures', () => {
     upload.mockRestore();
   });
 
+  it('restores the first message draft and retries with the same request ID', async () => {
+    const query = 'First message';
+    const composerState = createComposerState(' First message ');
+    const payload = {
+      query,
+      mode: ChatMode.ASK,
+      selectedResources: [],
+      tools: [],
+    };
+    setPendingChatPayload('conversation-a', { ...payload, composerState });
+    mockPost
+      .mockRejectedValueOnce({ response: { status: 404 } })
+      .mockResolvedValueOnce({ id: 'first-message', disposition: 'queued' });
+
+    const context = await renderContext();
+
+    expect(context().initialSendPending).toBe(false);
+    const draft = getChatInputDraft('conversation-a');
+    expect(draft?.composerState).toEqual(composerState);
+    expect(draft?.query.trim()).toBe(query);
+    const [url, original] = mockPost.mock.calls[0];
+    expect(url).toMatch(/\/conversations\/conversation-a\/messages$/);
+    await act(async () => {
+      await context().sendMessage({ ...payload, query: draft!.query.trim() });
+    });
+    expect(mockPost).toHaveBeenNthCalledWith(2, url, original, {
+      headers: mockPost.mock.calls[0][2].headers,
+    });
+  });
+
   it('reloads the reply after leaving a new conversation before it finishes', async () => {
     setPendingChatPayload('conversation-a', {
       query: '你好',
       tools: [],
       selectedResources: [],
-      mode: ChatMode.ASK,
+      mode: ChatMode.WRITE,
     });
     let releaseStream!: () => void;
     const started = new Promise<void>(resolve => {
@@ -1316,7 +1434,7 @@ describe('useContext conversation cache failures', () => {
         query: '  [web_search](tool://web_search)\n你好  ',
         tools: [],
         selectedResources: [],
-        mode: ChatMode.ASK,
+        mode: ChatMode.WRITE,
       });
     });
     expect(mockFire).toHaveBeenCalledWith(
@@ -1372,7 +1490,7 @@ describe('useContext conversation cache failures', () => {
         query: '再问一句',
         tools: [],
         selectedResources: [],
-        mode: ChatMode.ASK,
+        mode: ChatMode.WRITE,
       });
     });
     expect(mockFire).not.toHaveBeenCalledWith(
@@ -1629,7 +1747,7 @@ describe('useContext conversation cache failures', () => {
         query: 'retry-image',
         tools: [],
         selectedResources: [],
-        mode: ChatMode.ASK,
+        mode: ChatMode.WRITE,
         images: [
           { id: 'image-a', name: file.name, file, url: 'blob:original' },
         ],
@@ -1692,7 +1810,7 @@ describe('useContext conversation cache failures', () => {
         query: 'image retry',
         tools: [],
         selectedResources: [],
-        mode: ChatMode.ASK,
+        mode: ChatMode.WRITE,
         images: [{ id: 'local', name: file.name, file, url: 'blob:retry' }],
         onImagesUploaded: finishComposer,
       });
@@ -1754,7 +1872,7 @@ describe('useContext conversation cache failures', () => {
         query: 'image retry',
         tools: [],
         selectedResources: [],
-        mode: ChatMode.ASK,
+        mode: ChatMode.WRITE,
         images: [{ id: 'local', name: file.name, file, url: 'blob:retry' }],
       });
     });
