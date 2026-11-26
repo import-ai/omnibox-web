@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { TooltipProvider } from '@/components/tooltip';
+import { isValidInviteCode } from '@/page/inviteReferral/registrationPolicy';
 
 import {
   AgreementCheckbox,
@@ -40,6 +41,8 @@ export default function RegisterPage() {
   useH5WechatAuthPoll();
 
   useEffect(() => {
+    // Layout verifies the authenticated account for invitation links.
+    if (isValidInviteCode(params.get('invite_code') ?? '')) return;
     const uid = localStorage.getItem('uid');
     if (uid) {
       navigate('/', { replace: true });

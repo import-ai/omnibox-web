@@ -319,7 +319,14 @@ export function ResourceCommentItem({
                 <div className="omnibox-comment-composer--edit__preview">
                   {editImages.map(image => (
                     <div key={image.url}>
-                      <ResourceCommentDraftImage src={image.url} />
+                      <ResourceCommentDraftImage
+                        src={image.url}
+                        itemId={image.url}
+                        items={editImages.map(item => ({
+                          id: item.url,
+                          src: item.url,
+                        }))}
+                      />
                       <button
                         type="button"
                         className="omnibox-comment-image-remove"

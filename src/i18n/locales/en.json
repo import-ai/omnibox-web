@@ -1,4 +1,21 @@
 {
+  "image_viewer": {
+    "controls": "Image controls",
+    "previous": "Previous image",
+    "next": "Next image",
+    "zoom_out": "Zoom out",
+    "zoom_in": "Zoom in",
+    "actual_size": "Actual size",
+    "fit": "Fit image",
+    "rotate": "Rotate",
+    "open_original": "Open original",
+    "first_image": "Already on the first image",
+    "last_image": "Already on the last image",
+    "min_zoom": "Minimum zoom reached",
+    "max_zoom": "Maximum zoom reached",
+    "zoom_unavailable": "Zoom is unavailable until the image loads",
+    "rotate_unavailable": "Rotation is unavailable until the image loads"
+  },
   "back_to_front": "Back to Front",
   "untitled": "Untitled",
   "edit": "Edit",
@@ -992,6 +1009,8 @@
       "add": "Add image",
       "remove": "Remove image",
       "preview": "Preview image",
+      "zoom_in": "Zoom in",
+      "fit_width": "Fit width",
       "share_unsupported": "Image uploads are not supported in shared chats",
       "agent_1_1_unsupported": "Agent 1.1 does not support image input"
     },
@@ -1831,7 +1850,7 @@
       "skip": "Skip",
       "submit": "Bind and claim",
       "description": "Bind your phone to verify your identity and receive invite rewards.",
-      "bubble": "Link your phone to receive 600 Kibble."
+      "bubble": "Link your phone to verify and get invite rewards."
     },
     "code": {
       "entry": "Have an invite code? Enter >",

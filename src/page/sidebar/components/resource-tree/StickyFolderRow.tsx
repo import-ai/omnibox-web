@@ -1,7 +1,7 @@
-import { ChevronDown } from 'lucide-react';
 import type { RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Arrow } from '@/assets/icons/Arrow';
 import ResourceTypeIcon from '@/components/ResourceTypeIcon';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 import { useStickyFolder } from '@/page/sidebar/hooks/useStickyFolder';
@@ -53,7 +53,7 @@ export default function StickyFolderRow({
           }
         }}
       >
-        <ChevronDown className="size-4" />
+        <Arrow className="rotate-90" />
       </button>
       <ResourceTypeIcon expand resource={node} />
       <button
