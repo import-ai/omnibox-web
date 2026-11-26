@@ -123,7 +123,10 @@ function OmniboxRender(props: OmniboxRenderProps) {
   );
   const { registerImagePreview, imagePreviewProps } = useResourceImagePreview(
     `read:${namespaceId ?? ''}:${getReadonlyResourceEditorKey(resource)}`,
-    containerRef
+    containerRef,
+    {
+      scopedShare: !!shareId,
+    }
   );
   const handleEditorReady = useCallback(
     (editor: Parameters<typeof registerImagePreview>[0]) => {

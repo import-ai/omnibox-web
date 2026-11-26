@@ -71,7 +71,8 @@ test('owns one preview registration, restores readonly focus, and clears it on r
     const img = host.querySelector('img')!;
     Object.defineProperties(img, {
       complete: { value: true, configurable: true },
-      naturalWidth: { value: 100, configurable: true },
+      naturalWidth: { value: 1428, configurable: true },
+      naturalHeight: { value: 14180, configurable: true },
     });
     const event = new MouseEvent('mouseup', { bubbles: true });
     img.dispatchEvent(event);
@@ -93,6 +94,9 @@ test('owns one preview registration, restores readonly focus, and clears it on r
     expect(preview.imagePreviewProps.open).toBe(true);
     expect(preview.imagePreviewProps.src).toBe('http://localhost/a.png');
     expect(preview.imagePreviewProps.referrerPolicy).toBe('same-origin');
+    expect(preview.imagePreviewProps).toMatchObject({
+      imageSize: { width: 1428, height: 14180 },
+    });
     await act(async () => preview.imagePreviewProps.onOpenChange(false));
     expect(preview.imagePreviewProps.src).toBeUndefined();
     const event = new Event('close', { cancelable: true });
@@ -122,6 +126,60 @@ test('owns one preview registration, restores readonly focus, and clears it on r
         plugin => plugin.spec.key === resourceImagePreviewKey
       )
     ).toHaveLength(0);
+  } finally {
+    await act(async () => {
+      root.unmount();
+      editor.destroy();
+    });
+    container.remove();
+    host.remove();
+    jest.useRealTimers();
+  }
+});
+
+test('opens the clicked duplicate occurrence without download or comment actions', async () => {
+  jest.useFakeTimers();
+  const container = document.body.appendChild(document.createElement('div'));
+  const host = document.body.appendChild(document.createElement('div'));
+  const root = createRoot(container);
+  const editor = new Editor({
+    element: host,
+    editable: false,
+    extensions,
+    content: { type: 'doc', content: [{ type: 'image' }, { type: 'image' }] },
+  });
+  const [first, second] = Array.from(host.querySelectorAll('img'));
+  for (const element of [first, second]) {
+    Object.defineProperties(element, {
+      complete: { value: true },
+      naturalWidth: { value: 100 },
+      naturalHeight: { value: 100 },
+    });
+  }
+  let preview!: ReturnType<typeof useResourceImagePreview>;
+  function Harness() {
+    preview = useResourceImagePreview('document');
+    return null;
+  }
+  try {
+    await act(async () => root.render(<Harness />));
+    await act(async () => {
+      preview.registerImagePreview(editor);
+      editor.commands.setNodeSelection(1);
+      const event = new MouseEvent('mouseup', { bubbles: true });
+      second.dispatchEvent(event);
+      editor.view.someProp('handleClickOn', fn =>
+        fn(editor.view, 1, editor.state.doc.nodeAt(1)!, 1, event, true)
+      );
+      jest.runOnlyPendingTimers();
+    });
+    expect(preview.imagePreviewProps.initialItemId).toBe('1');
+    expect(preview.imagePreviewProps.items?.map(item => item.id)).toEqual([
+      '0',
+      '1',
+    ]);
+    expect(preview.imagePreviewProps).not.toHaveProperty('getCommentAction');
+    expect(preview.imagePreviewProps.items?.[0]).not.toHaveProperty('download');
   } finally {
     await act(async () => {
       root.unmount();

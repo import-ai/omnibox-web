@@ -16,6 +16,12 @@ import type {
   MessageDetail,
 } from '@/page/chat/core/types/conversation';
 
+import {
+  activeLeaf,
+  hasUnfinishedTurn,
+  isLocalRequestMessage,
+  snapshotQuery,
+} from './chatStreamRecovery';
 import useChatStreamRecovery from './useChatStreamRecovery';
 
 (
@@ -212,6 +218,165 @@ describe('useChatStreamRecovery', () => {
       expect.objectContaining({ code: 'stream_interrupted' }),
       'assistant-1'
     );
+    expect(probe.get().streamState).toBe('interrupted');
+  });
+
+  it('marks its recovery reply as client-only so snapshots look below the question', async () => {
+    const question = message(
+      'user-1',
+      OpenAIMessageRole.USER,
+      MessageStatus.SUCCESS
+    );
+    const initial: ConversationDetail = {
+      id: 'conversation',
+      mapping: { 'user-1': question },
+      current_node: 'user-1',
+    };
+    const loadSnapshot = jest.fn().mockResolvedValue(initial);
+    const createResumeStream = jest.fn(() => ({
+      start: jest.fn().mockResolvedValue(undefined),
+      cancel: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn(),
+      getLastEventId: () => undefined,
+    }));
+    const probe = await renderRecovery(initial, {
+      loadSnapshot,
+      createResumeStream,
+    });
+
+    await showPage();
+
+    // The resume ended without a terminal event, so recovery adds the missing
+    // reply under the question.
+    const state = probe.state();
+    const leaf = activeLeaf(state);
+    expect(leaf?.message.role).toBe(OpenAIMessageRole.ASSISTANT);
+    expect(leaf?.parent_id).toBe('user-1');
+    expect(leaf?.status).toBe(MessageStatus.FAILED);
+    // Client-only: never ask the server for a branch rooted at this UUID.
+    expect(isLocalRequestMessage(leaf)).toBe(true);
+    expect(leaf?.attrs?.client_request_id).toBe(leaf?.id);
+    expect(snapshotQuery(state)).toEqual({ branch_node_id: 'user-1' });
+    expect(loadSnapshot).toHaveBeenCalled();
+  });
+
+  function questionConversation(): ConversationDetail {
+    const question = message(
+      'user-1',
+      OpenAIMessageRole.USER,
+      MessageStatus.SUCCESS
+    );
+    return {
+      id: 'conversation',
+      mapping: { 'user-1': question },
+      current_node: 'user-1',
+    };
+  }
+
+  function completedAnswerConversation(): ConversationDetail {
+    const base = questionConversation();
+    const answer = message(
+      'assistant-server',
+      OpenAIMessageRole.ASSISTANT,
+      MessageStatus.SUCCESS,
+      {
+        parent_id: 'user-1',
+        message: { role: OpenAIMessageRole.ASSISTANT, content: 'the answer' },
+      }
+    );
+    return {
+      id: 'conversation',
+      mapping: {
+        'user-1': { ...base.mapping['user-1'], children: ['assistant-server'] },
+        'assistant-server': answer,
+      },
+      current_node: 'assistant-server',
+    };
+  }
+
+  it('adopts a completed server answer after its interruption reply', async () => {
+    const questionOnly = questionConversation();
+    const completed = completedAnswerConversation();
+    const loadSnapshot = jest
+      .fn()
+      .mockResolvedValueOnce(questionOnly)
+      .mockResolvedValueOnce(questionOnly)
+      .mockResolvedValue(completed);
+    const createResumeStream = jest.fn(() => ({
+      start: jest.fn().mockResolvedValue(undefined),
+      cancel: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn(),
+      getLastEventId: () => undefined,
+    }));
+    const probe = await renderRecovery(questionOnly, {
+      loadSnapshot,
+      createResumeStream,
+    });
+
+    // First pass: the stream dies without a terminal event and the server has
+    // no reply yet, so recovery adds a local interrupted reply.
+    await showPage();
+    const localReply = activeLeaf(probe.state());
+    expect(localReply?.parent_id).toBe('user-1');
+    expect(isLocalRequestMessage(localReply)).toBe(true);
+
+    // The server finished the answer while the tab was hidden. The second
+    // pass must adopt it, not treat the local reply as an undelivered request.
+    await showPage();
+
+    const state = probe.state();
+    const leaf = activeLeaf(state);
+    expect(leaf?.id).toBe('assistant-server');
+    expect(leaf?.message.content).toBe('the answer');
+    expect(leaf?.status).toBe(MessageStatus.SUCCESS);
+    expect(state.mapping['assistant-server']).toBeDefined();
+    expect(state.mapping[localReply!.id]?.attrs?.error_code).not.toBe(
+      'stream_send_failed'
+    );
+    expect(
+      Object.values(state.mapping).some(
+        message => message.attrs?.error_code === 'stream_send_failed'
+      )
+    ).toBe(false);
+    expect(hasUnfinishedTurn(state)).toBe(false);
+    expect(probe.get().streamState).toBe('connected');
+    // The completed snapshot was merged before any second resume.
+    expect(createResumeStream).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps one interrupted reply and resumes while the server has no answer', async () => {
+    const questionOnly = questionConversation();
+    const loadSnapshot = jest.fn().mockResolvedValue(questionOnly);
+    const createResumeStream = jest.fn(() => ({
+      start: jest.fn().mockResolvedValue(undefined),
+      cancel: jest.fn().mockResolvedValue(undefined),
+      destroy: jest.fn(),
+      getLastEventId: () => undefined,
+    }));
+    const probe = await renderRecovery(questionOnly, {
+      loadSnapshot,
+      createResumeStream,
+    });
+
+    await showPage();
+    const firstLeaf = activeLeaf(probe.state());
+    await showPage();
+
+    const state = probe.state();
+    const leaf = activeLeaf(state);
+    // The same local reply is reused; a second one is not stacked.
+    expect(leaf?.id).toBe(firstLeaf?.id);
+    expect(leaf?.status).toBe(MessageStatus.FAILED);
+    expect(leaf?.attrs?.error_code).toBe('stream_interrupted');
+    expect(leaf?.attrs?.client_request_id).toBe(leaf?.id);
+    expect(snapshotQuery(state)).toEqual({ branch_node_id: 'user-1' });
+    expect(
+      Object.values(state.mapping).some(
+        message => message.attrs?.error_code === 'stream_send_failed'
+      )
+    ).toBe(false);
+    // Still running: the second pass resumed again.
+    expect(createResumeStream).toHaveBeenCalledTimes(2);
     expect(probe.get().streamState).toBe('interrupted');
   });
 
