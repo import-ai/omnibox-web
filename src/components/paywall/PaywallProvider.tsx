@@ -29,7 +29,31 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
         trigger: current.trigger,
         namespace_id: current.namespaceId,
         quota_exhausted: current.quotaExhausted ?? true,
+        experiment_variant: current.experimentVariant,
+        threshold_kibble: current.thresholdCredits,
+        remaining_kibble: toDisplayCredits(current.remainingCredits),
       }).catch(() => undefined);
+      if (
+        current.scene === 'credits_low' &&
+        (reason === 'close' || reason === 'dismiss' || reason === 'escape')
+      ) {
+        void track('credits_low_balance_dismiss', {
+          surface: 'modal',
+          dismiss:
+            reason === 'close'
+              ? 'button'
+              : reason === 'escape'
+                ? 'escape'
+                : 'outside',
+          role: current.isOwner ? 'owner' : 'member',
+          namespace_tier: current.tier,
+          namespace_id: current.namespaceId,
+          experiment_variant: current.experimentVariant,
+          threshold_kibble: current.thresholdCredits,
+          remaining_kibble: toDisplayCredits(current.remainingCredits),
+        }).catch(() => undefined);
+      }
+      current.onDismiss?.(reason);
       setRequest(null);
     },
     []
@@ -51,7 +75,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
             namespace_id: options.namespaceId,
             quota_exhausted: quotaExhausted,
           }).catch(() => undefined);
-          return;
+          return false;
         }
       }
 
@@ -63,6 +87,7 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
       };
       requestRef.current = next;
       setRequest(next);
+      return true;
     },
     []
   );
@@ -78,4 +103,10 @@ export function PaywallProvider({ children }: { children: ReactNode }) {
       <PaywallDialog />
     </PaywallContext.Provider>
   );
+}
+
+function toDisplayCredits(units?: number) {
+  return units === undefined
+    ? undefined
+    : Math.round((units / 1_000_000) * 100) / 100;
 }

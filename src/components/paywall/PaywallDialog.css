@@ -1,0 +1,28 @@
+@keyframes paywall-dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes paywall-dialog-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* The shared dialog animation scales from 95% and sets a blur filter.
+   Both rasterize the button off-pixel until the animation ends. */
+[data-paywall-dialog][data-state='open'] {
+  animation: paywall-dialog-fade-in 100ms ease backwards !important;
+}
+
+[data-paywall-dialog][data-state='closed'] {
+  animation: paywall-dialog-fade-out 100ms ease forwards !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-paywall-dialog][data-state='open'],
+  [data-paywall-dialog][data-state='closed'] {
+    animation: none !important;
+  }
+}
