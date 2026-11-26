@@ -14,8 +14,21 @@ export type StreamState =
   'connected' | 'recovering' | 'offline' | 'interrupted';
 
 // A message the server never accepted keeps its client request ID as its ID.
+// This includes local assistant replies (recovery/decision failures), so the
+// guards that look below the parent apply to them too.
 export function isLocalRequestMessage(message?: MessageDetail) {
   return Boolean(message && message.attrs?.client_request_id === message.id);
+}
+
+// Only a local USER message is a request the server may not have accepted; an
+// assistant reply marked local is a local-only child, not an undelivered
+// question.
+export function isLocalUserRequestMessage(message?: MessageDetail) {
+  return Boolean(
+    message &&
+    message.message.role === OpenAIMessageRole.USER &&
+    isLocalRequestMessage(message)
+  );
 }
 
 export function activeLeaf(

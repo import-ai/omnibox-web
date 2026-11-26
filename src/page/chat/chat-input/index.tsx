@@ -359,6 +359,17 @@ export default function ChatArea(props: IProps) {
                 }))
               );
             });
+            // A refusal can arrive before React has flushed the composer
+            // clear from the send; when that clear lands after this restore
+            // the editor is empty while the draft's query is set. Re-assert
+            // the editor once the queue has drained; a draft the user typed
+            // in the meantime is already in the editor and is left alone.
+            window.setTimeout(() => {
+              const editor = inputRef.current?.getState();
+              if (editor && !editor.displayText && state.displayText) {
+                inputRef.current?.restore(state);
+              }
+            }, 0);
           }
           throw error;
         }

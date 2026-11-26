@@ -25,7 +25,13 @@ import { useShareChatOnly } from '@/page/share/ShareChatOnlyContext';
 import { hasToolCalls } from '../conversation/conversationHistory';
 import { ProcessDetails } from '../conversation/ProcessDetails';
 import { formatAnswerDuration } from './answerTiming';
+import { resolveDecisionTurn } from './decisionTurn';
 import { buildMessageDisplayItems } from './messageGroups';
+
+export interface DecisionBusy {
+  id: string;
+  kind: 'retry' | 'reject';
+}
 
 interface IProps {
   conversation: ConversationDetail;
@@ -35,6 +41,8 @@ interface IProps {
   onEdit: (messageId: string, newContent: string) => void;
   regeneratingParentId?: string | null;
   onShareMessage?: (messageId: string) => void;
+  decisionBusy?: DecisionBusy | null;
+  onRetryDecision?: (messageId: string) => void;
   shareSelection?: {
     isSelecting: boolean;
     messageGroupIds: ReadonlyMap<string, string>;
@@ -43,20 +51,75 @@ interface IProps {
   };
 }
 
-function DecisionReceipt({ message }: { message: MessageDetail }) {
+function DecisionReceipt({
+  message,
+  messages,
+  busy,
+  onRetryDecision,
+}: {
+  message: MessageDetail;
+  messages: MessageDetail[];
+  busy?: 'retry' | 'reject';
+  onRetryDecision?: (messageId: string) => void;
+}) {
   const { t } = useTranslation();
   if (message.status === MessageStatus.FAILED) return null;
-  const sending = [MessageStatus.PENDING, MessageStatus.STREAMING].includes(
-    message.status
-  );
+  const turn = resolveDecisionTurn(message, messages);
+  const spinner =
+    Boolean(busy) || ['sending', 'executing'].includes(turn.state);
+  let text: string;
+  if (busy)
+    text =
+      busy === 'reject'
+        ? 'chat.delivery.decision_rejecting'
+        : 'chat.delivery.decision_executing';
+  else
+    switch (turn.state) {
+      case 'sending':
+        text = 'chat.delivery.sending';
+        break;
+      case 'executing':
+        text = turn.hasApprove
+          ? 'chat.delivery.decision_executing'
+          : 'chat.delivery.decision_rejecting';
+        break;
+      case 'unknown':
+        text = 'chat.delivery.decision_unknown';
+        break;
+      case 'stopped':
+        text = 'chat.tool_stopped';
+        break;
+      case 'failed':
+        text = 'chat.delivery.decision_failed';
+        break;
+      case 'completed':
+        text =
+          turn.hasApprove && !turn.hasRejectedResult
+            ? 'chat.delivery.decision_completed'
+            : 'chat.delivery.decision_submitted';
+        break;
+    }
+  const canRetry =
+    Boolean(onRetryDecision) &&
+    turn.state === 'failed' &&
+    turn.canRetry &&
+    !busy;
   return (
     <div
-      role="status"
+      role={spinner ? 'status' : undefined}
       className="flex items-center gap-2 text-sm text-muted-foreground"
     >
-      {sending && <Spinner className="size-4" />}
-      {t(
-        sending ? 'chat.delivery.sending' : 'chat.delivery.decision_submitted'
+      {spinner && <Spinner className="size-4" />}
+      {t(text)}
+      {canRetry && (
+        <Button
+          trackName="chat_decision_retry"
+          variant="ghost"
+          size="sm"
+          onClick={() => onRetryDecision?.(message.id)}
+        >
+          {t('chat.delivery.decision_retry')}
+        </Button>
       )}
     </div>
   );
@@ -74,6 +137,8 @@ function renderMessage(
   regeneratingParentId: string | null,
   hideActions: boolean,
   onShareMessage?: (messageId: string) => void,
+  decisionBusy?: DecisionBusy | null,
+  onRetryDecision?: (messageId: string) => void,
   stoppedAnswer = false
 ) {
   const openAIMessage = message.message;
@@ -81,7 +146,14 @@ function renderMessage(
     openAIMessage.role === OpenAIMessageRole.USER &&
     message.attrs?.tool_call?.decisions?.length
   ) {
-    return <DecisionReceipt message={message} />;
+    return (
+      <DecisionReceipt
+        message={message}
+        messages={messages}
+        busy={decisionBusy?.id === message.id ? decisionBusy.kind : undefined}
+        onRetryDecision={onRetryDecision}
+      />
+    );
   }
 
   if (
@@ -114,6 +186,7 @@ function renderMessage(
         stoppedAnswer={stoppedAnswer}
         hideActions={hideActions}
         onShare={onShareMessage}
+        busyDecisionId={decisionBusy?.id}
       />
     );
   }
@@ -198,6 +271,8 @@ export function Messages(props: IProps) {
     onEdit,
     regeneratingParentId = null,
     onShareMessage,
+    decisionBusy,
+    onRetryDecision,
     shareSelection,
   } = props;
 
@@ -321,6 +396,8 @@ export function Messages(props: IProps) {
               regeneratingParentId,
               hideProcessActions || Boolean(shareSelection?.isSelecting),
               onShareMessage,
+              decisionBusy,
+              onRetryDecision,
               stoppedAnswer
             );
             const groupId = shareSelection?.messageGroupIds.get(message.id);

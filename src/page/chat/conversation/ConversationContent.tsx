@@ -62,6 +62,8 @@ export function ConversationMessageList({
               onRegenerate={context.onRegenerate}
               onShareMessage={messageId => share.open(messageId, 'latest')}
               regeneratingParentId={context.regeneratingParentId}
+              decisionBusy={context.busyDecision}
+              onRetryDecision={context.retryDecision}
               shareSelection={{
                 isSelecting: share.isSelecting,
                 messageGroupIds: share.messageGroupIds,
