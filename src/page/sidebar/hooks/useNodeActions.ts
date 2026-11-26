@@ -3,12 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { useSidebar } from '@/components/ui/Sidebar';
 import useApp from '@/hooks/useApp';
 import { useIsMobile } from '@/hooks/useMobile';
-import type { Resource } from '@/interface';
+import type { Namespace, Resource } from '@/interface';
 import { addToChatContext, openCopilotForChatContext } from '@/lib/chatBridge';
 import { deleteResource } from '@/lib/deleteResource';
+import { isStorageQuotaError } from '@/lib/paywallErrors';
 import { http } from '@/lib/request';
 import { newFileEditorLocationState } from '@/page/resource/editor/focusNewFileTitle';
 import { navigateToResource } from '@/page/resource/resourceNavigation';
@@ -28,6 +30,7 @@ import {
 } from '@/page/sidebar/utils';
 
 import { getCurrentResourceId, syncSingleMoveResult } from './batchMoveSync';
+import { useExpiredNamespaceGate } from './useExpiredNamespaceGate';
 
 export interface UseNodeActionsReturn {
   node: ReturnType<typeof useNode>;
@@ -43,7 +46,7 @@ export interface UseNodeActionsReturn {
   /** Opens the add-link dialog under this node */
   handleCreateLinkWithDialog: () => void;
   /** Opens the create-subscription-folder dialog under this node */
-  handleCreateRssFolder: () => void;
+  handleCreateRssFolder: (quotaExhausted?: boolean) => void;
   handleEdit: () => void;
   handleRenameFolder: (name: string) => Promise<void>;
   handleLocateSource: () => void;
@@ -80,9 +83,12 @@ function getNodeResource(
 
 export function useNodeActions(
   nodeId: string,
-  namespaceId: string
+  namespaceId: string,
+  currentNamespace?: Namespace
 ): UseNodeActionsReturn {
   const app = useApp();
+  const { showPaywall } = usePaywall();
+  const blockExpired = useExpiredNamespaceGate(namespaceId, currentNamespace);
   const { t } = useTranslation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -111,9 +117,13 @@ export function useNodeActions(
       return;
     }
 
+    if (blockExpired('sidebar_file_create')) return;
+
     useSidebarStore
       .getState()
-      .create(nodeId, 'doc')
+      .create(nodeId, 'doc', undefined, {
+        muteCodes: ['storage_quota_exceeded'],
+      })
       .then(async id => {
         navigateToResource(navigate, `/${namespaceId}/${id}/edit`, {
           state: newFileEditorLocationState(),
@@ -121,8 +131,17 @@ export function useNodeActions(
         await locateSidebarResource(id);
         if (isMobile) setOpenMobile(false);
       })
-      .catch(() => {
-        // request.ts handles backend error toasts.
+      .catch(error => {
+        if (!isStorageQuotaError(error)) return;
+        showPaywall(
+          currentNamespace?.expired ? 'namespace_expired' : 'storage_limit',
+          {
+            namespaceId,
+            tier: currentNamespace?.tier,
+            isOwner: currentNamespace?.is_owner,
+            trigger: 'sidebar_file_create',
+          }
+        );
       });
   };
 
@@ -130,6 +149,8 @@ export function useNodeActions(
     if (hasManagedChildren || isSmartFolderChild) {
       return;
     }
+
+    if (blockExpired('sidebar_folder_create')) return;
 
     useSidebarStore.getState().openCreateFolderDialog(nodeId);
   };
@@ -139,11 +160,24 @@ export function useNodeActions(
       return;
     }
 
+    if (blockExpired('sidebar_link_open')) return;
+
     useSidebarStore.getState().openCreateLinkDialog(nodeId);
   };
 
-  const handleCreateRssFolder = () => {
+  const handleCreateRssFolder = (quotaExhausted = false) => {
     if (hasManagedChildren || isSmartFolderChild) {
+      return;
+    }
+
+    if (blockExpired('sidebar_rss_folder_create')) return;
+    if (quotaExhausted) {
+      showPaywall('rss_folder_limit', {
+        namespaceId,
+        tier: currentNamespace?.tier,
+        isOwner: currentNamespace?.is_owner,
+        trigger: 'sidebar_rss_folder_create',
+      });
       return;
     }
 
@@ -264,6 +298,8 @@ export function useNodeActions(
     if (hasManagedChildren || isSmartFolderChild) {
       return;
     }
+
+    if (blockExpired('sidebar_upload')) return;
 
     triggerGlobalFileUpload(nodeId);
   };

@@ -19,7 +19,6 @@ import { useTranslation } from 'react-i18next';
 import { RssFolderDefaultIcon } from '@/assets/icons/RssFolderDefaultIcon';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 import { isSmartFolderChildResource } from '@/page/sidebar/components/smart-folder';
-import { getRssFolderQuotaTooltipKey } from '@/page/sidebar/rssFolderQuota';
 
 import { useSidebarStore } from '../store';
 import {
@@ -125,8 +124,6 @@ export function useNodeMenu(
   const selectedIds = useSidebarStore(state => state.selectedIds);
   const nodes = useSidebarStore(state => state.nodes);
   const namespaceId = useSidebarStore(state => state.namespaceId);
-  const rootIds = useSidebarStore(state => state.rootIds);
-  const hasTeamspace = !!(rootIds.teamspace && nodes[rootIds.teamspace]);
   const rssFolderQuotaExhausted = useRssFolderQuotaExhausted(
     namespaceId || undefined
   );
@@ -300,11 +297,6 @@ export function useNodeMenu(
     }
 
     const rssFolderDisabled = rssFolderQuotaExhausted[node.spaceType] === true;
-    const rssFolderTooltipKey = getRssFolderQuotaTooltipKey(
-      hasTeamspace,
-      rssFolderQuotaExhausted,
-      node.spaceType
-    );
 
     return {
       disabled: false,
@@ -325,9 +317,7 @@ export function useNodeMenu(
           key: 'create_rss_folder',
           icon: RssFolderDefaultIcon,
           label: t('actions.create_rss_folder'),
-          disabled: rssFolderDisabled,
-          disabledTip: rssFolderTooltipKey ? t(rssFolderTooltipKey) : undefined,
-          onClick: actions.handleCreateRssFolder,
+          onClick: () => actions.handleCreateRssFolder(rssFolderDisabled),
         },
         {
           key: 'upload_file',
@@ -381,7 +371,6 @@ export function useNodeMenu(
     selectedIds,
     selectionMode,
     batchActions,
-    hasTeamspace,
     rssFolderQuotaExhausted,
   ]);
 }

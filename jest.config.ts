@@ -9,6 +9,7 @@ const config: Config = {
   roots: ['<rootDir>/src'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   moduleNameMapper: {
+    '\\.(css|svg|png|jpe?g|gif|webp)$': '<rootDir>/src/__mocks__/assetMock.ts',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/src/setupJest.ts'],

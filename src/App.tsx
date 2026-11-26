@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import Loading from '@/components/loading';
+import { PaywallProvider } from '@/components/paywall';
 import CoreApp from '@/hooks/app.class';
 import AppContext from '@/hooks/appContext';
 import { AuthConfigProvider } from '@/hooks/AuthConfigContext';
@@ -226,7 +227,9 @@ export default function Main({
         <SettingsExtensionsContext.Provider value={settingsExtensions}>
           <CurrentDeviceContext.Provider value={getCurrentDeviceId}>
             <PublicSiteOriginContext.Provider value={publicSiteOrigin}>
-              <RouterProvider router={router} />
+              <PaywallProvider>
+                <RouterProvider router={router} />
+              </PaywallProvider>
             </PublicSiteOriginContext.Provider>
           </CurrentDeviceContext.Provider>
         </SettingsExtensionsContext.Provider>

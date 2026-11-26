@@ -23,6 +23,111 @@
   "rename": "Rename",
   "cancel": "Cancel",
   "close": "Close",
+  "paywall": {
+    "brand": "OmniBox",
+    "non_owner_title": "Contact owner to purchase",
+    "acknowledge": "Got it",
+    "storage_limit": {
+      "basic": {
+        "title": "You've reached the 5 GB storage limit",
+        "description": "Upgrade to Pro to unlock more space",
+        "cta": "Explore Pro"
+      },
+      "premium": {
+        "title": "You've reached the 50 GB storage limit",
+        "description": "To save more, feed the black cat",
+        "cta": "Buy a Kibble Pack"
+      }
+    },
+    "credits_low": {
+      "title": "Kibble is running low!",
+      "description": "Get more Kibble to keep feeding the black cat",
+      "cta": "Explore Pro",
+      "non_owner_description": "Kibble is running low"
+    },
+    "credits_limit": {
+      "basic": {
+        "title": "Kibble's all gone!",
+        "description": "Upgrade to Pro for more Kibble",
+        "cta": "Explore Pro"
+      },
+      "premium": {
+        "title": "Kibble's all gone!",
+        "description": "To feed the black cat, buy more Kibble",
+        "cta": "Buy a Kibble Pack"
+      }
+    },
+    "namespace_create": {
+      "title": "Namespace limit reached",
+      "description": "Purchase more namespaces",
+      "cta": "Buy a namespace"
+    },
+    "search_filter_limit": {
+      "basic": {
+        "title": "3-filter limit reached",
+        "description": "Upgrade to Pro for more filters",
+        "cta": "Explore Pro"
+      },
+      "premium": {
+        "title": "Filter limit reached",
+        "description": "Delete some filters to add more",
+        "cta": "Got it"
+      }
+    },
+    "smart_filter_limit": {
+      "basic": {
+        "title": "3-filter limit reached",
+        "description": "Upgrade to Pro for more filters",
+        "cta": "Explore Pro"
+      },
+      "premium": {
+        "title": "Filter limit reached",
+        "description": "Delete some filters to add more",
+        "cta": "Got it"
+      }
+    },
+    "rss_link_limit": {
+      "basic": {
+        "title": "Subscription link limit reached",
+        "description": "Upgrade to Pro to unlock more",
+        "cta": "Explore Pro"
+      },
+      "premium": {
+        "title": "Subscription link limit reached",
+        "description": "Delete some links to add more",
+        "cta": "Got it"
+      }
+    },
+    "smart_folder_limit": {
+      "basic": {
+        "title": "Smart folder limit reached",
+        "description": "Upgrade to Pro to unlock more",
+        "cta": "Explore Pro"
+      },
+      "premium": {
+        "title": "Smart folder limit reached",
+        "description": "Delete some smart folders to create more",
+        "cta": "Got it"
+      }
+    },
+    "rss_folder_limit": {
+      "basic": {
+        "title": "Subscription folder limit reached",
+        "description": "Upgrade to Pro to unlock more",
+        "cta": "Explore Pro"
+      },
+      "premium": {
+        "title": "Subscription folder limit reached",
+        "description": "Delete some subscription folders to create more",
+        "cta": "Got it"
+      }
+    },
+    "namespace_expired": {
+      "title": "Namespace expired",
+      "description": "Renew or purchase a new namespace",
+      "cta": "Explore Pro"
+    }
+  },
   "ok": "OK",
   "undo": "Undo",
   "no_pages_inside": "No pages inside",
@@ -888,6 +993,12 @@
       "send_failed": "Failed to send",
       "retry_send": "Send again",
       "decision_submitted": "Permission choices submitted",
+      "decision_executing": "Approved, executing…",
+      "decision_rejecting": "Rejected, finishing…",
+      "decision_completed": "Action completed",
+      "decision_failed": "Execution failed",
+      "decision_unknown": "Execution result unknown",
+      "decision_retry": "Retry",
       "thinking": "Thinking"
     },
     "tips": "Enter a message",
@@ -1122,14 +1233,19 @@
       }
     },
     "agent_credits": {
-      "text": "Kibble is exhausted. Switch to Agent 1.1 or buy Kibble.",
-      "compact_text": "Insufficient Kibble",
-      "compact_tooltip": "Agent 2.1 Kibble used up",
+      "compact_text": "Kibble used up",
+      "compact_tooltip": "Switched to Agent 1.1",
       "not_owner": "Please contact the namespace owner to purchase Kibble",
       "expand_button": "Purchase",
-      "tooltip": {
-        "base": "Buy or upgrade to keep using Agent 2.1"
-      }
+      "upgrade_button": "Upgrade",
+      "buy_button": "Buy"
+    },
+    "credits_low": {
+      "title": "Kibble is running low",
+      "owner_description": "Get more Kibble to keep feeding the black cat",
+      "non_owner_description": "Please contact the namespace owner to purchase",
+      "buy_button": "Buy",
+      "acknowledge_button": "Got it"
     },
     "trial": {
       "not_owner": "Please contact namespace owner to upgrade"
@@ -1518,7 +1634,8 @@
     "activity_types": {
       "reward": "Reward Kibble",
       "subscription": "Subscription Kibble",
-      "topup": "Top-up",
+      "subscription_expired": "Subscription Kibble Expired",
+      "topup": "Add-on",
       "pdf": "PDF parsing",
       "image": "Image parsing",
       "audio": "Audio parsing",
@@ -1928,11 +2045,11 @@
       },
       {
         "title": "Kibble validity",
-        "body": "Basic receives 100 Kibble per month; Pro receives 4,300. Monthly, quarterly and annual plans grant Kibble for 1, 3 and 12 months respectively. Each monthly grant expires at the end of its period. Top-ups arrive once payment is confirmed and never expire."
+        "body": "Basic receives 100 Kibble per month; Pro receives 4,300. Monthly, quarterly and annual plans grant Kibble for 1, 3 and 12 months respectively. Each monthly grant expires at the end of its period. Add-ons arrive once payment is confirmed and never expire."
       },
       {
         "title": "Deduction order",
-        "body": "Deduction priority: monthly subscription Kibble is used before top-up Kibble.\nParsing that finishes in a later period is settled against the grant reserved when the task began."
+        "body": "Deduction priority: monthly subscription Kibble is used before add-on Kibble.\nParsing that finishes in a later period is settled against the grant reserved when the task began."
       },
       {
         "title": "Display and refunds",
