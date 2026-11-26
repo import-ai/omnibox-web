@@ -312,6 +312,10 @@ export function ask(
       : undefined;
   if (pendingId) chatReq.client_request_id = pendingId;
   let acceptedId = pendingId ? undefined : parent_message_id;
+  // A direct send under an existing user message seeds acceptedId with that
+  // message, but the server has not accepted this request yet. Preflight
+  // refusals must still reach the caller in that case.
+  let serverAccepted = false;
   let assistantId: string | undefined;
   let streamError = false;
   const errorStage = tool_call?.decisions?.length ? 'decision' : 'stream';
@@ -327,7 +331,7 @@ export function ask(
         chatResponse.response_type === 'error' &&
         chatResponse.code === 'interrupt_already_decided' &&
         options.reportAlreadyDecided &&
-        !acceptedId
+        !serverAccepted
       ) {
         outcome.failed = true;
         outcome.alreadyDecided = true;
@@ -342,7 +346,7 @@ export function ask(
           chatResponse.code === 'decision_not_applied') &&
         chatResponse.message_id &&
         options.deferPendingInterrupt &&
-        !acceptedId
+        !serverAccepted
       ) {
         outcome.failed = true;
         outcome.pendingInterrupt = {
@@ -365,6 +369,7 @@ export function ask(
       if (chatResponse.response_type === 'bos') {
         if (chatResponse.role === OpenAIMessageRole.USER) {
           acceptedId = chatResponse.id;
+          serverAccepted = true;
           outcome.acceptedMessageId = chatResponse.id;
           if (
             chatResponse.parentId &&
@@ -459,6 +464,8 @@ export function ask(
                 role: OpenAIMessageRole.ASSISTANT,
                 parentId: acceptedId,
                 created_at: new Date().toISOString(),
+                // Client-only: history requests must not use it as a branch.
+                attrs: { client_request_id: id },
               });
           }
           reportChatError(error, {

@@ -15,6 +15,12 @@ export const PAYWALL_SCENES: Record<PaywallScene, PaywallSceneDefinition> = {
     entry: 'paywall_storage_limit',
     tiered: true,
   },
+  credits_low: {
+    priority: 75,
+    entry: 'paywall_credits_low_modal',
+    tiered: false,
+    quotaExhausted: false,
+  },
   credits_limit: {
     priority: 70,
     entry: 'paywall_credits_limit',
