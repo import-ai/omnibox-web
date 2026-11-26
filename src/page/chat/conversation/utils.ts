@@ -380,22 +380,26 @@ export function ask(
         data = JSON.stringify(chatResponse);
       }
       if (chatResponse.response_type === 'bos') {
-        if (chatResponse.role === OpenAIMessageRole.USER && !acceptedId) {
-          acceptedId = chatResponse.id;
+        if (chatResponse.role === OpenAIMessageRole.USER) {
+          // The server accepted this request even when the send was seeded
+          // with a direct parent; the refusal guards must stop intercepting.
           serverAccepted = true;
-          outcome.acceptedMessageId = chatResponse.id;
-          if (
-            chatResponse.parentId &&
-            parent_message_id &&
-            chatResponse.parentId !== parent_message_id
-          )
-            options.onReparented?.(chatResponse.parentId);
-          // Also reconciles an older backend that does not echo the optional request ID.
-          chatResponse.attrs = {
-            ...chatResponse.attrs,
-            client_request_id: pendingId,
-          };
-          data = JSON.stringify(chatResponse);
+          if (!acceptedId) {
+            acceptedId = chatResponse.id;
+            outcome.acceptedMessageId = chatResponse.id;
+            if (
+              chatResponse.parentId &&
+              parent_message_id &&
+              chatResponse.parentId !== parent_message_id
+            )
+              options.onReparented?.(chatResponse.parentId);
+            // Also reconciles an older backend that does not echo the optional request ID.
+            chatResponse.attrs = {
+              ...chatResponse.attrs,
+              client_request_id: pendingId,
+            };
+            data = JSON.stringify(chatResponse);
+          }
         } else if (chatResponse.role === OpenAIMessageRole.ASSISTANT)
           assistantId = chatResponse.id;
       }
