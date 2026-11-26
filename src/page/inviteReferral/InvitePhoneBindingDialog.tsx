@@ -284,7 +284,7 @@ export function InvitePhoneBindingDialog({
                         width={207}
                         height={71}
                       />
-                      <p className="absolute left-[41px] top-[17px] w-[146px] text-[14px] font-medium leading-[18px] text-muted-foreground dark:text-foreground">
+                      <p className="absolute inset-y-0 left-[41px] flex w-[146px] items-center text-[14px] font-medium leading-[18px] text-muted-foreground dark:text-foreground">
                         {t('inviteReferral.phoneBinding.bubble')}
                       </p>
                     </div>
