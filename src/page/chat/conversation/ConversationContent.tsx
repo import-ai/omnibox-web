@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
@@ -6,8 +7,10 @@ import { Spinner } from '@/components/ui/Spinner';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import ChatArea from '@/page/chat/chat-input';
+import type { ThinkingSelection } from '@/page/chat/chat-input/useThinkingLevel';
 import type useContext from '@/page/chat/conversation/useContext';
 import { MessageStatus } from '@/page/chat/core/types/chatResponse';
+import { CreditsLowBalanceNotice } from '@/page/chat/credits-low-balance/CreditsLowBalanceNotice';
 import { Messages } from '@/page/chat/messages';
 import { MessageIndex } from '@/page/chat/messages/MessageIndex';
 import { ConversationShareActions } from '@/page/chat/share/ConversationShareControls';
@@ -116,10 +119,18 @@ export function ConversationFooter({
   const { agentCredits } = useAgentCredits(
     context.namespaceId,
     context.messages,
-    creditsEnabled
+    creditsEnabled,
+    true
   );
   const imageUploadDisabled =
     agentCredits !== undefined && agentCredits.agent_credits_remain <= 0;
+  const [thinkingSelection, setThinkingSelection] =
+    useState<ThinkingSelection>();
+
+  useEffect(() => {
+    setThinkingSelection(undefined);
+  }, [context.conversation.id, context.namespaceId]);
+
   if (share.isSelecting) {
     return (
       <ConversationShareActions
@@ -148,6 +159,14 @@ export function ConversationFooter({
             agentCredits={agentCredits}
           />
         )}
+        {creditsEnabled && (
+          <CreditsLowBalanceNotice
+            namespaceId={context.namespaceId}
+            remainingCredits={agentCredits?.agent_credits_remain}
+            experiment={agentCredits?.low_balance_experiment}
+            selectedEdition={thinkingSelection?.edition}
+          />
+        )}
         <ChatArea
           key={context.conversation.id}
           composerSurface="conversation"
@@ -167,6 +186,7 @@ export function ConversationFooter({
           waitingForAssistantDelta={context.waitingForAssistantDelta}
           streamState={context.streamState}
           onStop={context.onStop}
+          onThinkingSelectionChange={setThinkingSelection}
         />
         <div
           data-chat-disclaimer
