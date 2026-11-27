@@ -8,11 +8,13 @@ type MessageDisplayItem =
   | {
       type: 'message';
       message: MessageDetail;
+      stoppedAnswer?: boolean;
     }
   | {
       type: 'collapsed_process';
       messages: MessageDetail[];
       finalMessage: MessageDetail;
+      stopped?: boolean;
     };
 
 function isResponseMessage(message: MessageDetail) {
@@ -81,6 +83,41 @@ export function buildMessageDisplayItems(
     const responseMessages = messages.slice(start, index);
     const finalMessage = responseMessages[responseMessages.length - 1];
     const stopped = isStoppedMessage(finalMessage);
+    if (stopped && !isFinalAnswer(finalMessage)) {
+      const lastAssistant = responseMessages
+        .slice()
+        .reverse()
+        .find(item => item.message.role === OpenAIMessageRole.ASSISTANT);
+      if (lastAssistant) {
+        result.push({
+          type: 'collapsed_process',
+          messages: responseMessages.map(message =>
+            message === lastAssistant
+              ? {
+                  ...message,
+                  message: { ...message.message, content: undefined },
+                }
+              : message
+          ),
+          finalMessage: lastAssistant,
+          stopped: true,
+        });
+        result.push({
+          type: 'message',
+          stoppedAnswer: true,
+          message: {
+            ...lastAssistant,
+            has_reasoning: false,
+            tool_call_summaries: undefined,
+            message: {
+              role: OpenAIMessageRole.ASSISTANT,
+              content: lastAssistant.message.content,
+            },
+          },
+        });
+        continue;
+      }
+    }
     const hasFinalReasoning = Boolean(
       finalMessage.has_reasoning ||
       finalMessage.message.reasoning_content?.trim()
@@ -107,10 +144,13 @@ export function buildMessageDisplayItems(
         type: 'collapsed_process',
         messages: processMessages,
         finalMessage,
+        stopped,
       });
-      if (!stopped || answerMessage.message.content?.trim()) {
-        result.push({ type: 'message', message: answerMessage });
-      }
+      result.push({
+        type: 'message',
+        message: answerMessage,
+        stoppedAnswer: stopped,
+      });
       continue;
     }
 

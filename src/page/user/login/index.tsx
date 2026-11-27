@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { TooltipProvider } from '@/components/tooltip';
 import { Spinner } from '@/components/ui/Spinner';
+import { isValidInviteCode } from '@/page/inviteReferral/registrationPolicy';
 import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
 
 import {
@@ -29,9 +30,9 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const [hasExistingSession] = useState(() =>
-    Boolean(localStorage.getItem('uid'))
-  );
+  const [hasStoredUid] = useState(() => Boolean(localStorage.getItem('uid')));
+  const hasExistingSession =
+    hasStoredUid && !isValidInviteCode(params.get('invite_code') ?? '');
   const modeParam = params.get('mode');
 
   const getInitialContactMethod = (): ContactMethod => {

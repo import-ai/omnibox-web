@@ -6,12 +6,13 @@ jest.mock('@/service/resource', () => ({
 }));
 
 import type { SpaceType } from '@/interface';
-import { moveResource } from '@/service/resource';
+import { createResource, moveResource } from '@/service/resource';
 
 import type { SidebarStore, TreeNode } from '../types';
 import { buildCRUDActions } from './crud';
 
 const mockedMoveResource = jest.mocked(moveResource);
+const mockedCreateResource = jest.mocked(createResource);
 
 function node(
   id: string,
@@ -101,4 +102,32 @@ it('ignores a move that targets the resource itself', async () => {
   expect(state.nodes.resource.parentId).toBe('private');
   expect(state.nodes.resource.children).toEqual([]);
   expect(mockedMoveResource).not.toHaveBeenCalled();
+});
+
+it('forwards request config so quota errors can be muted for the caller', async () => {
+  const state = {
+    namespaceId: 'namespace',
+    nodes: {
+      private: node('private', null, 'private'),
+    },
+    ui: {},
+    resourceSorts: {},
+  } as unknown as SidebarStore;
+  const actions = buildCRUDActions(
+    update => update(state),
+    () => state
+  );
+  const error = new Error('quota exceeded');
+  mockedCreateResource.mockRejectedValue(error);
+  const config = { muteCodes: ['storage_quota_exceeded'] };
+
+  await expect(
+    actions.create('private', 'doc', undefined, config)
+  ).rejects.toBe(error);
+
+  expect(mockedCreateResource).toHaveBeenCalledWith(
+    'namespace',
+    { parentId: 'private', resourceType: 'doc' },
+    config
+  );
 });

@@ -1,4 +1,4 @@
-import { Ban, Check, MessageCircleWarning, X } from 'lucide-react';
+import { Ban, Check, CircleHelp, MessageCircleWarning, X } from 'lucide-react';
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,7 +11,7 @@ import {
 import { Spinner } from '@/components/ui/Spinner';
 import useApp from '@/hooks/useApp';
 import type { ProcessedArg } from '@/lib/toolArgs';
-import { joinArgs, processArgs } from '@/lib/toolArgs';
+import { processArgs } from '@/lib/toolArgs';
 import { trackButtonClick } from '@/lib/trackButtonClick';
 import { ToolCallArgs } from '@/page/chat/components/ToolCallArgs';
 import { MessageOperator } from '@/page/chat/core/messageOperator.ts';
@@ -29,6 +29,12 @@ import { ToolCallStatus } from '@/page/chat/core/types/toolCall';
 import { useMessageSiblings } from '@/page/chat/core/useMessageSiblings';
 import { CitationMarkdown } from '@/page/chat/messages/citations/CitationMarkdown';
 import { replaceReasoningCiteMarkers } from '@/page/chat/messages/citations/citationUtils';
+import {
+  findDecisionForAssistant,
+  interruptedToolCallDisplayStatus,
+  interruptedToolCallIds,
+  toolCallArgumentsMatch,
+} from '@/page/chat/messages/decisionTurn';
 import { ToolCallExecution } from '@/page/localRuntime/ConversationExecutions';
 
 import {
@@ -57,7 +63,10 @@ interface IProps {
   regenerateDisabled?: boolean;
   regenerating?: boolean;
   hideActions?: boolean;
+  expandProcessDetails?: boolean;
+  stoppedAnswer?: boolean;
   onShare?: (messageId: string) => void;
+  busyDecisionId?: string | null;
 }
 
 interface IToolCall {
@@ -67,9 +76,9 @@ interface IToolCall {
   functionName: string;
   name: string;
   args: ProcessedArg[];
+  rawArguments?: string;
   resourceId?: string;
   status: ToolCallStatus;
-  joinedArgs: string;
   operations?: ToolCallFrontendOperation[];
 }
 
@@ -89,6 +98,8 @@ function toolStateIcon(status: ToolCallStatus) {
       return <Ban className="size-4" />;
     case ToolCallStatus.REJECTED:
       return <Ban className="size-4 text-red-600" />;
+    case ToolCallStatus.UNKNOWN:
+      return <CircleHelp className="size-4 text-muted-foreground" />;
     default:
       return null;
   }
@@ -106,7 +117,10 @@ export function AssistantMessage(props: IProps) {
     regenerateDisabled = false,
     regenerating = false,
     hideActions = false,
+    expandProcessDetails = false,
+    stoppedAnswer = false,
     onShare,
+    busyDecisionId,
   } = props;
   const { t } = useTranslation();
   const app = useApp();
@@ -123,7 +137,8 @@ export function AssistantMessage(props: IProps) {
         .map(item => item.id),
     ]);
   };
-  const lazy =
+  const collapseDetailsByDefault =
+    !expandProcessDetails &&
     message.details_loaded !== undefined &&
     isTerminalMessageStatus(message.status);
   const openAIMessage = message.message;
@@ -139,7 +154,9 @@ export function AssistantMessage(props: IProps) {
         type="single"
         collapsible
         key={'reasoning_' + message.id}
-        defaultValue={lazy ? undefined : 'reasoning_' + message.id}
+        defaultValue={
+          collapseDetailsByDefault ? undefined : 'reasoning_' + message.id
+        }
         onValueChange={value => {
           trackButtonClick('chat_reasoning_toggle', { open: Boolean(value) });
           if (value) loadDetails();
@@ -158,12 +175,14 @@ export function AssistantMessage(props: IProps) {
       </Accordion>
     );
   }
-  if (openAIMessage.content?.trim()) {
+  const content = openAIMessage.content?.trim() ?? '';
+  if (content || (stoppedAnswer && !hideActions)) {
     domList.push(
       <CitationMarkdown
         key={'content_' + message.id}
         status={message.status}
-        content={openAIMessage.content?.trim()}
+        content={content}
+        stoppedAnswer={stoppedAnswer}
         citations={citations}
         conversation={conversation}
         messageId={message.id}
@@ -210,9 +229,9 @@ export function AssistantMessage(props: IProps) {
         functionName: toolCall.function.name,
         name: functionName,
         args,
+        rawArguments: toolCall.function.arguments,
         resourceId: resourceIdFromProcessedArgs(args),
         status: functionStatus,
-        joinedArgs: joinArgs(args),
       });
     }
   }
@@ -226,7 +245,6 @@ export function AssistantMessage(props: IProps) {
           t('chat.messages.tool_calls.function_name.unknown')
         ),
         args: [],
-        joinedArgs: '',
         status: resolveToolCallStatus(
           findToolMessageForToolCall(messages, summary.id),
           isToolTurnStopped(messages, message.id)
@@ -235,19 +253,53 @@ export function AssistantMessage(props: IProps) {
     }
   }
   if (message.attrs?.tool_call?.interrupts) {
-    for (const interrupt of message.attrs.tool_call.interrupts) {
-      const args: ProcessedArg[] = processArgs(interrupt.args, t);
-      const functionName = t(
-        `chat.messages.tool_calls.function_name.${interrupt.name}`
-      );
-
+    const decision = findDecisionForAssistant(message, messages);
+    const busy = Boolean(decision && busyDecisionId === decision.id);
+    const exactInterruptedIds = interruptedToolCallIds(message);
+    if (exactInterruptedIds) {
       for (const toolCall of toolCalls) {
-        if (
-          toolCall.name === functionName &&
-          toolCall.joinedArgs === joinArgs(args) &&
-          toolCall.status === ToolCallStatus.PENDING
-        ) {
-          toolCall.status = ToolCallStatus.INTERRUPTED;
+        if (!exactInterruptedIds.includes(toolCall.toolCallId)) continue;
+        const result = findToolMessageForToolCall(
+          messages,
+          toolCall.toolCallId
+        );
+        if (result?.attrs?.error_message || result?.attrs?.error_code) {
+          toolCall.status = ToolCallStatus.UNKNOWN;
+          continue;
+        }
+        if (isTerminalToolCallStatus(toolCall.status)) continue;
+        toolCall.status = interruptedToolCallDisplayStatus(
+          decision,
+          messages,
+          busy
+        );
+      }
+    } else {
+      for (const interrupt of message.attrs.tool_call.interrupts) {
+        const functionName = t(
+          `chat.messages.tool_calls.function_name.${interrupt.name}`
+        );
+
+        for (const toolCall of toolCalls) {
+          if (
+            toolCall.name !== functionName ||
+            !toolCallArgumentsMatch(toolCall.rawArguments, interrupt.args)
+          )
+            continue;
+          const result = findToolMessageForToolCall(
+            messages,
+            toolCall.toolCallId
+          );
+          if (result?.attrs?.error_message || result?.attrs?.error_code) {
+            toolCall.status = ToolCallStatus.UNKNOWN;
+            continue;
+          }
+          if (isTerminalToolCallStatus(toolCall.status)) continue;
+          toolCall.status = interruptedToolCallDisplayStatus(
+            decision,
+            messages,
+            busy
+          );
         }
       }
     }
@@ -276,7 +328,9 @@ export function AssistantMessage(props: IProps) {
         type="single"
         collapsible
         key={'tool_calls' + message.id}
-        defaultValue={lazy ? undefined : 'tool_calls_' + message.id}
+        defaultValue={
+          collapseDetailsByDefault ? undefined : 'tool_calls_' + message.id
+        }
         onValueChange={value => {
           trackButtonClick('chat_tools_toggle', { open: Boolean(value) });
           if (value) loadDetails();
@@ -329,6 +383,7 @@ export function AssistantMessage(props: IProps) {
     }
   }
   if (
+    !stoppedAnswer &&
     [MessageStatus.PENDING, MessageStatus.STREAMING].includes(message.status)
   ) {
     // Keep position with action button in citation markdown

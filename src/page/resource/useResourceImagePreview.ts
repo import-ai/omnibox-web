@@ -8,23 +8,33 @@ import {
   useState,
 } from 'react';
 
+import type { ImageViewerItem } from '@/components/ImagePreviewDialog';
+import { externalImageLink } from '@/components/imageViewerActions';
+
 import {
   createResourceImagePreviewPlugin,
   resourceImagePreviewKey,
 } from './imagePreviewPlugin';
 
+type ResourceImage = ImageViewerItem & {
+  element: HTMLImageElement;
+};
 type Registration = { editor: Editor; identity: string; dispose: () => void };
 type Preview = {
   registration: Registration;
   src: string;
   alt: string;
+  imageSize: { width: number; height: number };
   referrerPolicy: ImgHTMLAttributes<HTMLImageElement>['referrerPolicy'];
   previousFocus: Element | null;
+  images: ResourceImage[];
+  itemId?: string;
 };
 
 export function useResourceImagePreview(
   identity: string,
-  host?: RefObject<HTMLDivElement | null>
+  host?: RefObject<HTMLDivElement | null>,
+  options?: { scopedShare?: boolean }
 ) {
   const registrationRef = useRef<Registration | null>(null);
   const restoreRef = useRef<Preview | null>(null);
@@ -73,13 +83,49 @@ export function useResourceImagePreview(
       editor.registerPlugin(
         createResourceImagePreviewPlugin(
           (image, view) => {
+            const images: ResourceImage[] = [];
+            view.state.doc.descendants((node, position) => {
+              if (node.type.name !== 'image') return;
+              const host = view.nodeDOM(position);
+              const element =
+                host instanceof HTMLImageElement
+                  ? host
+                  : host instanceof Element
+                    ? host.querySelector('img')
+                    : null;
+              const src = element?.currentSrc || element?.src;
+              if (
+                !element ||
+                !src ||
+                (element.complete && !element.naturalWidth)
+              )
+                return;
+              images.push({
+                id: String(position),
+                element,
+                src,
+                alt: element.alt,
+                referrerPolicy: imageReferrerPolicy(element),
+                size:
+                  element.naturalWidth > 0 && element.naturalHeight > 0
+                    ? {
+                        width: element.naturalWidth,
+                        height: element.naturalHeight,
+                      }
+                    : undefined,
+              });
+            });
             const selected: Preview = {
               registration,
+              images,
+              itemId: images.find(item => item.element === image)?.id,
               src: image.currentSrc || image.src,
               alt: image.alt,
-              referrerPolicy: (image.referrerPolicy ||
-                image.getAttribute('referrerpolicy') ||
-                undefined) as Preview['referrerPolicy'],
+              imageSize: {
+                width: image.naturalWidth,
+                height: image.naturalHeight,
+              },
+              referrerPolicy: imageReferrerPolicy(image),
               previousFocus: view.dom.ownerDocument.activeElement,
             };
             restoreRef.current = selected;
@@ -135,11 +181,30 @@ export function useResourceImagePreview(
         open &&
         preview?.registration.identity === identity &&
         preview.registration === registrationRef.current,
+      items: preview?.images.map(({ id, src, alt, size, referrerPolicy }) => ({
+        id,
+        src,
+        alt,
+        size,
+        referrerPolicy,
+        allowExternalOriginal:
+          !options?.scopedShare && !!externalImageLink(src),
+      })),
+      initialItemId: preview?.itemId,
       src: preview?.src,
       alt: preview?.alt,
+      imageSize: preview?.imageSize,
       referrerPolicy: preview?.referrerPolicy,
       onOpenChange,
       onCloseAutoFocus,
     },
   };
+}
+
+function imageReferrerPolicy(
+  image: HTMLImageElement
+): ImgHTMLAttributes<HTMLImageElement>['referrerPolicy'] {
+  return (image.referrerPolicy ||
+    image.getAttribute('referrerpolicy') ||
+    undefined) as Preview['referrerPolicy'];
 }

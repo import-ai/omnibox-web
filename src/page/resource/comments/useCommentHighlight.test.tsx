@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 
 import { Editor, Mark, Node } from '@tiptap/core';
+import { history, undo, undoDepth } from '@tiptap/pm/history';
 import { NodeSelection } from '@tiptap/pm/state';
 import {
   EditorContent,
@@ -11,6 +12,7 @@ import {
 import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 
+import { installActiveCommentHighlight } from './activeCommentHighlight';
 import {
   addImageCommentMark,
   syncImageDraftHighlight,
@@ -38,6 +40,18 @@ function imageEditor() {
       Node.create({ name: 'doc', topNode: true, content: 'block+' }),
       Node.create({ name: 'text', group: 'inline' }),
       Node.create({
+        name: 'paragraph',
+        group: 'block',
+        content: 'inline*',
+        parseHTML: () => [{ tag: 'p' }],
+        renderHTML: () => ['p', 0],
+      }),
+      Mark.create({
+        name: 'bold',
+        parseHTML: () => [{ tag: 'strong' }],
+        renderHTML: () => ['strong', 0],
+      }),
+      Node.create({
         name: 'image',
         group: 'block',
         content: 'inline*',
@@ -47,6 +61,7 @@ function imageEditor() {
       }),
       Mark.create({
         name: 'resourceComment',
+        excludes: '',
         addAttributes: () => ({
           threadId: {
             default: 'thread-1',
@@ -81,14 +96,21 @@ function imageEditor() {
 
 function Highlight({
   root,
+  editor,
   resolved,
   activeThreadId = 'thread-1',
 }: {
   root: HTMLElement;
+  editor?: Editor;
   resolved: boolean;
   activeThreadId?: string | null;
 }) {
-  useCommentHighlight({ root, activeThreadId, resolved });
+  useCommentHighlight({
+    root,
+    activeThreadId,
+    resolved,
+    ...(editor ? { editor } : {}),
+  });
   return null;
 }
 
@@ -125,6 +147,7 @@ describe('comment highlight DOM updates', () => {
     root = createRoot(container);
     rootMounted = true;
     editor = imageEditor();
+    installActiveCommentHighlight(editor);
   });
 
   afterEach(async () => {
@@ -137,6 +160,212 @@ describe('comment highlight DOM updates', () => {
     observers.length = 0;
     globalThis.MutationObserver = nativeObserver;
     container.remove();
+  });
+
+  it.each([false, true])(
+    'settles when an active comment crosses bold text with resolved=%s',
+    async resolved => {
+      editor.commands.setContent(
+        '<p><span data-resource-comment-thread="thread-1">约 </span>' +
+          '<strong><span data-resource-comment-thread="thread-1">57 分钟</span></strong>' +
+          '<span data-resource-comment-thread="thread-1">，普遍 1 小时 20 分左右</span></p>'
+      );
+      const before = editor.getJSON();
+      const redraw = jest.spyOn(editor.view, 'updateState');
+      const onUpdate = jest.fn();
+      editor.on('update', onUpdate);
+      await act(async () => {
+        root.render(
+          createElement(Highlight, { root: editor.view.dom, editor, resolved })
+        );
+        await new Promise(resolve => setTimeout(resolve, 30));
+      });
+      expect(stoppedLoop).toBe(false);
+      expect(redraw.mock.calls.length).toBeLessThan(8);
+      expect(editor.getJSON()).toEqual(before);
+      expect(onUpdate).not.toHaveBeenCalled();
+      expect(
+        Array.from(editor.view.dom.querySelectorAll('[data-comment-highlight]'))
+          .map(element => element.textContent)
+          .join('')
+      ).toBe('约 57 分钟，普遍 1 小时 20 分左右');
+      const deliveries = observerDeliveries;
+      await new Promise(resolve => setTimeout(resolve, 30));
+      expect(observerDeliveries).toBe(deliveries);
+    }
+  );
+
+  it('leaves ProseMirror DOM untouched while its editor is not registered', async () => {
+    editor.commands.setContent(
+      '<p><span data-resource-comment-thread="thread-1">Text</span></p>'
+    );
+    const before = editor.view.dom.innerHTML;
+    await act(async () => {
+      root.render(
+        createElement(Highlight, { root: editor.view.dom, resolved: false })
+      );
+    });
+    expect(editor.view.dom.innerHTML).toBe(before);
+  });
+
+  it('preserves gaps and overlapping threads while switching and clearing highlights', async () => {
+    editor.commands.setContent({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'First',
+              marks: [
+                { type: 'resourceComment', attrs: { threadId: 'thread-1' } },
+              ],
+            },
+            { type: 'text', text: ' gap ' },
+            {
+              type: 'text',
+              text: 'Shared',
+              marks: [
+                { type: 'resourceComment', attrs: { threadId: 'thread-1' } },
+                { type: 'resourceComment', attrs: { threadId: 'thread-2' } },
+              ],
+            },
+            {
+              type: 'text',
+              text: 'Second',
+              marks: [
+                { type: 'resourceComment', attrs: { threadId: 'thread-2' } },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+    const before = editor.getJSON();
+    const highlightedText = () =>
+      Array.from(editor.view.dom.querySelectorAll('[data-comment-highlight]'))
+        .map(node => node.textContent)
+        .join('');
+    for (const [threadId, expected] of [
+      ['thread-1', 'FirstShared'],
+      ['thread-2', 'SharedSecond'],
+      [null, ''],
+    ] as const) {
+      await act(async () =>
+        root.render(
+          createElement(Highlight, {
+            root: editor.view.dom,
+            editor,
+            resolved: false,
+            activeThreadId: threadId,
+          })
+        )
+      );
+      expect(highlightedText()).toBe(expected);
+      expect(editor.getJSON()).toEqual(before);
+    }
+    expect(stoppedLoop).toBe(false);
+  });
+
+  it('follows edited marks without adding highlight changes to undo history', async () => {
+    editor.commands.setContent(
+      '<p><span data-resource-comment-thread="thread-1">Text</span></p>'
+    );
+    editor.registerPlugin(history());
+    installActiveCommentHighlight(editor);
+    const before = editor.getJSON();
+    await act(async () =>
+      root.render(
+        createElement(Highlight, {
+          root: editor.view.dom,
+          editor,
+          resolved: false,
+        })
+      )
+    );
+    expect(undoDepth(editor.state)).toBe(0);
+    await act(async () => {
+      editor.view.dispatch(
+        editor.state.tr
+          .insertText('!', 1)
+          .removeMark(1, 2, editor.schema.marks.resourceComment)
+      );
+    });
+    expect(
+      editor.view.dom.querySelector('[data-comment-highlight]')?.textContent
+    ).toBe('Text');
+    await act(async () =>
+      root.render(
+        createElement(Highlight, {
+          root: editor.view.dom,
+          editor,
+          resolved: false,
+          activeThreadId: null,
+        })
+      )
+    );
+    expect(undoDepth(editor.state)).toBe(1);
+    await act(async () => {
+      undo(editor.state, editor.view.dispatch.bind(editor.view));
+    });
+    expect(editor.getJSON()).toEqual(before);
+    expect(
+      editor.view.dom.querySelector('[data-comment-highlight]')
+    ).toBeNull();
+  });
+
+  it('expires resolved editor highlights and clears open highlights on unmount', async () => {
+    editor.commands.setContent(
+      '<p><span data-resource-comment-thread="thread-1">Text</span></p>'
+    );
+    jest.useFakeTimers({ doNotFake: ['queueMicrotask', 'nextTick'] });
+    try {
+      await act(async () =>
+        root.render(
+          createElement(Highlight, {
+            root: editor.view.dom,
+            editor,
+            resolved: true,
+          })
+        )
+      );
+      expect(
+        editor.view.dom.querySelector('[data-comment-highlight="resolved"]')
+      ).not.toBeNull();
+      await act(async () => jest.advanceTimersByTime(1000));
+      expect(
+        editor.view.dom.querySelector('[data-comment-highlight]')
+      ).toBeNull();
+      await act(async () =>
+        editor.view.dispatch(editor.state.tr.insertText('!', 1))
+      );
+      expect(
+        editor.view.dom.querySelector('[data-comment-highlight]')
+      ).toBeNull();
+      await act(async () =>
+        root.render(
+          createElement(Highlight, {
+            root: editor.view.dom,
+            editor,
+            resolved: false,
+          })
+        )
+      );
+      expect(
+        editor.view.dom.querySelector('[data-comment-highlight="open"]')
+      ).not.toBeNull();
+      await act(async () => {
+        root.unmount();
+        rootMounted = false;
+      });
+      expect(
+        editor.view.dom.querySelector('[data-comment-highlight]')
+      ).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
+    expect(stoppedLoop).toBe(false);
   });
 
   it.each([false, true])(
@@ -157,7 +386,11 @@ describe('comment highlight DOM updates', () => {
             'div',
             null,
             createElement(EditorContent, { editor }),
-            createElement(Highlight, { root: editor.view.dom, resolved })
+            createElement(Highlight, {
+              root: editor.view.dom,
+              editor,
+              resolved,
+            })
           )
         );
         await new Promise(resolve => setTimeout(resolve, 30));

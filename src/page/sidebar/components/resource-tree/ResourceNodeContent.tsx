@@ -300,6 +300,7 @@ export function ResourceNodeContent({
           <ContextMenuMain
             nodeId={nodeId}
             namespaceId={namespaceId}
+            currentNamespace={currentNamespace}
             onRename={() => {
               startRename();
             }}
@@ -446,6 +447,7 @@ export function ResourceNodeContent({
                 <Action
                   nodeId={nodeId}
                   namespaceId={namespaceId}
+                  currentNamespace={currentNamespace}
                   upload={upload}
                   onRename={() => {
                     startRename();

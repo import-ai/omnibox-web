@@ -23,6 +23,8 @@ interface UpgradeActionButtonProps {
   namespaceId?: string;
   hasPermission?: boolean;
   disabledReason?: string;
+  /** Keep the button clickable for members and route the press to a paywall. */
+  onDeniedPress?: () => void;
   className?: string;
   labelKey?: string;
   trackName?: string;
@@ -65,6 +67,7 @@ export function UpgradeActionButton({
   namespaceId,
   hasPermission = true,
   disabledReason,
+  onDeniedPress,
   className = 'text-sm h-5',
   labelKey = 'namespace.upgrade',
   trackName,
@@ -73,7 +76,11 @@ export function UpgradeActionButton({
   const { t, i18n } = useTranslation();
 
   const handleClick = () => {
-    if (!namespaceId || !hasPermission) {
+    if (!hasPermission) {
+      onDeniedPress?.();
+      return;
+    }
+    if (!namespaceId) {
       return;
     }
 
@@ -88,13 +95,13 @@ export function UpgradeActionButton({
       className={className}
       trackName={trackName}
       onClick={handleClick}
-      disabled={!hasPermission}
+      disabled={!hasPermission && !onDeniedPress}
     >
       {t(labelKey)}
     </Button>
   );
 
-  if (hasPermission || !disabledReason) {
+  if (hasPermission || !disabledReason || onDeniedPress) {
     return button;
   }
 

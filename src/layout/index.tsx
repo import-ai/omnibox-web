@@ -25,12 +25,15 @@ import { clearConversationCache } from '@/page/chat/conversation/conversationCac
 import { useCopilotStore } from '@/page/copilot/copilotStore';
 import {
   consumeInviteReferralLanding,
+  getStoredInviteRegistration,
+  isValidInviteCode,
   markInviteReferralLanding,
   retryPendingInviteRegistration,
 } from '@/page/inviteReferral/registration';
 import { useResourceStore } from '@/page/resource/resourceStore';
 import { useSidebarStore } from '@/page/sidebar/store';
-import { establishServerSession } from '@/page/user/session';
+import { getAuthSuccessRedirect } from '@/page/user/authRedirect';
+import { establishServerSession, readSessionUser } from '@/page/user/session';
 import { useAuthPageExposure } from '@/page/user/useAuthPageExposure';
 import {
   CREDENTIAL_CHANGED_EVENT,
@@ -62,23 +65,51 @@ export default function Layout() {
   const { app, onToggleTheme } = useTheme();
   const namespaceId = params.namespace_id;
   const shareId = params.share_id;
-  const [uid, setUid] = useState(localStorage.getItem('uid'));
+  const path = loc.pathname.replace(/\/+$/, '').toLowerCase();
+  const searchParams = new URLSearchParams(loc.search);
+  const isInviteAuth =
+    isValidInviteCode(searchParams.get('invite_code') ?? '') &&
+    ['/user/sign-up', '/user/verify-otp', '/user/login'].includes(path);
+  const inviteLoginRedirect =
+    isInviteAuth && path === '/user/login'
+      ? searchParams.get('redirect')
+      : null;
+  const callbackInvite =
+    path === '/user/auth/confirm' || path === '/user/auth/confirm/google'
+      ? getStoredInviteRegistration()
+      : null;
+  const isInviteCallback =
+    callbackInvite?.source === 'link' && isValidInviteCode(callbackInvite.code);
+  const [storedUid, setUid] = useState(localStorage.getItem('uid'));
+  // An unverified local uid must not start authenticated requests while an
+  // invite visitor is registering or verifying their one-time code.
+  const uid = isInviteAuth || isInviteCallback ? null : storedUid;
+  const [inviteSessionChecked, setInviteSessionChecked] = useState(false);
   // The root path is served only to a browser the gateway considers signed
   // in, so the cookie is the source of truth once local storage is empty.
   const [sessionChecked, setSessionChecked] = useState(() =>
     Boolean(localStorage.getItem('uid'))
   );
   const sessionAbortRef = useRef<AbortController | null>(null);
+  const sessionBootstrappedRef = useRef(false);
   const authEpochRef = useRef(0);
   const isMobile = useIsMobile();
   const { config, loading: configLoading } = useConfig();
 
-  useAuthPageExposure(loc.pathname, sessionChecked && !uid);
+  useAuthPageExposure(
+    loc.pathname,
+    isInviteAuth ? inviteSessionChecked : sessionChecked && !uid,
+    isInviteAuth
+  );
 
   useEffect(() => {
     // Embedded OAuth may only have a cookie scoped to the authorize endpoint.
     // Do not widen it or hydrate unrelated account data on this public route.
     if (isOAuthAuthorization) return;
+    if (!isInviteAuth) setInviteSessionChecked(false);
+    if (isInviteCallback || (!isInviteAuth && sessionBootstrappedRef.current)) {
+      return;
+    }
     let active = true;
     const controller = new AbortController();
     sessionAbortRef.current = controller;
@@ -89,23 +120,60 @@ export default function Layout() {
     // A response that arrives after the credentials changed belongs to the
     // previous account and must not overwrite the newer state.
     const isStillCurrent = () =>
+      active &&
+      !controller.signal.aborted &&
       authEpochRef.current === epochAtStart &&
       localStorage.getItem('uid') === uidAtStart &&
       localStorage.getItem('token') === tokenAtStart;
 
-    // Refreshes the cookie so one written with an older SameSite policy is
-    // replaced, and restores the signed-in user when local storage is empty.
-    void establishServerSession(controller.signal)
-      .then(sessionUid => {
-        if (!active || !isStillCurrent()) return;
+    let redirectingInvite = false;
+    const inviteTimeout = isInviteAuth
+      ? window.setTimeout(() => {
+          if (!isStillCurrent()) return;
+          controller.abort();
+          setInviteSessionChecked(true);
+          setSessionChecked(true);
+        }, 3_000)
+      : undefined;
+
+    // Ordinary routes refresh older cookies. The invite entry must first
+    // verify the account without reissuing a cookie from local credentials.
+    const sessionRequest = isInviteAuth
+      ? readSessionUser(controller.signal)
+      : establishServerSession(controller.signal);
+    void sessionRequest
+      .then(async sessionUid => {
+        if (!isStillCurrent() || !sessionUid) return;
+        const target = inviteLoginRedirect
+          ? await getAuthSuccessRedirect(inviteLoginRedirect)
+          : '/';
+        if (!isStillCurrent()) return;
+        sessionBootstrappedRef.current = true;
+        if (isInviteAuth && uidAtStart !== sessionUid) {
+          if (uidAtStart) clearUserWorkspaceState();
+          // The verified cookie belongs to a different account. Do not let
+          // the previous bearer replace it on a subsequent ordinary visit.
+          localStorage.removeItem('token');
+        }
         localStorage.setItem('uid', sessionUid);
         setUid(sessionUid);
         setSessionChecked(true);
+        if (isInviteAuth) {
+          redirectingInvite = true;
+          navigate(target, { replace: true });
+        }
       })
-      .catch(() => {
-        if (active) setSessionChecked(true);
-      })
+      .catch(() => undefined)
       .finally(() => {
+        window.clearTimeout(inviteTimeout);
+        if (active && !controller.signal.aborted) {
+          if (isInviteAuth) {
+            if (!redirectingInvite) setInviteSessionChecked(true);
+          } else {
+            sessionBootstrappedRef.current = true;
+          }
+          setSessionChecked(true);
+        }
         if (sessionAbortRef.current === controller) {
           sessionAbortRef.current = null;
         }
@@ -113,9 +181,16 @@ export default function Layout() {
 
     return () => {
       active = false;
+      window.clearTimeout(inviteTimeout);
       controller.abort();
     };
-  }, [isOAuthAuthorization]);
+  }, [
+    inviteLoginRedirect,
+    isInviteAuth,
+    isInviteCallback,
+    isOAuthAuthorization,
+    navigate,
+  ]);
 
   useEffect(() => {
     // Signing out in this tab only fires the credential event: the browser
@@ -126,16 +201,18 @@ export default function Layout() {
       authEpochRef.current += 1;
       sessionAbortRef.current?.abort();
       sessionAbortRef.current = null;
-      const storedUid = localStorage.getItem('uid');
-      if (storedUid !== uid) {
+      const currentUid = localStorage.getItem('uid');
+      if (currentUid !== storedUid) {
         clearUserWorkspaceState();
       }
-      setUid(storedUid);
+      setUid(currentUid);
+      setSessionChecked(true);
       const redirectPath = getAuthChangeRedirectPath(
         window.location.pathname,
-        uid,
-        storedUid
+        storedUid,
+        currentUid
       );
+      if (isInviteAuth) setInviteSessionChecked(!redirectPath);
       if (redirectPath) {
         navigate(redirectPath, { replace: true });
       }
@@ -187,13 +264,21 @@ export default function Layout() {
         handleCredentialChange
       );
     };
-  }, [i18n, isOAuthAuthorization, navigate, onToggleTheme, uid]);
+  }, [
+    i18n,
+    isInviteAuth,
+    isOAuthAuthorization,
+    navigate,
+    onToggleTheme,
+    storedUid,
+    uid,
+  ]);
 
   useEffect(() => {
-    const storedUid = localStorage.getItem('uid');
-    if (storedUid !== uid) {
+    const currentUid = localStorage.getItem('uid');
+    if (currentUid !== storedUid) {
       clearUserWorkspaceState();
-      setUid(storedUid);
+      setUid(currentUid);
     }
   }, [loc]);
 
@@ -369,7 +454,7 @@ export default function Layout() {
     <DndProvider backend={isMobile ? TouchBackend : HTML5Backend}>
       <Toaster />
       <Suspense fallback={<Loading />}>
-        <Outlet />
+        {isInviteAuth && !inviteSessionChecked ? <Loading /> : <Outlet />}
       </Suspense>
     </DndProvider>
   );

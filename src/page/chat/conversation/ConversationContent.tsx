@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
@@ -6,8 +7,10 @@ import { Spinner } from '@/components/ui/Spinner';
 import { AgentCredits } from '@/page/chat/agent-credits/AgentCredits';
 import { useAgentCredits } from '@/page/chat/agent-credits/useAgentCredits';
 import ChatArea from '@/page/chat/chat-input';
+import type { ThinkingSelection } from '@/page/chat/chat-input/useThinkingLevel';
 import type useContext from '@/page/chat/conversation/useContext';
 import { MessageStatus } from '@/page/chat/core/types/chatResponse';
+import { CreditsLowBalanceNotice } from '@/page/chat/credits-low-balance/CreditsLowBalanceNotice';
 import { Messages } from '@/page/chat/messages';
 import { MessageIndex } from '@/page/chat/messages/MessageIndex';
 import { ConversationShareActions } from '@/page/chat/share/ConversationShareControls';
@@ -59,6 +62,8 @@ export function ConversationMessageList({
               onRegenerate={context.onRegenerate}
               onShareMessage={messageId => share.open(messageId, 'latest')}
               regeneratingParentId={context.regeneratingParentId}
+              decisionBusy={context.busyDecision}
+              onRetryDecision={context.retryDecision}
               shareSelection={{
                 isSelecting: share.isSelecting,
                 messageGroupIds: share.messageGroupIds,
@@ -95,6 +100,25 @@ export function ConversationMessageList({
             )}
           </>
         )}
+        {context.submissions
+          ?.filter(
+            item =>
+              item.disposition !== 'failed' &&
+              item.query &&
+              !context.messages.some(
+                message =>
+                  message.id === item.client_request_id ||
+                  message.attrs?.client_request_id === item.client_request_id
+              )
+          )
+          .map(item => (
+            <div
+              key={item.client_request_id}
+              className="ml-auto mt-4 w-fit max-w-full whitespace-pre-wrap break-words rounded-lg bg-secondary px-3 py-2 text-secondary-foreground sm:max-w-[75%] dark:bg-card dark:text-card-foreground"
+            >
+              {item.query}
+            </div>
+          ))}
       </Scrollbar>
     </MessageDetailsContext.Provider>
   );
@@ -116,10 +140,18 @@ export function ConversationFooter({
   const { agentCredits } = useAgentCredits(
     context.namespaceId,
     context.messages,
-    creditsEnabled
+    creditsEnabled,
+    true
   );
   const imageUploadDisabled =
     agentCredits !== undefined && agentCredits.agent_credits_remain <= 0;
+  const [thinkingSelection, setThinkingSelection] =
+    useState<ThinkingSelection>();
+
+  useEffect(() => {
+    setThinkingSelection(undefined);
+  }, [context.conversation.id, context.namespaceId]);
+
   if (share.isSelecting) {
     return (
       <ConversationShareActions
@@ -148,26 +180,50 @@ export function ConversationFooter({
             agentCredits={agentCredits}
           />
         )}
-        <ChatArea
-          key={context.conversation.id}
-          composerSurface="conversation"
-          selectedResources={context.selectedResources}
-          setSelectedResources={context.setSelectedResources}
-          messages={context.messages}
-          namespaceId={context.namespaceId}
-          navigatePrefix={`/${context.namespaceId}`}
-          initialApprovalMode={context.initialApprovalMode}
-          approvalModeResetKey={context.conversation.id}
-          suppressInitialToolRestore={context.suppressInitialToolRestore}
-          sendMessage={context.sendMessage}
-          textWhilePending
-          loading={context.loading}
-          imageUploadDisabled={imageUploadDisabled}
-          proUnsupported={imageUploadDisabled}
-          waitingForAssistantDelta={context.waitingForAssistantDelta}
-          streamState={context.streamState}
-          onStop={context.onStop}
-        />
+        {context.submissions
+          ?.filter(item => item.disposition === 'failed')
+          .map(item => (
+            <div
+              role="status"
+              key={item.client_request_id}
+              className="mb-1 truncate px-3 text-sm text-muted-foreground"
+              title={item.error ?? item.query}
+            >
+              {t('chat.delivery.send_failed')} · {item.query}
+            </div>
+          ))}
+        {creditsEnabled && (
+          <CreditsLowBalanceNotice
+            namespaceId={context.namespaceId}
+            remainingCredits={agentCredits?.agent_credits_remain}
+            experiment={agentCredits?.low_balance_experiment}
+            selectedEdition={thinkingSelection?.edition}
+          />
+        )}
+        {!context.initialSendPending && (
+          <ChatArea
+            key={context.conversation.id}
+            composerSurface="conversation"
+            selectedResources={context.selectedResources}
+            setSelectedResources={context.setSelectedResources}
+            messages={context.messages}
+            namespaceId={context.namespaceId}
+            navigatePrefix={`/${context.namespaceId}`}
+            initialApprovalMode={context.initialApprovalMode}
+            approvalModeResetKey={context.conversation.id}
+            suppressInitialToolRestore={context.suppressInitialToolRestore}
+            sendMessage={context.sendMessage}
+            steerMessage={context.steerMessage}
+            textWhilePending
+            loading={context.loading}
+            imageUploadDisabled={imageUploadDisabled}
+            proUnsupported={imageUploadDisabled}
+            waitingForAssistantDelta={context.waitingForAssistantDelta}
+            streamState={context.streamState}
+            onStop={context.onStop}
+            onThinkingSelectionChange={setThinkingSelection}
+          />
+        )}
         <div
           data-chat-disclaimer
           className="truncate pt-2 text-center text-xs text-muted-foreground"

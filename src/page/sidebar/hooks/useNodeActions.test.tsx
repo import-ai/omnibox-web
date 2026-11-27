@@ -23,6 +23,7 @@ const rename = jest.fn();
 const patch = jest.fn();
 const openCreateFolderDialog = jest.fn();
 const openCreateLinkDialog = jest.fn();
+const showPaywall = jest.fn();
 let node: TreeNode;
 
 jest.mock('react-i18next', () => ({
@@ -54,6 +55,10 @@ jest.mock('@/lib/chatBridge', () => ({
 
 jest.mock('@/lib/deleteResource', () => ({
   deleteResource: jest.fn(),
+}));
+
+jest.mock('@/components/paywall/paywallContext', () => ({
+  usePaywall: () => ({ request: null, showPaywall, hidePaywall: jest.fn() }),
 }));
 
 jest.mock('@/lib/request', () => ({
@@ -253,5 +258,38 @@ describe('useNodeActions', () => {
     expect(move).not.toHaveBeenCalled();
     expect(locateSidebarResource).not.toHaveBeenCalled();
     expect(fire).not.toHaveBeenCalled();
+  });
+
+  it('opens the storage paywall when file creation hits the quota', async () => {
+    create.mockRejectedValue({
+      response: { data: { code: 'storage_quota_exceeded' } },
+    });
+    await act(async () => root.render(<Probe />));
+
+    await act(async () => current.handleCreateFile());
+    await act(async () => undefined);
+
+    expect(create).toHaveBeenCalledWith('folder', 'doc', undefined, {
+      muteCodes: ['storage_quota_exceeded'],
+    });
+    expect(showPaywall).toHaveBeenCalledWith('storage_limit', {
+      namespaceId: 'namespace',
+      tier: undefined,
+      isOwner: undefined,
+      trigger: 'sidebar_file_create',
+    });
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('leaves other file creation errors to the global error handler', async () => {
+    create.mockRejectedValue({
+      response: { data: { code: 'forbidden' } },
+    });
+    await act(async () => root.render(<Probe />));
+
+    await act(async () => current.handleCreateFile());
+    await act(async () => undefined);
+
+    expect(showPaywall).not.toHaveBeenCalled();
   });
 });

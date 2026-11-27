@@ -47,10 +47,6 @@ jest.mock('./ApprovalModeSelect', () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock('./ContextCapacityIndicator', () => ({
-  __esModule: true,
-  default: () => null,
-}));
 jest.mock('./DecisionInput', () => ({
   __esModule: true,
   default: () => <div data-testid="decision-card" />,

@@ -12,7 +12,15 @@ export type UploadProgressCallback = (progress: UploadProgress) => void;
 
 function throwUploadRequestError(error: any): never {
   if (error.response?.data?.message) {
-    throw new Error(error.response.data.message);
+    // Preserve the backend code so callers can route quota failures to the
+    // paywall instead of a generic toast.
+    const wrapped = new Error(error.response.data.message) as Error & {
+      code?: string;
+    };
+    if (typeof error.response.data.code === 'string') {
+      wrapped.code = error.response.data.code;
+    }
+    throw wrapped;
   }
   throw error;
 }

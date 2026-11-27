@@ -6,7 +6,6 @@ import {
   consumeInviteReferralLanding,
   getStoredInviteRegistration,
   markInviteReferralLanding,
-  markOrganicActivationLanding,
   registerInviteAfterLogin,
   retryPendingInviteRegistration,
   setStoredInviteRegistration,
@@ -53,17 +52,15 @@ describe('invite referral registration policy', () => {
     ).toBe(false);
   });
 
-  it('marks a new user who registered without an invite code for activation', async () => {
+  it('skips invite registration for a new user without a code', async () => {
     await expect(registerInviteAfterLogin(true, 'user-1')).resolves.toEqual({
       result: null,
-      activation: true,
     });
     expect(mockedRegisterInviteReferral).not.toHaveBeenCalled();
   });
 
-  it('routes the remembered landing to the activation page', () => {
-    markOrganicActivationLanding();
-    expect(consumeInviteReferralLanding()).toBe('activation');
+  it('ignores a stale organic landing but keeps a successful invite landing', () => {
+    sessionStorage.setItem('omnibox.inviteReferral.landing', 'activation');
     expect(consumeInviteReferralLanding()).toBeNull();
 
     markInviteReferralLanding(false);
@@ -75,7 +72,6 @@ describe('invite referral registration policy', () => {
 
     await expect(registerInviteAfterLogin(false, 'user-1')).resolves.toEqual({
       result: null,
-      activation: false,
     });
     expect(getStoredInviteRegistration()).toEqual({
       code: '',
@@ -106,7 +102,7 @@ describe('invite referral registration policy', () => {
     expect(mockedRegisterInviteReferral).not.toHaveBeenCalled();
   });
 
-  it('does not mark activation when invite registration succeeds', async () => {
+  it('returns the result when invite registration succeeds', async () => {
     setStoredInviteRegistration({ code: '123456', source: 'manual' });
     mockedRegisterInviteReferral.mockResolvedValueOnce({
       is_invited_new_user: true,

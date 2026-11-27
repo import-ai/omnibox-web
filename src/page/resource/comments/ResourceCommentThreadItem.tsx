@@ -1,5 +1,5 @@
 import { Check, ChevronDown, ChevronUp, Link2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type MouseEvent, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 
@@ -144,7 +144,17 @@ export function ResourceCommentThreadItem({
   const previousThreadId =
     threadIndex > 0 ? navigationIds[threadIndex - 1] : undefined;
 
-  const handleThreadClick = () => {
+  const handleThreadClick = (event: MouseEvent<HTMLElement>) => {
+    const selection = event.currentTarget.ownerDocument.getSelection();
+    if (
+      event.detail > 0 &&
+      selection &&
+      !selection.isCollapsed &&
+      selection.rangeCount > 0 &&
+      selection.getRangeAt(0).intersectsNode(event.currentTarget)
+    ) {
+      return;
+    }
     if (!active) {
       controller.selectThread(thread.id);
     }
@@ -160,7 +170,7 @@ export function ResourceCommentThreadItem({
 
   const handleQuoteClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
-    handleThreadClick();
+    handleThreadClick(event);
   };
 
   return (

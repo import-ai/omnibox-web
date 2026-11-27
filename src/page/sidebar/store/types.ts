@@ -1,5 +1,6 @@
 import type { PathItem, SpaceType } from '@/interface';
 import { Permission, Resource, ResourceType, TagDto } from '@/interface';
+import type { RequestConfig } from '@/lib/request';
 import type { CreateRssFolderPayload } from '@/page/sidebar/components/rss-folder';
 import type { CreateSmartFolderPayload } from '@/page/sidebar/components/smart-folder';
 import type {
@@ -132,7 +133,8 @@ export interface SidebarActions {
   create: (
     parentId: string,
     type: ResourceType,
-    name?: string
+    name?: string,
+    config?: RequestConfig
   ) => Promise<string>;
   remove: (id: string, currentResourceId?: string) => RemoveResult;
   rename: (id: string, name: string) => Promise<void>;

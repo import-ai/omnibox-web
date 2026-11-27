@@ -10,7 +10,11 @@ import {
 
 type Page = 'login' | 'register';
 
-export function useAuthPageExposure(pathname: string, ready: boolean) {
+export function useAuthPageExposure(
+  pathname: string,
+  ready: boolean,
+  ignoreStoredUid = false
+) {
   const windowFocused = useRef(true);
   const visit = useRef<{ page: Page; reported: boolean } | null>(null);
 
@@ -41,7 +45,7 @@ export function useAuthPageExposure(pathname: string, ready: boolean) {
       if (
         !windowFocused.current ||
         document.visibilityState !== 'visible' ||
-        localStorage.getItem('uid')
+        (!ignoreStoredUid && localStorage.getItem('uid'))
       )
         return;
       const form = document.querySelector<HTMLElement>(
@@ -139,5 +143,5 @@ export function useAuthPageExposure(pathname: string, ready: boolean) {
       window.removeEventListener('resize', schedule);
       window.removeEventListener('scroll', schedule, true);
     };
-  }, [pathname, ready]);
+  }, [pathname, ready, ignoreStoredUid]);
 }

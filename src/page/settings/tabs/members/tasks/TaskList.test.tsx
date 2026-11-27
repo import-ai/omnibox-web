@@ -88,3 +88,18 @@ test.each([
     act(() => root.unmount());
   }
 );
+
+test('does not show a partial hover background for the empty task list', async () => {
+  localStorage.removeItem('uid');
+  const host = document.createElement('div');
+  const root = createRoot(host);
+  jest.mocked(http.get).mockResolvedValue({ tasks: [], total: 0 });
+
+  await act(async () => root.render(<TaskList namespaceId="test" />));
+
+  const emptyRow = host.querySelector('tbody tr');
+  expect(emptyRow?.textContent).toContain('tasks.no_tasks');
+  expect(emptyRow?.className).toContain('hover:bg-transparent');
+
+  act(() => root.unmount());
+});

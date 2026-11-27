@@ -80,7 +80,7 @@ export function useCreateRssFolderDialogState({
   const maxLinkCount =
     limits?.linkLimit ?? (resolvedTier === 'premium' ? 10 : 1);
   const remainingLinkCount = Math.max(maxLinkCount - rows.length, 0);
-  const showUpgradeButton = resolvedTier === 'basic';
+  const isBasic = resolvedTier === 'basic';
   const canAddLink = rows.length < maxLinkCount;
   const disableAddMessage = t(
     resolvedTier === 'basic'
@@ -311,7 +311,7 @@ export function useCreateRssFolderDialogState({
     setConfirmCloseOpen,
     maxLinkCount,
     remainingLinkCount,
-    showUpgradeButton,
+    isBasic,
     canAddLink,
     disableAddMessage,
     canSubmit,

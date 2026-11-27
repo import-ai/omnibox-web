@@ -19,12 +19,14 @@ jest.mock('./ThinkingLevelSelector', () => ({
   __esModule: true,
   default: ({
     onChange,
+    onLevelCommit,
     onGroupChange,
     group,
     basicUnsupported,
     surface,
   }: {
     onChange: (level: string) => void;
+    onLevelCommit?: (level: string) => void;
     onGroupChange: (group: string) => void;
     group?: string;
     basicUnsupported?: boolean;
@@ -33,6 +35,27 @@ jest.mock('./ThinkingLevelSelector', () => ({
     <>
       <button data-testid="select-high" onClick={() => onChange('basic.high')}>
         High
+      </button>
+      <button data-testid="preview-pro" onClick={() => onChange('pro.high')}>
+        Preview Pro
+      </button>
+      <button
+        data-testid="commit-pro"
+        onClick={() => onLevelCommit?.('pro.high')}
+      >
+        Commit Pro
+      </button>
+      <button
+        data-testid="preview-basic"
+        onClick={() => onChange('basic.high')}
+      >
+        Preview Basic
+      </button>
+      <button
+        data-testid="commit-basic"
+        onClick={() => onLevelCommit?.('basic.high')}
+      >
+        Commit Basic
       </button>
       <button
         data-testid="select-default"
@@ -93,9 +116,21 @@ jest.mock('./ApprovalModeSelect', () => ({
     <span data-testid="approval" data-surface={surface} />
   ),
 }));
-jest.mock('./ContextCapacityIndicator', () => ({
+jest.mock('./AgentCreditsIndicator', () => ({
   __esModule: true,
-  default: () => null,
+  default: ({
+    namespaceId,
+    isGenerating,
+  }: {
+    namespaceId: string;
+    isGenerating?: boolean;
+  }) => (
+    <span
+      data-testid="agent-credits"
+      data-namespace={namespaceId}
+      data-generating={String(!!isGenerating)}
+    />
+  ),
 }));
 jest.mock('./DecisionInput', () => ({
   __esModule: true,
@@ -340,6 +375,102 @@ describe('ChatArea', () => {
     ).toEqual({ group: 'basic', step: 'basic.high' });
   });
 
+  it('updates the credits indicator only after the model selection is committed', async () => {
+    (http.get as jest.Mock).mockResolvedValueOnce({
+      default: {
+        default: { edition: 'basic', level: 'low' },
+        levels: [
+          { edition: 'basic', level: 'low' },
+          { edition: 'basic', level: 'high' },
+          { edition: 'pro', level: 'high' },
+        ],
+      },
+    });
+    await act(async () =>
+      root.render(
+        <ChatArea
+          loading={false}
+          messages={[]}
+          namespaceId="namespace-a"
+          navigatePrefix="/namespace-a"
+          selectedResources={[]}
+          sendMessage={jest.fn()}
+          setSelectedResources={jest.fn()}
+        />
+      )
+    );
+    await act(async () => Promise.resolve());
+
+    const credits = () =>
+      container.querySelector('[data-testid="agent-credits"]');
+    expect(credits()).toBeNull();
+
+    await act(async () =>
+      (
+        container.querySelector('[data-testid="preview-pro"]') as HTMLElement
+      ).click()
+    );
+    expect(credits()).toBeNull();
+
+    await act(async () =>
+      (
+        container.querySelector('[data-testid="commit-pro"]') as HTMLElement
+      ).click()
+    );
+    expect(credits()?.getAttribute('data-namespace')).toBe('namespace-a');
+
+    await act(async () =>
+      (
+        container.querySelector('[data-testid="preview-basic"]') as HTMLElement
+      ).click()
+    );
+    expect(credits()).not.toBeNull();
+
+    await act(async () =>
+      (
+        container.querySelector('[data-testid="commit-basic"]') as HTMLElement
+      ).click()
+    );
+    expect(credits()).toBeNull();
+  });
+
+  it('passes the generation state to the credits indicator', async () => {
+    localStorage.setItem(
+      'thinking-level:/namespace-a',
+      JSON.stringify({ group: 'pro', step: 'pro.high' })
+    );
+    (http.get as jest.Mock).mockResolvedValueOnce({
+      default: {
+        default: { edition: 'pro', level: 'high' },
+        levels: [
+          { edition: 'basic', level: 'low' },
+          { edition: 'pro', level: 'high' },
+        ],
+      },
+    });
+
+    await act(async () =>
+      root.render(
+        <ChatArea
+          loading
+          messages={[]}
+          namespaceId="namespace-a"
+          navigatePrefix="/namespace-a"
+          selectedResources={[]}
+          sendMessage={jest.fn()}
+          setSelectedResources={jest.fn()}
+        />
+      )
+    );
+    await act(async () => Promise.resolve());
+
+    expect(
+      container
+        .querySelector('[data-testid="agent-credits"]')
+        ?.getAttribute('data-generating')
+    ).toBe('true');
+  });
+
   it('stays on Default when Agent 2.1 credits are exhausted', async () => {
     (http.get as jest.Mock).mockResolvedValue({
       basic: {
@@ -517,7 +648,7 @@ describe('ChatArea', () => {
     ['a pending decision on the page', pendingMessages],
     ['a pending decision found while sending', []],
   ])(
-    'puts the exact draft back into the empty composer when %s cannot be rejected',
+    'keeps the exact draft when %s cannot be rejected',
     async (_case, messages) => {
       const sendMessage = jest
         .fn()
@@ -536,16 +667,47 @@ describe('ChatArea', () => {
           selectedResources: [welcome],
         })
       );
-      expect(mockInputClear).toHaveBeenCalledTimes(1);
-      // The editor document itself, mentions included, not a markdown refill.
-      expect(mockRestore).toHaveBeenCalledWith({
-        displayText: '一句话总结这个文档',
-        mentions: [mockMention],
-        toolRanges: [],
-      });
+      if (messages.length) {
+        expect(mockInputClear).not.toHaveBeenCalled();
+        expect(mockRestore).not.toHaveBeenCalled();
+      } else {
+        expect(mockInputClear).toHaveBeenCalledTimes(1);
+        expect(mockRestore).toHaveBeenCalledWith({
+          displayText: '一句话总结这个文档',
+          mentions: [mockMention],
+          toolRanges: [],
+        });
+      }
       expect(composerValue()).toBe('一句话总结这个文档');
     }
   );
+
+  it('keeps a conversation draft until the server accepts it', async () => {
+    const sendMessage = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValueOnce(undefined);
+    await act(async () =>
+      root.render(
+        <ChatArea
+          composerSurface="conversation"
+          initialQuery="保留这条草稿"
+          navigatePrefix="/namespace-a"
+          loading={false}
+          messages={[]}
+          selectedResources={[]}
+          setSelectedResources={jest.fn()}
+          sendMessage={sendMessage}
+        />
+      )
+    );
+    await clickSend();
+    expect(composerValue()).toBe('保留这条草稿');
+    expect(mockInputClear).not.toHaveBeenCalled();
+    await clickSend();
+    expect(sendMessage).toHaveBeenCalledTimes(2);
+    expect(composerValue()).toBe('');
+  });
 
   it('leaves text typed during a held send alone', async () => {
     let refuse!: () => void;
@@ -592,6 +754,53 @@ describe('ChatArea', () => {
     await renderArea(jest.fn(), pendingMessages);
 
     expect(mockMounts).toBe(1);
+  });
+
+  it('keeps a rich steer draft on rejection and clears it after delivery', async () => {
+    const steerMessage = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('Run finished'))
+      .mockResolvedValueOnce(undefined);
+    const sendMessage = jest.fn();
+    await act(async () =>
+      root.render(
+        <ChatArea
+          loading
+          initialQuery="follow up"
+          messages={[]}
+          navigatePrefix="/ns"
+          selectedResources={[]}
+          setSelectedResources={jest.fn()}
+          sendMessage={sendMessage}
+          steerMessage={steerMessage}
+        />
+      )
+    );
+    await act(async () =>
+      (
+        container.querySelector('[data-testid="add-image"]') as HTMLElement
+      ).click()
+    );
+    const send = () =>
+      (container.querySelector('[data-testid="send"]') as HTMLElement).click();
+    await act(async () => send());
+    expect(
+      (container.querySelector('textarea') as HTMLTextAreaElement).value
+    ).toBe('follow up');
+    expect(
+      container.querySelector('[data-testid="image-count"]')?.textContent
+    ).toBe('1');
+    await act(async () => send());
+    expect(steerMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        query: 'follow up',
+        images: [expect.objectContaining({ name: 'image.png' })],
+      })
+    );
+    expect(sendMessage).not.toHaveBeenCalled();
+    expect(
+      (container.querySelector('textarea') as HTMLTextAreaElement).value
+    ).toBe('');
   });
 
   it.each(['Enter', 'click', 'mixed'])(

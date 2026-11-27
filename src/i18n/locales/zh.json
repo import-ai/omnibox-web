@@ -1,4 +1,21 @@
 {
+  "image_viewer": {
+    "controls": "图片操作",
+    "previous": "上一张",
+    "next": "下一张",
+    "zoom_out": "缩小",
+    "zoom_in": "放大",
+    "actual_size": "原始尺寸",
+    "fit": "适应窗口",
+    "rotate": "旋转",
+    "open_original": "打开原图",
+    "first_image": "已是第一张",
+    "last_image": "已是最后一张",
+    "min_zoom": "已缩至最小",
+    "max_zoom": "已放至最大",
+    "zoom_unavailable": "图片未就绪，无法缩放",
+    "rotate_unavailable": "图片未就绪，无法旋转"
+  },
   "back_to_front": "返回首页",
   "untitled": "未命名",
   "edit": "编辑",
@@ -6,6 +23,111 @@
   "rename": "重命名",
   "cancel": "取消",
   "close": "关闭",
+  "paywall": {
+    "brand": "小黑 OmniBox",
+    "non_owner_title": "请联系空间所有者升级",
+    "acknowledge": "我知道了",
+    "storage_limit": {
+      "basic": {
+        "title": "已达 5 GB 存储上限",
+        "description": "升级高级版解锁更大空间",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达 50 GB 存储上限",
+        "description": "想存入更多内容，前往投喂小黑",
+        "cta": "购买加油包"
+      }
+    },
+    "credits_low": {
+      "title": "猫粮快用完啦！",
+      "description": "获取更多投喂小黑",
+      "cta": "了解高级版",
+      "non_owner_description": "猫粮快用完啦"
+    },
+    "credits_limit": {
+      "basic": {
+        "title": "猫粮吃光啦！",
+        "description": "升级高级版，以获得更多猫粮",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "猫粮吃光啦！",
+        "description": "想要投喂小黑，前往购买更多",
+        "cta": "购买加油包"
+      }
+    },
+    "namespace_create": {
+      "title": "已达创建上限",
+      "description": "前往购买更多空间",
+      "cta": "购买新空间"
+    },
+    "search_filter_limit": {
+      "basic": {
+        "title": "已达 3 条筛选上限",
+        "description": "升级高级版解锁更多筛选条件",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达筛选上限",
+        "description": "删除部分筛选条件后即可继续添加",
+        "cta": "我知道了"
+      }
+    },
+    "smart_filter_limit": {
+      "basic": {
+        "title": "已达 3 条筛选上限",
+        "description": "升级高级版解锁更多筛选条件",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达筛选上限",
+        "description": "删除部分筛选条件后即可继续添加",
+        "cta": "我知道了"
+      }
+    },
+    "rss_link_limit": {
+      "basic": {
+        "title": "已达订阅链接上限",
+        "description": "升级高级版解锁更多",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达订阅链接上限",
+        "description": "删除部分链接后即可继续添加",
+        "cta": "我知道了"
+      }
+    },
+    "smart_folder_limit": {
+      "basic": {
+        "title": "已达智能文件夹数量上限",
+        "description": "升级高级版解锁更多",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达智能文件夹数量上限",
+        "description": "删除部分智能文件夹后即可继续创建",
+        "cta": "我知道了"
+      }
+    },
+    "rss_folder_limit": {
+      "basic": {
+        "title": "已达订阅文件夹数量上限",
+        "description": "升级高级版解锁更多",
+        "cta": "了解高级版"
+      },
+      "premium": {
+        "title": "已达订阅文件夹数量上限",
+        "description": "删除部分订阅文件夹后即可继续创建",
+        "cta": "我知道了"
+      }
+    },
+    "namespace_expired": {
+      "title": "空间已到期",
+      "description": "请续费或购买新空间",
+      "cta": "了解高级版"
+    }
+  },
   "ok": "确定",
   "undo": "撤销",
   "no_pages_inside": "内无页面",
@@ -872,6 +994,12 @@
       "send_failed": "发送失败",
       "retry_send": "重新发送",
       "decision_submitted": "权限选择已提交",
+      "decision_executing": "已批准，正在执行",
+      "decision_rejecting": "已拒绝，正在处理",
+      "decision_completed": "操作已完成",
+      "decision_failed": "执行失败",
+      "decision_unknown": "执行结果未知",
+      "decision_retry": "重试",
       "thinking": "思考中"
     },
     "tips": "请输入消息",
@@ -882,6 +1010,8 @@
       "add": "添加图片",
       "remove": "移除图片",
       "preview": "预览图片",
+      "zoom_in": "放大",
+      "fit_width": "适应宽度",
       "share_unsupported": "分享聊天不支持上传图片",
       "agent_1_1_unsupported": "Agent 1.1 不支持图片输入"
     },
@@ -1104,14 +1234,19 @@
       }
     },
     "agent_credits": {
-      "text": "猫粮已用尽，可切换至 Agent 1.1 或购买猫粮",
-      "compact_text": "猫粮不足",
-      "compact_tooltip": "猫粮不足",
+      "compact_text": "猫粮已用尽",
+      "compact_tooltip": "已切换至 Agent 1.1",
       "not_owner": "请联系空间所有者购买猫粮",
       "expand_button": "购买",
-      "tooltip": {
-        "base": "购买或升级后可继续使用 Agent 2.1"
-      }
+      "upgrade_button": "升级",
+      "buy_button": "购买"
+    },
+    "credits_low": {
+      "title": "猫粮快用完啦",
+      "owner_description": "获取更多投喂小黑",
+      "non_owner_description": "请联系空间所有者购买",
+      "buy_button": "购买",
+      "acknowledge_button": "我知道了"
     },
     "trial": {
       "not_owner": "请联系空间所有者进行升级"
@@ -1337,6 +1472,7 @@
       "file_reader_image": "图片解析",
       "message_index": "消息索引",
       "upsert_message_index": "消息索引",
+      "update_memory": "更新记忆",
       "delete_conversation": "删除对话",
       "extract_tags": "生成标签",
       "generate_title": "生成标题",
@@ -1500,6 +1636,7 @@
     "activity_types": {
       "reward": "奖励猫粮",
       "subscription": "订阅猫粮",
+      "subscription_expired": "订阅猫粮过期",
       "topup": "加油包",
       "pdf": "PDF 解析",
       "image": "图片解析",
@@ -1715,7 +1852,7 @@
       "skip": "跳过",
       "submit": "绑定并领取奖励",
       "description": "为确认新用户身份并发放邀请奖励，请绑定手机号。",
-      "bubble": "绑定手机号，领取 600 猫粮"
+      "bubble": "为确认新用户身份并发放邀请奖励，请绑定手机号～"
     },
     "code": {
       "entry": "有邀请码？填写 >",

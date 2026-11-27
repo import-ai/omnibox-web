@@ -51,8 +51,20 @@ jobs:
       - name: Run lint
         run: pnpm run lint
 
+      - name: Test resource body clipboard cleanup
+        run: pnpm exec jest src/page/resource/actions/copyBodyMarkdown.test.ts src/page/resource/actions/copyContent.test.ts --runInBand
+
       - name: Test credit usage and ledger pagination
         run: pnpm exec jest src/page/settings/tabs/quota src/hooks/useQuota.test.tsx --runInBand
+
+      - name: Test composer credit usage indicator
+        run: pnpm exec jest src/page/chat/chat-input/AgentCreditsIndicator src/page/chat/chat-input/ThinkingLevelSelector.test.tsx src/page/chat/chat-input/useThinkingLevel.test.tsx --runInBand
+
+      - name: Run low Kibble prompt regression tests
+        run: pnpm exec jest src/page/chat/agent-credits src/page/chat/credits-low-balance src/components/paywall/PaywallDialog.test.tsx --runInBand
+
+      - name: Test task management
+        run: pnpm exec jest src/page/settings/tabs/members/tasks/TaskList.test.tsx --runInBand
 
       - name: Test invite permission validation
         run: pnpm exec jest src/components/invite-dialog/people/InviteForm.test.tsx --runInBand
@@ -68,6 +80,9 @@ jobs:
 
       - name: Test namespace member count refresh
         run: pnpm exec jest src/hooks/useNamespaceMember.test.tsx --runInBand
+
+      - name: Test task type labels
+        run: pnpm exec jest src/page/settings/tabs/members/tasks/TaskTypeBadge.test.tsx src/page/settings/tabs/members/tasks/TaskList.test.tsx --runInBand
 
       - name: Test anonymous captcha entry
         run: pnpm exec jest src/page/captcha/CaptchaPage.test.tsx src/hooks/useCaptcha.test.tsx src/lib/captcha.test.ts --runInBand
@@ -86,6 +101,9 @@ jobs:
 
       - name: Test shared resource image attachments
         run: pnpm exec jest src/page/resource/shareAttachmentUrls.test.ts src/page/resource/useResourceImageFailures.test.tsx src/page/shared-resource/index.test.tsx --runInBand
+
+      - name: Test resource comment regressions
+        run: pnpm exec jest src/page/resource/comments --runInBand
 
       - name: Test invite referral tracking
         run: pnpm exec jest src/page/inviteReferral/InviteReferralEntryExposure.test.tsx src/page/inviteReferral/tracking.test.ts src/lib/sendTrackEvent.test.ts --runInBand

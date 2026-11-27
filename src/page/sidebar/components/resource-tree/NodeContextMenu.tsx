@@ -9,6 +9,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '@/components/ui/ContextMenu';
+import type { Namespace } from '@/interface';
 import { onOverlayClose } from '@/lib/trackButtonClick';
 import { cn } from '@/lib/utils';
 import MoveTo from '@/page/resource/actions/move';
@@ -24,6 +25,7 @@ import { menuIconClass, menuItemClass } from './shared';
 interface NodeContextMenuProps {
   nodeId: string;
   namespaceId: string;
+  currentNamespace?: Namespace;
   children: React.ReactNode;
   onRename?: () => void;
   batchActions?: BatchMenuActions;
@@ -32,6 +34,7 @@ interface NodeContextMenuProps {
 export default function NodeContextMenu({
   nodeId,
   namespaceId,
+  currentNamespace,
   children,
   onRename,
   batchActions,
@@ -55,7 +58,7 @@ export default function NodeContextMenu({
     }
   }, [isActuallyDragging, contextOpen]);
 
-  const actions = useNodeActions(nodeId, namespaceId);
+  const actions = useNodeActions(nodeId, namespaceId, currentNamespace);
   const { node } = actions;
 
   if (!node) {

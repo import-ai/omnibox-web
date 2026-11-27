@@ -51,7 +51,7 @@ export function setStoredInviteRegistration(value: InviteRegistrationContext) {
   sessionStorage.removeItem(INVITE_SOURCE_KEY);
 }
 
-export type InviteLanding = 'invite' | 'activation';
+export type InviteLanding = 'invite';
 
 export function markInviteReferralLanding(requiresPhoneBinding: boolean) {
   sessionStorage.setItem(INVITE_LANDING_KEY, 'invite');
@@ -62,11 +62,6 @@ export function markInviteReferralLanding(requiresPhoneBinding: boolean) {
   }
 }
 
-export function markOrganicActivationLanding() {
-  sessionStorage.setItem(INVITE_LANDING_KEY, 'activation');
-  sessionStorage.removeItem(INVITE_PHONE_BINDING_KEY);
-}
-
 export function isActivationEntry(entry: string | null) {
   return entry === 'activation';
 }
@@ -74,7 +69,6 @@ export function isActivationEntry(entry: string | null) {
 export function consumeInviteReferralLanding(): InviteLanding | null {
   const value = sessionStorage.getItem(INVITE_LANDING_KEY);
   sessionStorage.removeItem(INVITE_LANDING_KEY);
-  if (value === 'activation') return 'activation';
   if (value === '1' || value === 'invite') return 'invite';
   return null;
 }
@@ -130,14 +124,13 @@ export async function registerInviteAfterLogin(
 ): Promise<{
   error?: unknown;
   result: InviteRegistrationResult | null;
-  activation?: boolean;
 }> {
   const { code, source } = getStoredInviteRegistration();
   if (!shouldRegisterInvite(isNewUser, code)) {
     // Do not let an existing user's invite attribution leak into a later
     // registration in the same browser session.
     setStoredInviteRegistration({ code: '', source: 'manual' });
-    return { result: null, activation: isNewUser };
+    return { result: null };
   }
   try {
     setStoredInviteRegistration({ code: '', source: 'manual' });

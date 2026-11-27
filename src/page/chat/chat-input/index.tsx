@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { v4 as uuidv4 } from 'uuid';
 
+import { usePaywall } from '@/components/paywall/paywallContext';
 import { WorkspaceResourcePicker } from '@/components/resourcePicker';
 import type { ResourceMeta } from '@/interface';
 import { normalizeResourceMeta } from '@/lib/resourceMeta';
@@ -28,9 +29,9 @@ import {
 import type { StreamState } from '@/page/chat/conversation/chatStreamRecovery';
 import { PendingDecisionNotRejected } from '@/page/chat/conversation/pendingDecisionSend';
 import { MessageDetail } from '@/page/chat/core/types/conversation.ts';
-import { getLatestContextCompactCapacity } from '@/page/chat/messages/role/assistantMessageUtils';
 import type { TreeNode } from '@/page/sidebar/store';
 
+import AgentCreditsIndicator from './AgentCreditsIndicator';
 import ApprovalModeSelect from './ApprovalModeSelect';
 import ChatAction from './ChatAction';
 import { CHAT_IMAGE_TYPES } from './chatImages';
@@ -41,7 +42,6 @@ import {
 } from './chatInputDraft';
 import { beginChatSubmissionPreparation } from './chatSubmissionStore';
 import ChatTool from './ChatTool';
-import ContextCapacityIndicator from './ContextCapacityIndicator';
 import ThinkingLevelSelector from './ThinkingLevelSelector';
 import { useChatAreaDraftLifecycle } from './useChatAreaDraftLifecycle';
 import {
@@ -70,6 +70,7 @@ interface IProps {
   proUnsupported?: boolean;
   initialQuery?: string;
   fillQuery?: string;
+  steerMessage?: (params: SendMessageParams) => Promise<void>;
   sendMessage: (params: SendMessageParams) => void | Promise<void>;
   // Keep the text box next to the decision buttons; text sent there rejects
   // the pending tool calls first (the sendMessage handler does that).
@@ -101,26 +102,34 @@ export default function ChatArea(props: IProps) {
     initialQuery,
     fillQuery: fillQueryText,
     sendMessage,
+    steerMessage,
     textWhilePending = false,
     onStop,
     composerSurface = messages.length > 0 ? 'conversation' : 'home',
   } = props;
   const { t } = useTranslation();
+  const { showPaywall } = usePaywall();
   const {
     config: thinkingConfig,
     selection,
+    committedSelection,
     changeLevel,
+    commitLevel,
     group: thinkingGroup,
     changeGroup,
     proLocked,
   } = useThinkingLevel(navigatePrefix, messages);
+  // `proLocked` comes from the models config (`pro_available === false`),
+  // `proUnsupported` from an exhausted Kibble balance. Both need the same
+  // paywall, and both must leave the Pro entry clickable.
+  const proNeedsPaywall = proLocked || proUnsupported;
 
   useEffect(() => {
     props.onThinkingSelectionChange?.(selection);
   }, [props.onThinkingSelectionChange, selection?.edition, selection?.level]);
 
   useEffect(() => {
-    if (!(proUnsupported || proLocked) || selection?.edition !== 'pro') return;
+    if (!proNeedsPaywall || selection?.edition !== 'pro') return;
     if (thinkingGroup === 'default') {
       const step = availableThinkingStep(thinkingConfig?.default, {
         pro: true,
@@ -131,8 +140,7 @@ export default function ChatArea(props: IProps) {
     if (thinkingGroup === 'pro') changeGroup('basic');
   }, [
     changeGroup,
-    proUnsupported,
-    proLocked,
+    proNeedsPaywall,
     selection?.edition,
     thinkingGroup,
     thinkingConfig,
@@ -143,7 +151,7 @@ export default function ChatArea(props: IProps) {
   const [images, setImages] = useState<ComposerChatImage[]>(() =>
     getChatInputImageDraft(draftScope)
   );
-  const submittingRef = useRef(false);
+  const submittingRef = useRef<symbol | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPreparingImages, setIsPreparingImages] = useState(false);
   const imagesRef = useRef(images);
@@ -197,7 +205,6 @@ export default function ChatArea(props: IProps) {
     }
   }, [selection?.edition, composerTools, inputRef]);
 
-  const contextCompactCapacity = getLatestContextCompactCapacity(messages);
   const defaultResourcePicker = namespaceId
     ? (onSelect: (resource: ResourceMeta) => void) => (
         <WorkspaceResourcePicker
@@ -213,7 +220,7 @@ export default function ChatArea(props: IProps) {
     imageUploadDisabled || selection?.edition === 'basic';
   const hasUnsupportedImages = imageUploadBlocked && images.length > 0;
   const disabled =
-    loading ||
+    (loading && (!steerMessage || streamState === 'offline')) ||
     isSubmitting ||
     hasUnsupportedImages ||
     !query ||
@@ -280,7 +287,8 @@ export default function ChatArea(props: IProps) {
         draftScope
       );
       if (!finishPreparation) return;
-      submittingRef.current = true;
+      const submission = Symbol();
+      submittingRef.current = submission;
       setIsSubmitting(true);
       try {
         const localTools = selection
@@ -312,21 +320,34 @@ export default function ChatArea(props: IProps) {
           composerTextRef.current = '';
           setIsPreparingImages(false);
         };
-        if (pendingImages.length) setIsPreparingImages(true);
+        if (
+          pendingImages.length ||
+          steerMessage ||
+          composerSurface === 'conversation'
+        )
+          setIsPreparingImages(true);
         else clearPreparedDraft();
         try {
-          await sendMessage({
+          await (steerMessage ?? sendMessage)({
             query: v,
             selectedResources: localContext,
             tools: localTools,
             mode,
             approvalMode,
             displayParts: localDisplayParts,
+            ...(composerSurface === 'home' && { composerState: draft.state }),
             images: pendingImages,
             ...selection,
             onImagesUploaded: () => {
               clearPreparedDraft();
               finishPreparation();
+              // Keep the synchronous double-submit guard until React applies the draft clear.
+              queueMicrotask(() => {
+                if (submittingRef.current === submission) {
+                  submittingRef.current = null;
+                  setIsSubmitting(false);
+                }
+              });
             },
           });
         } catch (error) {
@@ -354,6 +375,17 @@ export default function ChatArea(props: IProps) {
                 }))
               );
             });
+            // A refusal can arrive before React has flushed the composer
+            // clear from the send; when that clear lands after this restore
+            // the editor is empty while the draft's query is set. Re-assert
+            // the editor once the queue has drained; a draft the user typed
+            // in the meantime is already in the editor and is left alone.
+            window.setTimeout(() => {
+              const editor = inputRef.current?.getState();
+              if (editor && !editor.displayText && state.displayText) {
+                inputRef.current?.restore(state);
+              }
+            }, 0);
           }
           throw error;
         }
@@ -362,9 +394,11 @@ export default function ChatArea(props: IProps) {
         // Request and stream layers report errors; allow a new submission.
       } finally {
         finishPreparation();
-        submittingRef.current = false;
-        setIsSubmitting(false);
-        setIsPreparingImages(false);
+        if (submittingRef.current === submission) {
+          submittingRef.current = null;
+          setIsSubmitting(false);
+          setIsPreparingImages(false);
+        }
       }
     }
   }, [
@@ -374,11 +408,13 @@ export default function ChatArea(props: IProps) {
     selection,
     disabled,
     clearComposerAfterSend,
+    composerSurface,
     inputRef,
     mode,
     query,
     selectedResources,
     sendMessage,
+    steerMessage,
     tools,
     images,
     handleToolsChange,
@@ -475,8 +511,11 @@ export default function ChatArea(props: IProps) {
           />
         </fieldset>
         <div className="flex items-center gap-2">
-          {contextCompactCapacity && (
-            <ContextCapacityIndicator capacity={contextCompactCapacity} />
+          {namespaceId && committedSelection?.edition === 'pro' && (
+            <AgentCreditsIndicator
+              namespaceId={namespaceId}
+              isGenerating={loading}
+            />
           )}
           {thinkingConfig && selection && (
             <ThinkingLevelSelector
@@ -484,9 +523,16 @@ export default function ChatArea(props: IProps) {
               group={thinkingGroup}
               onGroupChange={next => {
                 if (basicUnsupported && next === 'basic') return;
-                if ((proLocked || proUnsupported) && next === 'pro') return;
+                if (proNeedsPaywall && next === 'pro') {
+                  showPaywall('credits_limit', {
+                    namespaceId,
+                    quotaExhausted: proUnsupported,
+                    trigger: 'chat_thinking_pro',
+                  });
+                  return;
+                }
                 const step = availableThinkingStep(thinkingConfig?.[next], {
-                  pro: next === 'default' && (proLocked || proUnsupported),
+                  pro: next === 'default' && proNeedsPaywall,
                   basic: next === 'default' && basicUnsupported,
                 });
                 if (step) changeGroup(next, step);
@@ -495,8 +541,28 @@ export default function ChatArea(props: IProps) {
               value={selection}
               onChange={next => {
                 if (basicUnsupported && next.startsWith('basic.')) return;
+                if (proNeedsPaywall && next.startsWith('pro.')) {
+                  showPaywall('credits_limit', {
+                    namespaceId,
+                    quotaExhausted: proUnsupported,
+                    trigger: 'chat_thinking_pro',
+                  });
+                  return;
+                }
                 changeLevel(next);
               }}
+              onLevelCommit={next => {
+                if (basicUnsupported && next.startsWith('basic.')) return;
+                if (proNeedsPaywall && next.startsWith('pro.')) return;
+                commitLevel(next);
+              }}
+              onProLocked={() =>
+                showPaywall('credits_limit', {
+                  namespaceId,
+                  quotaExhausted: proUnsupported,
+                  trigger: 'chat_thinking_pro',
+                })
+              }
               proLocked={proLocked}
               proUnsupported={proUnsupported}
               basicUnsupported={basicUnsupported}
@@ -514,8 +580,8 @@ export default function ChatArea(props: IProps) {
                   t('chat.image.agent_1_1_unsupported'))
                 : undefined
             }
-            loading={loading}
-            waitingForAssistantDelta={waitingForAssistantDelta}
+            loading={loading && !(steerMessage && query.trim())}
+            waitingForAssistantDelta={waitingForAssistantDelta && !steerMessage}
             streamState={streamState}
             mode={mode}
             setMode={setMode}

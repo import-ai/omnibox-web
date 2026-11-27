@@ -79,16 +79,19 @@ async function renderSelector(
 }
 
 describe('ThinkingLevelSelector', () => {
-  it('shows a tooltip for disabled Agent 2.1 when credits are exhausted', async () => {
-    const { container, root } = await renderSelector({ proUnsupported: true });
+  it('opens the paywall for Agent 2.1 when credits are exhausted', async () => {
+    const onProLocked = jest.fn();
+    const { container, root } = await renderSelector({
+      proUnsupported: true,
+      onProLocked,
+    });
     try {
       const pro = [...container.querySelectorAll('button')].find(button =>
         button.textContent?.includes('chat.model.pro')
       );
-      expect(pro?.disabled).toBe(true);
-      expect(
-        container.querySelector('[data-testid="model-tooltip"]')?.textContent
-      ).toBe('chat.agent_credits.compact_tooltip');
+      expect(pro?.disabled).toBe(false);
+      await act(async () => pro?.click());
+      expect(onProLocked).toHaveBeenCalledTimes(1);
     } finally {
       await act(async () => root.unmount());
     }
@@ -104,6 +107,25 @@ describe('ThinkingLevelSelector', () => {
       expect(
         container.querySelector('[data-testid="model-tooltip"]')
       ).toBeNull();
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
+
+  it('keeps Agent 2.1 clickable when only the credits are exhausted', async () => {
+    const onProLocked = jest.fn();
+    const { container, root } = await renderSelector({
+      group: 'default',
+      proLocked: true,
+      onProLocked,
+    });
+    try {
+      const pro = [...container.querySelectorAll('button')].find(button =>
+        button.textContent?.includes('chat.model.pro')
+      );
+      expect(pro?.disabled).toBe(false);
+      await act(async () => pro?.click());
+      expect(onProLocked).toHaveBeenCalledTimes(1);
     } finally {
       await act(async () => root.unmount());
     }
@@ -192,6 +214,60 @@ describe('ThinkingLevelSelector', () => {
         'input[type="range"]'
       ) as HTMLInputElement;
       expect(slider.max).toBe('0');
+    } finally {
+      await act(async () => root.unmount());
+    }
+  });
+
+  it('commits the slider level only when the drag ends', async () => {
+    const onChange = jest.fn();
+    const onLevelCommit = jest.fn();
+    const container = document.createElement('div');
+    const root = createRoot(container);
+    function SliderHarness() {
+      const [value, setValue] = React.useState<{
+        edition: 'basic' | 'pro';
+        level: string;
+      }>({
+        edition: 'basic',
+        level: 'low',
+      });
+      return (
+        <ThinkingLevelSelector
+          config={config}
+          group="default"
+          onGroupChange={jest.fn()}
+          value={value}
+          onChange={next => {
+            onChange(next);
+            const [edition, level] = next.split('.');
+            setValue({ edition: edition as 'basic' | 'pro', level });
+          }}
+          onLevelCommit={onLevelCommit}
+        />
+      );
+    }
+    await act(async () => root.render(<SliderHarness />));
+    try {
+      const slider = container.querySelector(
+        'input[type="range"]'
+      ) as HTMLInputElement;
+      const setValue = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        'value'
+      )!.set!;
+      await act(async () => {
+        setValue.call(slider, '1');
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+
+      expect(onChange).toHaveBeenLastCalledWith('pro.low');
+      expect(onLevelCommit).not.toHaveBeenCalled();
+
+      await act(async () => {
+        slider.dispatchEvent(new Event('pointerup', { bubbles: true }));
+      });
+      expect(onLevelCommit).toHaveBeenCalledWith('pro.low');
     } finally {
       await act(async () => root.unmount());
     }

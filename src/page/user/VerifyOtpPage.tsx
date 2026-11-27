@@ -15,6 +15,7 @@ import {
   withInviteCode,
 } from '@/page/inviteReferral/authInviteParams';
 import { completeAuthRedirect } from '@/page/inviteReferral/completeAuth';
+import { isValidInviteCode } from '@/page/inviteReferral/registrationPolicy';
 
 import { OtpInput } from './components/OtpInput';
 import MetaPage from './MetaPage';
@@ -29,6 +30,7 @@ export default function VerifyOtpPage() {
   const phone = params.get('phone');
   const redirect = params.get('redirect');
   const magicToken = params.get('token');
+  const openedWithInvite = isValidInviteCode(params.get('invite_code') ?? '');
 
   // Determine verification type
   const isPhoneVerification = !!phone && !email;
@@ -48,8 +50,7 @@ export default function VerifyOtpPage() {
 
   useEffect(() => {
     // Check if user is already logged in
-    const uid = localStorage.getItem('uid');
-    if (uid) {
+    if (!openedWithInvite && localStorage.getItem('uid')) {
       navigate('/', { replace: true });
       return;
     }
@@ -64,7 +65,7 @@ export default function VerifyOtpPage() {
     if (magicToken) {
       verifyMagicLink(magicToken);
     }
-  }, [email, phone, magicToken]);
+  }, [email, phone, magicToken, openedWithInvite]);
 
   useEffect(() => {
     // Countdown timer for resend button
