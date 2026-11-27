@@ -61,6 +61,7 @@ interface IProps {
   ) => ReactNode;
   initialApprovalMode?: ApprovalMode;
   approvalModeResetKey?: string;
+  onApprovalModeChange?: (mode: ApprovalMode) => void;
   suppressInitialToolRestore?: boolean;
   loading: boolean;
   waitingForAssistantDelta?: boolean;
@@ -92,6 +93,7 @@ export default function ChatArea(props: IProps) {
     renderResourcePicker,
     initialApprovalMode,
     approvalModeResetKey,
+    onApprovalModeChange,
     suppressInitialToolRestore = false,
     loading,
     waitingForAssistantDelta = false,
@@ -183,6 +185,10 @@ export default function ChatArea(props: IProps) {
     suppressInitialToolRestore,
     initialQuery,
   });
+
+  useEffect(() => {
+    onApprovalModeChange?.(approvalMode);
+  }, [approvalMode, onApprovalModeChange]);
   // The composer text as of its latest change, read when a failed send decides
   // whether the draft can go back without overwriting something new.
   const composerTextRef = useRef(query);
@@ -432,6 +438,7 @@ export default function ChatArea(props: IProps) {
       sendMessage={params =>
         sendMessage({
           ...params,
+          approvalMode,
           ...(interruptedTurn?.edition && interruptedTurn.level
             ? { edition: interruptedTurn.edition, level: interruptedTurn.level }
             : {}),

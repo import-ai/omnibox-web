@@ -234,6 +234,7 @@ export interface AskOutcome {
 }
 
 export interface AskOptions {
+  approvalMode?: ChatRequestBody['approval_mode'];
   // Report a pending decision in the outcome instead of showing it as an
   // error, so the caller can decide it and send the message again.
   deferPendingInterrupt?: boolean;
@@ -284,6 +285,7 @@ export function ask(
     edition,
     level
   );
+  chatReq.approval_mode = options.approvalMode;
   chatReq.namespace_id = namespaceId;
   chatReq.share_id = shareId;
   chatReq.share_password = sharePassword;

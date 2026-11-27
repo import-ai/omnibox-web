@@ -211,6 +211,7 @@ export function ConversationFooter({
             navigatePrefix={`/${context.namespaceId}`}
             initialApprovalMode={context.initialApprovalMode}
             approvalModeResetKey={context.conversation.id}
+            onApprovalModeChange={context.setApprovalMode}
             suppressInitialToolRestore={context.suppressInitialToolRestore}
             sendMessage={context.sendMessage}
             steerMessage={context.steerMessage}

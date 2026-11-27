@@ -346,14 +346,18 @@ describe('useContext conversation cache failures', () => {
       root.render(<EditProbe />);
     });
     await act(async () => {
+      context.setApprovalMode('auto_approve');
+    });
+    await act(async () => {
       await context.onEdit('message-a', 'Updated query');
     });
     expect(jest.mocked(ask).mock.calls.at(-1)?.[17]).toEqual([
       { attachment_id: 'att-1', name: 'image.png', url: '/preview/att-1' },
     ]);
-    expect(jest.mocked(ask).mock.calls.at(-1)?.slice(-2)).toEqual([
+    expect(jest.mocked(ask).mock.calls.at(-1)?.slice(-3)).toEqual([
       'pro',
       'max',
+      { approvalMode: 'auto_approve' },
     ]);
   });
 
