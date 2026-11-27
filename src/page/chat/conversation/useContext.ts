@@ -882,6 +882,7 @@ export default function useContext() {
       params.level
     );
 
+    content.approval_mode = params.approvalMode;
     content.recommended_question_id = params.recommendedQuestionId;
     const key = JSON.stringify([
       userId,
@@ -925,6 +926,9 @@ export default function useContext() {
     submissionRetry.current = null;
     submissions.remember({ ...saved, query: params.query });
   };
+
+  const [approvalMode, setApprovalMode] =
+    useState<SendMessageParams['approvalMode']>();
 
   const onRegenerate = async (messageId: string) => {
     if (regeneratingRef.current) {
@@ -971,7 +975,8 @@ export default function useContext() {
         undefined,
         undefined,
         parentMessage.attrs?.edition,
-        parentMessage.attrs?.level
+        parentMessage.attrs?.level,
+        { approvalMode }
       );
       recovery.reset();
       recovery.track(askFN);
@@ -1051,7 +1056,8 @@ export default function useContext() {
           ? messageId
           : undefined,
         editedMessage.attrs?.edition,
-        editedMessage.attrs?.level
+        editedMessage.attrs?.level,
+        { approvalMode }
       );
       recovery.reset();
       recovery.track(askFN);
@@ -1157,6 +1163,7 @@ export default function useContext() {
     streamState: recovery.streamState,
     onRegenerate,
     onEdit,
+    setApprovalMode,
     onStop,
     busyDecision,
     retryDecision,
